@@ -587,7 +587,12 @@ trait ScalanParsers[+G <: Global] {
       case _ => None
     }
   }
-
+  object TupleTypeTree {
+    def unapply(tree: TypeTree): Option[TypeName] = tree.symbol match {
+      case cs: ClassSymbol if cs.name == TypeName("Tuple2") => Some(cs.name)
+      case _ => None
+    }
+  }
   def parseExpr(tree: Tree)(implicit ctx: ParseCtx): SExpr = tree match {
     case q"${f @ q"scala.Array.fill"}[$tpe]($arg1)($arg2)($_)" =>
       applyArrayFill(parseExpr(f), Some(parseType(tpe.tpe)), parseExpr(arg1), parseExpr(arg2))
@@ -605,8 +610,10 @@ trait ScalanParsers[+G <: Global] {
     case q"$left = $right" => SAssign(parseExpr(left), parseExpr(right), tree2Type(tree))
     case q"$name.super[$qual].$field" => SSuper(name, qual, field, tree2Type(tree))
     case q"$expr.$tname" => SSelect(parseExpr(expr), tname, tree2Type(tree))
+    case Apply(Select(New(TupleTypeTree(tn)), termNames.CONSTRUCTOR), args) =>
+      SConstr(tn.toString(), args.map(parseExpr), tree2Type(tree))
     case Apply(Select(New(name), termNames.CONSTRUCTOR), args) =>
-      SContr(name.toString(), args.map(parseExpr), tree2Type(tree))
+      SConstr(name.toString(), args.map(parseExpr), tree2Type(tree))
     case Apply(Select(Ident(TermName("scala")), TermName(tuple)), args) if tuple.startsWith("Tuple") =>
       STuple(args.map(parseExpr), tree2Type(tree))
     case Block(init, last) => SBlock(init.map(parseExpr), parseExpr(last), tree2Type(tree))

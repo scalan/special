@@ -23,7 +23,7 @@ object ScalanAstTransformers {
       exprApply.copy(fun = newFun)
     }
     def thisTransform(sthis: SThis): SThis = sthis
-    def constrTransform(constr: SContr): SContr = {
+    def constrTransform(constr: SConstr): SConstr = {
       val newArgs = constr.args mapConserve exprTransform
       constr.copy(args = newArgs)
     }
@@ -50,7 +50,7 @@ object ScalanAstTransformers {
       case apply: SApply => applyTransform(apply)
       case exprApply: SExprApply => exprApplyTransform(exprApply)
       case select: SSelect => selectTransform(select)
-      case constr: SContr => constrTransform(constr)
+      case constr: SConstr => constrTransform(constr)
       case sthis: SThis => thisTransform(sthis)
       case ascr: SAscr => ascrTransform(ascr)
       case func: SFunc => funcTransform(func)

@@ -91,6 +91,102 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   implicit def isoColOverArray[A](implicit eA: Elem[A]): Iso[ColOverArrayData[A], ColOverArray[A]] =
     reifyObject(new ColOverArrayIso[A]()(eA))
 
+  case class PairOfColsCtor[L, R]
+      (override val ls: Rep[Col[L]], override val rs: Rep[Col[R]])
+    extends PairOfCols[L, R](ls, rs) with Def[PairOfCols[L, R]] {
+    implicit val eL = ls.eA;
+    implicit val eR = rs.eA
+    override implicit def eA: Elem[(L, R)] = element[(L,R)]
+    lazy val selfType = element[PairOfCols[L, R]]
+  }
+  // elem for concrete class
+  class PairOfColsElem[L, R](val iso: Iso[PairOfColsData[L, R], PairOfCols[L, R]])(implicit override val eL: Elem[L], override val eR: Elem[R])
+    extends PairColElem[L, R, PairOfCols[L, R]]
+    with ConcreteElem[PairOfColsData[L, R], PairOfCols[L, R]] {
+    override lazy val parent: Option[Elem[_]] = Some(pairColElement(element[L], element[R]))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
+    override def convertPairCol(x: Rep[PairCol[L, R]]) = PairOfCols(x.ls, x.rs)
+    override def getDefaultRep = PairOfCols(element[Col[L]].defaultRepValue, element[Col[R]].defaultRepValue)
+    override lazy val tag = {
+      implicit val tagL = eL.tag
+      implicit val tagR = eR.tag
+      weakTypeTag[PairOfCols[L, R]]
+    }
+  }
+
+  // state representation type
+  type PairOfColsData[L, R] = (Col[L], Col[R])
+
+  // 3) Iso for concrete class
+  class PairOfColsIso[L, R](implicit eL: Elem[L], eR: Elem[R])
+    extends EntityIso[PairOfColsData[L, R], PairOfCols[L, R]] with Def[PairOfColsIso[L, R]] {
+    override def from(p: Rep[PairOfCols[L, R]]) =
+      (p.ls, p.rs)
+    override def to(p: Rep[(Col[L], Col[R])]) = {
+      val Pair(ls, rs) = p
+      PairOfCols(ls, rs)
+    }
+    lazy val eFrom = pairElement(element[Col[L]], element[Col[R]])
+    lazy val eTo = new PairOfColsElem[L, R](self)
+    lazy val selfType = new PairOfColsIsoElem[L, R](eL, eR)
+    def productArity = 2
+    def productElement(n: Int) = n match {
+      case 0 => eL
+      case 1 => eR
+    }
+  }
+  case class PairOfColsIsoElem[L, R](eL: Elem[L], eR: Elem[R]) extends Elem[PairOfColsIso[L, R]] {
+    def getDefaultRep = reifyObject(new PairOfColsIso[L, R]()(eL, eR))
+    lazy val tag = {
+      implicit val tagL = eL.tag
+      implicit val tagR = eR.tag
+      weakTypeTag[PairOfColsIso[L, R]]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
+  }
+  // 4) constructor and deconstructor
+  class PairOfColsCompanionCtor extends CompanionDef[PairOfColsCompanionCtor] with PairOfColsCompanion {
+    def selfType = PairOfColsCompanionElem
+    override def toString = "PairOfColsCompanion"
+    @scalan.OverloadId("fromData")
+    def apply[L, R](p: Rep[PairOfColsData[L, R]]): Rep[PairOfCols[L, R]] = {
+      implicit val eL = p._1.eA;
+implicit val eR = p._2.eA
+      isoPairOfCols[L, R].to(p)
+    }
+
+    @scalan.OverloadId("fromFields")
+    def apply[L, R](ls: Rep[Col[L]], rs: Rep[Col[R]]): Rep[PairOfCols[L, R]] =
+      mkPairOfCols(ls, rs)
+
+    def unapply[L, R](p: Rep[PairCol[L, R]]) = unmkPairOfCols(p)
+  }
+  lazy val PairOfColsRep: Rep[PairOfColsCompanionCtor] = new PairOfColsCompanionCtor
+  lazy val PairOfCols: PairOfColsCompanionCtor = proxyPairOfColsCompanion(PairOfColsRep)
+  implicit def proxyPairOfColsCompanion(p: Rep[PairOfColsCompanionCtor]): PairOfColsCompanionCtor = {
+    proxyOps[PairOfColsCompanionCtor](p)
+  }
+
+  implicit case object PairOfColsCompanionElem extends CompanionElem[PairOfColsCompanionCtor] {
+    lazy val tag = weakTypeTag[PairOfColsCompanionCtor]
+    protected def getDefaultRep = PairOfColsRep
+  }
+
+  implicit def proxyPairOfCols[L, R](p: Rep[PairOfCols[L, R]]): PairOfCols[L, R] =
+    proxyOps[PairOfCols[L, R]](p)
+
+  implicit class ExtendedPairOfCols[L, R](p: Rep[PairOfCols[L, R]]) {
+    def toData: Rep[PairOfColsData[L, R]] = {
+      implicit val eL = p.ls.eA;
+implicit val eR = p.rs.eA
+      isoPairOfCols(eL, eR).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoPairOfCols[L, R](implicit eL: Elem[L], eR: Elem[R]): Iso[PairOfColsData[L, R], PairOfCols[L, R]] =
+    reifyObject(new PairOfColsIso[L, R]()(eL, eR))
+
   case class ColOverArrayBuilderCtor
       ()
     extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
@@ -176,6 +272,18 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   registerModule(ColsOverArraysModule)
 
   object ColOverArrayMethods {
+    object builder {
+      def unapply(d: Def[_]): Option[Rep[ColOverArray[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "builder" =>
+          Some(receiver).asInstanceOf[Option[Rep[ColOverArray[A]] forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[ColOverArray[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object length {
       def unapply(d: Def[_]): Option[Rep[ColOverArray[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "length" =>
@@ -227,7 +335,95 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
       None
   }
 
+  object PairOfColsMethods {
+    object builder {
+      def unapply(d: Def[_]): Option[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "builder" =>
+          Some(receiver).asInstanceOf[Option[Rep[PairOfCols[L, R]] forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[PairOfCols[L, R]] forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object arr {
+      def unapply(d: Def[_]): Option[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "arr" =>
+          Some(receiver).asInstanceOf[Option[Rep[PairOfCols[L, R]] forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[PairOfCols[L, R]] forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object length {
+      def unapply(d: Def[_]): Option[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "length" =>
+          Some(receiver).asInstanceOf[Option[Rep[PairOfCols[L, R]] forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[PairOfCols[L, R]] forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(i, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "apply" =>
+          Some((receiver, i)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object map {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => V]) forSome {type L; type R; type V}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "map" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => V]) forSome {type L; type R; type V}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => V]) forSome {type L; type R; type V}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object PairOfColsCompanionMethods {
+  }
+
+  def mkPairOfCols[L, R]
+    (ls: Rep[Col[L]], rs: Rep[Col[R]]): Rep[PairOfCols[L, R]] = {
+    new PairOfColsCtor[L, R](ls, rs)
+  }
+  def unmkPairOfCols[L, R](p: Rep[PairCol[L, R]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: PairOfColsElem[L, R] @unchecked =>
+      Some((p.asRep[PairOfCols[L, R]].ls, p.asRep[PairOfCols[L, R]].rs))
+    case _ =>
+      None
+  }
+
   object ColOverArrayBuilderMethods {
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(as, bs, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "apply" =>
+          Some((receiver, as, bs)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object fromArray {
       def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "fromArray" =>

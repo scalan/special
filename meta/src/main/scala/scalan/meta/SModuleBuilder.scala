@@ -53,6 +53,16 @@ class SModuleBuilder(implicit val context: AstContext) {
     }.moduleTransform(module)
   }
 
+  // Pipeline Step
+  def tupleToPair(module: SUnitDef) = {
+    new AstTransformer {
+      override def constrTransform(constr: SConstr): SConstr = constr match {
+        case SConstr("Tuple2", args, tpe) => SConstr("Pair", args, tpe)
+        case _ => constr
+      }
+    }.moduleTransform(module)
+  }
+
   /** Make the module inherit from Base trait from Scalan */
   def addBaseToAncestors(module: SUnitDef) = {
     val newAncestors = STraitCall(name = "Base", args = List()).toTypeApply :: module.ancestors
@@ -413,6 +423,7 @@ class ModuleVirtualizationPipeline(implicit val context: AstContext) extends (SU
 
   private val chain = scala.Function.chain(Seq(
     fixExistentialType _,
+    tupleToPair _,
     externalTypeToWrapper _,
     //      composeParentWithExt _,
     addBaseToAncestors _,

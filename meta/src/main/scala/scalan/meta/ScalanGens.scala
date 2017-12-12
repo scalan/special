@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, SContr, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SAnnotation, AstContext, SSuper, STpeExistential, SSelect}
+import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, SConstr, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SAnnotation, AstContext, SSuper, STpeExistential, SSelect}
 import scalan.meta.ScalanAstTransformers.filterInternalAnnot
 import scalan.util.ScalaNameUtil.PackageAndName
 
@@ -176,7 +176,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
     case ascr: SAscr =>
       val tpe = if (ctx.isVirtualized) genTypeExpr(ascr.pt) else repTypeExpr(ascr.pt)
       q"${genExpr(ascr.expr)}: $tpe"
-    case constr: SContr => genConstr(constr)
+    case constr: SConstr => genConstr(constr)
     case func: SFunc => genFunc(func)
     case sThis: SThis =>
       q"${TypeName(sThis.typeName)}.this"
@@ -355,7 +355,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
     repClassArgs.filterNot(_.isEmpty)
   }
 
-  def genConstr(constr: SContr)(implicit ctx: GenCtx): Tree = {
+  def genConstr(constr: SConstr)(implicit ctx: GenCtx): Tree = {
     val argsTree = constr.args.map(genExpr)
     val constrName = constr.name.split('.').last.split('[').head
 
