@@ -6,7 +6,7 @@ trait Col[A] {
   def arr: Array[A]
   def length: Int
   def apply(i: Int): A
-//  def map[B: ClassTag](f: A => B): Col[B]
+  def map[B: ClassTag](f: A => B): Col[B]
   //    def reduce(implicit m: NumMonoid[A]): A = arr.reduce(m.append)
   //    def zip[B](ys: Col[B]): PairCol[A, B] = new PairCol(this, ys)
 }

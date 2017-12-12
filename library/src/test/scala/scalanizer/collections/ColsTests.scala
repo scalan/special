@@ -11,16 +11,22 @@ class ColsTests extends BaseCtxTests {
       val b = ColOverArrayBuilder()
       b.ddmvm(xs)
     }
+    lazy val t2 = fun { (xs: Rep[WArray[Double]]) =>
+      val c = ColOverArray(xs)
+      c.map(fun { x => x + 1.0 })
+    }
   }
 
   test("Col methods") {
     val ctx = new Ctx {
       val M = WArrayMethods; val C = WArrayCompanionMethods
       def test() = {
+        { val Def(Lambda(_, _, x, ColOverArray(M.map(in, _)))) = t2; assert(in == x) }
       }
     }
     ctx.test()
     ctx.emit("t1", ctx.t1)
+    ctx.emit("t2", ctx.t2)
   }
 
 }

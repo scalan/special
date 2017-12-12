@@ -1,9 +1,13 @@
 package scalan.collection
 
+import scala.reflect.ClassTag
+
 class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def length = arr.length
 
   def apply(i: Int) = arr(i)
+
+  def map[B: ClassTag](f: A => B): Col[B] = new ColOverArray(arr.map(f))
 }
 
 class ColOverArrayBuilder extends ColBuilder {

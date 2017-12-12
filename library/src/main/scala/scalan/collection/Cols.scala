@@ -6,7 +6,8 @@ package scalan.collection {
       implicit def eA: Elem[A];
       def arr: Rep[WArray[A]];
       def length: Rep[Int];
-      def apply(i: Rep[Int]): Rep[A]
+      def apply(i: Rep[Int]): Rep[A];
+      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]]
     };
     trait ColBuilder extends Def[ColBuilder] {
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]];

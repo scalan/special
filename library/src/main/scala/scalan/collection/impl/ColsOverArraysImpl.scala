@@ -199,6 +199,18 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
         case _ => None
       }
     }
+
+    object map {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "map" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColOverArrayCompanionMethods {
