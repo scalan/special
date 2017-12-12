@@ -84,11 +84,15 @@ trait ScalanParsers[+G <: Global] {
   }
 
   def loadModuleDefFromResource(fileName: String): SUnitDef = {
-    val sourceCode = FileUtil.readAndCloseStream(this.getClass.getClassLoader.getResourceAsStream(fileName))
-    val sourceFile = new BatchSourceFile(fileName, sourceCode)
-    val tree = parseFile(sourceFile)
-    val module = unitDefFromTree(fileName, tree)(new ParseCtx(true)(context))
-    module
+    try {
+      val sourceCode = FileUtil.readAndCloseStream(this.getClass.getClassLoader.getResourceAsStream(fileName))
+      val sourceFile = new BatchSourceFile(fileName, sourceCode)
+      val tree = parseFile(sourceFile)
+      val module = unitDefFromTree(fileName, tree)(new ParseCtx(true)(context))
+      module
+    } catch {
+      case t: Throwable => throw new IllegalStateException(s"Cannot load SUnitDef from $fileName", t)
+    }
   }
 
   def parseDeclaredImplementations(entities: List[SEntityDef], moduleDefOpt: Option[ClassDef])(implicit ctx: ParseCtx) = {

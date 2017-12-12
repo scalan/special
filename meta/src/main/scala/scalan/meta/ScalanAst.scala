@@ -809,7 +809,7 @@ object ScalanAst {
 
     def loadModulesFromResources(): Unit = {
       for (c <- configs) {
-        val m = parsers.loadModuleDefFromResource(c.entityFile)
+        val m = parsers.loadModuleDefFromResource(c.entityResource)
         addModule(m)
       }
     }

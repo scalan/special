@@ -121,9 +121,9 @@ case class UnitConfig(
     baseContextTrait: String = "scalan.Scalan",
     extraImports: List[String] = List("scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}", "scalan.meta.ScalanAst._"),
     isVirtualized: Boolean = true) extends Conf {
+  val entityResource = entityFile.replaceSuffix(".scala", ModuleConf.ResourceFileExtension)
   def getFile: File = FileUtil.file(srcPath, entityFile)
   def getResourceFile: File = {
-    val entityResource = entityFile.replaceSuffix(".scala", ModuleConf.ResourceFileExtension)
     FileUtil.file(resourcePath, entityResource)
   }
 }

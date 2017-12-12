@@ -49,8 +49,12 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     val targetSrcFile = FileUtil.file(targetSrcRoot, unitConf.entityFile)
     val isNewTargetFile = !targetSrcFile.exists
 
-    val optImplicits = optimizeModuleImplicits(preparedUnit)
     implicit val genCtx = new GenCtx(context, isVirtualized = true, toRep = true)
+    val preparedTree = genPackageDef(preparedUnit)
+    saveCode(s"${target.name }/${ModuleConf.ResourcesDir}",
+        preparedUnit.packageName, preparedUnit.name, ".scalan", showCode(preparedTree))
+
+    val optImplicits = optimizeModuleImplicits(preparedUnit)
     val unitTree = genPackageDef(optImplicits)
     saveCode(targetSrcRoot, optImplicits.packageName, optImplicits.name, ".scala", showCode(unitTree))
 
@@ -111,8 +115,14 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       var wrappersCake = initWrapperCake()
       for (w <- wrappers.values) {
         val wPackage = genPackageDef(w, isVirtualized = true)(context)
-        saveCode(sourceRoot, w.packageName, w.name, ".scala", showCode(wPackage))
+        val resourcesRoot = s"${target.name}/${ModuleConf.ResourcesDir}"
+        saveCode(resourcesRoot, w.packageName, w.name, ".scalan", showCode(wPackage))
 
+        val optW = optimizeModuleImplicits(w)
+        val optPackage = genPackageDef(optW, isVirtualized = true)(context)
+        saveCode(sourceRoot, optW.packageName, optW.name, ".scala", showCode(optPackage))
+
+        // NOTE: we use original UnitDef with all implicits (non optimized)
         val boilerplateText = genUnitBoilerplateText(target, w, isVirtualized = true)
         saveImplCode(sourceRoot, w.packageName, w.name, ".scala", boilerplateText)
 
