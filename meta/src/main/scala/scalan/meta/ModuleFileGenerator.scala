@@ -434,7 +434,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |  case class ${c.typeDecl("Ctor") }
         |      (${fieldsWithType.rep(f => s"override val $f") })${c.optimizeImplicits().implicitArgsDecl() }
         |    extends ${c.typeUse }(${fields.rep() })${clazz.selfType.opt(t => s" with ${t.tpe }") } with Def[${c.typeUse }] {
-        |    ${c.extractionBuilder().extractableImplicits(true) }
+        |    ${c.extractionBuilder().extractableImplicits(inClassBody = true) }
         |    lazy val selfType = element[${c.typeUse }]
         |  }
         |  // elem for concrete class

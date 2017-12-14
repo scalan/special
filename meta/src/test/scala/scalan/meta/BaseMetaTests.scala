@@ -7,7 +7,7 @@ import scala.reflect.internal.util.BatchSourceFile
 import scalan.BaseNestedTests
 import scalan.meta.ScalanAst.{STpeExpr, SExpr, SUnitDef, SClassDef, STpePrimitives, STraitDef, SMethodDef, SBodyItem, AstContext}
 
-trait ScalanAstTests extends BaseNestedTests with ScalanParsersEx[Global] {
+trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
   def getGlobal = new Global(settings, reporter)
   initCompiler()
   implicit val context = new AstContext(Nil, this)

@@ -3,7 +3,7 @@ package scalan.meta
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstTransformers.{RepTypeRemover, TypeTransformerInAst}
 
-class MergerTests extends ScalanAstTests with Examples {
+class MergerTests extends BaseMetaTests with Examples {
   val warrays = parseModule(warraysModule)
   val warrays1 = parseModule(warrays1Module)
   val warrays2 = parseModule(warrays2Module)

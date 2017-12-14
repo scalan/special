@@ -4,7 +4,7 @@ import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.meta.ScalanAstTransformers.{RepTypeRemover, TypeTransformerInAst}
 
-class TransformerTests extends ScalanAstTests with Examples {
+class TransformerTests extends BaseMetaTests with Examples {
   val colsVirt = parseModule(colsVirtModule)
   val warrays = parseModule(warraysModule)
   context.updateWrapper("Array", WrapperDescr(warrays, Nil, WrapperConfig.default("Array")))
@@ -37,7 +37,7 @@ class TransformerTests extends ScalanAstTests with Examples {
   describe("Unit transforms") {
     it("allEntitiesSorted") {
       val es = colsVirt.allEntitiesSorted.map(e => e.name)
-      es shouldBe(List("Collection", "PairCollection", "ColOverArray"))
+      es shouldBe(List("Collection", "PairCollection", "ColOverArray", "PairOfCols"))
     }
 
     it("addDefAncestorToAllEntities doesn't change virtualized unit") {
@@ -50,8 +50,9 @@ class TransformerTests extends ScalanAstTests with Examples {
       val p = new ModuleVirtualizationPipeline
       val virt = p(cols)
       val opt = optimizeModuleImplicits(virt)
-      val expected = colsVirt.allEntitiesSorted.map(_.name)
-      opt.allEntitiesSorted.map(_.name) shouldBe(expected)
+      val names = opt.allEntitiesSorted.map(_.name)
+      val expectedNames = colsVirt.allEntitiesSorted.map(_.name)
+      names shouldBe(expectedNames)
 // TODO     opt.allEntitiesSorted shouldBe(colsVirt.allEntitiesSorted)
     }
 

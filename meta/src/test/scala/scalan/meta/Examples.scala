@@ -1,6 +1,6 @@
 package scalan.meta
 
-trait Examples { self: ScalanAstTests =>
+trait Examples { self: BaseMetaTests =>
 
   val reactiveModule = TestModule("Reactives",
     """package scalan.rx
@@ -24,12 +24,18 @@ trait Examples { self: ScalanAstTests =>
      |    def length: Int = ColOverArray.this.arr.length;
      |    def apply(i: Int): A = ColOverArray.this.arr.apply(i)
      |  };
-     |  trait PairCollection[A, B] extends Collection[(A,B)]{
+     |  trait PairCollection[L, R] extends Collection[(L,R)]{
+     |    def ls: Col[L]
+     |    def rs: Col[R]
      |  }
      |  trait Collection[A] {
      |    def length: Int;
      |    def apply(i: Int): A
      |  };
+     |  class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCollection[L,R] {
+     |    override def length: Int = ls.length
+     |    override def apply(i: Int): (L, R) = (ls(i), rs(i))
+     |  }
     """.stripMargin, false)
 
   val colsVirtModule = TestModule("Cols",
@@ -37,18 +43,26 @@ trait Examples { self: ScalanAstTests =>
      |import scalan._
      |trait Cols extends Scalan {
      |  type Col[A] = Rep[Collection[A]]
-     |  abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Collection[A] {
+     |  abstract class ColOverArray[A](val arr: Rep[WArray[A]])(implicit val eA: Elem[A]) extends Collection[A] {
      |    val list: Rep[WList[A]] = arr.toList
      |    def length: Rep[Int] = ColOverArray.this.arr.length;
      |    def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i)
      |  };
-     |  trait PairCollection[A, B] extends Collection[(A,B)]{
+     |  trait PairCollection[L, R] extends Collection[(L,R)]{
+     |    def ls: Rep[Collection[L]];
+     |    def rs: Rep[Collection[R]]
      |  }
      |  trait Collection[A] extends Def[Collection[A]] {
      |    implicit def eA: Elem[A]
+     |    def arr: Rep[WArray[A]];
      |    def length: Rep[Int];
      |    def apply(i: Rep[Int]): Rep[A]
      |  }
+     |  abstract class PairOfCols[L, R](val ls: Rep[Collection[L]], val rs: Rep[Collection[R]])
+     |                                 (implicit val eL: Elem[L], val eR: Elem[R]) extends PairCollection[L, R] {
+     |    override def length: Rep[Int] = PairOfCols.this.ls.length;
+     |    override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
+     |  };
      |}
     """.stripMargin, true)
 

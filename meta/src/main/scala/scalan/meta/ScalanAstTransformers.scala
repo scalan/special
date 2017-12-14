@@ -18,6 +18,10 @@ object ScalanAstTransformers {
 
       apply.copy(fun = newFun, argss = newArgss)
     }
+    def tupleTransform(tuple: STuple): STuple = {
+      val newExprs = tuple.exprs map exprTransform
+      tuple.copy(exprs = newExprs)
+    }
     def exprApplyTransform(exprApply: SExprApply): SExprApply = {
       val newFun = exprTransform(exprApply.fun)
       exprApply.copy(fun = newFun)
@@ -56,6 +60,7 @@ object ScalanAstTransformers {
       case func: SFunc => funcTransform(func)
       case block: SBlock => blockTransform(block)
       case bodyItem: SBodyItem => bodyItemTransform(bodyItem)
+      case tup: STuple => tupleTransform(tup)
       case _ => throw new NotImplementedError(s"$expr")
     }
 

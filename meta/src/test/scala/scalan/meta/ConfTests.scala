@@ -1,6 +1,6 @@
 package scalan.meta
 
-class ConfTests extends ScalanAstTests with Examples {
+class ConfTests extends BaseMetaTests with Examples {
   val warrays = parseModule(warraysModule)
   val warrays1 = parseModule(warrays1Module)
   val warrays2 = parseModule(warrays2Module)
