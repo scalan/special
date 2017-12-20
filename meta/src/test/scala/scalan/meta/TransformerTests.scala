@@ -61,7 +61,7 @@ class TransformerTests extends BaseMetaTests with Examples {
       val res = b.addDefAncestorToAllEntities(cols)
       val as = res.allEntitiesSorted.map(e => e.ancestors)
       as shouldBe colsVirt.allEntitiesSorted.map(e => e.ancestors)
-      res.allEntities forall { _.isInherit("Def") } shouldBe(true)
+      res.allEntities forall { _.inherits("Def") } shouldBe(true)
     }
   }
 }

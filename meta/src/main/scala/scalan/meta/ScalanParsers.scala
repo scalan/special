@@ -65,7 +65,7 @@ trait ScalanParsers[+G <: Global] {
 
   def inform(msg: String) = global.inform(msg)
 
-  def parseEntityModule(file: File)(implicit ctx: ParseCtx) = {
+  def parseUnitFile(file: File)(implicit ctx: ParseCtx) = {
     val sourceFile = compiler.getSourceFile(file.getPath)
     val tree = parseFile(sourceFile)
     unitDefFromTree(file.getPath, tree)

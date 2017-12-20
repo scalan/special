@@ -29,7 +29,7 @@ class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends Lazy
     val file = c.getFile
     val resourceFile = c.getResourceFile
     try {
-      val module = parseEntityModule(file)(new ParseCtx(c.isVirtualized))
+      val module = parseUnitFile(file)(new ParseCtx(c.isVirtualized))
       inform(s"Adding unit parsed from ${file} (relative to ${FileUtil.currentWorkingDir })")
       context.addModule(module)
       Some((c.name, new EntityManager(module.name, file, resourceFile, module, c)))

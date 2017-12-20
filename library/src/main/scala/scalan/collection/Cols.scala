@@ -12,6 +12,8 @@ package scalan.collection {
       def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys)
     };
     trait PairCol[L, R] extends Col[scala.Tuple2[L, R]] {
+      implicit def eL: Elem[L];
+      implicit def eR: Elem[R];
       def ls: Rep[Col[L]];
       def rs: Rep[Col[R]]
     };
@@ -24,6 +26,8 @@ package scalan.collection {
         c.length
       }
     };
-    trait ColCompanion
+    trait ColCompanion;
+    trait PairColCompanion;
+    trait ColBuilderCompanion
   }
 }

@@ -80,6 +80,13 @@ object ScalanAstExtensions {
 
     def useString = names.asTypeParams()
 
+    def indexByName(argName: String): Int = {
+      args.zipWithIndex.find { case (a, i) => a.name == argName } match {
+        case Some((_, i)) => i
+        case None => -1
+      }
+    }
+
     def getBoundedTpeArgString(withTags: Boolean = false, methodArgs: List[SMethodArgs] = Nil) = {
       def getElem(tpeArg: STpeArg) = {
         if (tpeArg.hasElemBound(methodArgs)) s"${tpeArg.name}"

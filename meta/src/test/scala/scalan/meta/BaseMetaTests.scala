@@ -52,14 +52,14 @@ trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
   def getMethod(module: SUnitDef, entityName: String, name: String) = {
     val res = for {
       e <- module.findEntity(entityName)
-      m <- e.findMethod(name)
+      m <- e.findMethodInBody(name)
     } yield m
     res.get
   }
   def getVal(module: SUnitDef, entityName: String, name: String) = {
     val res = for {
       e <- module.findEntity(entityName)
-      m <- e.findVal(name)
+      m <- e.findValInBody(name)
     } yield m
     res.get
   }

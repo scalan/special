@@ -38,7 +38,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     val sourceFile = unitConf.getResourceFile
     implicit val parseCtx = new ParseCtx(isVirtualized = true)(context)
 
-    val sourceUnit = parseEntityModule(sourceFile)
+    val sourceUnit = parseUnitFile(sourceFile)
 
     val preparedUnit = moduleBuilder.setSelfType(target.name.capitalize)(sourceUnit)
     preparedUnit
@@ -51,20 +51,23 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 
     implicit val genCtx = new GenCtx(context, isVirtualized = true, toRep = true)
     val preparedTree = genPackageDef(preparedUnit)
+    val code = showCode(preparedTree)
     saveCode(s"${target.name }/${ModuleConf.ResourcesDir}",
-        preparedUnit.packageName, preparedUnit.name, ".scalan", showCode(preparedTree))
+        preparedUnit.packageName, preparedUnit.name, ".scalan", code)
+    saveCode(targetSrcRoot, preparedUnit.packageName, preparedUnit.name, ".scala", code)
 
-    val optImplicits = optimizeModuleImplicits(preparedUnit)
-    val unitTree = genPackageDef(optImplicits)
-    saveCode(targetSrcRoot, optImplicits.packageName, optImplicits.name, ".scala", showCode(unitTree))
+//    val optImplicits = optimizeModuleImplicits(preparedUnit)
+//    val unitTree = genPackageDef(optImplicits)
+//    saveCode(targetSrcRoot, optImplicits.packageName, optImplicits.name, ".scala", showCode(unitTree))
 
 //    val transforms = Seq((u: SUnitDef) => moduleBuilder.genClassesImplicits(u))
 //    val enriched = scala.Function.chain(transforms)(preparedUnit)
 
     /** produce boilerplate code using ModuleFileGenerator
-      * NOTE: we need original preparedUnit with all implicits in there place for correct boilerplate generation */
-    val boilerplateText = genUnitBoilerplateText(target, preparedUnit, isVirtualized = true)
-    val targetImpl = saveImplCode(targetSrcRoot, preparedUnit.packageName, preparedUnit.name, ".scala", boilerplateText)
+      * NOTE: we need a unit with all implicits argument for classes and methods for correct boilerplate generation */
+    val withImplicits = moduleBuilder.genClassesImplicits(moduleBuilder.genMethodsImplicits(preparedUnit))
+    val boilerplateText = genUnitBoilerplateText(target, withImplicits, isVirtualized = true)
+    val targetImpl = saveImplCode(targetSrcRoot, withImplicits.packageName, withImplicits.name, ".scala", boilerplateText)
     val isNewImpl = !targetImpl.exists
 
     if (isNewTargetFile)
@@ -105,7 +108,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       val sourceRoot = s"${target.name}/${ModuleConf.SourcesDir}"
       for (source <- target.sourceModules.values) {
         for (wFile <- source.listWrapperFiles) {
-          val unit = parseEntityModule(wFile)(new ParseCtx(isVirtualized = true)(context))
+          val unit = parseUnitFile(wFile)(new ParseCtx(isVirtualized = true)(context))
           scalanizer.inform(s"Merging into wrapper ${unit.fullName} from $wFile")
           mergeWrapperUnit(unit)
         }

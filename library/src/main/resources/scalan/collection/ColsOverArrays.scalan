@@ -2,22 +2,22 @@ package scalan.collection {
   import scalan._
 
   trait ColsOverArrays extends Base { self: Library =>
-    abstract class ColOverArray[A](val arr: Rep[WArray[A]])(implicit val eA: Elem[A]) extends Col[A] {
+    abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColOverArrayBuilder] = ColOverArrayBuilder();
       def length: Rep[Int] = ColOverArray.this.arr.length;
       def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i);
-      def map[B](f: Rep[scala.Function1[A, B]])(implicit emB: Elem[B]): Rep[Col[B]] = ColOverArray(ColOverArray.this.arr.map(f))
+      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ColOverArray(ColOverArray.this.arr.map(f))
     };
-    abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]])(implicit val eL: Elem[L], val eR: Elem[R]) extends PairCol[L, R] {
+    abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       def builder: Rep[ColBuilder] = ColOverArrayBuilder();
       override def arr: Rep[WArray[scala.Tuple2[L, R]]] = PairOfCols.this.ls.arr.zip(PairOfCols.this.rs.arr);
       override def length: Rep[Int] = PairOfCols.this.ls.length;
       override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
-      override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]])(implicit emV: Elem[V]): Rep[Col[V]] = ColOverArray(PairOfCols.this.arr.map(f))
+      override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Col[V]] = ColOverArray(PairOfCols.this.arr.map(f))
     };
     abstract class ColOverArrayBuilder extends ColBuilder {
-      override def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]])(implicit emA: Elem[A], emB: Elem[B]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
-      def fromArray[T](arr: Rep[WArray[T]])(implicit emT: Elem[T]): Rep[Col[T]] = ColOverArray(arr)
+      override def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
+      def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr)
     };
     trait ColOverArrayCompanion;
     trait PairOfColsCompanion;

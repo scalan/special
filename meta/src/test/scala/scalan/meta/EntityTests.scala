@@ -9,10 +9,10 @@ class EntityTests extends BaseMetaTests with Examples {
       val e = cols.getEntity("ColOverArray")
       val types = e.getInheritedTypes
       types.map(_.name) shouldBe(List("Collection", "Def"))
-      e.isInherit("Def") shouldBe(true)
-      e.isInherit("Def1") shouldBe(false)
-      e.isInherit("Collection") shouldBe(true)
-      e.isInherit("Iters") shouldBe(false)
+      e.inherits("Def") shouldBe(true)
+      e.inherits("Def1") shouldBe(false)
+      e.inherits("Collection") shouldBe(true)
+      e.inherits("Iters") shouldBe(false)
     }
   }
 

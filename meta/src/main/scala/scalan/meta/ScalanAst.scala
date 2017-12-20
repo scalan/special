@@ -400,6 +400,9 @@ object ScalanAst {
                          body: Option[SExpr] = None,
                          isTypeDesc: Boolean = false)
     extends SBodyItem {
+    def isDeclaration = body.isEmpty
+    def isDefinition = body.isDefined
+    def isNoArgMethod = allArgs.isEmpty
     def externalOpt: Option[SMethodAnnotation] = annotations.find(_.annotationClass == "External")
 
 //    def isExtractableArg(module: SModuleDef, tpeArg: STpeArg): Boolean = {
@@ -579,81 +582,82 @@ object ScalanAst {
 
     def implicitArgs: SClassArgs
 
-    def findMethod(name: String): Option[SMethodDef] = {
+    //====================================================================
+    // The following methods allow to collect methods recursively
+    // over inheritance hierarchy using given predicate
+    def collectMethodsInBody(p: SMethodDef => Boolean): List[(SEntityDef, SMethodDef)] = body.collect {
+      case md: SMethodDef if p(md) => (this, md)
+    }
+
+    def getAncestorEntities(implicit context: AstContext): List[SEntityDef] = {
+      ancestors.collect { case STypeApply(STraitCall(context.Entity(m, e),_), _) => e }
+    }
+
+    def collectMethodsFromAncestors(p: SMethodDef => Boolean)(implicit context: AstContext): Seq[(SEntityDef, SMethodDef)] = {
+      getAncestorEntities.flatMap(_.collectAvailableMethods(p))
+    }
+
+    def collectAvailableMethods(p: SMethodDef => Boolean)(implicit context: AstContext): Seq[(SEntityDef, SMethodDef)] = {
+      collectMethodsInBody(p) ++ collectMethodsFromAncestors(p)
+    }
+    //--------------------------------------------------------------------
+    
+    def setOfAvailableNoArgMethods(implicit context: AstContext): Set[String] = {
+      collectAvailableMethods(_.isNoArgMethod).map(_._2.name).toSet
+    }
+
+    def findMethodInBody(name: String): Option[SMethodDef] = {
       body.collectFirst { case m: SMethodDef if m.name == name => m }
     }
 
-    def findVal(name: String): Option[SValDef] = {
+    def findValInBody(name: String): Option[SValDef] = {
       body.collectFirst { case v: SValDef if v.name == name => v }
-    }
-
-    def tpeArgIndex(tpeArgName: String) = {
-      tpeArgs.zipWithIndex.find { case (a, i) => a.name == tpeArgName }.get._2
     }
 
     def firstAncestorType = ancestors.headOption.map(_.tpe)
 
-    def isHighKind = tpeArgs.exists(_.isHighKind)
+    def hasHighKindTpeArg = tpeArgs.exists(_.isHighKind)
 
-    def isInheritedDeclared(propName: String)(implicit context: AstContext) = {
-      getInheritedDeclaredFields.contains(propName)
+    def setOfDeclaredNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
+      collectMethodsFromAncestors(m => m.isNoArgMethod && m.isDeclaration).map(_._2.name).toSet
     }
 
-    def isInheritedDefined(propName: String)(implicit context: AstContext) = {
-      getInheritedDefinedFields.contains(propName)
+    def setOfDefinedNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
+      collectMethodsFromAncestors(m => m.isNoArgMethod && m.isDefinition).map(_._2.name).toSet
+    }
+
+    def isDeclaredInAncestors(propName: String)(implicit context: AstContext) = {
+      setOfDeclaredNoArgMethodsInAncestors.contains(propName)
+    }
+
+    def isDefinedInAncestors(propName: String)(implicit context: AstContext) = {
+      setOfDefinedNoArgMethodsInAncestors.contains(propName)
     }
 
     def getMethodsWithAnnotation(annClass: String) = body.collect {
       case md: SMethodDef if md.annotations.exists(a => a.annotationClass == annClass) => md
     }
 
-    def getFieldDefs: List[SMethodDef] = body.collect {
-      case md: SMethodDef if md.allArgs.isEmpty => md
-    }
-
-    def getAncestorTraits(implicit context: AstContext): List[SEntityDef] = {
-      ancestors.collect { case STypeApply(STraitCall(context.Entity(m, e),_), _) => e }
-    }
-
     def getAncestorTypeNames(implicit context: AstContext): List[String] = {
       ancestors.collect { case STypeApply(STraitCall(name,_), _) => name }
     }
 
-    def getAvailableFields(implicit context: AstContext): Set[String] = {
-      getFieldDefs.map(_.name).toSet ++ getAncestorTraits.flatMap(_.getAvailableFields)
-    }
-
-    def getAvailableMethodDefs(implicit context: AstContext): Seq[SMethodDef] = {
-      getFieldDefs ++ getAncestorTraits.flatMap(_.getAvailableMethodDefs)
-    }
-
-    def getInheritedMethodDefs(implicit context: AstContext): Seq[SMethodDef] = {
-      getAncestorTraits.flatMap(_.getAvailableMethodDefs)
-    }
-
-    def getInheritedDeclaredFields(implicit context: AstContext): Set[String] = {
-      getInheritedMethodDefs.collect { case md if md.body.isEmpty => md.name }.toSet
-    }
-
-    def getInheritedDefinedFields(implicit context: AstContext): Set[String] = {
-      getInheritedMethodDefs.collect { case md if md.body.isDefined => md.name }.toSet
-    }
-
+    /** Assume no cyclic inheritance. It should be prevented by type checking. */
     def getInheritedTypes(implicit ctx: AstContext): List[STraitCall] = {
       val ancs = ancestors.collect { case STypeApply(tc, _) => tc }
       val res = ancs.flatMap {
         case tc @ STraitCall(ctx.Entity(_, e), _) => tc :: e.getInheritedTypes
         case t => List(t)
       }
-      res
+      res.distinct
     }
 
-    def isInherit(traitName: String)(implicit ctx: AstContext): Boolean = {
+    def inherits(traitName: String)(implicit ctx: AstContext): Boolean = {
       getInheritedTypes.exists(_.name == traitName)
     }
 
     def getDeclaredElems(implicit context: AstContext): List[(String, STpeExpr)] = {
-      val res = (this :: getAncestorTraits)
+      val res = (this :: getAncestorEntities)
         .flatMap(e => {
           val elems = e.body.collect {
             case SMethodDef(name, _, _, Some(elemOrCont), true, _, _, _, _, true) =>
@@ -818,7 +822,7 @@ object ScalanAst {
       for (c <- configs) {
         val file = c.getFile
         try {
-          val m = parsers.parseEntityModule(file)(new parsers.ParseCtx(c.isVirtualized)(this))
+          val m = parsers.parseUnitFile(file)(new parsers.ParseCtx(c.isVirtualized)(this))
           addModule(m)
         } catch {
           case t: Throwable =>

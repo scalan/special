@@ -89,7 +89,7 @@ class SModuleBuilder(implicit val context: AstContext) {
   def addDefAncestorToAllEntities(unit: SUnitDef): SUnitDef = {
     var extended = List[SEntityDef]()
     for (entity <- unit.allEntitiesSorted) {
-      val alreadyInherit = extended.exists(ext => entity.isInherit(ext.name)) || entity.isInherit("Def")
+      val alreadyInherit = extended.exists(ext => entity.inherits(ext.name)) || entity.inherits("Def")
       val newEntity =
         if (alreadyInherit) entity
         else {
@@ -133,12 +133,15 @@ class SModuleBuilder(implicit val context: AstContext) {
 
   /** Checks that the entity has a companion. If the entity doesn't have it
     * then the method adds the companion. */
-  def checkEntityCompanion(module: SUnitDef) = module.updateFirstEntity { e =>
-    val newCompanion = e.companion match {
-      case Some(comp) => Some(convertCompanion(comp))
-      case None => Some(createCompanion(e.name))
+  def checkEntityCompanion(module: SUnitDef) = {
+    val newTraits = module.traits.map { e =>
+      val newCompanion = e.companion match {
+        case Some(comp) => Some(convertCompanion(comp))
+        case None => Some(createCompanion(e.name))
+      }
+      e.copy(companion = newCompanion)
     }
-    e.copy(companion = newCompanion)
+    module.copy(traits = newTraits)
   }
 
   /** Checks that concrete classes have their companions and adds them. */
@@ -153,8 +156,8 @@ class SModuleBuilder(implicit val context: AstContext) {
     module.copy(classes = newClasses)
   }
 
-  /** ClassTags are removed because they can be extracted from Elems. */
-  def cleanUpClassTags(module: SUnitDef) = {
+  /** ClassTags are removed because in virtualized code they can be extracted from Elems. */
+  def cleanUpClassTags(unit: SUnitDef) = {
     class ClassTagTransformer extends AstTransformer {
       override def methodArgsTransform(args: SMethodArgs): SMethodArgs = {
         val newArgs = args.args.filter {marg => marg.tpe match {
@@ -185,10 +188,10 @@ class SModuleBuilder(implicit val context: AstContext) {
         classArgs.copy(args = newArgs)
       }
     }
-    new ClassTagTransformer().moduleTransform(module)
+    new ClassTagTransformer().moduleTransform(unit)
   }
 
-  def replaceClassTagByElem(module: SUnitDef) = {
+  def replaceClassTagByElem(unit: SUnitDef) = {
     new AstReplacer("ClassTag", (_:String) => "Elem") {
       override def selectTransform(select: SSelect): SExpr = {
         val type2Elem = Map(
@@ -205,12 +208,12 @@ class SModuleBuilder(implicit val context: AstContext) {
           "Char" -> "CharElement"
         )
         select match {
-          case SSelect(SIdent("ClassTag",_), t,_) if type2Elem.keySet.contains(t) =>
-            SSelect(SIdent("self"), type2Elem(t))
+          case SSelect(SIdent("ClassTag",_), tname,_) if type2Elem.contains(tname) =>
+            SSelect(SIdent("self"), type2Elem(tname))
           case _ => super.selectTransform(select)
         }
       }
-    }.moduleTransform(module)
+    }.moduleTransform(unit)
   }
 
   def eliminateClassTagApply(module: SUnitDef) = {
@@ -227,13 +230,16 @@ class SModuleBuilder(implicit val context: AstContext) {
   }
 
   /** Adds descriptor methods (def eA, def cF, etc) to the body of the first entity. */
-  def genEntityImplicits(module: SUnitDef) = module.updateFirstEntity { e =>
-    val newBody = genDescMethodsByTypeArgs(e.tpeArgs) ++ e.body
-    e.copy(body = newBody)
+  def genEntityImplicits(unit: SUnitDef) = {
+    val newTraits = unit.traits.map { t =>
+      val newBody = genDescMethodsByTypeArgs(t.tpeArgs) ++ t.body
+      t.copy(body = newBody)
+    }
+    unit.copy(traits = newTraits)
   }
 
   /** Add implicit Elem arguments and implicit descriptor methods. */
-  def genClassesImplicits(module: SUnitDef) = {
+  def genClassesImplicits(unit: SUnitDef) = {
     def unpackElem(classArg: SClassArg): Option[STpeExpr] = classArg.tpe match {
       case STraitCall("Elem", List(prim @ STpePrimitive(_,_))) => Some(prim)
       case _ => None
@@ -250,8 +256,8 @@ class SModuleBuilder(implicit val context: AstContext) {
         body = Some(SExprApply(SIdent("element"), unpackElem(classArg).toList)),
         isTypeDesc = true)
     }
-    val newClasses = module.classes.map { clazz =>
-      val (definedElems, elemArgs) = genImplicitArgsForClass(module, clazz) partition isElemAlreadyDefined
+    val newClasses = unit.classes.map { clazz =>
+      val (definedElems, elemArgs) = genImplicitArgsForClass(clazz)(unit.context) partition isElemAlreadyDefined
       val newArgs = (clazz.implicitArgs.args ++ elemArgs).distinctBy(_.tpe match {
         case TypeDescTpe(_,ty) => ty
         case t => t
@@ -262,7 +268,7 @@ class SModuleBuilder(implicit val context: AstContext) {
       clazz.copy(implicitArgs = newImplicitArgs, body = newBody)
     }
 
-    module.copy(classes = newClasses)
+    unit.copy(classes = newClasses)
   }
 
   def genMethodsImplicits(module: SUnitDef) = {
@@ -436,9 +442,11 @@ class ModuleVirtualizationPipeline(implicit val context: AstContext) extends (SU
     cleanUpClassTags _,
     replaceClassTagByElem _,
     eliminateClassTagApply _,
-    genEntityImplicits _, genClassesImplicits _, genMethodsImplicits _,
+    genEntityImplicits _,
+    // genClassesImplicits _, genMethodsImplicits _,
     fixEntityCompanionName _,
     fixEvidences _
+//    optimizeModuleImplicits _
   ))
   override def apply(module: Module): Module = chain(module)
 }

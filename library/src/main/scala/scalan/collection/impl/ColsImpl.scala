@@ -172,7 +172,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
     protected def getDefaultRep = PairCol
   }
 
-  abstract class PairColCompanionCtor extends CompanionDef[PairColCompanionCtor] {
+  abstract class PairColCompanionCtor extends CompanionDef[PairColCompanionCtor] with PairColCompanion {
     def selfType = PairColCompanionElem
     override def toString = "PairCol"
   }
@@ -206,6 +206,9 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
     }
+  }
+
+  object PairColCompanionMethods {
   }
 
   // entityProxy: single proxy for each type family
@@ -243,7 +246,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
     protected def getDefaultRep = ColBuilder
   }
 
-  abstract class ColBuilderCompanionCtor extends CompanionDef[ColBuilderCompanionCtor] {
+  abstract class ColBuilderCompanionCtor extends CompanionDef[ColBuilderCompanionCtor] with ColBuilderCompanion {
     def selfType = ColBuilderCompanionElem
     override def toString = "ColBuilder"
   }
@@ -289,6 +292,9 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
     }
+  }
+
+  object ColBuilderCompanionMethods {
   }
 
   registerModule(ColsModule)

@@ -128,7 +128,7 @@ class MetaCodegen {
       case SStructPath(_, fn, t) =>
         emit(s"""$prefix.asInstanceOf[StructElem[_]]("$fn")""", t, false)
       case SEntityPath(STraitCall(name, args), e, tyArg, t) =>
-        val argIndex = e.tpeArgIndex(tyArg.name)
+        val argIndex = e.tpeArgs.indexByName(tyArg.name)
         val argTy = args(argIndex)
         val descName = tyArg.descName
         emit(s"""$prefix.typeArgs("${tyArg.name}")._1.as$descName[$argTy]""", t, true)
@@ -280,7 +280,7 @@ class MetaCodegen {
 
               val elemCheck = if (isCompanion) {
                 s"receiver.elem == $traitElem"
-              } else if (e.isHighKind) {
+              } else if (e.hasHighKindTpeArg) {
                 // same as isInstanceOf[$traitElem], but that won't compile
                 s"(receiver.elem.asInstanceOf[Elem[_]] match { case _: $traitElem => true; case _ => false })"
               } else {
@@ -316,10 +316,10 @@ class MetaCodegen {
   }
 
   // methods to extract elements from data arguments
-  class ElemExtractionBuilder(module: SUnitDef, entity: SEntityDef, argSubst: Map[String, String]) {
+  class ElemExtractionBuilder(module: SUnitDef, entity: SEntityDef, argSubst: Map[String, String])(implicit ctx: AstContext) {
     val extractionExprs: List[Option[String]] =
        extractImplicitElems(module, entity.args.args, entity.tpeArgs, argSubst).map(_._2)
-    val tyArgSubst = classArgsAsSeenFromAncestors(module, entity).map { case (_, (e,a)) => a }
+    val tyArgSubst = classArgsAsSeenFromAncestors(entity).map { case (_, (e,a)) => a }
     val extractableArgs: Map[String,(STpeArg, String)] =
       tyArgSubst.zip(extractionExprs)
         .collect { case (arg, Some(expr)) => (arg.name, (arg, expr)) }.toMap
@@ -327,7 +327,7 @@ class MetaCodegen {
       extractableArgs.map { case (tyArgName, (arg, expr)) =>
         val kind = if (arg.isHighKind) "c" else "e"
         val name = kind + tyArgName
-        val isInheritedDefinition = entity.isInheritedDefined(name)(module.context)
+        val isInheritedDefinition = entity.isDefinedInAncestors(name)(module.context)
         val over = if (inClassBody && isInheritedDefinition) " override" else ""
         s"implicit$over val $name = $expr"
       }.mkString(";\n")
@@ -358,8 +358,8 @@ class MetaCodegen {
       implicitArgs.filter(p).opt(args => s"(implicit ${args.rep(a => s"$prefix${a.name}: ${a.tpe}")})")
     def implicitArgsDeclConcreteElem = {
       implicitArgs.opt(args => s"(implicit ${args.rep(a => {
-                                 val declared = entity.isInheritedDeclared(a.name)
-                                 val defined = entity.isInheritedDefined(a.name)
+                                 val declared = entity.isDeclaredInAncestors(a.name)
+                                 val defined = entity.isDefinedInAncestors(a.name)
                                  s"${(declared || defined).opt("override ")}val ${a.name}: ${a.tpe}"
                                            })})")
     }

@@ -251,7 +251,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         (Some(parent), s"${e.name}Elem[${join(parentTpeArgs, toArgName)}]")
       case Some(p) => !!!(s"Unsupported parent type $p of the entity ${e.name}")
       case None if e.module.isVirtualized =>
-        !!!(s"Entity ${e.name} must extend Def, TypeWrapperDef, or another entity")
+        !!!(s"Entity ${e.name} must extend Def or another entity")
       case None => (None, defaultParentElem)
     }
     val overrideIfHasParent = optParent.ifDefined("override ")
@@ -270,7 +270,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       |  // familyElem
       |  class $elemTypeDecl${e.implicitArgsDecl("_")}
       |    extends $parentElem {
-      |${e.implicitArgs.rep(a => s"    ${(e.entity.isInheritedDeclared(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
+      |${e.implicitArgs.rep(a => s"    ${(e.entity.isDeclaredInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
       |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElement(p, e.tpeArgs)})", "None")}
       |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.tpeSubstStr})
       |    override lazy val tag = {
@@ -283,7 +283,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       |    }
       |
          |    def convert${e.name}(x: Rep[${e.typeUse}]): Rep[$toArgName] = {
-      |      x.elem${e.t.isHighKind.opt(".asInstanceOf[Elem[_]]")} match {
+      |      x.elem${e.t.hasHighKindTpeArg.opt(".asInstanceOf[Elem[_]]")} match {
       |        case _: $wildcardElem => x.asRep[$toArgName]
       |        case e => !!!(s"Expected $$x to have $wildcardElem, but got $$e", x)
       |      }
@@ -353,7 +353,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
 
   def emitClasses = {
     val concreteClasses = for {clazz <- module.classes} yield {
-      val e = EntityTemplateData(module, clazz.getAncestorTraits(context).head)
+      val e = EntityTemplateData(module, clazz.getAncestorEntities(context).head)
       val className = clazz.name
       val c = ConcreteClassTemplateData(module, clazz)
       import c.{implicitArgsOrParens, implicitArgsUse, tpeArgsDecl, tpeArgsUse}
@@ -403,7 +403,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
 
       def converterBody = {
         val entity = context.findModuleEntity(parent.name).get._2
-        val entityFields = entity.getAvailableFields
+        val entityFields = entity.setOfAvailableNoArgMethods
         val classFields = clazz.args.args.map(_.name)
         val missingFields = classFields.filterNot(entityFields.contains(_))
         if (missingFields.isEmpty) {

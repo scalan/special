@@ -75,7 +75,8 @@ object ScalanAstUtils {
     tpeArgs.map{ targ =>
       if (!targ.isHighKind) genElemMethod(targ)
       else if (targ.tparams.size == 1) genContMethod(targ)
-      else !!!(s"Cannot create descriptor method for a high-kind tpeArg with with more than one type arguments: $targ")
+      else !!!(s"Cannot create descriptor method for a high-kind tpeArg $targ " +
+      s"with with more than one type arguments ${targ.tparams}. Only single argument supported.")
     }
   }
 
@@ -99,11 +100,12 @@ object ScalanAstUtils {
   /** See example to understand the code:
     * trait <e.name>[<e.tpeArgs>] { }
     * <clazz> == class <clazz>[<clsTpeArg>..] extends <ancName>[<ancArgs>]
+    * Returns substitution for each type arg of each ancestor (e, A0) -> ancArgs(0) ... (e, An) -> ancArgs(n)
     */
-  def argsSubstOfAncestorEntities(module: SUnitDef, clazz: SEntityDef): List[((SEntityDef, STpeArg), STpeExpr)] = {
+  def argsSubstOfAncestorEntities(clazz: SEntityDef)(implicit ctx: AstContext): List[((SEntityDef, STpeArg), STpeExpr)] = {
     val res = clazz.ancestors.flatMap { anc =>
       val ancName = anc.tpe.name
-      val ancestorEnt_? = module.context.findModuleEntity(ancName).map(_._2)
+      val ancestorEnt_? = ctx.findModuleEntity(ancName).map(_._2)
       ancestorEnt_? match {
         case Some(e) =>
           val ancArgs = anc.tpe.args
@@ -118,8 +120,8 @@ object ScalanAstUtils {
   /** Checks for each type argument if it is used as argument of ancestor entity.
     * For each name of type argument returns a pair (e, tyArg)
     */
-  def classArgsAsSeenFromAncestors(module: SUnitDef, clazz: SEntityDef) = {
-    val subst: List[((SEntityDef, STpeArg), STpeExpr)] = argsSubstOfAncestorEntities(module, clazz)
+  def classArgsAsSeenFromAncestors(clazz: SEntityDef)(implicit ctx: AstContext) = {
+    val subst: List[((SEntityDef, STpeArg), STpeExpr)] = argsSubstOfAncestorEntities(clazz)
     val res = clazz.tpeArgs.map { clsTpeArg =>
 //      val argTpe = STraitCall(clsTpeArg.name) // don't use toTraitCall here
 //      val substOpt = subst.find { case ((e, eTpeArg), ancArg) => argTpe == ancArg }
@@ -137,8 +139,8 @@ object ScalanAstUtils {
     * trait <e.name>[<e.tpeArgs>] { }
     * <clazz> == class <clazz>[<clsTpeArg>..] extends <ancName>[<ancArgs>]
     */
-  def genImplicitArgsForClass(module: SUnitDef, clazz: SEntityDef): List[SClassArg] = {
-    val argSubst = classArgsAsSeenFromAncestors(module, clazz)
+  def genImplicitArgsForClass(clazz: SEntityDef)(implicit ctx: AstContext): List[SClassArg] = {
+    val argSubst = classArgsAsSeenFromAncestors(clazz)
     val implicitArgs = argSubst.map { case (clsTpeArg, (e, eTpeArg)) =>
       genImplicitClassArg(eTpeArg.isHighKind, eTpeArg.name, STraitCall(clsTpeArg.name))
     }

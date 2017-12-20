@@ -30,7 +30,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       // add virtualized units from dependencies
       for (depModule <- module.dependsOnModules()) {
         for (unitConf <- depModule.units.values) {
-          val unit = parseEntityModule(unitConf.getResourceFile)(new ParseCtx(isVirtualized = true)(context))
+          val unit = parseUnitFile(unitConf.getResourceFile)(new ParseCtx(isVirtualized = true)(context))
           scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.fullName} parsed from ${unitConf.getResourceFile}")
           snState.addUnit(unit)
         }
@@ -39,7 +39,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       // because we are running after typer, all the names has been resolved by the compiler
       // we need to ensure visibility of all the names by scalanizer as well
       for (unitConf <- module.units.values) {
-        val unit = parseEntityModule(unitConf.getFile)(new ParseCtx(isVirtualized = false)(context))
+        val unit = parseUnitFile(unitConf.getFile)(new ParseCtx(isVirtualized = false)(context))
         scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.fullName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
         snState.addUnit(unit)
       }
