@@ -49,6 +49,8 @@ trait Examples { self: BaseMetaTests =>
      |    def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i)
      |  };
      |  trait PairCollection[L, R] extends Collection[(L,R)]{
+     |    implicit def eL: Elem[L];
+     |    implicit def eR: Elem[R];
      |    def ls: Rep[Collection[L]];
      |    def rs: Rep[Collection[R]]
      |  }

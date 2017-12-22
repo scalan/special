@@ -353,7 +353,10 @@ class MetaCodegen {
     def typeDecl(suffix: String) = name + suffix + tpeArgsDecl
     val typeUse = name + tpeArgsUse
     def typeUse(suffix: String) = name + suffix + tpeArgsUse
-    val implicitArgs = entity.implicitArgs.args
+    val implicitArgs = entity match {
+      case c: SClassDef => c.implicitArgs.args
+      case t: STraitDef => t.getImplicitArgsForTpeArgs.args
+    }
     def implicitArgsDecl(prefix: String = "", p: SClassArg => Boolean = _ => true) =
       implicitArgs.filter(p).opt(args => s"(implicit ${args.rep(a => s"$prefix${a.name}: ${a.tpe}")})")
     def implicitArgsDeclConcreteElem = {
@@ -366,8 +369,6 @@ class MetaCodegen {
     val implicitArgsUse = implicitArgs.opt(args => s"(${args.rep(_.name)})")
     val implicitArgsOrParens = if (implicitArgs.nonEmpty) implicitArgsUse else "()"
     val firstAncestorType = entity.firstAncestorType
-//    val entityRepSynonymOpt = entity.entityRepSynonym
-    val allArgs = entity.args.args ++ entity.implicitArgs.args
 
     def entityRepSynonym = STpeDef("Rep" + name, tpeArgs, STraitCall("Rep", List(STraitCall(name, tpeArgs.map(_.toTraitCall)))))
 
@@ -376,18 +377,23 @@ class MetaCodegen {
 
     def boundedTpeArgString(withTags: Boolean = false) = tpeArgs.getBoundedTpeArgString(withTags)
 
-    def tpeSubstStr = tpeArgs.flatMap { tpeArg =>
-      val tyArgName = tpeArg.name
-      val argOpt = allArgs.find { a =>
-        a.tpe match {
-          case TypeDescTpe(descName, STraitCall(`tyArgName`, _)) => true
-          case _ => false
+    //TODO use getAvailableDescMethods
+    val allDescs = entity.args.args ++ implicitArgs
+
+    def emitTpeArgToDescPairs = {
+      tpeArgs.flatMap { tpeArg =>
+        val tyArgName = tpeArg.name
+        val argOpt = allDescs.find { a =>
+          a.tpe match {
+            case TypeDescTpe(descName, STraitCall(`tyArgName`, _)) => true
+            case _ => false
+          }
         }
-      }
-      argOpt.map { arg =>
-        s"${StringUtil.quote(tyArgName)} -> (${arg.name} -> scalan.util.${tpeArg.variance})"
-      }
-    }.rep()
+        argOpt.map { arg =>
+          s"${StringUtil.quote(tyArgName)} -> (${arg.name} -> scalan.util.${tpeArg.variance})"
+        }
+      }.rep()
+    }
 
     def companionName = name + "Companion"
     def companionAbsName = name + "CompanionCtor"

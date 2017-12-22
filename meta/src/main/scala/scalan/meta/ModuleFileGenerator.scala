@@ -272,7 +272,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       |    extends $parentElem {
       |${e.implicitArgs.rep(a => s"    ${(e.entity.isDeclaredInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
       |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElement(p, e.tpeArgs)})", "None")}
-      |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.tpeSubstStr})
+      |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})
       |    override lazy val tag = {
       |${implicitTagsFromElems(e)}
       |      weakTypeTag[${e.typeUse}].asInstanceOf[WeakTypeTag[$toArgName]]
@@ -353,7 +353,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
 
   def emitClasses = {
     val concreteClasses = for {clazz <- module.classes} yield {
-      val e = EntityTemplateData(module, clazz.getAncestorEntities(context).head)
+      val e = EntityTemplateData(module, clazz.collectAncestorEntities(context).head)
       val className = clazz.name
       val c = ConcreteClassTemplateData(module, clazz)
       import c.{implicitArgsOrParens, implicitArgsUse, tpeArgsDecl, tpeArgsUse}
@@ -442,7 +442,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |    extends ${parent.name}Elem[${join(parentTpeArgsStr, c.typeUse)}]
         |    with $concreteElemSuperType {
         |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
-        |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.tpeSubstStr})
+        |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})
         |    override def convert${parent.name}(x: Rep[$parent]) = $converterBody
         |    override def getDefaultRep = $className(${fieldTypes.rep(zeroSExpr(e.entity)(_))})
         |    override lazy val tag = {
@@ -475,7 +475,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |${implicitTagsFromElems(c)}
         |      weakTypeTag[${className}Iso$tpeArgsUse]
         |    }
-        |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.tpeSubstStr})
+        |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})
         |  }
         |  // 4) constructor and deconstructor
         |  class ${c.companionAbsName} extends CompanionDef[${c.companionAbsName}]${hasCompanion.opt(s" with ${c.companionName}")} {

@@ -161,13 +161,13 @@ object ScalanAstTransformers {
 
       classArgs.copy(args = newArgs)
     }
-    def classTransform(clazz: SClassDef): SClassDef = {
-      val newBody = bodyTransform(clazz.body)
-      val newCompanion = classCompanionTransform(clazz.companion)
-      val newClassArgs = classArgsTransform(clazz.args)
-      val newImplicitClassArgs = classArgsTransform(clazz.implicitArgs)
+    def classTransform(c: SClassDef): SClassDef = {
+      val newBody = bodyTransform(c.body)
+      val newCompanion = classCompanionTransform(c.companion)
+      val newClassArgs = classArgsTransform(c.args)
+      val newImplicitClassArgs = classArgsTransform(c.implicitArgs)
 
-      clazz.copy(
+      c.copy(
         args = newClassArgs,
         implicitArgs = newImplicitClassArgs,
         body = newBody,

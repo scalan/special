@@ -256,16 +256,16 @@ class SModuleBuilder(implicit val context: AstContext) {
         body = Some(SExprApply(SIdent("element"), unpackElem(classArg).toList)),
         isTypeDesc = true)
     }
-    val newClasses = unit.classes.map { clazz =>
-      val (definedElems, elemArgs) = genImplicitArgsForClass(clazz)(unit.context) partition isElemAlreadyDefined
-      val newArgs = (clazz.implicitArgs.args ++ elemArgs).distinctBy(_.tpe match {
+    val newClasses = unit.classes.map { c =>
+      val (definedElems, elemArgs) = genImplicitArgsForClass(c)(unit.context) partition isElemAlreadyDefined
+      val newArgs = (c.implicitArgs.args ++ elemArgs).distinctBy(_.tpe match {
         case TypeDescTpe(_,ty) => ty
         case t => t
       })
       val newImplicitArgs = SClassArgs(newArgs)
-      val newBody = definedElems.map(convertElemValToMethod) ++ clazz.body
+      val newBody = definedElems.map(convertElemValToMethod) ++ c.body
 
-      clazz.copy(implicitArgs = newImplicitArgs, body = newBody)
+      c.copy(implicitArgs = newImplicitArgs, body = newBody)
     }
 
     unit.copy(classes = newClasses)
