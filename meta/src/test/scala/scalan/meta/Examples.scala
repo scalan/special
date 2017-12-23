@@ -48,6 +48,7 @@ trait Examples { self: BaseMetaTests =>
      |    val list: Rep[WList[A]] = arr.toList
      |    def length: Rep[Int] = ColOverArray.this.arr.length;
      |    def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i)
+     |    def map[B](f: Rep[scala.Function1[A, B]]): Rep[Collection[B]] = ColOverArray(ColOverArray.this.arr.map(f))
      |  };
      |  trait PairCollection[L, R] extends Collection[(L,R)]{
      |    implicit def eL: Elem[L];
@@ -60,12 +61,14 @@ trait Examples { self: BaseMetaTests =>
      |    def arr: Rep[WArray[A]];
      |    def length: Rep[Int];
      |    def apply(i: Rep[Int]): Rep[A]
+     |    def map[B](f: Rep[A => B]): Rep[Collection[B]]
      |  }
      |  abstract class PairOfCols[L, R](val ls: Rep[Collection[L]], val rs: Rep[Collection[R]])
      |                                 (implicit val eL: Elem[L], val eR: Elem[R])
      |      extends PairCollection[L, R] with Collection[(L,R)] {
      |    override def length: Rep[Int] = PairOfCols.this.ls.length;
      |    override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
+     |    override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Collection[V]] = ColOverArray(PairOfCols.this.arr.map(f))
      |  };
      |}
     """.stripMargin, true)

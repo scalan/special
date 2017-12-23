@@ -118,6 +118,9 @@ object ScalanAst {
     }
   }
 
+  def createSubst(args: STpeArgs, types: List[STpeExpr]): Map[String, STpeExpr] =
+    args.map(_.name).zip(types).toMap
+
   implicit class STpeExprExtensions(self: STpeExpr) {
     def applySubst(subst: Map[String, STpeExpr]): STpeExpr = self match {
       case STraitCall(n, args) => // higher-kind usage of names is not supported  Array[A] - ok, A[Int] - nok
@@ -402,6 +405,7 @@ object ScalanAst {
       annotations: List[SMethodAnnotation] = Nil,
       body: Option[SExpr] = None,
       isTypeDesc: Boolean = false) extends SBodyItem with SEntityItem {
+    def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
     override def rhs: Option[SExpr] = body
@@ -453,11 +457,20 @@ object ScalanAst {
   }
 
   case class SValDef(
-                      name: String,
-                      tpe: Option[STpeExpr],
-                      isLazy: Boolean,
-                      isImplicit: Boolean,
-                      expr: SExpr) extends SBodyItem
+      name: String,
+      tpe: Option[STpeExpr],
+      isLazy: Boolean,
+      isImplicit: Boolean,
+      expr: SExpr,
+      isAbstract: Boolean = false,
+      annotations: List[SArgAnnotation] = Nil,
+      isTypeDesc: Boolean = false
+  ) extends SBodyItem with SEntityItem {
+    override def tpeArgs: STpeArgs = Nil
+    override def argss: List[List[SMethodOrClassArg]] = Nil
+    override def tpeRes = tpe
+    override def rhs: Option[SExpr] = Some(expr)
+  }
 
   case class STpeDef(name: String, tpeArgs: STpeArgs, rhs: STpeExpr) extends SBodyItem {
     override def toString = s"type $name"
@@ -541,11 +554,40 @@ object ScalanAst {
     def isImplicit: Boolean
     def isAbstract: Boolean
     def name: String
+    def tpeArgs: STpeArgs
     def argss: List[List[SMethodOrClassArg]]
     def tpeRes: Option[STpeExpr]
     def rhs: Option[SExpr]
-    def isNoArgMethod = argss.flatten.isEmpty
     def isTypeDesc: Boolean
+    def hasNoArgs = argss.flatten.isEmpty
+    def isMethod: Boolean = this.isInstanceOf[SMethodDef]
+  }
+
+  case class SEntityMember(entity: SEntityDef, item: SEntityItem) {
+    def isMethod: Boolean = item.isMethod
+    def combinedTpeArgs = entity.tpeArgs ++ item.tpeArgs
+    def matches(other: SEntityMember): Boolean = item.name == other.item.name && ((item, other.item) match {
+      case (m1: SMethodDef, m2: SMethodDef) =>
+        val okArgsNum = m1.allArgs.length == m2.allArgs.length
+        if (m1.isMonomorphic && m2.isMonomorphic) {
+          // both monomorphic
+          val okEqualArgs = okArgsNum && m1.allArgs.zip(m2.allArgs).forall { case (a1, a2) => a1.tpe == a2.tpe }
+          okEqualArgs
+        } else if (!(m1.isMonomorphic || m2.isMonomorphic)) {
+          // both polymorphic
+          val okTyArgNum = m1.tpeArgs.length == m2.tpeArgs.length
+          if (okTyArgNum && okArgsNum) {
+            val subst = createSubst(m2.tpeArgs, m1.tpeArgs.map(_.toTraitCall))
+            val okEqualArgs = m1.allArgs.zip(m2.allArgs).forall { case (a1, a2) => a1.tpe == a2.tpe.applySubst(subst) }
+            okEqualArgs
+          }
+          else false // different args
+        } else
+          false // one mono another polymorphic
+      case (m1: SMethodDef, _) => false   // def cannot override val
+      case (_, m2: SMethodDef) => m2.hasNoArgs // val can override def
+      case _ => true  // they are both vals with the same name
+    })
   }
 
   case class SClassArg(
@@ -556,7 +598,9 @@ object ScalanAst {
       tpe: STpeExpr,
       default: Option[SExpr],
       annotations: List[SArgAnnotation] = Nil,
-      isTypeDesc: Boolean = false) extends SMethodOrClassArg with SEntityItem {
+      isTypeDesc: Boolean = false
+  ) extends SMethodOrClassArg with SEntityItem {
+    override def tpeArgs: STpeArgs = Nil
     override def isAbstract: Boolean = false
     override def isImplicit: Boolean = impFlag
     override def argss: List[List[SMethodOrClassArg]] = Nil
@@ -605,11 +649,11 @@ object ScalanAst {
     //====================================================================
     // The following methods allow to collect methods recursively
     // over inheritance hierarchy using given predicate
-    def collectItemsInBody(p: SEntityItem => Boolean): List[(SEntityDef, SEntityItem)] = {
-      val impValArgs = implicitArgs.args.filter(a => p(a) && a.valFlag).map((this, _: SEntityItem))
-      val valArgs = args.args.filter(a => p(a) && a.valFlag).map((this, _: SEntityItem))
+    def collectItemsInBody(p: SEntityItem => Boolean): List[SEntityMember] = {
+      val impValArgs = implicitArgs.args.filter(a => p(a) && a.valFlag).map(SEntityMember(this, _: SEntityItem))
+      val valArgs = args.args.filter(a => p(a) && a.valFlag).map(SEntityMember(this, _: SEntityItem))
       val methods = body.collect {
-        case md: SMethodDef if p(md) => (this, md: SEntityItem)
+        case md: SMethodDef if p(md) => SEntityMember(this, md: SEntityItem)
       }
       valArgs ++ impValArgs ++ methods
     }
@@ -619,11 +663,11 @@ object ScalanAst {
       ancestors.collect { case STypeApply(STraitCall(context.Entity(m, e),_), _) => e }
     }
 
-    def collectMethodsFromAncestors(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[(SEntityDef, SEntityItem)] = {
+    def collectMethodsFromAncestors(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[SEntityMember] = {
       collectAncestorEntities.flatMap(_.collectAvailableMethods(p))
     }
 
-    def collectAvailableMethods(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[(SEntityDef, SEntityItem)] = {
+    def collectAvailableMethods(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[SEntityMember] = {
       collectItemsInBody(p) ++ collectMethodsFromAncestors(p)
     }
     //--------------------------------------------------------------------
@@ -643,7 +687,7 @@ object ScalanAst {
     }
 
     def setOfAvailableNoArgMethods(implicit context: AstContext): Set[String] = {
-      collectAvailableMethods(_.isNoArgMethod).map(_._2.name).toSet
+      collectAvailableMethods(_.hasNoArgs).map(_.item.name).toSet
     }
 
     def findMethodInBody(name: String): Option[SMethodDef] = {
@@ -659,11 +703,11 @@ object ScalanAst {
     def hasHighKindTpeArg = tpeArgs.exists(_.isHighKind)
 
     def setOfAbstractNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
-      collectMethodsFromAncestors(m => m.isNoArgMethod && m.isAbstract).map(_._2.name).toSet
+      collectMethodsFromAncestors(m => m.hasNoArgs && m.isAbstract).map(_.item.name).toSet
     }
 
     def setOfConcreteNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
-      collectMethodsFromAncestors(m => m.isNoArgMethod && !m.isAbstract).map(_._2.name).toSet
+      collectMethodsFromAncestors(m => m.hasNoArgs && !m.isAbstract).map(_.item.name).toSet
     }
 
     def isAbstractInAncestors(propName: String)(implicit context: AstContext) = {
@@ -753,6 +797,7 @@ object ScalanAst {
       case Some(ExternalEntityAnnotation(externalName)) => Some(externalName)
       case _ => None
     }
+    def findMemberInBody(name: String) = e.collectItemsInBody(_.name == name).headOption
   }
 
   case class SClassDef(
@@ -968,7 +1013,7 @@ object ScalanAst {
       def unapply(tpe: STpeExpr): Option[(STpeDef, STpeExpr)] = tpe match {
         case STraitCall(n, args) =>
           typeDefs.get(n).map { td =>
-            val subst = td.tpeArgs.map(_.name).zip(args).toMap
+            val subst = createSubst(td.tpeArgs, args)
             (td, td.rhs.applySubst(subst))
           }
         case _ => None

@@ -120,16 +120,16 @@ object ScalanAstUtils {
   /** Checks for each type argument if it is used as argument of ancestor entity.
     * For each name of type argument returns a pair (e, tyArg)
     */
-  def classArgsAsSeenFromAncestors(clazz: SEntityDef)(implicit ctx: AstContext) = {
-    val subst: List[((SEntityDef, STpeArg), STpeExpr)] = argsSubstOfAncestorEntities(clazz)
-    val res = clazz.tpeArgs.map { clsTpeArg =>
+  def classArgsAsSeenFromAncestors(entity: SEntityDef)(implicit ctx: AstContext) = {
+    val subst: List[((SEntityDef, STpeArg), STpeExpr)] = argsSubstOfAncestorEntities(entity)
+    val res = entity.tpeArgs.map { clsTpeArg =>
 //      val argTpe = STraitCall(clsTpeArg.name) // don't use toTraitCall here
 //      val substOpt = subst.find { case ((e, eTpeArg), ancArg) => argTpe == ancArg }
 //      substOpt match {
 //        case Some(((e, eTpeArg), ancArg)) => // clsTpeArg is used as argument of at least one ancestor
 //          (clsTpeArg, (e, eTpeArg))
 //        case None =>
-          (clsTpeArg, (clazz, clsTpeArg))
+          (clsTpeArg, (entity, clsTpeArg))
 //      }
     }
     res

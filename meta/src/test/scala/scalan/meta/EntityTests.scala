@@ -23,12 +23,15 @@ class EntityTests extends BaseMetaTests with Examples {
       eColOverArray.inherits("Iters") shouldBe(false)
     }
     it("collectMethodsInBody") {
-      ePairOfCols.collectItemsInBody(_.isAbstract).map(_._2.name) shouldBe(List())
-      ePairOfCols.collectItemsInBody(!_.isAbstract).map(_._2.name) shouldBe(List("ls", "rs", "eL", "eR", "length", "apply"))
+      ePairOfCols.collectItemsInBody(_.isAbstract).map(_.item.name) shouldBe(List())
+      ePairOfCols.collectItemsInBody(!_.isAbstract).map(_.item.name) shouldBe(List("ls", "rs", "eL", "eR", "length", "apply", "map"))
     }
     it("collectMethodsFromAncestors") {
-      ePairOfCols.collectMethodsFromAncestors(_.isAbstract).map(_._2.name) shouldBe(List("eL", "eR", "ls", "rs", "eA", "arr", "length", "apply", "eA", "arr", "length", "apply"))
-      ePairOfCols.collectMethodsFromAncestors(!_.isAbstract).map(_._2.name) shouldBe(List())
+      ePairOfCols.collectMethodsFromAncestors(_.isAbstract).map(_.item.name) shouldBe(List("eL", "eR", "ls", "rs", "eA", "arr", "length", "apply", "map", "eA", "arr", "length", "apply", "map"))
+      ePairOfCols.collectMethodsFromAncestors(!_.isAbstract).map(_.item.name) shouldBe(List())
+    }
+    it("asSeenFrom") {
+
     }
   }
 
@@ -54,5 +57,22 @@ class EntityTests extends BaseMetaTests with Examples {
 
     // TODO linearization suffix property test
     // assert(true, "A linearization of a class always contains the linearization of its direct superclass as a suffix.")
+  }
+
+  describe("SEntityMember") {
+    def testMatches(e1: SEntityDef, e2: SEntityDef, name: String): Unit = {
+      val l1 = e1.findMemberInBody(name).get
+      val l2 = e2.findMemberInBody(name).get
+      assert(l1.matches(l2), s"Method '$name' don't match in entities ${e1.name} and ${e2.name}")
+    }
+
+    it("matches") {
+      testMatches(ePairOfCols, eCollection, "length")
+      testMatches(ePairOfCols, eCollection, "apply")
+      testMatches(eColOverArray, eCollection, "map")
+      testMatches(eColOverArray, eCollection, "eA")
+      testMatches(ePairOfCols, ePairCollection, "eL")
+      //TODO  testMatches(ePairOfCols, eCollection, "map")
+    }
   }
 }

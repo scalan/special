@@ -80,7 +80,7 @@ class KotlinFileCodegen[+IR <: Scalan](_scalan: IR, config: CodegenConfig) exten
   }
 
   def emitBodyItem(x: SBodyItem)(implicit ctx: GenCtx, l: IndentLevel) = x match {
-    case SValDef(n, tpe, isLazy, _, expr) =>
+    case SValDef(n, tpe, isLazy, _, expr, _, _, _) =>
       val optType = tpe.opt(t => s": ${genTpeExpr(t)}")
       //      val rhs = emit(expr)
       emit(s"""val $n${optType} = ???""")
