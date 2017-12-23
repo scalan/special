@@ -327,7 +327,7 @@ class MetaCodegen {
       extractableArgs.map { case (tyArgName, (arg, expr)) =>
         val kind = if (arg.isHighKind) "c" else "e"
         val name = kind + tyArgName
-        val isInheritedDefinition = entity.isDefinedInAncestors(name)(module.context)
+        val isInheritedDefinition = entity.isConcreteInAncestors(name)(module.context)
         val over = if (inClassBody && isInheritedDefinition) " override" else ""
         s"implicit$over val $name = $expr"
       }.mkString(";\n")
@@ -361,9 +361,9 @@ class MetaCodegen {
       implicitArgs.filter(p).opt(args => s"(implicit ${args.rep(a => s"$prefix${a.name}: ${a.tpe}")})")
     def implicitArgsDeclConcreteElem = {
       implicitArgs.opt(args => s"(implicit ${args.rep(a => {
-                                 val declared = entity.isDeclaredInAncestors(a.name)
-                                 val defined = entity.isDefinedInAncestors(a.name)
-                                 s"${(declared || defined).opt("override ")}val ${a.name}: ${a.tpe}"
+                                 val isAbstract = entity.isAbstractInAncestors(a.name)
+                                 val isConcrete = entity.isConcreteInAncestors(a.name)
+                                 s"${(isAbstract || isConcrete).opt("override ")}val ${a.name}: ${a.tpe}"
                                            })})")
     }
     val implicitArgsUse = implicitArgs.opt(args => s"(${args.rep(_.name)})")

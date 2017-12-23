@@ -270,7 +270,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       |  // familyElem
       |  class $elemTypeDecl${e.implicitArgsDecl("_")}
       |    extends $parentElem {
-      |${e.implicitArgs.rep(a => s"    ${(e.entity.isDeclaredInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
+      |${e.implicitArgs.rep(a => s"    ${(e.entity.isAbstractInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
       |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElement(p, e.tpeArgs)})", "None")}
       |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})
       |    override lazy val tag = {

@@ -2,7 +2,10 @@ package scalan.meta
 
 import java.io.File
 import java.util.Objects
+
 import com.typesafe.config.ConfigUtil
+
+import scala.collection.mutable
 import scalan.meta.PrintExtensions._
 import scala.collection.mutable.{Map => MMap}
 import scala.reflect.internal.ModifierFlags
@@ -611,6 +614,7 @@ object ScalanAst {
       valArgs ++ impValArgs ++ methods
     }
 
+    /** Direct inheritance relation which forms DAG */
     def collectAncestorEntities(implicit context: AstContext): List[SEntityDef] = {
       ancestors.collect { case STypeApply(STraitCall(context.Entity(m, e),_), _) => e }
     }
@@ -623,6 +627,20 @@ object ScalanAst {
       collectItemsInBody(p) ++ collectMethodsFromAncestors(p)
     }
     //--------------------------------------------------------------------
+
+    /** See http://www.scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html#class-linearization*/
+    def linearization(implicit context: AstContext): List[SEntityDef] = {
+      val merged = mutable.LinkedHashMap.empty[String, SEntityDef]
+      for (anc <- collectAncestorEntities) {
+        val ancLins = anc.linearization
+        for (ancL <- ancLins) {
+          if (!merged.contains(ancL.name)) {
+            merged += (ancL.name -> ancL)
+          }
+        }
+      }
+      this :: merged.values.toList
+    }
 
     def setOfAvailableNoArgMethods(implicit context: AstContext): Set[String] = {
       collectAvailableMethods(_.isNoArgMethod).map(_._2.name).toSet
@@ -640,20 +658,20 @@ object ScalanAst {
 
     def hasHighKindTpeArg = tpeArgs.exists(_.isHighKind)
 
-    def setOfDeclaredNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
+    def setOfAbstractNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
       collectMethodsFromAncestors(m => m.isNoArgMethod && m.isAbstract).map(_._2.name).toSet
     }
 
-    def setOfDefinedNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
+    def setOfConcreteNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
       collectMethodsFromAncestors(m => m.isNoArgMethod && !m.isAbstract).map(_._2.name).toSet
     }
 
-    def isDeclaredInAncestors(propName: String)(implicit context: AstContext) = {
-      setOfDeclaredNoArgMethodsInAncestors.contains(propName)
+    def isAbstractInAncestors(propName: String)(implicit context: AstContext) = {
+      setOfAbstractNoArgMethodsInAncestors.contains(propName)
     }
 
-    def isDefinedInAncestors(propName: String)(implicit context: AstContext) = {
-      setOfDefinedNoArgMethodsInAncestors.contains(propName)
+    def isConcreteInAncestors(propName: String)(implicit context: AstContext) = {
+      setOfConcreteNoArgMethodsInAncestors.contains(propName)
     }
 
     def getMethodsWithAnnotation(annClass: String) = body.collect {

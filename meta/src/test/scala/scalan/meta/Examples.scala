@@ -32,7 +32,8 @@ trait Examples { self: BaseMetaTests =>
      |    def length: Int;
      |    def apply(i: Int): A
      |  };
-     |  class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCollection[L,R] {
+     |  class PairOfCols[L,R](val ls: Col[L], val rs: Col[R])
+     |      extends PairCollection[L,R] with Collection[(L,R)] {
      |    override def length: Int = ls.length
      |    override def apply(i: Int): (L, R) = (ls(i), rs(i))
      |  }
@@ -61,7 +62,8 @@ trait Examples { self: BaseMetaTests =>
      |    def apply(i: Rep[Int]): Rep[A]
      |  }
      |  abstract class PairOfCols[L, R](val ls: Rep[Collection[L]], val rs: Rep[Collection[R]])
-     |                                 (implicit val eL: Elem[L], val eR: Elem[R]) extends PairCollection[L, R] {
+     |                                 (implicit val eL: Elem[L], val eR: Elem[R])
+     |      extends PairCollection[L, R] with Collection[(L,R)] {
      |    override def length: Rep[Int] = PairOfCols.this.ls.length;
      |    override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
      |  };
