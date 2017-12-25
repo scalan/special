@@ -659,12 +659,12 @@ object ScalanAst {
     }
 
     /** Direct inheritance relation which forms DAG */
-    def collectAncestorEntities(implicit context: AstContext): List[SEntityDef] = {
-      ancestors.collect { case STypeApply(STraitCall(context.Entity(m, e),_), _) => e }
+    def collectAncestorEntities(implicit context: AstContext): List[(SEntityDef, List[STpeExpr])] = {
+      ancestors.collect { case STypeApply(STraitCall(context.Entity(m, e), args), _) => (e, args) }
     }
 
     def collectMethodsFromAncestors(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[SEntityMember] = {
-      collectAncestorEntities.flatMap(_.collectAvailableMethods(p))
+      collectAncestorEntities.flatMap(_._1.collectAvailableMethods(p))
     }
 
     def collectAvailableMethods(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[SEntityMember] = {
@@ -676,7 +676,7 @@ object ScalanAst {
     def linearization(implicit context: AstContext): List[SEntityDef] = {
       val merged = mutable.LinkedHashMap.empty[String, SEntityDef]
       for (anc <- collectAncestorEntities) {
-        val ancLins = anc.linearization
+        val ancLins = anc._1.linearization
         for (ancL <- ancLins) {
           if (!merged.contains(ancL.name)) {
             merged += (ancL.name -> ancL)
@@ -684,6 +684,21 @@ object ScalanAst {
         }
       }
       this :: merged.values.toList
+    }
+
+    def linearizationWithSubst
+        (subst: Map[String, STpeExpr])(implicit context: AstContext): List[(SEntityDef, List[STpeExpr])] = {
+      val merged = mutable.LinkedHashMap.empty[String, (SEntityDef, List[STpeExpr])]
+      for ( (anc, args) <- argsSubstOfAncestorEntities ) {
+        val ancSubst = args.map { case (a, t) => (a.name, t.applySubst(subst)) }.toMap
+        val ancLins = anc.linearizationWithSubst(ancSubst)
+        for ( (ancL, ancLArgs) <- ancLins ) {
+          if (!merged.contains(ancL.name)) {
+            merged.put(ancL.name, (ancL, ancLArgs))
+          }
+        }
+      }
+      (this, tpeArgs.map(_.toTraitCall.applySubst(subst))) :: merged.values.toList
     }
 
     def setOfAvailableNoArgMethods(implicit context: AstContext): Set[String] = {
@@ -752,7 +767,7 @@ object ScalanAst {
     }
 
     def getDeclaredElems(implicit context: AstContext): List[(String, STpeExpr)] = {
-      val res = (this :: collectAncestorEntities)
+      val res = (this :: collectAncestorEntities.map(_._1))
         .flatMap(e => {
           val elems = e.body.collect {
             case SMethodDef(name, _, _, Some(elemOrCont), true, _, _, _, _, true) =>
@@ -760,6 +775,18 @@ object ScalanAst {
           }
           elems
         })
+      res
+    }
+
+    /** Returns substitution for each type arg of each ancestor (e, a1) -> t1 ... (e, aN) -> tN
+      * See example to understand the code:
+      * trait <e>[a1..aN] { }
+      * trait|class <this> extends <e>[t1,...,tN], ...
+      */
+    def argsSubstOfAncestorEntities(implicit ctx: AstContext): List[(SEntityDef, List[(STpeArg, STpeExpr)])] = {
+      val res = collectAncestorEntities.map { case (e, args) =>
+        (e, e.tpeArgs zip args)
+      }
       res
     }
 

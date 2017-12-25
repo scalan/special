@@ -1,6 +1,6 @@
 package scalan.meta
 
-import scalan.meta.ScalanAst.SEntityDef
+import scalan.meta.ScalanAst._
 
 class EntityTests extends BaseMetaTests with Examples {
 
@@ -30,8 +30,14 @@ class EntityTests extends BaseMetaTests with Examples {
       ePairOfCols.collectMethodsFromAncestors(_.isAbstract).map(_.item.name) shouldBe(List("eL", "eR", "ls", "rs", "eA", "arr", "length", "apply", "map", "eA", "arr", "length", "apply", "map"))
       ePairOfCols.collectMethodsFromAncestors(!_.isAbstract).map(_.item.name) shouldBe(List())
     }
-    it("asSeenFrom") {
-
+    it("argsSubstOfAncestorEntities") {
+      val subst = ePairOfCols.argsSubstOfAncestorEntities.map { case (e, args) =>
+        (e.name, args.map { case (a, t) => (a.name, t.toString) })
+      }
+      subst shouldBe List(
+        ("PairCollection", List("L","L")),
+        ("PairCollection", List("R","R")),
+        ("Collection", List("A","(L, R)")))
     }
   }
 
@@ -57,6 +63,27 @@ class EntityTests extends BaseMetaTests with Examples {
 
     // TODO linearization suffix property test
     // assert(true, "A linearization of a class always contains the linearization of its direct superclass as a suffix.")
+
+    def testLinWithSubst(e: SEntityDef, subst: Map[String, STpeExpr], expected: List[(String, List[String])]): Unit = {
+      val res = e.linearizationWithSubst(subst).map { case (e, args) => (e.name, args.map(_.toString)) }
+      res shouldBe(expected)
+    }
+
+    it("SEntityDef.linearizationWithSubst") {
+      testLinWithSubst(eCollection, Map(), List(("Collection", List("A"))))
+      testLinWithSubst(eCollection, Map("A" -> TpeInt), List(("Collection", List("Int"))))
+      testLinWithSubst(eColOverArray, Map(), List(("ColOverArray", List("A")), ("Collection", List("A"))))
+      testLinWithSubst(eColOverArray, Map("A" -> TpeInt),
+        List(("ColOverArray", List("Int")), ("Collection", List("Int"))))
+      testLinWithSubst(ePairCollection, Map(),
+        List(("PairCollection", List("L", "R")), ("Collection", List("(L, R)"))))
+      testLinWithSubst(ePairCollection, Map("L" -> TpeInt),
+        List(("PairCollection", List("Int", "R")), ("Collection", List("(Int, R)"))))
+      testLinWithSubst(ePairOfCols, Map(),
+        List(("PairOfCols", List("L", "R")), ("PairCollection", List("L", "R")), ("Collection", List("(L, R)"))))
+      testLinWithSubst(ePairOfCols, Map("L" -> TpeInt),
+        List(("PairOfCols", List("Int", "R")), ("PairCollection", List("Int", "R")), ("Collection", List("(Int, R)"))))
+    }
   }
 
   describe("SEntityMember") {

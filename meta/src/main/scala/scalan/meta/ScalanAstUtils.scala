@@ -97,31 +97,11 @@ object ScalanAstUtils {
   def genImplicitClassArg(tyArg: STpeArg): SClassArg =
     genImplicitClassArg(tyArg.isHighKind, tyArg.name, STraitCall(tyArg.name)) // don't use toTraitCall here
 
-  /** See example to understand the code:
-    * trait <e.name>[<e.tpeArgs>] { }
-    * <clazz> == class <clazz>[<clsTpeArg>..] extends <ancName>[<ancArgs>]
-    * Returns substitution for each type arg of each ancestor (e, A0) -> ancArgs(0) ... (e, An) -> ancArgs(n)
-    */
-  def argsSubstOfAncestorEntities(clazz: SEntityDef)(implicit ctx: AstContext): List[((SEntityDef, STpeArg), STpeExpr)] = {
-    val res = clazz.ancestors.flatMap { anc =>
-      val ancName = anc.tpe.name
-      val ancestorEnt_? = ctx.findModuleEntity(ancName).map(_._2)
-      ancestorEnt_? match {
-        case Some(e) =>
-          val ancArgs = anc.tpe.args
-          e.zipWithExpandedBy(_.tpeArgs) zip ancArgs
-        case None =>
-          List[((SEntityDef, STpeArg), STpeExpr)]()
-      }
-    }
-    res
-  }
-
   /** Checks for each type argument if it is used as argument of ancestor entity.
     * For each name of type argument returns a pair (e, tyArg)
     */
   def classArgsAsSeenFromAncestors(entity: SEntityDef)(implicit ctx: AstContext) = {
-    val subst: List[((SEntityDef, STpeArg), STpeExpr)] = argsSubstOfAncestorEntities(entity)
+//    val subst: List[((SEntityDef, STpeArg), STpeExpr)] = argsSubstOfAncestorEntities(entity)
     val res = entity.tpeArgs.map { clsTpeArg =>
 //      val argTpe = STraitCall(clsTpeArg.name) // don't use toTraitCall here
 //      val substOpt = subst.find { case ((e, eTpeArg), ancArg) => argTpe == ancArg }

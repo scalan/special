@@ -353,7 +353,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
 
   def emitClasses = {
     val concreteClasses = for {clazz <- module.classes} yield {
-      val e = EntityTemplateData(module, clazz.collectAncestorEntities(context).head)
+      val e = EntityTemplateData(module, clazz.collectAncestorEntities(context).head._1)
       val className = clazz.name
       val c = ConcreteClassTemplateData(module, clazz)
       import c.{implicitArgsOrParens, implicitArgsUse, tpeArgsDecl, tpeArgsUse}
