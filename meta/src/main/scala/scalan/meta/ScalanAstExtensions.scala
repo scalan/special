@@ -9,23 +9,6 @@ import scalan.util.GraphUtil
 
 object ScalanAstExtensions {
 
-  implicit class STpeExprOps(t: STpeExpr) {
-    def toIdentifier: String = {
-      def mkId(name: String, parts: Seq[STpeExpr]) =
-        (name +: parts).mkString("_")
-
-      t match {
-        case STpePrimitive(name, _) => name
-        case STraitCall(name, args) => mkId(name, args)
-        case STpeTuple(items) => mkId("Tuple", items)
-        //case STpeSum(items) => mkId("Sum", items)
-        case STpeFunc(domain, range) => mkId("Func", Seq(domain, range))
-        case STpeTypeBounds(lo, hi) => mkId("Bounds", Seq(lo, hi))
-        case _ => t.name
-      }
-    }
-  }
-
   implicit class SMethodOrClassArgOps(arg: SMethodOrClassArg) {
     def unrepType(module: SUnitDef) =
       if (module.isVirtualized) arg.tpe.unRep(module, module.isVirtualized)

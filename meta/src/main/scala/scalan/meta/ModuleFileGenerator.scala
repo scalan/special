@@ -430,11 +430,12 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
           }.mkString("\n")
           s"n match {\n$cases\n    }"
       }
+      val b = c.extractionBuilder()
       s"""
         |  case class ${c.typeDecl("Ctor") }
         |      (${fieldsWithType.rep(f => s"override val $f") })${c.optimizeImplicits().implicitArgsDecl() }
         |    extends ${c.typeUse }(${fields.rep() })${clazz.selfType.opt(t => s" with ${t.tpe }") } with Def[${c.typeUse }] {
-        |    ${c.extractionBuilder().extractableImplicits(inClassBody = true) }
+        |    ${b.extractableImplicits(inClassBody = true) }
         |    lazy val selfType = element[${c.typeUse }]
         |  }
         |  // elem for concrete class

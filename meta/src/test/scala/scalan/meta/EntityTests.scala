@@ -35,9 +35,8 @@ class EntityTests extends BaseMetaTests with Examples {
         (e.name, args.map { case (a, t) => (a.name, t.toString) })
       }
       subst shouldBe List(
-        ("PairCollection", List("L","L")),
-        ("PairCollection", List("R","R")),
-        ("Collection", List("A","(L, R)")))
+        ("PairCollection", List(("L","L"), ("R","R"))),
+        ("Collection", List(("A","(L, R)"))))
     }
   }
 
@@ -64,7 +63,7 @@ class EntityTests extends BaseMetaTests with Examples {
     // TODO linearization suffix property test
     // assert(true, "A linearization of a class always contains the linearization of its direct superclass as a suffix.")
 
-    def testLinWithSubst(e: SEntityDef, subst: Map[String, STpeExpr], expected: List[(String, List[String])]): Unit = {
+    def testLinWithSubst(e: SEntityDef, subst: STpeSubst, expected: List[(String, List[String])]): Unit = {
       val res = e.linearizationWithSubst(subst).map { case (e, args) => (e.name, args.map(_.toString)) }
       res shouldBe(expected)
     }
@@ -99,7 +98,31 @@ class EntityTests extends BaseMetaTests with Examples {
       testMatches(eColOverArray, eCollection, "map")
       testMatches(eColOverArray, eCollection, "eA")
       testMatches(ePairOfCols, ePairCollection, "eL")
-      //TODO  testMatches(ePairOfCols, eCollection, "map")
+      testMatches(ePairOfCols, eCollection, "map")
+    }
+  }
+
+  describe("STpeExpr") {
+    implicit val parseCtx = new ParseCtx(false)
+
+    def testNames(tpeStr: String, expected: Set[String]) = {
+      val t = parseType(tpeStr)
+      t.names shouldBe expected
+    }
+
+    it("names") {
+      testNames("A", Set("A"))
+      testNames("(A, B)", Set("A", "B"))
+      testNames("(A => B)", Set("A", "B"))
+      testNames("Array[A]", Set("Array", "A"))
+      testNames("Col[A]", Set("Col", "A"))
+    }
+
+    it("getUniqueName") {
+      getUniqueName("A", Set("A")) shouldBe "A1"
+      getUniqueName("A", Set("A1")) shouldBe "A"
+      getUniqueName("A", Set("A", "A1")) shouldBe "A2"
+      getUniqueName("A", Set("A2","A")) shouldBe "A1"
     }
   }
 }

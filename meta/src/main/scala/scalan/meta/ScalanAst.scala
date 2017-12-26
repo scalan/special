@@ -5,6 +5,7 @@ import java.util.Objects
 
 import com.typesafe.config.ConfigUtil
 
+import scala.collection.immutable.{HashSet, HashMap}
 import scala.collection.mutable
 import scalan.meta.PrintExtensions._
 import scala.collection.mutable.{Map => MMap}
@@ -14,6 +15,7 @@ import scalan.util.{Covariant, Contravariant, FileUtil, Invariant}
 import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstExtensions._
 import scala.tools.nsc.Global
+import scalan.meta.ScalanAstTransformers.TypeNameCollector
 
 object ScalanAst {
 
@@ -26,6 +28,7 @@ object ScalanAst {
   }
 
   type STpeExprs = List[STpeExpr]
+  type STpeSubst = Map[String, STpeExpr]
 
   /** Represents scala.reflect.internal.Types.NoType | NoPrefix */
   case class STpeEmpty() extends STpeExpr {
@@ -118,11 +121,26 @@ object ScalanAst {
     }
   }
 
-  def createSubst(args: STpeArgs, types: List[STpeExpr]): Map[String, STpeExpr] =
+  def createSubst(args: STpeArgs, types: List[STpeExpr]): STpeSubst =
     args.map(_.name).zip(types).toMap
 
   implicit class STpeExprExtensions(self: STpeExpr) {
-    def applySubst(subst: Map[String, STpeExpr]): STpeExpr = self match {
+    def toIdentifier: String = {
+      def mkId(name: String, parts: Seq[STpeExpr]) =
+        (name +: parts).mkString("_")
+
+      self match {
+        case STpePrimitive(name, _) => name
+        case STraitCall(name, args) => mkId(name, args)
+        case STpeTuple(items) => mkId("Tuple", items)
+        //case STpeSum(items) => mkId("Sum", items)
+        case STpeFunc(domain, range) => mkId("Func", Seq(domain, range))
+        case STpeTypeBounds(lo, hi) => mkId("Bounds", Seq(lo, hi))
+        case _ => self.name
+      }
+    }
+
+    def applySubst(subst: STpeSubst): STpeExpr = self match {
       case STraitCall(n, args) => // higher-kind usage of names is not supported  Array[A] - ok, A[Int] - nok
         subst.get(n) match {
           case Some(t) => t
@@ -131,6 +149,8 @@ object ScalanAst {
         }
       case STpeTuple(items) =>
         STpeTuple(items map { _.applySubst(subst) })
+      case STpeFunc(d, r) =>
+        STpeFunc(d.applySubst(subst), r.applySubst(subst))
       case _ => self
     }
 
@@ -151,6 +171,13 @@ object ScalanAst {
       case STraitCall("Rep", List(STpeFunc(STpeTuple(a1 :: a2 :: tail), _))) => true
       case STpeFunc(STpeTuple(a1 :: a2 :: tail), _) => true
       case _ => false
+    }
+
+    def names: Set[String] = {
+      val names = mutable.HashSet[String]()
+      val collector = new TypeNameCollector(names)
+      collector(self)
+      names.toSet
     }
   }
 
@@ -549,6 +576,33 @@ object ScalanAst {
                          isTypeDesc: Boolean = false)
     extends SMethodOrClassArg
 
+  def getUniqueName(name: String, env: Set[String]): String = {
+    var n = 0
+    var newName = name
+    while (env.contains(newName)) {
+      n += 1
+      newName = name + n
+    }
+    return newName
+  }
+
+  def disambiguateNames(names: List[String], entitySubst: STpeSubst): STpeSubst = {
+    var contextNames = HashSet[String]()
+    for ((a, t) <- entitySubst) {
+      contextNames += a
+      contextNames ++= t.names
+    }
+    var nameSubst = HashMap[String, STpeExpr]()
+    for (name <- names) {
+      if (contextNames.contains(name)) {
+        val newName = getUniqueName(name, contextNames)
+        contextNames += newName
+        nameSubst += (name -> STraitCall(newName))
+      }
+    }
+    nameSubst
+  }
+
   trait SEntityItem {
     def annotations: List[SAnnotation]
     def isImplicit: Boolean
@@ -566,28 +620,34 @@ object ScalanAst {
   case class SEntityMember(entity: SEntityDef, item: SEntityItem) {
     def isMethod: Boolean = item.isMethod
     def combinedTpeArgs = entity.tpeArgs ++ item.tpeArgs
-    def matches(other: SEntityMember): Boolean = item.name == other.item.name && ((item, other.item) match {
-      case (m1: SMethodDef, m2: SMethodDef) =>
-        val okArgsNum = m1.allArgs.length == m2.allArgs.length
-        if (m1.isMonomorphic && m2.isMonomorphic) {
-          // both monomorphic
-          val okEqualArgs = okArgsNum && m1.allArgs.zip(m2.allArgs).forall { case (a1, a2) => a1.tpe == a2.tpe }
-          okEqualArgs
-        } else if (!(m1.isMonomorphic || m2.isMonomorphic)) {
-          // both polymorphic
-          val okTyArgNum = m1.tpeArgs.length == m2.tpeArgs.length
-          if (okTyArgNum && okArgsNum) {
-            val subst = createSubst(m2.tpeArgs, m1.tpeArgs.map(_.toTraitCall))
-            val okEqualArgs = m1.allArgs.zip(m2.allArgs).forall { case (a1, a2) => a1.tpe == a2.tpe.applySubst(subst) }
+    def matches(other: SEntityMember)(implicit ctx: AstContext): Boolean = {
+      item.name == other.item.name && ((item, other.item) match {
+        case (m1: SMethodDef, m2: SMethodDef) =>
+          val okArgsNum = m1.allArgs.length == m2.allArgs.length
+          if (m1.isMonomorphic && m2.isMonomorphic) {
+            // both monomorphic
+            val okEqualArgs = okArgsNum && m1.allArgs.zip(m2.allArgs).forall { case (a1, a2) => a1.tpe == a2.tpe }
             okEqualArgs
-          }
-          else false // different args
-        } else
-          false // one mono another polymorphic
-      case (m1: SMethodDef, _) => false   // def cannot override val
-      case (_, m2: SMethodDef) => m2.hasNoArgs // val can override def
-      case _ => true  // they are both vals with the same name
-    })
+          } else if (!(m1.isMonomorphic || m2.isMonomorphic)) {
+            // both polymorphic
+            val okTyArgNum = m1.tpeArgs.length == m2.tpeArgs.length
+            if (okTyArgNum && okArgsNum) {
+              val lin = entity.linearizationWithSubst(Map())
+              val entSubst = lin.collectFirst {
+                case (e, args) if e.name == other.entity.name => e.tpeSubst(args)
+              }.get
+              val subst = createSubst(m2.tpeArgs, m1.tpeArgs.map(_.toTraitCall))
+              val okEqualArgs = m1.allArgs.zip(m2.allArgs).forall { case (a1, a2) => a1.tpe == a2.tpe.applySubst(entSubst ++ subst) }
+              okEqualArgs
+            }
+            else false // different args
+          } else
+            false // one mono another polymorphic
+        case (m1: SMethodDef, _) => false   // def cannot override val
+        case (_, m2: SMethodDef) => m2.hasNoArgs // val can override def
+        case _ => true  // they are both vals with the same name
+      })
+    }
   }
 
   case class SClassArg(
@@ -686,8 +746,18 @@ object ScalanAst {
       this :: merged.values.toList
     }
 
+    /** Returns substitution for each type arg of each ancestor (e, a1) -> t1 ... (e, aN) -> tN
+      * See example to understand the code:
+      * trait <e>[a1..aN] { }
+      * trait|class <this> extends <e>[t1,...,tN], ...
+      */
+    def argsSubstOfAncestorEntities(implicit ctx: AstContext): List[(SEntityDef, List[(STpeArg, STpeExpr)])] = {
+      val res = collectAncestorEntities.map { case (e, args) => (e, e.tpeArgs zip args) }
+      res
+    }
+
     def linearizationWithSubst
-        (subst: Map[String, STpeExpr])(implicit context: AstContext): List[(SEntityDef, List[STpeExpr])] = {
+        (subst: STpeSubst)(implicit context: AstContext): List[(SEntityDef, List[STpeExpr])] = {
       val merged = mutable.LinkedHashMap.empty[String, (SEntityDef, List[STpeExpr])]
       for ( (anc, args) <- argsSubstOfAncestorEntities ) {
         val ancSubst = args.map { case (a, t) => (a.name, t.applySubst(subst)) }.toMap
@@ -699,6 +769,23 @@ object ScalanAst {
         }
       }
       (this, tpeArgs.map(_.toTraitCall.applySubst(subst))) :: merged.values.toList
+    }
+
+    def collectVisibleMembers(implicit context: AstContext): List[SEntityMember] = {
+      val lin = linearizationWithSubst(Map())
+      val members = mutable.LinkedHashMap.empty[String, SEntityMember]
+      for ((e, args) <- lin) {
+        val ms = e.collectItemsInBody { item =>
+          if (members.contains(item.name)) {
+          } else {
+            val entSubst = e.tpeSubst(args)
+            val itemSubst = disambiguateNames(item.tpeArgs.map(_.name), entSubst)
+//            members += (item.name -> SEntityMember(e, item.applySubst()))
+          }
+          true
+        }
+      }
+      members.values.toList
     }
 
     def setOfAvailableNoArgMethods(implicit context: AstContext): Set[String] = {
@@ -778,18 +865,6 @@ object ScalanAst {
       res
     }
 
-    /** Returns substitution for each type arg of each ancestor (e, a1) -> t1 ... (e, aN) -> tN
-      * See example to understand the code:
-      * trait <e>[a1..aN] { }
-      * trait|class <this> extends <e>[t1,...,tN], ...
-      */
-    def argsSubstOfAncestorEntities(implicit ctx: AstContext): List[(SEntityDef, List[(STpeArg, STpeExpr)])] = {
-      val res = collectAncestorEntities.map { case (e, args) =>
-        (e, e.tpeArgs zip args)
-      }
-      res
-    }
-
     def getAnnotation(annotName: String) = annotations.find(a => a.annotationClass == annotName)
 
     def hasAnnotation(annotName: String) = getAnnotation(annotName).isDefined
@@ -825,6 +900,7 @@ object ScalanAst {
       case _ => None
     }
     def findMemberInBody(name: String) = e.collectItemsInBody(_.name == name).headOption
+    def tpeSubst(args: List[STpeExpr]): STpeSubst = e.tpeArgs.map(_.name).zip(args).toMap
   }
 
   case class SClassDef(

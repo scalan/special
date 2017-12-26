@@ -1,5 +1,6 @@
 package scalan.meta
 
+import scala.collection.mutable
 import scalan.meta
 import scalan.meta.ScalanAst._
 
@@ -226,6 +227,8 @@ object ScalanAstTransformers {
   class TypeTransformer extends (STpeExpr => STpeExpr) {
     override def apply(tpe: STpeExpr): STpeExpr = typeTransform(tpe)
     def typeTransform(tpe: STpeExpr): STpeExpr = tpe match {
+      case tup: STpeTuple => tupleTransform(tup)
+      case func: STpeFunc => funcTransform(func)
       case empty: STpeEmpty => emptyTransform(empty)
       case traitCall: STraitCall => traitCallTransform(traitCall)
       case prim: STpePrimitive => primitiveTransform(prim)
@@ -233,6 +236,8 @@ object ScalanAstTransformers {
       case _ => tpe
     }
 
+    def tupleTransform(tup: STpeTuple) = STpeTuple(tup.args.mapConserve(typeTransform))
+    def funcTransform(func: STpeFunc) = STpeFunc(typeTransform(func.domain), typeTransform(func.range))
     def emptyTransform(emptyType: STpeEmpty) = emptyType
     def primitiveTransform(prim: STpePrimitive) = prim
 
@@ -285,6 +290,18 @@ object ScalanAstTransformers {
     override def tpeDefArgTransform(tpeArg: STpeArg): STpeArg = {
       if (tpeArg.name == oldName) tpeArg.copy(name = newName)
       else tpeArg
+    }
+  }
+
+  /** Collect types names from given type term as side effect. */
+  class TypeNameCollector(val names: mutable.HashSet[String]) extends TypeTransformer {
+    override def traitCallNameTransform(tname: String): String = {
+      names += tname
+      tname
+    }
+    override def tpeDefArgTransform(tpeArg: STpeArg): STpeArg = {
+      names += tpeArg.name
+      tpeArg
     }
   }
 
