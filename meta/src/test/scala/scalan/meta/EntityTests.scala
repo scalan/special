@@ -38,6 +38,36 @@ class EntityTests extends BaseMetaTests with Examples {
         ("PairCollection", List(("L","L"), ("R","R"))),
         ("Collection", List(("A","(L, R)"))))
     }
+    describe("collectVisibleMembers") {
+      implicit val parseCtx = new ParseCtx(true)
+      def testVisible(e: SEntityDef, p: SEntityMember => Boolean, expected: List[(String, String)]) = {
+        val expectedMembers = expected.map { case (en, mstr) =>
+          val item = parseBodyItem(mstr).asInstanceOf[SEntityItem]
+          (en, item)
+        }
+        val actual = e.collectVisibleMembers.filter(p).map(m => (m.entity.name, m.item))
+        actual shouldBe expectedMembers
+      }
+      def isMap(m: SEntityMember) = m.item.name == "map"
+      it("returns matching member with specialized signature") {
+        testVisible(eCollection, isMap,
+          List(("Collection", "def map[B](f: Rep[A => B]): Rep[Collection[B]]")))
+        testVisible(eColOverArray, isMap,
+          List(("ColOverArray", "def map[B](f: Rep[A => B]): Rep[Collection[B]] = ColOverArray(ColOverArray.this.arr.map(f))")))
+        testVisible(ePairCollection, isMap,
+          List(("Collection", "def map[B](f: Rep[((L,R)) => B]): Rep[Collection[B]]")))
+        testVisible(ePairOfCols, isMap,
+          List(("PairOfCols", "override def map[V](f: Rep[((L, R)) => V]): Rep[Collection[V]] = ColOverArray(PairOfCols.this.arr.map(f))")))
+      }
+      def testMemberEntity(e: SEntityDef, expected: List[(String, String)]) = {
+        val actual = e.collectVisibleMembers.map(m => (m.entity.name, m.item.name))
+        actual shouldBe expected
+      }
+      it("returns the most specific version") {
+        testMemberEntity(eCollection,
+          List(("Collection","eA"), ("Collection","arr"), ("Collection","length"), ("Collection","apply"), ("Collection","map")))
+      }
+    }
   }
 
   describe("linearization") {
@@ -101,15 +131,13 @@ class EntityTests extends BaseMetaTests with Examples {
       testMatches(ePairOfCols, eCollection, "map")
     }
   }
+  implicit val parseCtx = new ParseCtx(false)
 
   describe("STpeExpr") {
-    implicit val parseCtx = new ParseCtx(false)
-
     def testNames(tpeStr: String, expected: Set[String]) = {
       val t = parseType(tpeStr)
       t.names shouldBe expected
     }
-
     it("names") {
       testNames("A", Set("A"))
       testNames("(A, B)", Set("A", "B"))
@@ -123,6 +151,46 @@ class EntityTests extends BaseMetaTests with Examples {
       getUniqueName("A", Set("A1")) shouldBe "A"
       getUniqueName("A", Set("A", "A1")) shouldBe "A2"
       getUniqueName("A", Set("A2","A")) shouldBe "A1"
+    }
+
+    it("disambiguateNames") {
+      disambiguateNames(List("A","B"), Map()) shouldBe(Map())
+      disambiguateNames(
+        List("A","B"),
+        Map("A" -> STpeTuple(List(STraitCall("B"),
+        STraitCall("C"))))) shouldBe(Map("A" -> STraitCall("A1"), "B" -> STraitCall("B1")))
+    }
+
+    def testSubst(tpeStr: String, subst: STpeSubst, expected: String) = {
+      val t = parseType(tpeStr)
+      t.applySubst(subst).toString shouldBe expected
+    }
+    it("applySubst") {
+      testSubst("(A,B)", Map("A" -> TpeInt), "(Int, B)")
+    }
+  }
+
+  describe("SEntityItem") {
+    def testSubst(tpeStr: String, subst: STpeSubst, expectedStr: String) = {
+      val t = parseBodyItem(tpeStr)
+      val expected = parseBodyItem(expectedStr)
+      t.asInstanceOf[SEntityItem].applySubst(subst) shouldBe expected
+    }
+    it("applySubst") {
+      def ty(s: String) = parseType(s)
+      val method = "def map[B](f: A => B): Col[B]"
+      testSubst(method, Map("A" -> TpeInt), "def map[B](f: Int => B): Col[B]")
+      testSubst(method, Map("A" -> ty("(A,B)")), "def map[B](f: (A,B) => B): Col[B]")
+      testSubst(method, Map("A" -> ty("(A,B)"), "B" -> ty("V")), "def map[B](f: (A,B) => V): Col[V]")
+      val field = "val col: Col[A]"
+      testSubst(field, Map(), "val col: Col[A]")
+      testSubst(field, Map("A" -> ty("B")), "val col: Col[B]")
+      testSubst(field, Map("A" -> ty("(B,C)")), "val col: Col[(B,C)]")
+      testSubst(field, Map("A" -> ty("Col[B]")), "val col: Col[Col[B]]")
+      testSubst(field, Map("A" -> ty("Col[(B,C)]")), "val col: Col[Col[(B,C)]]")
+      val arg = SClassArg(false, false, true, "arg", ty("(A,B)"), None)
+      arg.applySubst(Map("A" -> ty("B"))) shouldBe arg.copy(tpe = ty("(B,B)"))
+      arg.applySubst(Map("A" -> ty("(B,C)"))) shouldBe arg.copy(tpe = ty("((B,C),B)"))
     }
   }
 }

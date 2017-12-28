@@ -113,6 +113,15 @@ object CollectionUtil {
       case (Some(x), Some(y)) => Some(merge(x, y))
     }
   }
+  implicit class OptionOfAnyRefOps[A <: AnyRef](source: Option[A]) {
+    def mapConserve[B <: AnyRef](f: A => B): Option[B] = source match {
+      case Some(a) =>
+        val b = f(a)
+        if (b.eq(a)) source.asInstanceOf[Option[B]]
+        else Some(b)
+      case None => None
+    }
+  }
 
   implicit class ListOps[A](source: List[A]) {
   }

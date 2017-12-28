@@ -135,4 +135,12 @@ class CollectionUtilTests extends BaseTests {
     strs shouldBe(List("a", "b"))
     doubles shouldBe(List(1.0, 2.0))
   }
+
+  test("mapConserve") {
+    class A(val x: Int)
+    val x = new A(10)
+    val opt = Option(x)
+    opt.mapConserve(a => a) shouldBe theSameInstanceAs(opt)
+    opt.mapConserve(a => new A(a.x + 1)) should not be theSameInstanceAs(opt)
+  }
 }

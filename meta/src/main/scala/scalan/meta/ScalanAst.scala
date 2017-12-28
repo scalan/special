@@ -5,7 +5,7 @@ import java.util.Objects
 
 import com.typesafe.config.ConfigUtil
 
-import scala.collection.immutable.{HashSet, HashMap}
+import scala.collection.immutable.{HashMap, HashSet}
 import scala.collection.mutable
 import scalan.meta.PrintExtensions._
 import scala.collection.mutable.{Map => MMap}
@@ -15,7 +15,7 @@ import scalan.util.{Covariant, Contravariant, FileUtil, Invariant}
 import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstExtensions._
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAstTransformers.TypeNameCollector
+import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
 
 object ScalanAst {
 
@@ -124,7 +124,7 @@ object ScalanAst {
   def createSubst(args: STpeArgs, types: List[STpeExpr]): STpeSubst =
     args.map(_.name).zip(types).toMap
 
-  implicit class STpeExprExtensions(self: STpeExpr) {
+  implicit class STpeExprOps(self: STpeExpr) {
     def toIdentifier: String = {
       def mkId(name: String, parts: Seq[STpeExpr]) =
         (name +: parts).mkString("_")
@@ -140,18 +140,10 @@ object ScalanAst {
       }
     }
 
-    def applySubst(subst: STpeSubst): STpeExpr = self match {
-      case STraitCall(n, args) => // higher-kind usage of names is not supported  Array[A] - ok, A[Int] - nok
-        subst.get(n) match {
-          case Some(t) => t
-          case None =>
-            STraitCall(n, args map { _.applySubst(subst) })
-        }
-      case STpeTuple(items) =>
-        STpeTuple(items map { _.applySubst(subst) })
-      case STpeFunc(d, r) =>
-        STpeFunc(d.applySubst(subst), r.applySubst(subst))
-      case _ => self
+    def applySubst(subst: STpeSubst): STpeExpr = {
+      val trans = new SubstTypeTransformer(subst)
+      val res = trans(self)
+      res
     }
 
     def unRep(module: SUnitDef, isVirtualized: Boolean): Option[STpeExpr] = self match {
@@ -436,7 +428,7 @@ object ScalanAst {
     override def isAbstract: Boolean = body.isEmpty
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
     override def rhs: Option[SExpr] = body
-
+    override def exprType = ??? // TODO build STpeFunc for this method type
     def externalOpt: Option[SMethodAnnotation] = annotations.find(_.annotationClass == "External")
 
 //    def isExtractableArg(module: SModuleDef, tpeArg: STpeArg): Boolean = {
@@ -496,6 +488,7 @@ object ScalanAst {
     override def tpeArgs: STpeArgs = Nil
     override def argss: List[List[SMethodOrClassArg]] = Nil
     override def tpeRes = tpe
+    override def exprType = tpe
     override def rhs: Option[SExpr] = Some(expr)
   }
 
@@ -504,12 +497,12 @@ object ScalanAst {
   }
 
   case class STpeArg(
-                      name: String,
-                      bound: Option[STpeExpr] = None,
-                      contextBound: List[String] = Nil,
-                      tparams: List[STpeArg] = Nil,
-                      flags: Long = ModifierFlags.PARAM,
-                      annotations: List[STypeArgAnnotation] = Nil) {
+      name: String,
+      bound: Option[STpeExpr] = None,
+      contextBound: List[String] = Nil,
+      tparams: List[STpeArg] = Nil,
+      flags: Long = ModifierFlags.PARAM,
+      annotations: List[STypeArgAnnotation] = Nil) {
     def isHighKind = tparams.nonEmpty
     def classOrMethodArgName: String = if (isHighKind) "c" + name else "e" + name
     def descName: String = if (isHighKind) "Cont" else "Elem"
@@ -603,7 +596,7 @@ object ScalanAst {
     nameSubst
   }
 
-  trait SEntityItem {
+  trait SEntityItem extends SExpr {
     def annotations: List[SAnnotation]
     def isImplicit: Boolean
     def isAbstract: Boolean
@@ -615,6 +608,11 @@ object ScalanAst {
     def isTypeDesc: Boolean
     def hasNoArgs = argss.flatten.isEmpty
     def isMethod: Boolean = this.isInstanceOf[SMethodDef]
+    def applySubst(subst: STpeSubst)(implicit ctx: AstContext): SEntityItem = {
+      val typeTrans = new SubstTypeTransformer(subst)
+      val trans = new TypeTransformerInAst(typeTrans)
+      trans(this).asInstanceOf[SEntityItem]
+    }
   }
 
   case class SEntityMember(entity: SEntityDef, item: SEntityItem) {
@@ -666,6 +664,7 @@ object ScalanAst {
     override def argss: List[List[SMethodOrClassArg]] = Nil
     override def rhs: Option[SExpr] = None
     override def tpeRes: Option[STpeExpr] = Some(tpe)
+    override def exprType = tpeRes
   }
 
   trait SMethodOrClassArgs {
@@ -780,7 +779,7 @@ object ScalanAst {
           } else {
             val entSubst = e.tpeSubst(args)
             val itemSubst = disambiguateNames(item.tpeArgs.map(_.name), entSubst)
-//            members += (item.name -> SEntityMember(e, item.applySubst()))
+            members += (item.name -> SEntityMember(e, item.applySubst(entSubst ++ itemSubst)))
           }
           true
         }

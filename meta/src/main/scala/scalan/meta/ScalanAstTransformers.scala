@@ -3,10 +3,12 @@ package scalan.meta
 import scala.collection.mutable
 import scalan.meta
 import scalan.meta.ScalanAst._
+import scalan.util.CollectionUtil._
 
 object ScalanAstTransformers {
   /** The class implements a default Meta AST transformation strategy: breadth-first search */
-  class AstTransformer(implicit val ctx: AstContext) {
+  class AstTransformer(implicit val ctx: AstContext) extends (SExpr => SExpr) {
+    override def apply(e: SExpr): SExpr = exprTransform(e)
     def constTransform(c: SConst): SConst = c
     def identTransform(ident: SIdent): SExpr = ident
     def selectTransform(select: SSelect): SExpr = {
@@ -62,7 +64,8 @@ object ScalanAstTransformers {
       case block: SBlock => blockTransform(block)
       case bodyItem: SBodyItem => bodyItemTransform(bodyItem)
       case tup: STuple => tupleTransform(tup)
-      case _ => throw new NotImplementedError(s"$expr")
+      case arg: SClassArg => classArgTransform(arg)
+      case _ => throw new NotImplementedError(s"Cannot exprTransform($expr)")
     }
 
     def methodArgTransform(arg: SMethodArg): SMethodArg = arg
@@ -156,10 +159,12 @@ object ScalanAstTransformers {
         case unknown => throw new NotImplementedError(unknown.toString)
       }
     }
-    def classArgTransform(classArg: SClassArg): SClassArg = classArg
+    def classArgTransform(classArg: SClassArg): SClassArg = {
+      val newDefault = classArg.default.mapConserve(exprTransform)
+      classArg.copy(default = newDefault)
+    }
     def classArgsTransform(classArgs: SClassArgs): SClassArgs = {
       val newArgs = classArgs.args mapConserve classArgTransform
-
       classArgs.copy(args = newArgs)
     }
     def classTransform(c: SClassDef): SClassDef = {
@@ -313,6 +318,18 @@ object ScalanAstTransformers {
         case _ => tpe
       }
       super.typeTransform(t)
+    }
+  }
+
+  /** Transform type by applying given substitution. */
+  class SubstTypeTransformer(subst: STpeSubst) extends TypeTransformer {
+    override def typeTransform(tpe: STpeExpr): STpeExpr = tpe match {
+      case tc: STraitCall if subst.get(tc.name).isDefined =>
+        assert(tc.args.isEmpty,
+          s"""Cannot substitute higher-kind TraitCall $tc:
+            |higher-kind usage of names is not supported  Array[A] - ok, A[Int] - nok""".stripMargin)
+        subst(tc.name)
+      case _ => super.typeTransform(tpe)
     }
   }
 
