@@ -632,7 +632,7 @@ object ScalanAst {
             if (okTyArgNum && okArgsNum) {
               val lin = entity.linearizationWithSubst(Map())
               val entSubst = lin.collectFirst {
-                case (e, args) if e.name == other.entity.name => e.tpeSubst(args)
+                case (e, args) if e.name == other.entity.name => e.createTpeSubst(args)
               }.get
               val subst = createSubst(m2.tpeArgs, m1.tpeArgs.map(_.toTraitCall))
               val okEqualArgs = m1.allArgs.zip(m2.allArgs).forall { case (a1, a2) => a1.tpe == a2.tpe.applySubst(entSubst ++ subst) }
@@ -774,14 +774,14 @@ object ScalanAst {
       val lin = linearizationWithSubst(Map())
       val members = mutable.LinkedHashMap.empty[String, SEntityMember]
       for ((e, args) <- lin) {
-        val ms = e.collectItemsInBody { item =>
-          if (members.contains(item.name)) {
+        for (member <- e.collectItemsInBody(_ => true)) {
+          val name = member.item.name
+          if (members.contains(name)) {
           } else {
-            val entSubst = e.tpeSubst(args)
-            val itemSubst = disambiguateNames(item.tpeArgs.map(_.name), entSubst)
-            members += (item.name -> SEntityMember(e, item.applySubst(entSubst ++ itemSubst)))
+            val entSubst = e.createTpeSubst(args)
+            val itemSubst = disambiguateNames(member.item.tpeArgs.map(_.name), entSubst)
+            members += (name -> SEntityMember(e, member.item.applySubst(entSubst ++ itemSubst)))
           }
-          true
         }
       }
       members.values.toList
@@ -899,7 +899,7 @@ object ScalanAst {
       case _ => None
     }
     def findMemberInBody(name: String) = e.collectItemsInBody(_.name == name).headOption
-    def tpeSubst(args: List[STpeExpr]): STpeSubst = e.tpeArgs.map(_.name).zip(args).toMap
+    def createTpeSubst(args: List[STpeExpr]): STpeSubst = e.tpeArgs.map(_.name).zip(args).toMap
   }
 
   case class SClassDef(
