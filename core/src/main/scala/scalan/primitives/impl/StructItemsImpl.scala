@@ -92,6 +92,7 @@ trait StructItemsDefs extends StructItems {
     extends StructItemBase[Val, Schema](key, value) with Def[StructItemBase[Val, Schema]] {
     implicit val eVal = value.elem;
 implicit val eSchema = key.eSchema
+
     lazy val selfType = element[StructItemBase[Val, Schema]]
   }
   // elem for concrete class

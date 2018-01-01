@@ -108,6 +108,7 @@ trait SpecializationsDefs extends Specializations {
     implicit val eT = func.elem.eDom;
 implicit val eR = func.elem.eRange;
 implicit val eM = metric.elem.eRange
+
     lazy val selfType = element[IsoFuncBase[T, R, M]]
   }
   // elem for concrete class

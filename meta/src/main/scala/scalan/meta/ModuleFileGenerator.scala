@@ -431,11 +431,21 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
           s"n match {\n$cases\n    }"
       }
       val b = c.extractionBuilder()
+      val abstractDescriptors = c.c.collectVisibleMembers.filter { m =>
+        m.item.isAbstract && m.item.isTypeDesc && {
+          b.extractableArgs.find { case (n, (tyArg, s)) => STraitCall("Elem", List(tyArg.toTraitCall)) == m.item.tpeRes.get }
+        }
+      }
+      val elemDefs = abstractDescriptors.rep({ m =>
+        val STraitCall(_, List(tyStr)) = m.item.tpeRes.get
+        s"implicit override val ${m.item.name}: Elem[$tyStr] = element[$tyStr]"
+      }, "\n|").stripMargin
       s"""
         |  case class ${c.typeDecl("Ctor") }
         |      (${fieldsWithType.rep(f => s"override val $f") })${c.optimizeImplicits().implicitArgsDecl() }
         |    extends ${c.typeUse }(${fields.rep() })${clazz.selfType.opt(t => s" with ${t.tpe }") } with Def[${c.typeUse }] {
         |    ${b.extractableImplicits(inClassBody = true) }
+        |    ${elemDefs}
         |    lazy val selfType = element[${c.typeUse }]
         |  }
         |  // elem for concrete class

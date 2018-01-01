@@ -526,7 +526,11 @@ object ScalanAst {
       }
       else name + bound.opt(b => s" <: ${b.name}")
 
-    def toTraitCall: STraitCall = STraitCall(name, tparams.map(_.toTraitCall))
+    def toTraitCall: STraitCall = {
+      val args = if (tparams.forall(p => p.name == "_")) Nil
+                 else tparams.map { p => p.toTraitCall }
+      STraitCall(name, args)
+    }
 
     def getArgBounds(args: List[SMethodArgs]): List[STraitCall] = {
       args.lastOption match {
@@ -773,14 +777,21 @@ object ScalanAst {
     def collectVisibleMembers(implicit context: AstContext): List[SEntityMember] = {
       val lin = linearizationWithSubst(Map())
       val members = mutable.LinkedHashMap.empty[String, SEntityMember]
+      def addMember(e: SEntityDef, args: List[STpeExpr], m: SEntityMember) = {
+        val entSubst = e.createTpeSubst(args)
+        val itemSubst = disambiguateNames(m.item.tpeArgs.map(_.name), entSubst)
+        members += (m.item.name -> SEntityMember(e, m.item.applySubst(entSubst ++ itemSubst)))
+      }
       for ((e, args) <- lin) {
         for (member <- e.collectItemsInBody(_ => true)) {
           val name = member.item.name
           if (members.contains(name)) {
+            val mExisting = members(name)
+            if (!mExisting.matches(member)) {
+              addMember(e, args, member)
+            }
           } else {
-            val entSubst = e.createTpeSubst(args)
-            val itemSubst = disambiguateNames(member.item.tpeArgs.map(_.name), entSubst)
-            members += (name -> SEntityMember(e, member.item.applySubst(entSubst ++ itemSubst)))
+            addMember(e, args, member)
           }
         }
       }

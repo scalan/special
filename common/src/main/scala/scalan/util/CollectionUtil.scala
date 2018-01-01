@@ -105,6 +105,13 @@ object CollectionUtil {
       all.reverse
     }
   }
+  
+  implicit class AnyRefOps[A <: AnyRef](x: A) {
+    def transformConserve(f: A => A) = {
+      val newX = f(x)
+      if (newX eq x) x else newX
+    }
+  }
 
   implicit class OptionOps[A](source: Option[A]) {
     def mergeWith[K](other: Option[A], merge: (A,A) => A): Option[A] = (source, other) match {

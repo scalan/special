@@ -180,6 +180,7 @@ trait ConvertersDefs extends Converters {
     extends BaseConverter[T, R](convFun) with Def[BaseConverter[T, R]] {
     implicit val eT = convFun.elem.eDom;
 implicit val eR = convFun.elem.eRange
+
     lazy val selfType = element[BaseConverter[T, R]]
   }
   // elem for concrete class
@@ -271,6 +272,8 @@ implicit val eR = p.convFun.elem.eRange
 implicit val eA2 = conv2.eT;
 implicit val eB1 = conv1.eR;
 implicit val eB2 = conv2.eR
+    implicit override val eT: Elem[(A1, A2)] = element[(A1, A2)]
+implicit override val eR: Elem[(B1, B2)] = element[(B1, B2)]
     lazy val selfType = element[PairConverter[A1, A2, B1, B2]]
   }
   // elem for concrete class
@@ -379,6 +382,8 @@ implicit val eB2 = p.conv2.eR
 implicit val eA2 = conv2.eT;
 implicit val eB1 = conv1.eR;
 implicit val eB2 = conv2.eR
+    implicit override val eT: Elem[$bar[A1, A2]] = element[$bar[A1, A2]]
+implicit override val eR: Elem[$bar[B1, B2]] = element[$bar[B1, B2]]
     lazy val selfType = element[SumConverter[A1, A2, B1, B2]]
   }
   // elem for concrete class
@@ -486,6 +491,8 @@ implicit val eB2 = p.conv2.eR
     implicit val eA = conv1.eT;
 implicit val eB = conv2.eT;
 implicit val eC = conv2.eR
+    implicit override val eT: Elem[A] = element[A]
+implicit override val eR: Elem[C] = element[C]
     lazy val selfType = element[ComposeConverter[A, B, C]]
   }
   // elem for concrete class
@@ -587,6 +594,8 @@ implicit val eC = p.conv2.eR
     extends FunctorConverter[A, B, F](itemConv) with Def[FunctorConverter[A, B, F]] {
     implicit val eA = itemConv.eT;
 implicit val eB = itemConv.eR
+    implicit override val eT: Elem[F[A]] = element[F[A]]
+implicit override val eR: Elem[F[B]] = element[F[B]]
     lazy val selfType = element[FunctorConverter[A, B, F]]
   }
   // elem for concrete class
@@ -676,6 +685,8 @@ implicit val eB = p.itemConv.eR
   case class NaturalConverterCtor[A, F[_], G[_]]
       (override val convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends NaturalConverter[A, F, G](convFun) with Def[NaturalConverter[A, F, G]] {
+    implicit override val eT: Elem[F[A]] = element[F[A]]
+implicit override val eR: Elem[G[A]] = element[G[A]]
     lazy val selfType = element[NaturalConverter[A, F, G]]
   }
   // elem for concrete class

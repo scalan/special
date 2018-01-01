@@ -80,6 +80,7 @@ trait KindsDefs extends scalan.Scalan with Kinds {
       (override val a: Rep[A])(implicit cF: Cont[F])
     extends Return[F, A](a) with Def[Return[F, A]] {
     implicit val eA = a.elem
+
     lazy val selfType = element[Return[F, A]]
   }
   // elem for concrete class
@@ -168,6 +169,7 @@ trait KindsDefs extends scalan.Scalan with Kinds {
     implicit val cF = a.cF;
 implicit val eS = a.eA;
 implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+    implicit override val eA: Elem[B] = element[B]
     lazy val selfType = element[Bind[F, S, B]]
   }
   // elem for concrete class

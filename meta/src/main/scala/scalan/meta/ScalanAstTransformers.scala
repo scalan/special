@@ -65,8 +65,99 @@ object ScalanAstTransformers {
       case bodyItem: SBodyItem => bodyItemTransform(bodyItem)
       case tup: STuple => tupleTransform(tup)
       case arg: SClassArg => classArgTransform(arg)
+      case m: SMatch => matchTransform(m)
+      case c: SCase => caseTransform(c)
+      case e: SIf => ifTransform(e)
+      case e: SAssign => assignTransform(e)
+      case e: SAnnotated => annotatedTransform(e)
+      case e: SSuper => superTransform(e)
       case _ => throw new NotImplementedError(s"Cannot exprTransform($expr)")
     }
+
+    def tpeExprTransform(tpe: STpeExpr) = tpe
+
+    def superTransform(e: SSuper) = {
+      val newExprType = e.exprType.mapConserve(tpeExprTransform)
+      if (e.exprType.eq(newExprType)) e
+      else
+        e.copy(exprType = newExprType)
+    }
+
+    def annotatedTransform(e: SAnnotated) = {
+      val newExpr = e.expr.transformConserve(exprTransform)
+      val newExprType = e.exprType.mapConserve(tpeExprTransform)
+      if (e.expr.eq(newExpr) && e.exprType.eq(newExprType)) e
+      else
+        e.copy(expr = newExpr, exprType = newExprType)
+    }
+
+    def ifTransform(e: SIf) = {
+      val newCond = e.cond.transformConserve(exprTransform)
+      val newTh = e.th.transformConserve(exprTransform)
+      val newEl = e.el.transformConserve(exprTransform)
+      val newExprType = e.exprType.mapConserve(tpeExprTransform)
+      if (e.cond.eq(newCond) && e.th.eq(newTh) && e.el.eq(newEl) && e.exprType.eq(newExprType)) e
+      else
+        e.copy( cond = newCond, th = newTh, el = newEl, exprType = newExprType )
+    }
+
+    def assignTransform(e: SAssign) = {
+      val newLeft = e.left.transformConserve(exprTransform)
+      val newRight = e.right.transformConserve(exprTransform)
+      val newExprType = e.exprType.mapConserve(tpeExprTransform)
+      if (e.left.eq(newLeft) && e.right.eq(newRight) && e.exprType.eq(newExprType)) e
+      else
+        e.copy( left = newLeft, right = newRight, exprType = newExprType )
+    }
+
+    def matchTransform(m: SMatch) = {
+      val newSelector = exprTransform(m.selector)
+      val newCases = m.cases.mapConserve(caseTransform)
+      val newExprType = m.exprType.mapConserve(tpeExprTransform)
+      if (m.selector.eq(newSelector) && m.cases.eq(newCases) && m.exprType.eq(newExprType)) m
+      else
+        m.copy(
+          selector = newSelector,
+          cases = newCases,
+          exprType = newExprType
+        )
+    }
+
+    def caseTransform(c: SCase) = {
+      val newPat = patternTransform(c.pat)
+      val newGuard = exprTransform(c.guard)
+      val newBody = exprTransform(c.body)
+      val newExprType = c.exprType.mapConserve(tpeExprTransform)
+      if (c.pat.eq(newPat) && c.guard.eq(newGuard) &&
+          c.body.eq(newBody) && c.exprType.eq(newExprType)) c
+      else
+        c.copy(
+          pat = newPat,
+          guard = newGuard,
+          body = newBody,
+          exprType = newExprType
+        )
+    }
+
+    def patternTransform(p: SPattern) = p match {
+      case p: SWildcardPattern => p.transformConserve(wildcardPatternTransform)
+      case p: SLiteralPattern  => p.transformConserve(literalPatternTransform)
+      case p: SStableIdPattern => p.transformConserve(stableIdPatternTransform)
+      case p: SSelPattern   => p.transformConserve(selPatternTransform)
+      case p: SAltPattern   => p.transformConserve(altPatternTransform)
+      case p: STypedPattern => p.transformConserve(typedPatternTransform)
+      case p: SBindPattern  => p.transformConserve(bindPatternTransform)
+      case p: SApplyPattern => p.transformConserve(applyPatternTransform)
+    }
+
+    def wildcardPatternTransform(arg: SWildcardPattern) = arg
+    def literalPatternTransform(arg: SLiteralPattern) = arg
+    def stableIdPatternTransform(arg: SStableIdPattern) = arg
+    def selPatternTransform(arg: SSelPattern) = arg
+    def altPatternTransform(arg: SAltPattern) = arg
+    def typedPatternTransform(arg: STypedPattern) = arg
+    def bindPatternTransform(arg: SBindPattern) = arg
+    def applyPatternTransform(arg: SApplyPattern) = arg
 
     def methodArgTransform(arg: SMethodArg): SMethodArg = arg
     def methodArgsTransform(args: SMethodArgs): SMethodArgs = {
@@ -322,13 +413,26 @@ object ScalanAstTransformers {
   }
 
   /** Transform type by applying given substitution. */
+//  class SubstTypeTransformer(subst: STpeSubst) extends TypeTransformer {
+//    override def typeTransform(tpe: STpeExpr): STpeExpr = tpe match {
+//      case tc: STraitCall if subst.get(tc.name).isDefined =>
+//        assert(tc.args.isEmpty,
+//          s"""Cannot substitute higher-kind TraitCall $tc:
+//            |higher-kind usage of names is not supported  Array[A] - ok, A[Int] - nok""".stripMargin)
+//        subst(tc.name)
+//      case _ => super.typeTransform(tpe)
+//    }
+//  }
+
   class SubstTypeTransformer(subst: STpeSubst) extends TypeTransformer {
     override def typeTransform(tpe: STpeExpr): STpeExpr = tpe match {
-      case tc: STraitCall if subst.get(tc.name).isDefined =>
-        assert(tc.args.isEmpty,
-          s"""Cannot substitute higher-kind TraitCall $tc:
-            |higher-kind usage of names is not supported  Array[A] - ok, A[Int] - nok""".stripMargin)
-        subst(tc.name)
+      case tc @ STraitCall(n, Nil) if subst.get(n).isDefined =>
+        subst(n)
+      case tc @ STraitCall(n, args) if subst.get(n).isDefined =>
+        val newTpe = subst(n)
+        if (newTpe.args.nonEmpty)
+          sys.error(s"""Cannot substitute $tc with $newTpe""".stripMargin)
+        STraitCall(newTpe.name, args)
       case _ => super.typeTransform(tpe)
     }
   }

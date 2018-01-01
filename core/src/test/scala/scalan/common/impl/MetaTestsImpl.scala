@@ -179,6 +179,7 @@ trait MetaTestsDefs extends scalan.Scalan with MetaTests {
       (override val data: Rep[T], override val size: Rep[Int])
     extends MT1[T](data, size) with Def[MT1[T]] {
     implicit val eT = data.elem
+
     lazy val selfType = element[MT1[T]]
   }
   // elem for concrete class
@@ -268,6 +269,7 @@ trait MetaTestsDefs extends scalan.Scalan with MetaTests {
     extends MT2[A, B](indices, values, size) with Def[MT2[A, B]] {
     implicit val eA = indices.elem;
 implicit val eB = values.elem
+    implicit override val eT: Elem[(A, B)] = element[(A, B)]
     lazy val selfType = element[MT2[A, B]]
   }
   // elem for concrete class

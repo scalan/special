@@ -141,6 +141,13 @@ class CollectionUtilTests extends BaseTests {
     val x = new A(10)
     val opt = Option(x)
     opt.mapConserve(a => a) shouldBe theSameInstanceAs(opt)
-    opt.mapConserve(a => new A(a.x + 1)) should not be theSameInstanceAs(opt)
+    opt.mapConserve(a => new A(a.x)) should not be theSameInstanceAs(opt)
+  }
+
+  test("transformConserve") {
+    class A(val x: Int)
+    val x = new A(10)
+    x.transformConserve(a => a) shouldBe theSameInstanceAs(x)
+    x.transformConserve(a => new A(a.x)) should not be theSameInstanceAs(x)
   }
 }
