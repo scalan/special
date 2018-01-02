@@ -51,8 +51,6 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
   abstract class PairIso[A1, A2, B1, B2](val iso1: Iso[A1, B1], val iso2: Iso[A2, B2])
     extends IsoUR[(A1, A2), (B1, B2)] {
     implicit def eA1: Elem[A1]; implicit def eA2: Elem[A2]; implicit def eB1: Elem[B1]; implicit def eB2: Elem[B2]
-    lazy val eFrom: Elem[(A1, A2)] = element[(A1, A2)]
-    lazy val eTo: Elem[(B1, B2)] = element[(B1, B2)]
 
     // null is used since the only reason this exists is performance
     // TODO consider removing completely
@@ -94,8 +92,6 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
 
   abstract class AbsorbFirstUnitIso[A2,B2](val iso2: Iso[A2, B2]) extends IsoUR[A2, (Unit, B2)] {
     implicit def eA2: Elem[A2]; implicit def eB2: Elem[B2]
-    lazy val eFrom = eA2
-    lazy val eTo: Elem[(Unit, B2)] = element[(Unit, B2)]
     def from(b: Rep[(Unit, B2)]) = {
       iso2.from(b._2)
     }
@@ -111,8 +107,6 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
 
   abstract class AbsorbSecondUnitIso[A1,B1](val iso1: Iso[A1, B1]) extends IsoUR[A1, (B1,Unit)] {
     implicit def eA1: Elem[A1]; implicit def eB1: Elem[B1]
-    lazy val eFrom = eA1
-    lazy val eTo: Elem[(B1,Unit)] = element[(B1,Unit)]
     def from(b: Rep[(B1,Unit)]) = {
       iso1.from(b._1)
     }
@@ -129,8 +123,6 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
   abstract class SumIso[A1, A2, B1, B2](val iso1: Iso[A1, B1], val iso2: Iso[A2, B2])
     extends IsoUR[A1 | A2, B1 | B2] {
     implicit def eA1: Elem[A1]; implicit def eA2: Elem[A2]; implicit def eB1: Elem[B1]; implicit def eB2: Elem[B2]
-    lazy val eFrom: Elem[A1 | A2] = element[A1 | A2]
-    lazy val eTo: Elem[B1 | B2] = element[B1 | B2]
     def from(b: Rep[B1 | B2]) =
       b.mapSumBy(iso1.fromFun, iso2.fromFun)
     def to(a: Rep[A1 | A2]) =
@@ -142,8 +134,8 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
     }
   }
 
-  abstract class ComposeIso[A, B, C](val iso2: Iso[B, C], val iso1: Iso[A, B])/*(
-    implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])*/ extends IsoUR[A, C] {
+  abstract class ComposeIso[A, B, C](val iso2: Iso[B, C], val iso1: Iso[A, B])
+    extends IsoUR[A, C] {
     def eFrom: Elem[A] = iso1.eFrom
     def eTo: Elem[C] = iso2.eTo
     def from(c: Rep[C]) = iso1.from(iso2.from(c))
@@ -155,12 +147,9 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
     }
   }
 
-  abstract class FuncIso[A, B, C, D](val iso1: Iso[A, B], val iso2: Iso[C, D])/*(
-    implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C], val eD: Elem[D])*/
+  abstract class FuncIso[A, B, C, D](val iso1: Iso[A, B], val iso2: Iso[C, D])
     extends IsoUR[A => C, B => D] {
     implicit def eA: Elem[A]; implicit def eB: Elem[B]; implicit def eC: Elem[C]; implicit def eD: Elem[D]
-    lazy val eFrom: Elem[A => C] = element[A => C]
-    lazy val eTo: Elem[B => D] = element[B => D]
     def from(f: Rep[B => D]): Rep[A => C] = {
       fun { b => iso2.from(f(iso1.to(b))) }
     }
@@ -175,7 +164,6 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
   }
 
   abstract class ConverterIso[A, B](val convTo: Conv[A,B], val convFrom: Conv[B,A])
-//                                   (implicit val eA: Elem[A], val eB: Elem[B])
     extends IsoUR[A,B] {
     def eA: Elem[A]; def eB: Elem[B]
     def eFrom: Elem[A] = eA

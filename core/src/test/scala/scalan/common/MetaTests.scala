@@ -31,7 +31,6 @@ trait MetaTests { self: MetaTestsModule =>
     implicit def eA: Elem[A]; implicit def eB: Elem[B]
     def test: RMetaTest[(A, B)] = ???
     def give: Rep[(A, B)] = ???
-    lazy val eT = element[(A, B)]
   }
 }
 

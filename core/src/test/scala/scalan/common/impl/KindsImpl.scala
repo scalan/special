@@ -168,8 +168,9 @@ trait KindsDefs extends scalan.Scalan with Kinds {
     extends Bind[F, S, B](a, f) with Def[Bind[F, S, B]] {
     implicit val cF = a.cF;
 implicit val eS = a.eA;
+    val eA = f.elem.eRange.typeArgs("A")._1.asElem[B]
 implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
-    implicit override val eA: Elem[B] = element[B]
+
     lazy val selfType = element[Bind[F, S, B]]
   }
   // elem for concrete class

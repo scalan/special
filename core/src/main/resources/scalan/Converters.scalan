@@ -37,7 +37,7 @@ trait Converters extends ViewsModule { self: Scalan =>
     def asConv[C,D] = c.asInstanceOf[Conv[C,D]]
   }
 
-  abstract class BaseConverter[T,R](override val convFun: Rep[T => R])//(implicit val eT: Elem[T], val eR: Elem[R])
+  abstract class BaseConverter[T,R](override val convFun: Rep[T => R])
     extends Converter[T,R] {
     implicit def eT: Elem[T]
     implicit def eR: Elem[R]
@@ -51,11 +51,8 @@ trait Converters extends ViewsModule { self: Scalan =>
 
   abstract class PairConverter[A1, A2, B1, B2]
     (val conv1: Conv[A1, B1], val conv2: Conv[A2, B2])
-//    (implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends Converter[(A1, A2), (B1, B2)] {
     def eA1: Elem[A1]; def eA2: Elem[A2]; def eB1: Elem[B1]; def eB2: Elem[B2]
-    lazy val eT = pairElement(eA1, eA2)
-    lazy val eR = pairElement(eB1, eB2)
     def apply(x: Rep[(A1,A2)]) = { val Pair(a1, a2) = x; Pair(conv1(a1), conv2(a2)) }
     override def isIdentity = conv1.isIdentity && conv2.isIdentity
   }
@@ -63,18 +60,15 @@ trait Converters extends ViewsModule { self: Scalan =>
 
   abstract class SumConverter[A1, A2, B1, B2]
     (val conv1: Conv[A1, B1], val conv2: Conv[A2, B2])
-//    (implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends Converter[(A1 | A2), (B1 | B2)] {
     def eA1: Elem[A1]; def eA2: Elem[A2]; def eB1: Elem[B1]; def eB2: Elem[B2]
-    lazy val eT = sumElement(eA1, eA2)
-    lazy val eR = sumElement(eB1, eB2)
     def apply(x: Rep[(A1|A2)]) = { x.mapSumBy(conv1.convFun, conv2.convFun) }
     override def isIdentity = conv1.isIdentity && conv2.isIdentity
   }
   trait SumConverterCompanion
 
-  abstract class ComposeConverter[A, B, C](val conv2: Conv[B, C], val conv1: Conv[A, B])/*(
-    implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])*/ extends Converter[A, C] {
+  abstract class ComposeConverter[A, B, C](val conv2: Conv[B, C], val conv1: Conv[A, B])
+    extends Converter[A, C] {
     val eT: Elem[A] = conv1.eT
     val eR: Elem[C] = conv2.eR
     def apply(a: Rep[A]) = conv2.apply(conv1.apply(a))

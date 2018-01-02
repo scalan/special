@@ -433,7 +433,9 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       val b = c.extractionBuilder()
       val abstractDescriptors = c.c.collectVisibleMembers.filter { m =>
         m.item.isAbstract && m.item.isTypeDesc && {
-          b.extractableArgs.find { case (n, (tyArg, s)) => STraitCall("Elem", List(tyArg.toTraitCall)) == m.item.tpeRes.get }
+          b.extractableArgs.find { case (n, (tyArg, s)) =>
+            STraitCall("Elem", List(tyArg.toTraitCall)) == m.item.tpeRes.get
+          }.isEmpty
         }
       }
       val elemDefs = abstractDescriptors.rep({ m =>
