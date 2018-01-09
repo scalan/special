@@ -90,8 +90,8 @@ trait StructItemsDefs extends StructItems {
   case class StructItemBaseCtor[Val, Schema <: Struct]
       (override val key: Rep[StructKey[Schema]], override val value: Rep[Val])
     extends StructItemBase[Val, Schema](key, value) with Def[StructItemBase[Val, Schema]] {
-    implicit val eVal = value.elem;
-implicit val eSchema = key.eSchema
+    implicit lazy val eVal = value.elem;
+implicit lazy val eSchema = key.eSchema
 
     lazy val selfType = element[StructItemBase[Val, Schema]]
   }

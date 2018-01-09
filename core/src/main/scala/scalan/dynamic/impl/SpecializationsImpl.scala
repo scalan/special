@@ -105,9 +105,9 @@ trait SpecializationsDefs extends Specializations {
   case class IsoFuncBaseCtor[T, R, M]
       (override val func: Rep[T => R], override val metric: Rep[T => M])
     extends IsoFuncBase[T, R, M](func, metric) with Def[IsoFuncBase[T, R, M]] {
-    implicit val eT = func.elem.eDom;
-implicit val eR = func.elem.eRange;
-implicit val eM = metric.elem.eRange
+    implicit lazy val eT = func.elem.eDom;
+implicit lazy val eR = func.elem.eRange;
+implicit lazy val eM = metric.elem.eRange
 
     lazy val selfType = element[IsoFuncBase[T, R, M]]
   }

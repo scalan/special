@@ -79,7 +79,7 @@ trait KindsDefs extends scalan.Scalan with Kinds {
   case class ReturnCtor[F[_], A]
       (override val a: Rep[A])(implicit cF: Cont[F])
     extends Return[F, A](a) with Def[Return[F, A]] {
-    implicit val eA = a.elem
+    implicit lazy val eA = a.elem
 
     lazy val selfType = element[Return[F, A]]
   }
@@ -166,10 +166,10 @@ trait KindsDefs extends scalan.Scalan with Kinds {
   case class BindCtor[F[_], S, B]
       (override val a: Rep[Kind[F, S]], override val f: Rep[S => Kind[F, B]])
     extends Bind[F, S, B](a, f) with Def[Bind[F, S, B]] {
-    implicit val cF = a.cF;
-implicit val eS = a.eA;
+    implicit lazy val cF = a.cF;
+implicit lazy val eS = a.eA;
     val eA = f.elem.eRange.typeArgs("A")._1.asElem[B]
-implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
 
     lazy val selfType = element[Bind[F, S, B]]
   }

@@ -440,7 +440,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       }
       val elemDefs = abstractDescriptors.rep({ m =>
         val STraitCall(_, List(tyStr)) = m.item.tpeRes.get
-        s"implicit override val ${m.item.name}: Elem[$tyStr] = element[$tyStr]"
+        s"override lazy val ${m.item.name}: Elem[$tyStr] = element[$tyStr]"
       }, "\n|").stripMargin
       s"""
         |  case class ${c.typeDecl("Ctor") }

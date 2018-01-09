@@ -329,7 +329,8 @@ class MetaCodegen {
         val name = kind + tyArgName
         val isInheritedDefinition = entity.isConcreteInAncestors(name)(module.context)
         val over = if (inClassBody && isInheritedDefinition) " override" else ""
-        s"implicit$over val $name = $expr"
+        val declaareLazy = if (inClassBody) " lazy" else ""
+        s"implicit$over$declaareLazy val $name = $expr"
       }.mkString(";\n")
     }
 

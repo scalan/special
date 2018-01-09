@@ -178,8 +178,8 @@ trait ConvertersDefs extends Converters {
   case class BaseConverterCtor[T, R]
       (override val convFun: Rep[T => R])
     extends BaseConverter[T, R](convFun) with Def[BaseConverter[T, R]] {
-    implicit val eT = convFun.elem.eDom;
-implicit val eR = convFun.elem.eRange
+    implicit lazy val eT = convFun.elem.eDom;
+implicit lazy val eR = convFun.elem.eRange
 
     lazy val selfType = element[BaseConverter[T, R]]
   }
@@ -268,10 +268,10 @@ implicit val eR = p.convFun.elem.eRange
   case class PairConverterCtor[A1, A2, B1, B2]
       (override val conv1: Conv[A1, B1], override val conv2: Conv[A2, B2])
     extends PairConverter[A1, A2, B1, B2](conv1, conv2) with Def[PairConverter[A1, A2, B1, B2]] {
-    implicit val eA1 = conv1.eT;
-implicit val eA2 = conv2.eT;
-implicit val eB1 = conv1.eR;
-implicit val eB2 = conv2.eR
+    implicit lazy val eA1 = conv1.eT;
+implicit lazy val eA2 = conv2.eT;
+implicit lazy val eB1 = conv1.eR;
+implicit lazy val eB2 = conv2.eR
     override lazy val eT: Elem[(A1, A2)] = element[(A1, A2)]
 override lazy val eR: Elem[(B1, B2)] = element[(B1, B2)]
     lazy val selfType = element[PairConverter[A1, A2, B1, B2]]
@@ -378,10 +378,10 @@ implicit val eB2 = p.conv2.eR
   case class SumConverterCtor[A1, A2, B1, B2]
       (override val conv1: Conv[A1, B1], override val conv2: Conv[A2, B2])
     extends SumConverter[A1, A2, B1, B2](conv1, conv2) with Def[SumConverter[A1, A2, B1, B2]] {
-    implicit val eA1 = conv1.eT;
-implicit val eA2 = conv2.eT;
-implicit val eB1 = conv1.eR;
-implicit val eB2 = conv2.eR
+    implicit lazy val eA1 = conv1.eT;
+implicit lazy val eA2 = conv2.eT;
+implicit lazy val eB1 = conv1.eR;
+implicit lazy val eB2 = conv2.eR
     override lazy val eT: Elem[$bar[A1, A2]] = element[$bar[A1, A2]]
 override lazy val eR: Elem[$bar[B1, B2]] = element[$bar[B1, B2]]
     lazy val selfType = element[SumConverter[A1, A2, B1, B2]]
@@ -488,9 +488,9 @@ implicit val eB2 = p.conv2.eR
   case class ComposeConverterCtor[A, B, C]
       (override val conv2: Conv[B, C], override val conv1: Conv[A, B])
     extends ComposeConverter[A, B, C](conv2, conv1) with Def[ComposeConverter[A, B, C]] {
-    implicit val eA = conv1.eT;
-implicit val eB = conv2.eT;
-implicit val eC = conv2.eR
+    implicit lazy val eA = conv1.eT;
+implicit lazy val eB = conv2.eT;
+implicit lazy val eC = conv2.eR
 
     lazy val selfType = element[ComposeConverter[A, B, C]]
   }
@@ -591,8 +591,8 @@ implicit val eC = p.conv2.eR
   case class FunctorConverterCtor[A, B, F[_]]
       (override val itemConv: Conv[A, B])(implicit F: Functor[F])
     extends FunctorConverter[A, B, F](itemConv) with Def[FunctorConverter[A, B, F]] {
-    implicit val eA = itemConv.eT;
-implicit val eB = itemConv.eR
+    implicit lazy val eA = itemConv.eT;
+implicit lazy val eB = itemConv.eR
     lazy val selfType = element[FunctorConverter[A, B, F]]
   }
   // elem for concrete class

@@ -257,11 +257,11 @@ trait ViewsDefs extends Views {
   case class PairIsoCtor[A1, A2, B1, B2]
       (override val iso1: Iso[A1, B1], override val iso2: Iso[A2, B2])
     extends PairIso[A1, A2, B1, B2](iso1, iso2) with Def[PairIso[A1, A2, B1, B2]] {
-    implicit val eA1 = iso1.eFrom;
-implicit val eA2 = iso2.eFrom;
-implicit val eB1 = iso1.eTo;
-implicit val eB2 = iso2.eTo
-override lazy val eFrom: Elem[(A1, A2)] = element[(A1, A2)]
+    implicit lazy val eA1 = iso1.eFrom;
+implicit lazy val eA2 = iso2.eFrom;
+implicit lazy val eB1 = iso1.eTo;
+implicit lazy val eB2 = iso2.eTo
+    override lazy val eFrom: Elem[(A1, A2)] = element[(A1, A2)]
 override lazy val eTo: Elem[(B1, B2)] = element[(B1, B2)]
     lazy val selfType = element[PairIso[A1, A2, B1, B2]]
   }
@@ -367,8 +367,8 @@ implicit val eB2 = p.iso2.eTo
   case class AbsorbFirstUnitIsoCtor[A2, B2]
       (override val iso2: Iso[A2, B2])
     extends AbsorbFirstUnitIso[A2, B2](iso2) with Def[AbsorbFirstUnitIso[A2, B2]] {
-    implicit val eA2 = iso2.eFrom;
-implicit val eB2 = iso2.eTo
+    implicit lazy val eA2 = iso2.eFrom;
+implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[A2] = eA2
     override lazy val eTo: Elem[(Unit, B2)] = element[(Unit, B2)]
     lazy val selfType = element[AbsorbFirstUnitIso[A2, B2]]
@@ -459,8 +459,8 @@ implicit val eB2 = p.iso2.eTo
   case class AbsorbSecondUnitIsoCtor[A1, B1]
       (override val iso1: Iso[A1, B1])
     extends AbsorbSecondUnitIso[A1, B1](iso1) with Def[AbsorbSecondUnitIso[A1, B1]] {
-    implicit val eA1 = iso1.eFrom;
-implicit val eB1 = iso1.eTo
+    implicit lazy val eA1 = iso1.eFrom;
+implicit lazy val eB1 = iso1.eTo
     override lazy val eFrom = eA1
     override lazy val eTo: Elem[(B1, Unit)] = element[(B1, Unit)]
     lazy val selfType = element[AbsorbSecondUnitIso[A1, B1]]
@@ -551,10 +551,10 @@ implicit val eB1 = p.iso1.eTo
   case class SumIsoCtor[A1, A2, B1, B2]
       (override val iso1: Iso[A1, B1], override val iso2: Iso[A2, B2])
     extends SumIso[A1, A2, B1, B2](iso1, iso2) with Def[SumIso[A1, A2, B1, B2]] {
-    implicit val eA1 = iso1.eFrom;
-implicit val eA2 = iso2.eFrom;
-implicit val eB1 = iso1.eTo;
-implicit val eB2 = iso2.eTo
+    implicit lazy val eA1 = iso1.eFrom;
+implicit lazy val eA2 = iso2.eFrom;
+implicit lazy val eB1 = iso1.eTo;
+implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[$bar[A1, A2]] = element[$bar[A1, A2]]
 override lazy val eTo: Elem[$bar[B1, B2]] = element[$bar[B1, B2]]
     lazy val selfType = element[SumIso[A1, A2, B1, B2]]
@@ -661,9 +661,9 @@ implicit val eB2 = p.iso2.eTo
   case class ComposeIsoCtor[A, B, C]
       (override val iso2: Iso[B, C], override val iso1: Iso[A, B])
     extends ComposeIso[A, B, C](iso2, iso1) with Def[ComposeIso[A, B, C]] {
-    implicit val eA = iso1.eFrom;
-implicit val eB = iso2.eFrom;
-implicit val eC = iso2.eTo
+    implicit lazy val eA = iso1.eFrom;
+implicit lazy val eB = iso2.eFrom;
+implicit lazy val eC = iso2.eTo
 
     lazy val selfType = element[ComposeIso[A, B, C]]
   }
@@ -764,12 +764,12 @@ implicit val eC = p.iso2.eTo
   case class FuncIsoCtor[A, B, C, D]
       (override val iso1: Iso[A, B], override val iso2: Iso[C, D])
     extends FuncIso[A, B, C, D](iso1, iso2) with Def[FuncIso[A, B, C, D]] {
-    implicit val eA = iso1.eFrom;
-implicit val eB = iso1.eTo;
-implicit val eC = iso2.eFrom;
-implicit val eD = iso2.eTo
-    implicit override lazy val eFrom: Elem[A => C] = element[A => C]
-implicit override lazy val eTo: Elem[B => D] = element[B => D]
+    implicit lazy val eA = iso1.eFrom;
+implicit lazy val eB = iso1.eTo;
+implicit lazy val eC = iso2.eFrom;
+implicit lazy val eD = iso2.eTo
+    override lazy val eFrom: Elem[A => C] = element[A => C]
+override lazy val eTo: Elem[B => D] = element[B => D]
     lazy val selfType = element[FuncIso[A, B, C, D]]
   }
   // elem for concrete class
