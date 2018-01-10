@@ -715,10 +715,10 @@ object ScalanAst {
     def collectItemsInBody(p: SEntityItem => Boolean): List[SEntityMember] = {
       val impValArgs = implicitArgs.args.filter(a => p(a) && a.valFlag).map(SEntityMember(this, _: SEntityItem))
       val valArgs = args.args.filter(a => p(a) && a.valFlag).map(SEntityMember(this, _: SEntityItem))
-      val methods = body.collect {
-        case md: SMethodDef if p(md) => SEntityMember(this, md: SEntityItem)
+      val bodyItems = body.collect {
+        case ei: SEntityItem if p(ei) => SEntityMember(this, ei)
       }
-      valArgs ++ impValArgs ++ methods
+      valArgs ++ impValArgs ++ bodyItems
     }
 
     /** Direct inheritance relation which forms DAG */
@@ -783,7 +783,8 @@ object ScalanAst {
         members += (m.item.name -> SEntityMember(e, m.item.applySubst(entSubst ++ itemSubst)))
       }
       for ((e, args) <- lin) {
-        for (member <- e.collectItemsInBody(_ => true)) {
+        val ms = e.collectItemsInBody(_ => true)
+        for (member <- ms) {
           val name = member.item.name
           if (members.contains(name)) {
             val mExisting = members(name)

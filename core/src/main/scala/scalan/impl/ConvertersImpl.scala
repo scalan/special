@@ -593,6 +593,7 @@ implicit val eC = p.conv2.eR
     extends FunctorConverter[A, B, F](itemConv) with Def[FunctorConverter[A, B, F]] {
     implicit lazy val eA = itemConv.eT;
 implicit lazy val eB = itemConv.eR
+
     lazy val selfType = element[FunctorConverter[A, B, F]]
   }
   // elem for concrete class
@@ -682,8 +683,6 @@ implicit val eB = p.itemConv.eR
   case class NaturalConverterCtor[A, F[_], G[_]]
       (override val convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends NaturalConverter[A, F, G](convFun) with Def[NaturalConverter[A, F, G]] {
-//    implicit override val eT: Elem[F[A]] = element[F[A]]
-//implicit override val eR: Elem[G[A]] = element[G[A]]
     lazy val selfType = element[NaturalConverter[A, F, G]]
   }
   // elem for concrete class

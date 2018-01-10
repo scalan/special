@@ -67,7 +67,7 @@ class EntityTests extends BaseMetaTests with Examples {
         testMemberEntity(eCollection,
           List(("Collection","eA"), ("Collection","arr"), ("Collection","length"), ("Collection","apply"), ("Collection","map")))
         testMemberEntity(eColOverArray,
-          List(("ColOverArray","arr"), ("ColOverArray","eA"), ("ColOverArray","length"), ("ColOverArray","apply"), ("ColOverArray","map")))
+          List(("ColOverArray","arr"), ("ColOverArray","eA"), ("ColOverArray","list"), ("ColOverArray","length"), ("ColOverArray","apply"), ("ColOverArray","map")))
         testMemberEntity(ePairCollection,
           List(
             ("PairCollection","eL"), ("PairCollection","eR"), ("PairCollection","ls"), ("PairCollection","rs"),

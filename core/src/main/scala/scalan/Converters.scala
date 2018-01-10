@@ -85,8 +85,8 @@ trait Converters extends ViewsModule { self: Scalan =>
     extends Converter[F[A], F[B]] {
     def apply(xs: Rep[F[A]]): Rep[F[B]] = F.map(xs){ x => itemConv(x) }
     def eA: Elem[A]; def eB: Elem[B]
-    lazy val eT = F.lift(eA)
-    lazy val eR = F.lift(eB)
+    lazy val eT: Elem[F[A]] = F.lift(eA)
+    lazy val eR: Elem[F[B]] = F.lift(eB)
     override def isIdentity = itemConv.isIdentity
     override def equals(other: Any): Boolean = other match {
       case c: Converters#FunctorConverter[_, _, _] => eT == c.eT && eR == c.eR && itemConv == c.itemConv
