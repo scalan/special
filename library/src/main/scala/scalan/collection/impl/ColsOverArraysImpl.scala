@@ -12,7 +12,7 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   case class ColOverArrayCtor[A]
       (override val arr: Rep[WArray[A]])
     extends ColOverArray[A](arr) with Def[ColOverArray[A]] {
-    implicit val eA = arr.eT
+    implicit lazy val eA = arr.eT
 
     lazy val selfType = element[ColOverArray[A]]
   }
@@ -95,9 +95,9 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   case class PairOfColsCtor[L, R]
       (override val ls: Rep[Col[L]], override val rs: Rep[Col[R]])
     extends PairOfCols[L, R](ls, rs) with Def[PairOfCols[L, R]] {
-    implicit val eL = ls.eA;
-implicit val eR = rs.eA
-    implicit override val eA: Elem[(L, R)] = element[(L, R)]
+    implicit lazy val eL = ls.eA;
+implicit lazy val eR = rs.eA
+    override lazy val eA: Elem[(L, R)] = element[(L, R)]
     lazy val selfType = element[PairOfCols[L, R]]
   }
   // elem for concrete class

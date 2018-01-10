@@ -504,7 +504,7 @@ object ScalanAst {
       flags: Long = ModifierFlags.PARAM,
       annotations: List[STypeArgAnnotation] = Nil) {
     def isHighKind = tparams.nonEmpty
-    def classOrMethodArgName: String = if (isHighKind) "c" + name else "e" + name
+    def classOrMethodArgName(n: String = name): String = if (isHighKind) "c" + n else "e" + n
     def descName: String = if (isHighKind) "Cont" else "Elem"
 
     val variance =

@@ -370,7 +370,7 @@ implicit val eB2 = p.iso2.eTo
     implicit lazy val eA2 = iso2.eFrom;
 implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[A2] = eA2
-    override lazy val eTo: Elem[(Unit, B2)] = element[(Unit, B2)]
+override lazy val eTo: Elem[(Unit, B2)] = element[(Unit, B2)]
     lazy val selfType = element[AbsorbFirstUnitIso[A2, B2]]
   }
   // elem for concrete class
@@ -461,8 +461,8 @@ implicit val eB2 = p.iso2.eTo
     extends AbsorbSecondUnitIso[A1, B1](iso1) with Def[AbsorbSecondUnitIso[A1, B1]] {
     implicit lazy val eA1 = iso1.eFrom;
 implicit lazy val eB1 = iso1.eTo
-    override lazy val eFrom = eA1
-    override lazy val eTo: Elem[(B1, Unit)] = element[(B1, Unit)]
+    override lazy val eFrom: Elem[A1] = eA1
+override lazy val eTo: Elem[(B1, Unit)] = element[(B1, Unit)]
     lazy val selfType = element[AbsorbSecondUnitIso[A1, B1]]
   }
   // elem for concrete class
@@ -971,6 +971,9 @@ implicit val eB = p.convTo.eR
   case class ThunkIsoCtor[A, B]
       (override val innerIso: Iso[A, B])
     extends ThunkIso[A, B](innerIso) with Def[ThunkIso[A, B]] {
+    implicit override lazy val eA = innerIso.eFrom;
+implicit override lazy val eB = innerIso.eTo
+
     lazy val selfType = element[ThunkIso[A, B]]
   }
   // elem for concrete class

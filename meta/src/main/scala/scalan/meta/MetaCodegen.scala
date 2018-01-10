@@ -157,7 +157,7 @@ class MetaCodegen {
         } yield (da, path)
       val expr = paths.find(_ => true).map {
         case (da, SEntityPath(_, e, tyArg, tail)) =>
-          val prefix = s"${subst(da.name) }.${tyArg.classOrMethodArgName }"
+          val prefix = s"${subst(da.name) }.${tyArg.classOrMethodArgName() }"
           emitImplicitElemDeclByTpePath(prefix, tail)
         case (da, path) =>
           val prefix = s"${subst(da.name) }.elem"
@@ -325,8 +325,7 @@ class MetaCodegen {
         .collect { case (arg, Some(expr)) => (arg.name, (arg, expr)) }.toMap
     def extractableImplicits(inClassBody: Boolean): String = {
       extractableArgs.map { case (tyArgName, (arg, expr)) =>
-        val kind = if (arg.isHighKind) "c" else "e"
-        val name = kind + tyArgName
+        val name = arg.classOrMethodArgName(tyArgName)
         val isInheritedDefinition = entity.isConcreteInAncestors(name)(module.context)
         val over = if (inClassBody && isInheritedDefinition) " override" else ""
         val declaareLazy = if (inClassBody) " lazy" else ""
