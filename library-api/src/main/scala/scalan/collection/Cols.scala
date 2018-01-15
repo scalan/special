@@ -1,6 +1,7 @@
 package scalan.collection
 
 import scala.reflect.ClassTag
+import scalan.macros.typeclass
 
 trait Col[A] {
   def builder: ColBuilder
@@ -27,4 +28,6 @@ trait ColBuilder {
   }
 }
 
-
+//@typeclass trait Functor[F[_]] {
+//  def map[A,B](f: A => B)(fa: F[A]): F[B]
+//}

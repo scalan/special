@@ -22,7 +22,6 @@ class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
 
     val snConfig: ScalanizerConfig = new ScalanizerPluginConfig
     val context: AstContext = new AstContext(Nil, this)
-//    val entityManagment: EntityManagement[plugin.global.type] = new EntityManagement(this)
     val snState: ScalanizerState[plugin.global.type] = new ScalanizerPluginState(this)
 
     def informModuleNameError(msg: String) = {
@@ -58,7 +57,7 @@ class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
     val res = ListBuffer[PluginComponent]()
     var after = pipeline.runAfter
     pipeline.steps.foreach { step =>
-      val comp = step.asInstanceOf[pipeline.PipelineStep] match {
+      val comp = step match {
         case runStep: pipeline.RunStep =>
           pipeline.forRunComponent(after, runStep)
         case unitStep: pipeline.ForEachUnitStep =>

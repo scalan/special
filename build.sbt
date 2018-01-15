@@ -73,12 +73,6 @@ lazy val common = Project("scalan-common", file("common"))
 //    "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.9.1"
   ))
 
-lazy val macros = Project("scalan-macros", file("macros"))
-  .dependsOn(common % allConfigDependency)
-  .settings(commonSettings,
-  libraryDependencies ++= Seq(
-  ))
-
 lazy val meta = Project("scalan-meta", file("meta"))
   .dependsOn(common % allConfigDependency)
   .settings(commonSettings,
@@ -88,6 +82,15 @@ lazy val meta = Project("scalan-meta", file("meta"))
       ),
     fork in Test := true,
     fork in run := true)
+
+val paradise = "org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full
+
+lazy val macros = Project("scalan-macros", file("macros"))
+    .dependsOn(common % allConfigDependency, meta % allConfigDependency)
+    .settings(commonSettings :+ addCompilerPlugin(paradise),
+      libraryDependencies ++= Seq(
+        "org.typelevel" %% "macro-compat" % "1.1.1"
+      ))
 
 lazy val scalanizer = Project("scalanizer", file("scalanizer"))
   .dependsOn(meta)
@@ -102,9 +105,11 @@ lazy val scalanizer = Project("scalanizer", file("scalanizer"))
   )
 
 lazy val libraryapi = Project("library-api", file("library-api"))
-  .dependsOn(meta, scalanizer)
-  .settings(libraryDefSettings,
-    libraryDependencies ++= Seq())
+  .dependsOn(meta, scalanizer, macros)
+  .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "macro-compat" % "1.1.1"
+    ))
 
 lazy val libraryimpl = Project("library-impl", file("library-impl"))
   .dependsOn(meta, scalanizer, libraryapi % allConfigDependency)
