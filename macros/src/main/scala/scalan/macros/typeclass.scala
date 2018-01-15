@@ -147,15 +147,21 @@ class TypeClassMacros(val c: Context) {
     }
 
     def filterSimulacrumAnnotations(mods: Modifiers): Modifiers = {
-      val filteredAnnotations = mods.annotations.filter { ann =>
+//      val d = q"@scalan.Typeclass class Dummy()".asInstanceOf[ClassDef]
+      val filteredAnnotations =  mods.annotations.filter { ann =>
         val typed = c.typecheck(ann)
         typed.tpe.typeSymbol.fullName match {
           case "simulacrum.op" => false
           case "simulacrum.noop" => false
+          case "scalan.Typeclass" => true
           case _ => true
         }
       }
-      Modifiers(mods.flags, mods.privateWithin, filteredAnnotations)
+//      val a = c.universe.Annotation(tq"${Ident(TermName("scalan"))}.${TypeName("Typeclass")}").tree
+//      val a = c.universe.Annotation(Apply(Select(New(tq"${Ident(TermName("scalan"))}.${TypeName("Typeclass")}"), termNames.CONSTRUCTOR), Nil)).tree
+      val t = c.typecheck(q"val a: scalan.Typeclass = null").asInstanceOf[ValDef]
+      val a = c.universe.Annotation(Apply(Select(New(t.tpt), termNames.CONSTRUCTOR), Nil)).tree
+      Modifiers(mods.flags, mods.privateWithin, a :: filteredAnnotations)
     }
 
     def adaptMethodForProperType(tcInstanceName: TermName, tparamName: Name, method: DefDef): List[DefDef] = {
@@ -477,8 +483,11 @@ class TypeClassMacros(val c: Context) {
 
       val result = c.Expr(q"""
         $modifiedTypeClass
-        $modifiedCompanion
       """)
+//      val result = c.Expr(q"""
+//        $modifiedTypeClass
+//        $modifiedCompanion
+//      """)
       trace(s"Generated type class ${typeClass.name}:\n" + showCode(result.tree))
 
       result

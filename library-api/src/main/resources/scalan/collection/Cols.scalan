@@ -26,8 +26,13 @@ package scalan.collection {
         c.length
       }
     };
+    trait Functor[F[_]] extends Def[Functor[F]] with Any with Serializable {
+      implicit def cF: Cont[F];
+      def map[A, B](f: Rep[scala.Function1[A, B]])(fa: Rep[F[A]]): Rep[F[B]]
+    };
     trait ColCompanion;
     trait PairColCompanion;
-    trait ColBuilderCompanion
+    trait ColBuilderCompanion;
+    trait FunctorCompanion
   }
 }
