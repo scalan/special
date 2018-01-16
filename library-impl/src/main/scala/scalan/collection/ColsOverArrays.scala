@@ -22,6 +22,9 @@ class ColOverArrayBuilder extends ColBuilder {
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
 }
 
+//class ArrayFunctor extends Functor[Array] {
+//  override def map[A, B:ClassTag](fa: Array[A])(f: (A) => B): Array[B] = fa.map(f)
+//}
 //  object ColOverArray {
 //    def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray(arr)
 //  }

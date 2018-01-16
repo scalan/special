@@ -15,6 +15,7 @@ import scalan.meta.ScalanAstUtils._
 import scalan.meta.ScalanAstExtensions._
 import java.util.regex.Pattern
 
+import scalan.util.StringUtil._
 import scalan.util.CollectionUtil._
 import scalan.util.FileUtil
 
@@ -36,6 +37,17 @@ trait ScalanParsers[+G <: Global] {
 
   implicit class OptionListOps[A](opt: Option[List[A]]) {
     def flatList: List[A] = opt.toList.flatten
+  }
+
+  implicit class MemberDefOps[A](tree: MemberDef) {
+    def collectAnnotations = {
+      // SI-5885: by default this won't return annotations of not yet initialized symbols
+      val annots = tree.symbol.annotations.map(_.tree) match {
+        case Nil  => tree.mods.annotations
+        case anns => anns
+      }
+      annots
+    }
   }
 
   private def positionString(tree: Tree) = {
@@ -247,7 +259,7 @@ trait ScalanParsers[+G <: Global] {
     val selfType = this.selfType(td.impl.self)
     val name = td.name.toString
     val companion = findCompanion(name, parentScope)
-    val annotations = parseAnnotations(td)((n,as) => SEntityAnnotation(n,as.map(parseExpr)))
+    val annotations = parseAnnotations(td)((n,as) => SEntityAnnotation(n.lastComponent('.'), as.map(parseExpr)))
     STraitDef(name, tpeArgs, ancestors, body, selfType, companion, annotations)
   }
 
@@ -371,12 +383,14 @@ trait ScalanParsers[+G <: Global] {
   object ExtractAnnotation {
     def unapply(a: Tree): Option[(String, List[Tree])] = a match {
       case Apply(Select(New(Ident(ident)), nme.CONSTRUCTOR), args) => Some((ident, args))
+      case Apply(Select(New(tpt), nme.CONSTRUCTOR), args) => Some((tpt.toString(), args))
       case _ => None
     }
   }
 
   def parseAnnotations[A <: SAnnotation](md: MemberDef)(p: (String, List[Tree]) => A): List[A] = {
-    val annotations = md.mods.annotations.map {
+    val as = md.collectAnnotations
+    val annotations = as.map {
       case ExtractAnnotation (name, args) => p(name, args)
       case a => !!! (s"Cannot parse annotation $a of MemberDef $md")
     }

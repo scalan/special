@@ -292,9 +292,84 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
     }
+
+    object functorArg {
+      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[WArray[Double]], Functor[WArray])] = d match {
+        case MethodCall(receiver, method, Seq(arr, evF, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "functorArg" =>
+          Some((receiver, arr, evF)).asInstanceOf[Option[(Rep[ColBuilder], Rep[WArray[Double]], Functor[WArray])]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[WArray[Double]], Functor[WArray])] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColBuilderCompanionMethods {
+  }
+
+  // entityProxy: single proxy for each type family
+  implicit def proxyFunctor[F[_]](p: Rep[Functor[F]]): Functor[F] = {
+    proxyOps[Functor[F]](p)(scala.reflect.classTag[Functor[F]])
+  }
+
+  // familyElem
+  class FunctorElem[F[_], To <: Functor[F]](implicit _cF: Cont[F])
+    extends EntityElem[To] {
+    def cF = _cF
+    lazy val parent: Option[Elem[_]] = None
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("F" -> (cF -> scalan.util.Invariant))
+    override lazy val tag = {
+      weakTypeTag[Functor[F]].asInstanceOf[WeakTypeTag[To]]
+    }
+    override def convert(x: Rep[Def[_]]) = {
+      val conv = fun {x: Rep[Functor[F]] => convertFunctor(x) }
+      tryConvert(element[Functor[F]], this, x, conv)
+    }
+
+    def convertFunctor(x: Rep[Functor[F]]): Rep[To] = {
+      x.elem.asInstanceOf[Elem[_]] match {
+        case _: FunctorElem[_, _] => x.asRep[To]
+        case e => !!!(s"Expected $x to have FunctorElem[_, _], but got $e", x)
+      }
+    }
+    override def getDefaultRep: Rep[To] = ???
+  }
+
+  implicit def functorElement[F[_]](implicit cF: Cont[F]): Elem[Functor[F]] =
+    cachedElem[FunctorElem[F, Functor[F]]](cF)
+
+  implicit case object FunctorCompanionElem extends CompanionElem[FunctorCompanionCtor] {
+    lazy val tag = weakTypeTag[FunctorCompanionCtor]
+    protected def getDefaultRep = Functor
+  }
+
+  abstract class FunctorCompanionCtor extends CompanionDef[FunctorCompanionCtor] with FunctorCompanion {
+    def selfType = FunctorCompanionElem
+    override def toString = "Functor"
+  }
+  implicit def proxyFunctorCompanionCtor(p: Rep[FunctorCompanionCtor]): FunctorCompanionCtor =
+    proxyOps[FunctorCompanionCtor](p)
+
+  lazy val Functor: Rep[FunctorCompanionCtor] = new FunctorCompanionCtor {
+  }
+
+  object FunctorMethods {
+    object map {
+      def unapply(d: Def[_]): Option[(Rep[Functor[F]], Rep[F[A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(fa, f, _*), _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorElem[_, _] => true; case _ => false }) && method.getName == "map" =>
+          Some((receiver, fa, f)).asInstanceOf[Option[(Rep[Functor[F]], Rep[F[A]], Rep[A => B]) forSome {type F[_]; type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Functor[F]], Rep[F[A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object FunctorCompanionMethods {
   }
 
   registerModule(ColsModule)

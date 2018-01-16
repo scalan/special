@@ -459,20 +459,20 @@ class TypeClassMacros(val c: Context) {
             q"${filterSimulacrumAnnotations(mods)} def $name[..$tparamss](...$vparamss): $tpt = $rhs"
           case other => other
         }
-        val modifiedParents = {
-          val makeUniversal = {
-            typeClass.impl.parents match {
-              case tq"_root_.scala.Any" :: Nil => false
-              case tq"scala.Any" :: Nil => false
-              case tq"_root_.scala.AnyRef" :: Nil => true
-              case tq"scala.AnyRef" :: Nil => true
-              case _ => false
-            }
-          }
-          val universal = if (makeUniversal) List(tq"_root_.scala.Any") else typeClass.impl.parents
-          universal :+ tq"_root_.scala.Serializable"
-        }
-        val filteredImpl = Template(modifiedParents, typeClass.impl.self, filteredBody)
+//        val modifiedParents = {
+//          val makeUniversal = {
+//            typeClass.impl.parents match {
+//              case tq"_root_.scala.Any" :: Nil => false
+//              case tq"scala.Any" :: Nil => false
+//              case tq"_root_.scala.AnyRef" :: Nil => true
+//              case tq"scala.AnyRef" :: Nil => true
+//              case _ => false
+//            }
+//          }
+//          val universal = if (makeUniversal) List(tq"_root_.scala.Any") else typeClass.impl.parents
+//          universal :+ tq"_root_.scala.Serializable"
+//        }
+        val filteredImpl = Template(typeClass.impl.parents, typeClass.impl.self, filteredBody)
         ClassDef(filterSimulacrumAnnotations(typeClass.mods), typeClass.name, typeClass.tparams, filteredImpl)
       }
 

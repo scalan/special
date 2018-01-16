@@ -26,8 +26,10 @@ trait ColBuilder {
     val c = xs.zip(v).map(d => d)
     c.length
   }
+  def functorArg(arr: Array[Double])(evF: Functor[Array]) = evF.map(arr)(x => x + 1)
+//  def useFunctor(arr: Array[Double]) = evF.map(arr)(x => x + 1)
 }
 
 @typeclass trait Functor[F[_]] {
-  def map[A,B](f: A => B)(fa: F[A]): F[B]
+  def map[A,B](fa: F[A])(f: A => B): F[B]
 }

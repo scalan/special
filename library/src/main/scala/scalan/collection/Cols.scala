@@ -24,10 +24,16 @@ package scalan.collection {
         val xs: Rep[WArray[Int]] = WArray.fill[Int](v.length, Thunk(toRep(0.asInstanceOf[Int])));
         val c: Rep[WArray[scala.Tuple2[Int, Double]]] = xs.zip(v).map(fun(((d: Rep[scala.Tuple2[Int, Double]]) => d)));
         c.length
-      }
+      };
+      def functorArg(arr: Rep[WArray[Double]])(evF: Functor[WArray]): Rep[WArray[Double]] = evF.map[Double, Double](arr)(fun(((x: Rep[Double]) => x.+(toRep(1.asInstanceOf[Int])))))
+    };
+    @Typeclass trait Functor[F[_]] extends Def[Functor[F]] {
+      implicit def cF: Cont[F];
+      def map[A, B](fa: Rep[F[A]])(f: Rep[scala.Function1[A, B]]): Rep[F[B]]
     };
     trait ColCompanion;
     trait PairColCompanion;
-    trait ColBuilderCompanion
+    trait ColBuilderCompanion;
+    trait FunctorCompanion
   }
 }
