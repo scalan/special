@@ -19,8 +19,12 @@ package scalan.collection {
       override def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr)
     };
+    abstract class ArrayFunctor extends Functor[WArray] {
+      override def map[A, B](fa: Rep[WArray[A]])(f: Rep[scala.Function1[A, B]]): Rep[WArray[B]] = fa.map(f)
+    };
     trait ColOverArrayCompanion;
     trait PairOfColsCompanion;
-    trait ColOverArrayBuilderCompanion
+    trait ColOverArrayBuilderCompanion;
+    trait ArrayFunctorCompanion
   }
 }

@@ -42,17 +42,18 @@ class MetaCodegen {
 
   def entityElemMethodName(name: String) = StringUtil.lowerCaseFirst(name) + "Element"
 
-  // TODO remove this hack
-  private[this] val highOrderTpes = Set("Array", "List", "ArrayBuffer", "Thunk", "Collection", "Seq")
-
-  def tpeToElement(t: STpeExpr, env: List[STpeArg]): String = t match {
+  def tpeToElement(t: STpeExpr, env: List[STpeArg])(implicit ctx: AstContext): String = t match {
     case STpePrimitive(name,_) => name + "Element"
     case STpeTuple(List(a, b)) => s"pairElement(${tpeToElement(a, env)},${tpeToElement(b, env)})"
     case STpeFunc(a, b) => s"funcElement(${tpeToElement(a, env)},${tpeToElement(b, env)})"
     case STraitCall("$bar", List(a,b)) => s"sumElement(${tpeToElement(a, env)},${tpeToElement(b, env)})"
     case STraitCall(name, Nil) if STpePrimitives.contains(name) => name + "Element"
-    case STraitCall(name, Nil) if highOrderTpes.contains(name) =>
-      s"container[$name]"
+    case STraitCall(name, Nil) if ctx.getKind(name) > 0 =>
+      ctx.getKind(name) match {
+        case 1 => s"container[$name]"
+        case 2 => s"container2[$name]"
+        case k => sys.error(s"Cannot tpeToElement($t, $env): Kind $k of $name is not supported.")
+      }
     case STraitCall(name, args) if env.exists(_.name == name) =>
       val a = env.find(_.name == name).get
       if (!a.isHighKind)

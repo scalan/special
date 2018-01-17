@@ -1076,6 +1076,15 @@ object ScalanAst {
       modules.valuesIterator.map(_.name).toSet.contains(name)
     }
 
+    private[this] val highOrderTpes = Set("Thunk")
+
+    def getKind(name: String): Int = {
+      if (highOrderTpes.contains(name)) 1
+      else {
+        findModuleEntity(name).map { case (m, e) => e.tpeArgs.length }.getOrElse(0)
+      }
+    }
+
     def allModules: Iterator[SUnitDef] = wrappers.valuesIterator.map(_.module) ++ modules.valuesIterator
 
     //TODO refactor to use Name for more precise ModuleEntity search
@@ -1265,6 +1274,13 @@ object ScalanAst {
     def unapply(tpe: STpeExpr): Option[(String, STpeExpr)] = tpe match {
       case STraitCall(tname, List(STpeAnnotated(arg,_))) if DescNames.contains(tname) => Some((tname, arg))
       case STraitCall(tname, List(arg)) if DescNames.contains(tname) => Some((tname, arg))
+      case _ => None
+    }
+  }
+
+  object ClassTagTpe {
+    def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
+      case STraitCall("ClassTag", List(arg)) => Some(arg)
       case _ => None
     }
   }

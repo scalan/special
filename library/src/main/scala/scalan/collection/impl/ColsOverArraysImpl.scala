@@ -97,7 +97,7 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
     extends PairOfCols[L, R](ls, rs) with Def[PairOfCols[L, R]] {
     implicit lazy val eL = ls.eA;
 implicit lazy val eR = rs.eA
-    override lazy val eA: Elem[(L, R)] = element[(L, R)]
+    override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     lazy val selfType = element[PairOfCols[L, R]]
   }
   // elem for concrete class
@@ -269,6 +269,89 @@ implicit val eR = p.rs.eA
   // 5) implicit resolution of Iso
   implicit def isoColOverArrayBuilder: Iso[ColOverArrayBuilderData, ColOverArrayBuilder] =
     reifyObject(new ColOverArrayBuilderIso())
+
+  case class ArrayFunctorCtor
+      ()
+    extends ArrayFunctor() with Def[ArrayFunctor] {
+    override lazy val cF: Cont[WArray] = implicitly[Cont[WArray]]
+    lazy val selfType = element[ArrayFunctor]
+  }
+  // elem for concrete class
+  class ArrayFunctorElem(val iso: Iso[ArrayFunctorData, ArrayFunctor])
+    extends FunctorElem[WArray, ArrayFunctor]
+    with ConcreteElem[ArrayFunctorData, ArrayFunctor] {
+    override lazy val parent: Option[Elem[_]] = Some(functorElement(container[WArray]))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertFunctor(x: Rep[Functor[WArray]]) = ArrayFunctor()
+    override def getDefaultRep = ArrayFunctor()
+    override lazy val tag = {
+      weakTypeTag[ArrayFunctor]
+    }
+  }
+
+  // state representation type
+  type ArrayFunctorData = Unit
+
+  // 3) Iso for concrete class
+  class ArrayFunctorIso
+    extends EntityIso[ArrayFunctorData, ArrayFunctor] with Def[ArrayFunctorIso] {
+    override def from(p: Rep[ArrayFunctor]) =
+      ()
+    override def to(p: Rep[Unit]) = {
+      val unit = p
+      ArrayFunctor()
+    }
+    lazy val eFrom = UnitElement
+    lazy val eTo = new ArrayFunctorElem(self)
+    lazy val selfType = new ArrayFunctorIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class ArrayFunctorIsoElem() extends Elem[ArrayFunctorIso] {
+    def getDefaultRep = reifyObject(new ArrayFunctorIso())
+    lazy val tag = {
+      weakTypeTag[ArrayFunctorIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class ArrayFunctorCompanionCtor extends CompanionDef[ArrayFunctorCompanionCtor] with ArrayFunctorCompanion {
+    def selfType = ArrayFunctorCompanionElem
+    override def toString = "ArrayFunctorCompanion"
+    @scalan.OverloadId("fromData")
+    def apply(p: Rep[ArrayFunctorData]): Rep[ArrayFunctor] = {
+      isoArrayFunctor.to(p)
+    }
+
+    @scalan.OverloadId("fromFields")
+    def apply(): Rep[ArrayFunctor] =
+      mkArrayFunctor()
+
+    def unapply(p: Rep[Functor[WArray]]) = unmkArrayFunctor(p)
+  }
+  lazy val ArrayFunctorRep: Rep[ArrayFunctorCompanionCtor] = new ArrayFunctorCompanionCtor
+  lazy val ArrayFunctor: ArrayFunctorCompanionCtor = proxyArrayFunctorCompanion(ArrayFunctorRep)
+  implicit def proxyArrayFunctorCompanion(p: Rep[ArrayFunctorCompanionCtor]): ArrayFunctorCompanionCtor = {
+    proxyOps[ArrayFunctorCompanionCtor](p)
+  }
+
+  implicit case object ArrayFunctorCompanionElem extends CompanionElem[ArrayFunctorCompanionCtor] {
+    lazy val tag = weakTypeTag[ArrayFunctorCompanionCtor]
+    protected def getDefaultRep = ArrayFunctorRep
+  }
+
+  implicit def proxyArrayFunctor(p: Rep[ArrayFunctor]): ArrayFunctor =
+    proxyOps[ArrayFunctor](p)
+
+  implicit class ExtendedArrayFunctor(p: Rep[ArrayFunctor]) {
+    def toData: Rep[ArrayFunctorData] = {
+      isoArrayFunctor.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoArrayFunctor: Iso[ArrayFunctorData, ArrayFunctor] =
+    reifyObject(new ArrayFunctorIso())
 
   registerModule(ColsOverArraysModule)
 
@@ -447,6 +530,34 @@ implicit val eR = p.rs.eA
   }
   def unmkColOverArrayBuilder(p: Rep[ColBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ColOverArrayBuilderElem @unchecked =>
+      Some(())
+    case _ =>
+      None
+  }
+
+  object ArrayFunctorMethods {
+    object map {
+      def unapply(d: Def[_]): Option[(Rep[ArrayFunctor], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(fa, f, _*), _) if receiver.elem.isInstanceOf[ArrayFunctorElem] && method.getName == "map" =>
+          Some((receiver, fa, f)).asInstanceOf[Option[(Rep[ArrayFunctor], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ArrayFunctor], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object ArrayFunctorCompanionMethods {
+  }
+
+  def mkArrayFunctor
+    (): Rep[ArrayFunctor] = {
+    new ArrayFunctorCtor()
+  }
+  def unmkArrayFunctor(p: Rep[Functor[WArray]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: ArrayFunctorElem @unchecked =>
       Some(())
     case _ =>
       None

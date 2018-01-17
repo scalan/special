@@ -263,12 +263,13 @@ object ScalanAstTransformers {
       val newCompanion = classCompanionTransform(c.companion)
       val newClassArgs = classArgsTransform(c.args)
       val newImplicitClassArgs = classArgsTransform(c.implicitArgs)
-
+      val newAncestors = entityAncestorsTransform(c.ancestors)
       c.copy(
         args = newClassArgs,
         implicitArgs = newImplicitClassArgs,
         body = newBody,
-        companion = newCompanion
+        companion = newCompanion,
+        ancestors = newAncestors
       )
     }
 
@@ -316,6 +317,11 @@ object ScalanAstTransformers {
     override def valdefTransform(valdef: SValDef): SValDef = {
       val newTpe = valdef.tpe.map(typeTransformer(_))
       super.valdefTransform(valdef.copy(tpe = newTpe))
+    }
+
+    override def entityAncestorTransform(ancestor: STypeApply): STypeApply = {
+      val newTpe = typeTransformer.traitCallTransform(ancestor.tpe)
+      super.entityAncestorTransform(ancestor.copy(tpe = newTpe))
     }
   }
 
@@ -515,4 +521,30 @@ object ScalanAstTransformers {
 
   class ExtType2WrapperTypeTransformer(name: String) extends TypeReplacer(name, wrap)
 
+  class RemoveClassTagFromSignatures(implicit ctx: AstContext) extends AstTransformer {
+    override def methodArgsTransform(args: SMethodArgs): SMethodArgs = {
+      // filter out ClassTag args
+      val newArgs = args.args.filter { marg => marg.tpe match {
+        case ClassTagTpe(_) => false
+        case _ => true
+      }} mapConserve methodArgTransform
+      args.copy(args = newArgs)
+    }
+    override def methodArgSectionsTransform(argSections: List[SMethodArgs]): List[SMethodArgs] = {
+      argSections mapConserve methodArgsTransform filterNot { _.args.isEmpty }
+    }
+    override def bodyTransform(body: List[SBodyItem]): List[SBodyItem] = {
+      body filter{
+        case SMethodDef(_,_,_,Some(STraitCall("ClassTag", _)),true,_,_,_,_,_) => false
+        case _ => true
+      } mapConserve bodyItemTransform
+    }
+    override def classArgsTransform(classArgs: SClassArgs): SClassArgs = {
+      val newArgs = classArgs.args.filter { _.tpe match {
+        case ClassTagTpe(_) => false
+        case _ => true
+      }} mapConserve classArgTransform
+      classArgs.copy(args = newArgs)
+    }
+  }
 }

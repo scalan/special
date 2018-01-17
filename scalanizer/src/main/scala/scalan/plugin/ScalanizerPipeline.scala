@@ -173,7 +173,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val argsWithoutClassTags = argSections.filterMap { section =>
       val filteredArgs = section.args.filterMap { arg =>
         arg.tpe match {
-          case STraitCall("ClassTag", List(tT)) =>
+          case ClassTagTpe(tT) =>
             tpeArgs.find(t => t.name == tT.name) match {
               case Some(tpeArg) =>
                 reifiedArgs += tpeArg

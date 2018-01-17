@@ -434,18 +434,20 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       val abstractDescriptors = c.c.collectVisibleMembers.filter { m => m.item.isAbstract && m.item.isTypeDesc }
       val nonExtractableDescriptors = abstractDescriptors.map { m =>
         val extracted = b.extractableArgs.collectFirst {
-          case (n, (tyArg, s)) if STraitCall("Elem", List(tyArg.toTraitCall)) == m.item.tpeRes.get =>
+          case (n, (tyArg, s))
+              if STraitCall("Elem", List(tyArg.toTraitCall)) == m.item.tpeRes.get ||
+                  STraitCall("Cont", List(tyArg.toTraitCall)) == m.item.tpeRes.get =>
             tyArg.classOrMethodArgName(n)
         }
         (m, extracted)
       }
       val elemDefs = nonExtractableDescriptors.rep({
         case (m, None) =>
-          val STraitCall(_, List(tyStr)) = m.item.tpeRes.get
-          s"override lazy val ${m.item.name}: Elem[$tyStr] = element[$tyStr]"
+          val tc @ STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
+          s"override lazy val ${m.item.name}: $descName[$tyStr] = implicitly[$descName[$tyStr]]"
         case (m, Some(extractedName)) =>
-          val STraitCall(_, List(tyStr)) = m.item.tpeRes.get
-          s"override lazy val ${m.item.name}: Elem[$tyStr] = $extractedName"
+          val STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
+          s"override lazy val ${m.item.name}: $descName[$tyStr] = $extractedName"
       }, "\n|").stripMargin
       s"""
         |  case class ${c.typeDecl("Ctor") }

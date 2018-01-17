@@ -64,7 +64,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           updateSelf _,
           checkEntityCompanion _,
           constr2apply _,
-          cleanUpClassTags _,
+          removeClassTagsFromSignatures _,
           preventNameConflict _,
           genEntityImplicits _,
           genMethodsImplicits _,

@@ -157,38 +157,8 @@ class SModuleBuilder(implicit val context: AstContext) {
   }
 
   /** ClassTags are removed because in virtualized code they can be extracted from Elems. */
-  def cleanUpClassTags(unit: SUnitDef) = {
-    class ClassTagTransformer extends AstTransformer {
-      override def methodArgsTransform(args: SMethodArgs): SMethodArgs = {
-        val newArgs = args.args.filter {marg => marg.tpe match {
-          case tc: STraitCall if tc.name == "ClassTag" => false
-          case _ => true
-        }} mapConserve methodArgTransform
-
-        args.copy(args = newArgs)
-      }
-      override def methodArgSectionsTransform(argSections: List[SMethodArgs]): List[SMethodArgs] = {
-        argSections mapConserve methodArgsTransform filter {
-          case SMethodArgs(List()) | SMethodArgs(Nil) => false
-          case _ => true
-        }
-      }
-      override def bodyTransform(body: List[SBodyItem]): List[SBodyItem] = {
-        body filter{
-          case SMethodDef(_,_,_,Some(STraitCall("ClassTag", _)),true,_,_,_,_,_) => false
-          case _ => true
-        } mapConserve bodyItemTransform
-      }
-      override def classArgsTransform(classArgs: SClassArgs): SClassArgs = {
-        val newArgs = classArgs.args.filter { _.tpe match {
-          case STraitCall("ClassTag", _) => false
-          case _ => true
-        }} mapConserve classArgTransform
-
-        classArgs.copy(args = newArgs)
-      }
-    }
-    new ClassTagTransformer().moduleTransform(unit)
+  def removeClassTagsFromSignatures(unit: SUnitDef) = {
+    new RemoveClassTagFromSignatures().moduleTransform(unit)
   }
 
   def replaceClassTagByElem(unit: SUnitDef) = {
@@ -218,13 +188,16 @@ class SModuleBuilder(implicit val context: AstContext) {
 
   def eliminateClassTagApply(module: SUnitDef) = {
     new AstTransformer {
-      override def applyTransform(apply: SApply): SApply = apply match {
-        case SApply(SSelect(SIdent("ClassTag",_), "apply",_), List(tpe), _,_) =>
-          apply.copy(
-            fun = SIdent("element"),
-            argss = Nil
-          )
-        case _ => super.applyTransform(apply)
+      override def applyTransform(apply: SApply): SApply = {
+        val newArgss = apply.argss.filterMap { sec =>
+          val newArgs = sec.args.filterNot { a =>
+            val t = a.exprType.flatMap(ClassTagTpe.unapply)
+            t.isDefined
+          }
+          if (newArgs.isEmpty) None
+          else Some(sec.copy(args = newArgs))
+        }
+        apply.copy(argss = newArgss)
       }
     }.moduleTransform(module)
   }
@@ -394,7 +367,7 @@ class SModuleBuilder(implicit val context: AstContext) {
     val nonConflictModule = pipeline(module)
     nonConflictModule
   }
-  
+
   def unrepAllTypes(module: SUnitDef): SUnitDef = {
     val t = new TypeTransformerInAst(new RepTypeRemover())
     t.moduleTransform(module)
@@ -439,8 +412,8 @@ class ModuleVirtualizationPipeline(implicit val context: AstContext) extends (SU
     addImports _,
     checkEntityCompanion _,
     checkClassCompanion _,
-    cleanUpClassTags _,
-    replaceClassTagByElem _,
+    removeClassTagsFromSignatures _,
+//    replaceClassTagByElem _,
     eliminateClassTagApply _,
     genEntityImplicits _,
     // genClassesImplicits _, genMethodsImplicits _,
