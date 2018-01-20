@@ -68,6 +68,7 @@ What is removed from scalan-core
 + AbstractStrings
 + Std context
 + Effectful, EffectfulCompiler
-- see also all [Mini] commits
++ Separation on Abs, Std, Exp cakes
++ see also all [Mini] commits
 
 
