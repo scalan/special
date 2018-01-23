@@ -6,7 +6,7 @@ import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.reflect.internal.util.{BatchSourceFile, SourceFile}
-import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SExpr, SBodyItem, AstContext}
+import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SExpr, SMethodDef, SBodyItem, AstContext}
 
 trait ScalanParsersEx[G <: Global]
   extends ScalanParsers[G] with ScalanGens[G] {
@@ -82,6 +82,10 @@ trait ScalanParsersEx[G <: Global]
     val tree = parseString(Member, defString)
     val res = optBodyItem(tree, None).get
     res
+  }
+
+  def parseMethod(mdString: String)(implicit ctx: ParseCtx): SMethodDef = {
+    parseBodyItem(mdString).asInstanceOf[SMethodDef]
   }
 
   def parseModule(module: TestModule): SUnitDef = {
