@@ -40,9 +40,10 @@ class EntityTests extends BaseMetaTests with Examples {
     }
     describe("collectVisibleMembers") {
       implicit val parseCtx = new ParseCtx(true)
+      val un = cols.unitName
       def testVisible(e: SEntityDef, p: SEntityMember => Boolean, expected: List[(String, String)]) = {
         val expectedMembers = expected.map { case (en, mstr) =>
-          val item = parseBodyItem(mstr).asInstanceOf[SEntityItem]
+          val item = parseBodyItem(un, mstr).asInstanceOf[SEntityItem]
           (en, item)
         }
         val actual = e.collectVisibleMembers.filter(p).map(m => (m.entity.name, m.item))
@@ -143,10 +144,10 @@ class EntityTests extends BaseMetaTests with Examples {
     }
   }
   implicit val parseCtx = new ParseCtx(false)
-
+  val un = cols.unitName
   describe("STpeExpr") {
     def testNames(tpeStr: String, expected: Set[String]) = {
-      val t = parseType(tpeStr)
+      val t = parseType(un, tpeStr)
       t.names shouldBe expected
     }
     it("names") {
@@ -173,7 +174,7 @@ class EntityTests extends BaseMetaTests with Examples {
     }
 
     def testSubst(tpeStr: String, subst: STpeSubst, expected: String) = {
-      val t = parseType(tpeStr)
+      val t = parseType(un, tpeStr)
       t.applySubst(subst).toString shouldBe expected
     }
     it("applySubst") {
@@ -183,12 +184,12 @@ class EntityTests extends BaseMetaTests with Examples {
 
   describe("SEntityItem") {
     def testSubst(tpeStr: String, subst: STpeSubst, expectedStr: String) = {
-      val t = parseBodyItem(tpeStr)
-      val expected = parseBodyItem(expectedStr)
+      val t = parseBodyItem(un, tpeStr)
+      val expected = parseBodyItem(un, expectedStr)
       t.asInstanceOf[SEntityItem].applySubst(subst) shouldBe expected
     }
     it("applySubst") {
-      def ty(s: String) = parseType(s)
+      def ty(s: String) = parseType(un, s)
       val method = "def map[B](f: A => B): Col[B]"
       testSubst(method, Map("A" -> TpeInt), "def map[B](f: Int => B): Col[B]")
       testSubst(method, Map("A" -> ty("(A,B)")), "def map[B](f: (A,B) => B): Col[B]")

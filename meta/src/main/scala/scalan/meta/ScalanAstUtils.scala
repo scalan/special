@@ -31,7 +31,8 @@ object ScalanAstUtils {
   }
 
   /** Creates empty companion trait (no body) for an entity or concrete classes. */
-  def createCompanion(traitName: String): STraitDef = STraitDef(
+  def createCompanion(unitName: UnitName, traitName: String): STraitDef = STraitDef(
+    unitName = unitName,
     name = traitName + "Companion",
     tpeArgs = List(),
     ancestors = List(),
@@ -44,9 +45,11 @@ object ScalanAstUtils {
     * Checks if companion is represented by SObjectDef (e.g. parsed from object)
     * and converts into the companion trait (STraitDef).
     */
-  def convertCompanion(comp: SEntityDef): SEntityDef = comp match {
+  def convertCompanion(unitName: UnitName, comp: SEntityDef): SEntityDef = comp match {
     case obj: SObjectDef =>
-      STraitDef(name = obj.name + "Companion",
+      STraitDef(
+        unitName = unitName,
+        name = obj.name + "Companion",
         tpeArgs = obj.tpeArgs, ancestors = obj.ancestors, body = obj.body, selfType = obj.selfType,
         companion = obj.companion, annotations = obj.annotations)
     case _ => comp

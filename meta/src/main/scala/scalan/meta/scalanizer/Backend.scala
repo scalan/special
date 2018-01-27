@@ -11,12 +11,12 @@ trait Backend[+G <: Global] extends ScalanizerBase[G] {
   import global._
 
   /** Generate boilerplate text for virtualized user-defined module */
-  def genUDModuleBoilerplateText(unitName: String, module: SUnitDef): String = {
+  def genUDModuleBoilerplateText(unitName: String, unit: SUnitDef): String = {
     val unitConf = snConfig.getUnitConfig(unitName)
     val gen = new ModuleFileGenerator(
       ScalanCodegen,
-      module.copy(
-        origModuleTrait = Some(createModuleTrait(module.name)),
+      unit.copy(
+        origModuleTrait = Some(createModuleTrait(unit.unitName)),
         okEmitOrigModuleTrait = true
       )(context),
       unitConf.copy(

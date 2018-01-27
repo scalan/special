@@ -10,7 +10,7 @@ import scalan.meta.ScalanAstTransformers.{isIgnoredExternalType, External2Wrappe
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.util.CollectionUtil._
-import scalan.meta.{SourceModuleConf, ModuleConf, ScalanCodegen}
+import scalan.meta.{SourceModuleConf, ModuleConf, ScalanCodegen, SName}
 
 abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) { pipeline =>
   import scalanizer._
@@ -266,13 +266,16 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val entityAncestors = originalEntityAncestors
     val externalAnnot = ExternalEntityAnnotation(externalTypeName)
     val entityAnnotations = externalAnnot :: wrapperConf.annotations.map { a => SEntityAnnotation(a, Nil) }
+    val un = SName(wrapPackage(packageName), wmod(externalTypeName))
     val entity = STraitDef(
+      unitName = un,
       name = wClassName,
       tpeArgs = tpeArgs,
       ancestors = entityAncestors,
       body = Nil,
       selfType = Some(SSelfTypeDef("self", Nil)),
       companion = Some(STraitDef(
+        unitName = un,
         name = companionName,
         tpeArgs = Nil,
         ancestors = Nil, //mkCompanionAncestors(wClassName, kind = typeParams.length),
@@ -286,9 +289,9 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       SImportStat("impl._")
     )
     val module = SUnitDef(
-      packageName = wrapPackage(packageName),
+      packageName = un.packageName,
       imports = imports,
-      name = wmod(externalTypeName),
+      name = un.name,
       typeDefs = Nil,
       traits = List(entity),
       classes = Nil, methods = Nil,
@@ -471,7 +474,8 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
   }
 
   def initWrapperCake(): WrapperCake = {
-    val cakeDef = STraitDef("WrappersModule",
+    val un = SName("scala.wrappers", "WrappersModule")
+    val cakeDef = STraitDef(un, "WrappersModule",
       tpeArgs = Nil,
       ancestors = List(),
       body = Nil, selfType = None, companion = None)

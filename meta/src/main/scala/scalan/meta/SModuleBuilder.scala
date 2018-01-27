@@ -133,27 +133,27 @@ class SModuleBuilder(implicit val context: AstContext) {
 
   /** Checks that the entity has a companion. If the entity doesn't have it
     * then the method adds the companion. */
-  def checkEntityCompanion(module: SUnitDef) = {
-    val newTraits = module.traits.map { e =>
+  def checkEntityCompanion(unit: SUnitDef) = {
+    val newTraits = unit.traits.map { e =>
       val newCompanion = e.companion match {
-        case Some(comp) => Some(convertCompanion(comp))
-        case None => Some(createCompanion(e.name))
+        case Some(comp) => Some(convertCompanion(unit.unitName, comp))
+        case None => Some(createCompanion(unit.unitName, e.name))
       }
       e.copy(companion = newCompanion)
     }
-    module.copy(traits = newTraits)
+    unit.copy(traits = newTraits)
   }
 
   /** Checks that concrete classes have their companions and adds them. */
-  def checkClassCompanion(module: SUnitDef) = {
-    val newClasses = module.classes.map{ clazz =>
+  def checkClassCompanion(unit: SUnitDef) = {
+    val newClasses = unit.classes.map{ clazz =>
       val newCompanion = clazz.companion match {
-        case Some(comp) => Some(convertCompanion(comp))
-        case None => Some(createCompanion(clazz.name))
+        case Some(comp) => Some(convertCompanion(unit.unitName, comp))
+        case None => Some(createCompanion(unit.unitName, clazz.name))
       }
       clazz.copy(companion = newCompanion)
     }
-    module.copy(classes = newClasses)
+    unit.copy(classes = newClasses)
   }
 
   /** ClassTags are removed because in virtualized code they can be extracted from Elems. */
@@ -385,6 +385,7 @@ class SModuleBuilder(implicit val context: AstContext) {
     if (unit.origModuleTrait.isEmpty) {
       val mainName = unit.name
       val mt = STraitDef(
+        unitName = unit.unitName,
         name = SUnitDef.moduleTraitName(mainName),
         tpeArgs = Nil,
         ancestors = List(STraitCall(s"impl.${mainName}Defs"), STraitCall("scala.wrappers.WrappersModule")).map(STypeApply(_)),

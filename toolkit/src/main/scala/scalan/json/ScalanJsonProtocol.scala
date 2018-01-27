@@ -20,6 +20,8 @@ class ScalanJsonProtocol[C <: Scalan](val ctx: C) extends DefaultJsonProtocol wi
 //              Sym, syms, ApplyBinOp, ApplyUnOp, TableEntry, MapTransformer, fun, toRep}
   import parsers.{genTypeExpr, global, parseType}
 
+  val helperUnitName = scalan.meta.SName("scalan.json", "ScalanJsonProtocolHelperUnit")
+
   implicit def elementFormat[T]: JsonFormat[Elem[T]] = new JsonFormat[Elem[T]] {
     def write(e: Elem[T]) = {
       val tpe = e.toTpeExpr
@@ -30,7 +32,7 @@ class ScalanJsonProtocol[C <: Scalan](val ctx: C) extends DefaultJsonProtocol wi
 
     def read(json: JsValue) = json match {
       case JsString(tpeStr) =>
-        val ty = parseType(tpeStr)
+        val ty = parseType(helperUnitName, tpeStr)
         val elem = TypeDesc(ty, emptySubst).asElem[T]
         elem
       case _ => deserializationError("String expected of type term")

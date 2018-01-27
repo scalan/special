@@ -61,14 +61,14 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
     to
   }
 
-  def mergeTraits(to: STraitDef, from: STraitDef) = {
+  def mergeTraits(to: STraitDef, from: STraitDef): STraitDef = {
     checkEquals(to.tpeArgs, from.tpeArgs)(s"Cannot merge traits with different type args: $to and $from")
     checkEquals(to.ancestors, from.ancestors)(s"Cannot merge traits with different ancestors $to and $from")
     checkEquals(to.selfType, from.selfType)(s"Cannot merge traits with different self types $to and $from")
     val newBody = to.body.mergeWith(from.body, bodyItemSig, mergeBodyItems)
     val newComp = to.companion.mergeWith(from.companion, mergeEntities)
     val newAnnotations = to.annotations.mergeWith(from.annotations, _.annotationClass, mergeEntityAnnotations)
-    STraitDef(to.name, to.tpeArgs, to.ancestors, newBody, to.selfType, newComp, newAnnotations)
+    to.copy(body = newBody, selfType = to.selfType, companion = newComp, annotations = newAnnotations)
   }
 
   def mergeClasses(to: SClassDef, from: SClassDef) = {

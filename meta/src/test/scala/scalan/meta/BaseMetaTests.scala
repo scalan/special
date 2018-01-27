@@ -5,7 +5,7 @@ import org.scalatest.{FlatSpec, Matchers}
 import scala.tools.nsc.Global
 import scala.reflect.internal.util.BatchSourceFile
 import scalan.BaseNestedTests
-import scalan.meta.ScalanAst.{STpeExpr, SExpr, SUnitDef, SClassDef, STpePrimitives, STraitDef, SMethodDef, SBodyItem, AstContext}
+import scalan.meta.ScalanAst.{UnitName, SUnitDef, STpeExpr, SExpr, SClassDef, STpePrimitives, STraitDef, SMethodDef, SBodyItem, AstContext}
 
 trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
   def getGlobal = new Global(settings, reporter)
@@ -36,17 +36,17 @@ trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
   }
 
   def testTrait(prog: String, expected: STraitDef)(implicit ctx: ParseCtx) {
-    test(Member, prog, expected) { case tree: ClassDef => traitDef(tree, Some(tree)) }
+    test(Member, prog, expected) { case tree: ClassDef => traitDef(expected.unitName, tree, Some(tree)) }
   }
   def testSClass(prog: String, expected: SClassDef)(implicit ctx: ParseCtx) {
-    test(Member, prog, expected) { case tree: ClassDef => classDef(tree, Some(tree)) }
+    test(Member, prog, expected) { case tree: ClassDef => classDef(expected.unitName, tree, Some(tree)) }
   }
 
-  def testSTpe(prog: String, expected: STpeExpr)(implicit ctx: ParseCtx) {
-    test(Type, prog, expected)(tpeExpr)
+  def testSTpe(un: UnitName, prog: String, expected: STpeExpr)(implicit ctx: ParseCtx) {
+    test(Type, prog, expected)(tpeExpr(un, _))
   }
-  def testSMethod(prog: String, expected: SMethodDef)(implicit ctx: ParseCtx) {
-    test(Member, prog, expected) { case tree: DefDef => methodDef(tree) }
+  def testSMethod(un: UnitName, prog: String, expected: SMethodDef)(implicit ctx: ParseCtx) {
+    test(Member, prog, expected) { case tree: DefDef => methodDef(un, tree) }
   }
 
   def getMethod(module: SUnitDef, entityName: String, name: String) = {

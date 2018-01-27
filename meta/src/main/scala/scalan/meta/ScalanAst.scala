@@ -690,7 +690,7 @@ object ScalanAst {
     * (See http://scala-lang.org/files/archive/spec/2.12/05-classes-and-objects.html)
     */
   abstract class SEntityDef extends SBodyItem with NamedDef {
-//    def unitName: UnitName
+    def unitName: UnitName
     def name: String
 
     def tpeArgs: List[STpeArg]
@@ -886,7 +886,7 @@ object ScalanAst {
   }
 
   case class STraitDef(
-//      unitName: UnitName,
+      unitName: UnitName,
       name: String,
       tpeArgs: List[STpeArg],
       ancestors: List[STypeApply],
@@ -918,7 +918,7 @@ object ScalanAst {
   }
 
   case class SClassDef(
-//      unitName: UnitName,
+      unitName: UnitName,
       name: String,
       tpeArgs: List[STpeArg],
       args: SClassArgs,
@@ -941,7 +941,7 @@ object ScalanAst {
   }
 
   case class SObjectDef(
-//      unitName: UnitName,
+      unitName: UnitName,
       name: String,
       ancestors: List[STypeApply],
       body: List[SBodyItem]) extends SEntityDef {

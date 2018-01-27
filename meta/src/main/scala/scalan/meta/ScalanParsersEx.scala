@@ -6,7 +6,7 @@ import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.reflect.internal.util.{BatchSourceFile, SourceFile}
-import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SExpr, SMethodDef, SBodyItem, AstContext}
+import scalan.meta.ScalanAst.{UnitName, SUnitDef, STpeExpr, SExpr, SMethodDef, SBodyItem, AstContext}
 
 trait ScalanParsersEx[G <: Global]
   extends ScalanParsers[G] with ScalanGens[G] {
@@ -66,26 +66,26 @@ trait ScalanParsersEx[G <: Global]
     }
   }
 
-  def parseType(tpeString: String)(implicit ctx: ParseCtx): STpeExpr = {
+  def parseType(un: UnitName, tpeString: String)(implicit ctx: ParseCtx): STpeExpr = {
     val tree = parseString(Type, tpeString)
-    val tpe = tpeExpr(tree)
+    val tpe = tpeExpr(un, tree)
     tpe
   }
 
-  def parseExpr(exprString: String)(implicit ctx: ParseCtx): SExpr = {
+  def parseExpr(un: UnitName, exprString: String)(implicit ctx: ParseCtx): SExpr = {
     val tree = parseString(Expr, exprString)
-    val expr = parseExpr(tree)
+    val expr = parseExpr(un, tree)
     expr
   }
 
-  def parseBodyItem(defString: String)(implicit ctx: ParseCtx): SBodyItem = {
+  def parseBodyItem(un: UnitName, defString: String)(implicit ctx: ParseCtx): SBodyItem = {
     val tree = parseString(Member, defString)
-    val res = optBodyItem(tree, None).get
+    val res = optBodyItem(un, tree, None).get
     res
   }
 
-  def parseMethod(mdString: String)(implicit ctx: ParseCtx): SMethodDef = {
-    parseBodyItem(mdString).asInstanceOf[SMethodDef]
+  def parseMethod(un: UnitName, mdString: String)(implicit ctx: ParseCtx): SMethodDef = {
+    parseBodyItem(un, mdString).asInstanceOf[SMethodDef]
   }
 
   def parseModule(module: TestModule): SUnitDef = {

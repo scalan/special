@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, SConstr, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SAnnotation, AstContext, SSuper, STpeExistential, SSelect}
+import scalan.meta.ScalanAst.{STraitCall, SClassArg, UnitName, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, AstContext, SSuper, STpeExistential, SSelect}
 import scalan.meta.ScalanAstTransformers.filterInternalAnnot
 import scalan.util.ScalaNameUtil.PackageAndName
 
@@ -10,8 +10,10 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
 
   case class GenCtx(context: AstContext, isVirtualized: Boolean, toRep: Boolean = true)
 
-  def createModuleTrait(mainModuleName: String) = {
+  def createModuleTrait(unitName: UnitName) = {
+    val mainModuleName = unitName.name
     val mt = STraitDef(
+      unitName = unitName,
       name = SUnitDef.moduleTraitName(mainModuleName),
       tpeArgs = Nil,
       ancestors = List(STraitCall(s"impl.${mainModuleName}Defs"), STraitCall("scala.wrappers.WrappersModule")).map(STypeApply(_)),
