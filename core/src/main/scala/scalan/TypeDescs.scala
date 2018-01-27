@@ -69,6 +69,10 @@ trait TypeDescs extends Base { self: Scalan =>
     }
   }
 
+  implicit class STpeExprOpsForTypeDesc(tpe: STpeExpr) {
+    def toTypeDesc(env: TypeArgSubst = Map()): TypeDesc = TypeDesc(tpe, env)
+  }
+
   implicit class TypeDescOps(d: TypeDesc) {
     def asElem[B]: Elem[B] = d.asInstanceOf[Elem[B]]
     def asElemOption[B]: Option[Elem[B]] = if (isElem) Some(d.asInstanceOf[Elem[B]]) else None
@@ -76,7 +80,7 @@ trait TypeDescs extends Base { self: Scalan =>
     def asContOption[C[_]]: Option[Cont[C]] = if (isCont) Some(d.asInstanceOf[Cont[C]]) else None
     def isElem: Boolean = d.isInstanceOf[Elem[_]]
     def isCont: Boolean = d.isInstanceOf[Cont[Any] @unchecked]
-    def tyExpr: STpeExpr = d match {
+    def toTpeExpr: STpeExpr = d match {
       case e: Elem[_] => e.toTpeExpr
       case _ => ???
     }
@@ -151,7 +155,7 @@ trait TypeDescs extends Base { self: Scalan =>
         val b = pe.eRange.toTpeExpr
         STpeFunc(a,b)
       case ee: EntityElem[a] =>
-        STraitCall(ee.entityName, ee.typeArgs.map { case (_, (a, _)) => a.tyExpr }.toList)
+        STraitCall(ee.entityName, ee.typeArgs.map { case (_, (a, _)) => a.toTpeExpr }.toList)
   //      case ae: StructElem[a] =>
       //        val tpes = ae.fields.map { case (name, el) =>
       //          BaseType(name, List(el))

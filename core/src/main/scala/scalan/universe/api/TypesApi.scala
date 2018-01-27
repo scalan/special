@@ -151,7 +151,7 @@ trait TypesApi { self: Scalan =>
     def subEntitiesIter: Iterator[Entity] = subEntities.values.iterator
 
     def toTraitCall(args: TypeArgSubst) = {
-      val tpeArgs = typeArgs.map(a => args.get(a.argName).map(e => e.tyExpr).getOrElse(a.tyArg.toTraitCall))
+      val tpeArgs = typeArgs.map(a => args.get(a.argName).map(e => e.toTpeExpr).getOrElse(a.tyArg.toTraitCall))
       STraitCall(name, tpeArgs)
     }
     def asType: TypeDesc = applySubst(emptySubst)
@@ -233,7 +233,7 @@ trait TypesApi { self: Scalan =>
 
   object BaseType {
     def apply(tyName: String) = STpePrimitives(tyName)
-    def apply(tyName: String, args: List[TypeDesc]) = STraitCall(tyName, args.map(_.tyExpr))
+    def apply(tyName: String, args: List[TypeDesc]) = STraitCall(tyName, args.map(_.toTpeExpr))
   }
 
 //  def mkBaseConstructor1(name: String) = BaseType(STraitCall(name, Nil))

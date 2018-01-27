@@ -684,11 +684,13 @@ object ScalanAst {
   }
 
   type Module = SUnitDef
+  type UnitName = SName
 
   /** Correspond to TmplDef syntax construct of Scala.
     * (See http://scala-lang.org/files/archive/spec/2.12/05-classes-and-objects.html)
     */
   abstract class SEntityDef extends SBodyItem {
+//    def unitName: UnitName
     def name: String
 
     def tpeArgs: List[STpeArg]
@@ -884,13 +886,14 @@ object ScalanAst {
   }
 
   case class STraitDef(
-                        name: String,
-                        tpeArgs: List[STpeArg],
-                        ancestors: List[STypeApply],
-                        body: List[SBodyItem],
-                        selfType: Option[SSelfTypeDef],
-                        companion: Option[SEntityDef],
-                        annotations: List[SEntityAnnotation] = Nil) extends SEntityDef {
+//      unitName: UnitName,
+      name: String,
+      tpeArgs: List[STpeArg],
+      ancestors: List[STypeApply],
+      body: List[SBodyItem],
+      selfType: Option[SSelfTypeDef],
+      companion: Option[SEntityDef],
+      annotations: List[SEntityAnnotation] = Nil) extends SEntityDef {
     def isTrait = true
 
     val args = SClassArgs(Nil)
@@ -915,16 +918,17 @@ object ScalanAst {
   }
 
   case class SClassDef(
-                        name: String,
-                        tpeArgs: List[STpeArg],
-                        args: SClassArgs,
-                        implicitArgs: SClassArgs,
-                        ancestors: List[STypeApply],
-                        body: List[SBodyItem],
-                        selfType: Option[SSelfTypeDef],
-                        companion: Option[SEntityDef],
-                        isAbstract: Boolean,
-                        annotations: List[SEntityAnnotation] = Nil) extends SEntityDef {
+//      unitName: UnitName,
+      name: String,
+      tpeArgs: List[STpeArg],
+      args: SClassArgs,
+      implicitArgs: SClassArgs,
+      ancestors: List[STypeApply],
+      body: List[SBodyItem],
+      selfType: Option[SSelfTypeDef],
+      companion: Option[SEntityDef],
+      isAbstract: Boolean,
+      annotations: List[SEntityAnnotation] = Nil) extends SEntityDef {
     def isTrait = false
 
     def clean = {

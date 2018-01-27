@@ -4,7 +4,7 @@ import scalan.{Scalan, TestContexts}
 import scalan.meta.BaseMetaTests
 
 class StagedEvalTests extends BaseMetaTests with TestContexts {
-  val ctx = new TestContext("StagedEval") {}
+  val ctx = new TestContext("StagedEval") with StagedEvaluation {}
   val evtr = new StatedEvaluator[ctx.type](ctx)
 
   def testMethod(methodDef: String): Unit = {

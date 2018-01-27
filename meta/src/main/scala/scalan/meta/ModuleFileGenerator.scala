@@ -271,7 +271,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       |  class $elemTypeDecl${e.implicitArgsDecl("_")}
       |    extends $parentElem {
       |${e.implicitArgs.rep(a => s"    ${(e.entity.isAbstractInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
-      |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElement(p, e.tpeArgs)})", "None")}
+      |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElemStr(p, e.tpeArgs)})", "None")}
       |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})
       |    override lazy val tag = {
       |${implicitTagsFromElems(e)}
@@ -393,7 +393,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
           }
         }
       }
-      val parentElem = tpeToElement(parent, c.tpeArgs)
+      val parentElem = tpeToElemStr(parent, c.tpeArgs)
       val hasCompanion = clazz.companion.isDefined
       val dataTpe = s"${className}Data$tpeArgsUse"
       val concreteElemSuperType = if (e.isCont)

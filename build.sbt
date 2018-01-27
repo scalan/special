@@ -123,7 +123,7 @@ lazy val library = Project("library", file("library"))
     libraryDependencies ++= Seq())
 
 lazy val core = Project("scalan-core", file("core"))
-  .dependsOn(common % allConfigDependency, meta, macros)
+  .dependsOn(common % allConfigDependency, meta % allConfigDependency, macros)
   .settings(commonSettings,
     libraryDependencies ++= Seq(
       "cglib" % "cglib" % "3.2.3",

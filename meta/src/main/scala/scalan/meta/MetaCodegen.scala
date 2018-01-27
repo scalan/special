@@ -42,11 +42,11 @@ class MetaCodegen {
 
   def entityElemMethodName(name: String) = StringUtil.lowerCaseFirst(name) + "Element"
 
-  def tpeToElement(t: STpeExpr, env: List[STpeArg])(implicit ctx: AstContext): String = t match {
+  def tpeToElemStr(t: STpeExpr, env: List[STpeArg])(implicit ctx: AstContext): String = t match {
     case STpePrimitive(name,_) => name + "Element"
-    case STpeTuple(List(a, b)) => s"pairElement(${tpeToElement(a, env)},${tpeToElement(b, env)})"
-    case STpeFunc(a, b) => s"funcElement(${tpeToElement(a, env)},${tpeToElement(b, env)})"
-    case STraitCall("$bar", List(a,b)) => s"sumElement(${tpeToElement(a, env)},${tpeToElement(b, env)})"
+    case STpeTuple(List(a, b)) => s"pairElement(${tpeToElemStr(a, env)},${tpeToElemStr(b, env)})"
+    case STpeFunc(a, b) => s"funcElement(${tpeToElemStr(a, env)},${tpeToElemStr(b, env)})"
+    case STraitCall("$bar", List(a,b)) => s"sumElement(${tpeToElemStr(a, env)},${tpeToElemStr(b, env)})"
     case STraitCall(name, Nil) if STpePrimitives.contains(name) => name + "Element"
     case STraitCall(name, Nil) if ctx.getKind(name) > 0 =>
       ctx.getKind(name) match {
@@ -65,7 +65,7 @@ class MetaCodegen {
         s"element[$t]"
     case STraitCall(name, args) =>
       val method = entityElemMethodName(name)
-      val argsStr = args.rep(tpeToElement(_, env))
+      val argsStr = args.rep(tpeToElemStr(_, env))
       method + args.nonEmpty.opt(s"($argsStr)")
     case _ => sys.error(s"Don't know how to construct Elem string for type $t")
   }
