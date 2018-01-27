@@ -162,7 +162,7 @@ trait ScalanParsers[+G <: Global] {
       val statements = packageDef.stats
       val imports = statements.collect { case i: Import => importStat(i) }
       val defs = statements.filterMap { tree => optBodyItem(tree, None) }
-      val isDefinedModule = findClassDefByName(statements, moduleName + "Module").isDefined
+      val isDefinedModule = findClassDefByName(statements, SUnitDef.moduleTraitName(moduleName)).isDefined
       val typeDefs = defs.collectTypeDefs
       val traits = defs.collectTraits
       val classes = defs.collectClasses
@@ -187,7 +187,7 @@ trait ScalanParsers[+G <: Global] {
     }
     val mainTrait = traitDef(mainTraitTree, Some(mainTraitTree))
     val moduleName = mainTrait.name
-    val isDefinedModule = findClassDefByName(statements, moduleName + "Module").isDefined
+    val isDefinedModule = findClassDefByName(statements, mainTrait.getModuleTraitName).isDefined
 
     val defs = mainTrait.body
     val typeDefs = defs.collectTypeDefs

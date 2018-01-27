@@ -600,7 +600,7 @@ object ScalanAst {
     nameSubst
   }
 
-  trait SEntityItem extends SExpr {
+  trait SEntityItem extends SExpr with NamedDef {
     def annotations: List[SAnnotation]
     def isImplicit: Boolean
     def isAbstract: Boolean
@@ -689,7 +689,7 @@ object ScalanAst {
   /** Correspond to TmplDef syntax construct of Scala.
     * (See http://scala-lang.org/files/archive/spec/2.12/05-classes-and-objects.html)
     */
-  abstract class SEntityDef extends SBodyItem {
+  abstract class SEntityDef extends SBodyItem with NamedDef {
 //    def unitName: UnitName
     def name: String
 
@@ -941,9 +941,10 @@ object ScalanAst {
   }
 
   case class SObjectDef(
-                         name: String,
-                         ancestors: List[STypeApply],
-                         body: List[SBodyItem]) extends SEntityDef {
+//      unitName: UnitName,
+      name: String,
+      ancestors: List[STypeApply],
+      body: List[SBodyItem]) extends SEntityDef {
     val args = SClassArgs(Nil)
 
     def tpeArgs = Nil
@@ -1177,22 +1178,28 @@ object ScalanAst {
 
   }
 
-  case class SUnitDef(packageName: String,
-                      imports: List[SImportStat],
-                      name: String,
-                      typeDefs: List[STpeDef],
-                      traits: List[STraitDef],
-                      classes: List[SClassDef],
-                      methods: List[SMethodDef],
-                      selfType: Option[SSelfTypeDef],
-                      ancestors: List[STypeApply],
-                      origModuleTrait: Option[STraitDef], // original module trait declared
-                      isVirtualized: Boolean,
-                      okEmitOrigModuleTrait: Boolean = true)
-                     (@transient implicit val context: AstContext) {
-    //TODO unify Module names
-    def getUnitKey: String = SName.fullNameString(packageName, name)
+  trait NamedDef {
+    def name: String
     def getModuleTraitName: String = SUnitDef.moduleTraitName(name)
+  }
+
+  case class SUnitDef(packageName: String,
+      imports: List[SImportStat],
+      name: String,
+      typeDefs: List[STpeDef],
+      traits: List[STraitDef],
+      classes: List[SClassDef],
+      methods: List[SMethodDef],
+      selfType: Option[SSelfTypeDef],
+      ancestors: List[STypeApply],
+      origModuleTrait: Option[STraitDef], // original module trait declared
+      isVirtualized: Boolean,
+      okEmitOrigModuleTrait: Boolean = true)
+      (@transient implicit val context: AstContext)
+    extends NamedDef {
+    //TODO unify Unit names
+    val unitName = SName(packageName, name)
+    def getUnitKey: String = SName.fullNameString(packageName, name)
 
     def getEntity(name: String): SEntityDef = {
       findEntity(name).getOrElse {
@@ -1251,7 +1258,7 @@ object ScalanAst {
 
   object SUnitDef {
     /** Module trait name related to main trait */
-    def moduleTraitName(mainTraitName: String) = mainTraitName + "Module"
+    def moduleTraitName(traitName: String) = traitName + "Module"
     def tpeUseExpr(arg: STpeArg): STpeExpr = STraitCall(arg.name, arg.tparams.map(tpeUseExpr(_)))
   }
 

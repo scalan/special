@@ -212,7 +212,7 @@ class SModuleBuilder(implicit val context: AstContext) {
   }
 
   /** Add implicit Elem arguments and implicit descriptor methods. */
-  def genClassesImplicits(unit: SUnitDef) = {
+  def genClassesImplicits(unit: SUnitDef): SUnitDef = {
     def unpackElem(classArg: SClassArg): Option[STpeExpr] = classArg.tpe match {
       case STraitCall("Elem", List(prim @ STpePrimitive(_,_))) => Some(prim)
       case _ => None

@@ -92,7 +92,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     implicit val ctx = GenCtx(context = scalanizer.context, isVirtualized = true, toRep = false)
     val imports =
       genImport(SImportStat("scalan._")) ::
-      cake.wrappers.map(w => genImport(SImportStat(w.fullName + "Module")))
+      cake.wrappers.map(w => genImport(SImportStat(SUnitDef.moduleTraitName(w.packageAndName))))
     val cakeTree = genTrait(cake.traitDef)
     val pkgStats = imports :+ cakeTree
     val wrappersPackage = PackageDef(RefTree(Ident(TermName("scala")), TermName("wrappers")), pkgStats)
@@ -109,7 +109,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       for (source <- target.sourceModules.values) {
         for (wFile <- source.listWrapperFiles) {
           val unit = parseUnitFile(wFile)(new ParseCtx(isVirtualized = true)(context))
-          scalanizer.inform(s"Merging into wrapper ${unit.fullName} from $wFile")
+          scalanizer.inform(s"Merging into wrapper ${unit.packageAndName} from $wFile")
           mergeWrapperUnit(unit)
         }
       }

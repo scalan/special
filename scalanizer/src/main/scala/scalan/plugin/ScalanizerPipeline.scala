@@ -465,7 +465,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
   /** Calls Scalan Meta to generate boilerplate code for the unit. */
   def genUnitBoilerplateText(mc: ModuleConf, unit: SUnitDef, isVirtualized: Boolean): String = {
     val gen = new scalan.meta.ModuleFileGenerator(
-      ScalanCodegen, unit, mc.mkUnit(unit.unitName, unit.fileName, isVirtualized = isVirtualized))
+      ScalanCodegen, unit, mc.mkUnit(unit.unitFileName, unit.fileName, isVirtualized = isVirtualized))
     val implCode = gen.emitImplFile
     implCode
   }
@@ -479,7 +479,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
   }
 
   def updateWrappersCake(cake: WrapperCake, wUnit: SUnitDef): WrapperCake = {
-    val newAncestors = cake.traitDef.ancestors :+ STraitCall(wUnit.name + "Module", Nil).toTypeApply
+    val newAncestors = cake.traitDef.ancestors :+ STraitCall(wUnit.getModuleTraitName, Nil).toTypeApply
     cake.copy(
       traitDef = cake.traitDef.copy(ancestors = newAncestors),
       wrappers = cake.wrappers :+ wUnit

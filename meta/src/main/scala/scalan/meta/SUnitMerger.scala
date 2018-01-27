@@ -16,7 +16,7 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
   def mergeTypes(to: STpeDef, from: STpeDef): STpeDef = {
     checkEquals(to.rhs, from.rhs)(
         s"""
-          |Cannot merge type definition $from into types of unit ${uTo.fullName }
+          |Cannot merge type definition $from into types of unit ${uTo.packageAndName }
           |because they have different definitions:
           |existing $to, to be merged: $from""".stripMargin)
     to

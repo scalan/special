@@ -31,7 +31,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       for (depModule <- module.dependsOnModules()) {
         for (unitConf <- depModule.units.values) {
           val unit = parseUnitFile(unitConf.getResourceFile)(new ParseCtx(isVirtualized = true)(context))
-          scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.fullName} parsed from ${unitConf.getResourceFile}")
+          scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
           snState.addUnit(unit)
         }
       }
@@ -40,7 +40,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       // we need to ensure visibility of all the names by scalanizer as well
       for (unitConf <- module.units.values) {
         val unit = parseUnitFile(unitConf.getFile)(new ParseCtx(isVirtualized = false)(context))
-        scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.fullName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
+        scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
         snState.addUnit(unit)
       }
     },
@@ -104,7 +104,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         val unitDef = unitDefFromTree(unitFileName, unit.body)
 
         scalanizer.inform(
-            s"Step(virtfrontend): Updating source unit ${existingUnit.fullName} " +
+            s"Step(virtfrontend): Updating source unit ${existingUnit.packageAndName} " +
             s"with version from CompilationUnit(${unit.source.file})")
         snState.addUnit(unitDef)
       }
