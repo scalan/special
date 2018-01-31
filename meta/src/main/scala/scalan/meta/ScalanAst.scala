@@ -16,6 +16,7 @@ import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstExtensions._
 import scala.tools.nsc.Global
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
+import scalan.meta.Symbols.SSymbol
 
 object ScalanAst {
 
@@ -684,13 +685,12 @@ object ScalanAst {
   }
 
   type Module = SUnitDef
-  type UnitName = SName
 
   /** Correspond to TmplDef syntax construct of Scala.
     * (See http://scala-lang.org/files/archive/spec/2.12/05-classes-and-objects.html)
     */
   abstract class SEntityDef extends SBodyItem with NamedDef {
-    def unitName: UnitName
+    def unitName: SSymbol
     def name: String
 
     def tpeArgs: List[STpeArg]
@@ -886,7 +886,7 @@ object ScalanAst {
   }
 
   case class STraitDef(
-      unitName: UnitName,
+      unitName: SSymbol,
       name: String,
       tpeArgs: List[STpeArg],
       ancestors: List[STypeApply],
@@ -918,7 +918,7 @@ object ScalanAst {
   }
 
   case class SClassDef(
-      unitName: UnitName,
+      unitName: SSymbol,
       name: String,
       tpeArgs: List[STpeArg],
       args: SClassArgs,
@@ -941,7 +941,7 @@ object ScalanAst {
   }
 
   case class SObjectDef(
-      unitName: UnitName,
+      unitName: SSymbol,
       name: String,
       ancestors: List[STypeApply],
       body: List[SBodyItem]) extends SEntityDef {
@@ -1005,7 +1005,8 @@ object ScalanAst {
       Set("ClassTag").contains(name)
   }
 
-  class AstContext(val configs: List[UnitConfig], val parsers: ScalanParsers[Global], okLoadModules: Boolean = false) {
+  class AstContext(val configs: List[UnitConfig], val parsers: ScalanParsers[Global], okLoadModules: Boolean = false)
+  extends Symbols {
 
     /** Mapping of external type names to their wrappers. */
     private val wrappers = MMap[String, WrapperDescr]()
@@ -1198,8 +1199,9 @@ object ScalanAst {
       (@transient implicit val context: AstContext)
     extends NamedDef {
     //TODO unify Unit names
-    val unitName = SName(packageName, name)
-    def getUnitKey: String = SName.fullNameString(packageName, name)
+    val unitSym = context.newUnitSymbol(packageName, name)
+    def unitName = unitSym.unitName
+    def getUnitKey: String = unitName.mkFullName
 
     def getEntity(name: String): SEntityDef = {
       findEntity(name).getOrElse {

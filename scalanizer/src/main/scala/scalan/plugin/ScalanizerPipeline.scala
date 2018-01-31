@@ -266,16 +266,16 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val entityAncestors = originalEntityAncestors
     val externalAnnot = ExternalEntityAnnotation(externalTypeName)
     val entityAnnotations = externalAnnot :: wrapperConf.annotations.map { a => SEntityAnnotation(a, Nil) }
-    val un = SName(wrapPackage(packageName), wmod(externalTypeName))
+    val us = context.newUnitSymbol(wrapPackage(packageName), wmod(externalTypeName))
     val entity = STraitDef(
-      unitName = un,
+      unitName = us,
       name = wClassName,
       tpeArgs = tpeArgs,
       ancestors = entityAncestors,
       body = Nil,
       selfType = Some(SSelfTypeDef("self", Nil)),
       companion = Some(STraitDef(
-        unitName = un,
+        unitName = us,
         name = companionName,
         tpeArgs = Nil,
         ancestors = Nil, //mkCompanionAncestors(wClassName, kind = typeParams.length),
@@ -289,9 +289,9 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       SImportStat("impl._")
     )
     val module = SUnitDef(
-      packageName = un.packageName,
+      packageName = us.unitName.packageName,
       imports = imports,
-      name = un.name,
+      name = us.unitName.name,
       typeDefs = Nil,
       traits = List(entity),
       classes = Nil, methods = Nil,
@@ -474,7 +474,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
   }
 
   def initWrapperCake(): WrapperCake = {
-    val un = SName("scala.wrappers", "WrappersModule")
+    val un = context.newUnitSymbol("scala.wrappers", "WrappersModule")
     val cakeDef = STraitDef(un, "WrappersModule",
       tpeArgs = Nil,
       ancestors = List(),

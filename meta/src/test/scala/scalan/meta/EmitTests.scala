@@ -5,7 +5,7 @@ import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, STpeArg, STpePath, SRangePath,
 class EmitTests extends BaseMetaTests with Examples {
   def testPath(unit: SUnitDef, tpeString: String, name: String, expected: STpeExpr => Option[STpePath]): Unit = {
     implicit val ctx = new ParseCtx(unit.isVirtualized)
-    val tpe = parseType(unit.unitName, tpeString)
+    val tpe = parseType(unit.unitSym, tpeString)
 
     it(s"find('${tpeString}', '${name}')") {
       assertResult(STpePath.find(tpe, name))(expected(tpe))
@@ -20,7 +20,7 @@ class EmitTests extends BaseMetaTests with Examples {
 
   describe("find TpePath") {
     val module = parseModule(reactiveModule)
-    val un = module.unitName
+    val un = module.unitSym
     implicit val ctx = new ParseCtx(module.isVirtualized)
     testPath(module, "Int", "A", _ => None)
     testPath(module, "A", "A", _ => Some(SNilPath))
@@ -63,7 +63,7 @@ class EmitTests extends BaseMetaTests with Examples {
 
   def makePath(module: SUnitDef, tpeString: String, name: String): STpePath = {
     implicit val ctx = new ParseCtx(module.isVirtualized)
-    val tpe = parseType(module.unitName, tpeString)
+    val tpe = parseType(module.unitSym, tpeString)
     STpePath.find(tpe, name).get
   }
   def makePath(module: SUnitDef, tpe: STpeExpr, name: String): STpePath = {
@@ -93,7 +93,7 @@ class EmitTests extends BaseMetaTests with Examples {
   describe("emitImplicitElemDeclByTpePath") {
     val module = parseModule(reactiveModule)
     context.addModule(module)
-    val un = module.unitName
+    val us = module.unitSym
     implicit val ctx = new ParseCtx(module.isVirtualized)
     testEmit(module, "A", "A", "")
     testEmit(module, "A => Int", "A", ".eDom")
@@ -103,7 +103,7 @@ class EmitTests extends BaseMetaTests with Examples {
     testEmit(module, "(Int, A) => Int", "A", ".eDom.eSnd")
     testEmit(module, "Int => (Int, A)", "A", ".eRange.eSnd")
 
-    val tStruct = STpeStruct(List(("a", parseType(un, "Int")), ("b", parseType(un, "(A,Int)"))))
+    val tStruct = STpeStruct(List(("a", parseType(us, "Int")), ("b", parseType(us, "(A,Int)"))))
     testEmit(module, tStruct, "A", """.asInstanceOf[StructElem[_]]("b").asInstanceOf[PairElem[_,_]].eFst""")
 
     testEmit(module, "Observable[A]", "A", """.typeArgs("A")._1.asElem[A]""")

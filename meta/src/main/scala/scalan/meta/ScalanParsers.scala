@@ -15,6 +15,7 @@ import scalan.meta.ScalanAstUtils._
 import scalan.meta.ScalanAstExtensions._
 import java.util.regex.Pattern
 
+import scalan.meta.Symbols.SSymbol
 import scalan.util.StringUtil._
 import scalan.util.CollectionUtil._
 import scalan.util.FileUtil
@@ -107,20 +108,20 @@ trait ScalanParsers[+G <: Global] {
     }
   }
 
-  def parseDeclaredImplementations(un: UnitName, entities: List[SEntityDef], moduleDefOpt: Option[ClassDef])(implicit ctx: ParseCtx) = {
-    val decls = for {
-      dslModule <- moduleDefOpt.toList
-      t <- entities
-      stdOpsTrait <- findClassDefByName(dslModule.impl.body, t.name + "Decls")
-    } yield {
-      (t.name, stdOpsTrait)
-    }
-    val m = decls.map { case (name, decl) =>
-      val methods = decl.impl.body.collect { case item: DefDef => item }
-      (name, SDeclaredImplementation(methods.map(methodDef(un, _))))
-    }.toMap
-    SDeclaredImplementations(m)
-  }
+//  def parseDeclaredImplementations(us: SSymbol, entities: List[SEntityDef], moduleDefOpt: Option[ClassDef])(implicit ctx: ParseCtx) = {
+//    val decls = for {
+//      dslModule <- moduleDefOpt.toList
+//      t <- entities
+//      stdOpsTrait <- findClassDefByName(dslModule.impl.body, t.name + "Decls")
+//    } yield {
+//      (t.name, stdOpsTrait)
+//    }
+//    val m = decls.map { case (name, decl) =>
+//      val methods = decl.impl.body.collect { case item: DefDef => item }
+//      (name, SDeclaredImplementation(methods.map(methodDef(us, _))))
+//    }.toMap
+//    SDeclaredImplementations(m)
+//  }
 
   def findClassDefByName(trees: List[Tree], name: String): Option[ClassDef] =
     trees.collectFirst {
@@ -159,10 +160,10 @@ trait ScalanParsers[+G <: Global] {
     if (ctx.isVirtualized) moduleDefFromVirtPackageDef(packageDef)
     else {
       val packageName = packageDef.pid.toString
-      val unitName = SName(packageName, moduleName)
+      val unitSym = ctx.astContext.newUnitSymbol(packageName, moduleName)
       val statements = packageDef.stats
       val imports = statements.collect { case i: Import => importStat(i) }
-      val defs = statements.filterMap { tree => optBodyItem(unitName, tree, None) }
+      val defs = statements.filterMap { tree => optBodyItem(unitSym, tree, None) }
       val isDefinedModule = findClassDefByName(statements, SUnitDef.moduleTraitName(moduleName)).isDefined
       val typeDefs = defs.collectTypeDefs
       val traits = defs.collectTraits
@@ -186,8 +187,8 @@ trait ScalanParsers[+G <: Global] {
       case List(only) => only
       case seq => !!!(s"There must be exactly one trait with entity definition in a file, found ${seq.map(_.name.toString)}")
     }
-    val unitName = SName(packageName, mainTraitTree.name.toString)
-    val mainTrait = traitDef(unitName, mainTraitTree, Some(mainTraitTree))
+    val unitSym = ctx.astContext.newUnitSymbol(packageName, mainTraitTree.name.toString)
+    val mainTrait = traitDef(unitSym, mainTraitTree, Some(mainTraitTree))
     val moduleName = mainTrait.name
     val isDefinedModule = findClassDefByName(statements, mainTrait.getModuleTraitName).isDefined
 
@@ -210,7 +211,7 @@ trait ScalanParsers[+G <: Global] {
 
   def isEvidenceParam(vd: ValDef) = vd.name.toString.startsWith("evidence$")
 
-  def tpeArgs(un: UnitName, typeParams: List[TypeDef], possibleImplicits: List[ValDef])(implicit ctx: ParseCtx): List[STpeArg] = {
+  def tpeArgs(owner: SSymbol, typeParams: List[TypeDef], possibleImplicits: List[ValDef])(implicit ctx: ParseCtx): List[STpeArg] = {
     val evidenceTypes = possibleImplicits.filter(isEvidenceParam(_)).map(_.tpt)
 
     def tpeArg(tdTree: TypeDef): STpeArg = {
@@ -219,7 +220,7 @@ trait ScalanParsers[+G <: Global] {
           if (high.toString == "_root_.scala.Any")
             None
           else
-            optTpeExpr(un, high)
+            optTpeExpr(owner, high)
         case tt: TypeTree => parseType(tt.tpe) match {
           case STpeTypeBounds(_, STpePrimitive("Any", _)) => None
           case STpeTypeBounds(_, hi) => Some(hi)
@@ -234,7 +235,7 @@ trait ScalanParsers[+G <: Global] {
       }.flatten
       val tparams = tdTree.tparams.map(tpeArg)
       val annotations = tdTree.mods.annotations.map {
-        case ExtractAnnotation(name, args) => STypeArgAnnotation(name, args.map(parseExpr(un, _)))
+        case ExtractAnnotation(name, args) => STypeArgAnnotation(name, args.map(parseExpr(owner, _)))
       }
       STpeArg(tdTree.name, bound, contextBounds, tparams, tdTree.mods.flags, annotations)
     }
@@ -243,37 +244,38 @@ trait ScalanParsers[+G <: Global] {
   }
 
   // exclude default parent
-  def ancestors(un: UnitName, trees: List[Tree])(implicit ctx: ParseCtx) = trees.map(traitCall(un, _)).filter(tr => !Set("AnyRef", "scala.AnyRef").contains(tr.name))
+  def ancestors(owner: SSymbol, trees: List[Tree])(implicit ctx: ParseCtx) =
+    trees.map(traitCall(owner, _)).filter(tr => !Set("AnyRef", "scala.AnyRef").contains(tr.name))
 
   def findCompanion
-      (unitName: UnitName, name: String, parentScope: Option[ImplDef])
+      (owner: SSymbol, name: String, parentScope: Option[ImplDef])
       (implicit ctx: ParseCtx) = parentScope match {
     case Some(scope) => scope.impl.body.collect {
       case c: ClassDef if ctx.isVirtualized && c.name.toString == name + "Companion" =>
         if (c.mods.isTrait)
-          traitDef(unitName, c, parentScope)
+          traitDef(owner, c, parentScope)
         else
-          classDef(unitName, c, parentScope)
+          classDef(owner, c, parentScope)
       case m: ModuleDef
         if !ctx.isVirtualized && !m.mods.isSynthetic && m.name.toString == name =>
-        objectDef(unitName, m)
+        objectDef(owner, m)
     }.headOption
     case None => None
   }
 
-  def traitDef(un: UnitName, td: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): STraitDef = {
-    val tpeArgs = this.tpeArgs(un, td.tparams, Nil)
-    val ancestors = this.ancestors(un, td.impl.parents).map(_.toTypeApply)
-    val body = td.impl.body.flatMap(optBodyItem(un, _, Some(td)))
-    val selfType = this.selfType(un, td.impl.self)
+  def traitDef(owner: SSymbol, td: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): STraitDef = {
+    val tpeArgs = this.tpeArgs(owner, td.tparams, Nil)
+    val ancestors = this.ancestors(owner, td.impl.parents).map(_.toTypeApply)
+    val body = td.impl.body.flatMap(optBodyItem(owner, _, Some(td)))
+    val selfType = this.selfType(owner, td.impl.self)
     val name = td.name.toString
-    val companion = findCompanion(un, name, parentScope)
-    val annotations = parseAnnotations(td)((n,as) => SEntityAnnotation(n.lastComponent('.'), as.map(parseExpr(un, _))))
-    STraitDef(un, name, tpeArgs, ancestors, body, selfType, companion, annotations)
+    val companion = findCompanion(owner, name, parentScope)
+    val annotations = parseAnnotations(td)((n,as) => SEntityAnnotation(n.lastComponent('.'), as.map(parseExpr(owner, _))))
+    STraitDef(owner, name, tpeArgs, ancestors, body, selfType, companion, annotations)
   }
 
-  def classDef(un: UnitName, cd: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): SClassDef = {
-    val ancestors = this.ancestors(un, cd.impl.parents).map(_.toTypeApply)
+  def classDef(owner: SSymbol, cd: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): SClassDef = {
+    val ancestors = this.ancestors(owner, cd.impl.parents).map(_.toTypeApply)
     val constructor = (cd.impl.body.collect {
       case dd: DefDef if dd.name == nme.CONSTRUCTOR => dd
     }) match {
@@ -283,48 +285,48 @@ trait ScalanParsers[+G <: Global] {
     // TODO simplify
     val (args, implicitArgs) = constructor.vparamss match {
       case Seq() =>
-        (classArgs(un, List.empty), classArgs(un, List.empty))
+        (classArgs(owner, List.empty), classArgs(owner, List.empty))
       case Seq(nonImplicitConArgs) =>
-        (classArgs(un, nonImplicitConArgs), classArgs(un, List.empty))
+        (classArgs(owner, nonImplicitConArgs), classArgs(owner, List.empty))
       case Seq(nonImplicitConArgs, implicitConArgs) =>
-        (classArgs(un, nonImplicitConArgs), classArgs(un, implicitConArgs))
+        (classArgs(owner, nonImplicitConArgs), classArgs(owner, implicitConArgs))
       case seq => !!!(s"Constructor of class ${cd.name} has more than 2 parameter lists, not supported")
     }
-    val tpeArgs = this.tpeArgs(un, cd.tparams, constructor.vparamss.lastOption.getOrElse(Nil))
-    val body = cd.impl.body.flatMap(optBodyItem(un, _, Some(cd)))
-    val selfType = this.selfType(un, cd.impl.self)
+    val tpeArgs = this.tpeArgs(owner, cd.tparams, constructor.vparamss.lastOption.getOrElse(Nil))
+    val body = cd.impl.body.flatMap(optBodyItem(owner, _, Some(cd)))
+    val selfType = this.selfType(owner, cd.impl.self)
     val isAbstract = cd.mods.hasAbstractFlag
     val name = cd.name.toString
-    val companion = findCompanion(un, name, parentScope)
-    val annotations = parseAnnotations(cd)((n,as) => SEntityAnnotation(n,as.map(parseExpr(un, _))))
-    SClassDef(un, cd.name, tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations)
+    val companion = findCompanion(owner, name, parentScope)
+    val annotations = parseAnnotations(cd)((n,as) => SEntityAnnotation(n,as.map(parseExpr(owner, _))))
+    SClassDef(owner, cd.name, tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations)
   }
 
-  def objectDef(un: UnitName, od: ModuleDef)(implicit ctx: ParseCtx): SObjectDef = {
-    val ancestors = this.ancestors(un, od.impl.parents).map(_.toTypeApply)
-    val body = od.impl.body.flatMap(optBodyItem(un, _, Some(od)))
-    SObjectDef(un, od.name, ancestors, body)
+  def objectDef(owner: SSymbol, od: ModuleDef)(implicit ctx: ParseCtx): SObjectDef = {
+    val ancestors = this.ancestors(owner, od.impl.parents).map(_.toTypeApply)
+    val body = od.impl.body.flatMap(optBodyItem(owner, _, Some(od)))
+    SObjectDef(owner, od.name, ancestors, body)
   }
 
-  def classArg(un: UnitName, vd: ValDef)(implicit ctx: ParseCtx): SClassArg = {
-    val tpe = tpeExpr(un, vd.tpt)
-    val default = optExpr(un, vd.rhs)
+  def classArg(owner: SSymbol, vd: ValDef)(implicit ctx: ParseCtx): SClassArg = {
+    val tpe = tpeExpr(owner, vd.tpt)
+    val default = optExpr(owner, vd.rhs)
     val isOverride = vd.mods.isAnyOverride
     val isVal = vd.mods.isParamAccessor
-    val annotations = parseAnnotations(vd)((n,as) => new SArgAnnotation(n, as.map(parseExpr(un, _))))
+    val annotations = parseAnnotations(vd)((n,as) => new SArgAnnotation(n, as.map(parseExpr(owner, _))))
     val isTypeDesc = TypeDescTpe.unapply(tpe).isDefined
     SClassArg(vd.mods.isImplicit, isOverride, isVal, vd.name, tpe, default, annotations, isTypeDesc)
   }
 
-  def classArgs(un: UnitName, vds: List[ValDef])(implicit ctx: ParseCtx): SClassArgs = SClassArgs(vds.filter(!isEvidenceParam(_)).map(classArg(un, _)))
+  def classArgs(owner: SSymbol, vds: List[ValDef])(implicit ctx: ParseCtx): SClassArgs = SClassArgs(vds.filter(!isEvidenceParam(_)).map(classArg(owner, _)))
 
-  def traitCall(un: UnitName, tree: Tree)(implicit ctx: ParseCtx): STraitCall = tree match {
+  def traitCall(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): STraitCall = tree match {
     case ident: Ident =>
       STraitCall(ident.name, List())
     case select: Select =>
       STraitCall(select.name, List())
     case AppliedTypeTree(tpt, args) =>
-      STraitCall(tpt.toString, args.map(tpeExpr(un, _)))
+      STraitCall(tpt.toString, args.map(tpeExpr(owner, _)))
     case tt: TypeTree =>
       val parsedType = parseType(tt.tpe)
       parsedType match {
@@ -344,39 +346,39 @@ trait ScalanParsers[+G <: Global] {
     else true
   }
 
-  def optBodyItem(un: UnitName, tree: Tree, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): Option[SBodyItem] = tree match {
+  def optBodyItem(owner: SSymbol, tree: Tree, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): Option[SBodyItem] = tree match {
     case i: Import =>
       Some(importStat(i))
     case md: DefDef =>
       if (isExplicitMethod(md))
         md.tpt match {
           case AppliedTypeTree(tpt, _) if tpt.toString == "Elem" =>
-            Some(methodDef(un, md, true))
+            Some(methodDef(owner, md, true))
           case _ =>
-            Some(methodDef(un, md))
+            Some(methodDef(owner, md))
         }
       else
         None
     case td: TypeDef =>
-      val tpeArgs = this.tpeArgs(un, td.tparams, Nil)
-      val rhs = tpeExpr(un, td.rhs)
+      val tpeArgs = this.tpeArgs(owner, td.tparams, Nil)
+      val rhs = tpeExpr(owner, td.rhs)
       Some(STpeDef(td.name, tpeArgs, rhs))
     case td: ClassDef if td.mods.isTrait =>
-      Some(traitDef(un, td, parentScope))
+      Some(traitDef(owner, td, parentScope))
     case cd: ClassDef if !cd.mods.isTrait =>
       // don't include implicit conversion classes
       if (!cd.mods.isImplicit)
-        Some(classDef(un, cd, parentScope))
+        Some(classDef(owner, cd, parentScope))
       else
         None
     case od: ModuleDef =>
-      Some(objectDef(un, od))
+      Some(objectDef(owner, od))
     case vd: ValDef =>
       if (!vd.mods.isParamAccessor) {
-        val tpeRes = optTpeExpr(un, vd.tpt)
+        val tpeRes = optTpeExpr(owner, vd.tpt)
         val isImplicit = vd.mods.isImplicit
         val isLazy = vd.mods.isLazy
-        Some(SValDef(vd.name, tpeRes, isLazy, isImplicit, parseExpr(un, vd.rhs)))
+        Some(SValDef(vd.name, tpeRes, isLazy, isImplicit, parseExpr(owner, vd.rhs)))
       } else
         None
     case EmptyTree =>
@@ -419,11 +421,11 @@ trait ScalanParsers[+G <: Global] {
   val OverloadIdAnnotation = new HasAnnotation("OverloadId")
   val ReifiedAnnotation = new HasAnnotation(ReifiedTypeArgAnnotation)
 
-  def methodDef(un: UnitName, md: DefDef, isElem: Boolean = false)(implicit ctx: ParseCtx) = {
-    val tpeArgs = this.tpeArgs(un, md.tparams, md.vparamss.lastOption.getOrElse(Nil))
-    val args0 = md.vparamss.map(methodArgs(un, _))
+  def methodDef(owner: SSymbol, md: DefDef, isElem: Boolean = false)(implicit ctx: ParseCtx) = {
+    val tpeArgs = this.tpeArgs(owner, md.tparams, md.vparamss.lastOption.getOrElse(Nil))
+    val args0 = md.vparamss.map(methodArgs(owner, _))
     val args = if (!args0.isEmpty && args0.last.args.isEmpty) args0.init else args0
-    val tpeRes = optTpeExpr(un, md.tpt)
+    val tpeRes = optTpeExpr(owner, md.tpt)
     val isImplicit = md.mods.isImplicit
     val isOverride = md.mods.isOverride
     val optOverloadId = md match {
@@ -432,7 +434,7 @@ trait ScalanParsers[+G <: Global] {
       case _ => None
     }
     val annotations = md.mods.annotations.map {
-      case ExtractAnnotation(name, args) => SMethodAnnotation(name, args.map(parseExpr(un, _)))
+      case ExtractAnnotation(name, args) => SMethodAnnotation(name, args.map(parseExpr(owner, _)))
       case a => !!!(s"Cannot parse annotation $a of the method $md")
     }
     //    val optExternal = md match {
@@ -440,7 +442,7 @@ trait ScalanParsers[+G <: Global] {
     //      case HasConstructorAnnotation(_) => Some(ExternalConstructor)
     //      case _ => None
     //    }
-    val optBody: Option[SExpr] = optExpr(un, md.rhs)
+    val optBody: Option[SExpr] = optExpr(owner, md.rhs)
     val isTypeDesc = md.tpt match {
       case AppliedTypeTree(tpt, _) if Set("Elem", "Cont").contains(tpt.toString) =>
         true
@@ -452,17 +454,17 @@ trait ScalanParsers[+G <: Global] {
       optOverloadId, annotations, optBody, isTypeDesc)
   }
 
-  def methodArgs(un: UnitName, vds: List[ValDef])(implicit ctx: ParseCtx): SMethodArgs = vds match {
+  def methodArgs(owner: SSymbol, vds: List[ValDef])(implicit ctx: ParseCtx): SMethodArgs = vds match {
     case Nil => SMethodArgs(List.empty)
     case vd :: _ =>
-      SMethodArgs(vds.filter(!isEvidenceParam(_)).map(methodArg(un, _)))
+      SMethodArgs(vds.filter(!isEvidenceParam(_)).map(methodArg(owner, _)))
   }
 
-  def optTpeExpr(un: UnitName, tree: Tree)(implicit ctx: ParseCtx): Option[STpeExpr] = {
+  def optTpeExpr(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): Option[STpeExpr] = {
     tree match {
       case _ if tree.isEmpty => None
       case _: ExistentialTypeTree => None
-      case tree => Some(tpeExpr(un, tree))
+      case tree => Some(tpeExpr(owner, tree))
     }
   }
 
@@ -483,7 +485,7 @@ trait ScalanParsers[+G <: Global] {
       STraitCall(shortName, argTpeExprs)
   }
 
-  def tpeExpr(un: UnitName, tree: Tree)(implicit ctx: ParseCtx): STpeExpr = tree match {
+  def tpeExpr(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): STpeExpr = tree match {
     case EmptyTree => STpeEmpty()
     case ident: Ident =>
       val name = ident.name.toString
@@ -491,24 +493,24 @@ trait ScalanParsers[+G <: Global] {
     case select: Select =>
       STraitCall(select.name, List())
     case AppliedTypeTree(tpt, args) =>
-      val argTpeExprs = args.map(tpeExpr(un, _))
+      val argTpeExprs = args.map(tpeExpr(owner, _))
       val genericTypeString = tpt.toString
       formAppliedTypeTree(genericTypeString, genericTypeString, argTpeExprs)
-    case tq"$tpt @$annot" => STpeAnnotated(tpeExpr(un, tpt), annot.toString)
-    case TypeBoundsTree(lo, hi) => STpeTypeBounds(tpeExpr(un, lo), tpeExpr(un, hi))
-    case SingletonTypeTree(ref) => STpeSingleton(parseExpr(un, ref))
-    case SelectFromTypeTree(qualifier, TypeName(name)) => STpeSelectFromTT(tpeExpr(un, qualifier), name)
-    case tq"..$parents { ..$defns }" => STpeCompound(parents.map(tpeExpr(un, _)), defns.flatMap(defn => optBodyItem(un, defn, None)))
-    case tq"$tpt forSome { ..$defns }" => STpeExistential(tpeExpr(un, tpt), defns.flatMap(defn => optBodyItem(un, defn, None)))
-    case Bind(TypeName(name), body) => STpeBind(name, tpeExpr(un, body))
+    case tq"$tpt @$annot" => STpeAnnotated(tpeExpr(owner, tpt), annot.toString)
+    case TypeBoundsTree(lo, hi) => STpeTypeBounds(tpeExpr(owner, lo), tpeExpr(owner, hi))
+    case SingletonTypeTree(ref) => STpeSingleton(parseExpr(owner, ref))
+    case SelectFromTypeTree(qualifier, TypeName(name)) => STpeSelectFromTT(tpeExpr(owner, qualifier), name)
+    case tq"..$parents { ..$defns }" => STpeCompound(parents.map(tpeExpr(owner, _)), defns.flatMap(defn => optBodyItem(owner, defn, None)))
+    case tq"$tpt forSome { ..$defns }" => STpeExistential(tpeExpr(owner, tpt), defns.flatMap(defn => optBodyItem(owner, defn, None)))
+    case Bind(TypeName(name), body) => STpeBind(name, tpeExpr(owner, body))
     case tt: TypeTree => parseType(tt.tpe)
     case tree => ???(tree)
   }
 
-  def methodArg(un: UnitName, vd: ValDef)(implicit ctx: ParseCtx): SMethodArg = {
-    val tpe = tpeExpr(un, vd.tpt)
-    val default = optExpr(un, vd.rhs)
-    val annotations = parseAnnotations(vd)((n,as) => new SArgAnnotation(n, as.map(parseExpr(un, _))))
+  def methodArg(owner: SSymbol, vd: ValDef)(implicit ctx: ParseCtx): SMethodArg = {
+    val tpe = tpeExpr(owner, vd.tpt)
+    val default = optExpr(owner, vd.rhs)
+    val annotations = parseAnnotations(vd)((n,as) => new SArgAnnotation(n, as.map(parseExpr(owner, _))))
     val isOverride = vd.mods.isAnyOverride
     val isTypeDesc = tpe match {
       case STraitCall(tname, _) if tname == "Elem" || tname == "Cont" => true
@@ -517,14 +519,14 @@ trait ScalanParsers[+G <: Global] {
     SMethodArg(vd.mods.isImplicit, isOverride, vd.name, tpe, default, annotations, isTypeDesc)
   }
 
-  def selfType(un: UnitName, vd: ValDef)(implicit ctx: ParseCtx): Option[SSelfTypeDef] = {
+  def selfType(owner: SSymbol, vd: ValDef)(implicit ctx: ParseCtx): Option[SSelfTypeDef] = {
     val components = vd.tpt match {
       case t if t.isEmpty =>
         Nil
       case CompoundTypeTree(Template(ancestors, _, _)) =>
-        ancestors.map(tpeExpr(un, _))
+        ancestors.map(tpeExpr(owner, _))
       case t =>
-        List(tpeExpr(un, t))
+        List(tpeExpr(owner, t))
     }
 
     if (components.isEmpty)
@@ -533,11 +535,11 @@ trait ScalanParsers[+G <: Global] {
       Some(SSelfTypeDef(vd.name.toString, components))
   }
 
-  def optExpr(un: UnitName, tree: Tree)(implicit ctx: ParseCtx): Option[SExpr] = {
+  def optExpr(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): Option[SExpr] = {
     if (tree.isEmpty)
       None
     else
-      Some(parseExpr(un, tree))
+      Some(parseExpr(owner, tree))
   }
 
   def tree2Type(tree: Tree): Option[STpeExpr] = tree.tpe match {
@@ -616,57 +618,57 @@ trait ScalanParsers[+G <: Global] {
       case _ => None
     }
   }
-  def parseExpr(un: UnitName, tree: Tree)(implicit ctx: ParseCtx): SExpr = tree match {
+  def parseExpr(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): SExpr = tree match {
     case q"${f @ q"scala.Array.fill"}[$tpe]($arg1)($arg2)($_)" =>
-      applyArrayFill(parseExpr(un, f), Some(parseType(tpe.tpe)), parseExpr(un, arg1), parseExpr(un, arg2))
+      applyArrayFill(parseExpr(owner, f), Some(parseType(tpe.tpe)), parseExpr(owner, arg1), parseExpr(owner, arg2))
     case ApplyArrayWrapperMethod(obj, m, tyArgs, args) =>
       m.decoded match {
         case "map" =>
-          applyArrayMap(parseExpr(un, obj), Nil,  parseExpr(un, args(0)))
+          applyArrayMap(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
         case "zip" =>
-          applyArrayZip(parseExpr(un, obj), Nil, parseExpr(un, args(0)))
+          applyArrayZip(parseExpr(owner, obj), Nil, parseExpr(owner, args(0)))
       }
-    case IsArrayImplicitWrapper(arg) => parseExpr(un, arg)
+    case IsArrayImplicitWrapper(arg) => parseExpr(owner, arg)
     case EmptyTree => SEmpty(tree2Type(tree))
     case Literal(Constant(c)) => SConst(c, tree2Type(tree))
     case Ident(TermName(name)) => SIdent(name, tree2Type(tree))
-    case q"$left = $right" => SAssign(parseExpr(un, left), parseExpr(un, right), tree2Type(tree))
+    case q"$left = $right" => SAssign(parseExpr(owner, left), parseExpr(owner, right), tree2Type(tree))
     case q"$name.super[$qual].$field" => SSuper(name, qual, field, tree2Type(tree))
-    case q"$expr.$tname" => SSelect(parseExpr(un, expr), tname, tree2Type(tree))
+    case q"$expr.$tname" => SSelect(parseExpr(owner, expr), tname, tree2Type(tree))
     case Apply(Select(New(TupleTypeTree(tn)), termNames.CONSTRUCTOR), args) =>
-      SConstr(tn.toString(), args.map(parseExpr(un, _)), tree2Type(tree))
+      SConstr(tn.toString(), args.map(parseExpr(owner, _)), tree2Type(tree))
     case Apply(Select(New(name), termNames.CONSTRUCTOR), args) =>
-      SConstr(name.toString(), args.map(parseExpr(un, _)), tree2Type(tree))
+      SConstr(name.toString(), args.map(parseExpr(owner, _)), tree2Type(tree))
     case Apply(Select(Ident(TermName("scala")), TermName(tuple)), args) if tuple.startsWith("Tuple") =>
-      STuple(args.map(parseExpr(un, _)), tree2Type(tree))
-    case Block(init, last) => SBlock(init.map(parseExpr(un, _)), parseExpr(un, last), tree2Type(tree))
+      STuple(args.map(parseExpr(owner, _)), tree2Type(tree))
+    case Block(init, last) => SBlock(init.map(parseExpr(owner, _)), parseExpr(owner, last), tree2Type(tree))
     case q"$mods val $tname: $tpt = $expr" =>
-      SValDef(tname, optTpeExpr(un, tpt), mods.isLazy, mods.isImplicit, parseExpr(un, expr))
+      SValDef(tname, optTpeExpr(owner, tpt), mods.isLazy, mods.isImplicit, parseExpr(owner, expr))
     case q"if ($cond) $th else $el" =>
-      SIf(parseExpr(un, cond), parseExpr(un, th), parseExpr(un, el), tree2Type(tree))
-    case q"$expr: $tpt" => SAscr(parseExpr(un, expr), tpeExpr(un, tpt), tree2Type(tree))
+      SIf(parseExpr(owner, cond), parseExpr(owner, th), parseExpr(owner, el), tree2Type(tree))
+    case q"$expr: $tpt" => SAscr(parseExpr(owner, expr), tpeExpr(owner, tpt), tree2Type(tree))
     case q"(..$params) => $expr" =>
-      SFunc(params.map(param => parseExpr(un, param).asInstanceOf[SValDef]), parseExpr(un, expr), tree2Type(tree))
+      SFunc(params.map(param => parseExpr(owner, param).asInstanceOf[SValDef]), parseExpr(owner, expr), tree2Type(tree))
     case q"$tpname.this" => SThis(tpname, tree2Type(tree))
-    case q"$expr: @$annot" => SAnnotated(parseExpr(un, expr), annot.toString, tree2Type(tree))
+    case q"$expr: @$annot" => SAnnotated(parseExpr(owner, expr), annot.toString, tree2Type(tree))
     case TypeApply(fun: Tree, args: List[Tree]) =>
-      SExprApply(parseExpr(un, fun), args.map(tpeExpr(un, _)), tree2Type(tree))
-    case q"$expr match { case ..$cases } " => parseMatch(un, expr, cases)
-    case q"{ case ..$cases }" => parseMatch(un, EmptyTree, cases)
+      SExprApply(parseExpr(owner, fun), args.map(tpeExpr(owner, _)), tree2Type(tree))
+    case q"$expr match { case ..$cases } " => parseMatch(owner, expr, cases)
+    case q"{ case ..$cases }" => parseMatch(owner, EmptyTree, cases)
     case Apply(TypeApply(fun, targs), args) =>
-      SApply(parseExpr(un, fun), targs.map(tpeExpr(un, _)), List(args.map(parseExpr(un, _))), tree2Type(tree))
+      SApply(parseExpr(owner, fun), targs.map(tpeExpr(owner, _)), List(args.map(parseExpr(owner, _))), tree2Type(tree))
     case Apply(fun, args) =>
-      SApply(parseExpr(un, fun), Nil, List(args.map(parseExpr(un, _))), tree2Type(tree))
-    case bi => optBodyItem(un, bi, None) match {
+      SApply(parseExpr(owner, fun), Nil, List(args.map(parseExpr(owner, _))), tree2Type(tree))
+    case bi => optBodyItem(owner, bi, None) match {
       case Some(item) => item
-      case None => throw new NotImplementedError(s"parseExpr($un): Error parsing of ${showRaw(bi)}")
+      case None => throw new NotImplementedError(s"parseExpr($owner): Error parsing of ${showRaw(bi)}")
     }
   }
 
-  def parseMatch(un: UnitName, expr: Tree, cases: List[CaseDef])(implicit ctx: ParseCtx) = {
-    SMatch(parseExpr(un, expr), cases.map{_ match {
-      case cq"$pat if $guard => $body" => SCase(parsePattern(un, pat), parseExpr(un, guard), parseExpr(un, body))
-      case c => throw new NotImplementedError(s"parseExpr($un): match {case ${showRaw(c)}")
+  def parseMatch(owner: SSymbol, expr: Tree, cases: List[CaseDef])(implicit ctx: ParseCtx) = {
+    SMatch(parseExpr(owner, expr), cases.map{_ match {
+      case cq"$pat if $guard => $body" => SCase(parsePattern(owner, pat), parseExpr(owner, guard), parseExpr(owner, body))
+      case c => throw new NotImplementedError(s"parseExpr($owner): match {case ${showRaw(c)}")
     }})
   }
 
@@ -681,15 +683,15 @@ trait ScalanParsers[+G <: Global] {
     }
   }
 
-  def parsePattern(un: UnitName, pat: Tree)(implicit ctx: ParseCtx): SPattern = pat match {
+  def parsePattern(owner: SSymbol, pat: Tree)(implicit ctx: ParseCtx): SPattern = pat match {
     case WildcardPattern() => SWildcardPattern()
-    case Apply(fun, pats) => SApplyPattern(parseExpr(un, fun), pats.map(parsePattern(un, _)))
-    case Typed(Ident(termNames.WILDCARD), tpe) => STypedPattern(tpeExpr(un, tpe))
-    case Bind(TermName(name), expr) => SBindPattern(name, parsePattern(un, expr))
+    case Apply(fun, pats) => SApplyPattern(parseExpr(owner, fun), pats.map(parsePattern(owner, _)))
+    case Typed(Ident(termNames.WILDCARD), tpe) => STypedPattern(tpeExpr(owner, tpe))
+    case Bind(TermName(name), expr) => SBindPattern(name, parsePattern(owner, expr))
     case Literal(Constant(c)) => SLiteralPattern(SConst(c))
     case Ident(id) => SStableIdPattern(SIdent(id.toString))
-    case Select(qual, name) => SSelPattern(parseExpr(un, qual), name.toString)
-    case Alternative(alts) => SAltPattern(alts.map(parsePattern(un, _)))
+    case Select(qual, name) => SSelPattern(parseExpr(owner, qual), name.toString)
+    case Alternative(alts) => SAltPattern(alts.map(parsePattern(owner, _)))
     case _ => throw new NotImplementedError(s"parsePattern: ${showRaw(pat)}")
   }
 

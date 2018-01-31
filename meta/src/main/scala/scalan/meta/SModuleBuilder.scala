@@ -136,8 +136,8 @@ class SModuleBuilder(implicit val context: AstContext) {
   def checkEntityCompanion(unit: SUnitDef) = {
     val newTraits = unit.traits.map { e =>
       val newCompanion = e.companion match {
-        case Some(comp) => Some(convertCompanion(unit.unitName, comp))
-        case None => Some(createCompanion(unit.unitName, e.name))
+        case Some(comp) => Some(convertCompanion(unit.unitSym, comp))
+        case None => Some(createCompanion(unit.unitSym, e.name))
       }
       e.copy(companion = newCompanion)
     }
@@ -148,8 +148,8 @@ class SModuleBuilder(implicit val context: AstContext) {
   def checkClassCompanion(unit: SUnitDef) = {
     val newClasses = unit.classes.map{ clazz =>
       val newCompanion = clazz.companion match {
-        case Some(comp) => Some(convertCompanion(unit.unitName, comp))
-        case None => Some(createCompanion(unit.unitName, clazz.name))
+        case Some(comp) => Some(convertCompanion(unit.unitSym, comp))
+        case None => Some(createCompanion(unit.unitSym, clazz.name))
       }
       clazz.copy(companion = newCompanion)
     }
@@ -385,7 +385,7 @@ class SModuleBuilder(implicit val context: AstContext) {
     if (unit.origModuleTrait.isEmpty) {
       val mainName = unit.name
       val mt = STraitDef(
-        unitName = unit.unitName,
+        unitName = unit.unitSym,
         name = SUnitDef.moduleTraitName(mainName),
         tpeArgs = Nil,
         ancestors = List(STraitCall(s"impl.${mainName}Defs"), STraitCall("scala.wrappers.WrappersModule")).map(STypeApply(_)),

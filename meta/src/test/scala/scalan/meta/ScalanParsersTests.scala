@@ -11,36 +11,36 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
   import scalan.meta.ScalanAst.{STraitCall => TC, SUnitDef => EMD, SClassDef => CD, STpeTuple => T, SMethodArg => MA, STraitDef => TD, SMethodDef => MD, SMethodArgs => MAs, SImportStat => IS}
   import scala.{List => L}
   val cols = parseModule(colsVirtModule)
-  val un = cols.unitName
+  val us = cols.unitSym
 
   describe("STpeExpr") {
     implicit val ctx = new ParseCtx(true)
-    testSTpe(un, "Int", TpeInt)
-    testSTpe(un, "(Int,Boolean)", STpeTuple(L(TpeInt, TpeBoolean)))
-    testSTpe(un, "Int=>Boolean", STpeFunc(TpeInt, TpeBoolean))
-    testSTpe(un, "Int=>Boolean=>Float", STpeFunc(TpeInt, STpeFunc(TpeBoolean, TpeFloat)))
-    testSTpe(un, "(Int,Boolean=>Float)", STpeTuple(L(TpeInt, STpeFunc(TpeBoolean, TpeFloat))))
-    testSTpe(un, "(Int,(Boolean=>Float))", STpeTuple(L(TpeInt, STpeFunc(TpeBoolean, TpeFloat))))
-    testSTpe(un, "(Int,Boolean)=>Float", STpeFunc(STpeTuple(L(TpeInt, TpeBoolean)), TpeFloat))
-    testSTpe(un, "Edge", TC("Edge", Nil))
-    testSTpe(un, "Edge[V,E]", TC("Edge", L(TC("V", Nil), TC("E", Nil))))
-    testSTpe(un, "Rep[A=>B]", TC("Rep", L(STpeFunc(TC("A", Nil), TC("B", Nil)))))
+    testSTpe(us, "Int", TpeInt)
+    testSTpe(us, "(Int,Boolean)", STpeTuple(L(TpeInt, TpeBoolean)))
+    testSTpe(us, "Int=>Boolean", STpeFunc(TpeInt, TpeBoolean))
+    testSTpe(us, "Int=>Boolean=>Float", STpeFunc(TpeInt, STpeFunc(TpeBoolean, TpeFloat)))
+    testSTpe(us, "(Int,Boolean=>Float)", STpeTuple(L(TpeInt, STpeFunc(TpeBoolean, TpeFloat))))
+    testSTpe(us, "(Int,(Boolean=>Float))", STpeTuple(L(TpeInt, STpeFunc(TpeBoolean, TpeFloat))))
+    testSTpe(us, "(Int,Boolean)=>Float", STpeFunc(STpeTuple(L(TpeInt, TpeBoolean)), TpeFloat))
+    testSTpe(us, "Edge", TC("Edge", Nil))
+    testSTpe(us, "Edge[V,E]", TC("Edge", L(TC("V", Nil), TC("E", Nil))))
+    testSTpe(us, "Rep[A=>B]", TC("Rep", L(STpeFunc(TC("A", Nil), TC("B", Nil)))))
   }
 
   describe("SMethodDef") {
     implicit val ctx = new ParseCtx(true)
-    testSMethod(un, "def f: Int", MD("f", Nil, Nil, Some(TpeInt), false, false, None, Nil, None))
-    testSMethod(un, "@OverloadId(\"a\") implicit def f: Int", MD("f", Nil, Nil, Some(TpeInt), true, false, Some("a"), L(SMethodAnnotation("OverloadId",List(SConst("a")))), None))
-    testSMethod(un,
+    testSMethod(us, "def f: Int", MD("f", Nil, Nil, Some(TpeInt), false, false, None, Nil, None))
+    testSMethod(us, "@OverloadId(\"a\") implicit def f: Int", MD("f", Nil, Nil, Some(TpeInt), true, false, Some("a"), L(SMethodAnnotation("OverloadId",List(SConst("a")))), None))
+    testSMethod(us,
       "def f(x: Int): Int",
       MD("f", Nil, L(MAs(List(MA(false, false, "x", TpeInt, None)))), Some(TpeInt), false, false, None, Nil, None))
-    testSMethod(un,
+    testSMethod(us,
       "def f[A <: T](x: A): Int",
       MD("f", L(STpeArg("A", Some(TC("T", Nil)), Nil)), L(MAs(L(MA(false, false, "x", TC("A", Nil), None)))), Some(TpeInt), false, false, None, Nil, None))
-    testSMethod(un,
+    testSMethod(us,
       "def f[A : Numeric]: Int",
       MD("f", L(STpeArg("A", None, L("Numeric"))), Nil, Some(TpeInt), false, false, None, Nil, None))
-    testSMethod(un,
+    testSMethod(us,
       "def f[A <: Int : Numeric : Fractional](x: A)(implicit y: A): Int",
       MD(
         "f",
@@ -51,8 +51,8 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
 
   describe("TraitDef") {
     implicit val ctx = new ParseCtx(true)
-    val traitA = TD(un, "A", Nil, Nil, Nil, None, None)
-    val traitEdgeVE = TD(un, "Edge", L(STpeArg("V", None, Nil), STpeArg("E", None, Nil)), Nil, Nil, None, None)
+    val traitA = TD(us, "A", Nil, Nil, Nil, None, None)
+    val traitEdgeVE = TD(us, "Edge", L(STpeArg("V", None, Nil), STpeArg("E", None, Nil)), Nil, Nil, None, None)
 
     testTrait("trait A", traitA)
     testTrait("trait A extends B",
@@ -74,7 +74,7 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
         |  @OverloadId("b")
         |  def g(x: Boolean): A
         |}""".stripMargin,
-      TD(un, "A", Nil, Nil, L(
+      TD(us, "A", Nil, Nil, L(
         IS("scalan._"),
         STpeDef("Rep", L(STpeArg("A", None, Nil)), TC("A", Nil)),
         MD("f", Nil, Nil, Some(T(L(TpeInt, TC("A", Nil)))), false, false, None, Nil, None),
@@ -96,9 +96,9 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
   describe("SClassDef") {
     implicit val ctx = new ParseCtx(true)
     val classA =
-      CD(un, "A", Nil, SClassArgs(Nil), SClassArgs(Nil), Nil, Nil, None, None, false)
+      CD(us, "A", Nil, SClassArgs(Nil), SClassArgs(Nil), Nil, Nil, None, None, false)
     val classEdgeVE =
-      CD(un, "Edge", L(STpeArg("V", None, Nil), STpeArg("E", None, Nil)), SClassArgs(Nil), SClassArgs(Nil), Nil, Nil, None, None, false)
+      CD(us, "Edge", L(STpeArg("V", None, Nil), STpeArg("E", None, Nil)), SClassArgs(Nil), SClassArgs(Nil), Nil, Nil, None, None, false)
     testSClass("class A", classA)
     testSClass("class A extends B",
       classA.copy(ancestors = L(TC("B", Nil).toTypeApply)))
@@ -115,12 +115,12 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
 
   describe("SModuleDef") {
     implicit val ctx = new ParseCtx(true)
-    val un = SName("scalan.rx", reactiveModule.moduleName)
+    val us = ctx.astContext.newUnitSymbol("scalan.rx", reactiveModule.moduleName)
     val tpeArgA = L(STpeArg("A", None, Nil))
     val ancObsA = L(TC("Observable", L(TC("A", Nil))))
     val argEA = L(SClassArg(true, false, true, "eA", TC("Elem", L(TC("A", Nil))), None, Nil, true))
-    val entity = TD(un, "Observable", tpeArgA, Nil, L(SMethodDef("eA",List(),List(),Some(TC("Elem",L(TC("A",Nil)))),true,false, None, Nil, None, true)), None, None)
-    val obsImpl1 = CD(un, "ObservableImpl1", tpeArgA, SClassArgs(Nil), SClassArgs(argEA), ancObsA.map(_.toTypeApply), Nil, None, None, false)
+    val entity = TD(us, "Observable", tpeArgA, Nil, L(SMethodDef("eA",List(),List(),Some(TC("Elem",L(TC("A",Nil)))),true,false, None, Nil, None, true)), None, None)
+    val obsImpl1 = CD(us, "ObservableImpl1", tpeArgA, SClassArgs(Nil), SClassArgs(argEA), ancObsA.map(_.toTypeApply), Nil, None, None, false)
     val obsImpl2 = obsImpl1.copy(name = "ObservableImpl2")
 
     testModule(reactiveModule,

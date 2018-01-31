@@ -1,8 +1,9 @@
 package scalan.meta
 
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAst.{STraitCall, SClassArg, UnitName, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, AstContext, SSuper, STpeExistential, SSelect}
+import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, AstContext, SSuper, STpeExistential, SSelect}
 import scalan.meta.ScalanAstTransformers.filterInternalAnnot
+import scalan.meta.Symbols.SUnitSymbol
 import scalan.util.ScalaNameUtil.PackageAndName
 
 trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
@@ -10,10 +11,10 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
 
   case class GenCtx(context: AstContext, isVirtualized: Boolean, toRep: Boolean = true)
 
-  def createModuleTrait(unitName: UnitName) = {
-    val mainModuleName = unitName.name
+  def createModuleTrait(unitSym: SUnitSymbol) = {
+    val mainModuleName = unitSym.unitName.name
     val mt = STraitDef(
-      unitName = unitName,
+      unitName = unitSym,
       name = SUnitDef.moduleTraitName(mainModuleName),
       tpeArgs = Nil,
       ancestors = List(STraitCall(s"impl.${mainModuleName}Defs"), STraitCall("scala.wrappers.WrappersModule")).map(STypeApply(_)),

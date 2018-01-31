@@ -9,8 +9,8 @@ class StagedEvalTests extends BaseMetaTests with TestContexts {
 
   def testMethod(methodDef: String): Unit = {
     implicit val parseCtx = new ParseCtx(isVirtualized = false)
-    val un = SName("scalan.meta", "StagedEvalTests")
-    val m = parseMethod(un, methodDef)
+    val us = parseCtx.astContext.newUnitSymbol("scalan.meta", "StagedEvalTests")
+    val m = parseMethod(us, methodDef)
     val f = evtr.eval[Any => Any](m)
     ctx.emit("f", f)
   }

@@ -2,8 +2,7 @@ package scalan.meta
 
 import scalan.meta.ScalanAst._
 import scalan.meta.Base._
-import scalan.meta.ScalanAstTransformers.{AstTransformer, TypeTransformer, AstReplacer}
-import scalan.util.CollectionUtil._
+import scalan.meta.Symbols.SSymbol
 
 object ScalanAstUtils {
 
@@ -31,8 +30,8 @@ object ScalanAstUtils {
   }
 
   /** Creates empty companion trait (no body) for an entity or concrete classes. */
-  def createCompanion(unitName: UnitName, traitName: String): STraitDef = STraitDef(
-    unitName = unitName,
+  def createCompanion(unitSym: SSymbol, traitName: String): STraitDef = STraitDef(
+    unitName = unitSym,
     name = traitName + "Companion",
     tpeArgs = List(),
     ancestors = List(),
@@ -45,10 +44,10 @@ object ScalanAstUtils {
     * Checks if companion is represented by SObjectDef (e.g. parsed from object)
     * and converts into the companion trait (STraitDef).
     */
-  def convertCompanion(unitName: UnitName, comp: SEntityDef): SEntityDef = comp match {
+  def convertCompanion(unitSym: SSymbol, comp: SEntityDef): SEntityDef = comp match {
     case obj: SObjectDef =>
       STraitDef(
-        unitName = unitName,
+        unitName = unitSym,
         name = obj.name + "Companion",
         tpeArgs = obj.tpeArgs, ancestors = obj.ancestors, body = obj.body, selfType = obj.selfType,
         companion = obj.companion, annotations = obj.annotations)
