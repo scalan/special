@@ -31,7 +31,7 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
 
   type EffectsStack = List[Exp[Any]] // TODO: maybe use TableEntry instead to save lookup
 
-  var context: EffectsStack = _
+  var effectsStack: EffectsStack = _
 
   var conditionalScope = false // used to construct Control nodes
 
@@ -135,7 +135,7 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
   def mustIdempotent(u: Summary): Boolean = mustOnlyRead(u) // currently only reads are treated as idempotent
 
   implicit class SummaryOps(u: Summary) {
-    
+
     def orElse(v: Summary) = new Summary(
       u.maySimple || v.maySimple, u.mstSimple && v.mstSimple,
       u.mayGlobal || v.mayGlobal, u.mstGlobal && v.mstGlobal,
@@ -486,7 +486,7 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
   def createReflectDefinition[A](s: Exp[A], x: Reflect[A]): Exp[A] = {
     checkReflect(s, x)
     createDefinition(s, x)
-    context :+= s
+    effectsStack :+= s
     s
   }
 
@@ -514,7 +514,7 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
       val deps = calculateDependencies(u)
       val zd = Reflect(x,u,deps)
       if (mustIdempotent(u)) {
-        context find { case Def(d) => d == zd } map { _.asInstanceOf[Exp[A]] } getOrElse {
+        effectsStack find { case Def(d) => d == zd } map { _.asInstanceOf[Exp[A]] } getOrElse {
           //        findDefinition(zd) map (_.sym) filter (context contains _) getOrElse { // local cse TODO: turn around and look at context first??
           val z = newSym
           if (!x.toString.startsWith("ReadVar")) { // supress output for ReadVar
@@ -559,7 +559,7 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
 
   def calculateDependencies(u: Summary): EffectsStack = {
     checkContext();
-    calculateDependencies(context, u, true)
+    calculateDependencies(effectsStack, u, true)
   }
   def calculateDependencies(scope: EffectsStack, u: Summary, mayPrune: Boolean): EffectsStack = {
     if (u.mayGlobal) scope else {
@@ -599,7 +599,7 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
   }
 
   def checkContext() {
-    if (context == null)
+    if (effectsStack == null)
       sys.error("uninitialized effect context: effectful statements may only be used within a reifyEffects { .. } block")
   }
 
@@ -628,8 +628,8 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
   // reify the effects of an isolated block.
   // no assumptions about the current context remain valid.
   def reifyEffects[A](block: => Exp[A], controlScope: Boolean = false): Block[A] = {
-    val save = context
-    context = Nil
+    val save = effectsStack
+    effectsStack = Nil
 
     // only add control dependencies scopes where controlScope is explicitly true (i.e., the first-level of an IfThenElse)
     val saveControl = conditionalScope
@@ -640,9 +640,9 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
     implicit val eA = result.elem
     conditionalScope = saveControl
 
-    val deps = context
+    val deps = effectsStack
     val summary = summarizeAll(deps)
-    context = save
+    effectsStack = save
 
     if (deps.isEmpty && mustPure(summary)) Block(result) else Block(Reify(result, summary, pruneContext(deps))) // calls toAtom...
   }
@@ -654,9 +654,9 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
   // reify the effects of a block that is executed 'here' (if it is executed at all).
   // all assumptions about the current context carry over unchanged.
   def reifyEffectsHere[A](block: => Exp[A], controlScope: Boolean = false): Block[A] = {
-    val save = context
+    val save = effectsStack
     if (save eq null)
-      context = Nil
+      effectsStack = Nil
 
     val saveControl = conditionalScope
     conditionalScope = controlScope
@@ -667,13 +667,13 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
 
     conditionalScope = saveControl
 
-    if ((save ne null) && context.take(save.length) != save) // TODO: use splitAt
-      printerr("error: 'here' effects must leave outer information intact: " + save + " is not a prefix of " + context)
+    if ((save ne null) && effectsStack.take(save.length) != save) // TODO: use splitAt
+      printerr("error: 'here' effects must leave outer information intact: " + save + " is not a prefix of " + effectsStack)
 
-    val deps = if (save eq null) context else context.drop(save.length)
+    val deps = if (save eq null) effectsStack else effectsStack.drop(save.length)
 
     val summary = summarizeAll(deps)
-    context = save
+    effectsStack = save
 
     if (deps.isEmpty && mustPure(summary)) Block(result) else Block(Reify(result, summary, pruneContext(deps))) // calls toAtom...
   }
