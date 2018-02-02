@@ -1,10 +1,12 @@
 package scalan.eval
 
+import scalan.meta.ScalanAst.AstContext
 import scalan.{TestContexts, Scalan}
-import scalan.meta.{BaseMetaTests, SName}
+import scalan.meta.{SName, BaseMetaTests}
 
 class StagedEvalTests extends BaseMetaTests with TestContexts {
-  val ctx = new TestContext("StagedEval") with StagedEvaluation {}
+  class Ctx(implicit val context: AstContext) extends TestContext("StagedEval") with StagedEvaluation {}
+  val ctx = new Ctx
   val evtr = new StatedEvaluator[ctx.type](ctx)
 
   def testMethod(methodDef: String): Unit = {

@@ -4,6 +4,7 @@ import scalan.Scalan
 import scalan.meta.ScalanAst.{SExpr, AstContext, SMethodDef, SConst}
 
 trait StagedEvaluation extends Scalan {
+  implicit val context: AstContext
   sealed trait Node
   case class AddrNode(sym: Sym) extends Node
   case class ExprNode(expr: SExpr) extends Node
@@ -14,7 +15,7 @@ trait StagedEvaluation extends Scalan {
 }
 
 
-class StatedEvaluator[IR <: StagedEvaluation](val IR: IR)(implicit context: AstContext) {
+class StatedEvaluator[IR <: StagedEvaluation](val IR: IR) {
   import IR._
   def eval[A](expr: SExpr): Rep[A] = //evalStep(ExprNode(expr), Nil).asRep[A]
     expr match {

@@ -9,8 +9,8 @@ trait Symbols { this: AstContext =>
     SUnitSymbol(SName(packageName, name), null)
   }
 
-  def newEntitySymbol(outer: SSymbol, entityName: String): SEntitySymbol = {
-    SEntitySymbol(entityName, outer)
+  def newNamedDefSymbol(outer: SSymbol, name: String, defType: DefType.Value): SNamedDefSymbol = {
+    SNamedDefSymbol(name, defType, outer)
   }
 
 }
@@ -27,7 +27,13 @@ object Symbols {
         outer.outerUnit
     }
   }
-  case class SUnitSymbol private(unitName: SName, override val outer: SSymbol) extends SSymbol(outer)
-  case class SEntitySymbol private(entityName: String, override val outer: SSymbol) extends SSymbol(outer)
 
+  case class SUnitSymbol private(unitName: SName, override val outer: SSymbol) extends SSymbol(outer)
+
+  case class SNamedDefSymbol private(
+      name: String, defType: DefType.Value, override val outer: SSymbol) extends SSymbol(outer)
+
+  object DefType extends Enumeration {
+    val Entity, Method, Val, ClassArg, Type = Value
+  }
 }
