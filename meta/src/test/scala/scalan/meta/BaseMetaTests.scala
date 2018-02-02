@@ -34,10 +34,10 @@ trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
   }
 
   def testTrait(prog: String, expected: STraitDef)(implicit ctx: ParseCtx) {
-    test(Member, prog, expected) { case tree: ClassDef => traitDef(expected.unitName, tree, Some(tree)) }
+    test(Member, prog, expected) { case tree: ClassDef => traitDef(expected.owner, tree, Some(tree)) }
   }
   def testSClass(prog: String, expected: SClassDef)(implicit ctx: ParseCtx) {
-    test(Member, prog, expected) { case tree: ClassDef => classDef(expected.unitName, tree, Some(tree)) }
+    test(Member, prog, expected) { case tree: ClassDef => classDef(expected.owner, tree, Some(tree)) }
   }
 
   def testSTpe(owner: SSymbol, prog: String, expected: STpeExpr)(implicit ctx: ParseCtx) {

@@ -385,7 +385,7 @@ class SModuleBuilder(implicit val context: AstContext) {
     if (unit.origModuleTrait.isEmpty) {
       val mainName = unit.name
       val mt = STraitDef(
-        unitName = unit.unitSym,
+        owner = unit.unitSym,
         name = SUnitDef.moduleTraitName(mainName),
         tpeArgs = Nil,
         ancestors = List(STraitCall(s"impl.${mainName}Defs"), STraitCall("scala.wrappers.WrappersModule")).map(STypeApply(_)),

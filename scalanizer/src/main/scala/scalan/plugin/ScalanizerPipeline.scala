@@ -268,14 +268,14 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val entityAnnotations = externalAnnot :: wrapperConf.annotations.map { a => SEntityAnnotation(a, Nil) }
     val us = context.newUnitSymbol(wrapPackage(packageName), wmod(externalTypeName))
     val entity = STraitDef(
-      unitName = us,
+      owner = us,
       name = wClassName,
       tpeArgs = tpeArgs,
       ancestors = entityAncestors,
       body = Nil,
       selfType = Some(SSelfTypeDef("self", Nil)),
       companion = Some(STraitDef(
-        unitName = us,
+        owner = us,
         name = companionName,
         tpeArgs = Nil,
         ancestors = Nil, //mkCompanionAncestors(wClassName, kind = typeParams.length),
