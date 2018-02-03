@@ -272,7 +272,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
 
   def genTypeDef(t: STpeDef)(implicit ctx: GenCtx): Tree = {
     val tpname = TypeName(t.name)
-    val tpt = genTypeExpr(t.rhs)
+    val tpt = genTypeExpr(t.tpe)
     val tparams = genTypeArgs(t.tpeArgs)
 
     q"type $tpname[..$tparams] = $tpt"

@@ -43,7 +43,8 @@ class EntityTests extends BaseMetaTests with Examples {
       val us = cols.unitSym
       def testVisible(e: SEntityDef, p: SEntityMember => Boolean, expected: List[(String, String)]) = {
         val expectedMembers = expected.map { case (en, mstr) =>
-          val item = parseBodyItem(us, mstr).asInstanceOf[SEntityItem]
+          val es = cols.getEntity(en).symbol
+          val item = parseBodyItem(es, mstr).asInstanceOf[SEntityItem]
           (en, item)
         }
         val actual = e.collectVisibleMembers.filter(p).map(m => (m.entity.name, m.item))
@@ -200,7 +201,7 @@ class EntityTests extends BaseMetaTests with Examples {
       testSubst(field, Map("A" -> ty("(B,C)")), "val col: Col[(B,C)]")
       testSubst(field, Map("A" -> ty("Col[B]")), "val col: Col[Col[B]]")
       testSubst(field, Map("A" -> ty("Col[(B,C)]")), "val col: Col[Col[(B,C)]]")
-      val arg = SClassArg(false, false, true, "arg", ty("(A,B)"), None)
+      val arg = SClassArg(eCollection.symbol, false, false, true, "arg", ty("(A,B)"), None)
       arg.applySubst(Map("A" -> ty("B"))) shouldBe arg.copy(tpe = ty("(B,B)"))
       arg.applySubst(Map("A" -> ty("(B,C)"))) shouldBe arg.copy(tpe = ty("((B,C),B)"))
     }

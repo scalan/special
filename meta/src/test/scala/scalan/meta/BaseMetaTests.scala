@@ -15,7 +15,7 @@ trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
 
   override def parseModule(module: TestModule): SUnitDef = {
     val m = super.parseModule(module)
-    assertResult(module.isVirt)(m.isVirtualized)
+    m.isVirtualized shouldBe module.isVirt
     m
   }
 
@@ -23,7 +23,7 @@ trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
     it(prog) {
       val tree = parseString(kind, prog)
       val res = f(tree)
-      assertResult(expected)(res)
+      res shouldBe expected
     }
   }
 

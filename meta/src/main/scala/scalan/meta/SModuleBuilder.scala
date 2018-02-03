@@ -4,6 +4,7 @@ import scalan.meta.ScalanAstTransformers._
 import scalan.meta.ScalanAstUtils._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
+import scalan.meta.Symbols.SEntitySymbol
 import scalan.util.CollectionUtil._
 
 class SModuleBuilder(implicit val context: AstContext) {
@@ -205,7 +206,7 @@ class SModuleBuilder(implicit val context: AstContext) {
   /** Adds descriptor methods (def eA, def cF, etc) to the body of the first entity. */
   def genEntityImplicits(unit: SUnitDef) = {
     val newTraits = unit.traits.map { t =>
-      val newBody = genDescMethodsByTypeArgs(t.tpeArgs) ++ t.body
+      val newBody = genDescMethodsByTypeArgs(t.symbol, t.tpeArgs) ++ t.body
       t.copy(body = newBody)
     }
     unit.copy(traits = newTraits)
@@ -222,8 +223,8 @@ class SModuleBuilder(implicit val context: AstContext) {
       case Some(_) => true
       case None => false
     }
-    def convertElemValToMethod(classArg: SClassArg): SMethodDef = {
-      SMethodDef(name = classArg.name, tpeArgs = Nil, argSections = Nil,
+    def convertElemValToMethod(owner: SEntitySymbol, classArg: SClassArg): SMethodDef = {
+      SMethodDef(owner, name = classArg.name, tpeArgs = Nil, argSections = Nil,
         tpeRes = Some(classArg.tpe),
         isImplicit = false, isOverride = false, overloadId = None, annotations = Nil,
         body = Some(SExprApply(SIdent("element"), unpackElem(classArg).toList)),
@@ -236,7 +237,7 @@ class SModuleBuilder(implicit val context: AstContext) {
         case t => t
       })
       val newImplicitArgs = SClassArgs(newArgs)
-      val newBody = definedElems.map(convertElemValToMethod) ++ c.body
+      val newBody = definedElems.map(convertElemValToMethod(c.symbol, _)) ++ c.body
 
       c.copy(implicitArgs = newImplicitArgs, body = newBody)
     }

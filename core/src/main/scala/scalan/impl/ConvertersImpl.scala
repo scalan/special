@@ -272,8 +272,8 @@ implicit val eR = p.convFun.elem.eRange
 implicit lazy val eA2 = conv2.eT;
 implicit lazy val eB1 = conv1.eR;
 implicit lazy val eB2 = conv2.eR
-    override lazy val eT: Elem[(A1, A2)] = element[(A1, A2)]
-override lazy val eR: Elem[(B1, B2)] = element[(B1, B2)]
+    override lazy val eT: Elem[(A1, A2)] = implicitly[Elem[(A1, A2)]]
+override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     lazy val selfType = element[PairConverter[A1, A2, B1, B2]]
   }
   // elem for concrete class
@@ -382,8 +382,8 @@ implicit val eB2 = p.conv2.eR
 implicit lazy val eA2 = conv2.eT;
 implicit lazy val eB1 = conv1.eR;
 implicit lazy val eB2 = conv2.eR
-    override lazy val eT: Elem[$bar[A1, A2]] = element[$bar[A1, A2]]
-override lazy val eR: Elem[$bar[B1, B2]] = element[$bar[B1, B2]]
+    override lazy val eT: Elem[$bar[A1, A2]] = implicitly[Elem[$bar[A1, A2]]]
+override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     lazy val selfType = element[SumConverter[A1, A2, B1, B2]]
   }
   // elem for concrete class

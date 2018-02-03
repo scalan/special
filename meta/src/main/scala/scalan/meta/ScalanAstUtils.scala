@@ -2,7 +2,7 @@ package scalan.meta
 
 import scalan.meta.ScalanAst._
 import scalan.meta.Base._
-import scalan.meta.Symbols.SSymbol
+import scalan.meta.Symbols.{SSymbol, SEntitySymbol}
 
 object ScalanAstUtils {
 
@@ -62,42 +62,41 @@ object ScalanAstUtils {
     tpeArgs.filter(!_.tparams.isEmpty)
   }
 
-  def genImplicitMethod(tpeArg: STpeArg, methodPrefix: String, descTypeName: String) =
-    SMethodDef(name = methodPrefix + tpeArg.name,
+  def genImplicitMethod(owner: SEntitySymbol, tpeArg: STpeArg, methodPrefix: String, descTypeName: String) =
+    SMethodDef(owner, name = methodPrefix + tpeArg.name,
       tpeArgs = Nil, argSections = Nil,
       tpeRes = Some(STraitCall(descTypeName, List(STraitCall(tpeArg.name, Nil)))),
       isImplicit = true, isOverride = false,
       overloadId = None, annotations = Nil,
       body = None, isTypeDesc = true)
 
-  def genElemMethod(tpeArg: STpeArg) = genImplicitMethod(tpeArg, "e", "Elem")
-  def genContMethod(tpeArg: STpeArg) = genImplicitMethod(tpeArg, "c", "Cont")
-
-  def genDescMethodsByTypeArgs(tpeArgs: List[STpeArg]): List[SMethodDef] = {
+  def genDescMethodsByTypeArgs(owner: SEntitySymbol, tpeArgs: List[STpeArg]): List[SMethodDef] = {
     tpeArgs.map{ targ =>
-      if (!targ.isHighKind) genElemMethod(targ)
-      else if (targ.tparams.size == 1) genContMethod(targ)
+      if (!targ.isHighKind) genImplicitMethod(owner, targ, "e", "Elem")
+      else if (targ.tparams.size == 1) genImplicitMethod(owner, targ, "e", "Elem")
       else !!!(s"Cannot create descriptor method for a high-kind tpeArg $targ " +
       s"with with more than one type arguments ${targ.tparams}. Only single argument supported.")
     }
   }
 
-  def genClassArg(argPrefix: String, argName: String, descName: String, descArg: STpeExpr) = {
-    SClassArg(impFlag = true,
+  def genClassArg(owner: SEntitySymbol, argPrefix: String, argName: String, descName: String, descArg: STpeExpr) = {
+    SClassArg(
+      owner = owner,
+      impFlag = true,
       overFlag = false, valFlag = true,
       name = argPrefix + argName,
       tpe = STraitCall(descName, List(descArg)),
       default = None, annotations = Nil, isTypeDesc = true)
   }
-  def genElemClassArg(argName: String, tpe: STpeExpr) = genClassArg("e", argName, "Elem", tpe)
-  def genContClassArg(argName: String, tpe: STpeExpr) = genClassArg("c", argName, "Cont", tpe)
+  def genElemClassArg(owner: SEntitySymbol, argName: String, tpe: STpeExpr) = genClassArg(owner, "e", argName, "Elem", tpe)
+  def genContClassArg(owner: SEntitySymbol, argName: String, tpe: STpeExpr) = genClassArg(owner, "c", argName, "Cont", tpe)
 
-  def genImplicitClassArg(isHighKind: Boolean, argName: String, tpe: STpeExpr): SClassArg = {
-    if (!isHighKind) genElemClassArg(argName, tpe)
-    else genContClassArg(argName, tpe)
+  def genImplicitClassArg(owner: SEntitySymbol, isHighKind: Boolean, argName: String, tpe: STpeExpr): SClassArg = {
+    if (!isHighKind) genElemClassArg(owner, argName, tpe)
+    else genContClassArg(owner, argName, tpe)
   }
-  def genImplicitClassArg(tyArg: STpeArg): SClassArg =
-    genImplicitClassArg(tyArg.isHighKind, tyArg.name, STraitCall(tyArg.name)) // don't use toTraitCall here
+  def genImplicitClassArg(owner: SEntitySymbol, tyArg: STpeArg): SClassArg =
+    genImplicitClassArg(owner, tyArg.isHighKind, tyArg.name, STraitCall(tyArg.name)) // don't use toTraitCall here
 
   /** Checks for each type argument if it is used as argument of ancestor entity.
     * For each name of type argument returns a pair (e, tyArg)
@@ -124,7 +123,7 @@ object ScalanAstUtils {
   def genImplicitArgsForClass(clazz: SEntityDef)(implicit ctx: AstContext): List[SClassArg] = {
     val argSubst = classArgsAsSeenFromAncestors(clazz)
     val implicitArgs = argSubst.map { case (clsTpeArg, (e, eTpeArg)) =>
-      genImplicitClassArg(eTpeArg.isHighKind, eTpeArg.name, STraitCall(clsTpeArg.name))
+      genImplicitClassArg(clazz.symbol, eTpeArg.isHighKind, eTpeArg.name, STraitCall(clsTpeArg.name))
     }
     implicitArgs
   }

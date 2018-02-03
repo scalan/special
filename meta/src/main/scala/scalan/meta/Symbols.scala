@@ -1,39 +1,78 @@
 package scalan.meta
 
+import java.util.Objects
+
 import Symbols._
 import scalan.meta.ScalanAst.AstContext
 
 trait Symbols { this: AstContext =>
 
   def newUnitSymbol(packageName: String, name: String): SUnitSymbol = {
-    SUnitSymbol(SName(packageName, name), null)
+    SUnitSymbol(SNoSymbol, SName(packageName, name))
   }
 
-  def newNamedDefSymbol(outer: SSymbol, name: String, defType: DefType.Value): SNamedDefSymbol = {
-    SNamedDefSymbol(name, defType, outer)
+  def newEntitySymbol(owner: SSymbol, name: String, defType: DefType.Value): SNamedDefSymbol = {
+    SEntitySymbol(owner, name)
+  }
+
+  def newEntityItemSymbol(owner: SSymbol, name: String, defType: DefType.Value): SNamedDefSymbol = {
+    SEntityItemSymbol(owner, name, defType)
   }
 
 }
 
 object Symbols {
 
-  abstract class SSymbol(val outer: SSymbol) {
+  sealed trait SSymbol {
+    def owner: SSymbol
     def outerUnit: SUnitSymbol = this match {
       case us: SUnitSymbol =>
-        assert(us.outer eq null, s"UnitSymbol have outer ${us.outer}")
+        assert(us.owner eq SNoSymbol, s"UnitSymbol have owner ${us.owner}")
         us
       case _ =>
-        assert(outer ne null, s"$this doesn't have outer")
-        outer.outerUnit
+        assert(owner ne SNoSymbol, s"$this doesn't have owner")
+        owner.outerUnit
     }
   }
 
-  case class SUnitSymbol private(unitName: SName, override val outer: SSymbol) extends SSymbol(outer)
-
-  case class SNamedDefSymbol private(
-      name: String, defType: DefType.Value, override val outer: SSymbol) extends SSymbol(outer)
-
   object DefType extends Enumeration {
-    val Entity, Method, Val, ClassArg, Type = Value
+    val Unit, Entity, Method, Val, ClassArg, Type = Value
   }
+
+  trait SNamedDefSymbol extends SSymbol {
+    def name: String
+    def defType: DefType.Value
+  }
+
+  case object SNoSymbol extends SSymbol {
+    override def owner: SSymbol = this
+  }
+
+  class SEntitySymbol private[Symbols](val owner: SSymbol, val name: String) extends SNamedDefSymbol {
+    def defType = DefType.Entity
+
+    override def hashCode(): Int = Objects.hash(owner, name)
+    override def equals(other: Any): Boolean = other match {
+      case es: SEntitySymbol => owner == es.owner && name == es.name
+      case _ => false
+    }
+    override def toString = s"SEntitySymbol($owner,$name)"
+  }
+  object SEntitySymbol {
+    def apply(owner: SSymbol, name: String) = new SEntitySymbol(owner, name)
+    def unapply(s: SSymbol): Option[(SSymbol, String)] = s match {
+      case es: SEntitySymbol => Some((es.owner, es.name))
+      case _ => None
+    }
+  }
+
+  case class SEntityItemSymbol private(owner: SSymbol, name: String, defType: DefType.Value)
+      extends SNamedDefSymbol
+
+  case class SUnitSymbol private(override val owner: SSymbol, unitName: SName)
+      extends SEntitySymbol(owner, unitName.name) {
+    override def defType = DefType.Unit
+    override def toString = s"SUnitSymbol($owner,${unitName.mkFullName})"
+  }
+
 }

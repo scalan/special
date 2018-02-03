@@ -9,8 +9,9 @@ import scala.reflect.io.Path
 import scalan.meta.ScalanAstTransformers.{isIgnoredExternalType, External2WrapperTypeTransformer}
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
+import scalan.meta.Symbols.{SSymbol, SEntitySymbol}
 import scalan.util.CollectionUtil._
-import scalan.meta.{SourceModuleConf, ModuleConf, ScalanCodegen, SName}
+import scalan.meta.{SName, SourceModuleConf, ModuleConf, ScalanCodegen}
 
 abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) { pipeline =>
   import scalanizer._
@@ -92,17 +93,17 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     res
   }
 
-  def registerArrayOp(mkOp: STpeArg => SMethodDef) = {
+  def registerArrayOp(owner: SEntitySymbol, mkOp: (SSymbol, STpeArg) => SMethodDef) = {
     val tT = STpeArg("T")
-    updateWrapperSpecial("scala", "Array", List(tT), Nil, false, mkOp(tT), Nil)
+    updateWrapperSpecial("scala", "Array", List(tT), Nil, false, mkOp(owner, tT), Nil)
   }
 
-  def catchSpecialWrapper(tree: Tree): Boolean = tree match {
+  def catchSpecialWrapper(owner: SEntitySymbol, tree: Tree): Boolean = tree match {
     case IsArrayWrapperMethod(_, method) =>
       //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$ops($v).$method")})")
       method.decoded match {
-        case "map" => registerArrayOp(mkArrayMapMethod)
-        case "zip" => registerArrayOp(mkArrayZipMethod)
+        case "map" => registerArrayOp(owner, mkArrayMapMethod)
+        case "zip" => registerArrayOp(owner, mkArrayZipMethod)
       }
       true
     //    case sel@q"$x.Predef.$y($z)" =>
@@ -119,18 +120,18 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
   }
 
   /** For each method call, create type wrapper if the external type should be wrapped. */
-  def catchWrapperUsage(tree: Tree): Unit =
-    if (!catchSpecialWrapper(tree)) {
+  def catchWrapperUsage(owner: SEntitySymbol, tree: Tree): Unit =
+    if (!catchSpecialWrapper(owner, tree)) {
       tree match {
         case sel @ Select(obj @ Apply(TypeApply(_, _), _), member) if isWrapperType(obj.tpe) =>
           //          inform(s"${show(sel)}: ${show(obj.tpe)}")
-          updateWrapper(obj.tpe, member, sel.tpe, sel.symbol)
+          updateWrapper(owner, obj.tpe, member, sel.tpe, sel.symbol)
         case sel @ Select(obj @ Select(_, _), member) if isWrapperType(obj.tpe) =>
           //          inform(s"${show(sel)}: ${show(obj.tpe)}")
-          updateWrapper(obj.tpe, member, sel.tpe, sel.symbol)
+          updateWrapper(owner, obj.tpe, member, sel.tpe, sel.symbol)
         case sel @ Select(obj, member) if isWrapperType(obj.tpe) =>
           //          inform(s"${show(sel)}: ${show(obj.tpe)}")
-          updateWrapper(obj.tpe, member, sel.tpe, sel.symbol)
+          updateWrapper(owner, obj.tpe, member, sel.tpe, sel.symbol)
         case _ =>
         //          inform(s"UNCATCHED(${show(tree)})")
       }
@@ -165,7 +166,8 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
 
   def formMethodRes(res: Type): STpeExpr = parseType(res)
 
-  def formExternalMethodDef(name: String,
+  def formExternalMethodDef(owner: SEntitySymbol,
+      name: String,
       tpeArgs: List[STpeArg],
       argSections: List[SMethodArgs],
       tpeRes: STpeExpr): SMethodDef = {
@@ -194,7 +196,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
         a.copy(annotations = STypeArgAnnotation("Reified", Nil) :: a.annotations)
       else
         a)
-    SMethodDef(
+    SMethodDef(owner,
       name = name,
       tpeArgs = annotatedArgs,
       argSections = argsWithoutClassTags.joinArgSections(),
@@ -308,12 +310,13 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
 
   /** Create/update Meta AST of the module for the external type. It assembles
     * Meta AST of a method (value) by its Scala's Type. */
-  def updateWrapper(objType: Type,
+  def updateWrapper(owner: SEntitySymbol,
+      objType: Type,
       methodName: Name, methodReturnType: Type, methodSym: Symbol): Unit = {
     val externalTypeName = objType.typeSymbol.nameString
-    val owner = methodSym.owner
+    val ownerSym = methodSym.owner
     val pre = objType.typeSymbol.typeSignature
-    val memberType = methodSym.tpe.asSeenFrom(pre, owner)
+    val memberType = methodSym.tpe.asSeenFrom(pre, ownerSym)
     val member = memberType match {
       case method @ (_: NullaryMethodType | _: MethodType) =>
 
@@ -324,7 +327,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
           * }
           */
         val (args, res) = uncurryMethodType(method)
-        formExternalMethodDef(methodName.toString, Nil, args, res)
+        formExternalMethodDef(owner, methodName.toString, Nil, args, res)
       case PolyType(typeArgs, method @ (_: NullaryMethodType | _: MethodType)) =>
 
         /** Methods that have type parameters like:
@@ -335,7 +338,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
           */
         val tpeArgs = formMethodTypeArgs(typeArgs)
         val (args, res) = uncurryMethodType(method)
-        formExternalMethodDef(methodName.toString, tpeArgs, args, res)
+        formExternalMethodDef(owner, methodName.toString, tpeArgs, args, res)
       case TypeRef(_, sym, _) =>
 
         /** Example: arr.length where
@@ -344,7 +347,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
           * val length = 0
           * }
           */
-        formExternalMethodDef(methodName.toString, Nil, Nil, formMethodRes(sym.tpe))
+        formExternalMethodDef(owner, methodName.toString, Nil, Nil, formMethodRes(sym.tpe))
       case _ => throw new NotImplementedError(s"memberType = ${showRaw(memberType) }")
     }
     val wrapper = snState.getWrapper(externalTypeName).getOrElse {

@@ -16,7 +16,7 @@ import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstExtensions._
 import scala.tools.nsc.Global
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
-import scalan.meta.Symbols.SSymbol
+import scalan.meta.Symbols._
 
 object ScalanAst {
 
@@ -416,6 +416,7 @@ object ScalanAst {
   case class SImportStat(name: String) extends SBodyItem
 
   case class SMethodDef(
+      owner: SSymbol,
       name: String, tpeArgs: STpeArgs,
       argSections: List[SMethodArgs],
       tpeRes: Option[STpeExpr],
@@ -425,6 +426,7 @@ object ScalanAst {
       annotations: List[SMethodAnnotation] = Nil,
       body: Option[SExpr] = None,
       isTypeDesc: Boolean = false) extends SBodyItem with SEntityItem {
+    val symbol = SEntityItemSymbol(owner, name, DefType.Method)
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
@@ -477,6 +479,7 @@ object ScalanAst {
   }
 
   case class SValDef(
+      owner: SSymbol,
       name: String,
       tpe: Option[STpeExpr],
       isLazy: Boolean,
@@ -486,6 +489,7 @@ object ScalanAst {
       annotations: List[SArgAnnotation] = Nil,
       isTypeDesc: Boolean = false
   ) extends SBodyItem with SEntityItem {
+    val symbol = SEntityItemSymbol(owner, name, DefType.Val)
     override def tpeArgs: STpeArgs = Nil
     override def argss: List[List[SMethodOrClassArg]] = Nil
     override def tpeRes = tpe
@@ -493,8 +497,21 @@ object ScalanAst {
     override def rhs: Option[SExpr] = Some(expr)
   }
 
-  case class STpeDef(name: String, tpeArgs: STpeArgs, rhs: STpeExpr) extends SBodyItem {
-    override def toString = s"type $name"
+  case class STpeDef(
+      owner: SSymbol,
+      name: String,
+      tpeArgs: STpeArgs,
+      tpe: STpeExpr,
+      isAbstract: Boolean = false,
+      annotations: List[SArgAnnotation] = Nil
+  ) extends SBodyItem with SEntityItem {
+    val symbol = SEntityItemSymbol(owner, name, DefType.Type)
+    def rhs: Option[SExpr] = None
+    def isImplicit: Boolean = false
+    def argss: List[List[SMethodOrClassArg]] = Nil
+    def tpeRes: Option[STpeExpr] = Some(tpe)
+    def isTypeDesc: Boolean = false
+    override def toString = s"type $name[${tpeArgs.rep()}] = $tpe"
   }
 
   case class STpeArg(
@@ -654,6 +671,7 @@ object ScalanAst {
   }
 
   case class SClassArg(
+      owner: SSymbol,
       impFlag: Boolean,  /** true if this arg is has 'implicit' declaration */
       overFlag: Boolean, /**                     has 'override' declaration */
       valFlag: Boolean,  /**                     has 'val'      declaration */
@@ -663,6 +681,7 @@ object ScalanAst {
       annotations: List[SArgAnnotation] = Nil,
       isTypeDesc: Boolean = false
   ) extends SMethodOrClassArg with SEntityItem {
+    val symbol = SEntityItemSymbol(owner, name, DefType.ClassArg)
     override def tpeArgs: STpeArgs = Nil
     override def isAbstract: Boolean = false
     override def isImplicit: Boolean = impFlag
@@ -689,9 +708,10 @@ object ScalanAst {
   /** Correspond to TmplDef syntax construct of Scala.
     * (See http://scala-lang.org/files/archive/spec/2.12/05-classes-and-objects.html)
     */
-  abstract class SEntityDef extends SBodyItem with NamedDef {
-    def owner: SSymbol
+  abstract class SEntityDef extends SBodyItem with NamedDef { thisEntity =>
+    def owner: SSymbol   // actually SUnitSymbol | SEntitySymbol
     def name: String
+    val symbol = SEntitySymbol(owner, name)
 
     def tpeArgs: List[STpeArg]
 
@@ -861,7 +881,7 @@ object ScalanAst {
           ("c" + a.name, STraitCall("Cont", List(STraitCall(a.name))))
         else
           ("e" + a.name, STraitCall("Elem", List(STraitCall(a.name))))
-        SClassArg(true, false, true, argName, tpe, None, Nil, true)
+        SClassArg(owner, true, false, true, argName, tpe, None, Nil, true)
       }
       SClassArgs(args)
     }
@@ -870,7 +890,7 @@ object ScalanAst {
       val res = (this :: collectAncestorEntities.map(_._1))
         .flatMap(e => {
           val elems = e.body.collect {
-            case SMethodDef(name, _, _, Some(elemOrCont), true, _, _, _, _, true) =>
+            case SMethodDef(_, name, _, _, Some(elemOrCont), true, _, _, _, _, true) =>
               (name, elemOrCont)
           }
           elems
@@ -1143,7 +1163,7 @@ object ScalanAst {
         case STraitCall(n, args) =>
           typeDefs.get(n).map { td =>
             val subst = createSubst(td.tpeArgs, args)
-            (td, td.rhs.applySubst(subst))
+            (td, td.tpe.applySubst(subst))
           }
         case _ => None
       }
@@ -1181,6 +1201,8 @@ object ScalanAst {
 
   trait NamedDef {
     def name: String
+    def owner: SSymbol
+    def symbol: SNamedDefSymbol
     def getModuleTraitName: String = SUnitDef.moduleTraitName(name)
   }
 
@@ -1197,11 +1219,20 @@ object ScalanAst {
       isVirtualized: Boolean,
       okEmitOrigModuleTrait: Boolean = true)
       (@transient implicit val context: AstContext)
-    extends NamedDef {
-    //TODO unify Unit names
+    extends SEntityDef {
+    def owner: SSymbol = SNoSymbol
     val unitSym = context.newUnitSymbol(packageName, name)
+    override val symbol: SUnitSymbol = unitSym
     def unitName = unitSym.unitName
     def getUnitKey: String = unitName.mkFullName
+
+    def tpeArgs: List[STpeArg] = Nil
+    def body: List[SBodyItem] = typeDefs ++ traits ++ classes ++ methods
+    def companion = None
+    def isTrait: Boolean = true
+    def annotations: List[SEntityAnnotation] = Nil
+    val args = SClassArgs(Nil)
+    val implicitArgs = SClassArgs(Nil)
 
     def getEntity(name: String): SEntityDef = {
       findEntity(name).getOrElse {

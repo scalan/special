@@ -15,7 +15,7 @@ import scalan.meta.ScalanAstUtils._
 import scalan.meta.ScalanAstExtensions._
 import java.util.regex.Pattern
 
-import scalan.meta.Symbols.SSymbol
+import scalan.meta.Symbols.{SSymbol, SNoSymbol, SEntitySymbol}
 import scalan.util.StringUtil._
 import scalan.util.CollectionUtil._
 import scalan.util.FileUtil
@@ -187,21 +187,23 @@ trait ScalanParsers[+G <: Global] {
       case List(only) => only
       case seq => !!!(s"There must be exactly one trait with entity definition in a file, found ${seq.map(_.name.toString)}")
     }
-    val unitSym = ctx.astContext.newUnitSymbol(packageName, mainTraitTree.name.toString)
-    val mainTrait = traitDef(unitSym, mainTraitTree, Some(mainTraitTree))
-    val moduleName = mainTrait.name
-    val isDefinedModule = findClassDefByName(statements, mainTrait.getModuleTraitName).isDefined
+    val unitSym = ctx.astContext.newUnitSymbol(packageName, mainTraitTree.name)
+    val moduleName = unitSym.name
+    val isDefinedModule = findClassDefByName(
+      statements, SUnitDef.moduleTraitName(mainTraitTree.name)).isDefined
 
-    val defs = mainTrait.body
+    val ancestors = this.ancestors(unitSym, mainTraitTree.impl.parents).map(_.toTypeApply)
+    val selfType = this.selfType(unitSym, mainTraitTree.impl.self)
+    val defs = mainTraitTree.impl.body.flatMap(optBodyItem(unitSym, _, Some(mainTraitTree)))
     val typeDefs = defs.collectTypeDefs
     val traits = defs.collectTraits
-    val classes = mainTrait.body.collectClasses
+    val classes = defs.collectClasses
     val methods = defs.collectMethods
 
     SUnitDef(packageName, imports, moduleName,
       typeDefs,
       traits, classes, methods,
-      mainTrait.selfType, mainTrait.ancestors,
+      selfType, ancestors,
       None, ctx.isVirtualized, okEmitOrigModuleTrait = !isDefinedModule)
   }
 
@@ -264,18 +266,22 @@ trait ScalanParsers[+G <: Global] {
   }
 
   def traitDef(owner: SSymbol, td: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): STraitDef = {
-    val tpeArgs = this.tpeArgs(owner, td.tparams, Nil)
-    val ancestors = this.ancestors(owner, td.impl.parents).map(_.toTypeApply)
-    val body = td.impl.body.flatMap(optBodyItem(owner, _, Some(td)))
-    val selfType = this.selfType(owner, td.impl.self)
     val name = td.name.toString
-    val companion = findCompanion(owner, name, parentScope)
-    val annotations = parseAnnotations(td)((n,as) => SEntityAnnotation(n.lastComponent('.'), as.map(parseExpr(owner, _))))
+    val sym = SEntitySymbol(owner, name)
+    val tpeArgs = this.tpeArgs(sym, td.tparams, Nil)
+    val ancestors = this.ancestors(sym, td.impl.parents).map(_.toTypeApply)
+    val body = td.impl.body.flatMap(optBodyItem(sym, _, Some(td)))
+    val selfType = this.selfType(sym, td.impl.self)
+    val companion = findCompanion(owner, name, parentScope) // note: using owner, not sym
+    val annotations = parseAnnotations(td)((n, as) =>
+      SEntityAnnotation(n.lastComponent('.'), as.map(parseExpr(owner, _))))
     STraitDef(owner, name, tpeArgs, ancestors, body, selfType, companion, annotations)
   }
 
   def classDef(owner: SSymbol, cd: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): SClassDef = {
-    val ancestors = this.ancestors(owner, cd.impl.parents).map(_.toTypeApply)
+    val name = cd.name.toString
+    val sym = SEntitySymbol(owner, name)
+    val ancestors = this.ancestors(sym, cd.impl.parents).map(_.toTypeApply)
     val constructor = (cd.impl.body.collect {
       case dd: DefDef if dd.name == nme.CONSTRUCTOR => dd
     }) match {
@@ -285,26 +291,26 @@ trait ScalanParsers[+G <: Global] {
     // TODO simplify
     val (args, implicitArgs) = constructor.vparamss match {
       case Seq() =>
-        (classArgs(owner, List.empty), classArgs(owner, List.empty))
+        (classArgs(sym, List.empty), classArgs(sym, List.empty))
       case Seq(nonImplicitConArgs) =>
-        (classArgs(owner, nonImplicitConArgs), classArgs(owner, List.empty))
+        (classArgs(sym, nonImplicitConArgs), classArgs(sym, List.empty))
       case Seq(nonImplicitConArgs, implicitConArgs) =>
-        (classArgs(owner, nonImplicitConArgs), classArgs(owner, implicitConArgs))
+        (classArgs(sym, nonImplicitConArgs), classArgs(sym, implicitConArgs))
       case seq => !!!(s"Constructor of class ${cd.name} has more than 2 parameter lists, not supported")
     }
-    val tpeArgs = this.tpeArgs(owner, cd.tparams, constructor.vparamss.lastOption.getOrElse(Nil))
-    val body = cd.impl.body.flatMap(optBodyItem(owner, _, Some(cd)))
-    val selfType = this.selfType(owner, cd.impl.self)
+    val tpeArgs = this.tpeArgs(sym, cd.tparams, constructor.vparamss.lastOption.getOrElse(Nil))
+    val body = cd.impl.body.flatMap(optBodyItem(sym, _, Some(cd)))
+    val selfType = this.selfType(sym, cd.impl.self)
     val isAbstract = cd.mods.hasAbstractFlag
-    val name = cd.name.toString
     val companion = findCompanion(owner, name, parentScope)
     val annotations = parseAnnotations(cd)((n,as) => SEntityAnnotation(n,as.map(parseExpr(owner, _))))
     SClassDef(owner, cd.name, tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations)
   }
 
   def objectDef(owner: SSymbol, od: ModuleDef)(implicit ctx: ParseCtx): SObjectDef = {
-    val ancestors = this.ancestors(owner, od.impl.parents).map(_.toTypeApply)
-    val body = od.impl.body.flatMap(optBodyItem(owner, _, Some(od)))
+    val sym = SEntitySymbol(owner, od.name)
+    val ancestors = this.ancestors(sym, od.impl.parents).map(_.toTypeApply)
+    val body = od.impl.body.flatMap(optBodyItem(sym, _, Some(od)))
     SObjectDef(owner, od.name, ancestors, body)
   }
 
@@ -315,7 +321,7 @@ trait ScalanParsers[+G <: Global] {
     val isVal = vd.mods.isParamAccessor
     val annotations = parseAnnotations(vd)((n,as) => new SArgAnnotation(n, as.map(parseExpr(owner, _))))
     val isTypeDesc = TypeDescTpe.unapply(tpe).isDefined
-    SClassArg(vd.mods.isImplicit, isOverride, isVal, vd.name, tpe, default, annotations, isTypeDesc)
+    SClassArg(owner, vd.mods.isImplicit, isOverride, isVal, vd.name, tpe, default, annotations, isTypeDesc)
   }
 
   def classArgs(owner: SSymbol, vds: List[ValDef])(implicit ctx: ParseCtx): SClassArgs = SClassArgs(vds.filter(!isEvidenceParam(_)).map(classArg(owner, _)))
@@ -362,7 +368,7 @@ trait ScalanParsers[+G <: Global] {
     case td: TypeDef =>
       val tpeArgs = this.tpeArgs(owner, td.tparams, Nil)
       val rhs = tpeExpr(owner, td.rhs)
-      Some(STpeDef(td.name, tpeArgs, rhs))
+      Some(STpeDef(owner, td.name, tpeArgs, rhs))
     case td: ClassDef if td.mods.isTrait =>
       Some(traitDef(owner, td, parentScope))
     case cd: ClassDef if !cd.mods.isTrait =>
@@ -378,7 +384,7 @@ trait ScalanParsers[+G <: Global] {
         val tpeRes = optTpeExpr(owner, vd.tpt)
         val isImplicit = vd.mods.isImplicit
         val isLazy = vd.mods.isLazy
-        Some(SValDef(vd.name, tpeRes, isLazy, isImplicit, parseExpr(owner, vd.rhs)))
+        Some(SValDef(owner, vd.name, tpeRes, isLazy, isImplicit, parseExpr(owner, vd.rhs)))
       } else
         None
     case EmptyTree =>
@@ -450,7 +456,7 @@ trait ScalanParsers[+G <: Global] {
         tpt.toString == "TypeDesc"
     }
 
-    SMethodDef(md.name, tpeArgs, args, tpeRes, isImplicit, isOverride,
+    SMethodDef(owner, md.name, tpeArgs, args, tpeRes, isImplicit, isOverride,
       optOverloadId, annotations, optBody, isTypeDesc)
   }
 
@@ -547,17 +553,17 @@ trait ScalanParsers[+G <: Global] {
     case tpe => Some(parseType(tpe))
   }
 
-  def mkArrayMapMethod(tItem: STpeArg) = {
+  def mkArrayMapMethod(owner: SSymbol, tItem: STpeArg) = {
     val tB = STpeArg("B")
-    SMethodDef("map", List(tB),
+    SMethodDef(owner, "map", List(tB),
       List(SMethodArgs(List(SMethodArg(false, false, "f", STpeFunc(tItem.toTraitCall, tB.toTraitCall), None)))),
       Some(STraitCall("Array", List(tB.toTraitCall))),
       false, false, None, List(SMethodAnnotation("External", Nil)))
   }
 
-  def mkArrayZipMethod(tItem: STpeArg) = {
+  def mkArrayZipMethod(owner: SSymbol, tItem: STpeArg) = {
     val tB = STpeArg("B")
-    SMethodDef("zip", List(tB),
+    SMethodDef(owner, "zip", List(tB),
       List(SMethodArgs(List(SMethodArg(false, false, "ys", STraitCall("Array", List(tB.toTraitCall)), None)))),
       Some(STraitCall("Array", List(STpeTuple(List(tItem.toTraitCall, tB.toTraitCall))))),
       false, false, None, List(SMethodAnnotation("External", Nil)))
@@ -643,7 +649,7 @@ trait ScalanParsers[+G <: Global] {
       STuple(args.map(parseExpr(owner, _)), tree2Type(tree))
     case Block(init, last) => SBlock(init.map(parseExpr(owner, _)), parseExpr(owner, last), tree2Type(tree))
     case q"$mods val $tname: $tpt = $expr" =>
-      SValDef(tname, optTpeExpr(owner, tpt), mods.isLazy, mods.isImplicit, parseExpr(owner, expr))
+      SValDef(owner, tname, optTpeExpr(owner, tpt), mods.isLazy, mods.isImplicit, parseExpr(owner, expr))
     case q"if ($cond) $th else $el" =>
       SIf(parseExpr(owner, cond), parseExpr(owner, th), parseExpr(owner, el), tree2Type(tree))
     case q"$expr: $tpt" => SAscr(parseExpr(owner, expr), tpeExpr(owner, tpt), tree2Type(tree))
@@ -706,7 +712,7 @@ trait ScalanParsers[+G <: Global] {
     case single: SingleType => STpeSingle(parseType(single.pre), single.sym.nameString)
     case TypeBounds(lo, hi) => STpeTypeBounds(parseType(lo), parseType(hi))
     case ExistentialType(quant, under) =>
-      val quantified = quant map(q => STpeDef(q.nameString, Nil, STpeEmpty()))
+      val quantified = quant map(q => STpeDef(SNoSymbol, q.nameString, Nil, STpeEmpty()))
       val underlying = parseType(under)
       STpeExistential(underlying, quantified)
     case m: MethodType => parseMethodType(Nil, m)

@@ -261,8 +261,8 @@ trait ViewsDefs extends Views {
 implicit lazy val eA2 = iso2.eFrom;
 implicit lazy val eB1 = iso1.eTo;
 implicit lazy val eB2 = iso2.eTo
-    override lazy val eFrom: Elem[(A1, A2)] = element[(A1, A2)]
-override lazy val eTo: Elem[(B1, B2)] = element[(B1, B2)]
+    override lazy val eFrom: Elem[(A1, A2)] = implicitly[Elem[(A1, A2)]]
+override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     lazy val selfType = element[PairIso[A1, A2, B1, B2]]
   }
   // elem for concrete class
@@ -370,7 +370,7 @@ implicit val eB2 = p.iso2.eTo
     implicit lazy val eA2 = iso2.eFrom;
 implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[A2] = eA2
-override lazy val eTo: Elem[(Unit, B2)] = element[(Unit, B2)]
+override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     lazy val selfType = element[AbsorbFirstUnitIso[A2, B2]]
   }
   // elem for concrete class
@@ -462,7 +462,7 @@ implicit val eB2 = p.iso2.eTo
     implicit lazy val eA1 = iso1.eFrom;
 implicit lazy val eB1 = iso1.eTo
     override lazy val eFrom: Elem[A1] = eA1
-override lazy val eTo: Elem[(B1, Unit)] = element[(B1, Unit)]
+override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     lazy val selfType = element[AbsorbSecondUnitIso[A1, B1]]
   }
   // elem for concrete class
@@ -555,8 +555,8 @@ implicit val eB1 = p.iso1.eTo
 implicit lazy val eA2 = iso2.eFrom;
 implicit lazy val eB1 = iso1.eTo;
 implicit lazy val eB2 = iso2.eTo
-    override lazy val eFrom: Elem[$bar[A1, A2]] = element[$bar[A1, A2]]
-override lazy val eTo: Elem[$bar[B1, B2]] = element[$bar[B1, B2]]
+    override lazy val eFrom: Elem[$bar[A1, A2]] = implicitly[Elem[$bar[A1, A2]]]
+override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     lazy val selfType = element[SumIso[A1, A2, B1, B2]]
   }
   // elem for concrete class
@@ -768,8 +768,8 @@ implicit val eC = p.iso2.eTo
 implicit lazy val eB = iso1.eTo;
 implicit lazy val eC = iso2.eFrom;
 implicit lazy val eD = iso2.eTo
-    override lazy val eFrom: Elem[A => C] = element[A => C]
-override lazy val eTo: Elem[B => D] = element[B => D]
+    override lazy val eFrom: Elem[A => C] = implicitly[Elem[A => C]]
+override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     lazy val selfType = element[FuncIso[A, B, C, D]]
   }
   // elem for concrete class

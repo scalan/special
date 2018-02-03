@@ -535,7 +535,7 @@ object ScalanAstTransformers {
     }
     override def bodyTransform(body: List[SBodyItem]): List[SBodyItem] = {
       body filter{
-        case SMethodDef(_,_,_,Some(STraitCall("ClassTag", _)),true,_,_,_,_,_) => false
+        case SMethodDef(_,_,_,_,Some(STraitCall("ClassTag", _)),true,_,_,_,_,_) => false
         case _ => true
       } mapConserve bodyItemTransform
     }

@@ -88,7 +88,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
     val b = c.extractionBuilder()
 
     s"""
-      |${methodExtractorsString(c.module, config, clazz)}
+      |${methodExtractorsString(c.unit, config, clazz)}
       |
       |  def mk${c.typeDecl}
       |    (${fieldsWithType.rep()})${c.optimizeImplicits().implicitArgsDecl()}: Rep[${c.typeUse}] = {
@@ -250,7 +250,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       case Some(parent@STraitCall(context.Entity(m, e), parentTpeArgs))  =>
         (Some(parent), s"${e.name}Elem[${join(parentTpeArgs, toArgName)}]")
       case Some(p) => !!!(s"Unsupported parent type $p of the entity ${e.name}")
-      case None if e.module.isVirtualized =>
+      case None if e.unit.isVirtualized =>
         !!!(s"Entity ${e.name} must extend Def or another entity")
       case None => (None, defaultParentElem)
     }

@@ -1,5 +1,7 @@
 package scalan.plugin
 
+import java.sql.Statement
+
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.io.Path
@@ -10,6 +12,7 @@ import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstTransformers.isIgnoredExternalType
+import scalan.meta.Symbols.{SUnitSymbol, SNoSymbol, SEntitySymbol}
 
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
@@ -22,6 +25,25 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   override def isEnabled: Boolean = {
     val moduleName = s.moduleName
     s.snConfig.sourceModules.get(moduleName).isDefined
+  }
+
+  class CatchWrappersTraverser(us: SUnitSymbol, f: (SEntitySymbol,Tree) => Unit) extends Traverser {
+    var stack: List[SEntitySymbol] = List(us)   // stack of potentially nested entities
+    def currentEntity = stack.head
+
+    override def traverse(t: Tree) {
+      t match {
+        case cd: ClassDef =>
+          val es = SEntitySymbol(currentEntity, cd.name)
+          f(currentEntity, t)
+          stack = es :: stack  // push
+          super.traverse(t)
+          stack = stack.tail  // pop
+        case _ =>
+          f(currentEntity, t)
+          super.traverse(t)
+      }
+    }
   }
 
   val steps: List[PipelineStep] = List(
@@ -45,9 +67,12 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       }
     },
     ForEachUnitStep("wrapfrontend") { context => import context._;
-      val unitName = unit.source.file.name
-      if (isModuleUnit(unitName)) {
-        new ForeachTreeTraverser(catchWrapperUsage).traverse(unit.body)
+      val unitFileName = unit.source.file.name
+      if (isModuleUnit(unitFileName)) {
+        implicit val ctx = new ParseCtx(isVirtualized = false)(scalanizer.context)
+        val unitDef = unitDefFromTree(unitFileName, unit.body)
+        val t = new CatchWrappersTraverser(unitDef.unitSym, catchWrapperUsage)
+        t.traverse(unit.body)
       }
     },
     RunStep("enricher") { _ =>
