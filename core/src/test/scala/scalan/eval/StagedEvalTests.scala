@@ -8,6 +8,7 @@ class StagedEvalTests extends BaseMetaTests with TestContexts {
   class Ctx(implicit val context: AstContext) extends TestContext("StagedEval") with StagedEvaluation {}
   val ctx = new Ctx
   val evtr = new StatedEvaluator[ctx.type](ctx)
+//  val cols = parseModule(colsModule)
 
   def testMethod(methodDef: String): Unit = {
     implicit val parseCtx = new ParseCtx(isVirtualized = false)

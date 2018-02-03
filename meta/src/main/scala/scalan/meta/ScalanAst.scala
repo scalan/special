@@ -3,6 +3,7 @@ package scalan.meta
 import java.io.File
 import java.util.Objects
 
+import com.trueaccord.lenses.Updatable
 import com.typesafe.config.ConfigUtil
 
 import scala.collection.immutable.{HashMap, HashSet}
@@ -913,7 +914,7 @@ object ScalanAst {
       body: List[SBodyItem],
       selfType: Option[SSelfTypeDef],
       companion: Option[SEntityDef],
-      annotations: List[SEntityAnnotation] = Nil) extends SEntityDef {
+      annotations: List[SEntityAnnotation] = Nil) extends SEntityDef with Updatable[STraitDef] {
     def isTrait = true
 
     val args = SClassArgs(Nil)
@@ -948,7 +949,7 @@ object ScalanAst {
       selfType: Option[SSelfTypeDef],
       companion: Option[SEntityDef],
       isAbstract: Boolean,
-      annotations: List[SEntityAnnotation] = Nil) extends SEntityDef {
+      annotations: List[SEntityAnnotation] = Nil) extends SEntityDef with Updatable[SClassDef] {
     def isTrait = false
 
     def clean = {
@@ -964,7 +965,7 @@ object ScalanAst {
       owner: SSymbol,
       name: String,
       ancestors: List[STypeApply],
-      body: List[SBodyItem]) extends SEntityDef {
+      body: List[SBodyItem]) extends SEntityDef with Updatable[SObjectDef] {
     val args = SClassArgs(Nil)
 
     def tpeArgs = Nil
@@ -1219,7 +1220,7 @@ object ScalanAst {
       isVirtualized: Boolean,
       okEmitOrigModuleTrait: Boolean = true)
       (@transient implicit val context: AstContext)
-    extends SEntityDef {
+    extends SEntityDef with Updatable[SUnitDef] {
     def owner: SSymbol = SNoSymbol
     val unitSym = context.newUnitSymbol(packageName, name)
     override val symbol: SUnitSymbol = unitSym
@@ -1420,7 +1421,7 @@ object ScalanAst {
 
   def optimizeModuleImplicits(module: SUnitDef): SUnitDef = {
     implicit val ctx = module.context
-    val newEntities = module.traits.map(e => optimizeTraitImplicits(e))
+    val newTraits = module.traits.map(e => optimizeTraitImplicits(e))
     val newClasses = module.classes.map(c => optimizeClassImplicits(c))
     module.copy(
       traits = newEntities,
