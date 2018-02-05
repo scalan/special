@@ -6,15 +6,15 @@ class AstContextTests extends BaseMetaTests with Examples {
 
   describe("AstContext methods") {
     val m = parseModule(reactiveModule)
-    context.addModule(m)
+    context.addUnit(m)
     val cols = parseModule(colsVirtModule)
-    context.addModule(cols)
+    context.addUnit(cols)
     val warrays = parseModule(warraysModule)
-    context.addModule(warrays)
+    context.addUnit(warrays)
     val itersApi = parseModule(itersApiModule)
-    context.addModule(itersApi)
+    context.addUnit(itersApi)
     val itersImpl = parseModule(itersImplModule)
-    context.addModule(itersImpl)
+    context.addUnit(itersImpl)
 
     it("recognize type synonym") {
       def test(t: STpeExpr): Unit = {

@@ -7,7 +7,7 @@ import scala.reflect.internal.util.NoPosition
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent, PluginLoadException}
 import scalan.meta.{EntityManagement, TargetModuleConf, SourceModuleConf, ModuleConf}
-import scalan.meta.ScalanAst.AstContext
+import scalan.meta.AstContext
 import scalan.meta.scalanizer.{ScalanizerConfig, Scalanizer, ScalanizerState}
 import scalan.util.FileUtil
 import scalan.util.StringUtil.StringUtilExtensions

@@ -5,7 +5,7 @@ import scalan.meta.ScalanAst._
 class EntityTests extends BaseMetaTests with Examples {
 
   val cols = parseModule(colsVirtModule)
-  context.addModule(cols)
+  context.addUnit(cols)
   val eCollection = cols.getEntity("Collection")
   val eColOverArray = cols.getEntity("ColOverArray")
   val ePairCollection = cols.getEntity("PairCollection")

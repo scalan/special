@@ -25,10 +25,10 @@ trait ScalanizerState[+G <: Global] {
   }
 
   def getUnit(packageName: String, unitName: String): SUnitDef = {
-    scalanizer.context.getModule(packageName, unitName)
+    scalanizer.context.getUnit(packageName, unitName)
   }
 
   def addUnit(unit: SUnitDef) = {
-    scalanizer.context.addModule(unit)
+    scalanizer.context.addUnit(unit)
   }
 }

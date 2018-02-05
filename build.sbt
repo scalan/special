@@ -129,7 +129,8 @@ lazy val core = Project("scalan-core", file("core"))
     libraryDependencies ++= Seq(
       "cglib" % "cglib" % "3.2.3",
       "org.objenesis" % "objenesis" % "2.4",
-      "com.github.kxbmap" %% "configs-java7" % "0.3.0"
+      "com.github.kxbmap" %% "configs-java7" % "0.3.0",
+      "com.trueaccord.lenses" %% "lenses" % "0.4.12"
     ))
 
 lazy val kotlinBackend = Project("scalan-kotlin-backend", file("kotlin-backend")).

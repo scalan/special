@@ -3,7 +3,6 @@ package scalan.meta
 import java.util.Objects
 
 import Symbols._
-import scalan.meta.ScalanAst.AstContext
 
 trait Symbols { this: AstContext =>
 

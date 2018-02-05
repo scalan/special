@@ -11,7 +11,7 @@ import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.meta.Symbols.{SSymbol, SEntitySymbol}
 import scalan.util.CollectionUtil._
-import scalan.meta.{SName, SourceModuleConf, ModuleConf, ScalanCodegen}
+import scalan.meta._
 
 abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) { pipeline =>
   import scalanizer._

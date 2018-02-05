@@ -6,7 +6,7 @@ import scala.tools.nsc.Global
 import scala.tools.nsc.Settings
 import scala.tools.nsc.reporters.StoreReporter
 import scala.reflect.internal.util.{BatchSourceFile, SourceFile}
-import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SExpr, SMethodDef, SBodyItem, AstContext}
+import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SExpr, SMethodDef, SBodyItem}
 import scalan.meta.Symbols.SSymbol
 
 trait ScalanParsersEx[G <: Global]

@@ -9,11 +9,11 @@ import scalan.util.{ReflectionUtil, FileUtil}
 trait Modules extends Base { self: Scalan =>
   private[scalan] lazy val parsers = {
     val parsers = new Parsers(BoilerplateToolRun.allConfigs)
-    parsers.context.loadModulesFromResources()
+    parsers.context.loadUnitsFromResources()
     parsers
   }
 
-  private[this] lazy val modules = parsers.context.modules
+  private[this] lazy val modules = parsers.context.units
 
   def getModules: mutable.Map[String, SUnitDef] = modules
 
@@ -22,9 +22,9 @@ trait Modules extends Base { self: Scalan =>
   def registerModule(moduleInfo: ModuleInfo) = {
     val pack = moduleInfo.packageName
     val name = moduleInfo.moduleName
-    if (!parsers.context.hasModule(pack, name)) {
-      val m = parsers.loadModuleDefFromResource(moduleInfo.sourceFileName)
-      parsers.context.addModule(m)
+    if (!parsers.context.hasUnit(pack, name)) {
+      val m = parsers.loadUnitDefFromResource(moduleInfo.sourceFileName)
+      parsers.context.addUnit(m)
       println(s"WARNING: module $pack.$name added by registerModule")
     }
   }

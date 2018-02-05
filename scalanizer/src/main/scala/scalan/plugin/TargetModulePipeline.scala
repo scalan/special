@@ -145,7 +145,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       for (srcModule <- target.sourceModules.values) {
         for (srcUnitConf <- srcModule.units.values) {
           val prepared = prepareSourceUnit(srcUnitConf, target)
-          context.addModule(prepared)
+          context.addUnit(prepared)
           val name = SName(prepared.packageName, prepared.name)
           preparedUnits += ((name, (prepared, srcUnitConf)))
         }

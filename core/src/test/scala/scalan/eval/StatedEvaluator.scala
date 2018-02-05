@@ -1,7 +1,8 @@
 package scalan.eval
 
 import scalan.Scalan
-import scalan.meta.ScalanAst.{SExpr, AstContext, SMethodDef, SConst}
+import scalan.meta.AstContext
+import scalan.meta.ScalanAst.{SExpr, SConst, SMethodDef}
 
 trait StagedEvaluation extends Scalan {
   implicit val context: AstContext
@@ -17,7 +18,7 @@ trait StagedEvaluation extends Scalan {
 
 class StatedEvaluator[IR <: StagedEvaluation](val IR: IR) {
   import IR._
-  def eval[A](expr: SExpr): Rep[A] = //evalStep(ExprNode(expr), Nil).asRep[A]
+  def eval[A](expr: SExpr)(implicit ctx: AstContext): Rep[A] = //evalStep(ExprNode(expr), Nil).asRep[A]
     expr match {
       case md: SMethodDef =>
         val f = fun { x: Rep[Int] => x + 1 }

@@ -2,7 +2,7 @@ package scalan.meta
 
 import scala.tools.nsc.Global
 import scalan.BaseNestedTests
-import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SClassDef, STraitDef, SMethodDef, AstContext}
+import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SClassDef, STraitDef, SMethodDef}
 import scalan.meta.Symbols.SSymbol
 
 trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {

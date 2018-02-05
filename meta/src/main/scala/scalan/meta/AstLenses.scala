@@ -6,6 +6,26 @@ import scalan.meta.ScalanAst._
 import scalan.meta.Symbols.SSymbol
 
 object AstLenses {
+  implicit class SeqLikeLens[U, A, Coll[A] <: collection.SeqLike[A, Coll[A]]](val lens: Lens[U, Coll[A]]) extends AnyVal {
+    type CBF = collection.generic.CanBuildFrom[Coll[A], A, Coll[A]]
+
+    private def field(getter: Coll[A] => A)(setter: (Coll[A], A) => Coll[A]): Lens[U, A] =
+      lens.compose[A](Lens[Coll[A], A](getter)(setter))
+
+    def find(p: A => Boolean)(implicit cbf: CBF): Lens[U, A] = {
+      def getter(coll: Coll[A]): A = {
+        val i = coll.indexWhere(p)
+        val res = if (i != -1) coll.apply(i) else null.asInstanceOf[A]
+        res
+      }
+      def setter(coll: Coll[A], v: A) = {
+        val i = coll.indexWhere(p)
+        if (i != -1) coll.updated(i, v) else coll
+      }
+      field(getter)(setter)
+    }
+  }
+
   implicit class SUnitDefLens[U](_l: Lens[U, SUnitDef])(implicit ctx: AstContext) extends ObjectLens[U, SUnitDef](_l) {
     def imports: Lens[U, List[SImportStat]] = field(_.imports)((c, f) => c.copy(imports = f))
     def name: Lens[U, String] = field(_.name)((c, f) => c.copy(name = f))
@@ -49,4 +69,6 @@ object AstLenses {
     def ancestors: Lens[U, List[STypeApply]] = field(_.ancestors)((c, f) => c.copy(ancestors = f))
     def body: Lens[U, List[SBodyItem]] = field(_.body)((c, f) => c.copy(body = f))
   }
+
+
 }

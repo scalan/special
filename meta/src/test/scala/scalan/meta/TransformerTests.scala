@@ -11,7 +11,7 @@ class TransformerTests extends BaseMetaTests with Examples {
   val b = new SModuleBuilder
 
   describe("Rep removing") {
-    context.addModule(colsVirt)
+    context.addUnit(colsVirt)
     val trans = new TypeTransformerInAst(new RepTypeRemover())
     def test(m: SUnitDef, typeIn: SUnitDef => STpeExpr): Unit = {
       val before = typeIn(m)

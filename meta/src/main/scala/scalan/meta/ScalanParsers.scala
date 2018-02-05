@@ -96,7 +96,7 @@ trait ScalanParsers[+G <: Global] {
       throw new Exception(s"Unexpected tree in $file:\n\n$tree")
   }
 
-  def loadModuleDefFromResource(fileName: String): SUnitDef = {
+  def loadUnitDefFromResource(fileName: String): SUnitDef = {
     try {
       val sourceCode = FileUtil.readAndCloseStream(this.getClass.getClassLoader.getResourceAsStream(fileName))
       val sourceFile = new BatchSourceFile(fileName, sourceCode)

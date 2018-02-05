@@ -92,7 +92,7 @@ class EmitTests extends BaseMetaTests with Examples {
 
   describe("emitImplicitElemDeclByTpePath") {
     val module = parseModule(reactiveModule)
-    context.addModule(module)
+    context.addUnit(module)
     val us = module.unitSym
     implicit val ctx = new ParseCtx(module.isVirtualized)
     testEmit(module, "A", "A", "")

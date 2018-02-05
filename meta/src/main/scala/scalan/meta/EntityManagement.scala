@@ -31,7 +31,7 @@ class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends Lazy
     try {
       val module = parseUnitFile(file)(new ParseCtx(c.isVirtualized))
       inform(s"Adding unit parsed from ${file} (relative to ${FileUtil.currentWorkingDir })")
-      context.addModule(module)
+      context.addUnit(module)
       Some((c.name, new EntityManager(module.name, file, resourceFile, module, c)))
     } catch {
       case e: Exception =>
