@@ -378,11 +378,12 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     *
     * @param isCompanion specifies where to put the method (value) - into class or its companion. */
   def addMember(isCompanion: Boolean, member: SMethodDef, wrapper: WrapperDescr): WrapperDescr = {
+    val sig = member.signature
     def isAlreadyAdded(e: STraitDef) = {
       if (isCompanion) {
-        e.companion.fold(false)(_.body.contains(member))
+        e.companion.fold(false)(_.body.exists(_.signature == sig))
       }
-      else e.body.contains(member)
+      else e.body.exists(_.signature == sig)
     }
 
     val module = wrapper.module

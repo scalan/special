@@ -33,6 +33,9 @@ object StringUtil {
           stripped + (if (newSuffix == null) "" else newSuffix)
       }
     }
+
+    def opt(show: String => String = _.toString, default: String = ""): String =
+      if (str.nonEmpty) show(str) else default
   }
 
 }

@@ -48,8 +48,8 @@ class CollectionUtilTests extends BaseTests {
 
   test("mapFirst") {
     val xs = List(1, 2, 3)
-    xs.mapFirst(x => if (x > 2) Some(s"x = $x") else None) should be(Some("x = 3"))
-    xs.mapFirst(x => if (x > 3) Some(x) else None) should be(None)
+    xs.findMap(x => if (x > 2) Some(s"x = $x") else None) should be(Some("x = 3"))
+    xs.findMap(x => if (x > 3) Some(x) else None) should be(None)
   }
 
   val items: Iterable[(Int, String)] = Array((1, "a"), (2, "b"), (1, "c"))

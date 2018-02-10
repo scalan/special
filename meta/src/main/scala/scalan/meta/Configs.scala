@@ -8,7 +8,12 @@ import scalan.util.StringUtil._
 import scala.collection.mutable.{Map => MMap}
 
 sealed trait Conf {
+  /** Module name, which is also name of the directory */
   def name: String
+
+  /** Directory prefix relative to project root.
+    * Allows to put modules in sub-directories of the project. */
+  def baseDir: String
 }
 
 class ConfMap[C <: Conf] private(val table: MMap[String, C]) extends (String => C) {
@@ -49,12 +54,15 @@ abstract class ModuleConf extends Conf {
   def dependsOnModules(): Set[ModuleConf] =
     GraphUtil.depthFirstSetFrom(Set(this.dependencies.values.toSeq: _*))(m => m.dependencies.values)
 
-  def getResourceHome = s"$name/${ModuleConf.ResourcesDir }"
+  def getSourcesRootDir = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }"
 
-  def getWrappersHome = getResourceHome + "/wrappers"
+  def getResourcesRootDir = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.ResourcesDir }"
 
-  private def unitConfigTemplate(name: String, entityFile: String) =
+  def getWrappersRootDir = getResourcesRootDir + "/wrappers"
+
+  private def unitConfigTemplate(baseDir: String, name: String, entityFile: String) =
     UnitConfig(
+      baseDir = baseDir,
       name = name, srcPath = "", resourcePath = "", entityFile = entityFile,
       baseContextTrait = "scalan.Scalan", // used like this: trait ${module.name}Defs extends ${config.baseContextTrait.opt(t => s"$t with ")}${module.name} {
       extraImports = List(
@@ -65,9 +73,9 @@ abstract class ModuleConf extends Conf {
     )
 
   def mkUnit(unitName: String, unitFile: String, isVirtualized: Boolean) =
-    unitConfigTemplate(unitName, unitFile).copy(
-      srcPath = s"$name/${ModuleConf.SourcesDir }",
-      resourcePath = s"$name/${ModuleConf.ResourcesDir }",
+    unitConfigTemplate(baseDir, unitName, unitFile).copy(
+      srcPath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }",
+      resourcePath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.ResourcesDir }",
       isVirtualized = isVirtualized
     )
 }
@@ -80,6 +88,7 @@ object ModuleConf {
 }
 
 class TargetModuleConf(
+    val baseDir: String,
     val name: String,
     val sourceModules: ConfMap[SourceModuleConf]
 ) extends ModuleConf {
@@ -89,6 +98,7 @@ class TargetModuleConf(
 }
 
 class SourceModuleConf(
+    val baseDir: String,
     val name: String,
     val units: ConfMap[UnitConfig] = ConfMap(),
     val deps: ConfMap[SourceModuleConf] = ConfMap()
@@ -109,11 +119,12 @@ class SourceModuleConf(
 
   def listWrapperFiles: Array[File] = {
     import FileUtil._
-    listFilesRecursive(file(getWrappersHome))
+    listFilesRecursive(file(getWrappersRootDir))
   }
 }
 
 case class UnitConfig(
+    baseDir: String,  // path relative to the project root dir
     name: String,
     srcPath: String, // the base path to where root package is located (example: <module>/<ModuleConf.SourceDir>)
     resourcePath: String, // example: <module>/<ModuleConf.ResourcesDir>

@@ -135,7 +135,10 @@ object CollectionUtil {
 
   implicit class TraversableOps[A, Source[X] <: Traversable[X]](xs: Source[A]) {
 
-    def mapFirst[B](f: A => Option[B]): Option[B] = {
+    /** Applies 'f' to elements of 'xs' until 'f' returns Some(b),
+      * which is immediately returned as result of this method.
+      * If not such element found, returns None as result. */
+    def findMap[B](f: A => Option[B]): Option[B] = {
       for (x <- xs) {
         val y = f(x)
         if (y.isDefined) return y

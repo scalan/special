@@ -105,19 +105,19 @@ lazy val scalanizer = Project("scalanizer", file("scalanizer"))
     addArtifact(artifact in (Compile, assembly), assembly)
   )
 
-lazy val libraryapi = Project("library-api", file("library-api"))
+lazy val libraryapi = Project("library-api", file("library/library-api"))
   .dependsOn(meta, scalanizer, macros)
   .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "macro-compat" % "1.1.1"
     ))
 
-lazy val libraryimpl = Project("library-impl", file("library-impl"))
+lazy val libraryimpl = Project("library-impl", file("library/library-impl"))
   .dependsOn(meta, scalanizer, libraryapi % allConfigDependency)
   .settings(libraryDefSettings,
     libraryDependencies ++= Seq())
 
-lazy val library = Project("library", file("library"))
+lazy val library = Project("library", file("library/library"))
   .dependsOn(common % allConfigDependency, core % allConfigDependency, libraryimpl)
   .settings(//commonSettings,
     libraryDefSettings,

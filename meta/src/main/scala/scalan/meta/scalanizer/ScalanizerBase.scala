@@ -41,11 +41,11 @@ trait ScalanizerBase[+G <: Global]
   }
 
   def saveCodeToResources(module: SourceModuleConf, packageName: String, fileName: String, code: String): Unit = {
-    saveCode(module.getResourceHome, packageName, fileName, ModuleConf.ResourceFileExtension, code)
+    saveCode(module.getResourcesRootDir, packageName, fileName, ModuleConf.ResourceFileExtension, code)
   }
 
   def saveWrapperCode(module: SourceModuleConf, packageName: String, fileName: String, code: String) = {
-    saveCode(module.getResourceHome + "/wrappers", packageName, fileName, ModuleConf.ResourceFileExtension, code)
+    saveCode(module.getWrappersRootDir, packageName, fileName, ModuleConf.ResourceFileExtension, code)
   }
 
   def saveImplCode(sourceRoot: String, packageName: String, unitName: String, ext: String, code: String): File = {

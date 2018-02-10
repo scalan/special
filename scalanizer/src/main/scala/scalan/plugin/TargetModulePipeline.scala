@@ -45,14 +45,14 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   }
 
   def copyScalanizedUnit(preparedUnit: SUnitDef, unitConf: UnitConfig, target: TargetModuleConf): Unit = {
-    val targetSrcRoot = s"${target.name }/${ModuleConf.SourcesDir }"
+    val targetSrcRoot = target.getSourcesRootDir
     val targetSrcFile = FileUtil.file(targetSrcRoot, unitConf.entityFile)
     val isNewTargetFile = !targetSrcFile.exists
 
     implicit val genCtx = new GenCtx(context, isVirtualized = true, toRep = true)
     val preparedTree = genPackageDef(preparedUnit)
     val code = showCode(preparedTree)
-    saveCode(s"${target.name }/${ModuleConf.ResourcesDir}",
+    saveCode(target.getResourcesRootDir,
         preparedUnit.packageName, preparedUnit.name, ".scalan", code)
     saveCode(targetSrcRoot, preparedUnit.packageName, preparedUnit.name, ".scala", code)
 
@@ -81,7 +81,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     wrappers.get(wName) match {
       case Some(existingUnit) =>
         val merger = new SUnitMerger(existingUnit)(scalanizer.context)
-        val newUnit =merger.merge(unit)
+        val newUnit = merger.merge(unit)
         wrappers(wName) = newUnit
       case None =>
         wrappers(wName) = unit
@@ -105,7 +105,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       scalanizer.inform(s"Processing target module '${scalanizer.moduleName }'")
       // merge all partial wrappers from source modules
       val target = snConfig.targetModules(moduleName)
-      val sourceRoot = s"${target.name}/${ModuleConf.SourcesDir}"
+      val sourceRoot = target.getSourcesRootDir
       for (source <- target.sourceModules.values) {
         for (wFile <- source.listWrapperFiles) {
           val unit = parseUnitFile(wFile)(new ParseCtx(isVirtualized = true)(context))
@@ -118,7 +118,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       var wrappersCake = initWrapperCake()
       for (w <- wrappers.values) {
         val wPackage = genPackageDef(w, isVirtualized = true)(context)
-        val resourcesRoot = s"${target.name}/${ModuleConf.ResourcesDir}"
+        val resourcesRoot = target.getResourcesRootDir
         saveCode(resourcesRoot, w.packageName, w.name, ".scalan", showCode(wPackage))
 
         val optW = optimizeModuleImplicits(w)

@@ -6,12 +6,12 @@ class ConfTests extends BaseMetaTests with Examples {
   val warrays2 = parseModule(warrays2Module)
   describe("Module dependencies") {
     it("collectInputModules") {
-      val warrayModule = new SourceModuleConf("warrays")
+      val warrayModule = new SourceModuleConf("", "warrays")
           .addUnit("WArrays.scala", "scala/WArrays.scala")
-      val apiModule = new SourceModuleConf("library-api")
+      val apiModule = new SourceModuleConf("", "library-api")
           .addUnit("Cols.scala", "scalan/collection/Cols.scala")
           .dependsOn(warrayModule)
-      val implModule = new SourceModuleConf("library-impl")
+      val implModule = new SourceModuleConf("", "library-impl")
           .addUnit("ColsOverArrays.scala", "scalan/collection/ColsOverArrays.scala")
           .dependsOn(apiModule, warrayModule)
       implModule.dependsOnModules() shouldBe (Set(warrayModule, apiModule))

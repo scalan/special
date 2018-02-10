@@ -36,7 +36,7 @@ class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
       val anySource = run.compiledFiles.headOption
       anySource match {
         case Some(file) =>
-          var name = List(SourcesDir, TestsDir).mapFirst { dir =>
+          var name = List(SourcesDir, TestsDir).findMap { dir =>
             val n = FileUtil.extractModuleName(file, dir)
             if (n.isNullOrEmpty) None else Some(n)
           }

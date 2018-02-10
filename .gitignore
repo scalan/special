@@ -1,6 +1,7 @@
 .idea/
 .idea_modules/
 target/
+library/
 lib_managed/
 project/plugins/lib_managed/
 project/plugins/src_managed/

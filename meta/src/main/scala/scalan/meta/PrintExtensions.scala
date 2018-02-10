@@ -31,11 +31,6 @@ object PrintExtensions {
     def opt(show: => String, default: => String = ""): String = if(opt) show else default
   }
 
-  implicit class StringExtensions(val str: String) extends AnyVal {
-    def opt(show: String => String = _.toString, default: String = ""): String =
-      (!str.isEmpty).opt(show(str), default)
-  }
-
   def join(xs: Any*) = xs.map {
     case x: Iterable[_] => x.rep()
     case x => x.toString

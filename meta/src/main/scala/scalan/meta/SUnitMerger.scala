@@ -22,16 +22,6 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
     to
   }
 
-  type DefSig = (String, List[List[STpeExpr]])
-
-  def bodyItemSig(bi: SBodyItem): DefSig = bi match {
-    case md: SMethodDef => methodSig(md)
-    case ed: SEntityDef => (ed.name, Nil)
-    case is: SImportStat => (is.name, Nil)
-    case td: STpeDef => (td.name, Nil)
-    case vd: SValDef => (vd.name, Nil)
-  }
-
   def mergeVals(to: SValDef, from: SValDef) = {
     to
   }
@@ -65,7 +55,7 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
     checkEquals(to.tpeArgs, from.tpeArgs)(s"Cannot merge traits with different type args: $to and $from")
     checkEquals(to.ancestors, from.ancestors)(s"Cannot merge traits with different ancestors $to and $from")
     checkEquals(to.selfType, from.selfType)(s"Cannot merge traits with different self types $to and $from")
-    val newBody = to.body.mergeWith(from.body, bodyItemSig, mergeBodyItems)
+    val newBody = to.body.mergeWith(from.body, _.signature, mergeBodyItems)
     val newComp = to.companion.mergeWith(from.companion, mergeEntities)
     val newAnnotations = to.annotations.mergeWith(from.annotations, _.annotationClass, mergeEntityAnnotations)
     to.copy(body = newBody, selfType = to.selfType, companion = newComp, annotations = newAnnotations)
@@ -84,16 +74,12 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
     to
   }
 
-  def methodSig(m: SMethodDef): DefSig = {
-    (m.name, m.argSections.map(sec => sec.args.map(a => a.tpe)))
-  }
-
   def merge(uFrom: SUnitDef): SUnitDef = {
     val newImports = (uTo.imports ++ uFrom.imports).distinct
     val newTypes = uTo.typeDefs.mergeWith(uFrom.typeDefs, _.name, mergeTypes)
     val newTraits = uTo.traits.mergeWith(uFrom.traits, _.name, mergeTraits)
     val newClasses = uTo.classes.mergeWith(uFrom.classes, _.name, mergeClasses)
-    val newMethods = uTo.methods.mergeWith(uFrom.methods, methodSig, mergeMethods)
+    val newMethods = uTo.methods.mergeWith(uFrom.methods, _.signature, mergeMethods)
     SUnitDef(
       uTo.packageName, newImports, uTo.name,
       newTypes, newTraits, newClasses, newMethods, uTo.selfType, uTo.ancestors,

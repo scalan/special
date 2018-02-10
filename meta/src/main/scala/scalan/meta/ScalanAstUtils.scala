@@ -73,7 +73,7 @@ object ScalanAstUtils {
   def genDescMethodsByTypeArgs(owner: SEntitySymbol, tpeArgs: List[STpeArg]): List[SMethodDef] = {
     tpeArgs.map{ targ =>
       if (!targ.isHighKind) genImplicitMethod(owner, targ, "e", "Elem")
-      else if (targ.tparams.size == 1) genImplicitMethod(owner, targ, "e", "Elem")
+      else if (targ.tparams.size == 1) genImplicitMethod(owner, targ, "c", "Cont")
       else !!!(s"Cannot create descriptor method for a high-kind tpeArg $targ " +
       s"with with more than one type arguments ${targ.tparams}. Only single argument supported.")
     }

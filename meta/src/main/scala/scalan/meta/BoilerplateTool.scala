@@ -5,6 +5,7 @@ import com.typesafe.scalalogging.StrictLogging
 class BoilerplateTool extends StrictLogging {
   def coreMainConfig(name: String, entityFile: String) =
     UnitConfig(
+      baseDir = "",
       name = name, entityFile = entityFile,
       srcPath = "core/src/main/scala",
       resourcePath = "core/src/main/resources",
@@ -13,6 +14,7 @@ class BoilerplateTool extends StrictLogging {
 
   def coreTestConfig(name: String, entityFile: String) =
     UnitConfig(
+      baseDir = "",
       name = name, entityFile = entityFile,
       srcPath = "core/src/test/scala",
       resourcePath = "core/src/test/resources",

@@ -8,9 +8,9 @@ import scalan.meta.ScalanAst.{WrapperConfig, NonWrapper}
 import scalan.meta.scalanizer.ScalanizerConfig
 
 class ScalanizerPluginConfig extends ScalanizerConfig {
-  val apiModule = new SourceModuleConf("library-api")
+  val apiModule = new SourceModuleConf("library", "library-api")
       .addUnit("Cols.scala", "scalan/collection/Cols.scala")
-  val implModule = new SourceModuleConf("library-impl")
+  val implModule = new SourceModuleConf("library", "library-impl")
       .addUnit("ColsOverArrays.scala", "scalan/collection/ColsOverArrays.scala")
       .dependsOn(apiModule)
 
@@ -19,7 +19,7 @@ class ScalanizerPluginConfig extends ScalanizerConfig {
 
   /** Modules that assemble virtualized units from source modules into virtualized cakes */
   val targetModules: ConfMap[TargetModuleConf] = ConfMap()
-      .add(new TargetModuleConf("library",
+      .add(new TargetModuleConf("library", "library",
         sourceModules = ConfMap()
             .add(apiModule)
             .add(implModule)
