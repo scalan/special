@@ -2,6 +2,8 @@
 .idea_modules/
 target/
 library/
+smart/
+npu/
 lib_managed/
 project/plugins/lib_managed/
 project/plugins/src_managed/
