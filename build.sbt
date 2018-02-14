@@ -107,20 +107,25 @@ lazy val scalanizer = Project("scalanizer", file("scalanizer"))
 
 lazy val libraryapi = Project("library-api", file("library/library-api"))
   .dependsOn(meta, scalanizer, macros)
-  .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
+  .settings(
+    commonSettings
+//    libraryDefSettings
+    :+ addCompilerPlugin(paradise),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "macro-compat" % "1.1.1"
     ))
 
 lazy val libraryimpl = Project("library-impl", file("library/library-impl"))
   .dependsOn(meta, scalanizer, libraryapi % allConfigDependency)
-  .settings(libraryDefSettings,
+  .settings(
+    commonSettings,
+    //libraryDefSettings,
     libraryDependencies ++= Seq())
 
 lazy val library = Project("library", file("library/library"))
   .dependsOn(common % allConfigDependency, core % allConfigDependency, libraryimpl)
-  .settings(//commonSettings,
-    libraryDefSettings,
+  .settings(commonSettings,
+//    libraryDefSettings,
     libraryDependencies ++= Seq())
 
 lazy val smartapi = Project("smart-api", file("smart/smart-api"))
@@ -149,7 +154,9 @@ lazy val npuapi = Project("npu-api", file("npu/npu-api"))
       ))
 
 lazy val npuimpl = Project("npu-impl", file("npu/npu-impl"))
-    .dependsOn(meta, scalanizer, npuapi % allConfigDependency)
+    .dependsOn(meta, scalanizer,
+      npuapi % allConfigDependency,
+      libraryapi % allConfigDependency)
     .settings(libraryDefSettings,
       libraryDependencies ++= Seq())
 
@@ -157,6 +164,8 @@ lazy val npu = Project("npu", file("npu/npu-library"))
     .dependsOn(
       common % allConfigDependency,
       core % allConfigDependency,
+      libraryapi % allConfigDependency,
+      libraryimpl % allConfigDependency,
       npuapi % allConfigDependency,
       npuimpl % allConfigDependency)
     .settings(//commonSettings,
