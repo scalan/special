@@ -1,5 +1,8 @@
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+//resolvers += Resolver.mavenLocal
+
+unmanagedBase := baseDirectory.value / "libs"
 
 lazy val buildSettings = Seq(
   scalaVersion := "2.11.8",
@@ -129,9 +132,10 @@ lazy val library = Project("library", file("library/library"))
     libraryDependencies ++= Seq())
 
 lazy val smartapi = Project("smart-api", file("smart/smart-api"))
-    .dependsOn(meta, scalanizer, macros)
+    .dependsOn(common % allConfigDependency, meta, scalanizer, macros)
     .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
+        "org.scodec" %% "scodec-core" % "1.10.3",
         "org.typelevel" %% "macro-compat" % "1.1.1"
       ))
 
@@ -151,14 +155,19 @@ lazy val npuapi = Project("npu-api", file("npu/npu-api"))
     .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
         "org.typelevel" %% "macro-compat" % "1.1.1"
-      ))
+//        , "ml.dmlc.mxnet" %% "mxnet-full_2.11-osx-x86_64-cpu" % "1.1.0-SNAPSHOT"
+      ),
+      unmanagedJars in Compile += file("libs/mxnet-core_2.11-1.1.0-SNAPSHOT.jar"))
 
 lazy val npuimpl = Project("npu-impl", file("npu/npu-impl"))
     .dependsOn(meta, scalanizer,
       npuapi % allConfigDependency,
       libraryapi % allConfigDependency)
     .settings(libraryDefSettings,
-      libraryDependencies ++= Seq())
+      libraryDependencies ++= Seq(
+        "org.scalanlp" %% "breeze" % "0.13.2"
+        ),
+      unmanagedJars in Compile += file("libs/mxnet-core_2.11-1.1.0-SNAPSHOT.jar"))
 
 lazy val npu = Project("npu", file("npu/npu-library"))
     .dependsOn(
