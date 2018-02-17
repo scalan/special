@@ -42,7 +42,7 @@ If you want to start working on an issue (existing or one you just raised), plea
 
 ## Acknowledgments
 
-We thank JetBrains for [supporting](https://www.jetbrains.com/buy/opensource/) project since 2016 by providing All Products Pack subscription.
+We thank JetBrains for [supporting](https://www.jetbrains.com/buy/opensource/) Scalan project since 2016 by providing All Products Pack subscription.
 
 ## See also
 
