@@ -40,6 +40,10 @@ Issues with the `low-hanging fruit` label should be easy to fix if you want some
 
 If you want to start working on an issue (existing or one you just raised), please label it `in progress`.
 
+## Acknowledgments
+
+We thank JetBrains for [supporting](https://www.jetbrains.com/buy/opensource/) project since 2016 by providing All Products Pack subscription.
+
 ## See also
 
 [Scalan](https://github.com/scalan/scalan) - the original framework for domain-specific compilation. Currently frozen and most usefull ideas are being reincarnated in Special. 
