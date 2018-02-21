@@ -179,7 +179,7 @@ lazy val npu = Project("npu", file("npu/npu-library"))
       npuimpl % allConfigDependency)
     .settings(//commonSettings,
       libraryDefSettings,
-      libraryDependencies ++= Seq())
+      libraryDependencies ++= Seq("args4j" % "args4j" % "2.33"))
 
 lazy val core = Project("scalan-core", file("core"))
   .dependsOn(common % allConfigDependency, meta % allConfigDependency, macros)
