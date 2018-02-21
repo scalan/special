@@ -164,9 +164,7 @@ lazy val npuimpl = Project("npu-impl", file("npu/npu-impl"))
       npuapi % allConfigDependency,
       libraryapi % allConfigDependency)
     .settings(libraryDefSettings,
-      libraryDependencies ++= Seq(
-        "org.scalanlp" %% "breeze" % "0.13.2"
-        ),
+      libraryDependencies ++= Seq(),
       unmanagedJars in Compile += file("libs/mxnet-core_2.11-1.1.0-SNAPSHOT.jar"))
 
 lazy val npu = Project("npu", file("npu/npu-library"))
