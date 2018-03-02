@@ -8,21 +8,33 @@ import scalan.meta.ScalanAst.{WrapperConfig, NonWrapper}
 import scalan.meta.scalanizer.ScalanizerConfig
 
 class ScalanizerPluginConfig extends ScalanizerConfig {
-  val apiModule = new SourceModuleConf("library", "library-api")
+  val libarayApiModule = new SourceModuleConf("library", "library-api")
       .addUnit("Cols.scala", "scalan/collection/Cols.scala")
-  val implModule = new SourceModuleConf("library", "library-impl")
+  val libraryImplModule = new SourceModuleConf("library", "library-impl")
       .addUnit("ColsOverArrays.scala", "scalan/collection/ColsOverArrays.scala")
-      .dependsOn(apiModule)
+      .dependsOn(libarayApiModule)
+
+  val smartApiModule = new SourceModuleConf("smart", "smart-api")
+      .addUnit("Types.scala", "special/ivy/Types.scala")
+  val smartImplModule = new SourceModuleConf("smart", "smart-impl")
+      .dependsOn(smartApiModule)
 
   /** Modules that contain units to be virtualized by scalan-meta. */
-  val sourceModules: ConfMap[SourceModuleConf] = ConfMap(apiModule, implModule)
+  val sourceModules: ConfMap[SourceModuleConf] = ConfMap(
+    libarayApiModule, libraryImplModule,
+    smartApiModule, smartImplModule)
 
   /** Modules that assemble virtualized units from source modules into virtualized cakes */
   val targetModules: ConfMap[TargetModuleConf] = ConfMap()
       .add(new TargetModuleConf("library", "library",
         sourceModules = ConfMap()
-            .add(apiModule)
-            .add(implModule)
+            .add(libarayApiModule)
+            .add(libraryImplModule)
+      ))
+      .add(new TargetModuleConf("smart", "smart-library",
+        sourceModules = ConfMap()
+            .add(smartApiModule)
+            .add(smartImplModule)
       ))
 
   def getModule(moduleName: String): ModuleConf = {
