@@ -37,6 +37,7 @@ lazy val testSettings = Seq(
     "ch.qos.logback" % "logback-classic" % "1.1.7",
     // TODO separate benchmark configuration, see https://github.com/scalameter/scalameter-examples/blob/master/basic-with-separate-config/build.sbt
     "com.storm-enroute" %% "scalameter" % "0.6" % Test),
+  javaOptions in Test ++= Seq("-Djava.library.path=libs"),
   parallelExecution in Test := false,
   baseDirectory in Test := file("."),
   publishArtifact in Test := true,
@@ -158,7 +159,7 @@ lazy val smart = Project("smart", file("smart/smart-library"))
       libraryDependencies ++= Seq())
 
 lazy val npuapi = Project("npu-api", file("npu/npu-api"))
-    .dependsOn(meta, scalanizer, macros,
+    .dependsOn(common % allConfigDependency, meta, scalanizer, macros,
       libraryapi % allConfigDependency,
       libraryimpl % "compile->test;test->test"
       )
@@ -177,12 +178,13 @@ lazy val npuimpl = Project("npu-impl", file("npu/npu-impl"))
       libraryDependencies ++= Seq(),
       unmanagedJars in Compile += file("libs/mxnet-core_2.11-1.1.0-SNAPSHOT.jar"))
 
-lazy val npu = Project("npu", file("npu/npu-library"))
+lazy val npu = Project("npulibrary", file("npu/npulibrary"))
     .dependsOn(
       common % allConfigDependency,
       core % allConfigDependency,
       libraryapi % allConfigDependency,
       libraryimpl % allConfigDependency,
+      library % allConfigDependency,
       npuapi % allConfigDependency,
       npuimpl % allConfigDependency)
     .settings(//commonSettings,

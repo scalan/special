@@ -19,10 +19,15 @@ class ScalanizerPluginConfig extends ScalanizerConfig {
   val smartImplModule = new SourceModuleConf("smart", "smart-impl")
       .dependsOn(smartApiModule)
 
+  val npuApiModule = new SourceModuleConf("npu", "npu-api")
+      .dependsOn(libarayApiModule)
+      .addUnit("NpuComponents.scala", "onebrain/npu/model/NpuComponents.scala")
+
   /** Modules that contain units to be virtualized by scalan-meta. */
   val sourceModules: ConfMap[SourceModuleConf] = ConfMap(
     libarayApiModule, libraryImplModule,
-    smartApiModule, smartImplModule)
+    smartApiModule, smartImplModule,
+    npuApiModule)
 
   /** Modules that assemble virtualized units from source modules into virtualized cakes */
   val targetModules: ConfMap[TargetModuleConf] = ConfMap()
@@ -35,6 +40,10 @@ class ScalanizerPluginConfig extends ScalanizerConfig {
         sourceModules = ConfMap()
             .add(smartApiModule)
             .add(smartImplModule)
+      ))
+      .add(new TargetModuleConf("npu", "npulibrary",
+        sourceModules = ConfMap()
+            .add(npuApiModule)
       ))
 
   def getModule(moduleName: String): ModuleConf = {
