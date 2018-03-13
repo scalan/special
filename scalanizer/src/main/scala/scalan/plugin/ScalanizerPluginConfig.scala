@@ -21,7 +21,7 @@ class ScalanizerPluginConfig extends ScalanizerConfig {
 
   val npuApiModule = new SourceModuleConf("npu", "npu-api")
       .dependsOn(libarayApiModule)
-      .addUnit("NpuComponents.scala", "onebrain/npu/model/NpuComponents.scala")
+      .addUnit("NpuComponents.scala", "onebrain/device/model/NpuComponents.scala")
 
   /** Modules that contain units to be virtualized by scalan-meta. */
   val sourceModules: ConfMap[SourceModuleConf] = ConfMap(
