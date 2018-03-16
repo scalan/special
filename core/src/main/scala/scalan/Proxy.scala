@@ -21,16 +21,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     f.invoke(this).asInstanceOf[Rep[_]]
   }
 
-  /**
-    * Can be thrown to prevent invoke
-    */
-  class DelayInvokeException extends Exception
-
-  case class ExternalMethodException(className: String, methodName: String) extends DelayInvokeException
-
-  def externalMethod(className: String, methodName: String) = {
-    throw new ExternalMethodException(className, methodName)
-  }
   def delayInvoke = throw new DelayInvokeException
 
   // call mkMethodCall instead of constructor
