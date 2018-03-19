@@ -27,4 +27,6 @@ trait ScalanizerConfig {
   def wrapperConfigs: Map[String, WrapperConfig]
 
   def nonWrappers: Map[String, NonWrapper]
+
+  def pluginConfigs: Seq[PluginConfig]
 }

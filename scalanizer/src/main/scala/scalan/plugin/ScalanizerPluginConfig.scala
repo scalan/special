@@ -65,4 +65,6 @@ class ScalanizerPluginConfig extends ScalanizerConfig {
     NonWrapper(name = "WrappedArray"),
     NonWrapper(name = "CanBuildFrom")
   ).map(w => (w.name, w)).toMap
+
+  val pluginConfigs: Seq[PluginConfig] = Nil
 }

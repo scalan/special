@@ -136,3 +136,6 @@ object UnitConfig {
     implFile
   }
 }
+
+/** <c>classesPath</c> is a path to JAR or directory containing scalanizer-plugin.properties and a plugin for Scalanizer which implements [scalan.meta.scalanizer.Plugin]. */
+case class PluginConfig(classesPath: String, extraData: Any = null)
