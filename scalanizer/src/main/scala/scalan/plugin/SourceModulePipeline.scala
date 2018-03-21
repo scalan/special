@@ -1,18 +1,21 @@
 package scalan.plugin
 
+import java.io.File
+import java.net.URLClassLoader
 import java.sql.Statement
+import java.util.Properties
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.reflect.io.Path
-import scalan.meta.scalanizer.Scalanizer
+import scalan.meta.scalanizer.{Plugin, Scalanizer}
 import scala.tools.nsc.Global
 import scalan.meta.ModuleVirtualizationPipeline
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstTransformers.isIgnoredExternalType
-import scalan.meta.Symbols.{SUnitSymbol, SNoSymbol, SEntitySymbol}
+import scalan.meta.Symbols.{SEntitySymbol, SNoSymbol, SUnitSymbol}
 
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
@@ -146,6 +149,31 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         val virtAst = genPackageDef(virtUnitDef)
         
         saveCodeToResources(module, virtUnitDef.packageName, virtUnitDef.name, showCode(virtAst))
+      }
+    },
+
+    RunStep("plugins") { _ =>
+      for (pluginConfig <- snConfig.pluginConfigs) {
+        val jarOrDir = pluginConfig.classesPath
+        val url = new File(jarOrDir).toURI.toURL
+        val classLoader = new URLClassLoader(Array(url), getClass.getClassLoader)
+        try {
+          val stream = classLoader.getResourceAsStream("scalanizer-plugin.properties")
+          val properties = new Properties()
+          try {
+            properties.load(stream)
+          } finally {
+            stream.close()
+          }
+          val className = properties.get("className").asInstanceOf[String]
+          val clazz = classLoader.loadClass(className)
+          val pluginInstance = clazz.newInstance().asInstanceOf[Plugin]
+          pluginInstance(scalanizer.context, snConfig, pluginConfig.extraData)
+          scalanizer.inform(s"Step(plugins): plugin ${pluginConfig.classesPath} run successfully")
+        } catch {
+          case e: Exception =>
+            throw new Exception(s"Failed to run the plugin ${pluginConfig.classesPath} for Scalanizer", e)
+        }
       }
     }
   )
