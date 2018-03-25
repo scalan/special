@@ -2,20 +2,14 @@ package scalan.plugin
 
 import java.io.File
 import java.net.URLClassLoader
-import java.sql.Statement
 import java.util.Properties
 
-import scala.annotation.tailrec
-import scala.collection.mutable
-import scala.reflect.io.Path
 import scalan.meta.scalanizer.{Plugin, Scalanizer}
 import scala.tools.nsc.Global
-import scalan.meta.ModuleVirtualizationPipeline
+import scalan.meta.{LibraryConfig, ModuleVirtualizationPipeline, SourceModuleConf, ModuleConf}
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.util.CollectionUtil._
-import scalan.meta.ScalanAstTransformers.isIgnoredExternalType
-import scalan.meta.Symbols.{SEntitySymbol, SNoSymbol, SUnitSymbol}
+import scalan.meta.Symbols.{SUnitSymbol, SEntitySymbol}
 
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
@@ -49,6 +43,27 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     }
   }
 
+  def loadModuleUnits(step: PipelineStep, source: ModuleConf): Unit = {
+    for (depModule <- source.dependsOnModules()) {
+      loadModuleUnits(step, depModule)
+    }
+    for (unitConf <- source.units.values) {
+      if(!scalanizer.context.hasUnit(unitConf.packageName, unitConf.unitName)) {
+        val unit = scalanizer.loadUnitDefFromResource(unitConf.entityResource)
+        snState.addUnit(unit)
+        scalanizer.inform(
+          s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${source.name}' " +
+              s"(parsed from resource ${unitConf.entityFile})")
+      }
+    }
+  }
+
+  def loadLibraryDeps(step: PipelineStep, lib: LibraryConfig): Unit = {
+    for (source <- lib.sourceModules) {
+      loadModuleUnits(step, source)
+    }
+  }
+
   val steps: List[PipelineStep] = List(
     RunStep("dependencies") { step =>
       val module = scalanizer.getSourceModule
@@ -60,6 +75,16 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           snState.addUnit(unit)
         }
       }
+      // add Special units from libraries we depend on
+      for (lib <- module.libraryDeps.values) {
+        loadLibraryDeps(step, lib)
+      }
+
+      // add Special units from modules we depend on
+      for (module <- module.moduleDeps.values) {
+        loadModuleUnits(step, module)
+      }
+
       // add not yet virtualized units from the current module
       // because we are running after typer, all the names has been resolved by the compiler
       // we need to ensure visibility of all the names by scalanizer as well

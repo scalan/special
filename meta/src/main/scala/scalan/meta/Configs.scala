@@ -7,7 +7,7 @@ import scalan.util.CollectionUtil._
 import scalan.util.StringUtil._
 import scala.collection.mutable.{Map => MMap}
 
-sealed trait Conf {
+trait Conf {
   /** Module name, which is also name of the directory */
   def name: String
 
@@ -101,7 +101,9 @@ class SourceModuleConf(
     val baseDir: String,
     val name: String,
     val units: ConfMap[UnitConfig] = ConfMap(),
-    val deps: ConfMap[SourceModuleConf] = ConfMap()
+    val deps: ConfMap[SourceModuleConf] = ConfMap(),
+    val libraryDeps: ConfMap[LibraryConfig] = ConfMap(),
+    val moduleDeps: ConfMap[ModuleConf] = ConfMap()
 ) extends ModuleConf {
   override def dependencies: ConfMap[ModuleConf] = deps.asInstanceOf[ConfMap[ModuleConf]]
 
@@ -114,6 +116,16 @@ class SourceModuleConf(
 
   def dependsOn(us: SourceModuleConf*): this.type = {
     for ( u <- us ) deps.add(u)
+    this
+  }
+
+  def libraryDependencies(lds: LibraryConfig*): this.type = {
+    for ( ld <- lds ) libraryDeps.add(ld)
+    this
+  }
+
+  def moduleDependencies(mds: ModuleConf*): this.type = {
+    for ( md <- mds ) moduleDeps.add(md)
     this
   }
 
@@ -137,6 +149,8 @@ case class UnitConfig(
   def getResourceFile: File = {
     FileUtil.file(resourcePath, entityResource)
   }
+  def packageName: String = entityFile.stripSuffix("/" + entityFile).replace('/', '.')
+  def unitName: String = name.stripSuffix(".scala")
 }
 
 object UnitConfig {
@@ -150,3 +164,4 @@ object UnitConfig {
 
 /** <c>classesPath</c> is a path to JAR or directory containing scalanizer-plugin.properties and a plugin for Scalanizer which implements [scalan.meta.scalanizer.Plugin]. */
 case class PluginConfig(classesPath: String, extraData: Any = null)
+

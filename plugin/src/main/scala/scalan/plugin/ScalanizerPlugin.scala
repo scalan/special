@@ -1,13 +1,9 @@
 package scalan.plugin
 
-import java.io.File
-
 import scala.collection.mutable.ListBuffer
-import scala.reflect.internal.util.NoPosition
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent, PluginLoadException}
-import scalan.meta.{EntityManagement, TargetModuleConf, SourceModuleConf, ModuleConf}
-import scalan.meta.AstContext
+import scalan.meta._
 import scalan.meta.scalanizer.{ScalanizerConfig, Scalanizer, ScalanizerState}
 import scalan.util.FileUtil
 import scalan.util.StringUtil.StringUtilExtensions
@@ -16,11 +12,12 @@ import scalan.util.CollectionUtil.TraversableOps
 abstract class ScalanPlugin(val global: Global) extends Plugin { plugin =>
 }
 
-class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
+abstract class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
+  def createScalanizerConfig(): ScalanizerConfig
   val scalanizer: Scalanizer[plugin.global.type] = new Scalanizer[plugin.global.type] {
     def getGlobal: plugin.global.type = plugin.global
 
-    val snConfig: ScalanizerConfig = new ScalanizerPluginConfig
+    val snConfig: ScalanizerConfig = createScalanizerConfig()
     val context: AstContext = new AstContext(Nil, this)
     val snState: ScalanizerState[plugin.global.type] = new ScalanizerPluginState(this)
 
@@ -108,10 +105,13 @@ class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
   )
 }
 
-object ScalanizerPlugin {
-  /** Yields the list of Components to be executed in this plugin */
-  def components(global: Global) = {
-    val plugin = new ScalanizerPlugin(global)
-    plugin.components
-  }
-}
+//object ScalanizerPlugin {
+//  /** Yields the list of Components to be executed in this plugin */
+//  def components(global: Global) = {
+//    val plugin = new ScalanizerPlugin(global)
+//    plugin.components
+//  }
+//}
+
+
+

@@ -2,9 +2,6 @@
 .idea_modules/
 libs/
 target/
-library/
-smart/
-npu/
 lib_managed/
 project/plugins/lib_managed/
 project/plugins/src_managed/
@@ -19,10 +16,8 @@ tmp/
 .project
 .settings
 .worksheet
-benchmark/mvm-staged
 /bin
 # data/ directory created by LMS tests sometimes ends up in root
-/lms-backend/**/data/
 /data/
 *.log
 # Path to which runtime headers will be unpacked
