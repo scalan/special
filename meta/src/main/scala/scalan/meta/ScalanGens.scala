@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, SSuper, STpeExistential, SSelect}
+import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, STpeThis, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, SSuper, STpeExistential, SSelect}
 import scalan.meta.ScalanAstTransformers.filterInternalAnnot
 import scalan.meta.Symbols.SUnitSymbol
 import scalan.util.ScalaNameUtil.PackageAndName
@@ -334,7 +334,9 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
         tq"Rep[$appliedType]"
     case STpeTuple(_) => tq"Rep[${genTypeExpr(tpeExpr)}]"
     case STpeFunc(_, _) => tq"Rep[${genTypeExpr(tpeExpr)}]"
-    case unknown => throw new NotImplementedError(s"repTypeExp($unknown)")
+    case STpeThis(fullName) => tq"Rep[${TypeName(fullName)}.this.type]"
+    case unknown =>
+      throw new NotImplementedError(s"repTypeExp($unknown)")
   }
 
   def genClassArg(arg: SClassArg)(implicit ctx: GenCtx): Tree = {

@@ -32,9 +32,13 @@ package scalan.collection {
       implicit def cF: Cont[F];
       def map[A, B](fa: Rep[F[A]])(f: Rep[scala.Function1[A, B]]): Rep[F[B]]
     };
+    trait Enum extends Def[Enum] {
+      def value: Rep[Int]
+    };
     trait ColCompanion;
     trait PairColCompanion;
     trait ColBuilderCompanion;
-    trait FunctorCompanion
+    trait FunctorCompanion;
+    trait EnumCompanion
   }
 }

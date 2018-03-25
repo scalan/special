@@ -34,3 +34,7 @@ trait ColBuilder {
 @typeclass trait Functor[F[_]] {
   def map[A,B](fa: F[A])(f: A => B)(implicit tB: ClassTag[B]): F[B]
 }
+
+trait Enum {
+  def value: Int
+}

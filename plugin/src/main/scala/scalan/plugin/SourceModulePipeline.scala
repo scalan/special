@@ -67,7 +67,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   val steps: List[PipelineStep] = List(
     RunStep("dependencies") { step =>
       val module = scalanizer.getSourceModule
-      // add virtualized units from dependencies
+      // add Special units from dependencies in the current project
       for (depModule <- module.dependsOnModules()) {
         for (unitConf <- depModule.units.values) {
           val unit = parseUnitFile(unitConf.getResourceFile)(new ParseCtx(isVirtualized = true)(context))

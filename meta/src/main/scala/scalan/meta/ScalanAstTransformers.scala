@@ -188,11 +188,20 @@ object ScalanAstTransformers {
       val newExpr = exprTransform(valdef.expr)
       valdef.copy(expr = newExpr)
     }
+    def tpeDefArgTransform(tpeArg: STpeArg): STpeArg = tpeArg
+    def tpeDefArgsTransform(tpeArgs: STpeArgs): STpeArgs = {
+      tpeArgs mapConserve tpeDefArgTransform
+    }
+    def tpeDefTransform(tpeDef: STpeDef): STpeDef = {
+      val newTpeArgs = tpeDefArgsTransform(tpeDef.tpeArgs)
+      tpeDef.copy(tpeArgs = newTpeArgs)
+    }
 
     def bodyItemTransform(bodyItem: SBodyItem): SBodyItem = bodyItem match {
       case method: SMethodDef => methodTransform(method)
       case valdef: SValDef => valdefTransform(valdef)
-      case _ => throw new NotImplementedError(s"${bodyItem}")
+      case tpedef: STpeDef => tpeDefTransform(tpedef)
+      case _ => throw new NotImplementedError(s"AstTransformer.bodyItemTransform(${bodyItem})")
     }
     def bodyTransform(body: List[SBodyItem]): List[SBodyItem] = body mapConserve bodyItemTransform
 

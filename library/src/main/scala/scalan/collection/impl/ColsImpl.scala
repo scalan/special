@@ -384,6 +384,68 @@ trait ColsDefs extends scalan.Scalan with Cols {
   object FunctorCompanionMethods {
   }
 
+  // entityProxy: single proxy for each type family
+  implicit def proxyEnum(p: Rep[Enum]): Enum = {
+    proxyOps[Enum](p)(scala.reflect.classTag[Enum])
+  }
+
+  // familyElem
+  class EnumElem[To <: Enum]
+    extends EntityElem[To] {
+    lazy val parent: Option[Elem[_]] = None
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override lazy val tag = {
+      weakTypeTag[Enum].asInstanceOf[WeakTypeTag[To]]
+    }
+    override def convert(x: Rep[Def[_]]) = {
+      val conv = fun {x: Rep[Enum] => convertEnum(x) }
+      tryConvert(element[Enum], this, x, conv)
+    }
+
+    def convertEnum(x: Rep[Enum]): Rep[To] = {
+      x.elem match {
+        case _: EnumElem[_] => x.asRep[To]
+        case e => !!!(s"Expected $x to have EnumElem[_], but got $e", x)
+      }
+    }
+    override def getDefaultRep: Rep[To] = ???
+  }
+
+  implicit def enumElement: Elem[Enum] =
+    cachedElem[EnumElem[Enum]]()
+
+  implicit case object EnumCompanionElem extends CompanionElem[EnumCompanionCtor] {
+    lazy val tag = weakTypeTag[EnumCompanionCtor]
+    protected def getDefaultRep = Enum
+  }
+
+  abstract class EnumCompanionCtor extends CompanionDef[EnumCompanionCtor] with EnumCompanion {
+    def selfType = EnumCompanionElem
+    override def toString = "Enum"
+  }
+  implicit def proxyEnumCompanionCtor(p: Rep[EnumCompanionCtor]): EnumCompanionCtor =
+    proxyOps[EnumCompanionCtor](p)
+
+  lazy val Enum: Rep[EnumCompanionCtor] = new EnumCompanionCtor {
+  }
+
+  object EnumMethods {
+    object value {
+      def unapply(d: Def[_]): Option[Rep[Enum]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[EnumElem[_]] && method.getName == "value" =>
+          Some(receiver).asInstanceOf[Option[Rep[Enum]]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[Enum]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object EnumCompanionMethods {
+  }
+
   registerModule(ColsModule)
 }
 

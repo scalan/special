@@ -531,7 +531,7 @@ object ScalanAst {
     def argss: List[List[SMethodOrClassArg]] = Nil
     def tpeRes: Option[STpeExpr] = Some(tpe)
     def isTypeDesc: Boolean = false
-    override def toString = s"type $name[${tpeArgs.rep()}] = $tpe"
+    override def toString = s"type $name${tpeArgs.opt(as => s"[${as.rep()}]")} = $tpe"
   }
 
   case class STpeArg(

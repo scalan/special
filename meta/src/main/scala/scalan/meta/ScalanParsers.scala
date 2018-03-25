@@ -163,7 +163,7 @@ trait ScalanParsers[+G <: Global] {
       val unitSym = ctx.astContext.newUnitSymbol(packageName, moduleName)
       val statements = packageDef.stats
       val imports = statements.collect { case i: Import => importStat(i) }
-      val defs = statements.filterMap { tree => optBodyItem(unitSym, tree, None) }
+      val defs = statements.filterMap { tree => optBodyItem(unitSym, tree, Some(packageDef)) }
       val isDefinedModule = findClassDefByName(statements, SUnitDef.moduleTraitName(moduleName)).isDefined
       val typeDefs = defs.collectTypeDefs
       val traits = defs.collectTraits
@@ -250,22 +250,28 @@ trait ScalanParsers[+G <: Global] {
     trees.map(traitCall(owner, _)).filter(tr => !Set("AnyRef", "scala.AnyRef").contains(tr.name))
 
   def findCompanion
-      (owner: SSymbol, name: String, parentScope: Option[ImplDef])
-      (implicit ctx: ParseCtx) = parentScope match {
-    case Some(scope) => scope.impl.body.collect {
+      (owner: SSymbol, name: String, parentScope: Option[Tree])
+      (implicit ctx: ParseCtx): Option[SEntityDef] = {
+    val body = parentScope match {
+      case None => Nil
+      case Some(scope: ImplDef) => scope.impl.body
+      case Some(scope: PackageDef) => scope.stats
+      case Some(tree) => sys.error(s"Don't know how to findCompanion in $tree")
+    }
+    body.collectFirst {
       case c: ClassDef if ctx.isVirtualized && c.name.toString == name + "Companion" =>
         if (c.mods.isTrait)
           traitDef(owner, c, parentScope)
         else
           classDef(owner, c, parentScope)
-      case m: ModuleDef
-        if !ctx.isVirtualized && !m.mods.isSynthetic && m.name.toString == name =>
+      case c: ClassDef if c.mods.hasModuleFlag && !ctx.isVirtualized && c.name.toString == name =>
+        objectDef(owner, c)
+      case m: ModuleDef if !ctx.isVirtualized && !m.mods.isSynthetic && m.name.toString == name =>
         objectDef(owner, m)
-    }.headOption
-    case None => None
+    }
   }
 
-  def traitDef(owner: SSymbol, td: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): STraitDef = {
+  def traitDef(owner: SSymbol, td: ClassDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): STraitDef = {
     val name = td.name.toString
     val sym = SEntitySymbol(owner, name)
     val tpeArgs = this.tpeArgs(sym, td.tparams, Nil)
@@ -278,7 +284,7 @@ trait ScalanParsers[+G <: Global] {
     STraitDef(owner, name, tpeArgs, ancestors, body, selfType, companion, annotations)
   }
 
-  def classDef(owner: SSymbol, cd: ClassDef, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): SClassDef = {
+  def classDef(owner: SSymbol, cd: ClassDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): SClassDef = {
     val name = cd.name.toString
     val sym = SEntitySymbol(owner, name)
     val ancestors = this.ancestors(sym, cd.impl.parents).map(_.toTypeApply)
@@ -307,7 +313,8 @@ trait ScalanParsers[+G <: Global] {
     SClassDef(owner, cd.name, tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations)
   }
 
-  def objectDef(owner: SSymbol, od: ModuleDef)(implicit ctx: ParseCtx): SObjectDef = {
+  def objectDef(owner: SSymbol, od: ImplDef)(implicit ctx: ParseCtx): SObjectDef = {
+    assert(!od.isInstanceOf[ClassDef] || od.mods.hasModuleFlag)
     val sym = SEntitySymbol(owner, od.name)
     val ancestors = this.ancestors(sym, od.impl.parents).map(_.toTypeApply)
     val body = od.impl.body.flatMap(optBodyItem(sym, _, Some(od)))
@@ -352,7 +359,7 @@ trait ScalanParsers[+G <: Global] {
     else true
   }
 
-  def optBodyItem(owner: SSymbol, tree: Tree, parentScope: Option[ImplDef])(implicit ctx: ParseCtx): Option[SBodyItem] = tree match {
+  def optBodyItem(owner: SSymbol, tree: Tree, parentScope: Option[Tree])(implicit ctx: ParseCtx): Option[SBodyItem] = tree match {
     case i: Import =>
       Some(importStat(i))
     case md: DefDef =>
@@ -371,6 +378,8 @@ trait ScalanParsers[+G <: Global] {
       Some(STpeDef(owner, td.name, tpeArgs, rhs))
     case td: ClassDef if td.mods.isTrait =>
       Some(traitDef(owner, td, parentScope))
+    case cd: ClassDef if cd.mods.hasModuleFlag =>
+      Some(objectDef(owner, cd))
     case cd: ClassDef if !cd.mods.isTrait =>
       // don't include implicit conversion classes
       if (!cd.mods.isImplicit)
@@ -379,14 +388,14 @@ trait ScalanParsers[+G <: Global] {
         None
     case od: ModuleDef =>
       Some(objectDef(owner, od))
-    case vd: ValDef =>
-      if (!vd.mods.isParamAccessor) {
+    case vd: ValDef => vd match {
+      case vd if vd.mods.isParamAccessor => None
+      case _ =>
         val tpeRes = optTpeExpr(owner, vd.tpt)
         val isImplicit = vd.mods.isImplicit
         val isLazy = vd.mods.isLazy
         Some(SValDef(owner, vd.name, tpeRes, isLazy, isImplicit, parseExpr(owner, vd.rhs)))
-      } else
-        None
+    }
     case EmptyTree =>
       None
     // calls in constructor
@@ -717,6 +726,8 @@ trait ScalanParsers[+G <: Global] {
       STpeExistential(underlying, quantified)
     case m: MethodType => parseMethodType(Nil, m)
     case PolyType(tparams, m: MethodType) => parseMethodType(tparams, m)
+    case PolyType(tparams, resType) =>
+      throw new NotImplementedError(showRaw(resType, printTypes = Some(true)))
     case annot: AnnotatedType => parseType(annot.underlying)
     case tpe => throw new NotImplementedError(showRaw(tpe, printTypes = Some(true)))
   }
