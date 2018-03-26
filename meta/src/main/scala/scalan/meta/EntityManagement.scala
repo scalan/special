@@ -20,7 +20,7 @@ class Parsers(val configs: List[UnitConfig]) extends ScalanParsersEx[Global] {
 
 class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends LazyLogging {
   import parsers._
-  def configs = parsers.context.configs
+  def configs = parsers.context.unitConfigs.values
   implicit def context = parsers.context
    
   case class EntityManager(name: String, file: File, resourceFile: File, module: SUnitDef, config: UnitConfig)

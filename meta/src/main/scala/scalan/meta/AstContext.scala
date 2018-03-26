@@ -9,7 +9,7 @@ import com.trueaccord.lenses.{Mutation, Lens}
 import scala.collection.mutable.{Map => MMap}
 import scalan.meta.ScalanAst.{STraitCall, STpeDef, SUnitDef, STpeExpr, STpeFunc, SEntityAnnotation, createSubst, Entity, SConst, ExternalAnnotation, WrapperDescr, SEntityDef, Module}
 
-class AstContext(val configs: List[UnitConfig], val parsers: ScalanParsers[Global], okLoadModules: Boolean = false)
+class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], okLoadModules: Boolean = false)
     extends Symbols {
 
   /** Mapping of external type names to their wrappers. */
@@ -18,19 +18,23 @@ class AstContext(val configs: List[UnitConfig], val parsers: ScalanParsers[Globa
   /** Mapping of W-entities to the corresponding wrapped type name ("WArray" -> "Array") */
   private[scalan] val entityToWrapper = MMap[String, String]()
 
+  /** Mapping of <packageName>.<moduleName> to unit configuration.
+    * Initial set of configs is taken from configs argument and later new configs can be added. */
+  private[scalan] val unitConfigs: MMap[String, UnitConfig] = MMap(configs.map(c => c.unitKey -> c): _*)
+
   /** Mapping of <packageName>.<moduleName> to definition.
-    * Initial set of modules in loaded from configs and later new modules can be added. */
+    * Initial set of units is loaded from the configs and later new units can be added. */
   private[scalan] val units = MMap[String, SUnitDef]()
 
   def loadUnitsFromResources(): Unit = {
-    for (c <- configs) {
+    for (c <- unitConfigs.values) {
       val m = parsers.loadUnitDefFromResource(c.entityResource)
       addUnit(m)
     }
   }
 
   def loadModulesFromFolders(): Unit = {
-    for (c <- configs) {
+    for (c <- unitConfigs.values) {
       val file = c.getFile
       try {
         val m = parsers.parseUnitFile(file)(new parsers.ParseCtx(c.isVirtualized)(this))
@@ -122,13 +126,17 @@ class AstContext(val configs: List[UnitConfig], val parsers: ScalanParsers[Globa
     defs.toMap
   }
 
-  def hasUnit(packageName: String, unitName: String): Boolean = {
-    val key = SName.fullNameString(packageName, unitName)
+  @inline def unitKey(packageName: String, unitName: String): String = {
+    SName.fullNameString(packageName, unitName)
+  }
+
+  @inline def hasUnit(packageName: String, unitName: String): Boolean = {
+    val key = unitKey(packageName, unitName)
     units.contains(key)
   }
 
-  def getUnit(packageName: String, moduleName: String): SUnitDef = {
-    val key = SName.fullNameString(packageName, moduleName)
+  def getUnit(packageName: String, unitName: String): SUnitDef = {
+    val key = unitKey(packageName, unitName)
     units(key)
   }
   def getUnit(name: SName): SUnitDef = getUnit(name.packageName, name.name)
@@ -150,6 +158,37 @@ class AstContext(val configs: List[UnitConfig], val parsers: ScalanParsers[Globa
     units(key) = newUnit
     newUnit
   }
+
+  def addUnitConfig(conf: UnitConfig): UnitConfig = {
+    val key = conf.unitKey
+    unitConfigs(key) = conf
+    conf
+  }
+
+  def getUnitConfig(packageName: String, unitName: String): UnitConfig = {
+    val key = unitKey(packageName, unitName)
+    unitConfigs(key)
+  }
+
+  def getUnitConfig(name: SName): UnitConfig = getUnitConfig(name.packageName, name.name)
+
+  @inline def hasUnitConfig(packageName: String, unitName: String): Boolean = {
+    val key = unitKey(packageName, unitName)
+    unitConfigs.contains(key)
+  }
+
+  def updateUnitConfig(name: SName, by: Lens[UnitConfig, UnitConfig] => Mutation[UnitConfig]): UnitConfig = {
+    val c = getUnitConfig(name)
+    val key = name.mkFullName
+    val newConf = c.update(by)
+    unitConfigs(key) = newConf
+    newConf
+  }
+
+  def removeUnitConfig(key: String) = {
+    unitConfigs.remove(key)
+  }
+
 
   object TypeDef {
     /** Recognizes usage of STpeDef and substitutes args to rhs */

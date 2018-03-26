@@ -1,7 +1,7 @@
 package scalan.meta.scalanizer
 
 import scala.tools.nsc.Global
-import scalan.meta.SourceModuleConf
+import scalan.meta.{SourceModuleConf, UnitConfig}
 
 /** Scalanizer is a component which can be used from different contexts to generated
   * boilerplate code such as wrappers, Impl files etc.
@@ -22,8 +22,12 @@ trait Scalanizer[+G <: Global]
     )
   }
 
-  def findUnitModule(unitName: String) = {
-    snConfig.sourceModules.find(mc => mc.hasUnit(unitName))
+  def findUnitModule(unitName: String): Option[(SourceModuleConf, UnitConfig)] = {
+    for {
+      sourceModule <- snConfig.sourceModules.find(mc => mc.hasUnit(unitName))
+      conf <- sourceModule.units.get(unitName)
+    }
+    yield (sourceModule, conf)
   }
 
   def isModuleUnit(unitName: String) = findUnitModule(unitName).isDefined
@@ -37,11 +41,11 @@ trait Scalanizer[+G <: Global]
     packageName
   }
 
-  def withUnitModule(unit: global.CompilationUnit)(action: (SourceModuleConf, String) => Unit) = {
+  def withUnitModule(unit: global.CompilationUnit)(action: (SourceModuleConf, UnitConfig) => Unit) = {
     val unitName = unit.source.file.name
     findUnitModule(unitName) match {
-      case Some(sm) => try {
-        action(sm, unitName)
+      case Some((sm, conf)) => try {
+        action(sm, conf)
       } catch {
         case e: Exception =>
           print(s"Error: failed to parse $unitName from ${unit.source.file} due to " + e.printStackTrace())

@@ -2,6 +2,8 @@ package scalan.meta
 
 import java.io.File
 
+import com.trueaccord.lenses.Updatable
+
 import scalan.util.{FileUtil, GraphUtil}
 import scalan.util.CollectionUtil._
 import scalan.util.StringUtil._
@@ -143,7 +145,7 @@ case class UnitConfig(
     entityFile: String, // the package path and file name (example: scalan/collection/Col.scala)
     baseContextTrait: String = "scalan.Scalan",
     extraImports: List[String] = List("scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}", "scalan.meta.ScalanAst._"),
-    isVirtualized: Boolean = true) extends Conf {
+    isVirtualized: Boolean = true) extends Conf with Updatable[UnitConfig] {
   val entityResource = entityFile.replaceSuffix(".scala", ModuleConf.ResourceFileExtension)
   def getFile: File = FileUtil.file(srcPath, entityFile)
   def getResourceFile: File = {
@@ -151,6 +153,7 @@ case class UnitConfig(
   }
   def packageName: String = entityFile.stripSuffix("/" + entityFile).replace('/', '.')
   def unitName: String = name.stripSuffix(".scala")
+  @inline def unitKey: String = SName.fullNameString(packageName, unitName)
 }
 
 object UnitConfig {

@@ -1,7 +1,8 @@
 package scalan.meta.scalanizer
 
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAst.{SValDef, STpeExpr, STpeFunc, STpeEmpty, SUnitDef, STpeTuple, KernelType, SFunc, WrapperDescr}
+import scalan.meta.ScalanAst.{SUnitDef, SValDef, STpeExpr, STpeFunc, STpeEmpty, STpeTuple, KernelType, SFunc, WrapperDescr}
+import scalan.meta.UnitConfig
 
 /** The object contains the current state and temporary data of the Scalanizer. */
 trait ScalanizerState[+G <: Global] {
@@ -28,7 +29,8 @@ trait ScalanizerState[+G <: Global] {
     scalanizer.context.getUnit(packageName, unitName)
   }
 
-  def addUnit(unit: SUnitDef) = {
+  def addUnit(unit: SUnitDef, unitConf: UnitConfig) = {
+    scalanizer.context.addUnitConfig(unitConf)
     scalanizer.context.addUnit(unit)
   }
 }

@@ -50,7 +50,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     for (unitConf <- source.units.values) {
       if(!scalanizer.context.hasUnit(unitConf.packageName, unitConf.unitName)) {
         val unit = scalanizer.loadUnitDefFromResource(unitConf.entityResource)
-        snState.addUnit(unit)
+        snState.addUnit(unit, unitConf)
         scalanizer.inform(
           s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${source.name}' " +
               s"(parsed from resource ${unitConf.entityFile})")
@@ -72,7 +72,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         for (unitConf <- depModule.units.values) {
           val unit = parseUnitFile(unitConf.getResourceFile)(new ParseCtx(isVirtualized = true)(context))
           scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
-          snState.addUnit(unit)
+          snState.addUnit(unit, unitConf)
         }
       }
       // add Special units from libraries we depend on
@@ -91,7 +91,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       for (unitConf <- module.units.values) {
         val unit = parseUnitFile(unitConf.getFile)(new ParseCtx(isVirtualized = false)(context))
         scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
-        snState.addUnit(unit)
+        snState.addUnit(unit, unitConf)
       }
     },
     ForEachUnitStep("wrapfrontend") { context => import context._;
@@ -148,7 +148,8 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       }
     },
     ForEachUnitStep("virtfrontend") { context => import context._;
-      withUnitModule(unit) { (module, unitFileName) =>
+      withUnitModule(unit) { (module, unitConf) =>
+        val unitFileName = unitConf.name
         // this unit has been added in 'dependencies' step
         val existingUnit = context.getUnit
 
@@ -159,11 +160,12 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         scalanizer.inform(
             s"Step(virtfrontend): Updating source unit ${existingUnit.packageAndName} " +
             s"with version from CompilationUnit(${unit.source.file})")
-        snState.addUnit(unitDef)
+        snState.addUnit(unitDef, unitConf)
       }
     },
     ForEachUnitStep("virtfinal") { context => import context._
-      withUnitModule(unit) { (module, unitFileName) =>
+      withUnitModule(unit) { (module, conf) =>
+        val unitFileName = conf.name
         val unitDef = context.getUnit
 
         /** Generates a virtualized version of original Scala AST, wraps types by Rep[] and etc. */
