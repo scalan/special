@@ -22,6 +22,7 @@ trait ColBuilder {
   def apply[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
   def fromArray[T](arr: Array[T]): Col[T]
   def replicate[T:ClassTag](n: Int, v: T): Col[T]
+//  @throws[NullPointerException]
   def ddmvm(v: Array[Double]): Int = {
     val xs = Array.fill(v.length)(0)
     val c = xs.zip(v).map(d => d)

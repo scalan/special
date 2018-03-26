@@ -238,7 +238,7 @@ trait ScalanParsers[+G <: Global] {
       val tparams = tdTree.tparams.map(tpeArg)
       val annotations = tdTree.mods.annotations.map {
         case ExtractAnnotation(name, ts, args) =>
-          STypeArgAnnotation(name, ts.map(parseType), args.map(parseExpr(owner, _)))
+          STypeArgAnnotation(name, ts.map(_.fold(parseType, parseType)), args.map(parseExpr(owner, _)))
       }
       STpeArg(tdTree.name, bound, contextBounds, tparams, tdTree.mods.flags, annotations)
     }
@@ -413,14 +413,27 @@ trait ScalanParsers[+G <: Global] {
   }
 
   object ExtractAnnotation {
-    def unapply(a: Tree): Option[(String, List[Type], List[Tree])] = a match {
-      case Apply(Select(New(Ident(ident)), nme.CONSTRUCTOR), args) => Some((ident, Nil, args))
-      case Apply(Select(New(tpt), nme.CONSTRUCTOR), args) => Some((tpt.toString(), Nil, args))
+    def unapply(a: Tree): Option[(String, List[Either[Tree,Type]], List[Tree])] = a match {
+      case Apply(Select(New(Ident(ident)), nme.CONSTRUCTOR), args) =>
+        Some((ident, Nil, args))
+      case Apply(Select(New(tree @ AppliedTypeTree(tpt, tyArgs)), nme.CONSTRUCTOR), args) =>
+        val ts = tyArgs.map {
+          case id @ Ident(name) => id
+          case t => !!!(s"Unsupported type argument $t of annotation $a")
+        }
+        Some((tpt.toString, ts.map(Left(_)), args))
+      case Apply(Select(New(tree: TypeTree), nme.CONSTRUCTOR), args) =>
+        val tpeSym = tree.tpe.typeSymbol
+        val n = tpeSym.nameString
+        val tpeArgs = tree.tpe.typeArgs
+        Some((n, tpeArgs.map(Right(_)), args))
+      case Apply(Select(New(tpt), nme.CONSTRUCTOR), args) =>
+        Some((tpt.toString(), Nil, args))
       case _ => None
     }
   }
 
-  def parseAnnotations[A <: SAnnotation](md: MemberDef)(p: (String, List[Type], List[Tree]) => A): List[A] = {
+  def parseAnnotations[A <: SAnnotation](md: MemberDef)(p: (String, List[Either[Tree, Type]], List[Tree]) => A): List[A] = {
     val as = md.collectAnnotations
     val annotations = as.map {
       case ExtractAnnotation(name, ts, args) => p(name, ts, args)
@@ -454,11 +467,14 @@ trait ScalanParsers[+G <: Global] {
         Some(overloadId.toString)
       case _ => None
     }
-    val annotations = md.mods.annotations.map {
-      case ExtractAnnotation(name, ts, args) =>
-        SMethodAnnotation(name, ts.map(parseType), args.map(parseExpr(owner, _)))
-      case a => !!!(s"Cannot parse annotation $a of the method $md")
-    }
+    val annotations = parseAnnotations(md)((n, ts, as) =>
+      SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+    )
+//    md.mods.annotations.map {
+//      case ExtractAnnotation(name, ts, args) =>
+//
+//      case a => !!!(s"Cannot parse annotation $a of the method $md")
+//    }
     //    val optExternal = md match {
     //      case HasExternalAnnotation(_) => Some(ExternalMethod)
     //      case HasConstructorAnnotation(_) => Some(ExternalConstructor)
@@ -717,6 +733,12 @@ trait ScalanParsers[+G <: Global] {
     case Select(qual, name) => SSelPattern(parseExpr(owner, qual), name.toString)
     case Alternative(alts) => SAltPattern(alts.map(parsePattern(owner, _)))
     case _ => throw new NotImplementedError(s"parsePattern: ${showRaw(pat)}")
+  }
+
+  def parseType(tree: Either[Tree, Type]): STpeExpr = tree.fold(parseType, parseType)
+  def parseType(tree: Tree): STpeExpr = tree match {
+    case Ident(name) => STraitCall(name, Nil)
+    case _ => !!!(s"Don't know how to STpeExpr from tree $tree")
   }
 
   def parseType(tpe: Type): STpeExpr = tpe match {
