@@ -237,7 +237,8 @@ trait ScalanParsers[+G <: Global] {
       }.flatten
       val tparams = tdTree.tparams.map(tpeArg)
       val annotations = tdTree.mods.annotations.map {
-        case ExtractAnnotation(name, args) => STypeArgAnnotation(name, args.map(parseExpr(owner, _)))
+        case ExtractAnnotation(name, ts, args) =>
+          STypeArgAnnotation(name, ts.map(parseType), args.map(parseExpr(owner, _)))
       }
       STpeArg(tdTree.name, bound, contextBounds, tparams, tdTree.mods.flags, annotations)
     }
@@ -279,8 +280,9 @@ trait ScalanParsers[+G <: Global] {
     val body = td.impl.body.flatMap(optBodyItem(sym, _, Some(td)))
     val selfType = this.selfType(sym, td.impl.self)
     val companion = findCompanion(owner, name, parentScope) // note: using owner, not sym
-    val annotations = parseAnnotations(td)((n, as) =>
-      SEntityAnnotation(n.lastComponent('.'), as.map(parseExpr(owner, _))))
+    val annotations = parseAnnotations(td)((n, ts, as) =>
+      SEntityAnnotation(n.lastComponent('.'), ts.map(parseType), as.map(parseExpr(owner, _)))
+    )
     STraitDef(owner, name, tpeArgs, ancestors, body, selfType, companion, annotations)
   }
 
@@ -309,7 +311,9 @@ trait ScalanParsers[+G <: Global] {
     val selfType = this.selfType(sym, cd.impl.self)
     val isAbstract = cd.mods.hasAbstractFlag
     val companion = findCompanion(owner, name, parentScope)
-    val annotations = parseAnnotations(cd)((n,as) => SEntityAnnotation(n,as.map(parseExpr(owner, _))))
+    val annotations = parseAnnotations(cd)((n, ts, as) =>
+      SEntityAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+    )
     SClassDef(owner, cd.name, tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations)
   }
 
@@ -326,7 +330,9 @@ trait ScalanParsers[+G <: Global] {
     val default = optExpr(owner, vd.rhs)
     val isOverride = vd.mods.isAnyOverride
     val isVal = vd.mods.isParamAccessor
-    val annotations = parseAnnotations(vd)((n,as) => new SArgAnnotation(n, as.map(parseExpr(owner, _))))
+    val annotations = parseAnnotations(vd)((n, ts, as) =>
+      SArgAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+    )
     val isTypeDesc = TypeDescTpe.unapply(tpe).isDefined
     SClassArg(owner, vd.mods.isImplicit, isOverride, isVal, vd.name, tpe, default, annotations, isTypeDesc)
   }
@@ -407,17 +413,17 @@ trait ScalanParsers[+G <: Global] {
   }
 
   object ExtractAnnotation {
-    def unapply(a: Tree): Option[(String, List[Tree])] = a match {
-      case Apply(Select(New(Ident(ident)), nme.CONSTRUCTOR), args) => Some((ident, args))
-      case Apply(Select(New(tpt), nme.CONSTRUCTOR), args) => Some((tpt.toString(), args))
+    def unapply(a: Tree): Option[(String, List[Type], List[Tree])] = a match {
+      case Apply(Select(New(Ident(ident)), nme.CONSTRUCTOR), args) => Some((ident, Nil, args))
+      case Apply(Select(New(tpt), nme.CONSTRUCTOR), args) => Some((tpt.toString(), Nil, args))
       case _ => None
     }
   }
 
-  def parseAnnotations[A <: SAnnotation](md: MemberDef)(p: (String, List[Tree]) => A): List[A] = {
+  def parseAnnotations[A <: SAnnotation](md: MemberDef)(p: (String, List[Type], List[Tree]) => A): List[A] = {
     val as = md.collectAnnotations
     val annotations = as.map {
-      case ExtractAnnotation (name, args) => p(name, args)
+      case ExtractAnnotation(name, ts, args) => p(name, ts, args)
       case a => !!! (s"Cannot parse annotation $a of MemberDef $md")
     }
     annotations
@@ -426,7 +432,7 @@ trait ScalanParsers[+G <: Global] {
   class HasAnnotation(annClass: String) {
     def unapply(md: MemberDef): Option[List[Tree]] =
       md.mods.annotations.collectFirst {
-        case ExtractAnnotation(name, args) if name == annClass => args
+        case ExtractAnnotation(name, _, args) if name == annClass => args
       }
   }
 
@@ -449,7 +455,8 @@ trait ScalanParsers[+G <: Global] {
       case _ => None
     }
     val annotations = md.mods.annotations.map {
-      case ExtractAnnotation(name, args) => SMethodAnnotation(name, args.map(parseExpr(owner, _)))
+      case ExtractAnnotation(name, ts, args) =>
+        SMethodAnnotation(name, ts.map(parseType), args.map(parseExpr(owner, _)))
       case a => !!!(s"Cannot parse annotation $a of the method $md")
     }
     //    val optExternal = md match {
@@ -525,7 +532,9 @@ trait ScalanParsers[+G <: Global] {
   def methodArg(owner: SSymbol, vd: ValDef)(implicit ctx: ParseCtx): SMethodArg = {
     val tpe = tpeExpr(owner, vd.tpt)
     val default = optExpr(owner, vd.rhs)
-    val annotations = parseAnnotations(vd)((n,as) => new SArgAnnotation(n, as.map(parseExpr(owner, _))))
+    val annotations = parseAnnotations(vd)((n, ts, as) =>
+      SArgAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+    )
     val isOverride = vd.mods.isAnyOverride
     val isTypeDesc = tpe match {
       case STraitCall(tname, _) if tname == "Elem" || tname == "Cont" => true
@@ -567,7 +576,7 @@ trait ScalanParsers[+G <: Global] {
     SMethodDef(owner, "map", List(tB),
       List(SMethodArgs(List(SMethodArg(false, false, "f", STpeFunc(tItem.toTraitCall, tB.toTraitCall), None)))),
       Some(STraitCall("Array", List(tB.toTraitCall))),
-      false, false, None, List(SMethodAnnotation("External", Nil)))
+      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
   }
 
   def mkArrayZipMethod(owner: SSymbol, tItem: STpeArg) = {
@@ -575,7 +584,7 @@ trait ScalanParsers[+G <: Global] {
     SMethodDef(owner, "zip", List(tB),
       List(SMethodArgs(List(SMethodArg(false, false, "ys", STraitCall("Array", List(tB.toTraitCall)), None)))),
       Some(STraitCall("Array", List(STpeTuple(List(tItem.toTraitCall, tB.toTraitCall))))),
-      false, false, None, List(SMethodAnnotation("External", Nil)))
+      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
   }
 
   def applyArrayFill(f: SExpr, tyArg: Option[STpeExpr], arg1: SExpr, arg2: SExpr) = {

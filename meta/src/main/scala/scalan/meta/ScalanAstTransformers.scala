@@ -495,7 +495,7 @@ object ScalanAstTransformers {
   /** Removing of internal parts of annotations that should be ignored at code generation. */
   def filterInternalAnnot(annotations: List[SAnnotation]): List[SAnnotation] = {
     annotations map {
-      case annotation @ SMethodAnnotation("Constructor", args) =>
+      case annotation @ SMethodAnnotation("Constructor", _, args) =>
         val newArgs = args filter {
           case SAssign(SIdent("original",_), m: SMethodDef,_) => false
           case _ => true

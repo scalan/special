@@ -297,17 +297,31 @@ object ScalanAst {
   // SAnnotation universe --------------------------------------------------------------------------
   trait SAnnotation {
     def annotationClass: String
+    def tpeArgs: List[STpeExpr]
     def args: List[SExpr]
   }
 
   /** Annotation that can be attached to any STmplDef */
-  case class SEntityAnnotation(annotationClass: String, args: List[SExpr]) extends SAnnotation
+  case class SEntityAnnotation(
+      annotationClass: String,
+      tpeArgs: List[STpeExpr],
+      args: List[SExpr]) extends SAnnotation
 
-  case class SMethodAnnotation(annotationClass: String, args: List[SExpr]) extends SAnnotation
+  /** Annotation that can be attached to any SMethodDef */
+  case class SMethodAnnotation(
+      annotationClass: String,
+      tpeArgs: List[STpeExpr],
+      args: List[SExpr]) extends SAnnotation
 
-  case class SArgAnnotation(annotationClass: String, args: List[SExpr]) extends SAnnotation
+  case class SArgAnnotation(
+      annotationClass: String,
+      tpeArgs: List[STpeExpr],
+      args: List[SExpr]) extends SAnnotation
 
-  case class STypeArgAnnotation(annotationClass: String, args: List[SExpr]) extends SAnnotation
+  case class STypeArgAnnotation(
+      annotationClass: String,
+      tpeArgs: List[STpeExpr],
+      args: List[SExpr]) extends SAnnotation
 
   final val ConstructorAnnotation    = classOf[Constructor].getSimpleName
   final val ExternalAnnotation       = classOf[External].getSimpleName
@@ -319,10 +333,10 @@ object ScalanAst {
 
   object ExternalEntityAnnotation {
     def apply(externalName: String) =
-      SEntityAnnotation(ExternalAnnotation, List(SConst(externalName,Some(TpeString))))
+      SEntityAnnotation(ExternalAnnotation, Nil, List(SConst(externalName,Some(TpeString))))
 
     def unapply(a: SEntityAnnotation): Option[String] = a match {
-      case SEntityAnnotation(ExternalAnnotation, List(SConst(externalName,_))) =>
+      case SEntityAnnotation(ExternalAnnotation, _, List(SConst(externalName,_))) =>
         Some(externalName.toString)
       case _ => None
     }
@@ -456,7 +470,7 @@ object ScalanAst {
 
     def getOriginal: Option[SMethodDef] = {
       annotations.collectFirst {
-        case mannot@SMethodAnnotation("Constructor", _) => mannot.args collectFirst {
+        case mannot @ SMethodAnnotation("Constructor", _, _) => mannot.args collectFirst {
           case SAssign(SIdent("original", _), origMethod: SMethodDef, _) => origMethod
         }
       }.flatten

@@ -335,7 +335,7 @@ class SModuleBuilder(implicit val context: AstContext) {
         name = "apply",
         tpeArgs = (e.tpeArgs ++ c.tpeArgs).distinct,
         // This is an internal annotation. And it should be ignored during in the backend.
-        annotations = List(SMethodAnnotation("Constructor", List(SAssign(SIdent("original"), c))))
+        annotations = List(SMethodAnnotation("Constructor", Nil, List(SAssign(SIdent("original"), c))))
       )
     }
     val newEntityCompanion = e.companion match {

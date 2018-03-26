@@ -33,7 +33,7 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
     implicit val ctx = new ParseCtx(true)
     val es = eCollection.symbol
     testSMethod(es, "def f: Int", MD(es, "f", Nil, Nil, Some(TpeInt), false, false, None, Nil, None))
-    testSMethod(es, "@OverloadId(\"a\") implicit def f: Int", MD(es, "f", Nil, Nil, Some(TpeInt), true, false, Some("a"), L(SMethodAnnotation("OverloadId",List(SConst("a")))), None))
+    testSMethod(es, "@OverloadId(\"a\") implicit def f: Int", MD(es, "f", Nil, Nil, Some(TpeInt), true, false, Some("a"), L(SMethodAnnotation("OverloadId",Nil,List(SConst("a")))), None))
     testSMethod(es,
       "def f(x: Int): Int",
       MD(es, "f", Nil, L(MAs(List(MA(false, false, "x", TpeInt, None)))), Some(TpeInt), false, false, None, Nil, None))
@@ -81,7 +81,7 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
         IS("scalan._"),
         STpeDef(ts, "Rep", L(STpeArg("A", None, Nil)), TC("A", Nil)),
         MD(ts, "f", Nil, Nil, Some(T(L(TpeInt, TC("A", Nil)))), false, false, None, Nil, None),
-        MD(ts, "g", Nil, L(MAs(L(MA(false, false, "x", TpeBoolean, None)))), Some(TC("A", Nil)), false, false, Some("b"), L(SMethodAnnotation("OverloadId",List(SConst("b")))), None)), None, None))
+        MD(ts, "g", Nil, L(MAs(L(MA(false, false, "x", TpeBoolean, None)))), Some(TC("A", Nil)), false, false, Some("b"), L(SMethodAnnotation("OverloadId", Nil, List(SConst("b")))), None)), None, None))
 
   }
 

@@ -223,7 +223,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     def unapply(name: String): Option[(SEntityDef, String)] = name match {
       case Entity(_, e) =>
         e.getAnnotation(ExternalAnnotation) match {
-          case Some(SEntityAnnotation(_, List(SConst(externalName: String, _)))) => Some((e, externalName))
+          case Some(SEntityAnnotation(_, _, List(SConst(externalName: String, _)))) => Some((e, externalName))
           case _ => None
         }
       case _ => None

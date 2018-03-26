@@ -193,7 +193,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     }
     val annotatedArgs = tpeArgs.map(a =>
       if (reifiedArgs.contains(a))
-        a.copy(annotations = STypeArgAnnotation("Reified", Nil) :: a.annotations)
+        a.copy(annotations = STypeArgAnnotation("Reified", Nil, Nil) :: a.annotations)
       else
         a)
     SMethodDef(owner,
@@ -203,7 +203,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       tpeRes = Some(tpeRes),
       isImplicit = false, isOverride = false,
       overloadId = None,
-      annotations = List(SMethodAnnotation(annotationClass = "External", args = Nil)),
+      annotations = List(SMethodAnnotation(annotationClass = "External", tpeArgs = Nil, args = Nil)),
       body = None,
       isTypeDesc = false
     )
@@ -267,7 +267,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val baseType = STraitCall(externalName, typeParams)
     val entityAncestors = originalEntityAncestors
     val externalAnnot = ExternalEntityAnnotation(externalTypeName)
-    val entityAnnotations = externalAnnot :: wrapperConf.annotations.map { a => SEntityAnnotation(a, Nil) }
+    val entityAnnotations = externalAnnot :: wrapperConf.annotations.map { a => SEntityAnnotation(a, Nil, Nil) }
     val us = context.newUnitSymbol(wrapPackage(packageName), wmod(externalTypeName))
     val entity = STraitDef(
       owner = us,
