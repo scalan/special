@@ -4,7 +4,7 @@ import scalan.BaseNestedTests
 import scala.reflect.internal.util.BatchSourceFile
 import scala.tools.nsc.Global
 import scalan.meta.ScalanAst._
-import scalan.meta.Symbols.SEntitySymbol
+import scalan.meta.Symbols.{SEntitySymbol, SEntityDefSymbol}
 
 class ScalanParsersTests extends BaseMetaTests with Examples {
 
@@ -68,7 +68,7 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
         body = L(MD(traitEdgeVE.symbol, "f", L(STpeArg("A", Some(TC("T", Nil)), Nil)),
           L(MAs(L(MA(false, false, "x", TC("A", Nil), None), MA(false, false, "y", T(L(TC("A", Nil), TC("T", Nil))), None)))),
           Some(TpeInt), false, false, None, Nil, None))))
-    val ts = SEntitySymbol(us, "A")
+    val ts = SEntityDefSymbol(us, "A")
     testTrait(
       """trait A {
         |  import scalan._
@@ -121,14 +121,14 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
     val us = context.newUnitSymbol("scalan.rx", reactiveModule.moduleName)
     val tpeArgA = L(STpeArg("A", None, Nil))
     val ancObsA = L(TC("Observable", L(TC("A", Nil))))
-    val entitySym = SEntitySymbol(us, "Observable")
+    val entitySym = SEntityDefSymbol(us, "Observable")
     val entity = TD(us, "Observable", tpeArgA, Nil, L(SMethodDef(entitySym, "eA",List(),List(),Some(TC("Elem",L(TC("A",Nil)))),true,false, None, Nil, None, true)), None, None)
-    val obsImpl1Sym = SEntitySymbol(us, "ObservableImpl1")
+    val obsImpl1Sym = SEntityDefSymbol(us, "ObservableImpl1")
     val obsImpl1 = CD(us, "ObservableImpl1", tpeArgA,
       SClassArgs(Nil),
       SClassArgs(L(SClassArg(obsImpl1Sym, true, false, true, "eA", TC("Elem", L(TC("A", Nil))), None, Nil, true))),
       ancObsA.map(_.toTypeApply), Nil, None, None, false)
-    val obsImpl2Sym = SEntitySymbol(us, "ObservableImpl2")
+    val obsImpl2Sym = SEntityDefSymbol(us, "ObservableImpl2")
     val obsImpl2 = CD(us, "ObservableImpl2", tpeArgA,
       SClassArgs(Nil),
       SClassArgs(L(SClassArg(obsImpl2Sym, true, false, true, "eA", TC("Elem", L(TC("A", Nil))), None, Nil, true))),

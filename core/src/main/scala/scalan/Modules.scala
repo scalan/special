@@ -9,6 +9,7 @@ import scalan.util.{ReflectionUtil, FileUtil}
 trait Modules extends Base { self: Scalan =>
   private[scalan] lazy val parsers = {
     val parsers = new Parsers(BoilerplateToolRun.allConfigs)
+    implicit val parseCtx = new parsers.context.parsers.ParseCtx(true)(parsers.context)
     parsers.context.loadUnitsFromResources()
     parsers
   }
@@ -23,7 +24,7 @@ trait Modules extends Base { self: Scalan =>
     val pack = moduleInfo.packageName
     val name = moduleInfo.moduleName
     if (!parsers.context.hasUnit(pack, name)) {
-      val m = parsers.loadUnitDefFromResource(moduleInfo.sourceFileName)
+      val m = parsers.loadUnitDefFromResource(moduleInfo.sourceFileName)(new parsers.ParseCtx(true)(parsers.context))
       parsers.context.addUnit(m)
       println(s"WARNING: module $pack.$name added by registerModule")
     }

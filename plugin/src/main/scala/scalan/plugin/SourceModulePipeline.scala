@@ -6,11 +6,11 @@ import java.util.Properties
 
 import scalan.meta.scalanizer.{Plugin, Scalanizer}
 import scala.tools.nsc.Global
-import scalan.meta.{LibraryConfig, ModuleVirtualizationPipeline, SourceModuleConf, ModuleConf}
+import scala.collection.mutable.{Map => MMap}
+import scalan.meta._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.Symbols.{SUnitSymbol, SEntitySymbol}
-
+import scalan.meta.Symbols.{SEntityDefSymbol, SEntitySymbol, SUnitDefSymbol, SSymbol}
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
   import scalanizer._
@@ -24,14 +24,27 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     s.snConfig.sourceModules.get(moduleName).isDefined
   }
 
-  class CatchWrappersTraverser(us: SUnitSymbol, f: (SEntitySymbol,Tree) => Unit) extends Traverser {
+  val symbolMap: MMap[SSymbol, Symbol] = MMap()
+
+  class SourcePipelineParseCtx(override val isVirtualized: Boolean)
+                             (implicit astContext: AstContext)
+      extends ParseCtx(isVirtualized) {
+    override def onParsed(symTree: SymTreeApi, sdef: NamedDef) = {
+      val ssym = sdef.symbol
+      if (!symbolMap.contains(ssym)) {
+        symbolMap += (ssym -> symTree.symbol)
+      }
+    }
+  }
+
+  class CatchWrappersTraverser(us: SUnitDefSymbol, f: (SEntitySymbol,Tree) => Unit) extends Traverser {
     var stack: List[SEntitySymbol] = List(us)   // stack of potentially nested entities
     def currentEntity = stack.head
 
     override def traverse(t: Tree) {
       t match {
         case cd: ClassDef =>
-          val es = SEntitySymbol(currentEntity, cd.name)
+          val es = SEntityDefSymbol(currentEntity, cd.name)
           f(currentEntity, t)
           stack = es :: stack  // push
           super.traverse(t)
@@ -43,7 +56,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     }
   }
 
-  def loadModuleUnits(step: PipelineStep, source: ModuleConf): Unit = {
+  def loadModuleUnits(step: PipelineStep, source: ModuleConf)(implicit ctx: ParseCtx): Unit = {
     for (depModule <- source.dependsOnModules()) {
       loadModuleUnits(step, depModule)
     }
@@ -58,7 +71,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     }
   }
 
-  def loadLibraryDeps(step: PipelineStep, lib: LibraryConfig): Unit = {
+  def loadLibraryDeps(step: PipelineStep, lib: LibraryConfig)(implicit ctx: ParseCtx): Unit = {
     for (source <- lib.sourceModules) {
       loadModuleUnits(step, source)
     }
@@ -66,11 +79,12 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 
   val steps: List[PipelineStep] = List(
     RunStep("dependencies") { step =>
+      implicit val parseCtx: ParseCtx = new ParseCtx(isVirtualized = true)(context)
       val module = scalanizer.getSourceModule
       // add Special units from dependencies in the current project
       for (depModule <- module.dependsOnModules()) {
         for (unitConf <- depModule.units.values) {
-          val unit = parseUnitFile(unitConf.getResourceFile)(new ParseCtx(isVirtualized = true)(context))
+          val unit = parseUnitFile(unitConf.getResourceFile)
           scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
           snState.addUnit(unit, unitConf)
         }
@@ -89,7 +103,8 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       // because we are running after typer, all the names has been resolved by the compiler
       // we need to ensure visibility of all the names by scalanizer as well
       for (unitConf <- module.units.values) {
-        val unit = parseUnitFile(unitConf.getFile)(new ParseCtx(isVirtualized = false)(context))
+        val parseCtx = new ParseCtx(isVirtualized = false)(context)
+        val unit = parseUnitFile(unitConf.getFile)(parseCtx)
         scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
         snState.addUnit(unit, unitConf)
       }
@@ -97,7 +112,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     ForEachUnitStep("wrapfrontend") { context => import context._;
       val unitFileName = unit.source.file.name
       if (isModuleUnit(unitFileName)) {
-        implicit val ctx = new ParseCtx(isVirtualized = false)(scalanizer.context)
+        implicit val ctx = new SourcePipelineParseCtx(isVirtualized = false)(scalanizer.context)
         val unitDef = unitDefFromTree(unitFileName, unit.body)
         val t = new CatchWrappersTraverser(unitDef.unitSym, catchWrapperUsage)
         t.traverse(unit.body)

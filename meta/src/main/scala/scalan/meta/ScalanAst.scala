@@ -745,7 +745,7 @@ object ScalanAst {
   abstract class SEntityDef extends SBodyItem with NamedDef { thisEntity =>
     def owner: SSymbol   // actually SUnitSymbol | SEntitySymbol
     def name: String
-    val symbol = SEntitySymbol(owner, name)
+    val symbol: SEntitySymbol = SEntityDefSymbol(owner, name)
 
     def tpeArgs: List[STpeArg]
 
@@ -1087,7 +1087,7 @@ object ScalanAst {
     def owner: SSymbol = SNoSymbol
     def signature = (name, Nil)
     val unitSym = context.newUnitSymbol(packageName, name)
-    override val symbol: SUnitSymbol = unitSym
+    override val symbol: SUnitDefSymbol = unitSym
     def unitName = unitSym.unitName
     def getUnitKey: String = unitName.mkFullName
 

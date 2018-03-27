@@ -3,7 +3,7 @@ package scalan.meta
 import scala.tools.nsc.Global
 import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, STpeThis, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, SSuper, STpeExistential, SSelect}
 import scalan.meta.ScalanAstTransformers.filterInternalAnnot
-import scalan.meta.Symbols.SUnitSymbol
+import scalan.meta.Symbols.SUnitDefSymbol
 import scalan.util.ScalaNameUtil.PackageAndName
 
 trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
@@ -11,7 +11,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
 
   case class GenCtx(context: AstContext, isVirtualized: Boolean, toRep: Boolean = true)
 
-  def createModuleTrait(unitSym: SUnitSymbol) = {
+  def createModuleTrait(unitSym: SUnitDefSymbol) = {
     val mainModuleName = unitSym.unitName.name
     val mt = STraitDef(
       owner = unitSym,
@@ -425,14 +425,13 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
   def genAnnotations(annotations: List[SAnnotation])(implicit ctx: GenCtx): List[Tree] = {
     filterInternalAnnot(annotations).map(genAnnotation)
   }
+
   def genAnnotation(annot: SAnnotation)(implicit ctx: GenCtx): Tree = {
-    def genAnnotExpr(expr: SExpr): Tree = expr match {
-      case const: SConst => Literal(Constant(const.c))
-      case ident: SIdent => Ident(TermName(ident.name))
-      case assign: SAssign => q"${genAnnotExpr(assign.left)} = ${genAnnotExpr(assign.right)}"
-      case unknown => throw new NotImplementedError(s"genAnnotExpr($unknown)")
-    }
-    val args = annot.args.map(genAnnotExpr)
-    Apply(Select(New(Ident(annot.annotationClass)), nme.CONSTRUCTOR), args)
+    val args = annot.args.map(a => genExpr(a)(ctx.copy(toRep = false)))
+    val annotClass = if (annot.tpeArgs.isEmpty)
+      Ident(annot.annotationClass)
+    else
+      genTypeExpr(STraitCall(annot.annotationClass, annot.tpeArgs))
+    Apply(Select(New(annotClass), nme.CONSTRUCTOR), args)
   }
 }

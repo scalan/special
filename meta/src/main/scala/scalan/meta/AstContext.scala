@@ -26,7 +26,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     * Initial set of units is loaded from the configs and later new units can be added. */
   private[scalan] val units = MMap[String, SUnitDef]()
 
-  def loadUnitsFromResources(): Unit = {
+  def loadUnitsFromResources()(implicit ctx: parsers.ParseCtx): Unit = {
     for (c <- unitConfigs.values) {
       val m = parsers.loadUnitDefFromResource(c.entityResource)
       addUnit(m)

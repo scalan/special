@@ -15,7 +15,7 @@ import scalan.meta.ScalanAstUtils._
 import scalan.meta.ScalanAstExtensions._
 import java.util.regex.Pattern
 
-import scalan.meta.Symbols.{SSymbol, SNoSymbol, SEntitySymbol}
+import scalan.meta.Symbols.{SSymbol, SEntitySymbol, SNoSymbol, SEntityDefSymbol}
 import scalan.util.StringUtil._
 import scalan.util.CollectionUtil._
 import scalan.util.FileUtil
@@ -30,7 +30,9 @@ trait ScalanParsers[+G <: Global] {
 
   val context: AstContext
 
-  class ParseCtx(val isVirtualized: Boolean)(implicit val astContext: AstContext)
+  class ParseCtx(val isVirtualized: Boolean)(implicit val astContext: AstContext) {
+    def onParsed(scalaSym: SymTreeApi, sdef: NamedDef) = {}
+  }
 
   implicit def parseCtxToAstContext(implicit ctx: ParseCtx) = ctx.astContext
   
@@ -96,32 +98,17 @@ trait ScalanParsers[+G <: Global] {
       throw new Exception(s"Unexpected tree in $file:\n\n$tree")
   }
 
-  def loadUnitDefFromResource(fileName: String): SUnitDef = {
+  def loadUnitDefFromResource(fileName: String)(implicit ctx: ParseCtx): SUnitDef = {
     try {
       val sourceCode = FileUtil.readAndCloseStream(this.getClass.getClassLoader.getResourceAsStream(fileName))
       val sourceFile = new BatchSourceFile(fileName, sourceCode)
       val tree = parseFile(sourceFile)
-      val module = unitDefFromTree(fileName, tree)(new ParseCtx(true)(context))
+      val module = unitDefFromTree(fileName, tree)
       module
     } catch {
       case t: Throwable => throw new IllegalStateException(s"Cannot load SUnitDef from $fileName", t)
     }
   }
-
-//  def parseDeclaredImplementations(us: SSymbol, entities: List[SEntityDef], moduleDefOpt: Option[ClassDef])(implicit ctx: ParseCtx) = {
-//    val decls = for {
-//      dslModule <- moduleDefOpt.toList
-//      t <- entities
-//      stdOpsTrait <- findClassDefByName(dslModule.impl.body, t.name + "Decls")
-//    } yield {
-//      (t.name, stdOpsTrait)
-//    }
-//    val m = decls.map { case (name, decl) =>
-//      val methods = decl.impl.body.collect { case item: DefDef => item }
-//      (name, SDeclaredImplementation(methods.map(methodDef(us, _))))
-//    }.toMap
-//    SDeclaredImplementations(m)
-//  }
 
   def findClassDefByName(trees: List[Tree], name: String): Option[ClassDef] =
     trees.collectFirst {
@@ -156,6 +143,11 @@ trait ScalanParsers[+G <: Global] {
     def collectMethods = defs.collect { case md: SMethodDef if !isInternalMethodOfCompanion(md, defs) => md }
   }
 
+  def returnParsed[R <: NamedDef](scalaSym: SymTreeApi, sdef: R)(implicit ctx: ParseCtx): R = {
+    ctx.onParsed(scalaSym, sdef)
+    sdef
+  }
+
   def moduleDefFromPackageDef(moduleName: String, packageDef: PackageDef)(implicit ctx: ParseCtx): SUnitDef = {
     if (ctx.isVirtualized) moduleDefFromVirtPackageDef(packageDef)
     else {
@@ -169,11 +161,11 @@ trait ScalanParsers[+G <: Global] {
       val traits = defs.collectTraits
       val classes = defs.collectClasses
       val methods = defs.collectMethods
-      SUnitDef(packageName, imports, moduleName,
+      returnParsed(packageDef, SUnitDef(packageName, imports, moduleName,
         typeDefs,
         traits, classes, methods,
         None, Nil,
-        None, ctx.isVirtualized, okEmitOrigModuleTrait = !isDefinedModule)
+        None, ctx.isVirtualized, okEmitOrigModuleTrait = !isDefinedModule))
     }
   }
 
@@ -274,7 +266,7 @@ trait ScalanParsers[+G <: Global] {
 
   def traitDef(owner: SSymbol, td: ClassDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): STraitDef = {
     val name = td.name.toString
-    val sym = SEntitySymbol(owner, name)
+    val sym = SEntityDefSymbol(owner, name)
     val tpeArgs = this.tpeArgs(sym, td.tparams, Nil)
     val ancestors = this.ancestors(sym, td.impl.parents).map(_.toTypeApply)
     val body = td.impl.body.flatMap(optBodyItem(sym, _, Some(td)))
@@ -288,7 +280,7 @@ trait ScalanParsers[+G <: Global] {
 
   def classDef(owner: SSymbol, cd: ClassDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): SClassDef = {
     val name = cd.name.toString
-    val sym = SEntitySymbol(owner, name)
+    val sym = SEntityDefSymbol(owner, name)
     val ancestors = this.ancestors(sym, cd.impl.parents).map(_.toTypeApply)
     val constructor = (cd.impl.body.collect {
       case dd: DefDef if dd.name == nme.CONSTRUCTOR => dd
@@ -319,7 +311,7 @@ trait ScalanParsers[+G <: Global] {
 
   def objectDef(owner: SSymbol, od: ImplDef)(implicit ctx: ParseCtx): SObjectDef = {
     assert(!od.isInstanceOf[ClassDef] || od.mods.hasModuleFlag)
-    val sym = SEntitySymbol(owner, od.name)
+    val sym = SEntityDefSymbol(owner, od.name)
     val ancestors = this.ancestors(sym, od.impl.parents).map(_.toTypeApply)
     val body = od.impl.body.flatMap(optBodyItem(sym, _, Some(od)))
     SObjectDef(owner, od.name, ancestors, body)
@@ -467,19 +459,12 @@ trait ScalanParsers[+G <: Global] {
         Some(overloadId.toString)
       case _ => None
     }
-    val annotations = parseAnnotations(md)((n, ts, as) =>
-      SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
-    )
-//    md.mods.annotations.map {
-//      case ExtractAnnotation(name, ts, args) =>
-//
-//      case a => !!!(s"Cannot parse annotation $a of the method $md")
-//    }
-    //    val optExternal = md match {
-    //      case HasExternalAnnotation(_) => Some(ExternalMethod)
-    //      case HasConstructorAnnotation(_) => Some(ExternalConstructor)
-    //      case _ => None
-    //    }
+    val annotations = parseAnnotations(md) {
+      case ("throws", ts, as) =>
+        SMethodAnnotation("throws", ts.map(parseType), Nil)
+      case (n, ts, as) =>
+        SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+    }
     val optBody: Option[SExpr] = optExpr(owner, md.rhs)
     val isTypeDesc = md.tpt match {
       case AppliedTypeTree(tpt, _) if Set("Elem", "Cont").contains(tpt.toString) =>

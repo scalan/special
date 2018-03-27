@@ -6,12 +6,12 @@ import Symbols._
 
 trait Symbols { this: AstContext =>
 
-  def newUnitSymbol(packageName: String, name: String): SUnitSymbol = {
-    SUnitSymbol(SNoSymbol, SName(packageName, name))
+  def newUnitSymbol(packageName: String, name: String): SUnitDefSymbol = {
+    SUnitDefSymbol(SNoSymbol, SName(packageName, name))
   }
 
   def newEntitySymbol(owner: SSymbol, name: String, defType: DefType.Value): SNamedDefSymbol = {
-    SEntitySymbol(owner, name)
+    SEntityDefSymbol(owner, name)
   }
 
   def newEntityItemSymbol(owner: SSymbol, name: String, defType: DefType.Value): SNamedDefSymbol = {
@@ -24,8 +24,8 @@ object Symbols {
 
   sealed trait SSymbol {
     def owner: SSymbol
-    def outerUnit: SUnitSymbol = this match {
-      case us: SUnitSymbol =>
+    def outerUnit: SUnitDefSymbol = this match {
+      case us: SUnitDefSymbol =>
         assert(us.owner eq SNoSymbol, s"UnitSymbol have owner ${us.owner}")
         us
       case _ =>
@@ -47,29 +47,35 @@ object Symbols {
     override def owner: SSymbol = this
   }
 
-  class SEntitySymbol private[Symbols](val owner: SSymbol, val name: String) extends SNamedDefSymbol {
+  trait SEntitySymbol extends SNamedDefSymbol {
+    def owner: SSymbol
+  }
+
+  case class SEntityDefSymbol private(owner: SSymbol, name: String)
+      extends SEntitySymbol {
     def defType = DefType.Entity
 
-    override def hashCode(): Int = Objects.hash(owner, name)
-    override def equals(other: Any): Boolean = other match {
-      case es: SEntitySymbol => owner == es.owner && name == es.name
-      case _ => false
-    }
-    override def toString = s"SEntitySymbol($owner,$name)"
+//    override def hashCode(): Int = Objects.hash(owner, name)
+//    override def equals(other: Any): Boolean = other match {
+//      case es: SEntitySymbol => owner == es.owner && name == es.name
+//      case _ => false
+//    }
+//    override def toString = s"SEntitySymbol($owner,$name)"
   }
-  object SEntitySymbol {
-    def apply(owner: SSymbol, name: String) = new SEntitySymbol(owner, name)
-    def unapply(s: SSymbol): Option[(SSymbol, String)] = s match {
-      case es: SEntitySymbol => Some((es.owner, es.name))
-      case _ => None
-    }
-  }
+//  object SEntitySymbol {
+//    def apply(owner: SSymbol, name: String) = new SEntitySymbol(owner, name)
+//    def unapply(s: SSymbol): Option[(SSymbol, String)] = s match {
+//      case es: SEntitySymbol => Some((es.owner, es.name))
+//      case _ => None
+//    }
+//  }
 
   case class SEntityItemSymbol private(owner: SSymbol, name: String, defType: DefType.Value)
       extends SNamedDefSymbol
 
-  case class SUnitSymbol private(override val owner: SSymbol, unitName: SName)
-      extends SEntitySymbol(owner, unitName.name) {
+  case class SUnitDefSymbol private(override val owner: SSymbol, unitName: SName)
+      extends SEntitySymbol {
+    def name = unitName.name
     override def defType = DefType.Unit
     override def toString = s"SUnitSymbol($owner,${unitName.mkFullName})"
   }
