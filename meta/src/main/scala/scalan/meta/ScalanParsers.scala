@@ -5,17 +5,13 @@
 package scalan.meta
 
 import java.io.File
-import java.nio.file.Path
 
 import scala.language.implicitConversions
 import scala.tools.nsc.Global
 import scala.reflect.internal.util.{BatchSourceFile, SourceFile, OffsetPosition, RangePosition}
 import scalan.meta.ScalanAst._
-import scalan.meta.ScalanAstUtils._
-import scalan.meta.ScalanAstExtensions._
 import java.util.regex.Pattern
-
-import scalan.meta.Symbols.{SSymbol, SEntitySymbol, SNoSymbol, SEntityDefSymbol}
+import scalan.meta.Symbols.{SSymbol, SNoSymbol, SEntityDefSymbol}
 import scalan.util.StringUtil._
 import scalan.util.CollectionUtil._
 import scalan.util.FileUtil
@@ -93,7 +89,7 @@ trait ScalanParsers[+G <: Global] {
   def unitDefFromTree(file: String, tree: Tree)(implicit ctx: ParseCtx): SUnitDef = tree match {
     case pd: PackageDef =>
       val unitName = scala.reflect.io.File(file).stripExtension
-      moduleDefFromPackageDef(unitName, pd)
+      unitDefFromPackageDef(unitName, pd)
     case tree =>
       throw new Exception(s"Unexpected tree in $file:\n\n$tree")
   }
@@ -148,8 +144,8 @@ trait ScalanParsers[+G <: Global] {
     sdef
   }
 
-  def moduleDefFromPackageDef(moduleName: String, packageDef: PackageDef)(implicit ctx: ParseCtx): SUnitDef = {
-    if (ctx.isVirtualized) moduleDefFromVirtPackageDef(packageDef)
+  def unitDefFromPackageDef(moduleName: String, packageDef: PackageDef)(implicit ctx: ParseCtx): SUnitDef = {
+    if (ctx.isVirtualized) unitDefFromVirtPackageDef(packageDef)
     else {
       val packageName = packageDef.pid.toString
       val unitSym = ctx.astContext.newUnitSymbol(packageName, moduleName)
@@ -169,7 +165,7 @@ trait ScalanParsers[+G <: Global] {
     }
   }
 
-  def moduleDefFromVirtPackageDef(packageDef: PackageDef)(implicit ctx: ParseCtx): SUnitDef = {
+  def unitDefFromVirtPackageDef(packageDef: PackageDef)(implicit ctx: ParseCtx): SUnitDef = {
     val packageName = packageDef.pid.toString
     val statements = packageDef.stats
     val imports = statements.collect { case i: Import => importStat(i) }
@@ -184,7 +180,7 @@ trait ScalanParsers[+G <: Global] {
     val isDefinedModule = findClassDefByName(
       statements, SUnitDef.moduleTraitName(mainTraitTree.name)).isDefined
 
-    val ancestors = this.ancestors(unitSym, mainTraitTree.impl.parents).map(_.toTypeApply)
+    val ancestors = this.ancestors(unitSym, mainTraitTree.impl.parents)
     val selfType = this.selfType(unitSym, mainTraitTree.impl.self)
     val defs = mainTraitTree.impl.body.flatMap(optBodyItem(unitSym, _, Some(mainTraitTree)))
     val typeDefs = defs.collectTypeDefs
@@ -192,11 +188,11 @@ trait ScalanParsers[+G <: Global] {
     val classes = defs.collectClasses
     val methods = defs.collectMethods
 
-    SUnitDef(packageName, imports, moduleName,
+    returnParsed(packageDef, SUnitDef(packageName, imports, moduleName,
       typeDefs,
       traits, classes, methods,
       selfType, ancestors,
-      None, ctx.isVirtualized, okEmitOrigModuleTrait = !isDefinedModule)
+      None, ctx.isVirtualized, okEmitOrigModuleTrait = !isDefinedModule))
   }
 
   def importStat(i: Import): SImportStat = {
@@ -238,9 +234,15 @@ trait ScalanParsers[+G <: Global] {
     typeParams.map(tpeArg)
   }
 
-  // exclude default parent
-  def ancestors(owner: SSymbol, trees: List[Tree])(implicit ctx: ParseCtx) =
-    trees.map(traitCall(owner, _)).filter(tr => !Set("AnyRef", "scala.AnyRef").contains(tr.name))
+
+  val defaultParents = Set("AnyRef", "scala.AnyRef")
+
+  /** Get ancestors excluding default parents */
+  def ancestors(owner: SSymbol, trees: List[Tree])(implicit ctx: ParseCtx) = {
+    trees.map(traitCall(owner, _))
+         .filter(tr => !defaultParents.contains(tr.name))
+         .map(_.toTypeApply)
+  }
 
   def findCompanion
       (owner: SSymbol, name: String, parentScope: Option[Tree])
@@ -264,24 +266,37 @@ trait ScalanParsers[+G <: Global] {
     }
   }
 
+  def tpeDef(owner: SSymbol, td: TypeDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): STpeDef = {
+    val tpeArgs = this.tpeArgs(owner, td.tparams, Nil)
+    val rhs = tpeExpr(owner, td.rhs)
+    returnParsed(td, STpeDef(owner, td.name, tpeArgs, rhs))
+  }
+
+  def valDef(owner: SSymbol, vd: ValDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): SValDef = {
+    val tpeRes = optTpeExpr(owner, vd.tpt)
+    val isImplicit = vd.mods.isImplicit
+    val isLazy = vd.mods.isLazy
+    returnParsed(vd, SValDef(owner, vd.name, tpeRes, isLazy, isImplicit, parseExpr(owner, vd.rhs)))
+  }
+
   def traitDef(owner: SSymbol, td: ClassDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): STraitDef = {
     val name = td.name.toString
     val sym = SEntityDefSymbol(owner, name)
     val tpeArgs = this.tpeArgs(sym, td.tparams, Nil)
-    val ancestors = this.ancestors(sym, td.impl.parents).map(_.toTypeApply)
+    val ancestors = this.ancestors(sym, td.impl.parents)
     val body = td.impl.body.flatMap(optBodyItem(sym, _, Some(td)))
     val selfType = this.selfType(sym, td.impl.self)
     val companion = findCompanion(owner, name, parentScope) // note: using owner, not sym
     val annotations = parseAnnotations(td)((n, ts, as) =>
       SEntityAnnotation(n.lastComponent('.'), ts.map(parseType), as.map(parseExpr(owner, _)))
     )
-    STraitDef(owner, name, tpeArgs, ancestors, body, selfType, companion, annotations)
+    returnParsed(td, STraitDef(owner, name, tpeArgs, ancestors, body, selfType, companion, annotations))
   }
 
   def classDef(owner: SSymbol, cd: ClassDef, parentScope: Option[Tree])(implicit ctx: ParseCtx): SClassDef = {
     val name = cd.name.toString
     val sym = SEntityDefSymbol(owner, name)
-    val ancestors = this.ancestors(sym, cd.impl.parents).map(_.toTypeApply)
+    val ancestors = this.ancestors(sym, cd.impl.parents)
     val constructor = (cd.impl.body.collect {
       case dd: DefDef if dd.name == nme.CONSTRUCTOR => dd
     }) match {
@@ -306,15 +321,16 @@ trait ScalanParsers[+G <: Global] {
     val annotations = parseAnnotations(cd)((n, ts, as) =>
       SEntityAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
     )
-    SClassDef(owner, cd.name, tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations)
+    returnParsed(cd, SClassDef(owner, cd.name,
+      tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations))
   }
 
   def objectDef(owner: SSymbol, od: ImplDef)(implicit ctx: ParseCtx): SObjectDef = {
     assert(!od.isInstanceOf[ClassDef] || od.mods.hasModuleFlag)
     val sym = SEntityDefSymbol(owner, od.name)
-    val ancestors = this.ancestors(sym, od.impl.parents).map(_.toTypeApply)
+    val ancestors = this.ancestors(sym, od.impl.parents)
     val body = od.impl.body.flatMap(optBodyItem(sym, _, Some(od)))
-    SObjectDef(owner, od.name, ancestors, body)
+    returnParsed(od, SObjectDef(owner, od.name, ancestors, body))
   }
 
   def classArg(owner: SSymbol, vd: ValDef)(implicit ctx: ParseCtx): SClassArg = {
@@ -371,9 +387,7 @@ trait ScalanParsers[+G <: Global] {
       else
         None
     case td: TypeDef =>
-      val tpeArgs = this.tpeArgs(owner, td.tparams, Nil)
-      val rhs = tpeExpr(owner, td.rhs)
-      Some(STpeDef(owner, td.name, tpeArgs, rhs))
+      Some(tpeDef(owner, td, parentScope))
     case td: ClassDef if td.mods.isTrait =>
       Some(traitDef(owner, td, parentScope))
     case cd: ClassDef if cd.mods.hasModuleFlag =>
@@ -389,10 +403,7 @@ trait ScalanParsers[+G <: Global] {
     case vd: ValDef => vd match {
       case vd if vd.mods.isParamAccessor => None
       case _ =>
-        val tpeRes = optTpeExpr(owner, vd.tpt)
-        val isImplicit = vd.mods.isImplicit
-        val isLazy = vd.mods.isLazy
-        Some(SValDef(owner, vd.name, tpeRes, isLazy, isImplicit, parseExpr(owner, vd.rhs)))
+        Some(valDef(owner, vd, parentScope))
     }
     case EmptyTree =>
       None
@@ -473,8 +484,8 @@ trait ScalanParsers[+G <: Global] {
         tpt.toString == "TypeDesc"
     }
 
-    SMethodDef(owner, md.name, tpeArgs, args, tpeRes, isImplicit, isOverride,
-      optOverloadId, annotations, optBody, isTypeDesc)
+    returnParsed(md, SMethodDef(owner, md.name, tpeArgs, args, tpeRes, isImplicit, isOverride,
+      optOverloadId, annotations, optBody, isTypeDesc))
   }
 
   def methodArgs(owner: SSymbol, vds: List[ValDef])(implicit ctx: ParseCtx): SMethodArgs = vds match {

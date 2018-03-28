@@ -29,7 +29,7 @@ trait BaseMetaTests extends BaseNestedTests with ScalanParsersEx[Global] {
 
   def testModule(module: TestModule, expected: SUnitDef)(implicit ctx: ParseCtx) {
     test(TopLevel, module.text, expected) { case tree: PackageDef =>
-       moduleDefFromPackageDef(module.moduleName, tree)
+       unitDefFromPackageDef(module.moduleName, tree)
     }
   }
 

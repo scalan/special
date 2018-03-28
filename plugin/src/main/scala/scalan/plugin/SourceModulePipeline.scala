@@ -27,9 +27,10 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   val symbolMap: MMap[SSymbol, Symbol] = MMap()
 
   class SourcePipelineParseCtx(override val isVirtualized: Boolean)
-                             (implicit astContext: AstContext)
+                              (implicit astContext: AstContext)
       extends ParseCtx(isVirtualized) {
-    override def onParsed(symTree: SymTreeApi, sdef: NamedDef) = {
+    override def onParsed(symTree: SymTreeApi, sdef: NamedDef): Unit = {
+      if (symTree.symbol == null || symTree.symbol == NoSymbol) return
       val ssym = sdef.symbol
       if (!symbolMap.contains(ssym)) {
         symbolMap += (ssym -> symTree.symbol)

@@ -92,7 +92,7 @@ trait ScalanParsersEx[G <: Global]
   def parseModule(module: TestModule): SUnitDef = {
     implicit val ctx = new ParseCtx(module.isVirt)(context)
     val pkg = parseString(TopLevel, module.text).asInstanceOf[PackageDef]
-    val m = moduleDefFromPackageDef(module.moduleName, pkg)
+    val m = unitDefFromPackageDef(module.moduleName, pkg)
     m
   }
 
