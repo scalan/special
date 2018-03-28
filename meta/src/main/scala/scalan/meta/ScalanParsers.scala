@@ -128,71 +128,57 @@ trait ScalanParsers[+G <: Global] {
     hasClass && hasModule && hasMethod
   }
 
-  implicit class SBodyItemOps(defs: List[SBodyItem]) {
-    def collectClasses = defs
-      .collect { case c: SClassDef if !c.hasAnnotation("InternalType") => c }
-      .filterNot(isInternalClassOfCompanion(_, defs))
-    def collectTraits = defs.collect {
-      case t: STraitDef if !(t.name.endsWith("Companion") || t.hasAnnotation("InternalType")) => t
-    }
-    def collectTypeDefs = defs.collect { case t: STpeDef => t }
-    def collectMethods = defs.collect { case md: SMethodDef if !isInternalMethodOfCompanion(md, defs) => md }
-  }
-
   def returnParsed[R <: NamedDef](scalaSym: SymTreeApi, sdef: R)(implicit ctx: ParseCtx): R = {
     ctx.onParsed(scalaSym, sdef)
     sdef
   }
 
   def unitDefFromPackageDef(moduleName: String, packageDef: PackageDef)(implicit ctx: ParseCtx): SUnitDef = {
-    if (ctx.isVirtualized) unitDefFromVirtPackageDef(packageDef)
-    else {
-      val packageName = packageDef.pid.toString
-      val unitSym = ctx.astContext.newUnitSymbol(packageName, moduleName)
-      val statements = packageDef.stats
-      val imports = statements.collect { case i: Import => importStat(i) }
-      val defs = statements.filterMap { tree => optBodyItem(unitSym, tree, Some(packageDef)) }
-      val isDefinedModule = findClassDefByName(statements, SUnitDef.moduleTraitName(moduleName)).isDefined
-      val typeDefs = defs.collectTypeDefs
-      val traits = defs.collectTraits
-      val classes = defs.collectClasses
-      val methods = defs.collectMethods
-      returnParsed(packageDef, SUnitDef(packageName, imports, moduleName,
-        typeDefs,
-        traits, classes, methods,
-        None, Nil,
-        None, ctx.isVirtualized, okEmitOrigModuleTrait = !isDefinedModule))
-    }
-  }
-
-  def unitDefFromVirtPackageDef(packageDef: PackageDef)(implicit ctx: ParseCtx): SUnitDef = {
     val packageName = packageDef.pid.toString
     val statements = packageDef.stats
     val imports = statements.collect { case i: Import => importStat(i) }
-    val mainTraitTree = statements.collect {
-      case cd: ClassDef if cd.mods.isTrait && !cd.name.contains("Module") => cd
-    } match {
-      case List(only) => only
-      case seq => !!!(s"There must be exactly one trait with entity definition in a file, found ${seq.map(_.name.toString)}")
+    val isVirtualized = ctx.isVirtualized
+
+    def makeUnitDef(moduleName: String, defs: List[SBodyItem], selfType: Option[SSelfTypeDef], ancestors: List[STypeApply]) = {
+      val isDefinedModule = findClassDefByName(
+        statements, SUnitDef.moduleTraitName(moduleName)).isDefined
+      val classes = defs.collect {
+        case c: SClassDef if !(c.hasAnnotation("InternalType") || isInternalClassOfCompanion(c, defs)) => c
+      }
+      val traits = defs.collect {
+        case t: STraitDef if !(t.name.endsWith("Companion") || t.hasAnnotation("InternalType")) => t
+      }
+      val typeDefs = defs.collect { case t: STpeDef => t }
+      val methods = defs.collect { case md: SMethodDef if !isInternalMethodOfCompanion(md, defs) => md }
+
+      SUnitDef(packageName, imports, moduleName,
+        typeDefs,
+        traits, classes, methods,
+        selfType, ancestors,
+        None, isVirtualized, okEmitOrigModuleTrait = !isDefinedModule)
     }
-    val unitSym = ctx.astContext.newUnitSymbol(packageName, mainTraitTree.name)
-    val moduleName = unitSym.name
-    val isDefinedModule = findClassDefByName(
-      statements, SUnitDef.moduleTraitName(mainTraitTree.name)).isDefined
 
-    val ancestors = this.ancestors(unitSym, mainTraitTree.impl.parents)
-    val selfType = this.selfType(unitSym, mainTraitTree.impl.self)
-    val defs = mainTraitTree.impl.body.flatMap(optBodyItem(unitSym, _, Some(mainTraitTree)))
-    val typeDefs = defs.collectTypeDefs
-    val traits = defs.collectTraits
-    val classes = defs.collectClasses
-    val methods = defs.collectMethods
+    val unitDef = if (isVirtualized) {
+      val mainTraitTree = statements.collect {
+        case cd: ClassDef if cd.mods.isTrait && !cd.name.contains("Module") => cd
+      } match {
+        case List(only) => only
+        case seq => !!!(s"There must be exactly one trait with entity definition in a file, found ${seq.map(_.name.toString)}")
+      }
+      val moduleName = mainTraitTree.name.toString
+      val unitSym = ctx.astContext.newUnitSymbol(packageName, moduleName)
 
-    returnParsed(packageDef, SUnitDef(packageName, imports, moduleName,
-      typeDefs,
-      traits, classes, methods,
-      selfType, ancestors,
-      None, ctx.isVirtualized, okEmitOrigModuleTrait = !isDefinedModule))
+      val ancestors = this.ancestors(unitSym, mainTraitTree.impl.parents)
+      val selfType = this.selfType(unitSym, mainTraitTree.impl.self)
+      val defs = mainTraitTree.impl.body.flatMap(optBodyItem(unitSym, _, Some(mainTraitTree)))
+
+      makeUnitDef(moduleName, defs, selfType, ancestors)
+    } else {
+      val unitSym = ctx.astContext.newUnitSymbol(packageName, moduleName)
+      val defs = statements.filterMap { tree => optBodyItem(unitSym, tree, Some(packageDef)) }
+      makeUnitDef(moduleName, defs, None, Nil)
+    }
+    returnParsed(packageDef, unitDef)
   }
 
   def importStat(i: Import): SImportStat = {
