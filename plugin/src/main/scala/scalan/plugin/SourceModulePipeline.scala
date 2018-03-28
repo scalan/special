@@ -4,7 +4,7 @@ import java.io.File
 import java.net.URLClassLoader
 import java.util.Properties
 
-import scalan.meta.scalanizer.{Plugin, Scalanizer}
+import scalan.meta.scalanizer.Scalanizer
 import scala.tools.nsc.Global
 import scala.collection.mutable.{Map => MMap}
 import scalan.meta._
@@ -210,8 +210,8 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           }
           val className = properties.get("className").asInstanceOf[String]
           val clazz = classLoader.loadClass(className)
-          val pluginInstance = clazz.newInstance().asInstanceOf[Plugin]
-          pluginInstance(scalanizer.context, snConfig, pluginConfig.extraData)
+          val pluginInstance = clazz.newInstance().asInstanceOf[PluginForScalanizer]
+          pluginInstance(scalanizer.context, snConfig, SourceModulePipeline.this, pluginConfig.extraData)
           scalanizer.inform(s"Step(plugins): plugin ${pluginConfig.classesPath} run successfully")
         } catch {
           case e: Exception =>
