@@ -5,12 +5,15 @@ import java.net.URLClassLoader
 import java.util.Properties
 
 import scalan.meta.scalanizer.Scalanizer
-import scala.tools.nsc.Global
+
+import scala.tools.nsc.{Global, Phase}
 import scala.collection.mutable.{Map => MMap}
 import scalan.meta._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.Symbols.{SEntityDefSymbol, SEntitySymbol, SUnitDefSymbol, SSymbol}
+import scalan.meta.Symbols.{SEntityDefSymbol, SEntitySymbol, SSymbol, SUnitDefSymbol}
+
+import scala.tools.nsc.doc.ScaladocSyntaxAnalyzer
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
   import scalanizer._
@@ -54,6 +57,27 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           f(currentEntity, t)
           super.traverse(t)
       }
+    }
+  }
+
+  object FindCommentsTraverser extends Traverser {
+    override def traverse(tree: Tree): Unit = tree match {
+      case DocDef(comment, definition) =>
+        super.traverse(tree)
+        // FIXME definition.symbol is NoSymbol, we need to link with other symbols somehow
+//        fillDocComment(definition.symbol, comment)
+
+        // For now work around by searching for name
+        // TODO check for owner name too?
+        val name = definition match {
+          case named: NameTree => named.name.toString
+        }
+        symbolMap.valuesIterator.find {
+          sym => sym.nameString == name
+        }.foreach {
+          sym => fillDocComment(sym, comment)
+        }
+      case _ => super.traverse(tree)
     }
   }
 
@@ -193,6 +217,16 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         
         saveCodeToResources(module, virtUnitDef.packageName, virtUnitDef.name, showCode(virtAst))
       }
+    },
+
+    ForEachUnitStep("collectDocs") { context =>
+      val analyzer = new ScaladocSyntaxAnalyzer[global.type](global) {
+        override val runsAfter: List[String] = Nil
+        override val runsRightAfter: Option[String] = None
+      }
+      val parser = new analyzer.ScaladocUnitParser(context.unit, Nil)
+      val treeWithDocs = parser.parse()
+      FindCommentsTraverser.traverse(treeWithDocs)
     },
 
     RunStep("plugins") { _ =>
