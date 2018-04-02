@@ -737,19 +737,20 @@ trait ScalanParsers[+G <: Global] {
       val quantified = quant map(q => STpeDef(SNoSymbol, q.nameString, Nil, STpeEmpty()))
       val underlying = parseType(under)
       STpeExistential(underlying, quantified)
-    case m: MethodType => parseMethodType(Nil, m)
-    case PolyType(tparams, m: MethodType) => parseMethodType(tparams, m)
-    case PolyType(tparams, resType) =>
-      throw new NotImplementedError(showRaw(resType, printTypes = Some(true)))
+    case _: MethodType | _: NullaryMethodType => parseMethodType(Nil, tpe)
+    case PolyType(tparams, resultType) => resultType match {
+      case _: MethodType | _: NullaryMethodType => parseMethodType(tparams, resultType)
+      case _ => throw new NotImplementedError(showRaw(tpe, printTypes = Some(true)))
+    }
     case annot: AnnotatedType => parseType(annot.underlying)
     case tpe => throw new NotImplementedError(showRaw(tpe, printTypes = Some(true)))
   }
 
-  def parseMethodType(tparams: List[Symbol], m: MethodType): STpeMethod = {
+  def parseMethodType(tparams: List[Symbol], m: Type): STpeMethod = {
     val method = m //uncurry.transformInfo(m.typeSymbol, m)
     val typeParams = tparams.map(_.nameString)
-    val params = method.params.map(param => parseType(param.tpe))
-    val res = parseType(method.resultType)
+    val params = method.paramss.map(_.map(param => parseType(param.tpe)))
+    val res = parseType(method.finalResultType)
 
     STpeMethod(typeParams, params, res)
   }
