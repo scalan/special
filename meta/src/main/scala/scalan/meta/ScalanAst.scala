@@ -206,8 +206,12 @@ object ScalanAst {
     def name = "Compound Type Tree"
   }
 
-  case class STpeMethod(tparams: List[String], params: List[STpeExpr], resultType: STpeExpr) extends STpeExpr {
-    def name = tparams.mkString("[", ",", "]") + params.mkString("(", ",", ")") + resultType
+  case class STpeMethod(tparams: List[String], paramSections: List[List[STpeExpr]], resultType: STpeExpr) extends STpeExpr {
+    lazy val params = paramSections.flatten
+
+    def name = (if (tparams.nonEmpty) tparams.mkString("[", ",", "]") else "") +
+      paramSections.map(_.mkString("(", ",", ")")).mkString("") +
+      ": " + resultType
   }
 
   // TpePath universe ------------------------------------------------------------------------------

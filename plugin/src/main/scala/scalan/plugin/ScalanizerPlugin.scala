@@ -50,29 +50,9 @@ abstract class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
   val srcPipeline = new SourceModulePipeline(scalanizer)
   val targetPipeline = new TargetModulePipeline(scalanizer)
 
-  def getPipelineComponents(pipeline: ScalanizerPipeline[Global]) = {
-    val res = ListBuffer[PluginComponent]()
-    var after = pipeline.runAfter
-    pipeline.steps.foreach { step =>
-      val comp = step match {
-        case runStep: pipeline.RunStep =>
-          pipeline.forRunComponent(after, runStep)
-        case unitStep: pipeline.ForEachUnitStep =>
-          pipeline.forEachUnitComponent(after, unitStep)
-      }
-      after = List(step.name)
-      res.append(comp)
-    }
-    res.result()
-  }
-
   /** The compiler components that will be applied when running this plugin */
-  val components: List[PluginComponent] = {
-    val res = ListBuffer[PluginComponent]()
-    res.append(getPipelineComponents(srcPipeline): _*)
-    res.append(getPipelineComponents(targetPipeline): _*)
-    res.result()
-  }
+  val components: List[PluginComponent] =
+    srcPipeline.components ++ targetPipeline.components
   /** The description is printed with the option: -Xplugin-list */
   val description: String = "Perform code virtualization for Scalan"
 
