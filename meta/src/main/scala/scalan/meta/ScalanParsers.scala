@@ -577,6 +577,13 @@ trait ScalanParsers[+G <: Global] {
       false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
   }
 
+  def mkArrayForeachMethod(owner: SSymbol, tItem: STpeArg) = {
+    SMethodDef(owner, "foreach", Nil,
+      List(SMethodArgs(List(SMethodArg(false, false, "f", STpeFunc(tItem.toTraitCall, TpeUnit), None)))),
+      Some(TpeUnit),
+      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
+  }
+
   def mkArrayZipMethod(owner: SSymbol, tItem: STpeArg) = {
     val tB = STpeArg("B")
     SMethodDef(owner, "zip", List(tB),
@@ -591,6 +598,10 @@ trait ScalanParsers[+G <: Global] {
 
   def applyArrayMap(xs: SExpr, ts: List[STpeExpr], f: SExpr) = {
     SApply(SSelect(xs, "map"), ts, List(List(f)))
+  }
+
+  def applyArrayForeach(xs: SExpr, ts: List[STpeExpr], f: SExpr) = {
+    SApply(SSelect(xs, "foreach"), ts, List(List(f)))
   }
 
   def applyArrayZip(xs: SExpr, ts: List[STpeExpr], ys: SExpr) = {
@@ -647,6 +658,8 @@ trait ScalanParsers[+G <: Global] {
       m.decoded match {
         case "map" =>
           applyArrayMap(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
+        case "foreach" =>
+          applyArrayForeach(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
         case "zip" =>
           applyArrayZip(parseExpr(owner, obj), Nil, parseExpr(owner, args(0)))
       }

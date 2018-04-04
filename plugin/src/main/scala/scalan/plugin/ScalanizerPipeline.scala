@@ -123,6 +123,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$ops($v).$method")})")
       method.decoded match {
         case "map" => registerArrayOp(owner, mkArrayMapMethod)
+        case "foreach" => registerArrayOp(owner, mkArrayForeachMethod)
         case "zip" => registerArrayOp(owner, mkArrayZipMethod)
       }
       true
