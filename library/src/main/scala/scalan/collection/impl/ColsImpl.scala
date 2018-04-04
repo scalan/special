@@ -128,6 +128,18 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
     }
+
+    object foreach {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[A => Unit]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "foreach" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[Col[A]], Rep[A => Unit]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[A => Unit]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColCompanionMethods {
@@ -288,6 +300,18 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object dot {
+      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[Col[T]], Rep[Col[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(xs, ys, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "dot" =>
+          Some((receiver, xs, ys)).asInstanceOf[Option[(Rep[ColBuilder], Rep[Col[T]], Rep[Col[T]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[Col[T]], Rep[Col[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

@@ -9,7 +9,8 @@ package scalan.collection {
       def length: Rep[Int];
       def apply(i: Rep[Int]): Rep[A];
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]];
-      def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys)
+      def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys);
+      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit]
     };
     trait PairCol[L, R] extends Col[scala.Tuple2[L, R]] {
       implicit def eL: Elem[L];
@@ -21,6 +22,7 @@ package scalan.collection {
       def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]];
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]];
+      def dot[T](xs: Rep[Col[T]], ys: Rep[Col[T]]): Rep[T];
       @throws[NullPointerException] def ddmvm(v: Rep[WArray[Double]]): Rep[Int] = {
         val xs: Rep[WArray[Int]] = WArray.fill[Int](v.length, Thunk(toRep(0.asInstanceOf[Int])));
         val c: Rep[WArray[scala.Tuple2[Int, Double]]] = xs.zip(v).map(fun(((d: Rep[scala.Tuple2[Int, Double]]) => d)));

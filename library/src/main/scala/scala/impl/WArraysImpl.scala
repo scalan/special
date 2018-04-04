@@ -138,6 +138,18 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
       }
     }
 
+    object foreach {
+      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "foreach" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object apply {
       def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[Int]) forSome {type T}] = d match {
         case MethodCall(receiver, method, Seq(i, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "apply" =>

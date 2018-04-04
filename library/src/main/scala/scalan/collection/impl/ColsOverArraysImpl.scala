@@ -403,6 +403,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object foreach {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[A => Unit]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "foreach" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[A => Unit]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[A => Unit]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColOverArrayCompanionMethods {
@@ -479,6 +491,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object foreach {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Unit]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "foreach" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Unit]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Unit]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object PairOfColsCompanionMethods {
@@ -527,6 +551,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object dot {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(xs, ys, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "dot" =>
+          Some((receiver, xs, ys)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

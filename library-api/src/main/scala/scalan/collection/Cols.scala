@@ -10,6 +10,7 @@ trait Col[A] {
   def apply(i: Int): A
   def map[B: ClassTag](f: A => B): Col[B]
   def zip[B](ys: Col[B]): PairCol[A, B] = builder(this, ys)
+  def foreach(f: A => Unit): Unit
   //    def reduce(implicit m: NumMonoid[A]): A = arr.reduce(m.append)
 }
 
@@ -22,6 +23,7 @@ trait ColBuilder {
   def apply[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
   def fromArray[T](arr: Array[T]): Col[T]
   def replicate[T:ClassTag](n: Int, v: T): Col[T]
+  def dot[T](xs: Col[T], ys: Col[T]): T
   @throws[NullPointerException]
   def ddmvm(v: Array[Double]): Int = {
     val xs = Array.fill(v.length)(0)
