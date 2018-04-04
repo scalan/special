@@ -200,6 +200,10 @@ class MetaCodegen {
           m.tpeRes.filter(!_.isRep(module, config.isVirtualized)).map {
             returnTpe => s"Method's return type $returnTpe is not a Rep"
           }
+        }.orElse {
+          m.allArgs
+            .find(a => a.tpe match { case RepeatedArgType(t) => true case _ => false })
+            .map(a => s"Method has repeated argument ${a.name}")
         }
       }
 

@@ -20,8 +20,9 @@ package scalan.collection {
     abstract class ColOverArrayBuilder extends ColBuilder {
       override def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr);
+      def fromItems[T](items: Rep[T]*): Rep[Col[T]] = Predef.???;
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = ColOverArrayBuilder.this.fromArray[T](WArray.fill[T](n, Thunk(v)));
-      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[Nothing] = Predef.???
+      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = Predef.???
     };
     abstract class ArrayFunctor extends Functor[WArray] {
       override def map[A, B](fa: Rep[WArray[A]])(f: Rep[scala.Function1[A, B]]): Rep[WArray[B]] = fa.map(f)

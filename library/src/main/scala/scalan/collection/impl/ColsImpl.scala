@@ -281,6 +281,20 @@ trait ColsDefs extends scalan.Scalan with Cols {
       }
     }
 
+    // WARNING: Cannot generate matcher for method `fromItems`: Method has repeated argument items
+
+    object fromItemsTest {
+      def unapply(d: Def[_]): Option[Rep[ColBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "fromItemsTest" =>
+          Some(receiver).asInstanceOf[Option[Rep[ColBuilder]]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[ColBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object fromArray {
       def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "fromArray" =>

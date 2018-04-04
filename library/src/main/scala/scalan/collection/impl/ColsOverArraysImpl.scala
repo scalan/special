@@ -544,6 +544,8 @@ implicit val eR = p.rs.eA
       }
     }
 
+    // WARNING: Cannot generate matcher for method `fromItems`: Method has repeated argument items
+
     object replicate {
       def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
         case MethodCall(receiver, method, Seq(n, v, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "replicate" =>

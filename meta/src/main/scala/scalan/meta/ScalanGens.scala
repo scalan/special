@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, STpeThis, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, SSuper, STpeExistential, SSelect}
+import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, STpeThis, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, RepeatedArgType, SEntityDef, SConstr, SAnnotation, SSuper, STpeExistential, SSelect}
 import scalan.meta.ScalanAstTransformers.filterInternalAnnot
 import scalan.meta.Symbols.SUnitDefSymbol
 import scalan.util.ScalaNameUtil.PackageAndName
@@ -121,7 +121,6 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
     case STpeFunc(domain: STpeExpr, range: STpeExpr) =>
       val tpt = genTypeSel("scala", "Function1")
       val tpts = genTypeExpr(domain) :: genTypeExpr(range) :: Nil
-
       tq"$tpt[..$tpts]"
     case STpeSingleton(ref) => tq"${genExpr(ref)}.type"
     case STpeSelectFromTT(qualifier, name) => tq"${genTypeExpr(qualifier)}#${TypeName(name)}"
@@ -231,13 +230,33 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
   def genMethodArg(arg: SMethodArg)
       (implicit ctx: GenCtx): Tree = {
     val tname = TermName(arg.name)
-    val tpt = if (ctx.isVirtualized || arg.isTypeDesc) genTypeExpr(arg.tpe) else repTypeExpr(arg.tpe)
+
     val overFlag = if (arg.overFlag) Flag.OVERRIDE else NoFlags
     val impFlag = if (arg.impFlag) Flag.IMPLICIT else NoFlags
     val flags = overFlag | impFlag
     val mods = Modifiers(flags, tpnme.EMPTY, genAnnotations(arg.annotations))
-
-    q"$mods val $tname: $tpt"
+    if (ctx.isVirtualized) {
+      arg.tpe match {
+        case RepeatedArgType(targ) =>
+          val t = genTypeExpr(targ)
+          val repeated = q"def m(x: ${t}*): Unit".asInstanceOf[DefDef].vparamss(0)(0).tpt
+          q"$mods val $tname: $repeated"
+        case _ =>
+          val tpt = genTypeExpr(arg.tpe)
+          q"$mods val $tname: $tpt"
+      }
+    }
+    else {
+      arg.tpe match {
+        case RepeatedArgType(targ) =>
+          val t = repTypeExpr(targ)
+          val repeated = q"def m(x: ${t}*): Unit".asInstanceOf[DefDef].vparamss(0)(0).tpt
+          q"$mods val $tname: $repeated"
+        case _ =>
+          val tpt = if (arg.isTypeDesc) genTypeExpr(arg.tpe) else repTypeExpr(arg.tpe)
+          q"$mods val $tname: $tpt"
+      }
+    }
   }
 
   def genMethodArgs(argSections: List[SMethodArgs])

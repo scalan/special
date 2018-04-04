@@ -21,6 +21,8 @@ trait PairCol[L,R] extends Col[(L,R)] {
 
 trait ColBuilder {
   def apply[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
+  def fromItems[T](items: T*): Col[T]
+  def fromItemsTest: Col[Int] = this.fromItems(1, 2, 3)
   def fromArray[T](arr: Array[T]): Col[T]
   def replicate[T:ClassTag](n: Int, v: T): Col[T]
   def dot[T](xs: Col[T], ys: Col[T]): T

@@ -20,6 +20,8 @@ package scalan.collection {
     };
     trait ColBuilder extends Def[ColBuilder] {
       def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]];
+      def fromItems[T](items: Rep[T]*): Rep[Col[T]];
+      def fromItemsTest: Rep[Col[Int]] = this.fromItems[Int](toRep(1.asInstanceOf[Int]), toRep(2.asInstanceOf[Int]), toRep(3.asInstanceOf[Int]));
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]];
       def dot[T](xs: Rep[Col[T]], ys: Rep[Col[T]]): Rep[T];

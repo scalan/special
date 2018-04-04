@@ -56,7 +56,12 @@ object ScalanAst {
     def isDef = (name == "Def")
     def toTypeApply = STypeApply(this, Nil)
   }
-
+  object RepeatedArgType {
+    def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
+      case STraitCall("RepeatedArg", List(targ)) => Some(targ)
+      case _ => None
+    }
+  }
   case class STpePrimitive(val name: String, defaultValueString: String) extends STpeExpr {
     override def toString = name
   }

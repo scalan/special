@@ -22,6 +22,7 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
 class ColOverArrayBuilder extends ColBuilder {
   override def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
+  def fromItems[T](items: T*): Col[T] = ???
   def replicate[T:ClassTag](n: Int, v: T) = fromArray(Array.fill(n)(v))
   def dot[A](xs: Col[A], ys: Col[A]): A = ???
 }

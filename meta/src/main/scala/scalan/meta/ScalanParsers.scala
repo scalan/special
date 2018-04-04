@@ -505,16 +505,20 @@ trait ScalanParsers[+G <: Global] {
       STraitCall(shortName, argTpeExprs)
   }
 
+  def isRepeatedArgType(tpt: Tree): Boolean = {
+    tpt.toString.endsWith("<repeated>")
+  }
+
   def tpeExpr(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): STpeExpr = tree match {
     case EmptyTree => STpeEmpty()
     case ident: Ident =>
       val name = ident.name.toString
       STpePrimitives.getOrElse(name, STraitCall(name, List()))
     case select: Select =>
-      STraitCall(select.name, List())
+        STraitCall(select.name, List())
     case AppliedTypeTree(tpt, args) =>
       val argTpeExprs = args.map(tpeExpr(owner, _))
-      val genericTypeString = tpt.toString
+      val genericTypeString = if (isRepeatedArgType(tpt)) "RepeatedArg" else tpt.toString
       formAppliedTypeTree(genericTypeString, genericTypeString, argTpeExprs)
     case tq"$tpt @$annot" => STpeAnnotated(tpeExpr(owner, tpt), annot.toString)
     case TypeBoundsTree(lo, hi) => STpeTypeBounds(tpeExpr(owner, lo), tpeExpr(owner, hi))
@@ -523,7 +527,14 @@ trait ScalanParsers[+G <: Global] {
     case tq"..$parents { ..$defns }" => STpeCompound(parents.map(tpeExpr(owner, _)), defns.flatMap(defn => optBodyItem(owner, defn, None)))
     case tq"$tpt forSome { ..$defns }" => STpeExistential(tpeExpr(owner, tpt), defns.flatMap(defn => optBodyItem(owner, defn, None)))
     case Bind(TypeName(name), body) => STpeBind(name, tpeExpr(owner, body))
-    case tt: TypeTree => parseType(tt.tpe)
+    case tt: TypeTree =>
+      tt.original match {
+        case AppliedTypeTree(tpt, args) if isRepeatedArgType(tpt) =>
+          tpeExpr(owner, tt.original)
+        case _ =>
+          parseType(tt.tpe)
+      }
+
     case tree => ???(tree)
   }
 
