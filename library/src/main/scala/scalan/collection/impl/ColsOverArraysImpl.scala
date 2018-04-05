@@ -415,6 +415,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object exists {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "exists" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColOverArrayCompanionMethods {
@@ -503,6 +515,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object exists {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "exists" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object PairOfColsCompanionMethods {
@@ -520,9 +544,9 @@ implicit val eR = p.rs.eA
   }
 
   object ColOverArrayBuilderMethods {
-    object apply {
+    object apply_apply {
       def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(as, bs, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "apply" =>
+        case MethodCall(receiver, method, Seq(as, bs, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply" } =>
           Some((receiver, as, bs)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
         case _ => None
       }
@@ -531,6 +555,8 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    // WARNING: Cannot generate matcher for method `apply`: Method has repeated argument items
 
     object fromArray {
       def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
@@ -543,8 +569,6 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
-
-    // WARNING: Cannot generate matcher for method `fromItems`: Method has repeated argument items
 
     object replicate {
       def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {

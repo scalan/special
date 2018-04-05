@@ -433,7 +433,7 @@ trait ScalanParsers[+G <: Global] {
 
   class HasAnnotation(annClass: String) {
     def unapply(md: MemberDef): Option[List[Tree]] =
-      md.mods.annotations.collectFirst {
+      md.collectAnnotations.collectFirst {
         case ExtractAnnotation(name, _, args) if name == annClass => args
       }
   }
@@ -454,7 +454,10 @@ trait ScalanParsers[+G <: Global] {
     val optOverloadId = md match {
       case OverloadIdAnnotation(List(Literal(Constant(overloadId)))) =>
         Some(overloadId.toString)
-      case _ => None
+      case OverloadIdAnnotation(List(AssignOrNamedArg(Ident(TermName("value")), Literal(Constant(overloadId))))) =>
+        Some(overloadId.toString)
+      case _ =>
+        None
     }
     val annotations = parseAnnotations(md) {
       case ("throws", ts, as) =>
@@ -595,6 +598,13 @@ trait ScalanParsers[+G <: Global] {
       false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
   }
 
+  def mkArrayExistsMethod(owner: SSymbol, tItem: STpeArg) = {
+    SMethodDef(owner, "exists", Nil,
+      List(SMethodArgs(List(SMethodArg(false, false, "p", STpeFunc(tItem.toTraitCall, TpeBoolean), None)))),
+      Some(TpeBoolean),
+      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
+  }
+
   def mkArrayZipMethod(owner: SSymbol, tItem: STpeArg) = {
     val tB = STpeArg("B")
     SMethodDef(owner, "zip", List(tB),
@@ -613,6 +623,10 @@ trait ScalanParsers[+G <: Global] {
 
   def applyArrayForeach(xs: SExpr, ts: List[STpeExpr], f: SExpr) = {
     SApply(SSelect(xs, "foreach"), ts, List(List(f)))
+  }
+
+  def applyArrayExists(xs: SExpr, ts: List[STpeExpr], f: SExpr) = {
+    SApply(SSelect(xs, "exists"), ts, List(List(f)))
   }
 
   def applyArrayZip(xs: SExpr, ts: List[STpeExpr], ys: SExpr) = {
@@ -671,6 +685,8 @@ trait ScalanParsers[+G <: Global] {
           applyArrayMap(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
         case "foreach" =>
           applyArrayForeach(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
+        case "exists" =>
+          applyArrayExists(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
         case "zip" =>
           applyArrayZip(parseExpr(owner, obj), Nil, parseExpr(owner, args(0)))
       }

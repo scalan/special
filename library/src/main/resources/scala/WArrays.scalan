@@ -11,6 +11,7 @@ package scala {
       @External def zip[B](ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[T, B]]];
       @External def map[B](f: Rep[scala.Function1[T, B]]): Rep[WArray[B]];
       @External def length: Rep[Int];
+      @External def exists(p: Rep[scala.Function1[T, Boolean]]): Rep[Boolean];
       @External def foreach(f: Rep[scala.Function1[T, Unit]]): Rep[Unit];
       @External def apply(i: Rep[Int]): Rep[T]
     };

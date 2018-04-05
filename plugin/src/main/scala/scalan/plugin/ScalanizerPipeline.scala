@@ -124,6 +124,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       method.decoded match {
         case "map" => registerArrayOp(owner, mkArrayMapMethod)
         case "foreach" => registerArrayOp(owner, mkArrayForeachMethod)
+        case "exists" => registerArrayOp(owner, mkArrayExistsMethod)
         case "zip" => registerArrayOp(owner, mkArrayZipMethod)
       }
       true

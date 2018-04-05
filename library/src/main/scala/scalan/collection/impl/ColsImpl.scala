@@ -140,6 +140,18 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
     }
+
+    object exists {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "exists" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColCompanionMethods {
@@ -269,9 +281,9 @@ trait ColsDefs extends scalan.Scalan with Cols {
   }
 
   object ColBuilderMethods {
-    object apply {
+    object apply_apply {
       def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(as, bs, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, Seq(as, bs, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply" } =>
           Some((receiver, as, bs)).asInstanceOf[Option[(Rep[ColBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
         case _ => None
       }
@@ -281,7 +293,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
       }
     }
 
-    // WARNING: Cannot generate matcher for method `fromItems`: Method has repeated argument items
+    // WARNING: Cannot generate matcher for method `apply`: Method has repeated argument items
 
     object fromItemsTest {
       def unapply(d: Def[_]): Option[Rep[ColBuilder]] = d match {

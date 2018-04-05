@@ -1,6 +1,7 @@
 package scalan.collection
 
 import scala.reflect.ClassTag
+import scalan.OverloadId
 import scalan.macros.typeclass
 
 trait Col[A] {
@@ -11,6 +12,7 @@ trait Col[A] {
   def map[B: ClassTag](f: A => B): Col[B]
   def zip[B](ys: Col[B]): PairCol[A, B] = builder(this, ys)
   def foreach(f: A => Unit): Unit
+  def exists(p: A => Boolean): Boolean
   //    def reduce(implicit m: NumMonoid[A]): A = arr.reduce(m.append)
 }
 
@@ -20,9 +22,9 @@ trait PairCol[L,R] extends Col[(L,R)] {
 }
 
 trait ColBuilder {
-  def apply[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
-  def fromItems[T](items: T*): Col[T]
-  def fromItemsTest: Col[Int] = this.fromItems(1, 2, 3)
+  @OverloadId("apply")       def apply[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
+  @OverloadId("apply_items") def apply[T](items: T*): Col[T]
+  def fromItemsTest: Col[Int] = this.apply(1, 2, 3)
   def fromArray[T](arr: Array[T]): Col[T]
   def replicate[T:ClassTag](n: Int, v: T): Col[T]
   def dot[T](xs: Col[T], ys: Col[T]): T

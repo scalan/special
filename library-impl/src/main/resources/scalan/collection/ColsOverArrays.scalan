@@ -7,7 +7,8 @@ package scalan.collection {
       def length: Rep[Int] = ColOverArray.this.arr.length;
       def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i);
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ColOverArray(ColOverArray.this.arr.map(f));
-      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = ColOverArray.this.arr.foreach(f)
+      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = ColOverArray.this.arr.foreach(f);
+      def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = ColOverArray.this.arr.exists(p)
     };
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       def builder: Rep[ColBuilder] = ColOverArrayBuilder();
@@ -15,12 +16,13 @@ package scalan.collection {
       override def length: Rep[Int] = PairOfCols.this.ls.length;
       override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
       override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Col[V]] = ColOverArray(PairOfCols.this.arr.map(f));
-      def foreach(f: Rep[scala.Function1[scala.Tuple2[L, R], Unit]]): Rep[Unit] = Predef.???
+      def foreach(f: Rep[scala.Function1[scala.Tuple2[L, R], Unit]]): Rep[Unit] = PairOfCols.this.arr.foreach(f);
+      def exists(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.exists(p)
     };
     abstract class ColOverArrayBuilder extends ColBuilder {
-      override def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
+      @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
+      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = Predef.???;
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr);
-      def fromItems[T](items: Rep[T]*): Rep[Col[T]] = Predef.???;
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = ColOverArrayBuilder.this.fromArray[T](WArray.fill[T](n, Thunk(v)));
       def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = Predef.???
     };

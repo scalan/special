@@ -1,6 +1,7 @@
 package scalan.collection
 
 import scala.reflect.ClassTag
+import scalan.OverloadId
 
 class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def builder = new ColOverArrayBuilder
@@ -8,6 +9,7 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def apply(i: Int) = arr(i)
   def map[B: ClassTag](f: A => B): Col[B] = new ColOverArray(arr.map(f))
   def foreach(f: A => Unit): Unit = arr.foreach(f)
+  def exists(p: A => Boolean) = arr.exists(p)
 }
 
 class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
@@ -16,13 +18,14 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def length: Int = ls.length
   override def apply(i: Int): (L, R) = (ls(i), rs(i))
   override def map[V: ClassTag](f: ((L, R)) => V): Col[V] = new ColOverArray(arr.map(f))
-  def foreach(f: ((L, R)) => Unit): Unit = ???
+  def foreach(f: ((L, R)) => Unit): Unit = arr.foreach(f)
+  def exists(p: ((L, R)) => Boolean) = arr.exists(p)
 }
 
 class ColOverArrayBuilder extends ColBuilder {
-  override def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
+  @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
+  @OverloadId("apply_items") def apply[T](items: T*): Col[T] = ???
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
-  def fromItems[T](items: T*): Col[T] = ???
   def replicate[T:ClassTag](n: Int, v: T) = fromArray(Array.fill(n)(v))
   def dot[A](xs: Col[A], ys: Col[A]): A = ???
 }

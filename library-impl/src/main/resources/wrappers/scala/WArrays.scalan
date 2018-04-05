@@ -9,6 +9,7 @@ package scala {
     @External("Array") @ContainerType @FunctorType trait WArray[T] extends Def[WArray[T]] { self =>
       implicit def eT: Elem[T];
       @External def zip[B](ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[T, B]]];
+      @External def exists(p: Rep[scala.Function1[T, Boolean]]): Rep[Boolean];
       @External def foreach(f: Rep[scala.Function1[T, Unit]]): Rep[Unit];
       @External def map[B](f: Rep[scala.Function1[T, B]]): Rep[WArray[B]];
       @External def apply(i: Rep[Int]): Rep[T];

@@ -10,7 +10,8 @@ package scalan.collection {
       def apply(i: Rep[Int]): Rep[A];
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]];
       def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys);
-      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit]
+      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit];
+      def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean]
     };
     trait PairCol[L, R] extends Col[scala.Tuple2[L, R]] {
       implicit def eL: Elem[L];
@@ -19,9 +20,9 @@ package scalan.collection {
       def rs: Rep[Col[R]]
     };
     trait ColBuilder extends Def[ColBuilder] {
-      def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]];
-      def fromItems[T](items: Rep[T]*): Rep[Col[T]];
-      def fromItemsTest: Rep[Col[Int]] = this.fromItems[Int](toRep(1.asInstanceOf[Int]), toRep(2.asInstanceOf[Int]), toRep(3.asInstanceOf[Int]));
+      @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]];
+      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]];
+      def fromItemsTest: Rep[Col[Int]] = this.apply[Int](toRep(1.asInstanceOf[Int]), toRep(2.asInstanceOf[Int]), toRep(3.asInstanceOf[Int]));
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]];
       def dot[T](xs: Rep[Col[T]], ys: Rep[Col[T]]): Rep[T];
