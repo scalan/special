@@ -10,7 +10,7 @@ trait Symbols { this: AstContext =>
     SUnitDefSymbol(SNoSymbol, SName(packageName, name))
   }
 
-  def newEntitySymbol(owner: SSymbol, name: String, defType: DefType.Value): SNamedDefSymbol = {
+  def newEntitySymbol(owner: SSymbol, name: String): SNamedDefSymbol = {
     SEntityDefSymbol(owner, name)
   }
 
@@ -32,52 +32,45 @@ object Symbols {
         assert(owner ne SNoSymbol, s"$this doesn't have owner")
         owner.outerUnit
     }
+    def fullName: String
+    override def toString: String = s"sym://$fullName"
   }
 
   object DefType extends Enumeration {
-    val Unit, Entity, Method, Val, ClassArg, Type = Value
+    val Unit, Entity, Def, Val, ClassArg, Type = Value
   }
 
   trait SNamedDefSymbol extends SSymbol {
     def name: String
     def defType: DefType.Value
+    def fullName: String = s"${owner.fullName}.$name"
   }
 
   case object SNoSymbol extends SSymbol {
     override def owner: SSymbol = this
+    override def fullName: String = "NoSym"
   }
 
   trait SEntitySymbol extends SNamedDefSymbol {
-    def owner: SSymbol
   }
 
   case class SEntityDefSymbol private(owner: SSymbol, name: String)
       extends SEntitySymbol {
     def defType = DefType.Entity
-
-//    override def hashCode(): Int = Objects.hash(owner, name)
-//    override def equals(other: Any): Boolean = other match {
-//      case es: SEntitySymbol => owner == es.owner && name == es.name
-//      case _ => false
-//    }
-//    override def toString = s"SEntitySymbol($owner,$name)"
   }
-//  object SEntitySymbol {
-//    def apply(owner: SSymbol, name: String) = new SEntitySymbol(owner, name)
-//    def unapply(s: SSymbol): Option[(SSymbol, String)] = s match {
-//      case es: SEntitySymbol => Some((es.owner, es.name))
-//      case _ => None
-//    }
-//  }
 
   case class SEntityItemSymbol private(owner: SSymbol, name: String, defType: DefType.Value)
-      extends SNamedDefSymbol
+      extends SNamedDefSymbol {
+  }
 
   case class SUnitDefSymbol private(override val owner: SSymbol, unitName: SName)
       extends SEntitySymbol {
-    def name = unitName.name
+    def name = unitName.mkFullName
     override def defType = DefType.Unit
-    override def toString = s"SUnitSymbol($owner,${unitName.mkFullName})"
+    
+    override def fullName: String =
+      if (owner eq SNoSymbol) unitName.mkFullName
+      else super.fullName
   }
 
 }

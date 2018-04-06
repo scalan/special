@@ -461,7 +461,7 @@ object ScalanAst {
       annotations: List[SMethodAnnotation] = Nil,
       body: Option[SExpr] = None,
       isTypeDesc: Boolean = false) extends SBodyItem with SEntityItem {
-    val symbol = SEntityItemSymbol(owner, name, DefType.Method)
+    val symbol = SEntityItemSymbol(owner, name, DefType.Def)
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
