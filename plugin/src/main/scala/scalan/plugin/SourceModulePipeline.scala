@@ -88,7 +88,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     for (unitConf <- source.units.values) {
       if(!scalanizer.context.hasUnit(unitConf.packageName, unitConf.unitName)) {
         val unit = scalanizer.loadUnitDefFromResource(unitConf.entityResource)
-        snState.addUnit(unit, unitConf)
+        context.addUnit(unit, unitConf)
         scalanizer.inform(
           s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${source.name}' " +
               s"(parsed from resource ${unitConf.entityFile})")
@@ -111,7 +111,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         for (unitConf <- depModule.units.values) {
           val unit = parseUnitFile(unitConf.getResourceFile)
           scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
-          snState.addUnit(unit, unitConf)
+          context.addUnit(unit, unitConf)
         }
       }
       // add Special units from libraries we depend on
@@ -131,7 +131,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         val parseCtx = new ParseCtx(isVirtualized = false)(context)
         val unit = parseUnitFile(unitConf.getFile)(parseCtx)
         scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
-        snState.addUnit(unit, unitConf)
+        context.addUnit(unit, unitConf)
       }
     },
     ForEachUnitStep("wrapfrontend") { context => import context._;
@@ -148,7 +148,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       import moduleBuilder._
       implicit val context = virtPipeline.context
 
-      snState.transformWrappers { case (name, wrapperDescr) =>
+      context.transformWrappers { case (name, wrapperDescr) =>
         /** Transformations of Wrappers by adding of Elem, Cont and other things. */
         val pipeline = scala.Function.chain(Seq(
           preventNameConflict _,
@@ -173,7 +173,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       ()
     },
     RunStep("wrapbackend") { _ =>
-      snState.forEachWrapper { case (_, WrapperDescr(u, _, config)) =>
+      context.forEachWrapper { case (_, WrapperDescr(u, _, config)) =>
         val wUnit = u.copy(imports = u.imports :+ SImportStat("scala.wrappers.WrappersModule"))(scalanizer.context)
         val moduleConf = getSourceModule
 
@@ -200,7 +200,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         scalanizer.inform(
             s"Step(virtfrontend): Updating source unit ${existingUnit.packageAndName} " +
             s"with version from CompilationUnit(${unit.source.file})")
-        snState.addUnit(unitDef, unitConf)
+        scalanizer.context.addUnit(unitDef, unitConf)
       }
     },
     ForEachUnitStep("virtfinal") { context => import context._

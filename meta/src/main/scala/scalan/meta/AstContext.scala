@@ -146,6 +146,10 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     units(key) = unit
     unit
   }
+  def addUnit(unit: SUnitDef, unitConf: UnitConfig): SUnitDef = {
+    addUnitConfig(unitConf)
+    addUnit(unit)
+  }
 
   def removeUnit(key: String) = {
     units.remove(key)

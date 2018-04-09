@@ -1,10 +1,9 @@
 package scalan.plugin
 
-import scala.collection.mutable.ListBuffer
 import scala.tools.nsc._
 import scala.tools.nsc.plugins.{Plugin, PluginComponent, PluginLoadException}
 import scalan.meta._
-import scalan.meta.scalanizer.{ScalanizerConfig, Scalanizer, ScalanizerState}
+import scalan.meta.scalanizer.{ScalanizerConfig, Scalanizer}
 import scalan.util.FileUtil
 import scalan.util.StringUtil.StringUtilExtensions
 import scalan.util.CollectionUtil.TraversableOps
@@ -19,7 +18,6 @@ abstract class ScalanizerPlugin(g: Global) extends ScalanPlugin(g) { plugin =>
 
     val snConfig: ScalanizerConfig = createScalanizerConfig()
     val context: AstContext = new AstContext(Nil, this)
-    val snState: ScalanizerState[plugin.global.type] = new ScalanizerPluginState(this)
 
     def informModuleNameError(msg: String) = {
       val run = global.currentRun

@@ -52,7 +52,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       val packageName = getUnitPackage(unit)
       val unitFileName = unit.source.file.name
       val unitName = Path(unitFileName).stripExtension
-      val unitDef = snState.getUnit(packageName, unitName)
+      val unitDef = context.getUnit(packageName, unitName)
       unitDef
     }
   }
@@ -372,11 +372,11 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
         formExternalMethodDef(owner, methodName.toString, Nil, Nil, formMethodRes(sym.tpe))
       case _ => throw new NotImplementedError(s"memberType = ${showRaw(memberType) }")
     }
-    val wrapper = snState.getWrapper(externalTypeName).getOrElse {
+    val wrapper = context.getWrapper(externalTypeName).getOrElse {
       createWrapper(objType)
     }
     val updatedWrapper = addMember(objType.typeSymbol.isModuleClass, member, wrapper)
-    snState.updateWrapper(externalTypeName, updatedWrapper)
+    context.updateWrapper(externalTypeName, updatedWrapper)
     createMemberDependencies(memberType)
   }
 
@@ -387,11 +387,11 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       isCompanion: Boolean,
       member: SMethodDef,
       ownerChain: List[String]): Unit = {
-    val wrapper = snState.getWrapper(externalTypeName).getOrElse {
+    val wrapper = context.getWrapper(externalTypeName).getOrElse {
       createWrapperSpecial(packageName, externalTypeName, tpeArgs, originalEntityAncestors, ownerChain)
     }
     val updatedWrapper = addMember(isCompanion, member, wrapper)
-    snState.updateWrapper(externalTypeName, updatedWrapper)
+    context.updateWrapper(externalTypeName, updatedWrapper)
   }
 
   /** Adds a method or a value to the wrapper.
@@ -467,7 +467,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       val name = parent.typeSymbol.nameString
       if (!isIgnoredExternalType(name) && !externalTypes.contains(name)) {
         val wrapperDescr = createWrapper(parent)
-        snState.updateWrapper(name, wrapperDescr)
+        context.updateWrapper(name, wrapperDescr)
       }
     }
   }
@@ -478,9 +478,9 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       def traverse(tp: Type): Unit = tp match {
         case TypeRef(pre, sym, args) if isWrapperSym(sym) =>
           val typeName = sym.nameString
-          if (!snState.hasWrapper(typeName)) {
+          if (!context.hasWrapper(typeName)) {
             val w = createWrapper(sym.tpe)
-            snState.updateWrapper(typeName, w)
+            context.updateWrapper(typeName, w)
           }
         case _ => mapOver(tp)
       }
