@@ -187,37 +187,36 @@ trait ScalanParsers[+G <: Global] {
 
   def isEvidenceParam(vd: ValDef) = vd.name.toString.startsWith("evidence$")
 
+  def tpeArg(owner: SSymbol, evidenceTypes: List[Tree], tdTree: TypeDef)(implicit ctx: ParseCtx): STpeArg = {
+    val bound = tdTree.rhs match {
+      case TypeBoundsTree(low, high) =>
+        if (high.toString == "_root_.scala.Any")
+          None
+        else
+          optTpeExpr(owner, high)
+      case tt: TypeTree => parseType(tt.tpe) match {
+        case STpeTypeBounds(_, STpePrimitive("Any", _)) => None
+        case STpeTypeBounds(_, hi) => Some(hi)
+        case tpe => ???(tdTree)
+      }
+      case _ => ???(tdTree)
+    }
+    val contextBounds = evidenceTypes.collect {
+      case AppliedTypeTree(tpt, List(arg)) if arg.toString == tdTree.name.toString =>
+        Some(tpt.toString)
+      case _ => None
+    }.flatten
+    val tparams = tdTree.tparams.map(tpeArg(owner, evidenceTypes, _))
+    val annotations = tdTree.mods.annotations.map {
+      case ExtractAnnotation(name, ts, args) =>
+        STypeArgAnnotation(name, ts.map(_.fold(parseType, parseType)), args.map(parseExpr(owner, _)))
+    }
+    STpeArg(tdTree.name, bound, contextBounds, tparams, tdTree.mods.flags, annotations)
+  }
+
   def tpeArgs(owner: SSymbol, typeParams: List[TypeDef], possibleImplicits: List[ValDef])(implicit ctx: ParseCtx): List[STpeArg] = {
     val evidenceTypes = possibleImplicits.filter(isEvidenceParam(_)).map(_.tpt)
-
-    def tpeArg(tdTree: TypeDef): STpeArg = {
-      val bound = tdTree.rhs match {
-        case TypeBoundsTree(low, high) =>
-          if (high.toString == "_root_.scala.Any")
-            None
-          else
-            optTpeExpr(owner, high)
-        case tt: TypeTree => parseType(tt.tpe) match {
-          case STpeTypeBounds(_, STpePrimitive("Any", _)) => None
-          case STpeTypeBounds(_, hi) => Some(hi)
-          case tpe => ???(tdTree)
-        }
-        case _ => ???(tdTree)
-      }
-      val contextBounds = evidenceTypes.collect {
-        case AppliedTypeTree(tpt, List(arg)) if arg.toString == tdTree.name.toString =>
-          Some(tpt.toString)
-        case _ => None
-      }.flatten
-      val tparams = tdTree.tparams.map(tpeArg)
-      val annotations = tdTree.mods.annotations.map {
-        case ExtractAnnotation(name, ts, args) =>
-          STypeArgAnnotation(name, ts.map(_.fold(parseType, parseType)), args.map(parseExpr(owner, _)))
-      }
-      STpeArg(tdTree.name, bound, contextBounds, tparams, tdTree.mods.flags, annotations)
-    }
-
-    typeParams.map(tpeArg)
+    typeParams.map(tpeArg(owner, evidenceTypes, _))
   }
 
 
