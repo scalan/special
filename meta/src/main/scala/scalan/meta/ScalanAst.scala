@@ -32,23 +32,27 @@ object ScalanAst {
   type STpeExprs = List[STpeExpr]
   type STpeSubst = Map[String, STpeExpr]
 
+  trait HasUnderlying { this: STpeExpr =>
+    def underlying: STpeExpr
+  }
+
   /** Represents scala.reflect.internal.Types.NoType | NoPrefix */
   case class STpeEmpty() extends STpeExpr {
     def name = "Empty"
   }
 
   /** Represents scala.reflect.internal.Types.ConstantType */
-  case class STpeConst(const: SConst) extends STpeExpr {
+  case class STpeConst(const: SConst, underlying: STpeExpr) extends STpeExpr with HasUnderlying {
     def name = "Constant"
   }
 
   /** A class for this-types of the form <sym>.this.type */
-  case class STpeThis(fullNameString: String) extends STpeExpr {
+  case class STpeThis(fullNameString: String, underlying: STpeExpr) extends STpeExpr with HasUnderlying {
     def name = s"$fullNameString.this.type"
   }
 
   /** <pre>.<single>.type */
-  case class STpeSingle(pre: STpeExpr, name: String) extends STpeExpr
+  case class STpeSingle(pre: STpeExpr, name: String, underlying: STpeExpr) extends STpeExpr with HasUnderlying
 
   /** Invocation of a trait with arguments */
   case class STraitCall(val name: String, override val args: List[STpeExpr] = Nil) extends STpeExpr {
@@ -188,14 +192,18 @@ object ScalanAst {
     def name = "SelectFromTypeTree"
   }
 
-  case class STpeAnnotated(tpt: STpeExpr, annot: String) extends STpeExpr {
+  case class STpeAnnotated(tpt: STpeExpr, annot: String) extends STpeExpr with HasUnderlying {
     def name = "Annotated" + tpt.name
+
+    override def underlying: STpeExpr = tpt
 
     override def toString = tpt.toString + " @" + annot
   }
 
-  case class STpeExistential(tpt: STpeExpr, items: List[SBodyItem]) extends STpeExpr {
+  case class STpeExistential(tpt: STpeExpr, items: List[SBodyItem]) extends STpeExpr with HasUnderlying {
     def name = "Existential"
+
+    override def underlying: STpeExpr = tpt
 
     override def toString = {
       val body = items map (_.toString)

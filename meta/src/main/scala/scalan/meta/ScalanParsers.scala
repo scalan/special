@@ -765,12 +765,12 @@ trait ScalanParsers[+G <: Global] {
   def parseType(tpe: Type): STpeExpr = tpe match {
     case NoType | NoPrefix => STpeEmpty()
     case const: ConstantType => parseType(const.underlying) //STpeConst(SConst(const.value.value, Some(parseType(const.underlying))))
-    case thisType: ThisType => STpeThis(thisType.sym.nameString)
+    case thisType: ThisType => STpeThis(thisType.sym.nameString, parseType(thisType.underlying))
     case tref: TypeRef if global.definitions.isByNameParamType(tref) =>
        val ty = parseType(tref.args(0))
        STraitCall("Thunk", List(ty))
     case tref: TypeRef => parseTypeRef(tref)
-    case single: SingleType => STpeSingle(parseType(single.pre), single.sym.nameString)
+    case single: SingleType => STpeSingle(parseType(single.pre), single.sym.nameString, parseType(single.underlying))
     case TypeBounds(lo, hi) => STpeTypeBounds(parseType(lo), parseType(hi))
     case ExistentialType(quant, under) =>
       val quantified = quant map(q => STpeDef(SNoSymbol, q.nameString, Nil, STpeEmpty()))
