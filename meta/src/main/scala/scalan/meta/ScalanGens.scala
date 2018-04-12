@@ -110,7 +110,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
 
   def genTypeExpr(tpeExpr: STpeExpr)(implicit ctx: GenCtx): Tree = tpeExpr match {
     case STpeEmpty() => tq""
-    case STpeConst(const) => tq"${ConstantType(Constant(const.c))}"
+    case STpeConst(const, _) => tq"${ConstantType(Constant(const.c))}"
     case STpePrimitive(name: String, _) => tq"${TypeName(name)}"
     case STraitCall(name: String, tpeSExprs: List[STpeExpr]) =>
       val targs = tpeSExprs.map(genTypeExpr)
@@ -353,7 +353,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
         tq"Rep[$appliedType]"
     case STpeTuple(_) => tq"Rep[${genTypeExpr(tpeExpr)}]"
     case STpeFunc(_, _) => tq"Rep[${genTypeExpr(tpeExpr)}]"
-    case STpeThis(fullName) => tq"Rep[${TypeName(fullName)}.this.type]"
+    case STpeThis(fullName, _) => tq"Rep[${TypeName(fullName)}.this.type]"
     case unknown =>
       throw new NotImplementedError(s"repTypeExp($unknown)")
   }
