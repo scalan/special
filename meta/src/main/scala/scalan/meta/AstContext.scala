@@ -127,7 +127,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
   }
 
   @inline def unitKey(packageName: String, unitName: String): String = {
-    SName.fullNameString(packageName, unitName)
+    SSymName.fullNameString(packageName, unitName)
   }
 
   @inline def hasUnit(packageName: String, unitName: String): Boolean = {
@@ -139,7 +139,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     val key = unitKey(packageName, unitName)
     units(key)
   }
-  def getUnit(name: SName): SUnitDef = getUnit(name.packageName, name.name)
+  def getUnit(name: SSymName): SUnitDef = getUnit(name.packageName, name.name)
 
   def addUnit(unit: SUnitDef): SUnitDef = {
     val key = unit.getUnitKey
@@ -155,7 +155,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     units.remove(key)
   }
 
-  def updateUnit(name: SName, by: Lens[SUnitDef, SUnitDef] => Mutation[SUnitDef]): SUnitDef = {
+  def updateUnit(name: SSymName, by: Lens[SUnitDef, SUnitDef] => Mutation[SUnitDef]): SUnitDef = {
     val u = getUnit(name)
     val key = name.mkFullName
     val newUnit = u.update(by)
@@ -174,14 +174,14 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     unitConfigs(key)
   }
 
-  def getUnitConfig(name: SName): UnitConfig = getUnitConfig(name.packageName, name.name)
+  def getUnitConfig(name: SSymName): UnitConfig = getUnitConfig(name.packageName, name.name)
 
   @inline def hasUnitConfig(packageName: String, unitName: String): Boolean = {
     val key = unitKey(packageName, unitName)
     unitConfigs.contains(key)
   }
 
-  def updateUnitConfig(name: SName, by: Lens[UnitConfig, UnitConfig] => Mutation[UnitConfig]): UnitConfig = {
+  def updateUnitConfig(name: SSymName, by: Lens[UnitConfig, UnitConfig] => Mutation[UnitConfig]): UnitConfig = {
     val c = getUnitConfig(name)
     val key = name.mkFullName
     val newConf = c.update(by)

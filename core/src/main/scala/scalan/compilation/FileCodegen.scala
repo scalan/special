@@ -4,7 +4,7 @@ import java.io.{PrintWriter, File}
 
 import scala.collection.mutable
 import scalan.Scalan
-import scalan.meta.SName
+import scalan.meta.SSymName
 import scalan.util.FileUtil
 
 case class IndentLevel(level: Int) {
@@ -221,7 +221,7 @@ abstract class FileCodegen[+ScalanCake <: Scalan](val scalan: ScalanCake, val co
     case num: Number => num.toString
     case xs: Seq[_] => xs.map(translateToSrc).mkString(", ")
     case xs: Array[_] => xs.map(translateToSrc).mkString(", ")
-    case n @ SName(p, name) =>
+    case n @ SSymName(p, name) =>
       if (importBuilder.findImportItem(n).isDefined) name
       else
       if (importBuilder.addImport(n)) name

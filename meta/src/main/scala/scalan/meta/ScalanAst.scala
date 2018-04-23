@@ -55,11 +55,12 @@ object ScalanAst {
   case class STpeSingle(pre: STpeExpr, name: String, underlying: STpeExpr) extends STpeExpr with HasUnderlying
 
   /** Invocation of a trait with arguments */
-  case class STraitCall(val name: String, override val args: List[STpeExpr] = Nil) extends STpeExpr {
+  case class STraitCall(name: String, override val args: List[STpeExpr] = Nil) extends STpeExpr {
     override def toString = name + args.asTypeParams()
-    def isDef = (name == "Def")
+    def isDef = name == "Def"
     def toTypeApply = STypeApply(this, Nil)
   }
+
   object RepeatedArgType {
     def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
       case STraitCall("RepeatedArg", List(targ)) => Some(targ)

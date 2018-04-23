@@ -91,7 +91,7 @@ trait ScalanParsers[+G <: Global] {
       val unitName = scala.reflect.io.File(file).stripExtension
       unitDefFromPackageDef(unitName, pd)
     case tree =>
-      throw new Exception(s"Unexpected tree in $file:\n\n$tree")
+      throw new Exception(s"Unexpected tree in $file: expected PackageDef but was \n\n$tree")
   }
 
   def loadUnitDefFromResource(fileName: String)(implicit ctx: ParseCtx): SUnitDef = {
@@ -225,7 +225,7 @@ trait ScalanParsers[+G <: Global] {
   /** Get ancestors excluding default parents */
   def ancestors(owner: SSymbol, trees: List[Tree])(implicit ctx: ParseCtx) = {
     trees.map(traitCall(owner, _))
-         .filter(tr => !defaultParents.contains(tr.name))
+         .filterNot(tr => defaultParents.contains(tr.name))
          .map(_.toTypeApply)
   }
 

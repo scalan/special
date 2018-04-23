@@ -205,8 +205,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     },
     ForEachUnitStep("virtfinal") { context => import context._
       withUnitModule(unit) { (module, conf) =>
-        val unitFileName = conf.name
-        val unitDef = context.getUnit
+       val unitDef = context.getUnit
 
         /** Generates a virtualized version of original Scala AST, wraps types by Rep[] and etc. */
         val virtUnitDef = virtPipeline(unitDef)

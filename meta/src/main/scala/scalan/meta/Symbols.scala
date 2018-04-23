@@ -7,7 +7,7 @@ import Symbols._
 trait Symbols { this: AstContext =>
 
   def newUnitSymbol(packageName: String, name: String): SUnitDefSymbol = {
-    SUnitDefSymbol(SNoSymbol, SName(packageName, name))
+    SUnitDefSymbol(SNoSymbol, SSymName(packageName, name))
   }
 
   def newEntitySymbol(owner: SSymbol, name: String): SNamedDefSymbol = {
@@ -35,9 +35,17 @@ object Symbols {
     def fullName: String
     override def toString: String = s"sym://$fullName"
   }
+  object SSymbol {
+    implicit def stringToSymbol(name: String): SSymbol = SNameSymbol(new SSymName(name))
+  }
 
   object DefType extends Enumeration {
     val Unit, Entity, Def, Val, ClassArg, Type = Value
+  }
+
+  case class SNameSymbol(name: SSymName) extends SSymbol {
+    def owner = SNoSymbol
+    def fullName: String = name.mkFullName
   }
 
   trait SNamedDefSymbol extends SSymbol {
@@ -63,7 +71,7 @@ object Symbols {
       extends SNamedDefSymbol {
   }
 
-  case class SUnitDefSymbol private(override val owner: SSymbol, unitName: SName)
+  case class SUnitDefSymbol private(override val owner: SSymbol, unitName: SSymName)
       extends SEntitySymbol {
     def name = unitName.mkFullName
     override def defType = DefType.Unit

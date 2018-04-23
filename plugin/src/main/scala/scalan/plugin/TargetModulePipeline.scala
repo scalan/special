@@ -17,8 +17,8 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 
   val name = "target-assembler"
   val runAfter = List("parser")
-  val wrappers = MMap[SName, SUnitDef]()
-  val preparedUnits = MMap[SName, (SUnitDef, UnitConfig)]()
+  val wrappers = MMap[SSymName, SUnitDef]()
+  val preparedUnits = MMap[SSymName, (SUnitDef, UnitConfig)]()
 
   override def isEnabled: Boolean = {
     val moduleName = s.moduleName
@@ -77,7 +77,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   }
 
   def mergeWrapperUnit(unit: SUnitDef) = {
-    val wName = SName(unit.packageName, unit.name)
+    val wName = SSymName(unit.packageName, unit.name)
     wrappers.get(wName) match {
       case Some(existingUnit) =>
         val merger = new SUnitMerger(existingUnit)(scalanizer.context)
@@ -146,7 +146,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         for (srcUnitConf <- srcModule.units.values) {
           val prepared = prepareSourceUnit(srcUnitConf, target)
           context.addUnit(prepared)
-          val name = SName(prepared.packageName, prepared.name)
+          val name = SSymName(prepared.packageName, prepared.name)
           preparedUnits += ((name, (prepared, srcUnitConf)))
         }
       }

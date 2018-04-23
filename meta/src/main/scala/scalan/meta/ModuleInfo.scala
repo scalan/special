@@ -1,9 +1,9 @@
 package scalan
 
-import scalan.meta.SName
+import scalan.meta.SSymName
 
 case class ModuleInfo(packageName: String, moduleName: String, extension: String = ".scalan") {
-  val name = SName(packageName, moduleName)
+  val name = SSymName(packageName, moduleName)
   def getKey = name.mkFullName
   def sourceFileName = packageName.replace('.', '/') + s"/$moduleName$extension"
 }

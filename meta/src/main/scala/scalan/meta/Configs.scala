@@ -153,7 +153,7 @@ case class UnitConfig(
   }
   def packageName: String = entityFile.stripSuffix("/" + entityFile).replace('/', '.')
   def unitName: String = name.stripSuffix(".scala")
-  @inline def unitKey: String = SName.fullNameString(packageName, unitName)
+  @inline def unitKey: String = SSymName.fullNameString(packageName, unitName)
 }
 
 object UnitConfig {

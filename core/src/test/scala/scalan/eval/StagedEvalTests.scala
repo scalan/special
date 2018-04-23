@@ -4,7 +4,7 @@ import com.trueaccord.lenses.Updatable
 import org.scalatest.fixture
 
 import scalan.{TestContexts, Scalan}
-import scalan.meta.{SName, BaseMetaTests, AstContext}
+import scalan.meta.{SSymName, BaseMetaTests, AstContext}
 import scalan.meta.AstLenses._
 
 class StagedEvalTests extends BaseMetaTests with TestContexts {
