@@ -86,6 +86,65 @@ trait ScalanParsers[+G <: Global] {
     compiler.newUnitParser(new compiler.CompilationUnit(source)).parse()
   }
 
+  sealed trait TreeKind
+  case object TopLevel extends TreeKind
+  case object Type extends TreeKind
+  case object Member extends TreeKind
+  case object Expr extends TreeKind
+  case object Annotation extends TreeKind
+  case object AnnotationArg extends TreeKind
+
+  def parseString(kind: TreeKind, prog: String): Tree = {
+    // wrap the string into a complete file
+    val prog1 = kind match {
+      case TopLevel => prog
+      case Type => s"object o { val x: $prog }"
+      case Member => s"object o { $prog }"
+      case Expr => s"object o { val x = $prog }"
+      case Annotation => s"object o { @$prog val x = null }"
+      case AnnotationArg => s"object o { @OverloadId($prog) val x = null }"
+    }
+    val fakeSourceFile = new BatchSourceFile("<no file>", prog1.toCharArray)
+    // extract the part corresponding to original prog
+    (kind, parseFile(fakeSourceFile)) match {
+      case (TopLevel, tree) => tree
+      case (Member, PackageDef(_, List(ModuleDef(_, _, Template(_, _, List(_, tree)))))) =>
+        tree
+      case (Type, PackageDef(_, List(ModuleDef(_, _, Template(_, _, List(_, ValDef(_, _, tree, _))))))) =>
+        tree
+      case (Expr, PackageDef(_, List(ModuleDef(_, _, Template(_, _, List(_, ValDef(_, _, _, tree))))))) =>
+        tree
+      case (Annotation, PackageDef(_, List(ModuleDef(_, _, Template(_, _, List(_, ValDef(Modifiers(_,_,List(tree)), _, _, _))))))) =>
+        tree
+      case (AnnotationArg, PackageDef(_, List(ModuleDef(_, _, Template(_, _, List(_, ValDef(Modifiers(_,_,List(ExtractAnnotation(_,_,List(tree)))), _, _, _))))))) =>
+        tree
+      case (kind, tree) =>
+        ???(tree)
+    }
+  }
+
+  def parseType(owner: SSymbol, tpeString: String)(implicit ctx: ParseCtx): STpeExpr = {
+    val tree = parseString(Type, tpeString)
+    val tpe = tpeExpr(owner, tree)
+    tpe
+  }
+
+  def parseExpr(owner: SSymbol, exprString: String)(implicit ctx: ParseCtx): SExpr = {
+    val tree = parseString(Expr, exprString)
+    val expr = parseExpr(owner, tree)
+    expr
+  }
+
+  def parseBodyItem(owner: SSymbol, defString: String)(implicit ctx: ParseCtx): SBodyItem = {
+    val tree = parseString(Member, defString)
+    val res = optBodyItem(owner, tree, None).get
+    res
+  }
+
+  def parseMethod(owner: SSymbol, mdString: String)(implicit ctx: ParseCtx): SMethodDef = {
+    parseBodyItem(owner, mdString).asInstanceOf[SMethodDef]
+  }
+
   def unitDefFromTree(file: String, tree: Tree)(implicit ctx: ParseCtx): SUnitDef = tree match {
     case pd: PackageDef =>
       val unitName = scala.reflect.io.File(file).stripExtension
@@ -582,54 +641,17 @@ trait ScalanParsers[+G <: Global] {
     case tpe => Some(parseType(tpe))
   }
 
-  def mkArrayMapMethod(owner: SSymbol, tItem: STpeArg) = {
-    val tB = STpeArg("B")
-    SMethodDef(owner, "map", List(tB),
-      List(SMethodArgs(List(SMethodArg(false, false, "f", STpeFunc(tItem.toTraitCall, tB.toTraitCall), None)))),
-      Some(STraitCall("Array", List(tB.toTraitCall))),
-      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
-  }
-
-  def mkArrayForeachMethod(owner: SSymbol, tItem: STpeArg) = {
-    SMethodDef(owner, "foreach", Nil,
-      List(SMethodArgs(List(SMethodArg(false, false, "f", STpeFunc(tItem.toTraitCall, TpeUnit), None)))),
-      Some(TpeUnit),
-      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
-  }
-
-  def mkArrayExistsMethod(owner: SSymbol, tItem: STpeArg) = {
-    SMethodDef(owner, "exists", Nil,
-      List(SMethodArgs(List(SMethodArg(false, false, "p", STpeFunc(tItem.toTraitCall, TpeBoolean), None)))),
-      Some(TpeBoolean),
-      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
-  }
-
-  def mkArrayZipMethod(owner: SSymbol, tItem: STpeArg) = {
-    val tB = STpeArg("B")
-    SMethodDef(owner, "zip", List(tB),
-      List(SMethodArgs(List(SMethodArg(false, false, "ys", STraitCall("Array", List(tB.toTraitCall)), None)))),
-      Some(STraitCall("Array", List(STpeTuple(List(tItem.toTraitCall, tB.toTraitCall))))),
-      false, false, None, List(SMethodAnnotation("External", Nil, Nil)))
-  }
 
   def applyArrayFill(f: SExpr, tyArg: Option[STpeExpr], arg1: SExpr, arg2: SExpr) = {
     SApply(f, tyArg.toList, List(List(arg1, SApply(SIdent("Thunk"), Nil, List(List(arg2))))))
   }
 
-  def applyArrayMap(xs: SExpr, ts: List[STpeExpr], f: SExpr) = {
-    SApply(SSelect(xs, "map"), ts, List(List(f)))
+  def applyArray1(methodName: String, xs: SExpr, ts: List[STpeExpr], arg: SExpr) = {
+    SApply(SSelect(xs, methodName), ts, List(List(arg)))
   }
 
-  def applyArrayForeach(xs: SExpr, ts: List[STpeExpr], f: SExpr) = {
-    SApply(SSelect(xs, "foreach"), ts, List(List(f)))
-  }
-
-  def applyArrayExists(xs: SExpr, ts: List[STpeExpr], f: SExpr) = {
-    SApply(SSelect(xs, "exists"), ts, List(List(f)))
-  }
-
-  def applyArrayZip(xs: SExpr, ts: List[STpeExpr], ys: SExpr) = {
-    SApply(SSelect(xs, "zip"), ts, List(List(ys)))
+  def applyArray2(methodName: String, xs: SExpr, ts: List[STpeExpr], arg1: SExpr, arg2: SExpr) = {
+    SApply(SSelect(xs, methodName), ts, List(List(arg1, arg2)))
   }
 
   private lazy val arrayImplicitWrappers: Set[TermName] = Set(
@@ -664,8 +686,8 @@ trait ScalanParsers[+G <: Global] {
         Some((obj, m, tyArgs, args))
       case Apply(IsArrayWrapperMethod(obj, m), args) =>
         Some((obj, m, Nil, args))
-      case Apply(ApplyArrayWrapperMethod(obj, m, tyArgs, args), _) =>
-        Some((obj, m, tyArgs, args))
+      case Apply(ApplyArrayWrapperMethod(obj, m, tyArgs, args), args2) =>
+        Some((obj, m, tyArgs, args ::: args2))
       case _ => None
     }
   }
@@ -675,19 +697,21 @@ trait ScalanParsers[+G <: Global] {
       case _ => None
     }
   }
+
+  private val arrayMethodsWith1Arg = Set("map", "zip", "foreach", "exists", "forall", "filter")
+  private val arrayMethodsWith2Args = Set("foldLeft", "slice")
+
   def parseExpr(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): SExpr = tree match {
     case q"${f @ q"scala.Array.fill"}[$tpe]($arg1)($arg2)($_)" =>
       applyArrayFill(parseExpr(owner, f), Some(parseType(tpe.tpe)), parseExpr(owner, arg1), parseExpr(owner, arg2))
     case ApplyArrayWrapperMethod(obj, m, tyArgs, args) =>
       m.decoded match {
-        case "map" =>
-          applyArrayMap(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
-        case "foreach" =>
-          applyArrayForeach(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
-        case "exists" =>
-          applyArrayExists(parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
-        case "zip" =>
-          applyArrayZip(parseExpr(owner, obj), Nil, parseExpr(owner, args(0)))
+        case name if arrayMethodsWith1Arg.contains(name) =>
+          applyArray1(name, parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)))
+        case name if arrayMethodsWith2Args.contains(name) =>
+          applyArray2(name, parseExpr(owner, obj), Nil,  parseExpr(owner, args(0)), parseExpr(owner, args(1)))
+        case _ =>
+          !!!(s"Don't know how to ApplyArrayWrapperMethod $m", tree)
       }
     case IsArrayImplicitWrapper(arg) => parseExpr(owner, arg)
     case EmptyTree => SEmpty(tree2Type(tree))

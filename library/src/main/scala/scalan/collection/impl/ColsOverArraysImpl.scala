@@ -427,6 +427,54 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object forall {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "forall" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object filter {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "filter" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object fold {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(zero, op, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "fold" =>
+          Some((receiver, zero, op)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object slice {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[Int], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(from, until, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "slice" =>
+          Some((receiver, from, until)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[Int], Rep[Int]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[Int], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColOverArrayCompanionMethods {
@@ -523,6 +571,54 @@ implicit val eR = p.rs.eA
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object forall {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "forall" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object filter {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "filter" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object fold {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[B], Rep[((B, (L, R))) => B]) forSome {type L; type R; type B}] = d match {
+        case MethodCall(receiver, method, Seq(zero, op, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "fold" =>
+          Some((receiver, zero, op)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[B], Rep[((B, (L, R))) => B]) forSome {type L; type R; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[B], Rep[((B, (L, R))) => B]) forSome {type L; type R; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object slice {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[Int], Rep[Int]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(from, until, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "slice" =>
+          Some((receiver, from, until)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[Int], Rep[Int]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[Int], Rep[Int]) forSome {type L; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

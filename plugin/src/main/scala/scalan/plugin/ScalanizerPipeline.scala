@@ -118,27 +118,52 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     updateWrapperSpecial("scala", "Array", List(tT), Nil, false, mkOp(owner, tT), Nil)
   }
 
-  def catchSpecialWrapper(owner: SEntitySymbol, tree: Tree): Boolean = tree match {
-    case IsArrayWrapperMethod(_, method) =>
-      //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$ops($v).$method")})")
-      method.decoded match {
-        case "map" => registerArrayOp(owner, mkArrayMapMethod)
-        case "foreach" => registerArrayOp(owner, mkArrayForeachMethod)
-        case "exists" => registerArrayOp(owner, mkArrayExistsMethod)
-        case "zip" => registerArrayOp(owner, mkArrayZipMethod)
-      }
-      true
-    //    case sel@q"$x.Predef.$y($z)" =>
-    //      //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$y")})")
-    //      false
-    //    case sel@q"$x.Predef.$y[$t]($z)" =>
-    //      //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$y")})")
-    //      false
-    case sel @ q"$x.Predef.$y" =>
-      //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$y")})")
-      false
-    case q"$x.Array.canBuildFrom" => true // make sure it is ignored
-    case _ => false
+  def catchSpecialWrapper(owner: SEntitySymbol, tree: Tree): Boolean = {
+    implicit val parseCtx = new ParseCtx(false)(scalanizer.context)
+    tree match {
+      case IsArrayWrapperMethod(_, method) =>
+        //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$ops($v).$method")})")
+        method.decoded match {
+          case "map" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def map[B](f: ${tItem.name} => B): Array[B]"))
+          case "foreach" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def foreach(f: ${tItem.name} => Unit): Unit"))
+          case "exists" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def exists(p: ${tItem.name} => Boolean): Boolean"))
+          case "forall" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def forall(p: ${tItem.name} => Boolean): Boolean"))
+          case "filter" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def filter(p: ${tItem.name} => Boolean): Array[${tItem.name}]"))
+          case "zip" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def zip[B](ys: Array[B]): Array[(${tItem.name}, B)]"))
+          case "foldLeft" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def foldLeft[B](zero: B, op: (B, ${tItem.name}) => B): B"))
+          case "slice" =>
+            registerArrayOp(owner, (owner, tItem) =>
+              parseMethod(owner, s"@External def slice(from: Int, until: Int): Array[${tItem.name}]"))
+          case _ =>
+            !!!(s"Don't know how to catchSpecialWrapper($tree)", tree)
+        }
+        true
+      //    case sel@q"$x.Predef.$y($z)" =>
+      //      //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$y")})")
+      //      false
+      //    case sel@q"$x.Predef.$y[$t]($z)" =>
+      //      //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$y")})")
+      //      false
+      case sel @ q"$x.Predef.$y" =>
+        //      inform(s"catchSpecialWrapper(${show(q"$x.Predef.$y")})")
+        false
+      case q"$x.Array.canBuildFrom" => true // make sure it is ignored
+      case _ => false
+    }
   }
 
   /** For each method call, create type wrapper if the external type should be wrapped. */

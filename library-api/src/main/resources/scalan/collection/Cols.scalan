@@ -11,7 +11,11 @@ package scalan.collection {
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]];
       def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys);
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit];
-      def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean]
+      def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];
+      def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];
+      def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]];
+      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B];
+      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]]
     };
     trait PairCol[L, R] extends Col[scala.Tuple2[L, R]] {
       implicit def eL: Elem[L];

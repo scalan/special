@@ -13,7 +13,11 @@ trait Col[A] {
   def zip[B](ys: Col[B]): PairCol[A, B] = builder(this, ys)
   def foreach(f: A => Unit): Unit
   def exists(p: A => Boolean): Boolean
-  //    def reduce(implicit m: NumMonoid[A]): A = arr.reduce(m.append)
+  def forall(p: A => Boolean): Boolean
+  def filter(p: A => Boolean): Col[A]
+  def fold[B](zero: B)(op: (B, A) => B): B
+  def slice(from: Int, until: Int): Col[A]
+//  def ++(other: Col[A]): Col[A]
 }
 
 trait PairCol[L,R] extends Col[(L,R)] {

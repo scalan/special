@@ -152,6 +152,54 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
     }
+
+    object forall {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "forall" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object filter {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "filter" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object fold {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(zero, op, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "fold" =>
+          Some((receiver, zero, op)).asInstanceOf[Option[(Rep[Col[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object slice {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[Int], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(from, until, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "slice" =>
+          Some((receiver, from, until)).asInstanceOf[Option[(Rep[Col[A]], Rep[Int], Rep[Int]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[Int], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColCompanionMethods {
