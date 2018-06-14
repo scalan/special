@@ -26,7 +26,7 @@ trait Modules extends Base { self: Scalan =>
     if (!parsers.context.hasUnit(pack, name)) {
       val m = parsers.loadUnitDefFromResource(moduleInfo.sourceFileName)(new parsers.ParseCtx(true)(parsers.context))
       parsers.context.addUnit(m)
-      println(s"WARNING: module $pack.$name added by registerModule")
+//      println(s"WARNING: module $pack.$name added by registerModule")
     }
   }
 
