@@ -1,8 +1,8 @@
 package scalan.collection
 
-trait Costed[T] {
+trait Costed[Val] {
   def builder: CostedBuilder
-  def value: T
+  def value: Val
   def cost: Long
 }
 

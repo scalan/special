@@ -9,68 +9,68 @@ package impl {
 trait ConcreteCostsDefs extends scalan.Scalan with ConcreteCosts {
   self: Library =>
 
-  case class CostedPrimCtor[T]
-      (override val value: Rep[T], override val cost: Rep[Long])
-    extends CostedPrim[T](value, cost) with Def[CostedPrim[T]] {
-    implicit lazy val eT = value.elem
+  case class CostedPrimCtor[Val]
+      (override val value: Rep[Val], override val cost: Rep[Long])
+    extends CostedPrim[Val](value, cost) with Def[CostedPrim[Val]] {
+    implicit lazy val eVal = value.elem
 
-    lazy val selfType = element[CostedPrim[T]]
+    lazy val selfType = element[CostedPrim[Val]]
   }
   // elem for concrete class
-  class CostedPrimElem[T](val iso: Iso[CostedPrimData[T], CostedPrim[T]])(implicit override val eT: Elem[T])
-    extends CostedElem[T, CostedPrim[T]]
-    with ConcreteElem[CostedPrimData[T], CostedPrim[T]] {
-    override lazy val parent: Option[Elem[_]] = Some(costedElement(element[T]))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override def convertCosted(x: Rep[Costed[T]]) = CostedPrim(x.value, x.cost)
-    override def getDefaultRep = CostedPrim(element[T].defaultRepValue, 0l)
+  class CostedPrimElem[Val](val iso: Iso[CostedPrimData[Val], CostedPrim[Val]])(implicit override val eVal: Elem[Val])
+    extends CostedElem[Val, CostedPrim[Val]]
+    with ConcreteElem[CostedPrimData[Val], CostedPrim[Val]] {
+    override lazy val parent: Option[Elem[_]] = Some(costedElement(element[Val]))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
+    override def convertCosted(x: Rep[Costed[Val]]) = CostedPrim(x.value, x.cost)
+    override def getDefaultRep = CostedPrim(element[Val].defaultRepValue, 0l)
     override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CostedPrim[T]]
+      implicit val tagVal = eVal.tag
+      weakTypeTag[CostedPrim[Val]]
     }
   }
 
   // state representation type
-  type CostedPrimData[T] = (T, Long)
+  type CostedPrimData[Val] = (Val, Long)
 
   // 3) Iso for concrete class
-  class CostedPrimIso[T](implicit eT: Elem[T])
-    extends EntityIso[CostedPrimData[T], CostedPrim[T]] with Def[CostedPrimIso[T]] {
-    override def from(p: Rep[CostedPrim[T]]) =
+  class CostedPrimIso[Val](implicit eVal: Elem[Val])
+    extends EntityIso[CostedPrimData[Val], CostedPrim[Val]] with Def[CostedPrimIso[Val]] {
+    override def from(p: Rep[CostedPrim[Val]]) =
       (p.value, p.cost)
-    override def to(p: Rep[(T, Long)]) = {
+    override def to(p: Rep[(Val, Long)]) = {
       val Pair(value, cost) = p
       CostedPrim(value, cost)
     }
-    lazy val eFrom = pairElement(element[T], element[Long])
-    lazy val eTo = new CostedPrimElem[T](self)
-    lazy val selfType = new CostedPrimIsoElem[T](eT)
+    lazy val eFrom = pairElement(element[Val], element[Long])
+    lazy val eTo = new CostedPrimElem[Val](self)
+    lazy val selfType = new CostedPrimIsoElem[Val](eVal)
     def productArity = 1
-    def productElement(n: Int) = eT
+    def productElement(n: Int) = eVal
   }
-  case class CostedPrimIsoElem[T](eT: Elem[T]) extends Elem[CostedPrimIso[T]] {
-    def getDefaultRep = reifyObject(new CostedPrimIso[T]()(eT))
+  case class CostedPrimIsoElem[Val](eVal: Elem[Val]) extends Elem[CostedPrimIso[Val]] {
+    def getDefaultRep = reifyObject(new CostedPrimIso[Val]()(eVal))
     lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CostedPrimIso[T]]
+      implicit val tagVal = eVal.tag
+      weakTypeTag[CostedPrimIso[Val]]
     }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
   class CostedPrimCompanionCtor extends CompanionDef[CostedPrimCompanionCtor] with CostedPrimCompanion {
     def selfType = CostedPrimCompanionElem
     override def toString = "CostedPrimCompanion"
     @scalan.OverloadId("fromData")
-    def apply[T](p: Rep[CostedPrimData[T]]): Rep[CostedPrim[T]] = {
-      implicit val eT = p._1.elem
-      isoCostedPrim[T].to(p)
+    def apply[Val](p: Rep[CostedPrimData[Val]]): Rep[CostedPrim[Val]] = {
+      implicit val eVal = p._1.elem
+      isoCostedPrim[Val].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[T](value: Rep[T], cost: Rep[Long]): Rep[CostedPrim[T]] =
+    def apply[Val](value: Rep[Val], cost: Rep[Long]): Rep[CostedPrim[Val]] =
       mkCostedPrim(value, cost)
 
-    def unapply[T](p: Rep[Costed[T]]) = unmkCostedPrim(p)
+    def unapply[Val](p: Rep[Costed[Val]]) = unmkCostedPrim(p)
   }
   lazy val CostedPrimRep: Rep[CostedPrimCompanionCtor] = new CostedPrimCompanionCtor
   lazy val CostedPrim: CostedPrimCompanionCtor = proxyCostedPrimCompanion(CostedPrimRep)
@@ -83,26 +83,26 @@ trait ConcreteCostsDefs extends scalan.Scalan with ConcreteCosts {
     protected def getDefaultRep = CostedPrimRep
   }
 
-  implicit def proxyCostedPrim[T](p: Rep[CostedPrim[T]]): CostedPrim[T] =
-    proxyOps[CostedPrim[T]](p)
+  implicit def proxyCostedPrim[Val](p: Rep[CostedPrim[Val]]): CostedPrim[Val] =
+    proxyOps[CostedPrim[Val]](p)
 
-  implicit class ExtendedCostedPrim[T](p: Rep[CostedPrim[T]]) {
-    def toData: Rep[CostedPrimData[T]] = {
-      implicit val eT = p.value.elem
-      isoCostedPrim(eT).from(p)
+  implicit class ExtendedCostedPrim[Val](p: Rep[CostedPrim[Val]]) {
+    def toData: Rep[CostedPrimData[Val]] = {
+      implicit val eVal = p.value.elem
+      isoCostedPrim(eVal).from(p)
     }
   }
 
   // 5) implicit resolution of Iso
-  implicit def isoCostedPrim[T](implicit eT: Elem[T]): Iso[CostedPrimData[T], CostedPrim[T]] =
-    reifyObject(new CostedPrimIso[T]()(eT))
+  implicit def isoCostedPrim[Val](implicit eVal: Elem[Val]): Iso[CostedPrimData[Val], CostedPrim[Val]] =
+    reifyObject(new CostedPrimIso[Val]()(eVal))
 
   case class CostedPairCtor[L, R]
       (override val l: Rep[L], override val r: Rep[R], override val cost: Rep[Long])
     extends CostedPair[L, R](l, r, cost) with Def[CostedPair[L, R]] {
     implicit lazy val eL = l.elem;
 implicit lazy val eR = r.elem
-    override lazy val eT: Elem[(L, R)] = implicitly[Elem[(L, R)]]
+    override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     lazy val selfType = element[CostedPair[L, R]]
   }
   // elem for concrete class
@@ -194,53 +194,53 @@ implicit val eR = p.r.elem
   implicit def isoCostedPair[L, R](implicit eL: Elem[L], eR: Elem[R]): Iso[CostedPairData[L, R], CostedPair[L, R]] =
     reifyObject(new CostedPairIso[L, R]()(eL, eR))
 
-  case class CostedArrayCtor[T]
-      (override val arr: Rep[Col[Costed[T]]])
-    extends CostedArray[T](arr) with Def[CostedArray[T]] {
-    implicit lazy val eT = arr.eA.typeArgs("T")._1.asElem[T]
-
-    lazy val selfType = element[CostedArray[T]]
+  case class CostedArrayCtor[Item]
+      (override val arr: Rep[Col[Costed[Item]]])
+    extends CostedArray[Item](arr) with Def[CostedArray[Item]] {
+    implicit override lazy val eItem = arr.eA.typeArgs("Val")._1.asElem[Item]
+    override lazy val eVal: Elem[WArray[Item]] = implicitly[Elem[WArray[Item]]]
+    lazy val selfType = element[CostedArray[Item]]
   }
   // elem for concrete class
-  class CostedArrayElem[T](val iso: Iso[CostedArrayData[T], CostedArray[T]])(implicit override val eT: Elem[T])
-    extends CostedElem[WArray[T], CostedArray[T]]
-    with ConcreteElem[CostedArrayData[T], CostedArray[T]] {
-    override lazy val parent: Option[Elem[_]] = Some(costedElement(wArrayElement(element[T])))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override def convertCosted(x: Rep[Costed[Array[T]]]) = // Converter is not generated by meta
+  class CostedArrayElem[Item](val iso: Iso[CostedArrayData[Item], CostedArray[Item]])(implicit val eItem: Elem[Item])
+    extends CostedElem[WArray[Item], CostedArray[Item]]
+    with ConcreteElem[CostedArrayData[Item], CostedArray[Item]] {
+    override lazy val parent: Option[Elem[_]] = Some(costedElement(wArrayElement(element[Item])))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
+    override def convertCosted(x: Rep[Costed[WArray[Item]]]) = // Converter is not generated by meta
 !!!("Cannot convert from Costed to CostedArray: missing fields List(arr)")
-    override def getDefaultRep = CostedArray(element[Col[Costed[T]]].defaultRepValue)
+    override def getDefaultRep = CostedArray(element[Col[Costed[Item]]].defaultRepValue)
     override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CostedArray[T]]
+      implicit val tagItem = eItem.tag
+      weakTypeTag[CostedArray[Item]]
     }
   }
 
   // state representation type
-  type CostedArrayData[T] = Col[Costed[T]]
+  type CostedArrayData[Item] = Col[Costed[Item]]
 
   // 3) Iso for concrete class
-  class CostedArrayIso[T](implicit eT: Elem[T])
-    extends EntityIso[CostedArrayData[T], CostedArray[T]] with Def[CostedArrayIso[T]] {
-    override def from(p: Rep[CostedArray[T]]) =
+  class CostedArrayIso[Item](implicit eItem: Elem[Item])
+    extends EntityIso[CostedArrayData[Item], CostedArray[Item]] with Def[CostedArrayIso[Item]] {
+    override def from(p: Rep[CostedArray[Item]]) =
       p.arr
-    override def to(p: Rep[Col[Costed[T]]]) = {
+    override def to(p: Rep[Col[Costed[Item]]]) = {
       val arr = p
       CostedArray(arr)
     }
-    lazy val eFrom = element[Col[Costed[T]]]
-    lazy val eTo = new CostedArrayElem[T](self)
-    lazy val selfType = new CostedArrayIsoElem[T](eT)
+    lazy val eFrom = element[Col[Costed[Item]]]
+    lazy val eTo = new CostedArrayElem[Item](self)
+    lazy val selfType = new CostedArrayIsoElem[Item](eItem)
     def productArity = 1
-    def productElement(n: Int) = eT
+    def productElement(n: Int) = eItem
   }
-  case class CostedArrayIsoElem[T](eT: Elem[T]) extends Elem[CostedArrayIso[T]] {
-    def getDefaultRep = reifyObject(new CostedArrayIso[T]()(eT))
+  case class CostedArrayIsoElem[Item](eItem: Elem[Item]) extends Elem[CostedArrayIso[Item]] {
+    def getDefaultRep = reifyObject(new CostedArrayIso[Item]()(eItem))
     lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CostedArrayIso[T]]
+      implicit val tagItem = eItem.tag
+      weakTypeTag[CostedArrayIso[Item]]
     }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
   class CostedArrayCompanionCtor extends CompanionDef[CostedArrayCompanionCtor] with CostedArrayCompanion {
@@ -248,10 +248,10 @@ implicit val eR = p.r.elem
     override def toString = "CostedArrayCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[T](arr: Rep[Col[Costed[T]]]): Rep[CostedArray[T]] =
+    def apply[Item](arr: Rep[Col[Costed[Item]]]): Rep[CostedArray[Item]] =
       mkCostedArray(arr)
 
-    def unapply[T](p: Rep[Costed[Array[T]]]) = unmkCostedArray(p)
+    def unapply[Item](p: Rep[Costed[Array[Item]]]) = unmkCostedArray(p)
   }
   lazy val CostedArrayRep: Rep[CostedArrayCompanionCtor] = new CostedArrayCompanionCtor
   lazy val CostedArray: CostedArrayCompanionCtor = proxyCostedArrayCompanion(CostedArrayRep)
@@ -264,19 +264,19 @@ implicit val eR = p.r.elem
     protected def getDefaultRep = CostedArrayRep
   }
 
-  implicit def proxyCostedArray[T](p: Rep[CostedArray[T]]): CostedArray[T] =
-    proxyOps[CostedArray[T]](p)
+  implicit def proxyCostedArray[Item](p: Rep[CostedArray[Item]]): CostedArray[Item] =
+    proxyOps[CostedArray[Item]](p)
 
-  implicit class ExtendedCostedArray[T](p: Rep[CostedArray[T]]) {
-    def toData: Rep[CostedArrayData[T]] = {
-      implicit val eT = p.arr.eA.typeArgs("T")._1.asElem[T]
-      isoCostedArray(eT).from(p)
+  implicit class ExtendedCostedArray[Item](p: Rep[CostedArray[Item]]) {
+    def toData: Rep[CostedArrayData[Item]] = {
+      implicit val eItem = p.arr.eA.typeArgs("Val")._1.asElem[Item]
+      isoCostedArray(eItem).from(p)
     }
   }
 
   // 5) implicit resolution of Iso
-  implicit def isoCostedArray[T](implicit eT: Elem[T]): Iso[CostedArrayData[T], CostedArray[T]] =
-    reifyObject(new CostedArrayIso[T]()(eT))
+  implicit def isoCostedArray[Item](implicit eItem: Elem[Item]): Iso[CostedArrayData[Item], CostedArray[Item]] =
+    reifyObject(new CostedArrayIso[Item]()(eItem))
 
   case class ConcreteCostedBuilderCtor
       ()
@@ -364,12 +364,12 @@ implicit val eR = p.r.elem
 
   object CostedPrimMethods {
     object builder {
-      def unapply(d: Def[_]): Option[Rep[CostedPrim[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Option[Rep[CostedPrim[Val]] forSome {type Val}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPrimElem[_]] && method.getName == "builder" =>
-          Some(receiver).asInstanceOf[Option[Rep[CostedPrim[T]] forSome {type T}]]
+          Some(receiver).asInstanceOf[Option[Rep[CostedPrim[Val]] forSome {type Val}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[Rep[CostedPrim[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[CostedPrim[Val]] forSome {type Val}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -379,13 +379,13 @@ implicit val eR = p.r.elem
   object CostedPrimCompanionMethods {
   }
 
-  def mkCostedPrim[T]
-    (value: Rep[T], cost: Rep[Long]): Rep[CostedPrim[T]] = {
-    new CostedPrimCtor[T](value, cost)
+  def mkCostedPrim[Val]
+    (value: Rep[Val], cost: Rep[Long]): Rep[CostedPrim[Val]] = {
+    new CostedPrimCtor[Val](value, cost)
   }
-  def unmkCostedPrim[T](p: Rep[Costed[T]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: CostedPrimElem[T] @unchecked =>
-      Some((p.asRep[CostedPrim[T]].value, p.asRep[CostedPrim[T]].cost))
+  def unmkCostedPrim[Val](p: Rep[Costed[Val]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: CostedPrimElem[Val] @unchecked =>
+      Some((p.asRep[CostedPrim[Val]].value, p.asRep[CostedPrim[Val]].cost))
     case _ =>
       None
   }
@@ -432,36 +432,36 @@ implicit val eR = p.r.elem
 
   object CostedArrayMethods {
     object builder {
-      def unapply(d: Def[_]): Option[Rep[CostedArray[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Option[Rep[CostedArray[Item]] forSome {type Item}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedArrayElem[_]] && method.getName == "builder" =>
-          Some(receiver).asInstanceOf[Option[Rep[CostedArray[T]] forSome {type T}]]
+          Some(receiver).asInstanceOf[Option[Rep[CostedArray[Item]] forSome {type Item}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[Rep[CostedArray[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[CostedArray[Item]] forSome {type Item}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
     object value {
-      def unapply(d: Def[_]): Option[Rep[CostedArray[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Option[Rep[CostedArray[Item]] forSome {type Item}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedArrayElem[_]] && method.getName == "value" =>
-          Some(receiver).asInstanceOf[Option[Rep[CostedArray[T]] forSome {type T}]]
+          Some(receiver).asInstanceOf[Option[Rep[CostedArray[Item]] forSome {type Item}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[Rep[CostedArray[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[CostedArray[Item]] forSome {type Item}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
     object cost {
-      def unapply(d: Def[_]): Option[Rep[CostedArray[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Option[Rep[CostedArray[Item]] forSome {type Item}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedArrayElem[_]] && method.getName == "cost" =>
-          Some(receiver).asInstanceOf[Option[Rep[CostedArray[T]] forSome {type T}]]
+          Some(receiver).asInstanceOf[Option[Rep[CostedArray[Item]] forSome {type Item}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[Rep[CostedArray[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[CostedArray[Item]] forSome {type Item}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -471,13 +471,13 @@ implicit val eR = p.r.elem
   object CostedArrayCompanionMethods {
   }
 
-  def mkCostedArray[T]
-    (arr: Rep[Col[Costed[T]]]): Rep[CostedArray[T]] = {
-    new CostedArrayCtor[T](arr)
+  def mkCostedArray[Item]
+    (arr: Rep[Col[Costed[Item]]]): Rep[CostedArray[Item]] = {
+    new CostedArrayCtor[Item](arr)
   }
-  def unmkCostedArray[T](p: Rep[Costed[Array[T]]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: CostedArrayElem[T] @unchecked =>
-      Some((p.asRep[CostedArray[T]].arr))
+  def unmkCostedArray[Item](p: Rep[Costed[Array[Item]]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: CostedArrayElem[Item] @unchecked =>
+      Some((p.asRep[CostedArray[Item]].arr))
     case _ =>
       None
   }

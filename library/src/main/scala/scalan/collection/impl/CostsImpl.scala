@@ -10,26 +10,26 @@ trait CostsDefs extends scalan.Scalan with Costs {
   self: Library =>
 
   // entityProxy: single proxy for each type family
-  implicit def proxyCosted[T](p: Rep[Costed[T]]): Costed[T] = {
-    proxyOps[Costed[T]](p)(scala.reflect.classTag[Costed[T]])
+  implicit def proxyCosted[Val](p: Rep[Costed[Val]]): Costed[Val] = {
+    proxyOps[Costed[Val]](p)(scala.reflect.classTag[Costed[Val]])
   }
 
   // familyElem
-  class CostedElem[T, To <: Costed[T]](implicit _eT: Elem[T])
+  class CostedElem[Val, To <: Costed[Val]](implicit _eVal: Elem[Val])
     extends EntityElem[To] {
-    def eT = _eT
+    def eVal = _eVal
     lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
     override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[Costed[T]].asInstanceOf[WeakTypeTag[To]]
+      implicit val tagVal = eVal.tag
+      weakTypeTag[Costed[Val]].asInstanceOf[WeakTypeTag[To]]
     }
     override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Costed[T]] => convertCosted(x) }
-      tryConvert(element[Costed[T]], this, x, conv)
+      val conv = fun {x: Rep[Costed[Val]] => convertCosted(x) }
+      tryConvert(element[Costed[Val]], this, x, conv)
     }
 
-    def convertCosted(x: Rep[Costed[T]]): Rep[To] = {
+    def convertCosted(x: Rep[Costed[Val]]): Rep[To] = {
       x.elem match {
         case _: CostedElem[_, _] => x.asRep[To]
         case e => !!!(s"Expected $x to have CostedElem[_, _], but got $e", x)
@@ -38,8 +38,8 @@ trait CostsDefs extends scalan.Scalan with Costs {
     override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedElement[T](implicit eT: Elem[T]): Elem[Costed[T]] =
-    cachedElem[CostedElem[T, Costed[T]]](eT)
+  implicit def costedElement[Val](implicit eVal: Elem[Val]): Elem[Costed[Val]] =
+    cachedElem[CostedElem[Val, Costed[Val]]](eVal)
 
   implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor] {
     lazy val tag = weakTypeTag[CostedCompanionCtor]
@@ -58,36 +58,36 @@ trait CostsDefs extends scalan.Scalan with Costs {
 
   object CostedMethods {
     object builder {
-      def unapply(d: Def[_]): Option[Rep[Costed[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Option[Rep[Costed[Val]] forSome {type Val}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "builder" =>
-          Some(receiver).asInstanceOf[Option[Rep[Costed[T]] forSome {type T}]]
+          Some(receiver).asInstanceOf[Option[Rep[Costed[Val]] forSome {type Val}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[Rep[Costed[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[Costed[Val]] forSome {type Val}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
     object value {
-      def unapply(d: Def[_]): Option[Rep[Costed[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Option[Rep[Costed[Val]] forSome {type Val}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "value" =>
-          Some(receiver).asInstanceOf[Option[Rep[Costed[T]] forSome {type T}]]
+          Some(receiver).asInstanceOf[Option[Rep[Costed[Val]] forSome {type Val}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[Rep[Costed[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[Costed[Val]] forSome {type Val}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
     object cost {
-      def unapply(d: Def[_]): Option[Rep[Costed[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Option[Rep[Costed[Val]] forSome {type Val}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "cost" =>
-          Some(receiver).asInstanceOf[Option[Rep[Costed[T]] forSome {type T}]]
+          Some(receiver).asInstanceOf[Option[Rep[Costed[Val]] forSome {type Val}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[Rep[Costed[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[Costed[Val]] forSome {type Val}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
