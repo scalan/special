@@ -10,15 +10,22 @@ class CostedTests extends BaseCtxTests {
       Range(0, n).foldLeft(x)((y, i) => y + i)
     }
 
+    val b = ColOverArrayBuilder()
+
     def dataCost[T:Elem](x: Rep[T]): Rep[Costed[T]] = element[T] match {
-      case ByteElement => CostedPrimRep(x, 1L)
-      case ShortElement => CostedPrimRep(x, 2L)
-      case IntElement => CostedPrimRep(x, 4L)
-      case LongElement => CostedPrimRep(x, 8L)
+      case ByteElement => CostedPrim(x, 1L)
+      case ShortElement => CostedPrim(x, 2L)
+      case IntElement => CostedPrim(x, 4L)
+      case LongElement => CostedPrim(x, 8L)
       case pe: PairElem[a,b] =>
         val l = dataCost(x.asRep[(a,b)]._1)(pe.eFst)
         val r = dataCost(x.asRep[(a,b)]._2)(pe.eSnd)
-        CostedPairRep(l.value, r.value, l.cost + r.cost)
+        CostedPair(l.value, r.value, l.cost + r.cost)
+      case ae: WArrayElem[a,_] =>
+        val col = b.fromArray(x.asRep[WArray[a]])
+        implicit val ea = ae.eItem
+        val costed = col.map(fun(dataCost[a]))
+        CostedArray(costed).asRep[Costed[T]]
     }
 
     def result[T](dc: Rep[Costed[T]]): Rep[(T, Long)] = Pair(dc.value, dc.cost)
@@ -75,13 +82,19 @@ class CostedTests extends BaseCtxTests {
     ctx.emit("dataCost",
       result(dataCost(Pair(10, 20.toByte))),
       result(dataCost(Pair(30, Pair(40.toByte, 50L))))
-      )
+    )
   }
 
   test("split") {
     ctx.emit("split",
       split(fun { x: Rep[(Int, Byte)] => dataCost(x) }),
       split(fun { x: Rep[Int] => dataCost(Pair(x, 20.toByte)) })
+    )
+  }
+
+  test("split arrays") {
+    ctx.emit("split_arrays",
+      split(fun { x: Rep[WArray[Int]] => dataCost(Pair(x, 20.toByte)) })
     )
   }
 
