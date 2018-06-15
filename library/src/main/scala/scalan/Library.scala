@@ -1,7 +1,7 @@
 package scalan
 
 import scala.wrappers.WrappersModule
-import scalan.collection.{ColsModule, ColsOverArraysModule, CostsModule, ConcreteCostsModule}
+import scalan.collection.{ColsModule, ColsOverArraysModule, CostsModule, ConcreteCostsModule, MonoidsModule, MonoidInstancesModule}
 
 trait Library extends Scalan
   with WrappersModule
@@ -9,3 +9,5 @@ trait Library extends Scalan
   with ColsOverArraysModule
   with CostsModule
   with ConcreteCostsModule
+  with MonoidsModule
+  with MonoidInstancesModule
