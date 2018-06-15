@@ -19,8 +19,9 @@ class CostedPair[L,R](val l: L, val r: R, val cost: Long) extends Costed[(L,R)] 
 class CostedArray[Item: ClassTag](val values: Col[Item], val costs: Col[Long]) extends Costed[Array[Item]] {
   def builder = new ConcreteCostedBuilder
   def value: Array[Item] = values.arr
-  def cost: Long = costs.fold(0L)(p => p._1 + p._2)
+  def cost: Long = costs.sum(builder.monoidBuilder.longPlusMonoid)
 }
 
 class ConcreteCostedBuilder extends CostedBuilder {
+  def monoidBuilder = new MonoidBuilderInst
 }

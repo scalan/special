@@ -12,9 +12,11 @@ package scalan.collection {
     abstract class CostedArray[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Long]]) extends Costed[WArray[Item]] {
       def builder: Rep[ConcreteCostedBuilder] = ConcreteCostedBuilder();
       def value: Rep[WArray[Item]] = CostedArray.this.values.arr;
-      def cost: Rep[Long] = CostedArray.this.costs.fold[Long](toRep(0L.asInstanceOf[Long]))(fun(((p: Rep[scala.Tuple2[Long, Long]]) => p._1.+(p._2))))
+      def cost: Rep[Long] = CostedArray.this.costs.sum(CostedArray.this.builder.monoidBuilder.longPlusMonoid)
     };
-    abstract class ConcreteCostedBuilder extends CostedBuilder;
+    abstract class ConcreteCostedBuilder extends CostedBuilder {
+      def monoidBuilder: Rep[MonoidBuilderInst] = MonoidBuilderInst()
+    };
     trait CostedPrimCompanion;
     trait CostedPairCompanion;
     trait CostedArrayCompanion;

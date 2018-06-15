@@ -189,6 +189,18 @@ trait ColsDefs extends scalan.Scalan with Cols {
       }
     }
 
+    object sum {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(m, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "sum" =>
+          Some((receiver, m)).asInstanceOf[Option[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object slice {
       def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[Int], Rep[Int]) forSome {type A}] = d match {
         case MethodCall(receiver, method, Seq(from, until, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "slice" =>

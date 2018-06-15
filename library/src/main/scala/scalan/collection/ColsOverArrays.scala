@@ -27,6 +27,11 @@ package scalan.collection {
         })))
       };
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ColOverArray.this.builder.fromArray[A](ColOverArray.this.arr.slice(from, until))
+      def sum(m: Rep[Monoid[A]]): Rep[A] = ColOverArray.this.arr.foldLeft(m.zero, fun(((in: Rep[scala.Tuple2[A, A]]) => {
+        val b: Rep[A] = in._1;
+        val a: Rep[A] = in._2;
+        m.plus(b, a)
+      })))
     };
     abstract class ColOverArrayBuilder extends BaseColBuilder;
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
@@ -48,6 +53,11 @@ package scalan.collection {
         })))
       };
       override def slice(from: Rep[Int], until: Rep[Int]): Rep[PairCol[L, R]] = PairOfCols.this.builder.apply[L, R](PairOfCols.this.ls.slice(from, until), PairOfCols.this.rs.slice(from, until))
+      override def sum(m: Rep[Monoid[scala.Tuple2[L, R]]]): Rep[scala.Tuple2[L, R]] = PairOfCols.this.arr.foldLeft(m.zero, fun(((in: Rep[scala.Tuple2[scala.Tuple2[L, R], scala.Tuple2[L, R]]]) => {
+        val b: Rep[scala.Tuple2[L, R]] = in.head;
+        val a: Rep[scala.Tuple2[L, R]] = in.tail;
+        m.plus(b, a)
+      })))
     };
     abstract class ReplCol[A](val value: Rep[A], val length: Rep[Int]) extends Col[A] {
       def builder: Rep[ColBuilder] = ReplColBuilder();
@@ -63,6 +73,7 @@ package scalan.collection {
         WSpecialPredef.loopUntil[scala.Tuple2[B, Int]](Pair(zero, toRep(0.asInstanceOf[Int])), fun(((p: Rep[scala.Tuple2[B, Int]]) => p._2.<(ReplCol.this.length))), fun(((p: Rep[scala.Tuple2[B, Int]]) => Pair(op.apply(Tuple2(p._1, ReplCol.this.value)), p._2.+(toRep(1.asInstanceOf[Int]))))))._1
       };
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ReplCol(ReplCol.this.value, until.-(from))
+      def sum(m: Rep[Monoid[A]]): Rep[A] = m.power(ReplCol.this.value, ReplCol.this.length)
     };
     abstract class ReplColBuilder extends BaseColBuilder;
     abstract class ArrayFunctor extends Functor[WArray] {

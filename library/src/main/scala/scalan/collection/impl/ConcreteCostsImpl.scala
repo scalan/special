@@ -488,6 +488,17 @@ implicit val eR = p.r.elem
   }
 
   object ConcreteCostedBuilderMethods {
+    object monoidBuilder {
+      def unapply(d: Def[_]): Option[Rep[ConcreteCostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ConcreteCostedBuilderElem] && method.getName == "monoidBuilder" =>
+          Some(receiver).asInstanceOf[Option[Rep[ConcreteCostedBuilder]]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[ConcreteCostedBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ConcreteCostedBuilderCompanionMethods {

@@ -16,7 +16,7 @@ trait Col[A] {
   def forall(p: A => Boolean): Boolean
   def filter(p: A => Boolean): Col[A]
   def fold[B](zero: B)(op: ((B, A)) => B): B
-
+  def sum(m: Monoid[A]): A
   /** Selects an interval of elements.  The returned collection is made up
     *  of all elements `x` which satisfy the invariant:
     *  {{{

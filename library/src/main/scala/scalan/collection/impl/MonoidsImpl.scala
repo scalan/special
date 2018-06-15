@@ -80,6 +80,18 @@ trait MonoidsDefs extends scalan.Scalan with Monoids {
         case _ => None
       }
     }
+
+    object power {
+      def unapply(d: Def[_]): Option[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(x, n, _*), _) if receiver.elem.isInstanceOf[MonoidElem[_, _]] && method.getName == "power" =>
+          Some((receiver, x, n)).asInstanceOf[Option[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object MonoidCompanionMethods {

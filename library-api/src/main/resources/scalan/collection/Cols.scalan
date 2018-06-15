@@ -15,6 +15,7 @@ package scalan.collection {
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];
       def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]];
       def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B];
+      def sum(m: Rep[Monoid[A]]): Rep[A];
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]]
     };
     trait PairCol[L, R] extends Col[scala.Tuple2[L, R]] {

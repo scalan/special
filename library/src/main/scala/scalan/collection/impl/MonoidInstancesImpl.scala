@@ -303,6 +303,18 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
         case _ => None
       }
     }
+
+    object power {
+      def unapply(d: Def[_]): Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
+        case MethodCall(receiver, method, Seq(x, n, _*), _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "power" =>
+          Some((receiver, x, n)).asInstanceOf[Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object IntPlusMonoidCompanionMethods {
@@ -327,6 +339,18 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object power {
+      def unapply(d: Def[_]): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = d match {
+        case MethodCall(receiver, method, Seq(x, n, _*), _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "power" =>
+          Some((receiver, x, n)).asInstanceOf[Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

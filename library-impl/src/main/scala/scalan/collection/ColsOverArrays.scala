@@ -22,7 +22,8 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def filter(p: A => Boolean) = builder.fromArray(arr.filter(p))
   def fold[B](zero: B)(op: ((B, A)) => B) = arr.foldLeft(zero)((b, a) => op((b, a)))
   def slice(from: Int, until: Int) = builder.fromArray(arr.slice(from, until))
-//  def ++(other: Col[A]) = builder.fromArray(arr ++ other.arr)
+  def sum(m: Monoid[A]) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
+  //  def ++(other: Col[A]) = builder.fromArray(arr ++ other.arr)
 }
 
 class ColOverArrayBuilder extends BaseColBuilder {
@@ -40,7 +41,8 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def filter(p: ((L, R)) => Boolean): Col[(L,R)] = new ColOverArray(arr.filter(p))
   override def fold[B](zero: B)(op: ((B, (L, R))) => B) = arr.foldLeft(zero)((b, a) => op((b,a)))
   override def slice(from: Int, until: Int) = builder(ls.slice(from, until), rs.slice(from, until))
-//  override def ++(other: Col[(L, R)]) =
+  override def sum(m: Monoid[(L, R)]) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
+  //  override def ++(other: Col[(L, R)]) =
 }
 
 class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends Col[A] {
@@ -59,6 +61,7 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
     )._1
 
   def slice(from: Int, until: Int): Col[A] = new ReplCol(value, until - from)
+  def sum(m: Monoid[A]) = m.power(value, length)
 }
 
 class ReplColBuilder extends BaseColBuilder {

@@ -746,6 +746,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object sum {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(m, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "sum" =>
+          Some((receiver, m)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[Monoid[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColOverArrayCompanionMethods {
@@ -911,6 +923,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object sum {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[Monoid[(L, R)]]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(m, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "sum" =>
+          Some((receiver, m)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[Monoid[(L, R)]]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[Monoid[(L, R)]]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object PairOfColsCompanionMethods {
@@ -1043,6 +1067,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Int], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object sum {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(m, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "sum" =>
+          Some((receiver, m)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[Monoid[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
