@@ -6,6 +6,30 @@ import scalan._
 
 class CostedTests extends BaseCtxTests {
   class Ctx extends TestContext with Library {
+    val WA = WArrayMethods
+    object IsProjectFirst {
+      def unapply[A,B](f: Rep[A => B]): Option[Rep[A=>B]] = f match {
+        case Def(Lambda(_,_,x, Def(First(p)))) if p == x => Some(f)
+        case _ => None
+      }
+    }
+    object IsProjectSecond {
+      def unapply[A,B](f: Rep[A => B]): Option[Rep[A=>B]] = f match {
+        case Def(Lambda(_,_,x, Def(Second(p)))) if p == x => Some(f)
+        case _ => None
+      }
+    }
+    override def rewriteDef[T](d: Def[T]) = d match {
+      case WA.length(WA.map(xs, _)) => xs.length
+      case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
+      case WA.map(WA.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
+        implicit val ea = f.elem.eDom
+        val xs = _xs.asRep[WArray[a]]
+        val g  = _g.asRep[b => c]
+        xs.map(fun { x: Rep[a] => g(f(x)) })
+      case _ => super.rewriteDef(d)
+    }
+
     def plus(x: Rep[Int], n: Int) = {
       Range(0, n).foldLeft(x)((y, i) => y + i)
     }
@@ -13,6 +37,7 @@ class CostedTests extends BaseCtxTests {
     val b = ColOverArrayBuilder()
 
     def byteSize[T](eT: BaseElem[T]): Int = eT match {
+      case BooleanElement => 1
       case ByteElement => 1
       case ShortElement => 2
       case IntElement => 4
@@ -25,20 +50,24 @@ class CostedTests extends BaseCtxTests {
         val l = dataCost(x.asRep[(a,b)]._1)(pe.eFst)
         val r = dataCost(x.asRep[(a,b)]._2)(pe.eSnd)
         CostedPair(l.value, r.value, l.cost + r.cost)
-      case ae: WArrayElem[a,_] =>
-        val ea = ae.eItem
-        ea match {
-          case be: BaseElem[_] =>
+      case ae: WArrayElem[_,_] =>
+        ae.eItem match {
+          case be: BaseElem[a] =>
             val values = b.fromArray(x.asRep[WArray[a]])
             val costs = ReplCol(byteSize(be).toLong, values.length)
             CostedArray(values, costs).asRep[Costed[T]]
-//          case pe: PairElem[a,b] =>
-//            val arr = x.asRep[WArray[(a,b)]]
-//            implicit val ea = arr.elem.eItem.eFst
-//            implicit val eb = arr.elem.eItem.eSnd
-//            val values = b.apply(arr.map(fun(_._1)), arr.map(fun(_._2)))
-//            val costs = ReplCol(byteSize(pe).toLong, values.length)
-//            CostedArray(values, costs).asRep[Costed[T]]
+          case pe: PairElem[a,b] =>
+            val arr = x.asRep[WArray[(a,b)]]
+            implicit val ea = arr.elem.eItem.eFst
+            implicit val eb = arr.elem.eItem.eSnd
+            val ls = dataCost[WArray[a]](arr.map(fun(_._1)))
+            val rs = dataCost[WArray[b]](arr.map(fun(_._2)))
+            CostedPairArray(ls, rs).asRep[Costed[T]]
+          case ae: WArrayElem[a,_] =>
+            implicit val ea = ae.eItem
+            val arr = b.fromArray(x.asRep[WArray[WArray[a]]])
+            val rows = arr.map(fun(r => dataCost[WArray[a]](r)))
+            CostedNestedArray(rows).asRep[Costed[T]]
         }
     }
 
@@ -130,6 +159,11 @@ class CostedTests extends BaseCtxTests {
   test("split pair arrays") {
     ctx.emit("split_pair_arrays",
       split(fun { in: Rep[(WArray[(Int, Short)], Byte)] =>
+        dataCost(in)
+      })
+    )
+    ctx.emit("split_pair_arrays2",
+      split(fun { in: Rep[(WArray[(Int, (Short, Boolean))], Byte)] =>
         dataCost(in)
       })
     )
