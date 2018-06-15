@@ -20,7 +20,7 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def exists(p: A => Boolean) = arr.exists(p)
   def forall(p: A => Boolean) = arr.forall(p)
   def filter(p: A => Boolean) = builder.fromArray(arr.filter(p))
-  def fold[B](zero: B)(op: (B, A) => B) = arr.foldLeft(zero)(op)
+  def fold[B](zero: B)(op: ((B, A)) => B) = arr.foldLeft(zero)((b, a) => op((b, a)))
   def slice(from: Int, until: Int) = builder.fromArray(arr.slice(from, until))
 //  def ++(other: Col[A]) = builder.fromArray(arr ++ other.arr)
 }
@@ -38,7 +38,7 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def exists(p: ((L, R)) => Boolean) = arr.exists(p)
   override def forall(p: ((L, R)) => Boolean) = arr.forall(p)
   override def filter(p: ((L, R)) => Boolean): Col[(L,R)] = new ColOverArray(arr.filter(p))
-  override def fold[B](zero: B)(op: (B, (L, R)) => B) = arr.foldLeft(zero)(op)
+  override def fold[B](zero: B)(op: ((B, (L, R))) => B) = arr.foldLeft(zero)((b, a) => op((b,a)))
   override def slice(from: Int, until: Int) = builder(ls.slice(from, until), rs.slice(from, until))
 //  override def ++(other: Col[(L, R)]) =
 }
@@ -52,10 +52,10 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
   def exists(p: A => Boolean): Boolean = p(value)
   def forall(p: A => Boolean): Boolean = p(value)
   def filter(p: A => Boolean): Col[A] = if (p(value)) this else new ReplCol(value, 0)
-  def fold[B](zero: B)(op: (B, A) => B): B =
+  def fold[B](zero: B)(op: ((B, A)) => B): B =
     SpecialPredef.loopUntil[(B, Int)]((zero,0),
       p => p._2 < length,
-      p => (op(p._1, value), p._2 + 1)
+      p => (op((p._1, value)), p._2 + 1)
     )._1
 
   def slice(from: Int, until: Int): Col[A] = new ReplCol(value, until - from)

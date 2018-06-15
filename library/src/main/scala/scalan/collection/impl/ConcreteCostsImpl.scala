@@ -195,8 +195,9 @@ implicit val eR = p.r.elem
     reifyObject(new CostedPairIso[L, R]()(eL, eR))
 
   case class CostedArrayCtor[Item]
-      (override val values: Rep[Col[Item]], override val costs: Rep[Col[Long]])(implicit eItem: Elem[Item])
+      (override val values: Rep[Col[Item]], override val costs: Rep[Col[Long]])
     extends CostedArray[Item](values, costs) with Def[CostedArray[Item]] {
+    implicit lazy val eItem = values.eA
     override lazy val eVal: Elem[WArray[Item]] = implicitly[Elem[WArray[Item]]]
     lazy val selfType = element[CostedArray[Item]]
   }
@@ -246,12 +247,13 @@ implicit val eR = p.r.elem
     def selfType = CostedArrayCompanionElem
     override def toString = "CostedArrayCompanion"
     @scalan.OverloadId("fromData")
-    def apply[Item](p: Rep[CostedArrayData[Item]])(implicit eItem: Elem[Item]): Rep[CostedArray[Item]] = {
+    def apply[Item](p: Rep[CostedArrayData[Item]]): Rep[CostedArray[Item]] = {
+      implicit val eItem = p._1.eA
       isoCostedArray[Item].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[Item](values: Rep[Col[Item]], costs: Rep[Col[Long]])(implicit eItem: Elem[Item]): Rep[CostedArray[Item]] =
+    def apply[Item](values: Rep[Col[Item]], costs: Rep[Col[Long]]): Rep[CostedArray[Item]] =
       mkCostedArray(values, costs)
 
     def unapply[Item](p: Rep[Costed[WArray[Item]]]) = unmkCostedArray(p)
@@ -270,8 +272,9 @@ implicit val eR = p.r.elem
   implicit def proxyCostedArray[Item](p: Rep[CostedArray[Item]]): CostedArray[Item] =
     proxyOps[CostedArray[Item]](p)
 
-  implicit class ExtendedCostedArray[Item](p: Rep[CostedArray[Item]])(implicit eItem: Elem[Item]) {
+  implicit class ExtendedCostedArray[Item](p: Rep[CostedArray[Item]]) {
     def toData: Rep[CostedArrayData[Item]] = {
+      implicit val eItem = p.values.eA
       isoCostedArray(eItem).from(p)
     }
   }
@@ -474,7 +477,7 @@ implicit val eR = p.r.elem
   }
 
   def mkCostedArray[Item]
-    (values: Rep[Col[Item]], costs: Rep[Col[Long]])(implicit eItem: Elem[Item]): Rep[CostedArray[Item]] = {
+    (values: Rep[Col[Item]], costs: Rep[Col[Long]]): Rep[CostedArray[Item]] = {
     new CostedArrayCtor[Item](values, costs)
   }
   def unmkCostedArray[Item](p: Rep[Costed[WArray[Item]]]) = p.elem.asInstanceOf[Elem[_]] match {

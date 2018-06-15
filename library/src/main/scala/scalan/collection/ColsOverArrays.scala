@@ -18,7 +18,14 @@ package scalan.collection {
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = ColOverArray.this.arr.exists(p);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = ColOverArray.this.arr.forall(p);
       def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = ColOverArray.this.builder.fromArray[A](ColOverArray.this.arr.filter(p));
-      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = ColOverArray.this.arr.foldLeft(zero, op);
+      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = {
+        implicit val eB = zero.elem
+        ColOverArray.this.arr.foldLeft(zero, fun(((in: Rep[scala.Tuple2[B, A]]) => {
+          val b: Rep[B] = in._1;
+          val a: Rep[A] = in._2;
+          op.apply(Pair(b, a))
+        })))
+      };
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ColOverArray.this.builder.fromArray[A](ColOverArray.this.arr.slice(from, until))
     };
     abstract class ColOverArrayBuilder extends BaseColBuilder;
@@ -32,7 +39,14 @@ package scalan.collection {
       override def exists(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.exists(p);
       override def forall(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.forall(p);
       override def filter(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Col[scala.Tuple2[L, R]]] = ColOverArray(PairOfCols.this.arr.filter(p));
-      override def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, scala.Tuple2[L, R]], B]]): Rep[B] = PairOfCols.this.arr.foldLeft(zero, op);
+      override def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, scala.Tuple2[L, R]], B]]): Rep[B] = {
+        implicit val eB = zero.elem
+        PairOfCols.this.arr.foldLeft(zero, fun(((in: Rep[scala.Tuple2[B, scala.Tuple2[L, R]]]) => {
+          val b: Rep[B] = in.head;
+          val a: Rep[scala.Tuple2[L, R]] = in.tail;
+          op.apply(Pair(b, a))
+        })))
+      };
       override def slice(from: Rep[Int], until: Rep[Int]): Rep[PairCol[L, R]] = PairOfCols.this.builder.apply[L, R](PairOfCols.this.ls.slice(from, until), PairOfCols.this.rs.slice(from, until))
     };
     abstract class ReplCol[A](val value: Rep[A], val length: Rep[Int]) extends Col[A] {
@@ -46,7 +60,7 @@ package scalan.collection {
       def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = IF(p.apply(ReplCol.this.value)).THEN(this).ELSE(ReplCol(ReplCol.this.value, toRep(0.asInstanceOf[Int])));
       def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = {
         implicit val eB = zero.elem
-        WSpecialPredef.loopUntil[scala.Tuple2[B, Int]](Pair(zero, toRep(0.asInstanceOf[Int])), fun(((p: Rep[scala.Tuple2[B, Int]]) => p._2.<(ReplCol.this.length))), fun(((p: Rep[scala.Tuple2[B, Int]]) => Pair(op.apply(p._1, ReplCol.this.value), p._2.+(toRep(1.asInstanceOf[Int]))))))._1
+        WSpecialPredef.loopUntil[scala.Tuple2[B, Int]](Pair(zero, toRep(0.asInstanceOf[Int])), fun(((p: Rep[scala.Tuple2[B, Int]]) => p._2.<(ReplCol.this.length))), fun(((p: Rep[scala.Tuple2[B, Int]]) => Pair(op.apply(Tuple2(p._1, ReplCol.this.value)), p._2.+(toRep(1.asInstanceOf[Int]))))))._1
       };
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ReplCol(ReplCol.this.value, until.-(from))
     };

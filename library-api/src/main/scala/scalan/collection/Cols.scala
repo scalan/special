@@ -15,7 +15,7 @@ trait Col[A] {
   def exists(p: A => Boolean): Boolean
   def forall(p: A => Boolean): Boolean
   def filter(p: A => Boolean): Col[A]
-  def fold[B](zero: B)(op: (B, A) => B): B
+  def fold[B](zero: B)(op: ((B, A)) => B): B
 
   /** Selects an interval of elements.  The returned collection is made up
     *  of all elements `x` which satisfy the invariant:

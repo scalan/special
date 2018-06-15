@@ -12,11 +12,7 @@ package scalan.collection {
     abstract class CostedArray[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Long]]) extends Costed[WArray[Item]] {
       def builder: Rep[ConcreteCostedBuilder] = ConcreteCostedBuilder();
       def value: Rep[WArray[Item]] = CostedArray.this.values.arr;
-      def cost: Rep[Long] = CostedArray.this.costs.fold[Long](toRep(0L.asInstanceOf[Long]))(fun(((in: Rep[scala.Tuple2[Long, Long]]) => {
-        val x: Rep[Long] = in._1;
-        val y: Rep[Long] = in._2;
-        x.+(y)
-      })))
+      def cost: Rep[Long] = CostedArray.this.costs.fold[Long](toRep(0L.asInstanceOf[Long]))(fun(((p: Rep[scala.Tuple2[Long, Long]]) => p._1.+(p._2))))
     };
     abstract class ConcreteCostedBuilder extends CostedBuilder;
     trait CostedPrimCompanion;
