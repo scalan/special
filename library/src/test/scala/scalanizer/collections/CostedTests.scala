@@ -26,12 +26,19 @@ class CostedTests extends BaseCtxTests {
         val r = dataCost(x.asRep[(a,b)]._2)(pe.eSnd)
         CostedPair(l.value, r.value, l.cost + r.cost)
       case ae: WArrayElem[a,_] =>
-        implicit val ea = ae.eItem
+        val ea = ae.eItem
         ea match {
           case be: BaseElem[_] =>
             val values = b.fromArray(x.asRep[WArray[a]])
             val costs = ReplCol(byteSize(be).toLong, values.length)
             CostedArray(values, costs).asRep[Costed[T]]
+//          case pe: PairElem[a,b] =>
+//            val arr = x.asRep[WArray[(a,b)]]
+//            implicit val ea = arr.elem.eItem.eFst
+//            implicit val eb = arr.elem.eItem.eSnd
+//            val values = b.apply(arr.map(fun(_._1)), arr.map(fun(_._2)))
+//            val costs = ReplCol(byteSize(pe).toLong, values.length)
+//            CostedArray(values, costs).asRep[Costed[T]]
         }
     }
 
@@ -101,7 +108,38 @@ class CostedTests extends BaseCtxTests {
 
   test("split arrays") {
     ctx.emit("split_arrays",
-      split(fun { x: Rep[WArray[Int]] => dataCost(Pair(x, 20.toByte)) })
+      split(fun { in: Rep[(WArray[Int], Byte)] =>
+        dataCost(in)
+      })
+    )
+  }
+
+  test("measure: split arrays") {
+    buildGraph(10, "measure_split_arrays") { i =>
+      var res: Rep[Any] = null
+      for (k <- 1 to 1000) {
+        res = split(fun { in: Rep[(WArray[Int], Byte)] =>
+          val Pair(x, b) = in
+          dataCost(Pair(x, b + i.toByte))
+        })
+      }
+      res
+    }
+  }
+
+  test("split pair arrays") {
+    ctx.emit("split_pair_arrays",
+      split(fun { in: Rep[(WArray[(Int, Short)], Byte)] =>
+        dataCost(in)
+      })
+    )
+  }
+
+  test("split nested arrays") {
+    ctx.emit("split_nested_arrays",
+      split(fun { in: Rep[(WArray[WArray[Int]], Byte)] =>
+        dataCost(in)
+      })
     )
   }
 

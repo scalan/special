@@ -488,8 +488,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
               List(cont1 -> param)
             case _ => Nil
           }
-        case _ =>
-          !!!(s"Don't know how extractParts: unrecognized $classSymbol ")
       }.toList
       res
   }

@@ -48,7 +48,10 @@ abstract class ScalanizerPluginConfig extends ScalanizerConfig {
     NonWrapper(name = "<byname>"),
     NonWrapper(name = "ArrayOps"),
     NonWrapper(name = "WrappedArray"),
-    NonWrapper(name = "CanBuildFrom")
+    NonWrapper(name = "CanBuildFrom"),
+    NonWrapper(name = "Class"),
+    NonWrapper(name = "ScalaRunTime"),
+    NonWrapper(name = "ClassTag")
   ).map(w => (w.name, w)).toMap
 
   val pluginConfigs: Seq[PluginConfig] = Nil
