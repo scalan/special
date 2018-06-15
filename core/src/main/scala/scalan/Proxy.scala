@@ -469,8 +469,11 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     case _ if classSymbol.isClass =>
       val declarations = classSymbol.asClass.selfType.decls
       val res = declarations.flatMap {
-        case member if member.isMethod =>
-          val memberTpe = member.asMethod.returnType.dealias
+        case member =>
+          val memberTpe = if (member.isMethod)
+              member.asMethod.returnType.dealias
+            else
+              member.asTerm.typeSignature.dealias
           memberTpe match {
             // member returning Elem, such as eItem
             case TypeRef(_, ElementSym, params) =>
@@ -485,6 +488,8 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
               List(cont1 -> param)
             case _ => Nil
           }
+        case _ =>
+          !!!(s"Don't know how extractParts: unrecognized $classSymbol ")
       }.toList
       res
   }
