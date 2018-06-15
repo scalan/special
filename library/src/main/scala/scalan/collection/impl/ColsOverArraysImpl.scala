@@ -9,6 +9,106 @@ package impl {
 trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   self: Library =>
 
+  // entityProxy: single proxy for each type family
+  implicit def proxyBaseColBuilder(p: Rep[BaseColBuilder]): BaseColBuilder = {
+    proxyOps[BaseColBuilder](p)(scala.reflect.classTag[BaseColBuilder])
+  }
+
+  // familyElem
+  class BaseColBuilderElem[To <: BaseColBuilder]
+    extends ColBuilderElem[To] {
+    override lazy val parent: Option[Elem[_]] = Some(colBuilderElement)
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override lazy val tag = {
+      weakTypeTag[BaseColBuilder].asInstanceOf[WeakTypeTag[To]]
+    }
+    override def convert(x: Rep[Def[_]]) = {
+      val conv = fun {x: Rep[BaseColBuilder] => convertBaseColBuilder(x) }
+      tryConvert(element[BaseColBuilder], this, x, conv)
+    }
+
+    def convertBaseColBuilder(x: Rep[BaseColBuilder]): Rep[To] = {
+      x.elem match {
+        case _: BaseColBuilderElem[_] => x.asRep[To]
+        case e => !!!(s"Expected $x to have BaseColBuilderElem[_], but got $e", x)
+      }
+    }
+    override def getDefaultRep: Rep[To] = ???
+  }
+
+  implicit def baseColBuilderElement: Elem[BaseColBuilder] =
+    cachedElem[BaseColBuilderElem[BaseColBuilder]]()
+
+  implicit case object BaseColBuilderCompanionElem extends CompanionElem[BaseColBuilderCompanionCtor] {
+    lazy val tag = weakTypeTag[BaseColBuilderCompanionCtor]
+    protected def getDefaultRep = BaseColBuilder
+  }
+
+  abstract class BaseColBuilderCompanionCtor extends CompanionDef[BaseColBuilderCompanionCtor] with BaseColBuilderCompanion {
+    def selfType = BaseColBuilderCompanionElem
+    override def toString = "BaseColBuilder"
+  }
+  implicit def proxyBaseColBuilderCompanionCtor(p: Rep[BaseColBuilderCompanionCtor]): BaseColBuilderCompanionCtor =
+    proxyOps[BaseColBuilderCompanionCtor](p)
+
+  lazy val BaseColBuilder: Rep[BaseColBuilderCompanionCtor] = new BaseColBuilderCompanionCtor {
+  }
+
+  object BaseColBuilderMethods {
+    object apply_apply {
+      def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(as, bs, _*), _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply" } =>
+          Some((receiver, as, bs)).asInstanceOf[Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    // WARNING: Cannot generate matcher for method `apply`: Method has repeated argument items
+
+    object fromArray {
+      def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "fromArray" =>
+          Some((receiver, arr)).asInstanceOf[Option[(Rep[BaseColBuilder], Rep[WArray[T]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[BaseColBuilder], Rep[WArray[T]]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object replicate {
+      def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(n, v, _*), _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "replicate" =>
+          Some((receiver, n, v)).asInstanceOf[Option[(Rep[BaseColBuilder], Rep[Int], Rep[T]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[BaseColBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object dot {
+      def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(xs, ys, _*), _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "dot" =>
+          Some((receiver, xs, ys)).asInstanceOf[Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object BaseColBuilderCompanionMethods {
+  }
+
   case class ColOverArrayCtor[A]
       (override val arr: Rep[WArray[A]])
     extends ColOverArray[A](arr) with Def[ColOverArray[A]] {
@@ -91,6 +191,88 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   // 5) implicit resolution of Iso
   implicit def isoColOverArray[A](implicit eA: Elem[A]): Iso[ColOverArrayData[A], ColOverArray[A]] =
     reifyObject(new ColOverArrayIso[A]()(eA))
+
+  case class ColOverArrayBuilderCtor
+      ()
+    extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
+    lazy val selfType = element[ColOverArrayBuilder]
+  }
+  // elem for concrete class
+  class ColOverArrayBuilderElem(val iso: Iso[ColOverArrayBuilderData, ColOverArrayBuilder])
+    extends BaseColBuilderElem[ColOverArrayBuilder]
+    with ConcreteElem[ColOverArrayBuilderData, ColOverArrayBuilder] {
+    override lazy val parent: Option[Elem[_]] = Some(baseColBuilderElement)
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertBaseColBuilder(x: Rep[BaseColBuilder]) = ColOverArrayBuilder()
+    override def getDefaultRep = ColOverArrayBuilder()
+    override lazy val tag = {
+      weakTypeTag[ColOverArrayBuilder]
+    }
+  }
+
+  // state representation type
+  type ColOverArrayBuilderData = Unit
+
+  // 3) Iso for concrete class
+  class ColOverArrayBuilderIso
+    extends EntityIso[ColOverArrayBuilderData, ColOverArrayBuilder] with Def[ColOverArrayBuilderIso] {
+    override def from(p: Rep[ColOverArrayBuilder]) =
+      ()
+    override def to(p: Rep[Unit]) = {
+      val unit = p
+      ColOverArrayBuilder()
+    }
+    lazy val eFrom = UnitElement
+    lazy val eTo = new ColOverArrayBuilderElem(self)
+    lazy val selfType = new ColOverArrayBuilderIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class ColOverArrayBuilderIsoElem() extends Elem[ColOverArrayBuilderIso] {
+    def getDefaultRep = reifyObject(new ColOverArrayBuilderIso())
+    lazy val tag = {
+      weakTypeTag[ColOverArrayBuilderIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class ColOverArrayBuilderCompanionCtor extends CompanionDef[ColOverArrayBuilderCompanionCtor] with ColOverArrayBuilderCompanion {
+    def selfType = ColOverArrayBuilderCompanionElem
+    override def toString = "ColOverArrayBuilderCompanion"
+    @scalan.OverloadId("fromData")
+    def apply(p: Rep[ColOverArrayBuilderData]): Rep[ColOverArrayBuilder] = {
+      isoColOverArrayBuilder.to(p)
+    }
+
+    @scalan.OverloadId("fromFields")
+    def apply(): Rep[ColOverArrayBuilder] =
+      mkColOverArrayBuilder()
+
+    def unapply(p: Rep[BaseColBuilder]) = unmkColOverArrayBuilder(p)
+  }
+  lazy val ColOverArrayBuilderRep: Rep[ColOverArrayBuilderCompanionCtor] = new ColOverArrayBuilderCompanionCtor
+  lazy val ColOverArrayBuilder: ColOverArrayBuilderCompanionCtor = proxyColOverArrayBuilderCompanion(ColOverArrayBuilderRep)
+  implicit def proxyColOverArrayBuilderCompanion(p: Rep[ColOverArrayBuilderCompanionCtor]): ColOverArrayBuilderCompanionCtor = {
+    proxyOps[ColOverArrayBuilderCompanionCtor](p)
+  }
+
+  implicit case object ColOverArrayBuilderCompanionElem extends CompanionElem[ColOverArrayBuilderCompanionCtor] {
+    lazy val tag = weakTypeTag[ColOverArrayBuilderCompanionCtor]
+    protected def getDefaultRep = ColOverArrayBuilderRep
+  }
+
+  implicit def proxyColOverArrayBuilder(p: Rep[ColOverArrayBuilder]): ColOverArrayBuilder =
+    proxyOps[ColOverArrayBuilder](p)
+
+  implicit class ExtendedColOverArrayBuilder(p: Rep[ColOverArrayBuilder]) {
+    def toData: Rep[ColOverArrayBuilderData] = {
+      isoColOverArrayBuilder.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoColOverArrayBuilder: Iso[ColOverArrayBuilderData, ColOverArrayBuilder] =
+    reifyObject(new ColOverArrayBuilderIso())
 
   case class PairOfColsCtor[L, R]
       (override val ls: Rep[Col[L]], override val rs: Rep[Col[R]])
@@ -188,87 +370,176 @@ implicit val eR = p.rs.eA
   implicit def isoPairOfCols[L, R](implicit eL: Elem[L], eR: Elem[R]): Iso[PairOfColsData[L, R], PairOfCols[L, R]] =
     reifyObject(new PairOfColsIso[L, R]()(eL, eR))
 
-  case class ColOverArrayBuilderCtor
-      ()
-    extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
-    lazy val selfType = element[ColOverArrayBuilder]
+  case class ReplColCtor[A]
+      (override val value: Rep[A], override val length: Rep[Int])
+    extends ReplCol[A](value, length) with Def[ReplCol[A]] {
+    implicit lazy val eA = value.elem
+
+    lazy val selfType = element[ReplCol[A]]
   }
   // elem for concrete class
-  class ColOverArrayBuilderElem(val iso: Iso[ColOverArrayBuilderData, ColOverArrayBuilder])
-    extends ColBuilderElem[ColOverArrayBuilder]
-    with ConcreteElem[ColOverArrayBuilderData, ColOverArrayBuilder] {
-    override lazy val parent: Option[Elem[_]] = Some(colBuilderElement)
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertColBuilder(x: Rep[ColBuilder]) = ColOverArrayBuilder()
-    override def getDefaultRep = ColOverArrayBuilder()
+  class ReplColElem[A](val iso: Iso[ReplColData[A], ReplCol[A]])(implicit override val eA: Elem[A])
+    extends ColElem[A, ReplCol[A]]
+    with ConcreteElem[ReplColData[A], ReplCol[A]] {
+    override lazy val parent: Option[Elem[_]] = Some(colElement(element[A]))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
+    override def convertCol(x: Rep[Col[A]]) = // Converter is not generated by meta
+!!!("Cannot convert from Col to ReplCol: missing fields List(value)")
+    override def getDefaultRep = ReplCol(element[A].defaultRepValue, 0)
     override lazy val tag = {
-      weakTypeTag[ColOverArrayBuilder]
+      implicit val tagA = eA.tag
+      weakTypeTag[ReplCol[A]]
     }
   }
 
   // state representation type
-  type ColOverArrayBuilderData = Unit
+  type ReplColData[A] = (A, Int)
 
   // 3) Iso for concrete class
-  class ColOverArrayBuilderIso
-    extends EntityIso[ColOverArrayBuilderData, ColOverArrayBuilder] with Def[ColOverArrayBuilderIso] {
-    override def from(p: Rep[ColOverArrayBuilder]) =
-      ()
-    override def to(p: Rep[Unit]) = {
-      val unit = p
-      ColOverArrayBuilder()
+  class ReplColIso[A](implicit eA: Elem[A])
+    extends EntityIso[ReplColData[A], ReplCol[A]] with Def[ReplColIso[A]] {
+    override def from(p: Rep[ReplCol[A]]) =
+      (p.value, p.length)
+    override def to(p: Rep[(A, Int)]) = {
+      val Pair(value, length) = p
+      ReplCol(value, length)
     }
-    lazy val eFrom = UnitElement
-    lazy val eTo = new ColOverArrayBuilderElem(self)
-    lazy val selfType = new ColOverArrayBuilderIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+    lazy val eFrom = pairElement(element[A], element[Int])
+    lazy val eTo = new ReplColElem[A](self)
+    lazy val selfType = new ReplColIsoElem[A](eA)
+    def productArity = 1
+    def productElement(n: Int) = eA
   }
-  case class ColOverArrayBuilderIsoElem() extends Elem[ColOverArrayBuilderIso] {
-    def getDefaultRep = reifyObject(new ColOverArrayBuilderIso())
+  case class ReplColIsoElem[A](eA: Elem[A]) extends Elem[ReplColIso[A]] {
+    def getDefaultRep = reifyObject(new ReplColIso[A]()(eA))
     lazy val tag = {
-      weakTypeTag[ColOverArrayBuilderIso]
+      implicit val tagA = eA.tag
+      weakTypeTag[ReplColIso[A]]
     }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
-  class ColOverArrayBuilderCompanionCtor extends CompanionDef[ColOverArrayBuilderCompanionCtor] with ColOverArrayBuilderCompanion {
-    def selfType = ColOverArrayBuilderCompanionElem
-    override def toString = "ColOverArrayBuilderCompanion"
+  class ReplColCompanionCtor extends CompanionDef[ReplColCompanionCtor] with ReplColCompanion {
+    def selfType = ReplColCompanionElem
+    override def toString = "ReplColCompanion"
     @scalan.OverloadId("fromData")
-    def apply(p: Rep[ColOverArrayBuilderData]): Rep[ColOverArrayBuilder] = {
-      isoColOverArrayBuilder.to(p)
+    def apply[A](p: Rep[ReplColData[A]]): Rep[ReplCol[A]] = {
+      implicit val eA = p._1.elem
+      isoReplCol[A].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply(): Rep[ColOverArrayBuilder] =
-      mkColOverArrayBuilder()
+    def apply[A](value: Rep[A], length: Rep[Int]): Rep[ReplCol[A]] =
+      mkReplCol(value, length)
 
-    def unapply(p: Rep[ColBuilder]) = unmkColOverArrayBuilder(p)
+    def unapply[A](p: Rep[Col[A]]) = unmkReplCol(p)
   }
-  lazy val ColOverArrayBuilderRep: Rep[ColOverArrayBuilderCompanionCtor] = new ColOverArrayBuilderCompanionCtor
-  lazy val ColOverArrayBuilder: ColOverArrayBuilderCompanionCtor = proxyColOverArrayBuilderCompanion(ColOverArrayBuilderRep)
-  implicit def proxyColOverArrayBuilderCompanion(p: Rep[ColOverArrayBuilderCompanionCtor]): ColOverArrayBuilderCompanionCtor = {
-    proxyOps[ColOverArrayBuilderCompanionCtor](p)
-  }
-
-  implicit case object ColOverArrayBuilderCompanionElem extends CompanionElem[ColOverArrayBuilderCompanionCtor] {
-    lazy val tag = weakTypeTag[ColOverArrayBuilderCompanionCtor]
-    protected def getDefaultRep = ColOverArrayBuilderRep
+  lazy val ReplColRep: Rep[ReplColCompanionCtor] = new ReplColCompanionCtor
+  lazy val ReplCol: ReplColCompanionCtor = proxyReplColCompanion(ReplColRep)
+  implicit def proxyReplColCompanion(p: Rep[ReplColCompanionCtor]): ReplColCompanionCtor = {
+    proxyOps[ReplColCompanionCtor](p)
   }
 
-  implicit def proxyColOverArrayBuilder(p: Rep[ColOverArrayBuilder]): ColOverArrayBuilder =
-    proxyOps[ColOverArrayBuilder](p)
+  implicit case object ReplColCompanionElem extends CompanionElem[ReplColCompanionCtor] {
+    lazy val tag = weakTypeTag[ReplColCompanionCtor]
+    protected def getDefaultRep = ReplColRep
+  }
 
-  implicit class ExtendedColOverArrayBuilder(p: Rep[ColOverArrayBuilder]) {
-    def toData: Rep[ColOverArrayBuilderData] = {
-      isoColOverArrayBuilder.from(p)
+  implicit def proxyReplCol[A](p: Rep[ReplCol[A]]): ReplCol[A] =
+    proxyOps[ReplCol[A]](p)
+
+  implicit class ExtendedReplCol[A](p: Rep[ReplCol[A]]) {
+    def toData: Rep[ReplColData[A]] = {
+      implicit val eA = p.value.elem
+      isoReplCol(eA).from(p)
     }
   }
 
   // 5) implicit resolution of Iso
-  implicit def isoColOverArrayBuilder: Iso[ColOverArrayBuilderData, ColOverArrayBuilder] =
-    reifyObject(new ColOverArrayBuilderIso())
+  implicit def isoReplCol[A](implicit eA: Elem[A]): Iso[ReplColData[A], ReplCol[A]] =
+    reifyObject(new ReplColIso[A]()(eA))
+
+  case class ReplColBuilderCtor
+      ()
+    extends ReplColBuilder() with Def[ReplColBuilder] {
+    lazy val selfType = element[ReplColBuilder]
+  }
+  // elem for concrete class
+  class ReplColBuilderElem(val iso: Iso[ReplColBuilderData, ReplColBuilder])
+    extends BaseColBuilderElem[ReplColBuilder]
+    with ConcreteElem[ReplColBuilderData, ReplColBuilder] {
+    override lazy val parent: Option[Elem[_]] = Some(baseColBuilderElement)
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertBaseColBuilder(x: Rep[BaseColBuilder]) = ReplColBuilder()
+    override def getDefaultRep = ReplColBuilder()
+    override lazy val tag = {
+      weakTypeTag[ReplColBuilder]
+    }
+  }
+
+  // state representation type
+  type ReplColBuilderData = Unit
+
+  // 3) Iso for concrete class
+  class ReplColBuilderIso
+    extends EntityIso[ReplColBuilderData, ReplColBuilder] with Def[ReplColBuilderIso] {
+    override def from(p: Rep[ReplColBuilder]) =
+      ()
+    override def to(p: Rep[Unit]) = {
+      val unit = p
+      ReplColBuilder()
+    }
+    lazy val eFrom = UnitElement
+    lazy val eTo = new ReplColBuilderElem(self)
+    lazy val selfType = new ReplColBuilderIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class ReplColBuilderIsoElem() extends Elem[ReplColBuilderIso] {
+    def getDefaultRep = reifyObject(new ReplColBuilderIso())
+    lazy val tag = {
+      weakTypeTag[ReplColBuilderIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class ReplColBuilderCompanionCtor extends CompanionDef[ReplColBuilderCompanionCtor] with ReplColBuilderCompanion {
+    def selfType = ReplColBuilderCompanionElem
+    override def toString = "ReplColBuilderCompanion"
+    @scalan.OverloadId("fromData")
+    def apply(p: Rep[ReplColBuilderData]): Rep[ReplColBuilder] = {
+      isoReplColBuilder.to(p)
+    }
+
+    @scalan.OverloadId("fromFields")
+    def apply(): Rep[ReplColBuilder] =
+      mkReplColBuilder()
+
+    def unapply(p: Rep[BaseColBuilder]) = unmkReplColBuilder(p)
+  }
+  lazy val ReplColBuilderRep: Rep[ReplColBuilderCompanionCtor] = new ReplColBuilderCompanionCtor
+  lazy val ReplColBuilder: ReplColBuilderCompanionCtor = proxyReplColBuilderCompanion(ReplColBuilderRep)
+  implicit def proxyReplColBuilderCompanion(p: Rep[ReplColBuilderCompanionCtor]): ReplColBuilderCompanionCtor = {
+    proxyOps[ReplColBuilderCompanionCtor](p)
+  }
+
+  implicit case object ReplColBuilderCompanionElem extends CompanionElem[ReplColBuilderCompanionCtor] {
+    lazy val tag = weakTypeTag[ReplColBuilderCompanionCtor]
+    protected def getDefaultRep = ReplColBuilderRep
+  }
+
+  implicit def proxyReplColBuilder(p: Rep[ReplColBuilder]): ReplColBuilder =
+    proxyOps[ReplColBuilder](p)
+
+  implicit class ExtendedReplColBuilder(p: Rep[ReplColBuilder]) {
+    def toData: Rep[ReplColBuilderData] = {
+      isoReplColBuilder.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoReplColBuilder: Iso[ReplColBuilderData, ReplColBuilder] =
+    reifyObject(new ReplColBuilderIso())
 
   case class ArrayFunctorCtor
       ()
@@ -491,6 +762,23 @@ implicit val eR = p.rs.eA
       None
   }
 
+  object ColOverArrayBuilderMethods {
+  }
+
+  object ColOverArrayBuilderCompanionMethods {
+  }
+
+  def mkColOverArrayBuilder
+    (): Rep[ColOverArrayBuilder] = {
+    new ColOverArrayBuilderCtor()
+  }
+  def unmkColOverArrayBuilder(p: Rep[BaseColBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: ColOverArrayBuilderElem @unchecked =>
+      Some(())
+    case _ =>
+      None
+  }
+
   object PairOfColsMethods {
     object builder {
       def unapply(d: Def[_]): Option[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
@@ -639,67 +927,154 @@ implicit val eR = p.rs.eA
       None
   }
 
-  object ColOverArrayBuilderMethods {
-    object apply_apply {
-      def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(as, bs, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply" } =>
-          Some((receiver, as, bs)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
+  object ReplColMethods {
+    object builder {
+      def unapply(d: Def[_]): Option[Rep[ReplCol[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "builder" =>
+          Some(receiver).asInstanceOf[Option[Rep[ReplCol[A]] forSome {type A}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Option[Rep[ReplCol[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
-    // WARNING: Cannot generate matcher for method `apply`: Method has repeated argument items
-
-    object fromArray {
-      def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "fromArray" =>
-          Some((receiver, arr)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}]]
+    object arr {
+      def unapply(d: Def[_]): Option[Rep[ReplCol[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "arr" =>
+          Some(receiver).asInstanceOf[Option[Rep[ReplCol[A]] forSome {type A}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[Rep[ReplCol[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
-    object replicate {
-      def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(n, v, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "replicate" =>
-          Some((receiver, n, v)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}]]
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(i, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "apply" =>
+          Some((receiver, i)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[Int]) forSome {type A}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Int]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
-    object dot {
-      def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, ys, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "dot" =>
-          Some((receiver, xs, ys)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}]]
+    object map {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "map" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[A => B]) forSome {type A; type B}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object foreach {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[A => Unit]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "foreach" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[A => Unit]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[A => Unit]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object exists {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "exists" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object forall {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "forall" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object filter {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "filter" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object fold {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(zero, op, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "fold" =>
+          Some((receiver, zero, op)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object slice {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[Int], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(from, until, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "slice" =>
+          Some((receiver, from, until)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[Int], Rep[Int]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Int], Rep[Int]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
   }
 
-  object ColOverArrayBuilderCompanionMethods {
+  object ReplColCompanionMethods {
   }
 
-  def mkColOverArrayBuilder
-    (): Rep[ColOverArrayBuilder] = {
-    new ColOverArrayBuilderCtor()
+  def mkReplCol[A]
+    (value: Rep[A], length: Rep[Int]): Rep[ReplCol[A]] = {
+    new ReplColCtor[A](value, length)
   }
-  def unmkColOverArrayBuilder(p: Rep[ColBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: ColOverArrayBuilderElem @unchecked =>
+  def unmkReplCol[A](p: Rep[Col[A]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: ReplColElem[A] @unchecked =>
+      Some((p.asRep[ReplCol[A]].value, p.asRep[ReplCol[A]].length))
+    case _ =>
+      None
+  }
+
+  object ReplColBuilderMethods {
+  }
+
+  object ReplColBuilderCompanionMethods {
+  }
+
+  def mkReplColBuilder
+    (): Rep[ReplColBuilder] = {
+    new ReplColBuilderCtor()
+  }
+  def unmkReplColBuilder(p: Rep[BaseColBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: ReplColBuilderElem @unchecked =>
       Some(())
     case _ =>
       None

@@ -2,6 +2,13 @@ package scalan.collection {
   import scalan._
 
   trait ColsOverArrays extends Base { self: ColsOverArraysModule =>
+    trait BaseColBuilder extends ColBuilder {
+      @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
+      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = Predef.???;
+      def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr);
+      def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = this.fromArray[T](WArray.fill[T](n, Thunk(v)));
+      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = Predef.???
+    };
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColOverArrayBuilder] = ColOverArrayBuilder();
       def length: Rep[Int] = ColOverArray.this.arr.length;
@@ -14,6 +21,7 @@ package scalan.collection {
       def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = ColOverArray.this.arr.foldLeft(zero, op);
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ColOverArray.this.builder.fromArray[A](ColOverArray.this.arr.slice(from, until))
     };
+    abstract class ColOverArrayBuilder extends BaseColBuilder;
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       override def builder: Rep[ColBuilder] = ColOverArrayBuilder();
       override def arr: Rep[WArray[scala.Tuple2[L, R]]] = PairOfCols.this.ls.arr.zip(PairOfCols.this.rs.arr);
@@ -27,19 +35,28 @@ package scalan.collection {
       override def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, scala.Tuple2[L, R]], B]]): Rep[B] = PairOfCols.this.arr.foldLeft(zero, op);
       override def slice(from: Rep[Int], until: Rep[Int]): Rep[PairCol[L, R]] = PairOfCols.this.builder.apply[L, R](PairOfCols.this.ls.slice(from, until), PairOfCols.this.rs.slice(from, until))
     };
-    abstract class ColOverArrayBuilder extends ColBuilder {
-      @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
-      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = Predef.???;
-      def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr);
-      def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = ColOverArrayBuilder.this.fromArray[T](WArray.fill[T](n, Thunk(v)));
-      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = Predef.???
+    abstract class ReplCol[A](val value: Rep[A], val length: Rep[Int]) extends Col[A] {
+      def builder: Rep[ColBuilder] = ReplColBuilder();
+      def arr: Rep[WArray[A]] = ReplCol.this.builder.replicate[A](ReplCol.this.length, ReplCol.this.value).arr;
+      def apply(i: Rep[Int]): Rep[A] = ReplCol.this.value;
+      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ReplCol(f.apply(ReplCol.this.value), ReplCol.this.length);
+      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = Predef.???;
+      def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
+      def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
+      def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = IF(p.apply(ReplCol.this.value)).THEN(this).ELSE(ReplCol(ReplCol.this.value, toRep(0.asInstanceOf[Int])));
+      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = Predef.???;
+      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ReplCol(ReplCol.this.value, until.-(from))
     };
+    abstract class ReplColBuilder extends BaseColBuilder;
     abstract class ArrayFunctor extends Functor[WArray] {
       override def map[A, B](fa: Rep[WArray[A]])(f: Rep[scala.Function1[A, B]]): Rep[WArray[B]] = fa.map(f)
     };
+    trait BaseColBuilderCompanion;
     trait ColOverArrayCompanion;
-    trait PairOfColsCompanion;
     trait ColOverArrayBuilderCompanion;
+    trait PairOfColsCompanion;
+    trait ReplColCompanion;
+    trait ReplColBuilderCompanion;
     trait ArrayFunctorCompanion
   }
 }

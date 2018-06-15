@@ -3,6 +3,14 @@ package scalan.collection
 import scala.reflect.ClassTag
 import scalan.OverloadId
 
+trait BaseColBuilder extends ColBuilder {
+  @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
+  @OverloadId("apply_items") def apply[T](items: T*): Col[T] = ???
+  def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
+  def replicate[T:ClassTag](n: Int, v: T) = this.fromArray(Array.fill(n)(v))
+  def dot[A](xs: Col[A], ys: Col[A]): A = ???
+}
+
 class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def builder = new ColOverArrayBuilder
   def length = arr.length
@@ -15,6 +23,9 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def fold[B](zero: B)(op: (B, A) => B) = arr.foldLeft(zero)(op)
   def slice(from: Int, until: Int) = builder.fromArray(arr.slice(from, until))
 //  def ++(other: Col[A]) = builder.fromArray(arr ++ other.arr)
+}
+
+class ColOverArrayBuilder extends BaseColBuilder {
 }
 
 class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
@@ -32,12 +43,20 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
 //  override def ++(other: Col[(L, R)]) =
 }
 
-class ColOverArrayBuilder extends ColBuilder {
-  @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
-  @OverloadId("apply_items") def apply[T](items: T*): Col[T] = ???
-  def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
-  def replicate[T:ClassTag](n: Int, v: T) = fromArray(Array.fill(n)(v))
-  def dot[A](xs: Col[A], ys: Col[A]): A = ???
+class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends Col[A] {
+  def builder: ColBuilder = new ReplColBuilder
+  def arr: Array[A] = builder.replicate(length, value).arr
+  def apply(i: Int): A = value
+  def map[B: ClassTag](f: A => B): Col[B] = new ReplCol(f(value), length)
+  def foreach(f: A => Unit): Unit = ???
+  def exists(p: A => Boolean): Boolean = p(value)
+  def forall(p: A => Boolean): Boolean = p(value)
+  def filter(p: A => Boolean): Col[A] = if (p(value)) this else new ReplCol(value, 0)
+  def fold[B](zero: B)(op: (B, A) => B): B = ???
+  def slice(from: Int, until: Int): Col[A] = new ReplCol(value, until - from)
+}
+
+class ReplColBuilder extends BaseColBuilder {
 }
 
 class ArrayFunctor extends Functor[Array] {

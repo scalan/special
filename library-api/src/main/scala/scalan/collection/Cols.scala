@@ -16,6 +16,15 @@ trait Col[A] {
   def forall(p: A => Boolean): Boolean
   def filter(p: A => Boolean): Col[A]
   def fold[B](zero: B)(op: (B, A) => B): B
+
+  /** Selects an interval of elements.  The returned collection is made up
+    *  of all elements `x` which satisfy the invariant:
+    *  {{{
+    *    from <= indexOf(x) < until
+    *  }}}
+    *  @param from   the lowest index to include from this $coll.
+    *  @param until  the lowest index to EXCLUDE from this $coll.
+    */
   def slice(from: Int, until: Int): Col[A]
 //  def ++(other: Col[A]): Col[A]
 }
