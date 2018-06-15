@@ -16,10 +16,10 @@ class CostedPair[L,R](val l: L, val r: R, val cost: Long) extends Costed[(L,R)] 
 //  def cost = either.fold(l => l, r => r.cost)
 //}
 
-class CostedArray[Item: ClassTag](val arr: Col[Costed[Item]]) extends Costed[Array[Item]] {
+class CostedArray[Item: ClassTag](val values: Col[Item], val costs: Col[Long]) extends Costed[Array[Item]] {
   def builder = new ConcreteCostedBuilder
-  def value: Array[Item] = arr.map(c => c.value).arr
-  def cost: Long = arr.map(c => c.cost).fold(0L)((x,y) => x + y)
+  def value: Array[Item] = values.arr
+  def cost: Long = costs.fold(0L)((x,y) => x + y)
 }
 
 class ConcreteCostedBuilder extends CostedBuilder {

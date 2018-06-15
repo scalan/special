@@ -1,7 +1,7 @@
 package scalan.collection
 
 import scala.reflect.ClassTag
-import scalan.OverloadId
+import scalan.{OverloadId, SpecialPredef}
 
 trait BaseColBuilder extends ColBuilder {
   @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
@@ -52,7 +52,12 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
   def exists(p: A => Boolean): Boolean = p(value)
   def forall(p: A => Boolean): Boolean = p(value)
   def filter(p: A => Boolean): Col[A] = if (p(value)) this else new ReplCol(value, 0)
-  def fold[B](zero: B)(op: (B, A) => B): B = ???
+  def fold[B](zero: B)(op: (B, A) => B): B =
+    SpecialPredef.loopUntil[(B, Int)]((zero,0),
+      p => p._2 < length,
+      p => (op(p._1, value), p._2 + 1)
+    )._1
+
   def slice(from: Int, until: Int): Col[A] = new ReplCol(value, until - from)
 }
 

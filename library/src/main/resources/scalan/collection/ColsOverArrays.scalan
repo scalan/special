@@ -44,7 +44,7 @@ package scalan.collection {
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
       def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = IF(p.apply(ReplCol.this.value)).THEN(this).ELSE(ReplCol(ReplCol.this.value, toRep(0.asInstanceOf[Int])));
-      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = Predef.???;
+      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = WSpecialPredef.loopUntil[scala.Tuple2[B, Int]](Pair(zero, toRep(0.asInstanceOf[Int])), fun(((p: Rep[scala.Tuple2[B, Int]]) => p._2.<(ReplCol.this.length))), fun(((p: Rep[scala.Tuple2[B, Int]]) => Pair(op.apply(p._1, ReplCol.this.value), p._2.+(toRep(1.asInstanceOf[Int]))))))._1;
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ReplCol(ReplCol.this.value, until.-(from))
     };
     abstract class ReplColBuilder extends BaseColBuilder;

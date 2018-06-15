@@ -9,11 +9,10 @@ package scalan.collection {
       def builder: Rep[ConcreteCostedBuilder] = ConcreteCostedBuilder();
       def value: Rep[scala.Tuple2[L, R]] = Pair(CostedPair.this.l, CostedPair.this.r)
     };
-    abstract class CostedArray[Item](val arr: Rep[Col[Costed[Item]]]) extends Costed[WArray[Item]] {
-      implicit def eItem: Elem[Item] = eVal.eItem
+    abstract class CostedArray[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Long]]) extends Costed[WArray[Item]] {
       def builder: Rep[ConcreteCostedBuilder] = ConcreteCostedBuilder();
-      def value: Rep[WArray[Item]] = CostedArray.this.arr.map[Item](fun(((c: Rep[Costed[Item]]) => c.value))).arr;
-      def cost: Rep[Long] = CostedArray.this.arr.map[Long](fun(((c: Rep[Costed[Item]]) => c.cost))).fold[Long](toRep(0L.asInstanceOf[Long]))(fun(((in: Rep[scala.Tuple2[Long, Long]]) => {
+      def value: Rep[WArray[Item]] = CostedArray.this.values.arr;
+      def cost: Rep[Long] = CostedArray.this.costs.fold[Long](toRep(0L.asInstanceOf[Long]))(fun(((in: Rep[scala.Tuple2[Long, Long]]) => {
         val x: Rep[Long] = in._1;
         val y: Rep[Long] = in._2;
         x.+(y)

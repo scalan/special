@@ -37,6 +37,9 @@ abstract class ScalanizerPluginConfig extends ScalanizerConfig {
     WrapperConfig(
       name = "Array",
       annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
+    ),
+    WrapperConfig(
+      name = "SpecialPredef"
     )
   ).map(w => (w.name, w)).toMap
 

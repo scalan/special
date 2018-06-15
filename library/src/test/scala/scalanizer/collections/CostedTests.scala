@@ -12,20 +12,27 @@ class CostedTests extends BaseCtxTests {
 
     val b = ColOverArrayBuilder()
 
+    def byteSize[T](eT: BaseElem[T]): Int = eT match {
+      case ByteElement => 1
+      case ShortElement => 2
+      case IntElement => 4
+      case LongElement => 8
+    }
+
     def dataCost[T:Elem](x: Rep[T]): Rep[Costed[T]] = element[T] match {
-      case ByteElement => CostedPrim(x, 1L)
-      case ShortElement => CostedPrim(x, 2L)
-      case IntElement => CostedPrim(x, 4L)
-      case LongElement => CostedPrim(x, 8L)
+      case be: BaseElem[_] => CostedPrim(x, byteSize(be).toLong)
       case pe: PairElem[a,b] =>
         val l = dataCost(x.asRep[(a,b)]._1)(pe.eFst)
         val r = dataCost(x.asRep[(a,b)]._2)(pe.eSnd)
         CostedPair(l.value, r.value, l.cost + r.cost)
       case ae: WArrayElem[a,_] =>
-        val col = b.fromArray(x.asRep[WArray[a]])
         implicit val ea = ae.eItem
-        val costed = col.map(fun(dataCost[a]))
-        CostedArray(costed).asRep[Costed[T]]
+        ea match {
+          case be: BaseElem[_] =>
+            val values = b.fromArray(x.asRep[WArray[a]])
+            val costs = ReplCol(byteSize(be).toLong, values.length)
+            CostedArray(values, costs).asRep[Costed[T]]
+        }
     }
 
     def result[T](dc: Rep[Costed[T]]): Rep[(T, Long)] = Pair(dc.value, dc.cost)
