@@ -75,7 +75,10 @@ class BaseCostedTests extends BaseCtxTests {
 
     def split[T,R](f: Rep[T => Costed[R]]): Rep[(T => R, T => Long)] = {
       implicit val eT = f.elem.eDom
-      val calc = fun { x: Rep[T] => f(x).value }
+      val calc = fun { x: Rep[T] =>
+        val y = f(x);
+        y.value
+      }
       val cost = fun { x: Rep[T] => f(x).cost }
       Pair(calc, cost)
     }
