@@ -136,8 +136,9 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   // 3) Iso for concrete class
   class ColOverArrayIso[A](implicit eA: Elem[A])
     extends EntityIso[ColOverArrayData[A], ColOverArray[A]] with Def[ColOverArrayIso[A]] {
+    private lazy val _safeFrom = fun { p: Rep[ColOverArray[A]] => p.arr }
     override def from(p: Rep[ColOverArray[A]]) =
-      p.arr
+      tryConvert[ColOverArray[A], WArray[A]](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[WArray[A]]) = {
       val arr = p
       ColOverArray(arr)
@@ -216,8 +217,9 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
   // 3) Iso for concrete class
   class ColOverArrayBuilderIso
     extends EntityIso[ColOverArrayBuilderData, ColOverArrayBuilder] with Def[ColOverArrayBuilderIso] {
+    private lazy val _safeFrom = fun { p: Rep[ColOverArrayBuilder] => () }
     override def from(p: Rep[ColOverArrayBuilder]) =
-      ()
+      tryConvert[ColOverArrayBuilder, Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
       ColOverArrayBuilder()
@@ -303,8 +305,9 @@ implicit lazy val eR = rs.eA
   // 3) Iso for concrete class
   class PairOfColsIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[PairOfColsData[L, R], PairOfCols[L, R]] with Def[PairOfColsIso[L, R]] {
+    private lazy val _safeFrom = fun { p: Rep[PairOfCols[L, R]] => (p.ls, p.rs) }
     override def from(p: Rep[PairOfCols[L, R]]) =
-      (p.ls, p.rs)
+      tryConvert[PairOfCols[L, R], (Col[L], Col[R])](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(Col[L], Col[R])]) = {
       val Pair(ls, rs) = p
       PairOfCols(ls, rs)
@@ -398,9 +401,9 @@ implicit val eR = p.rs.eA
   // 3) Iso for concrete class
   class ReplColIso[A](implicit eA: Elem[A])
     extends EntityIso[ReplColData[A], ReplCol[A]] with Def[ReplColIso[A]] {
-    override def from(p: Rep[ReplCol[A]]) = {
-      tryConvert[ReplCol[A], (A, Int)](eTo, eFrom, p, fun { p: Rep[ReplCol[A]] => (p.value, p.length) })
-    }
+    private lazy val _safeFrom = fun { p: Rep[ReplCol[A]] => (p.value, p.length) }
+    override def from(p: Rep[ReplCol[A]]) =
+      tryConvert[ReplCol[A], (A, Int)](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(A, Int)]) = {
       val Pair(value, length) = p
       ReplCol(value, length)
@@ -484,8 +487,9 @@ implicit val eR = p.rs.eA
   // 3) Iso for concrete class
   class ReplColBuilderIso
     extends EntityIso[ReplColBuilderData, ReplColBuilder] with Def[ReplColBuilderIso] {
+    private lazy val _safeFrom = fun { p: Rep[ReplColBuilder] => () }
     override def from(p: Rep[ReplColBuilder]) =
-      ()
+      tryConvert[ReplColBuilder, Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
       ReplColBuilder()
@@ -567,8 +571,9 @@ implicit val eR = p.rs.eA
   // 3) Iso for concrete class
   class ArrayFunctorIso
     extends EntityIso[ArrayFunctorData, ArrayFunctor] with Def[ArrayFunctorIso] {
+    private lazy val _safeFrom = fun { p: Rep[ArrayFunctor] => () }
     override def from(p: Rep[ArrayFunctor]) =
-      ()
+      tryConvert[ArrayFunctor, Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
       ArrayFunctor()

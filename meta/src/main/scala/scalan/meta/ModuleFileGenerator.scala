@@ -477,8 +477,9 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
          |  // 3) Iso for concrete class
         |  class ${className}Iso${tpeArgsDecl}${implicitArgsDecl}
         |    extends EntityIso[$dataTpe, ${c.typeUse}] with Def[${className}Iso$tpeArgsUse] {
+        |    private lazy val _safeFrom = fun { p: Rep[${c.typeUse }] => ${fields.map(fields => "p." + fields).opt(s => if (s.toList.length > 1) s"(${s.rep() })" else s.rep(), "()") } }
         |    override def from(p: Rep[${c.typeUse}]) =
-        |      ${fields.map(fields => "p." + fields).opt(s => if (s.toList.length > 1) s"(${s.rep()})" else s.rep(), "()")}
+        |      tryConvert[${c.typeUse}, ${dataType(fieldTypes)}](eTo, eFrom, p, _safeFrom)
         |    override def to(p: Rep[${dataType(fieldTypes)}]) = {
         |      val ${pairify(fields)} = p
         |      $className(${fields.rep()})

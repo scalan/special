@@ -36,8 +36,9 @@ trait ConcreteCostsDefs extends scalan.Scalan with ConcreteCosts {
   // 3) Iso for concrete class
   class CostedPrimIso[Val](implicit eVal: Elem[Val])
     extends EntityIso[CostedPrimData[Val], CostedPrim[Val]] with Def[CostedPrimIso[Val]] {
+    private lazy val _safeFrom = fun { p: Rep[CostedPrim[Val]] => (p.value, p.cost) }
     override def from(p: Rep[CostedPrim[Val]]) =
-      (p.value, p.cost)
+      tryConvert[CostedPrim[Val], (Val, Long)](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(Val, Long)]) = {
       val Pair(value, cost) = p
       CostedPrim(value, cost)
@@ -127,8 +128,9 @@ implicit lazy val eR = r.elem
   // 3) Iso for concrete class
   class CostedPairIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[CostedPairData[L, R], CostedPair[L, R]] with Def[CostedPairIso[L, R]] {
+    private lazy val _safeFrom = fun { p: Rep[CostedPair[L, R]] => (p.l, p.r, p.cost) }
     override def from(p: Rep[CostedPair[L, R]]) =
-      (p.l, p.r, p.cost)
+      tryConvert[CostedPair[L, R], (L, (R, Long))](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(L, (R, Long))]) = {
       val Pair(l, Pair(r, cost)) = p
       CostedPair(l, r, cost)
@@ -222,8 +224,9 @@ implicit val eR = p.r.elem
   // 3) Iso for concrete class
   class CostedArrayIso[Item](implicit eItem: Elem[Item])
     extends EntityIso[CostedArrayData[Item], CostedArray[Item]] with Def[CostedArrayIso[Item]] {
+    private lazy val _safeFrom = fun { p: Rep[CostedArray[Item]] => (p.values, p.costs) }
     override def from(p: Rep[CostedArray[Item]]) =
-      (p.values, p.costs)
+      tryConvert[CostedArray[Item], (Col[Item], Col[Long])](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(Col[Item], Col[Long])]) = {
       val Pair(values, costs) = p
       CostedArray(values, costs)
@@ -313,8 +316,9 @@ implicit lazy val eR = rs.eVal.typeArgs("T")._1.asElem[R]
   // 3) Iso for concrete class
   class CostedPairArrayIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[CostedPairArrayData[L, R], CostedPairArray[L, R]] with Def[CostedPairArrayIso[L, R]] {
+    private lazy val _safeFrom = fun { p: Rep[CostedPairArray[L, R]] => (p.ls, p.rs) }
     override def from(p: Rep[CostedPairArray[L, R]]) =
-      (p.ls, p.rs)
+      tryConvert[CostedPairArray[L, R], (Costed[WArray[L]], Costed[WArray[R]])](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(Costed[WArray[L]], Costed[WArray[R]])]) = {
       val Pair(ls, rs) = p
       CostedPairArray(ls, rs)
@@ -408,8 +412,9 @@ implicit val eR = p.rs.eVal.typeArgs("T")._1.asElem[R]
   // 3) Iso for concrete class
   class CostedNestedArrayIso[Item](implicit eItem: Elem[Item])
     extends EntityIso[CostedNestedArrayData[Item], CostedNestedArray[Item]] with Def[CostedNestedArrayIso[Item]] {
+    private lazy val _safeFrom = fun { p: Rep[CostedNestedArray[Item]] => p.rows }
     override def from(p: Rep[CostedNestedArray[Item]]) =
-      p.rows
+      tryConvert[CostedNestedArray[Item], Col[Costed[WArray[Item]]]](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Col[Costed[WArray[Item]]]]) = {
       val rows = p
       CostedNestedArray(rows)
@@ -488,8 +493,9 @@ implicit val eR = p.rs.eVal.typeArgs("T")._1.asElem[R]
   // 3) Iso for concrete class
   class ConcreteCostedBuilderIso
     extends EntityIso[ConcreteCostedBuilderData, ConcreteCostedBuilder] with Def[ConcreteCostedBuilderIso] {
+    private lazy val _safeFrom = fun { p: Rep[ConcreteCostedBuilder] => () }
     override def from(p: Rep[ConcreteCostedBuilder]) =
-      ()
+      tryConvert[ConcreteCostedBuilder, Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
       ConcreteCostedBuilder()

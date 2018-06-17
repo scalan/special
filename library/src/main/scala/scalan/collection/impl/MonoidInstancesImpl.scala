@@ -33,8 +33,9 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
   // 3) Iso for concrete class
   class MonoidBuilderInstIso
     extends EntityIso[MonoidBuilderInstData, MonoidBuilderInst] with Def[MonoidBuilderInstIso] {
+    private lazy val _safeFrom = fun { p: Rep[MonoidBuilderInst] => () }
     override def from(p: Rep[MonoidBuilderInst]) =
-      ()
+      tryConvert[MonoidBuilderInst, Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
       MonoidBuilderInst()
@@ -116,8 +117,9 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
   // 3) Iso for concrete class
   class IntPlusMonoidIso
     extends EntityIso[IntPlusMonoidData, IntPlusMonoid] with Def[IntPlusMonoidIso] {
+    private lazy val _safeFrom = fun { p: Rep[IntPlusMonoid] => p.zero }
     override def from(p: Rep[IntPlusMonoid]) =
-      p.zero
+      tryConvert[IntPlusMonoid, Int](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Int]) = {
       val zero = p
       IntPlusMonoid(zero)
@@ -195,8 +197,9 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
   // 3) Iso for concrete class
   class LongPlusMonoidIso
     extends EntityIso[LongPlusMonoidData, LongPlusMonoid] with Def[LongPlusMonoidIso] {
+    private lazy val _safeFrom = fun { p: Rep[LongPlusMonoid] => p.zero }
     override def from(p: Rep[LongPlusMonoid]) =
-      p.zero
+      tryConvert[LongPlusMonoid, Long](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Long]) = {
       val zero = p
       LongPlusMonoid(zero)

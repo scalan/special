@@ -117,4 +117,12 @@ class CostedTests extends BaseCostedTests {
     )
   }
 
+  test("split nested nested pair arrays") {
+    ctx.emit("split_nested_nested_pair_arrays",
+      split(fun { in: Rep[(WArray[WArray[WArray[(Int, Short)]]], Byte)] =>
+        dataCost(in)
+      })
+    )
+  }
+
 }
