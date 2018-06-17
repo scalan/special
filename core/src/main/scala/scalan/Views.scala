@@ -561,7 +561,8 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
 
   abstract class View2[A1, A2, B1, B2, C[_, _]](implicit val iso1: Iso[A1, B1], val iso2: Iso[A2, B2]) extends View[C[A1, A2], C[B1, B2]]
 
-  case class PairView[A1, A2, B1, B2](source: Rep[(A1, A2)])(implicit iso1: Iso[A1, B1], iso2: Iso[A2, B2]) extends View2[A1, A2, B1, B2, Tuple2] {
+  case class PairView[A1, A2, B1, B2](source: Rep[(A1, A2)], override val iso1: Iso[A1, B1], override val iso2: Iso[A2, B2])
+      extends View2[A1, A2, B1, B2, Tuple2]()(iso1, iso2) {
     lazy val iso = pairIso(iso1, iso2)
   }
 
@@ -572,15 +573,15 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   override def rewriteDef[T](d: Def[T]) = d match {
     // Rule: (V(a, iso1), V(b, iso2)) ==> V((a,b), PairIso(iso1, iso2))
     case Tup(HasViews(a, iso1: Iso[a, c]), HasViews(b, iso2: Iso[b, d])) =>
-      PairView((a.asRep[a], b.asRep[b]))(iso1, iso2)
+      PairView((a.asRep[a], b.asRep[b]), iso1, iso2)
 
     // Rule: (V(a, iso1), b) ==> V((a,b), PairIso(iso1, id))
     case Tup(HasViews(a, iso1: Iso[a, c]), b: Rep[b]) =>
-      PairView((a.asRep[a], b))(iso1, identityIso(b.elem)).self
+      PairView((a.asRep[a], b), iso1, identityIso(b.elem)).self
 
     // Rule: (a, V(b, iso2)) ==> V((a,b), PairIso(id, iso2))
     case Tup(a: Rep[a], HasViews(b, iso2: Iso[b, d])) =>
-      PairView((a, b.asRep[b]))(identityIso(a.elem), iso2).self
+      PairView((a, b.asRep[b]), identityIso(a.elem), iso2).self
 
     // Rule: V(a, iso1) ; V(b, iso2)) ==> iso2.to(a ; b)
     case block@Semicolon(HasViews(a, iso1: Iso[a, c]), HasViews(b, iso2: Iso[b, d])) =>
@@ -595,18 +596,18 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
       Semicolon(a.asRep[a], b)
 
     // Rule: PairView(source, iso1, _)._1  ==> iso1.to(source._1)
-    case First(Def(view@PairView(source))) =>
+    case First(Def(view@PairView(source,_,_))) =>
       view.iso1.to(source._1)
 
     // Rule: PairView(source, _, iso2)._2  ==> iso2.to(source._2)
-    case Second(Def(view@PairView(source))) =>
+    case Second(Def(view@PairView(source,_,_))) =>
       view.iso2.to(source._2)
 
     // Rule: PairView(PairView(source, i2), i1)  ==> PairView(source, PairIso(composeIso(i1.iso1, i2.iso1), composeIso(i1.iso2, i2.iso2)))
-    case v1@PairView(Def(v2@PairView(source))) => {
+    case v1@PairView(Def(v2@PairView(source,_,_)),_,_) => {
       val pIso1 = composeIso(v1.iso1, v2.iso1)
       val pIso2 = composeIso(v1.iso2, v2.iso2)
-      PairView(source)(pIso1, pIso2)
+      PairView(source, pIso1, pIso2)
     }
 
     // Rule: UnpackView(V(source, iso))  ==> source

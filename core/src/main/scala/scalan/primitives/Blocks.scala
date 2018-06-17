@@ -23,7 +23,7 @@ trait Blocks extends Base { self: Scalan =>
   }
 
   def peelViews(x: Rep[_]): Rep[_] = x match {
-    case Def(PairView(s)) => peelViews(s)
+    case Def(PairView(s,_,_)) => peelViews(s)
     case HasViews(s, _) => peelViews(s)
     case _ => x
   }
