@@ -37,6 +37,7 @@ class BaseCostedTests extends BaseCtxTests {
     def byteSize[T](eT: BaseElem[T]): Int = eT match {
       case BooleanElement => 1
       case ByteElement => 1
+      case CharElement => 1
       case ShortElement => 2
       case IntElement => 4
       case LongElement => 8

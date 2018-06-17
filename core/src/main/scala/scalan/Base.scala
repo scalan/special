@@ -596,6 +596,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
   private[this] val expToGlobalDefs: mutable.Map[Rep[_], TableEntry[_]] = mutable.HashMap.empty
   private[this] val defToGlobalDefs: mutable.Map[(Rep[_], Def[_]), TableEntry[_]] = mutable.HashMap.empty
 
+  def allSymbols = expToGlobalDefs.keys
+
   def findDefinition[T](s: Rep[T]): Option[TableEntry[T]] =
     expToGlobalDefs.get(s).asInstanceOf[Option[TableEntry[T]]]
 

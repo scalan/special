@@ -93,6 +93,19 @@ class CostedTests extends BaseCostedTests {
     )
   }
 
+  test("measure: split pair arrays") {
+    buildGraph(10, "measure_split_pair_arrays") { i =>
+      var res: Rep[Any] = null
+      for (k <- 1 to 10) {
+        res = split(fun { in: Rep[(WArray[(Int, (Short, Boolean))], Byte)] =>
+          val Pair(x, b) = in
+          dataCost(Pair(x, b + i.toByte))
+        })
+      }
+      res
+    }
+  }
+
   test("split nested arrays") {
     ctx.emit("split_nested_arrays",
       split(fun { in: Rep[(WArray[WArray[Int]], Byte)] =>
@@ -123,6 +136,49 @@ class CostedTests extends BaseCostedTests {
         dataCost(in)
       })
     )
+  }
+
+  test("split complex1") {
+    ctx.emit("split_complex1",
+      split(fun { in: Rep[(WArray[WArray[(WArray[(Int, Short)], Boolean)]], Byte)] =>
+        dataCost(in)
+      })
+    )
+  }
+
+  test("split complex2") {
+    ctx.emit("split_complex2",
+      split(fun { in: Rep[(WArray[(WArray[(WArray[(Int, Boolean)], Short)], Char)], Byte)] =>
+        dataCost(in)
+      })
+    )
+  }
+
+  test("measure: split complex2") {
+    buildGraph(5, "measure_split_complex2") { i =>
+      var res: Rep[Any] = null
+      for (k <- 1 to 10) {
+        res =  split(fun { in: Rep[(WArray[(WArray[(WArray[(Int, Boolean)], Short)], Char)], Byte)] =>
+          val Pair(x, b) = in
+          dataCost(Pair(x, b + i.toByte))
+        })
+      }
+      res
+    }
+    measure(2) { i =>
+      var sum = 0
+      var nDefs = 0
+      var nVars = 0
+      for (s <- ctx.allSymbols) {
+        s match {
+          case Def(d) =>
+            nDefs +=1
+          case _ =>
+            nVars += 1
+        }
+      }
+      println(s"#Defs: $nDefs, #Vars: $nVars, sum: $sum")
+    }
   }
 
 }
