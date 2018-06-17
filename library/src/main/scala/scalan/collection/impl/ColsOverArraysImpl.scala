@@ -398,8 +398,9 @@ implicit val eR = p.rs.eA
   // 3) Iso for concrete class
   class ReplColIso[A](implicit eA: Elem[A])
     extends EntityIso[ReplColData[A], ReplCol[A]] with Def[ReplColIso[A]] {
-    override def from(p: Rep[ReplCol[A]]) =
-      (p.value, p.length)
+    override def from(p: Rep[ReplCol[A]]) = {
+      tryConvert[ReplCol[A], (A, Int)](eTo, eFrom, p, fun { p: Rep[ReplCol[A]] => (p.value, p.length) })
+    }
     override def to(p: Rep[(A, Int)]) = {
       val Pair(value, length) = p
       ReplCol(value, length)
