@@ -1,14 +1,39 @@
 package scalan.collection
 
 import scala.reflect.ClassTag
+import scalan.OverloadId
 
 class CostedPrim[Val](val value: Val, val cost: Long) extends Costed[Val] {
   def builder = new ConcreteCostedBuilder
 }
 
-class CostedPair[L,R](val l: L, val r: R, val cost: Long) extends Costed[(L,R)] {
+class CostedPair[L,R](val l: Costed[L], val r: Costed[R]) extends Costed[(L,R)] {
   def builder = new ConcreteCostedBuilder
-  def value: (L,R) = (l, r)
+  def value: (L,R) = (l.value, r.value)
+  def cost: Long = l.cost + r.cost + 1
+}
+
+trait Closure[Env, Arg, Res] {
+  def env: Env
+
+  @OverloadId("apply_with_env")
+  def apply(e: Env, a: Arg): Res
+  
+  @OverloadId("apply")
+  def apply(a: Arg): Res = this.apply(env, a)
+}
+
+class ClosureBase[Env, Arg, Res](val env: Env, val func: ((Env, Arg)) => Res) extends Closure[Env, Arg, Res] {
+  def apply(e: Env, a: Arg) = func((e, a))
+}
+
+//class ClosureCol[Env, Arg, Res](val envs: Col[Env], func: (Env, Arg) => Res) extends Col[Closure[Env, Arg, Res]] {
+//}
+
+class CostedFunc[Env,Arg,Res](envCost: Costed[Env], val func: Closure[Env, Arg, Res], val costFunc: Closure[Env,Arg,Long]) extends Costed[Arg => Res] {
+  def builder = new ConcreteCostedBuilder
+  def value: Arg => Res = (a: Arg) => func.apply(a)
+  def cost: Long = envCost.cost + 1L
 }
 
 //class CostedOption[T](val either: Either[Long, Costed[T]]) extends Costed[Option[T]] {

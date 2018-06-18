@@ -48,7 +48,7 @@ class BaseCostedTests extends BaseCtxTests {
       case pe: PairElem[a,b] =>
         val l = dataCost(x.asRep[(a,b)]._1)
         val r = dataCost(x.asRep[(a,b)]._2)
-        CostedPair(l.value, r.value, l.cost + r.cost)
+        CostedPair(l, r)
       case ae: WArrayElem[_,_] =>
         ae.eItem match {
           case be: BaseElem[a] =>
