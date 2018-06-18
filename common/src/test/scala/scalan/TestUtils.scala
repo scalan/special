@@ -2,12 +2,12 @@ package scalan
 
 import scalan.util.FileUtil
 import org.scalactic.TripleEquals
-import org.scalatest.{Inside, Matchers, Suite}
+import org.scalatest.{Inside, Matchers, TestSuite}
 
 /**
   * Created by slesarenko on 11/10/2017.
   */
-trait TestUtils extends Suite with Matchers with Inside with TripleEquals {
+trait TestUtils extends TestSuite with Matchers with Inside with TripleEquals {
   def testOutDir = "test-out"
 
   def testSuffixes = Seq("Suite", "Tests", "It", "_")

@@ -1,7 +1,6 @@
 package scalan.meta
 
 import scala.collection.mutable
-import scalan.meta
 import scalan.meta.ScalanAst._
 import scalan.util.CollectionUtil._
 

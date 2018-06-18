@@ -1,7 +1,7 @@
 package scalan.util
 
 import scalan.BaseTests
-import scala.collection.{Seq, mutable}
+import scala.collection.Seq
 
 class CollectionUtilTests extends BaseTests {
   import scalan.util.CollectionUtil._

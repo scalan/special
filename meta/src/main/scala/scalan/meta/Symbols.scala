@@ -1,8 +1,6 @@
 package scalan.meta
 
-import java.util.Objects
-
-import Symbols._
+import scalan.meta.Symbols._
 
 trait Symbols { this: AstContext =>
 

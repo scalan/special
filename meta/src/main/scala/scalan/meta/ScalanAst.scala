@@ -1,6 +1,5 @@
 package scalan.meta
 
-import java.io.File
 import java.util.Objects
 
 import com.trueaccord.lenses.Updatable
@@ -12,10 +11,9 @@ import scalan.meta.PrintExtensions._
 import scala.collection.mutable.{Map => MMap}
 import scala.reflect.internal.ModifierFlags
 import scalan._
-import scalan.util.{Covariant, Contravariant, FileUtil, Invariant}
+import scalan.util.{Covariant, Contravariant, Invariant}
 import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstExtensions._
-import scala.tools.nsc.Global
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
 import scalan.meta.Symbols._
 
@@ -1133,12 +1131,12 @@ object ScalanAst {
 
     def allEntities: List[SEntityDef] = traits ++ classes
 
-    private def hasDeclaredImplFor(traitName: String, decls: Option[SDeclaredImplementations]) = {
-      decls match {
-        case Some(impls) => impls.declarations.contains(traitName)
-        case None => false
-      }
-    }
+//    private def hasDeclaredImplFor(traitName: String, decls: Option[SDeclaredImplementations]) = {
+//      decls match {
+//        case Some(impls) => impls.declarations.contains(traitName)
+//        case None => false
+//      }
+//    }
 
     def dependencies: Seq[SUnitDef] = {
       Seq() // TODO collect dependencies for the module

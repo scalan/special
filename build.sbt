@@ -30,10 +30,10 @@ lazy val buildSettings = Seq(
 
 lazy val testSettings = Seq(
   libraryDependencies ++= Seq(
-    "org.scalatest" %% "scalatest" % "2.2.6" % Test,
+    "org.scalatest" %% "scalatest" % "3.0.5" % Test,
     "ch.qos.logback" % "logback-classic" % "1.1.7",
     // TODO separate benchmark configuration, see https://github.com/scalameter/scalameter-examples/blob/master/basic-with-separate-config/build.sbt
-    "com.storm-enroute" %% "scalameter" % "0.6" % Test),
+    "com.storm-enroute" %% "scalameter" % "0.10" % Test),
   parallelExecution in Test := false,
   baseDirectory in Test := file("."),
   publishArtifact in Test := true,
@@ -45,7 +45,7 @@ lazy val commonSettings = buildSettings ++ testSettings
 
 lazy val itSettings = commonSettings ++ Defaults.itSettings ++
     Seq(
-      libraryDependencies += "org.scalatest" %% "scalatest" % "2.2.6" % "it",
+      libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "it",
       javaOptions in IntegrationTest ++=
           Seq("-Xmx3g", "-XX:PermSize=384m", "-XX:MaxPermSize=384m", "-XX:ReservedCodeCacheSize=384m"),
       parallelExecution in IntegrationTest := false,
@@ -66,7 +66,7 @@ cancelable in Global := true
 lazy val common = Project("common", file("common"))
     .settings(commonSettings,
       libraryDependencies ++= Seq(
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0",
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "commons-io" % "commons-io" % "2.5"
 
@@ -78,7 +78,7 @@ lazy val meta = Project("meta", file("meta"))
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-        "com.github.kxbmap" %% "configs-java7" % "0.3.0",
+        "com.github.kxbmap" %% "configs" % "0.4.4",
         "com.trueaccord.lenses" %% "lenses" % "0.4.12"
       ),
       fork in Test := true,
@@ -99,7 +99,7 @@ lazy val core = Project("core", file("core"))
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.3",
         "org.objenesis" % "objenesis" % "2.4",
-        "com.github.kxbmap" %% "configs-java7" % "0.3.0",
+        "com.github.kxbmap" %% "configs" % "0.4.4",
         "com.trueaccord.lenses" %% "lenses" % "0.4.12"
       ))
 

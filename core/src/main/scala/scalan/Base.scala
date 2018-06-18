@@ -3,7 +3,7 @@ package scalan
 import java.lang.reflect.{Constructor => Constr}
 import java.util.{Objects, Arrays}
 
-import com.github.kxbmap.configs.syntax._
+import configs.syntax._
 import com.typesafe.config.{ConfigFactory, Config}
 import com.typesafe.scalalogging.LazyLogging
 

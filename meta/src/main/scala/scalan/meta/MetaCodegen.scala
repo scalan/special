@@ -71,8 +71,8 @@ class MetaCodegen {
   }
 
   class EntityTypeBuilder(entity: SEntityDef) {
-    private var _args: ArrayBuffer[String] = ArrayBuffer.empty
-    private var _forSomeTypes: ArrayBuffer[String] = ArrayBuffer.empty
+    private val _args: ArrayBuffer[String] = ArrayBuffer.empty
+    private val _forSomeTypes: ArrayBuffer[String] = ArrayBuffer.empty
 
     {
       var iHKind = 1

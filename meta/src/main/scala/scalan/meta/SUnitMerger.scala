@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.ScalanAst.{STpeDef, SUnitDef, SValDef, STpeExpr, SEntityAnnotation, SClassDef, SObjectDef, STraitDef, SMethodDef, SImportStat, SBodyItem, SEntityDef}
+import scalan.meta.ScalanAst.{STpeDef, SUnitDef, SValDef, SEntityAnnotation, SClassDef, SObjectDef, STraitDef, SMethodDef, SImportStat, SBodyItem, SEntityDef}
 import scalan.util.CollectionUtil.{OptionOps, TraversableOps}
 
 class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {

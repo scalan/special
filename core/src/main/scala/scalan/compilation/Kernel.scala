@@ -2,12 +2,13 @@ package scalan.compilation
 
 import java.io.File
 
-import com.github.kxbmap.configs.syntax._
+import configs.syntax._
 import com.typesafe.config.{ConfigFactory, Config}
+import configs.Result.{Failure, Success}
 
 import scalan.meta.ScalanAst.KernelType
 import scalan.util.{ClassLoaderUtil, FileUtil}
-import scalan.{Scalan, Plugins}
+import scalan.{Plugins, Scalan}
 
 // TODO Split into AbstractKernel and FileSystemKernel?
 class Kernel[+ScalanCake <: Scalan, A, B](
@@ -18,16 +19,16 @@ class Kernel[+ScalanCake <: Scalan, A, B](
   extends (A => B) {
   val scalan: compiler.scalan.type = compiler.scalan
   lazy val kernelFunc = _kernelFunc.asInstanceOf[scalan.Exp[A => B]]
-  lazy val compilerConfig = _config.get[Option[Config]]("compiler") match {
-    case None =>
+  lazy val compilerConfig = _config.get[Config]("compiler") match {
+    case Failure(_) =>
       compiler.defaultCompilerConfig
-    case Some(config) =>
+    case Success(config) =>
       compiler.compilerConfigFrom(config)
   }
-  lazy val graphVizConfig = _config.get[Option[Config]]("graphviz") match {
-    case None =>
+  lazy val graphVizConfig = _config.get[Config]("graphviz") match {
+    case Failure(_) =>
       GraphVizConfig.default
-    case Some(config) =>
+    case Success(config) =>
       GraphVizConfig.from(config)
   }
   lazy val compiled =
@@ -48,14 +49,14 @@ abstract class KernelStore[+ScalanCake <: Scalan] {
 
   private def compiler(kernelType: KernelType): Compiler[scalan.type] = compilers.getOrElseUpdate(kernelType, {
     val confKey = s"backend.${kernelType.confKey}.compilerClass"
-    configWithPlugins.getOpt[String](confKey) match {
-      case None =>
+    configWithPlugins.get[String](confKey) match {
+      case Failure(_) =>
         val msg =
           s"""Compiler class for kernel type ${kernelType.name} not found under scalan.$confKey in config including plugins.
               |Class path: ${ClassLoaderUtil.classPath(pluginClassLoader).map(_.getAbsolutePath).mkString(File.pathSeparator)}.
               |If necessary directory or jar file is missing, add it to ${Plugins.extraClassPathKey} property in application.conf or -D command line argument.""".stripMargin
         throw new CompilationException(msg, null)
-      case Some(className) =>
+      case Success(className) =>
         createCompiler(scalan, storeConfig, className)
     }
   })

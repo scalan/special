@@ -1,13 +1,8 @@
 package scalan.meta
 
-import java.io.File
-
-import scala.tools.nsc.Global
-import scala.tools.nsc.Settings
+import scala.tools.nsc.{Global, Settings}
 import scala.tools.nsc.reporters.StoreReporter
-import scala.reflect.internal.util.{BatchSourceFile, SourceFile}
-import scalan.meta.ScalanAst.{SUnitDef, STpeExpr, SExpr, SMethodDef, SBodyItem}
-import scalan.meta.Symbols.SSymbol
+import scalan.meta.ScalanAst.SUnitDef
 
 trait ScalanParsersEx[G <: Global]
   extends ScalanParsers[G] with ScalanGens[G] {

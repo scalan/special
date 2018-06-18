@@ -1,21 +1,22 @@
 package scalan.compilation
 
 import java.awt.Desktop
-import java.io.{File, PrintWriter}
+import java.io.{PrintWriter, File}
 
-import com.github.kxbmap.configs.Configs
-import com.github.kxbmap.configs.syntax._
-import com.typesafe.config.{Config, ConfigUtil}
+import configs.{Configs, Result}
+import configs.syntax._
+import com.typesafe.config.{ConfigUtil, Config}
+import configs.Result.{Success, Failure}
 
 import scalan.{Base, Scalan}
-import scalan.util.{FileUtil, ProcessUtil, ScalaNameUtil, StringUtil}
+import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
 
 case class GraphFile(file: File, fileType: String) {
   def open() = {
-    Base.config.getOpt[String](ConfigUtil.joinPath("graphviz", "viewer", fileType)) match {
-      case None =>
+    Base.config.get[String](ConfigUtil.joinPath("graphviz", "viewer", fileType)) match {
+      case Failure(_) =>
         Desktop.getDesktop.open(file)
-      case Some(command) =>
+      case Success(command) =>
         ProcessUtil.launch(Seq(command, file.getAbsolutePath))
     }
   }
@@ -468,7 +469,7 @@ case object Portrait extends Orientation
 case object Landscape extends Orientation
 
 object Orientation {
-  implicit val orientationC: Configs[Orientation] = Configs.of[Orientation]
+  implicit val orientationC: Configs[Orientation] = Configs[Orientation]
 }
 
 sealed trait ControlFlowStyle
@@ -536,9 +537,9 @@ object GraphVizConfig {
   // not made implicit because it would be too easy to use
   // it accidentally instead of passing up
   // For some reason, return type has to be given explicitly
-  val default: GraphVizConfig = config.extract[GraphVizConfig]
-
+  val defaultRes: Result[GraphVizConfig] = config.extract[GraphVizConfig]
+  val default = defaultRes.value
   val none: GraphVizConfig = default.copy(emitGraphs = false)
 
-  def from(config: Config): GraphVizConfig = config.withFallback(this.config).extract[GraphVizConfig]
+  def from(config: Config): GraphVizConfig = config.withFallback(this.config).extract[GraphVizConfig].value
 }

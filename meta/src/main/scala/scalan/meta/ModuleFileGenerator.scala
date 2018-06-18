@@ -1,13 +1,12 @@
 package scalan.meta
 
 import scala.annotation.tailrec
-import scala.collection.mutable.ArrayBuffer
 import scalan.meta.Base.!!!
 import scalan.meta.PrintExtensions._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.util.{StringUtil, ScalaNameUtil}
-import StringUtil.StringUtilExtensions
+import scalan.util.StringUtil
+import scalan.util.StringUtil.StringUtilExtensions
 import scalan.util.CollectionUtil.TraversableOps
 
 class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: UnitConfig) {
@@ -81,7 +80,6 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
 
   def getSClassExp(clazz: SClassDef) = {
     val c = ConcreteClassTemplateData(module, clazz)
-    import c._
     val fields = clazz.args.argNames
     val fieldsWithType = clazz.args.argNamesAndTypes(config)
     val parent = clazz.ancestors.head.tpe
@@ -356,7 +354,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       val e = EntityTemplateData(module, clazz.collectAncestorEntities(context).head._1)
       val className = clazz.name
       val c = ConcreteClassTemplateData(module, clazz)
-      import c.{implicitArgsOrParens, implicitArgsUse, tpeArgsDecl, tpeArgsUse}
+      import c.{tpeArgsDecl, tpeArgsUse, implicitArgsUse}
       val fields = clazz.args.argNames
       val fieldsWithType = clazz.args.argNamesAndTypes(config)
       val fieldTypes = clazz.args.argUnrepTypes(module, config.isVirtualized)

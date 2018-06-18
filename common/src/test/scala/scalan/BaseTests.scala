@@ -1,11 +1,7 @@
 package scalan
 
-import org.scalactic.TripleEquals
-import org.scalatest._
 import org.scalatest.words.ResultOfStringPassedToVerb
-import org.scalatest.{FlatSpec, Inside, Matchers}
-
-import scalan.util.FileUtil
+import org.scalatest.{FlatSpec, _}
 
 /**
  * Standard base class for most test suites. See BaseNestedTests and BaseShouldTests for alternatives

@@ -51,7 +51,7 @@ trait ColBuilder {
 //  def useFunctor(arr: Array[Double]) = evF.map(arr)(x => x + 1)
 }
 
-@typeclass trait Functor[F[_]] {
+trait Functor[F[_]] {
   def map[A,B](fa: F[A])(f: A => B)(implicit tB: ClassTag[B]): F[B]
 }
 

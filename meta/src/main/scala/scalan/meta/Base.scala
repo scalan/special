@@ -1,9 +1,7 @@
 package scalan.meta
 
 import java.util.Properties
-import java.io.{FileReader, File}
-
-import scalan.util.FileUtil
+import java.io.FileReader
 
 object Base {
   lazy val config = {

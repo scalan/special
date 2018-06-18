@@ -22,6 +22,7 @@ object CollectionUtil {
         res(k) += v
       else
         res += k -> ArrayBuffer(v)
+      ()
     }
     res.toMap
   }

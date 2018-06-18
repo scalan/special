@@ -5,7 +5,6 @@ import java.io.File
 import com.trueaccord.lenses.Updatable
 
 import scalan.util.{FileUtil, GraphUtil}
-import scalan.util.CollectionUtil._
 import scalan.util.StringUtil._
 import scala.collection.mutable.{Map => MMap}
 

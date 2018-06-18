@@ -1,9 +1,9 @@
 package scalan.meta.scalanizer
 
 import java.io.File
+
 import scala.tools.nsc.Global
 import scalan.meta.ScalanAst._
-import scalan.meta.ScalanAstTransformers.{AstReplacer, TypeReplacer}
 import scalan.meta._
 import scalan.util.FileUtil
 
