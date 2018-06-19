@@ -2,12 +2,14 @@ package scalan
 
 import scalan.meta.ScalanAst.{SUnitDef, SEntityDef}
 import scala.collection.mutable
-import scalan.meta.{SSymName, Parsers, BoilerplateToolRun}
+import scalan.meta.{SSymName, Parsers, BoilerplateToolRun, UnitConfig}
 import scalan.util.ReflectionUtil
 
 trait Modules extends Base { self: Scalan =>
+  def configs: List[UnitConfig] = Nil
+  
   private[scalan] lazy val parsers = {
-    val parsers = new Parsers(BoilerplateToolRun.allConfigs)
+    val parsers = new Parsers(configs)
     implicit val parseCtx = new parsers.context.parsers.ParseCtx(true)(parsers.context)
     parsers.context.loadUnitsFromResources()
     parsers
