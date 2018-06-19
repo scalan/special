@@ -290,10 +290,14 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   }
 
   class LambdaStack {
-    var stack = new mutable.Stack[Sym]()
-    def top: Option[Sym] = stack.isEmpty match { case true => None case _ => Some(stack.top) }
-    def push(e: Sym): this.type = { stack.push(e); this }
-    def pop: Sym = stack.pop
+    var stack = List[Sym]()
+    def top: Option[Sym] = stack.isEmpty match { case true => None case _ => Some(stack.head) }
+    def push(e: Sym): this.type = { stack = e :: stack; this }
+    def pop: Sym = {
+      val res = stack.head;
+      stack = stack.tail;
+      res
+    }
   }
   protected var recursion = Map.empty[_ => _, Sym]
 

@@ -1,9 +1,8 @@
 package scalan.util
 
-import java.io.{BufferedReader, File, InputStreamReader}
+import java.io.File
 
 import scala.collection.mutable
-import scala.collection.JavaConverters._
 import scala.sys.process.ProcessLogger
 
 case class ProcessOutput(stdOutLines: Seq[String], stdErrLines: Seq[String], interleavedLines: Seq[String]) {

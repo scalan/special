@@ -335,6 +335,7 @@ trait Slicing extends Scalan {
         case (name, marking: SliceMarking[a]) =>
           val projectedField = marking.projectToExp(x.getUnchecked[a](name))
           (name, projectedField)
+        case (_, nonMarking) => !!!(s"SliceMarking expected but found $nonMarking", x)
       }
       struct(structFields)
     }

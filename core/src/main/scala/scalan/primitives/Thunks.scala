@@ -117,10 +117,14 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
   }
 
   class ThunkStack {
-    var stack = new mutable.Stack[ThunkScope]()
+    var stack = List[ThunkScope]()
     def top: Option[ThunkScope] = stack.headOption
-    def push(e: ThunkScope): this.type = { stack.push(e); this }
-    def pop: ThunkScope = stack.pop
+    def push(e: ThunkScope): this.type = { stack = e :: stack; this }
+    def pop: ThunkScope = {
+      val res = stack.head
+      stack = stack.tail
+      res
+    }
   }
   protected val thunkStack = new ThunkStack
 

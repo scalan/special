@@ -2,7 +2,6 @@ package scalan.collection
 
 import scala.reflect.ClassTag
 import scalan.OverloadId
-import scalan.macros.typeclass
 
 trait Col[A] {
   def builder: ColBuilder

@@ -164,15 +164,17 @@ trait Structs extends Effects with StructItemsModule with StructKeysModule { sel
 
     override def from(y: Rep[T]) = {
       val items = eFrom.fields.zip(eTo.fields).zip(itemIsos).map {
-        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t] @unchecked) =>
+        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t]) =>
           fnS -> iso.from(y.getUnchecked[t](fnT))
+        case (_, nonIso) => !!!(s"Iso expected but found $nonIso", self, y, nonIso)
       }
       struct(items).asRep[S]
     }
     override def to(x: Rep[S]) = {
       val items = eFrom.fields.zip(eTo.fields).zip(itemIsos).map {
-        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t] @unchecked) =>
+        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t]) =>
           fnT -> iso.to(x.getUnchecked[s](fnS))
+        case (_, nonIso) => !!!(s"Iso expected but found $nonIso", self, x, nonIso)
       }
       struct(items).asRep[T]
     }
@@ -358,22 +360,29 @@ trait Structs extends Effects with StructItemsModule with StructKeysModule { sel
       case _ => false
     }
 
-    val eFrom = structElement(eTo.fields.flatMap { case (fn, fe: StructElem[_]) => fe.fields })
+    val eFrom = structElement(eTo.fields.flatMap {
+      case (fn, fe: StructElem[_]) => fe.fields
+      case (_, nonStructElem) => !!!(s"StructElem expected but found $nonStructElem", self)
+    })
 
     lazy val selfType = new ConcreteIsoElem[Struct, T, MergeIso[T]](eFrom, eTo).asElem[IsoUR[Struct, T]]
 
     def to(x: Rep[Struct]) = {
-      val items = eTo.fields.map { case (outerN, outerE: StructElem[_]) =>
-        val s = struct(outerE.fields.map { case (innerN, innerE) => innerN -> x.getUntyped(innerN) })
-        outerN -> s
+      val items = eTo.fields.map {
+        case (outerN, outerE: StructElem[_]) =>
+          val s = struct(outerE.fields.map { case (innerN, innerE) => innerN -> x.getUntyped(innerN) })
+          outerN -> s
+        case (_, nonStructElem) => !!!(s"StructElem expected but found $nonStructElem", self, x)
       }
       struct(eTo.structTag, items: _*)
     }
 
     def from(y: Rep[T]) = {
-      val items = eTo.fields.flatMap { case (outerN, outerE: StructElem[_]) =>
-        val s = y.getUntyped(outerN).asRep[Struct]
-        outerE.fields.map { case (innerN, innerE) => innerN -> s.getUntyped(innerN) }
+      val items = eTo.fields.flatMap {
+        case (outerN, outerE: StructElem[_]) =>
+          val s = y.getUntyped(outerN).asRep[Struct]
+          outerE.fields.map { case (innerN, innerE) => innerN -> s.getUntyped(innerN) }
+        case (_, nonStructElem) => !!!(s"StructElem expected but found $nonStructElem", self, y)
       }
       struct(items: _*)
     }

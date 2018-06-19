@@ -2,11 +2,11 @@ package scalan.compilation.kotlin
 
 import java.io.PrintWriter
 
-import scalan.{ModuleInfo, Scalan}
+import scalan.Scalan
 import scalan.compilation.{IndentLevel, FileCodegen, CodegenConfig}
 import scalan.meta.ScalanAst._
 import scalan.meta.PrintExtensions._
-import scalan.meta.{ScalanAstTransformers, SSymName}
+import scalan.meta.{SSymName, ScalanAstTransformers}
 
 case class GenCtx(module: SUnitDef, writer: PrintWriter)
 
@@ -211,7 +211,7 @@ class KotlinFileCodegen[+IR <: Scalan](_scalan: IR, config: CodegenConfig) exten
 
   override def emitNode(sym: Exp[_], d: Def[_], graph: AstGraph)
                        (implicit stream: PrintWriter, indentLevel: IndentLevel) = {
-    def initSym(rhs: Any = "{}") =
+    def initSym(rhs: Any = "{}"): Unit =
       emit(src"local $sym = $rhs")
 
     d match {

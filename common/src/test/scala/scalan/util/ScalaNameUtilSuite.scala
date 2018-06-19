@@ -14,7 +14,7 @@ class ScalaNameUtilSuite extends BaseTests {
   test("Method names obtained by reflection should be decoded") {
     val methodNames = classOf[ScalaNameUtilSuite].getDeclaredMethods.map {
       m => cleanScalaName(m.getName)
-    }.toList
+    }.toList.filterNot(n => n.startsWith("$"))
 
     methodNames should equal(List("""+\"""))
   }

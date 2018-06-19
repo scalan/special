@@ -1,6 +1,6 @@
 package scalan.util
 
-import scala.collection.mutable.{HashMap, ArrayBuffer, Buffer, Stack, Map}
+import scala.collection.mutable.{HashMap, Map, Buffer, ArrayBuffer}
 
 object GraphUtil {
    def depthFirstSetFrom[A](starts: Set[A])(neighbours: A => TraversableOnce[A]): Set[A] = {
@@ -40,7 +40,7 @@ object GraphUtil {
 
   private final class Tarjan[T](succ: T => Seq[T]) {
     private var id = 0
-    private val stack: Stack[T] = new Stack()
+    private var stack: List[T] = Nil
     private val mark: Map[T, Int] = new HashMap()
 
     val res: Buffer[Seq[T]] = new ArrayBuffer()
@@ -50,7 +50,7 @@ object GraphUtil {
         id += 1
 
         mark.put(node, id)
-        stack.push(node)
+        stack = node :: stack
         //    println("push " + node)
 
         var min: Int = id
@@ -66,7 +66,8 @@ object GraphUtil {
 
           var loop: Boolean = true
           do {
-            val element = stack.pop()
+            val element = stack.head
+            stack = stack.tail
             //        println("appending " + element)
             scc.append(element)
             mark.put(element, Integer.MAX_VALUE)

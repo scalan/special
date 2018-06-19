@@ -1,10 +1,10 @@
 package scalan.meta.scalanizer
 
-import scala.annotation.tailrec
-import scala.collection.mutable.Map
-import scala.tools.nsc.Global
-import scalan.meta.ScalanAst._
-import scalan.meta.ScalanParsers
+//import scala.annotation.tailrec
+//import scala.collection.mutable.Map
+//import scala.tools.nsc.Global
+//import scalan.meta.ScalanAst._
+//import scalan.meta.ScalanParsers
 
 //trait HotSpots[G <: Global] extends ScalanizerBase[G] with Enricher[G] with Backend[G] with ScalanParsers[G] {
 //  import global._

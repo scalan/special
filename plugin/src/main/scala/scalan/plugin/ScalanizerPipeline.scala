@@ -2,20 +2,16 @@ package scalan.plugin
 
 import scala.collection.mutable
 import scalan.meta.scalanizer.Scalanizer
-
 import scala.tools.nsc.Global
 import scala.annotation.tailrec
 import scala.reflect.internal.Phase
 import scala.reflect.io.Path
-import scalan.meta.ScalanAstTransformers.{External2WrapperTypeTransformer, isIgnoredExternalType}
+import scalan.meta.ScalanAstTransformers.{isIgnoredExternalType, External2WrapperTypeTransformer}
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.Symbols.{SEntitySymbol, SSymbol}
+import scalan.meta.Symbols.{SSymbol, SEntitySymbol}
 import scalan.util.CollectionUtil._
 import scalan.meta._
-
-import scala.collection.mutable.ListBuffer
-import scala.tools.nsc.plugins.PluginComponent
 
 abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) { pipeline =>
   import scalanizer._

@@ -2,14 +2,14 @@
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 lazy val buildSettings = Seq(
-  scalaVersion := "2.11.8",
+  scalaVersion := "2.12.6",
   organization := "com.huawei.scalan",
   javacOptions ++= Seq("-source", "1.7", "-target", "1.7"),
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",
     "-unchecked",
     "-deprecation",
-    "-Xlint",
+    "-Xlint:-unused,_",
     "-feature",
     "-Ywarn-adapted-args",
     "-Ywarn-inaccessible",

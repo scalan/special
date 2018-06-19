@@ -2,9 +2,8 @@ package scalan
 
 import scalan.meta.ScalanAst.{SUnitDef, SEntityDef}
 import scala.collection.mutable
-import scala.reflect.internal.util.BatchSourceFile
-import scalan.meta.{Parsers, BoilerplateToolRun, SSymName}
-import scalan.util.{ReflectionUtil, FileUtil}
+import scalan.meta.{SSymName, Parsers, BoilerplateToolRun}
+import scalan.util.ReflectionUtil
 
 trait Modules extends Base { self: Scalan =>
   private[scalan] lazy val parsers = {

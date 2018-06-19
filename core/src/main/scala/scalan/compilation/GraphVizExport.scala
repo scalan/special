@@ -3,7 +3,7 @@ package scalan.compilation
 import java.awt.Desktop
 import java.io.{PrintWriter, File}
 
-import configs.{Configs, Result}
+import configs.Configs
 import configs.syntax._
 import com.typesafe.config.{ConfigUtil, Config}
 import configs.Result.{Success, Failure}
@@ -537,8 +537,18 @@ object GraphVizConfig {
   // not made implicit because it would be too easy to use
   // it accidentally instead of passing up
   // For some reason, return type has to be given explicitly
-  val defaultRes: Result[GraphVizConfig] = config.extract[GraphVizConfig]
-  val default = defaultRes.value
+  val default: GraphVizConfig = GraphVizConfig(
+    emitGraphs = true,
+    format = "dot",
+    orientation = Portrait,
+    maxLabelLineLength = 50,
+    subgraphClusters = true,
+    maxTypeNameLength = None,
+    typeAliasEdges = false,
+    emitMetadata = false,
+    showLambdaReturnSym = false
+  ) //config.extract[GraphVizConfig]
+
   val none: GraphVizConfig = default.copy(emitGraphs = false)
 
   def from(config: Config): GraphVizConfig = config.withFallback(this.config).extract[GraphVizConfig].value

@@ -1,14 +1,10 @@
 package scalan.meta
 
-import scalan.BaseNestedTests
-import scala.reflect.internal.util.BatchSourceFile
-import scala.tools.nsc.Global
 import scalan.meta.ScalanAst._
-import scalan.meta.Symbols.{SEntitySymbol, SEntityDefSymbol}
+import scalan.meta.Symbols.SEntityDefSymbol
 
 class ScalanParsersTests extends BaseMetaTests with Examples {
 
-  import compiler._
   import scalan.meta.ScalanAst.{STraitCall => TC, SUnitDef => EMD, SClassDef => CD, STpeTuple => T, SMethodArg => MA, STraitDef => TD, SMethodDef => MD, SMethodArgs => MAs, SImportStat => IS}
   import scala.{List => L}
   val cols = parseModule(colsVirtModule)

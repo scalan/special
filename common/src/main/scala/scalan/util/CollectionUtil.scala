@@ -1,9 +1,9 @@
 package scalan.util
 
 import scala.collection.{Seq, mutable}
-import mutable.{HashMap, ArrayBuffer}
+import scala.collection.mutable.{HashMap, ArrayBuffer}
 import scala.collection.generic.CanBuildFrom
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.ClassTag
 
 object CollectionUtil {
 
@@ -195,7 +195,7 @@ object CollectionUtil {
     }
 
     def partitionByType[B <: A, C <: A]
-        (implicit tB: ClassTag[B], tC: ClassTag[C],
+        (implicit tB: ClassTag[B],
                   cbB: CanBuildFrom[Source[A], B, Source[B]],
                   cbC: CanBuildFrom[Source[A], C, Source[C]]): (Source[B], Source[C]) = {
       val bs = cbB()

@@ -2,7 +2,6 @@ package scalan.compilation
 
 import java.io.{PrintWriter, File}
 
-import scala.collection.mutable
 import scalan.Scalan
 import scalan.meta.SSymName
 import scalan.util.FileUtil

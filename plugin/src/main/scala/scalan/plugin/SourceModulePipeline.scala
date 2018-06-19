@@ -5,14 +5,12 @@ import java.net.URLClassLoader
 import java.util.Properties
 
 import scalan.meta.scalanizer.Scalanizer
-
-import scala.tools.nsc.{Global, Phase}
+import scala.tools.nsc.Global
 import scala.collection.mutable.{Map => MMap}
 import scalan.meta._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.Symbols.{SEntityDefSymbol, SEntitySymbol, SSymbol, SUnitDefSymbol}
-
+import scalan.meta.Symbols.{SSymbol, SEntitySymbol, SUnitDefSymbol, SEntityDefSymbol}
 import scala.tools.nsc.doc.ScaladocSyntaxAnalyzer
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {

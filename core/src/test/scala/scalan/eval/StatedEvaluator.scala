@@ -38,9 +38,11 @@ class StatedEvaluator[IR <: StagedEvaluation](val IR: IR) {
   def evalStep(expr: Node, R: Stack): Sym = expr match {
     case AddrNode(α) => R match {
       case Nil => α
+      case _ => !!!(s"Unexpected stack", α)
     }
     case ExprNode(e) => (e, R) match {
       case (e, R) if isGroundNode(e) => addGroundNode(e)
     }
+    case _ => !!!(s"Don't know how to evalStep($expr, $R)")
   }
 }
