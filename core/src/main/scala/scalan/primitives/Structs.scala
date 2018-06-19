@@ -164,7 +164,7 @@ trait Structs extends Effects with StructItemsModule with StructKeysModule { sel
 
     override def from(y: Rep[T]) = {
       val items = eFrom.fields.zip(eTo.fields).zip(itemIsos).map {
-        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t]) =>
+        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t] @unchecked) =>
           fnS -> iso.from(y.getUnchecked[t](fnT))
         case (_, nonIso) => !!!(s"Iso expected but found $nonIso", self, y, nonIso)
       }
@@ -172,7 +172,7 @@ trait Structs extends Effects with StructItemsModule with StructKeysModule { sel
     }
     override def to(x: Rep[S]) = {
       val items = eFrom.fields.zip(eTo.fields).zip(itemIsos).map {
-        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t]) =>
+        case (((fnS, feS), (fnT, feT)), iso: Iso[s,t] @unchecked) =>
           fnT -> iso.to(x.getUnchecked[s](fnS))
         case (_, nonIso) => !!!(s"Iso expected but found $nonIso", self, x, nonIso)
       }
