@@ -221,7 +221,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
           case ClassTagTpe(tT) =>
             tpeArgs.find(t => t.name == tT.name) match {
               case Some(tpeArg) =>
-                reifiedArgs += tpeArg
+                reifiedArgs += tpeArg // remember that is should be @Reified
                 None // filter the arg out of section
               case None =>
                 // this ClassTag doesn't relate to type arguments so leave it in the section
@@ -515,7 +515,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
   /** Calls Scalan Meta to generate boilerplate code for the unit. */
   def genUnitBoilerplateText(mc: ModuleConf, unit: SUnitDef, isVirtualized: Boolean): String = {
     val gen = new scalan.meta.ModuleFileGenerator(
-      ScalanCodegen, unit, mc.mkUnit(unit.unitFileName, unit.fileName, isVirtualized = isVirtualized))
+      ScalanCodegen, unit, mc.mkUnit(unit.unitFileName, unit.fileName, isVirtualized))
     val implCode = gen.emitImplFile
     implCode
   }

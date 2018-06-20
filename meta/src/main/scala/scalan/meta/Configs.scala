@@ -73,7 +73,7 @@ abstract class ModuleConf extends Conf {
       isVirtualized = false
     )
 
-  def mkUnit(unitName: String, unitFile: String, isVirtualized: Boolean) =
+  def mkUnit(unitName: String, unitFile: String, isVirtualized: Boolean, definesWrappers: Boolean = false) =
     unitConfigTemplate(baseDir, unitName, unitFile).copy(
       srcPath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }",
       resourcePath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.ResourcesDir }",
@@ -110,8 +110,8 @@ class SourceModuleConf(
 
   def hasUnit(unitName: String) = units.contains(unitName)
 
-  def addUnit(unitName: String, unitFile: String): this.type = {
-    units.add(mkUnit(unitName, unitFile, isVirtualized = false))
+  def addUnit(unitName: String, unitFile: String, definesWrappers: Boolean = false): this.type = {
+    units.add(mkUnit(unitName, unitFile, isVirtualized = false, definesWrappers))
     this
   }
 

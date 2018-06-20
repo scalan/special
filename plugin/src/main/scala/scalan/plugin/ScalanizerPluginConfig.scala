@@ -51,6 +51,8 @@ abstract class ScalanizerPluginConfig extends ScalanizerConfig {
     NonWrapper(name = "CanBuildFrom"),
     NonWrapper(name = "Class"),
     NonWrapper(name = "ScalaRunTime"),
+    NonWrapper(name = "DummyImplicit"),
+    NonWrapper(name = "ArraySeq"),
     NonWrapper(name = "ClassTag")
   ).map(w => (w.name, w)).toMap
 
