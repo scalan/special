@@ -20,10 +20,7 @@ package scala {
       @External def zip[B](ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[T, B]]]
     };
     trait WArrayCompanion {
-      @External def fill[@Reified T](n: Rep[Int], elem: Rep[Thunk[T]]): Rep[WArray[T]];
-      @External def fallbackCanBuildFrom[T](implicit m: Rep[DummyImplicit], emT: Elem[T]): Rep[CanBuildFrom[(WArray[_$1] forSome { 
-        type _$1
-      }), T, ArraySeq[T]]]
+      @External def fill[@Reified T](n: Rep[Int], elem: Rep[Thunk[T]]): Rep[WArray[T]]
     }
   }
 }
