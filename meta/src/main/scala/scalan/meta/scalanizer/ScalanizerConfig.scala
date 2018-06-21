@@ -1,7 +1,7 @@
 package scalan.meta.scalanizer
 
 import scalan.meta._
-import scalan.meta.ScalanAst.{WrapperConfig, NonWrapper}
+import scalan.meta.ScalanAst.{WrapperConf, NonWrapper}
 
 trait ScalanizerConfig {
   /** Modules that contain units to be virtualized by scalan-meta. */
@@ -24,7 +24,7 @@ trait ScalanizerConfig {
 
   def getModule(moduleName: String): ModuleConf
 
-  def wrapperConfigs: Map[String, WrapperConfig]
+  def wrapperConfigs: Map[String, WrapperConf]
 
   def nonWrappers: Map[String, NonWrapper]
 

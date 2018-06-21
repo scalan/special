@@ -2,7 +2,7 @@ package scalan.plugin
 
 import scalan.{FunctorType, ContainerType}
 import scalan.meta._
-import scalan.meta.ScalanAst.{WrapperConfig, NonWrapper}
+import scalan.meta.ScalanAst.{WrapperConf, NonWrapper}
 import scalan.meta.scalanizer.ScalanizerConfig
 
 abstract class ScalanizerPluginConfig extends ScalanizerConfig {
@@ -32,16 +32,6 @@ abstract class ScalanizerPluginConfig extends ScalanizerConfig {
   def getUnitConfig(unitName: String) = unitConfigs.find(_.name == unitName).getOrElse {
     sys.error(s"Cannot fing UnitConfig for '$unitName'")
   }
-
-  val wrapperConfigs: Map[String, WrapperConfig] = List(
-    WrapperConfig(
-      name = "Array",
-      annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
-    ),
-    WrapperConfig(
-      name = "SpecialPredef"
-    )
-  ).map(w => (w.name, w)).toMap
 
   val nonWrappers: Map[String, NonWrapper] = List[NonWrapper](
     NonWrapper(name = "Predef"),

@@ -134,11 +134,13 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     },
     ForEachUnitStep("wrapfrontend") { context => import context._;
       val unitFileName = unit.source.file.name
-      if (isModuleUnit(unitFileName)) {
-        implicit val ctx = new SourcePipelineParseCtx(isVirtualized = false)(scalanizer.context)
-        val unitDef = unitDefFromTree(unitFileName, unit.body)
-        val t = new CatchWrappersTraverser(unitDef.unitSym, catchWrapperUsage)
-        t.traverse(unit.body)
+      findUnitModule(unitFileName) match {
+        case Some((_, unitConf)) if unitConf.definesWrappers =>
+          implicit val ctx = new SourcePipelineParseCtx(isVirtualized = false)(scalanizer.context)
+          val unitDef = unitDefFromTree(unitFileName, unit.body)
+          val t = new CatchWrappersTraverser(unitDef.unitSym, catchWrapperUsage)
+          t.traverse(unit.body)
+        case _ =>
       }
     },
     RunStep("enricher") { _ =>

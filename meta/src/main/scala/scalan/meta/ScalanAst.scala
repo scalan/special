@@ -1131,12 +1131,18 @@ object ScalanAst {
 
     def allEntities: List[SEntityDef] = traits ++ classes
 
-//    private def hasDeclaredImplFor(traitName: String, decls: Option[SDeclaredImplementations]) = {
-//      decls match {
-//        case Some(impls) => impls.declarations.contains(traitName)
-//        case None => false
-//      }
-//    }
+    /** Collects all WrapSpec entities from this unit. */
+    def collectWrapSpecs: List[SEntityDef] = {
+      ???
+    }
+
+    lazy val wrappers: ConfMap[WrapperConf] = {
+      val specs = collectWrapSpecs
+      ???
+    }
+
+    /** If returns true then this unit is used for capturing wrappers (see CatchWrappersTraverser) */
+    def definesWrappers: Boolean = wrappers.nonEmpty
 
     def dependencies: Seq[SUnitDef] = {
       Seq() // TODO collect dependencies for the module
@@ -1216,15 +1222,15 @@ object ScalanAst {
     }
   }
 
-  case class WrapperConfig(name: String, annotations: List[String] = Nil)
+  case class WrapperConf(baseDir: String, name: String, annotations: List[String] = Nil) extends Conf
 
   case class NonWrapper(name: String)
 
-  object WrapperConfig {
-    def default(name: String) = WrapperConfig(name)
+  object WrapperConf {
+    def default(baseDir: String, name: String) = WrapperConf(baseDir, name)
   }
 
-  case class WrapperDescr(module: SUnitDef, ownerChain: List[String], config: WrapperConfig)
+  case class WrapperDescr(module: SUnitDef, ownerChain: List[String], config: WrapperConf)
 
   case class KernelType(name: String, confKey: String)
 

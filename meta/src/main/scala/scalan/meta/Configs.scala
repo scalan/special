@@ -7,6 +7,7 @@ import com.trueaccord.lenses.Updatable
 import scalan.util.{FileUtil, GraphUtil}
 import scalan.util.StringUtil._
 import scala.collection.mutable.{Map => MMap}
+import scalan.meta.ScalanAst.WrapperConf
 
 trait Conf {
   /** Module name, which is also name of the directory */
@@ -24,6 +25,9 @@ class ConfMap[C <: Conf] private(val table: MMap[String, C]) extends (String => 
     table += (conf.name -> conf)
     return this
   }
+
+  def isEmpty = table.isEmpty
+  def nonEmpty = table.nonEmpty
 
   def keySet = table.keySet
 
@@ -73,7 +77,7 @@ abstract class ModuleConf extends Conf {
       isVirtualized = false
     )
 
-  def mkUnit(unitName: String, unitFile: String, isVirtualized: Boolean, definesWrappers: Boolean = false) =
+  def mkUnit(unitName: String, unitFile: String, isVirtualized: Boolean) =
     unitConfigTemplate(baseDir, unitName, unitFile).copy(
       srcPath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }",
       resourcePath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.ResourcesDir }",
@@ -110,8 +114,8 @@ class SourceModuleConf(
 
   def hasUnit(unitName: String) = units.contains(unitName)
 
-  def addUnit(unitName: String, unitFile: String, definesWrappers: Boolean = false): this.type = {
-    units.add(mkUnit(unitName, unitFile, isVirtualized = false, definesWrappers))
+  def addUnit(unitName: String, unitFile: String): this.type = {
+    units.add(mkUnit(unitName, unitFile, isVirtualized = false))
     this
   }
 
@@ -144,7 +148,9 @@ case class UnitConfig(
     entityFile: String, // the package path and file name (example: scalan/collection/Col.scala)
     baseContextTrait: String = "scalan.Scalan",
     extraImports: List[String] = List("scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}", "scalan.meta.ScalanAst._"),
-    isVirtualized: Boolean = true) extends Conf with Updatable[UnitConfig] {
+    isVirtualized: Boolean = true
+) extends Conf with Updatable[UnitConfig]
+{
   val entityResource = entityFile.replaceSuffix(".scala", ModuleConf.ResourceFileExtension)
   def getFile: File = FileUtil.file(srcPath, entityFile)
   def getResourceFile: File = {

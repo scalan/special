@@ -7,10 +7,20 @@ class SpecialLibraryConfig extends LibraryConfig {
   def baseDir = ""
   
   val ApiModule: SourceModuleConf = new SourceModuleConf("", "library-api")
-      .addUnit("WrappersSpec.scala", "library/WrappersSpec.scala", definesWrappers = true)
+      .addUnit("WrappersSpec.scala", "library/WrappersSpec.scala")
       .addUnit("Monoids.scala", "scalan/collection/Monoids.scala")
       .addUnit("Cols.scala", "scalan/collection/Cols.scala")
       .addUnit("Costs.scala", "scalan/collection/Costs.scala")
+
+//  val wrapperConfigs: Map[String, WrapperConfig] = List(
+//    WrapperConfig(
+//      name = "Array",
+//      annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
+//    ),
+//    WrapperConfig(
+//      name = "SpecialPredef"
+//    )
+//  ).map(w => (w.name, w)).toMap
 
   val ImplModule = new SourceModuleConf("", "library-impl")
       .addUnit("MonoidInstances.scala", "scalan/collection/MonoidInstances.scala")
