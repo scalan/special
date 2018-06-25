@@ -1,7 +1,7 @@
 package library {
   import scalan._
 
-  trait WrappersSpec extends Base { self: WrappersSpecModule =>
+  trait WrappersSpec extends Base { self: Library =>
     trait WrapSpec extends Def[WrapSpec];
     abstract class ArrayWrapSpec extends WrapSpec {
       def zip[A, B](xs: Rep[WArray[A]], ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[A, B]]] = xs.zip(ys);

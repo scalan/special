@@ -12,6 +12,7 @@ import scalan.meta.ScalanAstExtensions._
 import scalan.meta.Symbols.{SSymbol, SEntitySymbol}
 import scalan.util.CollectionUtil._
 import scalan.meta._
+import scalan.util.FileUtil
 
 abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) { pipeline =>
   import scalanizer._
@@ -562,5 +563,32 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       new TypeInWrappersTransformer(externalTypeName).moduleTransform(acc)
     }
     wrappedModule
+  }
+
+  def loadWrapperFromFile
+      (step: PipelineStep, module: ModuleConf, wConf: WrapperConf)
+      (implicit ctx: ParseCtx) = {
+    val unitName = wmod(wConf.name)
+    val wFile = FileUtil.file(
+      module.getWrappersRootDir,
+      wConf.packageName.replace('.', '/'),
+      unitName + ModuleConf.ResourceFileExtension)
+    val wUnit = parseUnitFile(wFile)
+    context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
+    scalanizer.inform(
+      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
+          s"(parsed from file ${wFile})")
+  }
+
+  def loadWrapperFromResource
+      (step: PipelineStep, module: ModuleConf, wConf: WrapperConf)
+      (implicit ctx: ParseCtx) = {
+    val wUnitName = wmod(wConf.name)
+    val wResourcePath = wConf.packageName.replace('.', '/') + "/" + wUnitName + ModuleConf.ResourceFileExtension
+    val wUnit = scalanizer.loadUnitDefFromResource(wResourcePath)
+    context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
+    scalanizer.inform(
+      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
+          s"(parsed from resource ${wResourcePath})")
   }
 }

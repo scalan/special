@@ -38,7 +38,7 @@ package scalan.collection {
       };
       def functorArg(arr: Rep[WArray[Double]])(evF: Functor[WArray]): Rep[WArray[Double]] = evF.map[Double, Double](arr)(fun(((x: Rep[Double]) => x.+(toRep(1.asInstanceOf[Int])))))
     };
-    @Typeclass trait Functor[F[_]] extends Def[Functor[F]] {
+    trait Functor[F[_]] extends Def[Functor[F]] {
       implicit def cF: Cont[F];
       def map[A, B](fa: Rep[F[A]])(f: Rep[scala.Function1[A, B]]): Rep[F[B]]
     };

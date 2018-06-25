@@ -101,7 +101,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   }
 
   val steps: List[PipelineStep] = List(
-    RunStep("assembler") { _ =>
+    RunStep("assembler") { step =>
       scalanizer.inform(s"Processing target module '${scalanizer.moduleName }'")
       // merge all partial wrappers from source modules
       val target = snConfig.targetModules(moduleName)
@@ -151,6 +151,9 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           context.addUnit(prepared)
           val name = SSymName(prepared.packageName, prepared.name)
           preparedUnits += ((name, (prepared, srcUnitConf)))
+          for (wConf <- srcUnitConf.wrappers.values) {
+            loadWrapperFromFile(step, srcModule, wConf)(new ParseCtx(isVirtualized = true)(context))
+          }
         }
       }
 

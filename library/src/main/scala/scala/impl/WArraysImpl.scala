@@ -102,69 +102,33 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
   }
 
   object WArrayMethods {
-    object zip {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
-        case MethodCall(receiver, method, Seq(ys, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "zip" =>
-          Some((receiver, ys)).asInstanceOf[Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[Int]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(i, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "apply" =>
+          Some((receiver, i)).asInstanceOf[Option[(Rep[WArray[T]], Rep[Int]) forSome {type T}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[Int]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
-    object map {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
-        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "map" =>
-          Some((receiver, f)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
+    object foreach {
+      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "foreach" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
-    object length {
-      def unapply(d: Def[_]): Option[Rep[WArray[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "length" =>
-          Some(receiver).asInstanceOf[Option[Rep[WArray[T]] forSome {type T}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[Rep[WArray[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object slice {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[Int], Rep[Int]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(from, until, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "slice" =>
-          Some((receiver, from, until)).asInstanceOf[Option[(Rep[WArray[T]], Rep[Int], Rep[Int]) forSome {type T}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[Int], Rep[Int]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object foldLeft {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[B], Rep[((B, T)) => B]) forSome {type T; type B}] = d match {
-        case MethodCall(receiver, method, Seq(zero, op, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "foldLeft" =>
-          Some((receiver, zero, op)).asInstanceOf[Option[(Rep[WArray[T]], Rep[B], Rep[((B, T)) => B]) forSome {type T; type B}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[B], Rep[((B, T)) => B]) forSome {type T; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object filter {
+    object exists {
       def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => Boolean]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "filter" =>
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "exists" =>
           Some((receiver, p)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => Boolean]) forSome {type T}]]
         case _ => None
       }
@@ -186,9 +150,9 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
       }
     }
 
-    object exists {
+    object filter {
       def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => Boolean]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "exists" =>
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "filter" =>
           Some((receiver, p)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => Boolean]) forSome {type T}]]
         case _ => None
       }
@@ -198,25 +162,61 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
       }
     }
 
-    object foreach {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "foreach" =>
-          Some((receiver, f)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}]]
+    object foldLeft {
+      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[B], Rep[((B, T)) => B]) forSome {type T; type B}] = d match {
+        case MethodCall(receiver, method, Seq(zero, op, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "foldLeft" =>
+          Some((receiver, zero, op)).asInstanceOf[Option[(Rep[WArray[T]], Rep[B], Rep[((B, T)) => B]) forSome {type T; type B}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[T => Unit]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[B], Rep[((B, T)) => B]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
-    object apply {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[Int]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(i, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "apply" =>
-          Some((receiver, i)).asInstanceOf[Option[(Rep[WArray[T]], Rep[Int]) forSome {type T}]]
+    object slice {
+      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[Int], Rep[Int]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(from, until, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "slice" =>
+          Some((receiver, from, until)).asInstanceOf[Option[(Rep[WArray[T]], Rep[Int], Rep[Int]) forSome {type T}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[Int]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[Int], Rep[Int]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object length {
+      def unapply(d: Def[_]): Option[Rep[WArray[T]] forSome {type T}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "length" =>
+          Some(receiver).asInstanceOf[Option[Rep[WArray[T]] forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[WArray[T]] forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object map {
+      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
+        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "map" =>
+          Some((receiver, f)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object zip {
+      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
+        case MethodCall(receiver, method, Seq(ys, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "zip" =>
+          Some((receiver, ys)).asInstanceOf[Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

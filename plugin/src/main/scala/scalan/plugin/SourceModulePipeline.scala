@@ -104,33 +104,6 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     }
   }
 
-  def loadWrapperFromFile
-      (step: PipelineStep, module: ModuleConf, wConf: WrapperConf)
-      (implicit ctx: ParseCtx) = {
-    val unitName = wmod(wConf.name)
-    val wFile = FileUtil.file(
-      module.getWrappersRootDir,
-      wConf.packageName.replace('.', '/'),
-      unitName + ModuleConf.ResourceFileExtension)
-    val wUnit = parseUnitFile(wFile)
-    context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
-    scalanizer.inform(
-      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
-          s"(parsed from file ${wFile})")
-  }
-
-  def loadWrapperFromResource
-      (step: PipelineStep, module: ModuleConf, wConf: WrapperConf)
-      (implicit ctx: ParseCtx) = {
-    val wUnitName = wmod(wConf.name)
-    val wResourcePath = wConf.packageName.replace('.', '/') + "/" + wUnitName + ModuleConf.ResourceFileExtension
-    val wUnit = scalanizer.loadUnitDefFromResource(wResourcePath)
-    context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
-    scalanizer.inform(
-      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
-          s"(parsed from resource ${wResourcePath})")
-  }
-
   val steps: List[PipelineStep] = List(
     RunStep("dependencies") { step =>
       implicit val parseCtx: ParseCtx = new ParseCtx(isVirtualized = true)(context)
