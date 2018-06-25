@@ -33,6 +33,18 @@ abstract class ScalanizerPluginConfig extends ScalanizerConfig {
     sys.error(s"Cannot fing UnitConfig for '$unitName'")
   }
 
+  def wrapperConfigs: Map[String, WrapperConf] = {
+    val wlist = for {
+      m <- sourceModules.values
+      u <- m.units.values
+      w <- u.wrappers } yield w
+    val gs = wlist.groupBy(_._1)
+    val duplicates = gs.filter(_._2.size > 2)
+    if (duplicates.nonEmpty)
+      sys.error(s"Duplicated definition of wrappers ${duplicates.keySet}")
+    gs.mapValues(xs => xs.head._2)
+  }
+
   val nonWrappers: Map[String, NonWrapper] = List[NonWrapper](
     NonWrapper(name = "Predef"),
     NonWrapper(name = "<byname>"),

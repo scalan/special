@@ -17,7 +17,15 @@ trait Scalanizer[+G <: Global]
   def getSourceModule = snConfig.sourceModules.get(moduleName).getOrElse {
     global.abort(
       s"""Source module $moduleName is not found in config instance of ${snConfig.getClass.getName}.
-        |Declared modules ${snConfig.sourceModules.keySet}.
+        |Declared source modules ${snConfig.sourceModules.keySet}.
+       """.stripMargin
+    )
+  }
+
+  def getTargetModule = snConfig.targetModules.get(moduleName).getOrElse {
+    global.abort(
+      s"""Target module $moduleName is not found in config instance of ${snConfig.getClass.getName}.
+        |Declared target modules ${snConfig.targetModules.keySet}.
        """.stripMargin
     )
   }

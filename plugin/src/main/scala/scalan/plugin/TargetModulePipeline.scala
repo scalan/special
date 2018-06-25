@@ -138,7 +138,10 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       // add wrappers to the context
       for (w <- wrappers.values) {
         val externalName = w.traits(0).getExternalName.get
-        context.updateWrapper(externalName, WrapperDescr(w, Nil, WrapperConf.default(externalName)))
+        context.updateWrapper(
+          externalName,
+          WrapperDescr(w, WrapperConf.default(getTargetModule.baseDir, externalName))
+        )
       }
 
       // prepare units from source modules

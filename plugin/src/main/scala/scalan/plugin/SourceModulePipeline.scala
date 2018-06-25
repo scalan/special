@@ -110,6 +110,9 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           val unit = parseUnitFile(unitConf.getResourceFile)
           scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
           context.addUnit(unit, unitConf)
+          for (w <- unit.wrappers.values) {
+
+          }
         }
       }
       // add Special units from libraries we depend on
@@ -173,7 +176,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       ()
     },
     RunStep("wrapbackend") { _ =>
-      context.forEachWrapper { case (_, WrapperDescr(u, _, config)) =>
+      context.forEachWrapper { case (_, WrapperDescr(u, config)) =>
         val wUnit = u.copy(imports = u.imports :+ SImportStat("scala.wrappers.WrappersModule"))(scalanizer.context)
         val moduleConf = getSourceModule
 

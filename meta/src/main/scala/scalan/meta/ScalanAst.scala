@@ -1230,7 +1230,7 @@ object ScalanAst {
     def default(baseDir: String, name: String) = WrapperConf(baseDir, name)
   }
 
-  case class WrapperDescr(module: SUnitDef, ownerChain: List[String], config: WrapperConf)
+  case class WrapperDescr(module: SUnitDef, config: WrapperConf)
 
   case class KernelType(name: String, confKey: String)
 

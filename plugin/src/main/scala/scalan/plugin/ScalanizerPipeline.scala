@@ -111,7 +111,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
 
   def registerArrayOp(owner: SEntitySymbol, mkOp: (SSymbol, STpeArg) => SMethodDef) = {
     val tT = STpeArg("T")
-    updateWrapperSpecial("scala", "Array", List(tT), Nil, false, mkOp(owner, tT), Nil)
+    updateWrapperSpecial("scala", "Array", List(tT), Nil, false, mkOp(owner, tT))
   }
 
   def catchSpecialWrapper(owner: SEntitySymbol, tree: Tree): Boolean = {
@@ -290,20 +290,27 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       STpeArg(name = param.nameString, bound = None, contextBound = Nil, tparams = Nil)
     }
     val originalEntityAncestors = getExtTypeAncestors(externalType)
-    val ownerChain = externalTypeSym.ownerChain.map(_.nameString)
+    val externalTypeName = externalType.typeSymbol.nameString
+    val wrapperConf = snConfig.wrapperConfigs.getOrElse(externalTypeName,
+        WrapperConf.default(getSourceModule.baseDir, externalTypeName))
     createWrapperSpecial(
+      wrapperConf,
       externalTypeSym.enclosingPackage.name,
-      externalType.typeSymbol.nameString, tpeArgs,
-      originalEntityAncestors,
-      ownerChain)
+      externalTypeName,
+      tpeArgs,
+      originalEntityAncestors
+    )
   }
 
   /** Create wrapper module for a new type externalTypeName */
-  def createWrapperSpecial(packageName: String, externalTypeName: String, tpeArgs: STpeArgs,
-      originalEntityAncestors: List[STypeApply],
-      ownerChain: List[String]): WrapperDescr = {
+  def createWrapperSpecial(
+      wrapperConf: WrapperConf,
+      packageName: String,
+      externalTypeName: String,
+      tpeArgs: STpeArgs,
+      originalEntityAncestors: List[STypeApply]
+  ): WrapperDescr = {
     val (externalName, wClassName, companionName) = wrapperNames(externalTypeName)
-    val wrapperConf = snConfig.wrapperConfigs.getOrElse(externalTypeName, WrapperConf.default(externalTypeName))
     val typeParams = tpeArgs.map { arg =>
       STraitCall(name = arg.name, args = Nil)
     }
@@ -348,7 +355,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       origModuleTrait = None,
       isVirtualized = false
     )(context)
-    WrapperDescr(wrapUnit, ownerChain, wrapperConf)
+    WrapperDescr(wrapUnit, wrapperConf)
   }
 
   /** Create/update Meta AST of the module for the external type. It assembles
@@ -406,10 +413,11 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       tpeArgs: STpeArgs,
       originalEntityAncestors: List[STypeApply],
       isCompanion: Boolean,
-      member: SMethodDef,
-      ownerChain: List[String]): Unit = {
+      member: SMethodDef): Unit = {
     val wrapper = context.getWrapper(externalTypeName).getOrElse {
-      createWrapperSpecial(packageName, externalTypeName, tpeArgs, originalEntityAncestors, ownerChain)
+      val wrapperConf = snConfig.wrapperConfigs.getOrElse(externalTypeName,
+        WrapperConf.default(getSourceModule.baseDir, externalTypeName))
+      createWrapperSpecial(wrapperConf, packageName, externalTypeName, tpeArgs, originalEntityAncestors)
     }
     val updatedWrapper = addMember(isCompanion, member, wrapper)
     context.updateWrapper(externalTypeName, updatedWrapper)

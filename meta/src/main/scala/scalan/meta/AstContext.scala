@@ -12,7 +12,7 @@ import scalan.meta.ScalanAst.{STraitCall, STpeDef, SUnitDef, STpeExpr, STpeFunc,
 class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], okLoadModules: Boolean = false)
     extends Symbols {
 
-  /** Mapping of external type names to their wrappers. */
+  /** Mapping of external type names to their wrappers ("Array" -> WrapperDescr). */
   private val wrappers = MMap[String, WrapperDescr]()
 
   /** Mapping of W-entities to the corresponding wrapped type name ("WArray" -> "Array") */

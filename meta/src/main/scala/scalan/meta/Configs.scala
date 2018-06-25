@@ -77,11 +77,12 @@ abstract class ModuleConf extends Conf {
       isVirtualized = false
     )
 
-  def mkUnit(unitName: String, unitFile: String, isVirtualized: Boolean) =
+  def mkUnit(unitName: String, unitFile: String, isVirtualized: Boolean, wrappers: Map[String, WrapperConf] = Map()) =
     unitConfigTemplate(baseDir, unitName, unitFile).copy(
       srcPath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }",
       resourcePath = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.ResourcesDir }",
-      isVirtualized = isVirtualized
+      isVirtualized = isVirtualized,
+      wrappers = wrappers
     )
 }
 
@@ -114,8 +115,8 @@ class SourceModuleConf(
 
   def hasUnit(unitName: String) = units.contains(unitName)
 
-  def addUnit(unitName: String, unitFile: String): this.type = {
-    units.add(mkUnit(unitName, unitFile, isVirtualized = false))
+  def addUnit(unitName: String, unitFile: String, wrappers: Map[String, WrapperConf] = Map()): this.type = {
+    units.add(mkUnit(unitName, unitFile, isVirtualized = false, wrappers))
     this
   }
 
@@ -148,7 +149,8 @@ case class UnitConfig(
     entityFile: String, // the package path and file name (example: scalan/collection/Col.scala)
     baseContextTrait: String = "scalan.Scalan",
     extraImports: List[String] = List("scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}", "scalan.meta.ScalanAst._"),
-    isVirtualized: Boolean = true
+    isVirtualized: Boolean = true,
+    wrappers: Map[String, WrapperConf] = Map()
 ) extends Conf with Updatable[UnitConfig]
 {
   val entityResource = entityFile.replaceSuffix(".scala", ModuleConf.ResourceFileExtension)
@@ -159,6 +161,7 @@ case class UnitConfig(
   def packageName: String = entityFile.stripSuffix("/" + entityFile).replace('/', '.')
   def unitName: String = name.stripSuffix(".scala")
   @inline def unitKey: String = SSymName.fullNameString(packageName, unitName)
+  def definesWrappers: Boolean = wrappers.nonEmpty
 }
 
 object UnitConfig {
