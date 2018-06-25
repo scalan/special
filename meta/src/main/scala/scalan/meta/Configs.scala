@@ -161,6 +161,8 @@ case class UnitConfig(
   def packageName: String = entityFile.stripSuffix("/" + entityFile).replace('/', '.')
   def unitName: String = name.stripSuffix(".scala")
   @inline def unitKey: String = SSymName.fullNameString(packageName, unitName)
+
+  /** If returns true then this unit is used for capturing wrappers (see CatchWrappersTraverser) */
   def definesWrappers: Boolean = wrappers.nonEmpty
 }
 

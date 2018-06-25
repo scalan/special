@@ -10,10 +10,12 @@ class SpecialLibraryConfig extends LibraryConfig {
 
   def wrapperConfigs: Map[String, WrapperConf] = List(
       WrapperConf(baseDir,
+        packageName = "scala",
         name = "Array",
         annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
       ),
       WrapperConf(baseDir,
+        packageName = "scalan",
         name = "SpecialPredef"
       )
     ).map(w => (w.name, w)).toMap

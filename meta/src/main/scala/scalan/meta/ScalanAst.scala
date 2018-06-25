@@ -1136,14 +1136,6 @@ object ScalanAst {
       ???
     }
 
-    lazy val wrappers: ConfMap[WrapperConf] = {
-      val specs = collectWrapSpecs
-      ???
-    }
-
-    /** If returns true then this unit is used for capturing wrappers (see CatchWrappersTraverser) */
-    def definesWrappers: Boolean = wrappers.nonEmpty
-
     def dependencies: Seq[SUnitDef] = {
       Seq() // TODO collect dependencies for the module
     }
@@ -1222,15 +1214,15 @@ object ScalanAst {
     }
   }
 
-  case class WrapperConf(baseDir: String, name: String, annotations: List[String] = Nil) extends Conf
+  case class WrapperConf(baseDir: String, packageName: String, name: String, annotations: List[String] = Nil) extends Conf
 
   case class NonWrapper(name: String)
 
-  object WrapperConf {
-    def default(baseDir: String, name: String) = WrapperConf(baseDir, name)
-  }
-
-  case class WrapperDescr(module: SUnitDef, config: WrapperConf)
+  case class WrapperDescr(
+    unit: SUnitDef, config: WrapperConf,
+    /** True if this wrapper is imported via dependencies. */
+    isImported: Boolean = false
+  )
 
   case class KernelType(name: String, confKey: String)
 

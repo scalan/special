@@ -10,8 +10,9 @@ import scala.collection.mutable.{Map => MMap}
 import scalan.meta._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.Symbols.{SSymbol, SEntitySymbol, SUnitDefSymbol, SEntityDefSymbol}
+import scalan.meta.Symbols.{SEntityDefSymbol, SSymbol, SEntitySymbol, SUnitDefSymbol}
 import scala.tools.nsc.doc.ScaladocSyntaxAnalyzer
+import scalan.util.FileUtil
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
   import scalanizer._
@@ -79,17 +80,20 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     }
   }
 
-  def loadModuleUnits(step: PipelineStep, source: ModuleConf)(implicit ctx: ParseCtx): Unit = {
-    for (depModule <- source.dependsOnModules()) {
+  def loadModuleUnits(step: PipelineStep, sourceMod: ModuleConf)(implicit ctx: ParseCtx): Unit = {
+    for (depModule <- sourceMod.dependsOnModules()) {
       loadModuleUnits(step, depModule)
     }
-    for (unitConf <- source.units.values) {
+    for (unitConf <- sourceMod.units.values) {
       if(!scalanizer.context.hasUnit(unitConf.packageName, unitConf.unitName)) {
         val unit = scalanizer.loadUnitDefFromResource(unitConf.entityResource)
         context.addUnit(unit, unitConf)
         scalanizer.inform(
-          s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${source.name}' " +
+          s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${sourceMod.name}' " +
               s"(parsed from resource ${unitConf.entityFile})")
+        for (wConf <- unitConf.wrappers.values) {
+          loadWrapperFromResource(step, sourceMod, wConf)
+        }
       }
     }
   }
@@ -98,6 +102,33 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     for (source <- lib.sourceModules) {
       loadModuleUnits(step, source)
     }
+  }
+
+  def loadWrapperFromFile
+      (step: PipelineStep, module: ModuleConf, wConf: WrapperConf)
+      (implicit ctx: ParseCtx) = {
+    val unitName = wmod(wConf.name)
+    val wFile = FileUtil.file(
+      module.getWrappersRootDir,
+      wConf.packageName.replace('.', '/'),
+      unitName + ModuleConf.ResourceFileExtension)
+    val wUnit = parseUnitFile(wFile)
+    context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
+    scalanizer.inform(
+      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
+          s"(parsed from file ${wFile})")
+  }
+
+  def loadWrapperFromResource
+      (step: PipelineStep, module: ModuleConf, wConf: WrapperConf)
+      (implicit ctx: ParseCtx) = {
+    val wUnitName = wmod(wConf.name)
+    val wResourcePath = wConf.packageName.replace('.', '/') + "/" + wUnitName + ModuleConf.ResourceFileExtension
+    val wUnit = scalanizer.loadUnitDefFromResource(wResourcePath)
+    context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
+    scalanizer.inform(
+      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
+          s"(parsed from resource ${wResourcePath})")
   }
 
   val steps: List[PipelineStep] = List(
@@ -110,8 +141,8 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           val unit = parseUnitFile(unitConf.getResourceFile)
           scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
           context.addUnit(unit, unitConf)
-          for (w <- unit.wrappers.values) {
-
+          for (wConf <- unitConf.wrappers.values) {
+            loadWrapperFromFile(step, depModule, wConf)
           }
         }
       }
@@ -151,43 +182,47 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       import moduleBuilder._
       implicit val context = virtPipeline.context
 
-      context.transformWrappers { case (name, wrapperDescr) =>
-        /** Transformations of Wrappers by adding of Elem, Cont and other things. */
-        val pipeline = scala.Function.chain(Seq(
-          preventNameConflict _,
-          addBaseToAncestors _,
-          addDefAncestorToAllEntities _,
-          updateSelf _,
-          checkEntityCompanion _,
-          constr2apply _,
-          removeClassTagsFromSignatures _,
-          preventNameConflict _,
-          genEntityImplicits _,
-          genMethodsImplicits _,
-          replaceExternalTypeByWrapper _,
-          /** Currently, inheritance of type wrappers is not supported.
-            * Print warnings and remove ancestors. */
-          filterAncestors _
-        ))
-        val enrichedModule = pipeline(wrapperDescr.module)
+      context.transformWrappers {
+        case (name, wDescr) if !wDescr.isImported =>
+          /** Transformations of Wrappers by adding of Elem, Cont and other things. */
+          val pipeline = scala.Function.chain(Seq(
+            preventNameConflict _,
+            addBaseToAncestors _,
+            addDefAncestorToAllEntities _,
+            updateSelf _,
+            checkEntityCompanion _,
+            constr2apply _,
+            removeClassTagsFromSignatures _,
+            preventNameConflict _,
+            genEntityImplicits _,
+            genMethodsImplicits _,
+            replaceExternalTypeByWrapper _,
+            /** Currently, inheritance of type wrappers is not supported.
+              * Print warnings and remove ancestors. */
+            filterAncestors _
+          ))
+          val enrichedUnit = pipeline(wDescr.unit)
+          wDescr.copy(unit = enrichedUnit)
 
-        wrapperDescr.copy(module = enrichedModule)
+        case (_,wDescr) => wDescr
       }
       ()
     },
     RunStep("wrapbackend") { _ =>
-      context.forEachWrapper { case (_, WrapperDescr(u, config)) =>
-        val wUnit = u.copy(imports = u.imports :+ SImportStat("scala.wrappers.WrappersModule"))(scalanizer.context)
-        val moduleConf = getSourceModule
+      context.forEachWrapper {
+        case (_, WrapperDescr(u, config, false)) =>
+          val wUnit = u.copy(imports = u.imports :+ SImportStat("scala.wrappers.WrappersModule"))(scalanizer.context)
+          val moduleConf = getSourceModule
 
-        /** Build source code of the wrapper unit and store it in a file */
-        val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)
-        val optImplicits = optimizeModuleImplicits(wUnitWithoutImpl)
-        val wrapperPackage = genPackageDef(optImplicits, isVirtualized = false)(scalanizer.context)
-        saveWrapperCode(moduleConf,
-          optImplicits.packageName,
-          optImplicits.name,
-          showCode(wrapperPackage))
+          /** Build source code of the wrapper unit and store it in a file */
+          val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)
+          val optImplicits = optimizeModuleImplicits(wUnitWithoutImpl)
+          val wrapperPackage = genPackageDef(optImplicits, isVirtualized = false)(scalanizer.context)
+          saveWrapperCode(moduleConf,
+            optImplicits.packageName,
+            optImplicits.name,
+            showCode(wrapperPackage))
+        case _ => // do nothing
       }
     },
     ForEachUnitStep("virtfrontend") { context => import context._;

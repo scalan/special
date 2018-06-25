@@ -292,7 +292,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val originalEntityAncestors = getExtTypeAncestors(externalType)
     val externalTypeName = externalType.typeSymbol.nameString
     val wrapperConf = snConfig.wrapperConfigs.getOrElse(externalTypeName,
-        WrapperConf.default(getSourceModule.baseDir, externalTypeName))
+      !!!(s"Wrapper config not found for name $externalTypeName"))
     createWrapperSpecial(
       wrapperConf,
       externalTypeSym.enclosingPackage.name,
@@ -416,7 +416,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       member: SMethodDef): Unit = {
     val wrapper = context.getWrapper(externalTypeName).getOrElse {
       val wrapperConf = snConfig.wrapperConfigs.getOrElse(externalTypeName,
-        WrapperConf.default(getSourceModule.baseDir, externalTypeName))
+        !!!(s"Wrapper config not found for name $externalTypeName"))
       createWrapperSpecial(wrapperConf, packageName, externalTypeName, tpeArgs, originalEntityAncestors)
     }
     val updatedWrapper = addMember(isCompanion, member, wrapper)
@@ -437,8 +437,8 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       else e.body.exists(_.signature == sig)
     }
 
-    val module = wrapper.module
-    val newModule = module.updateFirstEntity { e =>
+    val unit = wrapper.unit
+    val newUnit = unit.updateFirstEntity { e =>
       if (isAlreadyAdded(e)) e
       else {
         if (isCompanion) {
@@ -448,7 +448,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
               Some(companion.copy(body = updatedBody))
             case _ =>
               throw new IllegalArgumentException(
-                s"Cannot add member $member to companion because it is not found: module ${module.name }, entity: ${e.name }")
+                s"Cannot add member $member to companion because it is not found: unit ${unit.name }, entity: ${e.name }")
           }
           e.copy(companion = updatedCompanion)
         } else {
@@ -458,7 +458,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       }
     }
     wrapper.copy(
-      module = newModule
+      unit = newUnit
     )
   }
 

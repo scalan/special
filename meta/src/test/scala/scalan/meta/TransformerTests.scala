@@ -7,7 +7,7 @@ import scalan.meta.ScalanAstTransformers.{RepTypeRemover, TypeTransformerInAst}
 class TransformerTests extends BaseMetaTests with Examples {
   val colsVirt = parseModule(colsVirtModule)
   val warrays = parseModule(warraysModule)
-  context.updateWrapper("Array", WrapperDescr(warrays, WrapperConf.default("", "Array")))
+  context.updateWrapper("Array", WrapperDescr(warrays, WrapperConf("", "scala", "Array")))
   val b = new SModuleBuilder
 
   describe("Rep removing") {

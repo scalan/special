@@ -49,7 +49,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
 
   def updateWrapper(typeName: String, descr: WrapperDescr) = {
     wrappers(typeName) = descr
-    val entityName = descr.module.traits(0).name
+    val entityName = descr.unit.traits(0).name
     entityToWrapper(entityName) = typeName
   }
 
@@ -99,7 +99,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     }
   }
 
-  def allModules: Iterator[SUnitDef] = wrappers.valuesIterator.map(_.module) ++ units.valuesIterator
+  def allModules: Iterator[SUnitDef] = wrappers.valuesIterator.map(_.unit) ++ units.valuesIterator
 
   //TODO refactor to use Name for more precise ModuleEntity search
   def findModuleEntity(entityName: String): Option[(Module, Entity)] = {
