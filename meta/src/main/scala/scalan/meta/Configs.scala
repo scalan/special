@@ -63,7 +63,7 @@ abstract class ModuleConf extends Conf {
 
   def getResourcesRootDir = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.ResourcesDir }"
 
-  def getWrappersRootDir = getResourcesRootDir + "/wrappers"
+  def getWrappersRootDir = getResourcesRootDir + "/" + ModuleConf.WrappersResourcesDir
 
   private def unitConfigTemplate(baseDir: String, name: String, entityFile: String) =
     UnitConfig(
@@ -90,6 +90,7 @@ object ModuleConf {
   val SourcesDir = "src/main/scala"
   val TestsDir = "src/test/scala"
   val ResourcesDir = "src/main/resources"
+  val WrappersResourcesDir = "wrappers"
   val ResourceFileExtension = ".scalan"
 }
 
