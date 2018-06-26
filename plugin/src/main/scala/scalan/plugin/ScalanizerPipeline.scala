@@ -35,7 +35,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
         case unitStep: ForEachUnitStep =>
           forEachUnitComponent(after, unitStep)
       }
-      after = List(step.name)
+      after = List(step.fullName)
       comp
     }
   }
@@ -60,6 +60,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
 
   sealed trait PipelineStep {
     def name: String
+    def fullName: String = pipeline.name + "_" + name
   }
 
   case class ForEachUnitStep(name: String)(val action: UnitStepContext => Unit) extends PipelineStep
@@ -67,7 +68,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
   case class RunStep(name: String)(val action: PipelineStep => Unit) extends PipelineStep
 
   def forEachUnitComponent(runsAfter: List[String], step: ForEachUnitStep) =
-    new ScalanizerComponent(step.name, runsAfter, global, pipeline) {
+    new ScalanizerComponent(step.fullName, runsAfter, global, pipeline) {
       def newPhase(prev: Phase) = new StdPhase(prev) {
         def apply(unit: global.CompilationUnit): Unit = {
           if (!pipeline.isEnabled) return
@@ -78,7 +79,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     }
 
   def forRunComponent(runsAfter: List[String], step: RunStep) =
-    new ScalanizerComponent(step.name, runsAfter, global, pipeline) {
+    new ScalanizerComponent(step.fullName, runsAfter, global, pipeline) {
       def newPhase(prev: Phase) = new StdPhase(prev) {
         override def run(): Unit = {
           if (!pipeline.isEnabled) return
@@ -592,5 +593,56 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     scalanizer.inform(
       s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
           s"(parsed from resource ${wResourcePath})")
+  }
+
+  def loadModuleUnits(step: PipelineStep, sourceMod: ModuleConf)(implicit ctx: ParseCtx): Unit = {
+    for (depModule <- sourceMod.dependsOnModules()) {
+      loadModuleUnits(step, depModule)
+    }
+    for (unitConf <- sourceMod.units.values) {
+      if(!scalanizer.context.hasUnit(unitConf.packageName, unitConf.unitName)) {
+        val unit = scalanizer.loadUnitDefFromResource(unitConf.entityResource)
+        context.addUnit(unit, unitConf)
+        scalanizer.inform(
+          s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${sourceMod.name}' " +
+              s"(parsed from resource ${unitConf.entityFile})")
+        for (wConf <- unitConf.wrappers.values) {
+          loadWrapperFromResource(step, sourceMod, wConf)
+        }
+      }
+    }
+  }
+
+  def loadLibraryDeps(step: PipelineStep, lib: LibraryConfig)(implicit ctx: ParseCtx): Unit = {
+    for (sourceMod <- lib.sourceModules) {
+      loadModuleUnits(step, sourceMod)
+    }
+  }
+
+  /** Loads all the dependencies of this project module (Source or Target)*/
+  def loadProjectModuleDeps(step: PipelineStep, projectMod: ModuleConf)(implicit ctx: ParseCtx): Unit = {
+    // add Special units from dependencies in the current project
+    for (depModule <- projectMod.dependsOnModules()) {
+      for (module <- depModule.moduleDeps.values) {
+        loadModuleUnits(step, module)
+      }
+      for (unitConf <- depModule.units.values) {
+        val unit = parseUnitFile(unitConf.getResourceFile)
+        scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
+        context.addUnit(unit, unitConf)
+        for (wConf <- unitConf.wrappers.values) {
+          loadWrapperFromFile(step, depModule, wConf)
+        }
+      }
+    }
+    // add Special units from libraries we depend on
+    for (lib <- projectMod.libraryDeps.values) {
+      loadLibraryDeps(step, lib)
+    }
+
+    // add Special units from modules we depend on
+    for (module <- projectMod.moduleDeps.values) {
+      loadModuleUnits(step, module)
+    }
   }
 }

@@ -55,6 +55,8 @@ abstract class ModuleConf extends Conf {
   def units: ConfMap[UnitConfig]
 
   def dependencies: ConfMap[ModuleConf]
+  def libraryDeps: ConfMap[LibraryConfig]
+  def moduleDeps: ConfMap[ModuleConf]
 
   def dependsOnModules(): Set[ModuleConf] =
     GraphUtil.depthFirstSetFrom(Set(this.dependencies.values.toSeq: _*))(m => m.dependencies.values)
@@ -97,7 +99,9 @@ object ModuleConf {
 class TargetModuleConf(
     val baseDir: String,
     val name: String,
-    val sourceModules: ConfMap[SourceModuleConf]
+    val sourceModules: ConfMap[SourceModuleConf],
+    val libraryDeps: ConfMap[LibraryConfig] = ConfMap(),
+    val moduleDeps: ConfMap[ModuleConf] = ConfMap()
 ) extends ModuleConf {
   override def units: ConfMap[UnitConfig] = ConfMap()
 

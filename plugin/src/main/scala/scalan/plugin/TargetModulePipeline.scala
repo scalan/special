@@ -101,10 +101,15 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   }
 
   val steps: List[PipelineStep] = List(
+    RunStep("dependencies") { step =>
+      implicit val parseCtx: ParseCtx = new ParseCtx(isVirtualized = true)(context)
+      val target = scalanizer.getTargetModule
+      loadProjectModuleDeps(step, target)
+    },
     RunStep("assembler") { step =>
       scalanizer.inform(s"Processing target module '${scalanizer.moduleName }'")
       // merge all partial wrappers from source modules
-      val target = snConfig.targetModules(moduleName)
+      val target = scalanizer.getTargetModule
       val sourceRoot = target.getSourcesRootDir
       for (source <- target.sourceModules.values) {
         for (wFile <- source.listWrapperFiles) {
@@ -135,15 +140,6 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       // generate WrappersModule cake
       saveWrappersCake(sourceRoot, wrappersCake)
 
-      // add wrappers to the context
-//      for (w <- wrappers.values) {
-//        val externalName = w.traits(0).getExternalName.get
-//        context.updateWrapper(
-//          externalName,
-//          WrapperDescr(w, WrapperConf.default(getTargetModule.baseDir, externalName))
-//        )
-//      }
-
       // prepare units from source modules
       for (srcModule <- target.sourceModules.values) {
         for (srcUnitConf <- srcModule.units.values) {
@@ -151,9 +147,6 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           context.addUnit(prepared)
           val name = SSymName(prepared.packageName, prepared.name)
           preparedUnits += ((name, (prepared, srcUnitConf)))
-          for (wConf <- srcUnitConf.wrappers.values) {
-            loadWrapperFromFile(step, srcModule, wConf)(new ParseCtx(isVirtualized = true)(context))
-          }
         }
       }
 

@@ -80,54 +80,12 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     }
   }
 
-  def loadModuleUnits(step: PipelineStep, sourceMod: ModuleConf)(implicit ctx: ParseCtx): Unit = {
-    for (depModule <- sourceMod.dependsOnModules()) {
-      loadModuleUnits(step, depModule)
-    }
-    for (unitConf <- sourceMod.units.values) {
-      if(!scalanizer.context.hasUnit(unitConf.packageName, unitConf.unitName)) {
-        val unit = scalanizer.loadUnitDefFromResource(unitConf.entityResource)
-        context.addUnit(unit, unitConf)
-        scalanizer.inform(
-          s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${sourceMod.name}' " +
-              s"(parsed from resource ${unitConf.entityFile})")
-        for (wConf <- unitConf.wrappers.values) {
-          loadWrapperFromResource(step, sourceMod, wConf)
-        }
-      }
-    }
-  }
-
-  def loadLibraryDeps(step: PipelineStep, lib: LibraryConfig)(implicit ctx: ParseCtx): Unit = {
-    for (source <- lib.sourceModules) {
-      loadModuleUnits(step, source)
-    }
-  }
 
   val steps: List[PipelineStep] = List(
     RunStep("dependencies") { step =>
       implicit val parseCtx: ParseCtx = new ParseCtx(isVirtualized = true)(context)
       val module = scalanizer.getSourceModule
-      // add Special units from dependencies in the current project
-      for (depModule <- module.dependsOnModules()) {
-        for (unitConf <- depModule.units.values) {
-          val unit = parseUnitFile(unitConf.getResourceFile)
-          scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
-          context.addUnit(unit, unitConf)
-          for (wConf <- unitConf.wrappers.values) {
-            loadWrapperFromFile(step, depModule, wConf)
-          }
-        }
-      }
-      // add Special units from libraries we depend on
-      for (lib <- module.libraryDeps.values) {
-        loadLibraryDeps(step, lib)
-      }
-
-      // add Special units from modules we depend on
-      for (module <- module.moduleDeps.values) {
-        loadModuleUnits(step, module)
-      }
+      loadProjectModuleDeps(step, module)
 
       // add not yet virtualized units from the current module
       // because we are running after typer, all the names has been resolved by the compiler

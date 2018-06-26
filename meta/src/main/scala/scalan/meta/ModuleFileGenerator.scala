@@ -400,7 +400,8 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         s"ConcreteElem[$dataTpe, ${c.typeUse}]"
 
       def converterBody = {
-        val entity = context.findModuleEntity(parent.name).get._2
+        val entity = context.findModuleEntity(parent.name)
+            .getOrElse(!!!(s"Cannot find parent entity ${parent.name} of class ${clazz.name}"))._2
         val entityFields = entity.setOfAvailableNoArgMethods
         val classFields = clazz.args.args.map(_.name)
         val missingFields = classFields.filterNot(entityFields.contains(_))
