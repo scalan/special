@@ -206,12 +206,15 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 
         // now it can be replaced with the body which has passed namer and typer
         implicit val ctx = new ParseCtx(isVirtualized = false)(scalanizer.context)
-        val unitDef = unitDefFromTree(unitFileName, unit.body)
+        val typedUnitDef = unitDefFromTree(unitFileName, unit.body)
+
+        val merger = new SUnitMerger(existingUnit)(scalanizer.context)
+        val mergedUnit = merger.merge(typedUnitDef)
 
         scalanizer.inform(
             s"Step(virtfrontend): Updating source unit ${existingUnit.packageAndName} " +
             s"with version from CompilationUnit(${unit.source.file})")
-        scalanizer.context.addUnit(unitDef, unitConf)
+        scalanizer.context.addUnit(mergedUnit, unitConf)
       }
     },
     ForEachUnitStep("virtfinal") { context => import context._

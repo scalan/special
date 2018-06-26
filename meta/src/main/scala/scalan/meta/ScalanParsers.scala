@@ -282,10 +282,9 @@ trait ScalanParsers[+G <: Global] {
   val defaultParents = Set("AnyRef", "scala.AnyRef")
 
   /** Get ancestors excluding default parents */
-  def ancestors(owner: SSymbol, trees: List[Tree])(implicit ctx: ParseCtx) = {
-    trees.map(traitCall(owner, _))
-         .filterNot(tr => defaultParents.contains(tr.name))
-         .map(_.toTypeApply)
+  def ancestors(owner: SSymbol, trees: List[Tree])(implicit ctx: ParseCtx): List[STypeApply] = {
+    trees.map(typeApply(owner, _))
+         .filterNot(ta => defaultParents.contains(ta.tpe.name))
   }
 
   def findCompanion
@@ -391,22 +390,36 @@ trait ScalanParsers[+G <: Global] {
 
   def classArgs(owner: SSymbol, vds: List[ValDef])(implicit ctx: ParseCtx): SClassArgs = SClassArgs(vds.filter(!isEvidenceParam(_)).map(classArg(owner, _)))
 
-  def traitCall(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): STraitCall = tree match {
+  def traitCall(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): Option[STraitCall] = tree match {
     case ident: Ident =>
-      STraitCall(ident.name, List())
+      Some(STraitCall(ident.name, List()))
     case select: Select =>
-      STraitCall(select.name, List())
+      Some(STraitCall(select.name, List()))
     case AppliedTypeTree(tpt, args) =>
-      STraitCall(tpt.toString, args.map(tpeExpr(owner, _)))
+      Some(STraitCall(tpt.toString, args.map(tpeExpr(owner, _))))
     case tt: TypeTree =>
       val parsedType = parseType(tt.tpe)
-      parsedType match {
+      val tc = parsedType match {
         case call: STraitCall => call
         case STpePrimitive(name, _) => STraitCall(name, List())
         case _ =>
           throw new IllegalArgumentException(parsedType.toString)
       }
-    case tree => ???(tree)
+      Some(tc)
+    case tree => None
+  }
+
+  def typeApply(owner: SSymbol, tree: Tree)(implicit ctx: ParseCtx): STypeApply = tree match {
+    case Apply(fun, args) =>
+      traitCall(owner, fun) match {
+        case Some(tc) => STypeApply(tc, args.map(parseExpr(owner, _)))
+        case None => ???(fun)
+      }
+    case t =>
+      traitCall(owner, t) match {
+        case Some(tc) => tc.toTypeApply
+        case None => ???(t)
+      }
   }
 
   def isExplicitMethod(md: DefDef): Boolean = {

@@ -84,8 +84,10 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
     parents :: ancestors.map { anc =>
       val tpt = genTypeName(anc.tpe.name)
       val tpts = anc.tpe.args.map(genTypeExpr)
-
-      tq"$tpt[..$tpts]"
+      val args = anc.ts.map(genExpr)
+      val fun = tq"$tpt[..$tpts]"
+      val res = if (args.isEmpty) fun else Apply(fun, args)
+      res
     }
   }
 

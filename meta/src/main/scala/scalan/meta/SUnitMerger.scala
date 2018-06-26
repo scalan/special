@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.ScalanAst.{STpeDef, SUnitDef, SValDef, SEntityAnnotation, SClassDef, SObjectDef, STraitDef, SMethodDef, SImportStat, SBodyItem, SEntityDef}
+import scalan.meta.ScalanAst.{STpeDef, SUnitDef, SValDef, STpeExpr, SEntityAnnotation, SClassDef, SObjectDef, STraitDef, SMethodDef, SImportStat, SBodyItem, SEntityDef}
 import scalan.util.CollectionUtil.{OptionOps, TraversableOps}
 
 class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
@@ -10,6 +10,11 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
 
   def mergeImports(to: SImportStat, from: SImportStat) = {
     checkEquals(to, from)(s"Cannot merge imports because they are different: $to and $from")
+    to
+  }
+
+  def mergeTpeExpr(to: STpeExpr, from: STpeExpr): STpeExpr = {
+    checkEquals(to, from)(s"Cannot merge types because they are different: $to and $from")
     to
   }
 
@@ -62,7 +67,11 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
   }
 
   def mergeClasses(to: SClassDef, from: SClassDef) = {
-    to
+    checkEquals(to.tpeArgs, from.tpeArgs)(s"Cannot merge classes with different type args: $to and $from")
+    val newBody = to.body.mergeWith(from.body, _.signature, mergeBodyItems)
+    val newComp = to.companion.mergeWith(from.companion, mergeEntities)
+    val newAnnotations = to.annotations.mergeWith(from.annotations, _.annotationClass, mergeEntityAnnotations)
+    to.copy(body = newBody, selfType = to.selfType, companion = newComp, annotations = newAnnotations)
   }
 
   def mergeObjects(to: SObjectDef, from: SObjectDef) = {
@@ -70,8 +79,11 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
   }
 
   def mergeMethods(to: SMethodDef, from: SMethodDef): SMethodDef = {
-    checkEquals(to, from)(s"Cannot merge methods because they are different: $to and $from")
-    to
+    checkEquals(to.signature, from.signature) {
+      s"Cannot merge methods because they have different signatures: $to and $from"
+    }
+    val newTpeRes = to.tpeRes.mergeWith(from.tpeRes, mergeTpeExpr)
+    from.copy(tpeRes = newTpeRes)
   }
 
   def merge(uFrom: SUnitDef): SUnitDef = {
