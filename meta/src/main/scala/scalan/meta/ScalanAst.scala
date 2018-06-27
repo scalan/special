@@ -444,17 +444,10 @@ object ScalanAst {
   // SBodyItem universe ----------------------------------------------------------------------
   abstract class SBodyItem extends SExpr {
     def signature: DefSig
-//     = this match {
-//      case md: SMethodDef => methodSig(md)
-//      case ed: SEntityDef => (ed.name, Nil)
-//      case is: SImportStat => (is.name, Nil)
-//      case td: STpeDef => (td.name, Nil)
-//      case vd: SValDef => (vd.name, Nil)
-//    }
   }
 
   case class SImportStat(name: String) extends SBodyItem {
-    override def signature = (name, Nil)
+    override def signature = DefSig(DefType.Import, name, Nil)
   }
 
   case class SMethodDef(
@@ -516,7 +509,7 @@ object ScalanAst {
     }
 
     def signature: DefSig = {
-      (name, argSections.map(sec => sec.args.map(a => a.tpe)))
+      DefSig(DefType.Def, name, argSections.map(sec => sec.args.map(a => a.tpe)))
     }
   }
 
@@ -524,7 +517,7 @@ object ScalanAst {
     def emptyArgSection = List(SMethodArgs(Nil))
   }
 
-  type DefSig = (String, List[List[STpeExpr]])
+  case class DefSig(defType: DefType.Value, name: String, argTypes: List[List[STpeExpr]])
 
   case class SValDef(
       owner: SSymbol,
@@ -538,7 +531,7 @@ object ScalanAst {
       isTypeDesc: Boolean = false
   ) extends SBodyItem with SEntityItem {
     val symbol = SEntityItemSymbol(owner, name, DefType.Val)
-    override def signature = (name, Nil)
+    override def signature = DefSig(DefType.Val, name, Nil)
     override def tpeArgs: STpeArgs = Nil
     override def argss: List[List[SMethodOrClassArg]] = Nil
     override def tpeRes = tpe
@@ -555,7 +548,7 @@ object ScalanAst {
       annotations: List[SArgAnnotation] = Nil
   ) extends SBodyItem with SEntityItem {
     val symbol = SEntityItemSymbol(owner, name, DefType.Type)
-    def signature = (name, Nil)
+    def signature = DefSig(DefType.Type, name, Nil)
     def rhs: Option[SExpr] = None
     def isImplicit: Boolean = false
     def argss: List[List[SMethodOrClassArg]] = Nil
@@ -969,7 +962,7 @@ object ScalanAst {
       companion: Option[SEntityDef],
       annotations: List[SEntityAnnotation] = Nil) extends SEntityDef with Updatable[STraitDef] {
     def isTrait = true
-    def signature = (name, Nil)
+    def signature = DefSig(DefType.Entity, name, Nil)
     val args = SClassArgs(Nil)
     val implicitArgs: SClassArgs = SClassArgs(Nil)
 
@@ -1004,7 +997,7 @@ object ScalanAst {
       isAbstract: Boolean,
       annotations: List[SEntityAnnotation] = Nil) extends SEntityDef with Updatable[SClassDef] {
     def isTrait = false
-    def signature = (name, Nil)
+    def signature = DefSig(DefType.Entity, name, Nil)
     def clean = {
       val _companion = companion.map(_.clean)
       copy(
@@ -1020,7 +1013,7 @@ object ScalanAst {
       ancestors: List[STypeApply],
       body: List[SBodyItem]) extends SEntityDef with Updatable[SObjectDef] {
     val args = SClassArgs(Nil)
-    def signature = (name, Nil)
+    def signature = DefSig(DefType.Object, name, Nil)
     def tpeArgs = Nil
 
     def selfType = None
@@ -1101,7 +1094,7 @@ object ScalanAst {
       (@transient implicit val context: AstContext)
     extends SEntityDef with Updatable[SUnitDef] {
     def owner: SSymbol = SNoSymbol
-    def signature = (name, Nil)
+    def signature = DefSig(DefType.Unit, name, Nil)
     val unitSym = context.newUnitSymbol(packageName, name)
     override val symbol: SUnitDefSymbol = unitSym
     def unitName = unitSym.unitName

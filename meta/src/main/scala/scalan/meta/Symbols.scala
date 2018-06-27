@@ -38,7 +38,7 @@ object Symbols {
   }
 
   object DefType extends Enumeration {
-    val Unit, Entity, Def, Val, ClassArg, Type = Value
+    val Unit, Entity, Object, Def, Val, ClassArg, Type, Import = Value
   }
 
   case class SNameSymbol(name: SSymName) extends SSymbol {

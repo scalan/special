@@ -68,7 +68,13 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
 
   def mergeClasses(to: SClassDef, from: SClassDef) = {
     checkEquals(to.tpeArgs, from.tpeArgs)(s"Cannot merge classes with different type args: $to and $from")
-    val newBody = to.body.mergeWith(from.body, _.signature, mergeBodyItems)
+    val mergedBody = to.body.mergeWith(from.body, _.signature, mergeBodyItems)
+    // filter out unnecessaary vals
+    val methods = mergedBody.filterMap { case md: SMethodDef => Some(md.name) case _ => None }.toSet
+    val newBody = mergedBody.filter {
+      case vd: SValDef => !methods.contains(vd.name);
+      case _ => true
+    }
     val newComp = to.companion.mergeWith(from.companion, mergeEntities)
     val newAnnotations = to.annotations.mergeWith(from.annotations, _.annotationClass, mergeEntityAnnotations)
     to.copy(body = newBody, selfType = to.selfType, companion = newComp, annotations = newAnnotations)
