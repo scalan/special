@@ -9,6 +9,7 @@ import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.meta._
 import scalan.util.FileUtil
+import scalan.util.CollectionUtil._
 import scala.collection.mutable.{Map => MMap}
 
 class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
@@ -92,12 +93,25 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     saveCode(sourceRoot, "scala.wrappers", cake.traitDef.name, ".scala", code)
   }
 
-  def collectWrappers(step: PipelineStep): Map[SSymName, SUnitDef] = {
-    val ws = context.externalTypes.map { name =>
-      val wUnit = context.getWrapper(name).get.unit
-      wUnit.unitName -> wUnit
+  def collectWrappers(step: PipelineStep, target: TargetModuleConf): Map[SSymName, SUnitDef] = {
+    // collect all wrappers loaded into context from dependencies
+    val loadedWrappers = context.externalTypes.map { extName =>
+      val wUnit = context.getWrapper(extName).get.unit
+      extName -> wUnit
     }
-    ws.toMap
+    // collect this project's wrappers
+    val projectWrappers = (for {
+      sm <- target.sourceModules.values
+      u <- sm.units.values
+      (wName, wConf) <- u.wrappers
+    } yield wName).toSet
+
+    // output loaded wrappers belonging to current project
+    loadedWrappers.filterMap {
+      case (n, wUnit) if projectWrappers.contains(n) =>
+        Some((wUnit.unitName -> wUnit))
+      case _ => None
+    }.toMap
   }
 
   val steps: List[PipelineStep] = List(
@@ -112,7 +126,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       val sourceRoot = target.getSourcesRootDir
 
       // collect all wrappers from source modules
-      val wrappers = collectWrappers(step)
+      val wrappers = collectWrappers(step, target)
 
       // 1) gen boilerplate and save for all merged wrappers
       // 2) build wrappers cake
