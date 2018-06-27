@@ -65,7 +65,7 @@ abstract class ModuleConf extends Conf {
 
   def getResourcesRootDir = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.ResourcesDir }"
 
-  def getWrappersRootDir = getResourcesRootDir + "/" + ModuleConf.WrappersResourcesDir
+  def getWrappersRootDir = getResourcesRootDir //+ "/" + ModuleConf.WrappersResourcesDir
 
   private def unitConfigTemplate(baseDir: String, name: String, entityFile: String) =
     UnitConfig(
@@ -141,10 +141,10 @@ class SourceModuleConf(
     this
   }
 
-  def listWrapperFiles: Array[File] = {
-    import FileUtil._
-    listFilesRecursive(file(getWrappersRootDir))
-  }
+//  def listWrapperFiles: Array[File] = {
+//    import FileUtil._
+//    listFilesRecursive(file(getWrappersRootDir))
+//  }
 }
 
 case class UnitConfig(
