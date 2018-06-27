@@ -143,6 +143,172 @@ trait WrappersSpecDefs extends scalan.Scalan with WrappersSpec {
   implicit def isoArrayWrapSpec: Iso[ArrayWrapSpecData, ArrayWrapSpec] =
     reifyObject(new ArrayWrapSpecIso())
 
+  case class OptionWrapSpecCtor
+      ()
+    extends OptionWrapSpec() with Def[OptionWrapSpec] {
+    lazy val selfType = element[OptionWrapSpec]
+  }
+  // elem for concrete class
+  class OptionWrapSpecElem(val iso: Iso[OptionWrapSpecData, OptionWrapSpec])
+    extends WrapSpecElem[OptionWrapSpec]
+    with ConcreteElem[OptionWrapSpecData, OptionWrapSpec] {
+    override lazy val parent: Option[Elem[_]] = Some(wrapSpecElement)
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertWrapSpec(x: Rep[WrapSpec]) = OptionWrapSpec()
+    override def getDefaultRep = OptionWrapSpec()
+    override lazy val tag = {
+      weakTypeTag[OptionWrapSpec]
+    }
+  }
+
+  // state representation type
+  type OptionWrapSpecData = Unit
+
+  // 3) Iso for concrete class
+  class OptionWrapSpecIso
+    extends EntityIso[OptionWrapSpecData, OptionWrapSpec] with Def[OptionWrapSpecIso] {
+    private lazy val _safeFrom = fun { p: Rep[OptionWrapSpec] => () }
+    override def from(p: Rep[OptionWrapSpec]) =
+      tryConvert[OptionWrapSpec, Unit](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[Unit]) = {
+      val unit = p
+      OptionWrapSpec()
+    }
+    lazy val eFrom = UnitElement
+    lazy val eTo = new OptionWrapSpecElem(self)
+    lazy val selfType = new OptionWrapSpecIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class OptionWrapSpecIsoElem() extends Elem[OptionWrapSpecIso] {
+    def getDefaultRep = reifyObject(new OptionWrapSpecIso())
+    lazy val tag = {
+      weakTypeTag[OptionWrapSpecIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class OptionWrapSpecCompanionCtor extends CompanionDef[OptionWrapSpecCompanionCtor] with OptionWrapSpecCompanion {
+    def selfType = OptionWrapSpecCompanionElem
+    override def toString = "OptionWrapSpecCompanion"
+    @scalan.OverloadId("fromData")
+    def apply(p: Rep[OptionWrapSpecData]): Rep[OptionWrapSpec] = {
+      isoOptionWrapSpec.to(p)
+    }
+
+    @scalan.OverloadId("fromFields")
+    def apply(): Rep[OptionWrapSpec] =
+      mkOptionWrapSpec()
+
+    def unapply(p: Rep[WrapSpec]) = unmkOptionWrapSpec(p)
+  }
+  lazy val OptionWrapSpecRep: Rep[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor
+  lazy val OptionWrapSpec: OptionWrapSpecCompanionCtor = proxyOptionWrapSpecCompanion(OptionWrapSpecRep)
+  implicit def proxyOptionWrapSpecCompanion(p: Rep[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor = {
+    proxyOps[OptionWrapSpecCompanionCtor](p)
+  }
+
+  implicit case object OptionWrapSpecCompanionElem extends CompanionElem[OptionWrapSpecCompanionCtor] {
+    lazy val tag = weakTypeTag[OptionWrapSpecCompanionCtor]
+    protected def getDefaultRep = OptionWrapSpecRep
+  }
+
+  implicit def proxyOptionWrapSpec(p: Rep[OptionWrapSpec]): OptionWrapSpec =
+    proxyOps[OptionWrapSpec](p)
+
+  implicit class ExtendedOptionWrapSpec(p: Rep[OptionWrapSpec]) {
+    def toData: Rep[OptionWrapSpecData] = {
+      isoOptionWrapSpec.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoOptionWrapSpec: Iso[OptionWrapSpecData, OptionWrapSpec] =
+    reifyObject(new OptionWrapSpecIso())
+
+  case class EitherWrapSpecCtor
+      ()
+    extends EitherWrapSpec() with Def[EitherWrapSpec] {
+    lazy val selfType = element[EitherWrapSpec]
+  }
+  // elem for concrete class
+  class EitherWrapSpecElem(val iso: Iso[EitherWrapSpecData, EitherWrapSpec])
+    extends WrapSpecElem[EitherWrapSpec]
+    with ConcreteElem[EitherWrapSpecData, EitherWrapSpec] {
+    override lazy val parent: Option[Elem[_]] = Some(wrapSpecElement)
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertWrapSpec(x: Rep[WrapSpec]) = EitherWrapSpec()
+    override def getDefaultRep = EitherWrapSpec()
+    override lazy val tag = {
+      weakTypeTag[EitherWrapSpec]
+    }
+  }
+
+  // state representation type
+  type EitherWrapSpecData = Unit
+
+  // 3) Iso for concrete class
+  class EitherWrapSpecIso
+    extends EntityIso[EitherWrapSpecData, EitherWrapSpec] with Def[EitherWrapSpecIso] {
+    private lazy val _safeFrom = fun { p: Rep[EitherWrapSpec] => () }
+    override def from(p: Rep[EitherWrapSpec]) =
+      tryConvert[EitherWrapSpec, Unit](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[Unit]) = {
+      val unit = p
+      EitherWrapSpec()
+    }
+    lazy val eFrom = UnitElement
+    lazy val eTo = new EitherWrapSpecElem(self)
+    lazy val selfType = new EitherWrapSpecIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class EitherWrapSpecIsoElem() extends Elem[EitherWrapSpecIso] {
+    def getDefaultRep = reifyObject(new EitherWrapSpecIso())
+    lazy val tag = {
+      weakTypeTag[EitherWrapSpecIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class EitherWrapSpecCompanionCtor extends CompanionDef[EitherWrapSpecCompanionCtor] with EitherWrapSpecCompanion {
+    def selfType = EitherWrapSpecCompanionElem
+    override def toString = "EitherWrapSpecCompanion"
+    @scalan.OverloadId("fromData")
+    def apply(p: Rep[EitherWrapSpecData]): Rep[EitherWrapSpec] = {
+      isoEitherWrapSpec.to(p)
+    }
+
+    @scalan.OverloadId("fromFields")
+    def apply(): Rep[EitherWrapSpec] =
+      mkEitherWrapSpec()
+
+    def unapply(p: Rep[WrapSpec]) = unmkEitherWrapSpec(p)
+  }
+  lazy val EitherWrapSpecRep: Rep[EitherWrapSpecCompanionCtor] = new EitherWrapSpecCompanionCtor
+  lazy val EitherWrapSpec: EitherWrapSpecCompanionCtor = proxyEitherWrapSpecCompanion(EitherWrapSpecRep)
+  implicit def proxyEitherWrapSpecCompanion(p: Rep[EitherWrapSpecCompanionCtor]): EitherWrapSpecCompanionCtor = {
+    proxyOps[EitherWrapSpecCompanionCtor](p)
+  }
+
+  implicit case object EitherWrapSpecCompanionElem extends CompanionElem[EitherWrapSpecCompanionCtor] {
+    lazy val tag = weakTypeTag[EitherWrapSpecCompanionCtor]
+    protected def getDefaultRep = EitherWrapSpecRep
+  }
+
+  implicit def proxyEitherWrapSpec(p: Rep[EitherWrapSpec]): EitherWrapSpec =
+    proxyOps[EitherWrapSpec](p)
+
+  implicit class ExtendedEitherWrapSpec(p: Rep[EitherWrapSpec]) {
+    def toData: Rep[EitherWrapSpecData] = {
+      isoEitherWrapSpec.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoEitherWrapSpec: Iso[EitherWrapSpecData, EitherWrapSpec] =
+    reifyObject(new EitherWrapSpecIso())
+
   case class SpecialPredefWrapSpecCtor
       ()
     extends SpecialPredefWrapSpec() with Def[SpecialPredefWrapSpec] {
@@ -376,6 +542,146 @@ trait WrappersSpecDefs extends scalan.Scalan with WrappersSpec {
       None
   }
 
+  object OptionWrapSpecMethods {
+    object get {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "get" =>
+          Some((receiver, xs)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object map {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "map" =>
+          Some((receiver, xs, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object flatMap {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "flatMap" =>
+          Some((receiver, xs, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object filter {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "filter" =>
+          Some((receiver, xs, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object isDefined {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "isDefined" =>
+          Some((receiver, xs)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object isEmpty {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "isEmpty" =>
+          Some((receiver, xs)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object fold {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(xs, ifEmpty, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "fold" =>
+          Some((receiver, xs, ifEmpty, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object OptionWrapSpecCompanionMethods {
+  }
+
+  def mkOptionWrapSpec
+    (): Rep[OptionWrapSpec] = {
+    new OptionWrapSpecCtor()
+  }
+  def unmkOptionWrapSpec(p: Rep[WrapSpec]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: OptionWrapSpecElem @unchecked =>
+      Some(())
+    case _ =>
+      None
+  }
+
+  object EitherWrapSpecMethods {
+    object fold {
+      def unapply(d: Def[_]): Option[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = d match {
+        case MethodCall(receiver, method, Seq(xs, fa, fb, _*), _) if receiver.elem.isInstanceOf[EitherWrapSpecElem] && method.getName == "fold" =>
+          Some((receiver, xs, fa, fb)).asInstanceOf[Option[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object cond {
+      def unapply(d: Def[_]): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[A], Rep[B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(c, a, b, _*), _) if receiver.elem.isInstanceOf[EitherWrapSpecElem] && method.getName == "cond" =>
+          Some((receiver, c, a, b)).asInstanceOf[Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[A], Rep[B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[A], Rep[B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object EitherWrapSpecCompanionMethods {
+  }
+
+  def mkEitherWrapSpec
+    (): Rep[EitherWrapSpec] = {
+    new EitherWrapSpecCtor()
+  }
+  def unmkEitherWrapSpec(p: Rep[WrapSpec]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: EitherWrapSpecElem @unchecked =>
+      Some(())
+    case _ =>
+      None
+  }
+
   object SpecialPredefWrapSpecMethods {
     object loopUntil {
       def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = d match {
@@ -384,6 +690,90 @@ trait WrappersSpecDefs extends scalan.Scalan with WrappersSpec {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object cast {
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(v, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "cast" =>
+          Some((receiver, v, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object mapSum {
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = d match {
+        case MethodCall(receiver, method, Seq(e, fa, fb, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "mapSum" =>
+          Some((receiver, e, fa, fb)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object some {
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "some" =>
+          Some((receiver, x)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object none {
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "none" =>
+          Some((receiver, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object left {
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(a, emB, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "left" =>
+          Some((receiver, a, emB)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object right {
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(b, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "right" =>
+          Some((receiver, b, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object optionGetOrElse {
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(opt, default, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "optionGetOrElse" =>
+          Some((receiver, opt, default)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

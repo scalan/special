@@ -17,7 +17,6 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 
   val name = "target-assembler"
   val runAfter = List("parser")
-  val wrappers = MMap[SSymName, SUnitDef]()
   val preparedUnits = MMap[SSymName, (SUnitDef, UnitConfig)]()
 
   override def isEnabled: Boolean = {
@@ -69,17 +68,17 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       global.currentRun.compileLate(new PlainFile(Path(targetImpl)))
   }
 
-  def mergeWrapperUnit(unit: SUnitDef) = {
-    val wName = SSymName(unit.packageName, unit.name)
-    wrappers.get(wName) match {
-      case Some(existingUnit) =>
-        val merger = new SUnitMerger(existingUnit)(scalanizer.context)
-        val newUnit = merger.merge(unit)
-        wrappers(wName) = newUnit
-      case None =>
-        wrappers(wName) = unit
-    }
-  }
+//  def mergeWrapperUnit(unit: SUnitDef) = {
+//    val wName = SSymName(unit.packageName, unit.name)
+//    wrappers.get(wName) match {
+//      case Some(existingUnit) =>
+//        val merger = new SUnitMerger(existingUnit)(scalanizer.context)
+//        val newUnit = merger.merge(unit)
+//        wrappers(wName) = newUnit
+//      case None =>
+//        wrappers(wName) = unit
+//    }
+//  }
 
   def saveWrappersCake(sourceRoot: String, cake: WrapperCake) = {
     implicit val ctx = GenCtx(context = scalanizer.context, isVirtualized = true, toRep = false)
@@ -93,6 +92,14 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     saveCode(sourceRoot, "scala.wrappers", cake.traitDef.name, ".scala", code)
   }
 
+  def collectWrappers(step: PipelineStep): Map[SSymName, SUnitDef] = {
+    val ws = context.externalTypes.map { name =>
+      val wUnit = context.getWrapper(name).get.unit
+      wUnit.unitName -> wUnit
+    }
+    ws.toMap
+  }
+
   val steps: List[PipelineStep] = List(
     RunStep("dependencies") { step =>
       implicit val parseCtx: ParseCtx = new ParseCtx(isVirtualized = true)(context)
@@ -104,14 +111,8 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       val target = scalanizer.getTargetModule
       val sourceRoot = target.getSourcesRootDir
 
-      // merge all partial wrappers from source modules
-//      for (source <- target.sourceModules.values) {
-//        for (wFile <- source.listWrapperFiles) {
-//          val unit = parseUnitFile(wFile)(new ParseCtx(isVirtualized = true)(context))
-//          scalanizer.inform(s"Merging into wrapper ${unit.packageAndName} from $wFile")
-//          mergeWrapperUnit(unit)
-//        }
-//      }
+      // collect all wrappers from source modules
+      val wrappers = collectWrappers(step)
 
       // 1) gen boilerplate and save for all merged wrappers
       // 2) build wrappers cake
