@@ -1,0 +1,21 @@
+package scala {
+  import scalan._
+
+  import impl._
+
+  import scala.wrappers.WrappersModule
+
+  trait WOptions extends Base { self: WrappersModule =>
+    @External("Option") @ContainerType @FunctorType trait WOption[A] extends Def[WOption[A]] { self =>
+      implicit def eA: Elem[A];
+      @External def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B];
+      @External def isEmpty: Rep[Boolean];
+      @External def isDefined: Rep[Boolean];
+      @External def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]];
+      @External def flatMap[B](f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]];
+      @External def map[B](f: Rep[scala.Function1[A, B]]): Rep[WOption[B]];
+      @External def get: Rep[A]
+    };
+    trait WOptionCompanion
+  }
+}

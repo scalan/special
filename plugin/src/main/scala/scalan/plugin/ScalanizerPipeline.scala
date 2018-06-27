@@ -294,10 +294,10 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val originalEntityAncestors = getExtTypeAncestors(externalType)
     val externalTypeName = externalType.typeSymbol.nameString
     val wrapperConf = snConfig.wrapperConfigs.getOrElse(externalTypeName,
-      !!!(s"Wrapper config not found for name $externalTypeName"))
+        !!!(s"Wrapper config not found for name $externalTypeName"))
     createWrapperSpecial(
       wrapperConf,
-      externalTypeSym.enclosingPackage.name,
+      wrapperConf.packageName,
       externalTypeName,
       tpeArgs,
       originalEntityAncestors

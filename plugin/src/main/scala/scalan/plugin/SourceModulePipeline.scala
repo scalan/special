@@ -40,7 +40,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     }
   }
 
-  class CatchWrappersTraverser(us: SUnitDefSymbol, f: (SEntitySymbol,Tree) => Unit) extends Traverser {
+  class CatchWrappersTraverser(us: SUnitDefSymbol, catcher: (SEntitySymbol,Tree) => Unit) extends Traverser {
     var stack: List[SEntitySymbol] = List(us)   // stack of potentially nested entities
     def currentEntity = stack.head
 
@@ -48,12 +48,12 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       t match {
         case cd: ClassDef =>
           val es = SEntityDefSymbol(currentEntity, cd.name)
-          f(currentEntity, t)
+          catcher(currentEntity, t)
           stack = es :: stack  // push
           super.traverse(t)
           stack = stack.tail  // pop
         case _ =>
-          f(currentEntity, t)
+          catcher(currentEntity, t)
           super.traverse(t)
       }
     }
