@@ -106,6 +106,7 @@ class TargetModuleConf(
   override def units: ConfMap[UnitConfig] = ConfMap()
 
   override def dependencies: ConfMap[ModuleConf] = ConfMap(sourceModules.values.map(v => v: ModuleConf).toSeq: _*)
+  def cakeName: String = name.split('-').map(_.capitalize).mkString
 }
 
 class SourceModuleConf(

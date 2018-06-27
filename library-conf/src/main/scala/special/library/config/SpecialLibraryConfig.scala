@@ -9,16 +9,25 @@ class SpecialLibraryConfig extends LibraryConfig {
   def baseDir = ""
 
   def wrapperConfigs: Map[String, WrapperConf] = List(
-      WrapperConf(baseDir,
-        packageName = "scala",
-        name = "Array",
-        annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
-      ),
-      WrapperConf(baseDir,
-        packageName = "scalan",
-        name = "SpecialPredef"
-      )
-    ).map(w => (w.name, w)).toMap
+    WrapperConf(baseDir,
+      packageName = "scala",
+      name = "Array",
+      annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
+    ),
+    WrapperConf(baseDir,
+      packageName = "scala",
+      name = "Option",
+      annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
+    ),
+    WrapperConf(baseDir,
+      packageName = "scala.util",
+      name = "Either"
+    ),
+    WrapperConf(baseDir,
+      packageName = "scalan",
+      name = "SpecialPredef"
+    )
+  ).map(w => (w.name, w)).toMap
 
   val ApiModule: SourceModuleConf = new SourceModuleConf(baseDir, "library-api")
       .addUnit("WrappersSpec.scala", "library/WrappersSpec.scala", wrapperConfigs)

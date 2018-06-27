@@ -162,30 +162,30 @@ class SModuleBuilder(implicit val context: AstContext) {
     new RemoveClassTagFromSignatures().moduleTransform(unit)
   }
 
-  def replaceClassTagByElem(unit: SUnitDef) = {
-    new AstReplacer("ClassTag", (_:String) => "Elem") {
-      override def selectTransform(select: SSelect): SExpr = {
-        val type2Elem = Map(
-          "AnyRef" -> "AnyRefElement",
-          "Boolean" -> "BoolElement",
-          "Byte" -> "ByteElement",
-          "Short" -> "ShortElement",
-          "Int" -> "IntElement",
-          "Long" -> "LongElement",
-          "Float" -> "FloatElement",
-          "Double" -> "DoubleElement",
-          "Unit" -> "UnitElement",
-          "String" -> "StringElement",
-          "Char" -> "CharElement"
-        )
-        select match {
-          case SSelect(SIdent("ClassTag",_), tname,_) if type2Elem.contains(tname) =>
-            SSelect(SIdent("self"), type2Elem(tname))
-          case _ => super.selectTransform(select)
-        }
-      }
-    }.moduleTransform(unit)
-  }
+//  def replaceClassTagByElem(unit: SUnitDef) = {
+//    new AstReplacer("ClassTag", (_:String) => "Elem") {
+//      override def selectTransform(select: SSelect): SExpr = {
+//        val type2Elem = Map(
+//          "AnyRef" -> "AnyRefElement",
+//          "Boolean" -> "BoolElement",
+//          "Byte" -> "ByteElement",
+//          "Short" -> "ShortElement",
+//          "Int" -> "IntElement",
+//          "Long" -> "LongElement",
+//          "Float" -> "FloatElement",
+//          "Double" -> "DoubleElement",
+//          "Unit" -> "UnitElement",
+//          "String" -> "StringElement",
+//          "Char" -> "CharElement"
+//        )
+//        select match {
+//          case SSelect(SIdent("ClassTag",_), tname,_) if type2Elem.contains(tname) =>
+//            SSelect(SIdent("self"), type2Elem(tname))
+//          case _ => super.selectTransform(select)
+//        }
+//      }
+//    }.moduleTransform(unit)
+//  }
 
   def eliminateClassTagApply(module: SUnitDef) = {
     new AstTransformer {
@@ -212,7 +212,7 @@ class SModuleBuilder(implicit val context: AstContext) {
     unit.copy(traits = newTraits)
   }
 
-  /** Add implicit Elem arguments and implicit descriptor methods. */
+  /** Add implicit Elem arguments and implicit descriptor methods to classes of the unit. */
   def genClassesImplicits(unit: SUnitDef): SUnitDef = {
     def unpackElem(classArg: SClassArg): Option[STpeExpr] = classArg.tpe match {
       case STraitCall("Elem", List(prim @ STpePrimitive(_,_))) => Some(prim)
@@ -245,9 +245,9 @@ class SModuleBuilder(implicit val context: AstContext) {
     unit.copy(classes = newClasses)
   }
 
-  def genMethodsImplicits(module: SUnitDef) = {
+  def genMethodsImplicits(unit: SUnitDef) = {
     def genBodyItem(item: SBodyItem): SBodyItem = item match {
-      case m: SMethodDef => genImplicitMethodArgs(module, m)
+      case m: SMethodDef => genImplicitMethodArgs(unit, m)
       case _ => item
     }
     def genCompanion(companion: Option[SEntityDef]) = companion match {
@@ -271,9 +271,9 @@ class SModuleBuilder(implicit val context: AstContext) {
       classes.map(genClass)
     }
 
-    module.copy(
-      traits = genEntities(module.traits),
-      classes = genClasses(module.classes)
+    unit.copy(
+      traits = genEntities(unit.traits),
+      classes = genClasses(unit.classes)
     )
   }
 
