@@ -1,8 +1,10 @@
 package scalan.collection
 
 import scala.reflect.ClassTag
-import scalan.OverloadId
+import scalan.{ContainerType, OverloadId, FunctorType}
 
+@ContainerType
+@FunctorType
 trait Col[A] {
   def builder: ColBuilder
   def arr: Array[A]
@@ -46,12 +48,6 @@ trait ColBuilder {
     val c = xs.zip(v).map(d => d)
     c.length
   }
-  def functorArg(arr: Array[Double])(evF: Functor[Array]) = evF.map(arr)(x => x + 1)
-//  def useFunctor(arr: Array[Double]) = evF.map(arr)(x => x + 1)
-}
-
-trait Functor[F[_]] {
-  def map[A,B](fa: F[A])(f: A => B)(implicit tB: ClassTag[B]): F[B]
 }
 
 trait Enum {

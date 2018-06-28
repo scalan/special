@@ -44,7 +44,7 @@ class BaseCostedTests extends BaseCtxTests {
     }
 
     def dataCost[T](x: Rep[T]): Rep[Costed[T]] = x.elem match {
-      case be: BaseElem[_] => CostedPrim(x, byteSize(be).toLong)
+      case be: BaseElem[_] => CostedPrim(x, byteSize(be))
       case pe: PairElem[a,b] =>
         val l = dataCost(x.asRep[(a,b)]._1)
         val r = dataCost(x.asRep[(a,b)]._2)
@@ -54,7 +54,7 @@ class BaseCostedTests extends BaseCtxTests {
           case be: BaseElem[a] =>
             val arr = x.asRep[WArray[a]]
             val values = b.fromArray(arr)
-            val costs = ReplCol(byteSize(be).toLong, values.length)
+            val costs = ReplCol(byteSize(be), values.length)
             CostedArray(values, costs).asRep[Costed[T]]
           case pe: PairElem[a,b] =>
             val arr = x.asRep[WArray[(a,b)]]
@@ -72,9 +72,9 @@ class BaseCostedTests extends BaseCtxTests {
         }
     }
 
-    def result[T](dc: Rep[Costed[T]]): Rep[(T, Long)] = Pair(dc.value, dc.cost)
+    def result[T](dc: Rep[Costed[T]]): Rep[(T, Int)] = Pair(dc.value, dc.cost)
 
-    def split[T,R](f: Rep[T => Costed[R]]): Rep[(T => R, T => Long)] = {
+    def split[T,R](f: Rep[T => Costed[R]]): Rep[(T => R, T => Int)] = {
       implicit val eT = f.elem.eDom
       val calc = fun { x: Rep[T] =>
         val y = f(x);

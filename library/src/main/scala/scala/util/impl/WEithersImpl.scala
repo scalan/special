@@ -70,12 +70,12 @@ implicit val eB = right.elem.eItem
 
   object WEitherMethods {
     object fold {
-      def unapply(d: Def[_]): Option[(Rep[WEither[A, B]], Rep[A => X], Rep[B => X]) forSome {type A; type B; type X}] = d match {
+      def unapply(d: Def[_]): Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = d match {
         case MethodCall(receiver, method, Seq(fa, fb, _*), _) if receiver.elem.isInstanceOf[WEitherElem[_, _, _]] && method.getName == "fold" =>
-          Some((receiver, fa, fb)).asInstanceOf[Option[(Rep[WEither[A, B]], Rep[A => X], Rep[B => X]) forSome {type A; type B; type X}]]
+          Some((receiver, fa, fb)).asInstanceOf[Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[WEither[A, B]], Rep[A => X], Rep[B => X]) forSome {type A; type B; type X}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

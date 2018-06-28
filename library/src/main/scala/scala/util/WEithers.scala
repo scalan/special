@@ -9,7 +9,7 @@ package scala.util {
     @External("Either") trait WEither[A, B] extends Def[WEither[A, B]] {
       implicit def eA: Elem[A];
       implicit def eB: Elem[B];
-      @External def fold[X](fa: Rep[scala.Function1[A, X]], fb: Rep[scala.Function1[B, X]]): Rep[X]
+      @External def fold[C](fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C]
     };
     trait WEitherCompanion {
       @External def cond[A, B](test: Rep[Boolean], right: Rep[Thunk[B]], left: Rep[Thunk[A]]): Rep[WEither[A, B]]

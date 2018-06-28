@@ -14,9 +14,36 @@ trait ColsDefs extends scalan.Scalan with Cols {
     proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
   }
 
+  implicit def castColElement[A](elem: Elem[Col[A]]): ColElem[A, Col[A]] =
+    elem.asInstanceOf[ColElem[A, Col[A]]]
+
+  implicit lazy val containerCol: Functor[Col] = new Functor[Col] {
+    def tag[A](implicit evA: WeakTypeTag[A]) = weakTypeTag[Col[A]]
+    def lift[A](implicit evA: Elem[A]) = element[Col[A]]
+    def unlift[A](implicit eFT: Elem[Col[A]]) =
+      castColElement(eFT).eA
+    def getElem[A](fa: Rep[Col[A]]) = fa.elem
+    def unapply[T](e: Elem[_]) = e match {
+      case e: ColElem[_,_] => Some(e.asElem[Col[T]])
+      case _ => None
+    }
+    def map[A,B](xs: Rep[Col[A]])(f: Rep[A] => Rep[B]) = { implicit val eA = unlift(xs.elem); xs.map(fun(f))}
+  }
+
+  case class ColIso[A, B](innerIso: Iso[A, B]) extends Iso1UR[A, B, Col] {
+    lazy val selfType = new ConcreteIsoElem[Col[A], Col[B], ColIso[A, B]](eFrom, eTo).
+      asInstanceOf[Elem[IsoUR[Col[A], Col[B]]]]
+    def cC = container[Col]
+    def from(x: Rep[Col[B]]) = x.map(innerIso.fromFun)
+    def to(x: Rep[Col[A]]) = x.map(innerIso.toFun)
+  }
+
+  def colIso[A, B](innerIso: Iso[A, B]) =
+    reifyObject(ColIso[A, B](innerIso)).asInstanceOf[Iso1[A, B, Col]]
+
   // familyElem
   class ColElem[A, To <: Col[A]](implicit _eA: Elem[A])
-    extends EntityElem[To] {
+    extends EntityElem1[A, To, Col](_eA, container[Col]) {
     def eA = _eA
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
@@ -54,6 +81,15 @@ trait ColsDefs extends scalan.Scalan with Cols {
     proxyOps[ColCompanionCtor](p)
 
   lazy val Col: Rep[ColCompanionCtor] = new ColCompanionCtor {
+  }
+
+  case class ViewCol[A, B](source: Rep[Col[A]], override val innerIso: Iso[A, B])
+    extends View1[A, B, Col](colIso(innerIso)) {
+    override def toString = s"ViewCol[${innerIso.eTo.name}]($source)"
+    override def equals(other: Any) = other match {
+      case v: ViewCol[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
+      case _ => false
+    }
   }
 
   object ColMethods {
@@ -215,6 +251,57 @@ trait ColsDefs extends scalan.Scalan with Cols {
   }
 
   object ColCompanionMethods {
+  }
+
+  object UserTypeCol {
+    def unapply(s: Sym): Option[Iso[_, _]] = {
+      s.elem match {
+        case e: ColElem[a,to] => e.eItem match {
+          case UnpackableElem(iso) => Some(iso)
+          case _ => None
+        }
+        case _ => None
+      }
+    }
+  }
+
+  override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
+    case Def(view: ViewCol[_, _]) =>
+      Some((view.source, view.iso))
+    case UserTypeCol(iso: Iso[a, b]) =>
+      val newIso = colIso(iso)
+      val repr = reifyObject(UnpackView(s.asRep[Col[b]], newIso))
+      Some((repr, newIso))
+    case _ =>
+      super.unapplyViews(s)
+  }).asInstanceOf[Option[Unpacked[T]]]
+
+  type RepCol[A] = Rep[Col[A]]
+
+  override def rewriteDef[T](d: Def[T]) = d match {
+    case view1@ViewCol(Def(view2@ViewCol(arr, innerIso2)), innerIso1) =>
+      val compIso = composeIso(innerIso1, innerIso2)
+      implicit val eAB = compIso.eTo
+      ViewCol(arr, compIso)
+
+    case ColMethods.map(xs, f) => (xs, f) match {
+      case (_, Def(IdentityLambda())) =>
+        xs
+      case (xs: RepCol[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
+        val f1 = f.asRep[a => c]
+        implicit val eB = iso.eFrom
+        val s = xs.map(f1 >> iso.fromFun)
+        val res = ViewCol(s, iso)
+        res
+      case (HasViews(source, Def(contIso: ColIso[a, b])), f: RFunc[_, c]@unchecked) =>
+        val f1 = f.asRep[b => c]
+        val iso = contIso.innerIso
+        implicit val eC = f1.elem.eRange
+        source.asRep[Col[a]].map(iso.toFun >> f1)
+      case _ =>
+        super.rewriteDef(d)
+    }
+    case _ => super.rewriteDef(d)
   }
 
   // entityProxy: single proxy for each type family

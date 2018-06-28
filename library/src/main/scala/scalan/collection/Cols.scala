@@ -2,7 +2,7 @@ package scalan.collection {
   import scalan._
 
   trait Cols extends Base { self: Library =>
-    trait Col[A] extends Def[Col[A]] {
+    @ContainerType @FunctorType trait Col[A] extends Def[Col[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[ColBuilder];
       def arr: Rep[WArray[A]];
@@ -36,12 +36,12 @@ package scalan.collection {
         val c: Rep[WArray[scala.Tuple2[Int, Double]]] = xs.zip(v).map(fun(((d: Rep[scala.Tuple2[Int, Double]]) => d)));
         c.length
       };
-      def functorArg(arr: Rep[WArray[Double]])(evF: Functor[WArray]): Rep[WArray[Double]] = evF.map[Double, Double](arr)(fun(((x: Rep[Double]) => x.+(toRep(1.asInstanceOf[Int])))))
+//      def functorArg(arr: Rep[WArray[Double]])(evF: Functor[WArray]): Rep[WArray[Double]] = evF.map[Double, Double](arr)(fun(((x: Rep[Double]) => x.+(toRep(1.asInstanceOf[Int])))))
     };
-    trait Functor[F[_]] extends Def[Functor[F]] {
-      implicit def cF: Cont[F];
-      def map[A, B](fa: Rep[F[A]])(f: Rep[scala.Function1[A, B]]): Rep[F[B]]
-    };
+//    trait Functor[F[_]] extends Def[Functor[F]] {
+//      implicit def cF: Cont[F];
+//      def map[A, B](fa: Rep[F[A]])(f: Rep[scala.Function1[A, B]]): Rep[F[B]]
+//    };
     trait Enum extends Def[Enum] {
       def value: Rep[Int]
     };

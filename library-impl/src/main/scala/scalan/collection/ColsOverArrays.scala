@@ -67,10 +67,6 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
 class ReplColBuilder extends BaseColBuilder {
 }
 
-class ArrayFunctor extends Functor[Array] {
-  override def map[A, B](fa: Array[A])(f: (A) => B)(implicit tB: ClassTag[B]): Array[B] = fa.map(f)
-}
-
 //  object ColOverArray {
 //    def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray(arr)
 //  }

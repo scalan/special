@@ -6,7 +6,7 @@ package scalan.collection {
       implicit def eVal: Elem[Val];
       def builder: Rep[CostedBuilder];
       def value: Rep[Val];
-      def cost: Rep[Long]
+      def cost: Rep[Int]
     };
     trait CostedBuilder extends Def[CostedBuilder];
     trait CostedCompanion;

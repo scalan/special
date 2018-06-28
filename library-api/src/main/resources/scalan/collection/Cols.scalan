@@ -2,7 +2,7 @@ package scalan.collection {
   import scalan._
 
   trait Cols extends Base { self: ColsModule =>
-    trait Col[A] extends Def[Col[A]] {
+    @ContainerType @FunctorType trait Col[A] extends Def[Col[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[ColBuilder];
       def arr: Rep[WArray[A]];

@@ -24,6 +24,12 @@ trait Library extends Scalan
         wArrayElement(f.elem.eRange)
       case _ => super.getResultElem(receiver, m, args)
     }
+    case ce: ColElem[a, _] => m.getName match {
+      case "map" =>
+        val f = args(0).asInstanceOf[Rep[a => Any]]
+        colElement(f.elem.eRange)
+      case _ => super.getResultElem(receiver, m, args)
+    }
     case _ => super.getResultElem(receiver, m, args)
   }
 

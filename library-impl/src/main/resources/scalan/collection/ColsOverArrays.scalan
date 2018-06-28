@@ -4,10 +4,10 @@ package scalan.collection {
   trait ColsOverArrays extends Base { self: ColsOverArraysModule =>
     trait BaseColBuilder extends ColBuilder {
       @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
-      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = Predef.???;
+      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = scala.Predef.???;
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr);
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = this.fromArray[T](WArray.fill[T](n, Thunk(v)));
-      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = Predef.???
+      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = scala.Predef.???
     };
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColOverArrayBuilder] = ColOverArrayBuilder();
@@ -58,7 +58,7 @@ package scalan.collection {
       def arr: Rep[WArray[A]] = ReplCol.this.builder.replicate[A](ReplCol.this.length, ReplCol.this.value).arr;
       def apply(i: Rep[Int]): Rep[A] = ReplCol.this.value;
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ReplCol(f.apply(ReplCol.this.value), ReplCol.this.length);
-      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = Predef.???;
+      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = scala.Predef.???;
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
       def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = IF(p.apply(ReplCol.this.value)).THEN(this).ELSE(ReplCol(ReplCol.this.value, toRep(0.asInstanceOf[Int])));
