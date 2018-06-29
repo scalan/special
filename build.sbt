@@ -48,7 +48,7 @@ lazy val itSettings = commonSettings ++ Defaults.itSettings ++
     Seq(
       libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "it",
       javaOptions in IntegrationTest ++=
-          Seq("-Xmx3g", "-XX:PermSize=384m", "-XX:MaxPermSize=384m", "-XX:ReservedCodeCacheSize=384m"),
+          Seq("-Xmx3g", "-Xss2m", "-XX:PermSize=384m", "-XX:MaxPermSize=384m", "-XX:ReservedCodeCacheSize=384m"),
       parallelExecution in IntegrationTest := false,
       fork in IntegrationTest := true)
 
