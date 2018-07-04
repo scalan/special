@@ -6,6 +6,7 @@ import library.WrappersSpecModule
 
 import scala.wrappers.WrappersModule
 import scalan.collection.{CostsModule, ConcreteCostsModule, ColsModule, MonoidsModule, ColsOverArraysModule, MonoidInstancesModule}
+import scalan.util.ReflectionUtil
 
 trait Library extends Scalan
   with WrappersModule
@@ -28,6 +29,16 @@ trait Library extends Scalan
       case "map" =>
         val f = args(0).asInstanceOf[Rep[a => Any]]
         colElement(f.elem.eRange)
+      case _ => super.getResultElem(receiver, m, args)
+    }
+    case b: ColBuilderElem[_] => m.getName match {
+      case "apply" =>
+        ReflectionUtil.overloadId(m) match {
+          case Some("apply_items") =>
+            val eItem = args(0).asInstanceOf[IndexedSeq[Sym]](0).elem
+            colElement(eItem)
+          case _ => super.getResultElem(receiver, m, args)
+        }
       case _ => super.getResultElem(receiver, m, args)
     }
     case _ => super.getResultElem(receiver, m, args)

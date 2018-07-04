@@ -32,11 +32,11 @@ class CostedTests extends BaseCostedTests {
     }
   }
 
-  test("plus fresh var") {
-    buildGraph(10, "measure_plus_var") { i =>
-      plus(fresh[Int], 1000)
-    }
-  }
+//  test("plus fresh var") {
+//    buildGraph(10, "measure_plus_var") { i =>
+//      plus(fresh[Int], 1000)
+//    }
+//  }
 
   test("measure: dataCost") {
     buildGraph(10, "measure_dataCost") { i =>

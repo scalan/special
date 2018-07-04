@@ -4,10 +4,10 @@ package scalan.collection {
   trait ColsOverArrays extends Base { self: Library =>
     trait BaseColBuilder extends ColBuilder {
       @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
-      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = scala.Predef.???;
+      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr);
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = this.fromArray[T](WArray.fill[T](n, Thunk(v)));
-      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = scala.Predef.???
+      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = delayInvoke
     };
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColOverArrayBuilder] = ColOverArrayBuilder();

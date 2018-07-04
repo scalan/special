@@ -15,6 +15,10 @@ class ColsTests extends BaseCtxTests {
       val c = ColOverArray(xs)
       c.map(fun { x => x + 1.0 })
     }
+    lazy val t3 = fun { (x: Rep[Int]) =>
+      val b = ColOverArrayBuilder()
+      b.apply(x, x + 1, x + 2)
+    }
   }
 
   test("Col methods") {
@@ -27,6 +31,7 @@ class ColsTests extends BaseCtxTests {
     ctx.test()
     ctx.emit("t1", ctx.t1)
     ctx.emit("t2", ctx.t2)
+    ctx.emit("t3", ctx.t3)
   }
 
 }
