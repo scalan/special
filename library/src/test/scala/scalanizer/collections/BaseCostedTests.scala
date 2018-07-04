@@ -4,30 +4,6 @@ import scalan.{Lazy, BaseCtxTests, Library}
 
 class BaseCostedTests extends BaseCtxTests {
   class Ctx extends TestContext with Library {
-    val WA = WArrayMethods
-    object IsProjectFirst {
-      def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-        case Def(Lambda(_,_,x, Def(First(p)))) if p == x => Some(f.asRep[A=>B])
-        case _ => None
-      }
-    }
-    object IsProjectSecond {
-      def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-        case Def(Lambda(_,_,x, Def(Second(p)))) if p == x => Some(f.asRep[A=>B])
-        case _ => None
-      }
-    }
-    override def rewriteDef[T](d: Def[T]) = d match {
-      case WA.length(WA.map(xs, _)) => xs.length
-      case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
-      case WA.map(WA.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
-        implicit val ea = f.elem.eDom
-        val xs = _xs.asRep[WArray[a]]
-        val g  = _g.asRep[b => c]
-        xs.map(fun { x: Rep[a] => g(f(x)) })
-      case _ => super.rewriteDef(d)
-    }
-
     def plus(x: Rep[Int], n: Int) = {
       Range(0, n).foldLeft(x)((y, i) => y + i)
     }
