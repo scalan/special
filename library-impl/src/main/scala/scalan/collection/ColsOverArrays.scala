@@ -1,7 +1,10 @@
 package scalan.collection
 
+import java.util
+
 import scala.reflect.ClassTag
-import scalan.{OverloadId, SpecialPredef}
+import scalan.util.CollectionUtil
+import scalan.{Internal, SpecialPredef, OverloadId}
 
 trait BaseColBuilder extends ColBuilder {
   @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
@@ -24,6 +27,15 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def slice(from: Int, until: Int) = builder.fromArray(arr.slice(from, until))
   def sum(m: Monoid[A]) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
   //  def ++(other: Col[A]) = builder.fromArray(arr ++ other.arr)
+
+  @Internal
+  override def equals(obj: scala.Any) = obj match {
+    case obj: Col[_] => util.Objects.deepEquals(obj.arr, arr)
+    case _ => false
+  }
+
+  @Internal
+  override def hashCode() = CollectionUtil.deepHashCode(arr)
 }
 
 class ColOverArrayBuilder extends BaseColBuilder {
