@@ -67,7 +67,7 @@ cancelable in Global := true
 lazy val common = Project("common", file("common"))
     .settings(commonSettings,
       libraryDependencies ++= Seq(
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.5.0",
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "commons-io" % "commons-io" % "2.5"
 

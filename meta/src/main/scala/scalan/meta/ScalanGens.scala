@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scala.tools.nsc.Global
-import scalan.meta.ScalanAst.{STraitCall, SClassArg, STpeDef, SUnitDef, SValDef, STpeArgs, STpeExpr, STpeFunc, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SIf, STpeThis, SIdent, STpeTuple, SMethodArg, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, STpeTypeBounds, SImportStat, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, RepeatedArgType, SEntityDef, SConstr, SAnnotation, SSuper, STpeExistential, SSelect}
+import scalan.meta.ScalanAst.{STraitCall, SClassArg, SLiteralPattern, STpeDef, SWildcardPattern, SUnitDef, SValDef, STypedPattern, STpeArgs, STpeExpr, STpeFunc, SSelPattern, SExpr, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SCase, SIf, STpeThis, SIdent, SStableIdPattern, SBindPattern, STpeTuple, RepeatedArgType, SMethodArg, SApplyPattern, SObjectDef, SSelfTypeDef, STpeSingleton, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STpeSelectFromTT, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, SMatch, STpeTypeBounds, SImportStat, SPattern, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SAnnotation, SSuper, STpeExistential, SSelect, SAltPattern}
 import scalan.meta.ScalanAstTransformers.filterInternalAnnot
 import scalan.meta.Symbols.SUnitDefSymbol
 import scalan.util.ScalaNameUtil.PackageAndName
@@ -192,8 +192,30 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
       q"${genExpr(exprApply.fun)}[..${exprApply.ts.map(genTypeExpr)}]"
     case tuple: STuple => q"Tuple(..${tuple.exprs.map(genExpr)})"
     case bi: SBodyItem => genBodyItem(bi)
+    case m @ SMatch(sel, cs, tpe) =>
+      val expr = genExpr(sel)
+      val cases = cs.map{ case SCase(p, g, b, _) =>
+        val pat = genPattern(p)
+        val guard = genExpr(g)
+        val body = genExpr(b)
+        cq"$pat if $guard => $body"
+      }
+      q"$expr match { case ..$cases } "
     case unknown => throw new NotImplementedError(s"genExpr($unknown)")
   }
+
+  def genPattern(pat: SPattern)(implicit ctx: GenCtx): Tree = pat match {
+    case SWildcardPattern() => Bind(nme.WILDCARD, EmptyTree)
+    case SApplyPattern(fun, pats) => Apply(genExpr(fun), pats.map(genPattern(_)))
+    case STypedPattern(tpe) => Typed(Ident(termNames.WILDCARD), genTypeExpr(tpe))
+    case SBindPattern(name, expr) => Bind(TermName(name), genPattern(expr))
+    case SLiteralPattern(SConst(c, _)) => Literal(Constant(c))
+    case SStableIdPattern(SIdent(id, _)) => Ident(id)
+    case SSelPattern(qual, name) => Select(genExpr(qual), name)
+    case SAltPattern(alts) => Alternative(alts.map(genPattern(_)))
+    case _ => throw new NotImplementedError(s"genPattern($pat)")
+  }
+
   def genBodyItem(item: SBodyItem)(implicit ctx: GenCtx): Tree = item match {
     case m: SMethodDef =>
       if (m.isTypeDesc) genMethod(m)(ctx = ctx.copy(toRep = false))

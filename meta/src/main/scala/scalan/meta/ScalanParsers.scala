@@ -11,7 +11,8 @@ import scala.tools.nsc.Global
 import scala.reflect.internal.util.{BatchSourceFile, SourceFile, OffsetPosition, RangePosition}
 import scalan.meta.ScalanAst._
 import java.util.regex.Pattern
-import scalan.meta.Symbols.{SSymbol, SNoSymbol, SEntityDefSymbol}
+
+import scalan.meta.Symbols._
 import scalan.util.StringUtil._
 import scalan.util.CollectionUtil._
 import scalan.util.FileUtil
@@ -443,6 +444,8 @@ trait ScalanParsers[+G <: Global] {
         }
       else
         None
+//    case LabelDef(name, params, rhs) =>
+//      SLabelDef(owner, name, params.map(_.toString()), parseExpr(owner, rhs))
     case td: TypeDef =>
       Some(tpeDef(owner, td, parentScope))
     case td: ClassDef if td.mods.isTrait =>
@@ -516,10 +519,11 @@ trait ScalanParsers[+G <: Global] {
   val ReifiedAnnotation = new HasAnnotation(ReifiedTypeArgAnnotation)
 
   def methodDef(owner: SSymbol, md: DefDef, isElem: Boolean = false)(implicit ctx: ParseCtx) = {
-    val tpeArgs = this.tpeArgs(owner, md.tparams, md.vparamss.lastOption.getOrElse(Nil))
-    val args0 = md.vparamss.map(methodArgs(owner, _))
+    val methodSym = SEntityItemSymbol(owner, md.name, DefType.Def)
+    val tpeArgs = this.tpeArgs(methodSym, md.tparams, md.vparamss.lastOption.getOrElse(Nil))
+    val args0 = md.vparamss.map(methodArgs(methodSym, _))
     val args = if (!args0.isEmpty && args0.last.args.isEmpty) args0.init else args0
-    val tpeRes = optTpeExpr(owner, md.tpt)
+    val tpeRes = optTpeExpr(methodSym, md.tpt)
     val isImplicit = md.mods.isImplicit
     val isOverride = md.mods.isOverride
     val optOverloadId = md match {
@@ -534,9 +538,9 @@ trait ScalanParsers[+G <: Global] {
       case ("throws", ts, as) =>
         SMethodAnnotation("throws", ts.map(parseType), Nil)
       case (n, ts, as) =>
-        SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+        SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(methodSym, _)))
     }
-    val optBody: Option[SExpr] = optExpr(owner, md.rhs)
+    val optBody: Option[SExpr] = optExpr(methodSym, md.rhs)
     val isTypeDesc = md.tpt match {
       case AppliedTypeTree(tpt, _) if Set("Elem", "Cont").contains(tpt.toString) =>
         true
