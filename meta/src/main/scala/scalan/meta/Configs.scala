@@ -141,10 +141,9 @@ class SourceModuleConf(
     this
   }
 
-//  def listWrapperFiles: Array[File] = {
-//    import FileUtil._
-//    listFilesRecursive(file(getWrappersRootDir))
-//  }
+  def wrapperSpecUnit(wName: String): Option[UnitConfig] = {
+    units.find(u => u.wrappers.contains(wName))
+  }
 }
 
 case class UnitConfig(
@@ -164,7 +163,7 @@ case class UnitConfig(
   def getResourceFile: File = {
     FileUtil.file(resourcePath, entityResource)
   }
-  def packageName: String = entityFile.stripSuffix("/" + entityFile).replace('/', '.')
+  def packageName: String = entityFile.stripSuffix("/" + name).replace('/', '.')
   def unitName: String = name.stripSuffix(".scala")
   @inline def unitKey: String = SSymName.fullNameString(packageName, unitName)
 

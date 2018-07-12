@@ -576,9 +576,10 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       unitName + ModuleConf.ResourceFileExtension)
     val wUnit = parseUnitFile(wFile)
     context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
-    scalanizer.inform(
-      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
-          s"(parsed from file ${wFile})")
+    if (!context.hasWrapper(wConf.name))
+      scalanizer.inform(
+        s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
+            s"(parsed from file ${wFile})")
   }
 
   def loadWrapperFromResource
@@ -590,9 +591,10 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val wResourcePath = s"$packageDir/$wUnitName$ResourceFileExtension"
     val wUnit = scalanizer.loadUnitDefFromResource(wResourcePath)
     context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
-    scalanizer.inform(
-      s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
-          s"(parsed from resource ${wResourcePath})")
+    if (!context.hasWrapper(wConf.name))
+      scalanizer.inform(
+        s"Step(${step.name}): Adding wrapper ${wUnit.packageAndName} form module '${module.name}' " +
+            s"(parsed from resource ${wResourcePath})")
   }
 
   def loadModuleUnits(step: PipelineStep, sourceMod: ModuleConf)(implicit ctx: ParseCtx): Unit = {
@@ -603,9 +605,10 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       if(!scalanizer.context.hasUnit(unitConf.packageName, unitConf.unitName)) {
         val unit = scalanizer.loadUnitDefFromResource(unitConf.entityResource)
         context.addUnit(unit, unitConf)
-        scalanizer.inform(
-          s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${sourceMod.name}' " +
-              s"(parsed from resource ${unitConf.entityFile})")
+        if (!context.hasUnit(unit.packageName, unit.name))
+          scalanizer.inform(
+            s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${sourceMod.name}' " +
+                s"(parsed from resource ${unitConf.entityFile})")
         for (wConf <- unitConf.wrappers.values) {
           loadWrapperFromResource(step, sourceMod, wConf)
         }
@@ -628,7 +631,8 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       }
       for (unitConf <- depModule.units.values) {
         val unit = parseUnitFile(unitConf.getResourceFile)
-        scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
+        if (!context.hasUnit(unit.packageName, unit.name))
+          scalanizer.inform(s"Step(${step.name}): Adding dependency ${unit.packageAndName} parsed from ${unitConf.getResourceFile}")
         context.addUnit(unit, unitConf)
         for (wConf <- unitConf.wrappers.values) {
           loadWrapperFromFile(step, depModule, wConf)

@@ -93,7 +93,8 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       for (unitConf <- module.units.values) {
         val parseCtx = new ParseCtx(isVirtualized = false)(context)
         val unit = parseUnitFile(unitConf.getFile)(parseCtx)
-        scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
+        if (!context.hasUnit(unit.packageName, unit.name))
+          scalanizer.inform(s"Step(${step.name}): Adding unit ${unit.packageAndName} form module '${s.moduleName}' (parsed from ${unitConf.getFile})")
         context.addUnit(unit, unitConf)
       }
     },
@@ -142,8 +143,12 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     RunStep("wrapbackend") { _ =>
       context.forEachWrapper {
         case (_, WrapperDescr(u, config, false)) =>
-          val wUnit = u.copy(imports = u.imports :+ SImportStat("scala.wrappers.WrappersModule"))(scalanizer.context)
           val moduleConf = getSourceModule
+          val wSpecPackageName = moduleConf
+              .wrapperSpecUnit(config.name)
+              .map(_.packageName)
+              .getOrElse("scala.wrappers")
+          val wUnit = u.copy(imports = u.imports :+ SImportStat(s"$wSpecPackageName.WrappersModule"))(scalanizer.context)
 
           /** Build source code of the wrapper unit and store it in a file */
           val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)
