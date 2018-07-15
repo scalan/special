@@ -22,12 +22,17 @@ trait StructItems extends ViewsModule with Entities  { self: Structs with Scalan
 }
 
 trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan =>
+  import StructKey._
+  import IndexStructKey._
+  import NameStructKey._
+  import StructItem._
+  import StructItemBase._
 
   def struct_getItem[S <: Struct](s: Rep[S], i: Int)(implicit o1: Overloaded1): Rep[StructItem[_,S]] = {
     val value = s.getUntyped(i)
     val eS = s.elem
-    val key = IndexStructKey[S](i)(eS)
-    StructItemBase(key, value)
+    val key = RIndexStructKey[S](i)(eS)
+    RStructItemBase(key, value)
   }
 
   def struct_setItem[S <: Struct](s: Rep[S], i: Rep[Int], v: Rep[_]): Rep[S] = {
@@ -47,7 +52,7 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
     def map[A,B](xs: Rep[StructItem[A,S]])(f: Rep[A] => Rep[B]) = {
       val res = f(xs.value)
       implicit val eB = res.elem
-      StructItemBase(xs.key, res)
+      RStructItemBase(xs.key, res)
     }
   }
   implicit def structItemContainer[S <: Struct : Elem]: Functor[({type f[x] = StructItem[x,S]})#f] =

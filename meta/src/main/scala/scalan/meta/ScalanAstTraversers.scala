@@ -1,6 +1,6 @@
 package scalan.meta
 
-import scalan.meta.ScalanAst.{SArgSection, SClassArg, SLiteralPattern, STpeDef, SWildcardPattern, SUnitDef, SValDef, STypedPattern, STpeArgs, STpeExpr, SSelPattern, SExpr, STpeArg, STuple, SClassDef, SCase, SIf, SIdent, SStableIdPattern, SBindPattern, SMethodArg, SApplyPattern, SObjectDef, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, SMatch, SPattern, SAnnotated, SBodyItem, SEntityDef, SConstr, SSuper, SSelect, SAltPattern}
+import scalan.meta.ScalanAst.{SArgSection, STraitCall, SClassArg, SLiteralPattern, STpeDef, SWildcardPattern, SUnitDef, SValDef, STypedPattern, STpeArgs, STpeExpr, STpeFunc, SSelPattern, SExpr, STpeArg, STpeEmpty, STuple, SClassDef, SCase, SIf, SIdent, SStableIdPattern, SBindPattern, STpeTuple, SMethodArg, SApplyPattern, SObjectDef, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STypeArgAnnotation, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, SMatch, SPattern, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SSuper, STpeExistential, SSelect, SAltPattern}
 import scalan.meta.Symbols.SEntityDefSymbol
 
 object ScalanAstTraversers {
@@ -62,8 +62,42 @@ object ScalanAstTraversers {
       case _ => throw new NotImplementedError(s"Cannot exprTraverse($expr)")
     }
 
-    def tpeExprTraverse(tpe: STpeExpr): Unit = {}
+    def tpeExprTraverse(tpe: STpeExpr): Unit = tpe match {
+      case tup: STpeTuple => tupleTraverse(tup)
+      case func: STpeFunc => funcTraverse(func)
+      case empty: STpeEmpty => emptyTraverse(empty)
+      case traitCall: STraitCall => traitCallTraverse(traitCall)
+      case prim: STpePrimitive => primitiveTraverse(prim)
+      case existType: STpeExistential => tpeExistentialTraverse(existType)
+      case ann: STpeAnnotated => tpeAnnotatedTraverse(ann)
+      case _ =>
+        sys.error(s"Don't know how to tpeExprTraverse($tpe)")
+    }
 
+    def tpeAnnotatedTraverse(ann: STpeAnnotated): Unit = tpeExprTraverse(ann.tpt)
+    def tupleTraverse(tup: STpeTuple): Unit = tup.args.foreach(tpeExprTraverse)
+    def funcTraverse(func: STpeFunc): Unit = {
+      tpeExprTraverse(func.domain)
+      tpeExprTraverse(func.range)
+    }
+    def emptyTraverse(et: STpeEmpty): Unit = {}
+    def primitiveTraverse(prim: STpePrimitive): Unit = {}
+    def traitCallTraverse(tc: STraitCall): Unit = {
+      tc.args.foreach(tpeExprTraverse)
+    }
+    def typeArgAnnotationTraverse(ann: STypeArgAnnotation) = {
+      ann.tpeArgs.foreach(tpeExprTraverse)
+      ann.args.foreach(exprTraverse)
+    }
+    def tpeArgTraverse(tpeArg: STpeArg): Unit = {
+      tpeArg.bound.foreach(tpeExprTraverse)
+      tpeArg.tparams.foreach(tpeArgTraverse)
+      tpeArg.annotations.foreach(typeArgAnnotationTraverse)
+    }
+    def tpeExistentialTraverse(e: STpeExistential) = {
+      tpeExprTraverse(e.tpt)
+      e.items.foreach(bodyItemTraverse)
+    }
     def superTraverse(e: SSuper) = {
       e.exprType.foreach(tpeExprTraverse)
     }
@@ -126,11 +160,11 @@ object ScalanAstTraversers {
     def methodArgSectionsTraverse(argSections: List[SMethodArgs]): Unit = {
       argSections foreach methodArgsTraverse
     }
-    def methodResTraverse(res: Option[STpeExpr]): Unit = {}
-    def methodBodyTraverse(body: Option[SExpr]): Unit = body match {
-      case Some(bodyExpr) => exprTraverse(bodyExpr)
-      case None => // do nothing
-    }
+    def methodResTraverse(res: Option[STpeExpr]): Unit =
+      res foreach tpeExprTraverse
+    def methodBodyTraverse(body: Option[SExpr]): Unit = 
+      body foreach exprTraverse
+      
     def methodTraverse(method: SMethodDef): Unit = {
       methodArgSectionsTraverse(method.argSections)
       methodResTraverse(method.tpeRes)
@@ -220,6 +254,9 @@ object ScalanAstTraversers {
   }
 
   class EntityUseTraverser(accept: String => Unit)(implicit ctx: AstContext) extends AstTraverser {
-
+    override def traitCallTraverse(tc: STraitCall): Unit = {
+      accept(tc.name)
+      super.traitCallTraverse(tc)
+    }
   }
 }

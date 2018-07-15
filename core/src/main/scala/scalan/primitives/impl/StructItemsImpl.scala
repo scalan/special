@@ -11,7 +11,11 @@ package impl {
 // Abs -----------------------------------
 trait StructItemsDefs extends StructItems {
   self: Structs with Scalan =>
+import StructKey._
+import StructItem._
+import StructItemBase._
 
+object StructItem extends EntityObject("StructItem") {
   // entityProxy: single proxy for each type family
   implicit def proxyStructItem[Val, Schema <: Struct](p: Rep[StructItem[Val, Schema]]): StructItem[Val, Schema] = {
     proxyOps[StructItem[Val, Schema]](p)(scala.reflect.classTag[StructItem[Val, Schema]])
@@ -48,7 +52,7 @@ trait StructItemsDefs extends StructItems {
 
   implicit case object StructItemCompanionElem extends CompanionElem[StructItemCompanionCtor] {
     lazy val tag = weakTypeTag[StructItemCompanionCtor]
-    protected def getDefaultRep = StructItem
+    protected def getDefaultRep = RStructItem
   }
 
   abstract class StructItemCompanionCtor extends CompanionDef[StructItemCompanionCtor] {
@@ -58,7 +62,7 @@ trait StructItemsDefs extends StructItems {
   implicit def proxyStructItemCompanionCtor(p: Rep[StructItemCompanionCtor]): StructItemCompanionCtor =
     proxyOps[StructItemCompanionCtor](p)
 
-  lazy val StructItem: Rep[StructItemCompanionCtor] = new StructItemCompanionCtor {
+  lazy val RStructItem: Rep[StructItemCompanionCtor] = new StructItemCompanionCtor {
   }
 
   object StructItemMethods {
@@ -86,7 +90,10 @@ trait StructItemsDefs extends StructItems {
       }
     }
   }
+} // of object StructItem
+  registerEntityObject("StructItem", StructItem)
 
+object StructItemBase extends EntityObject("StructItemBase") {
   case class StructItemBaseCtor[Val, Schema <: Struct]
       (override val key: Rep[StructKey[Schema]], override val value: Rep[Val])
     extends StructItemBase[Val, Schema](key, value) with Def[StructItemBase[Val, Schema]] {
@@ -101,8 +108,8 @@ implicit lazy val eSchema = key.eSchema
     with ConcreteElem[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structItemElement(element[Val], element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convertStructItem(x: Rep[StructItem[Val, Schema]]) = StructItemBase(x.key, x.value)
-    override def getDefaultRep = StructItemBase(element[StructKey[Schema]].defaultRepValue, element[Val].defaultRepValue)
+    override def convertStructItem(x: Rep[StructItem[Val, Schema]]) = RStructItemBase(x.key, x.value)
+    override def getDefaultRep = RStructItemBase(element[StructKey[Schema]].defaultRepValue, element[Val].defaultRepValue)
     override lazy val tag = {
       implicit val tagVal = eVal.tag
       implicit val tagSchema = eSchema.tag
@@ -116,11 +123,12 @@ implicit lazy val eSchema = key.eSchema
   // 3) Iso for concrete class
   class StructItemBaseIso[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema])
     extends EntityIso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] with Def[StructItemBaseIso[Val, Schema]] {
+    private lazy val _safeFrom = fun { p: Rep[StructItemBase[Val, Schema]] => (p.key, p.value) }
     override def from(p: Rep[StructItemBase[Val, Schema]]) =
-      (p.key, p.value)
+      tryConvert[StructItemBase[Val, Schema], (StructKey[Schema], Val)](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(StructKey[Schema], Val)]) = {
       val Pair(key, value) = p
-      StructItemBase(key, value)
+      RStructItemBase(key, value)
     }
     lazy val eFrom = pairElement(element[StructKey[Schema]], element[Val])
     lazy val eTo = new StructItemBaseElem[Val, Schema](self)
@@ -158,7 +166,7 @@ implicit val eSchema = p._1.eSchema
     def unapply[Val, Schema <: Struct](p: Rep[StructItem[Val, Schema]]) = unmkStructItemBase(p)
   }
   lazy val StructItemBaseRep: Rep[StructItemBaseCompanionCtor] = new StructItemBaseCompanionCtor
-  lazy val StructItemBase: StructItemBaseCompanionCtor = proxyStructItemBaseCompanion(StructItemBaseRep)
+  lazy val RStructItemBase: StructItemBaseCompanionCtor = proxyStructItemBaseCompanion(StructItemBaseRep)
   implicit def proxyStructItemBaseCompanion(p: Rep[StructItemBaseCompanionCtor]): StructItemBaseCompanionCtor = {
     proxyOps[StructItemBaseCompanionCtor](p)
   }
@@ -183,11 +191,6 @@ implicit val eSchema = p.key.eSchema
   implicit def isoStructItemBase[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema]): Iso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] =
     reifyObject(new StructItemBaseIso[Val, Schema]()(eVal, eSchema))
 
-  registerModule(StructItemsModule)
-
-  object StructItemBaseMethods {
-  }
-
   def mkStructItemBase[Val, Schema <: Struct]
     (key: Rep[StructKey[Schema]], value: Rep[Val]): Rep[StructItemBase[Val, Schema]] = {
     new StructItemBaseCtor[Val, Schema](key, value)
@@ -198,6 +201,13 @@ implicit val eSchema = p.key.eSchema
     case _ =>
       None
   }
+
+    object StructItemBaseMethods {
+  }
+} // of object StructItemBase
+  registerEntityObject("StructItemBase", StructItemBase)
+
+  registerModule(StructItemsModule)
 }
 
 object StructItemsModule extends scalan.ModuleInfo("scalan.primitives", "StructItems")

@@ -8,7 +8,11 @@ package impl {
 // Abs -----------------------------------
 trait StructKeysDefs extends StructKeys {
   self: Structs with Scalan =>
+import StructKey._
+import IndexStructKey._
+import NameStructKey._
 
+object StructKey extends EntityObject("StructKey") {
   // entityProxy: single proxy for each type family
   implicit def proxyStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]): StructKey[Schema] = {
     proxyOps[StructKey[Schema]](p)(scala.reflect.classTag[StructKey[Schema]])
@@ -43,7 +47,7 @@ trait StructKeysDefs extends StructKeys {
 
   implicit case object StructKeyCompanionElem extends CompanionElem[StructKeyCompanionCtor] {
     lazy val tag = weakTypeTag[StructKeyCompanionCtor]
-    protected def getDefaultRep = StructKey
+    protected def getDefaultRep = RStructKey
   }
 
   abstract class StructKeyCompanionCtor extends CompanionDef[StructKeyCompanionCtor] {
@@ -53,7 +57,7 @@ trait StructKeysDefs extends StructKeys {
   implicit def proxyStructKeyCompanionCtor(p: Rep[StructKeyCompanionCtor]): StructKeyCompanionCtor =
     proxyOps[StructKeyCompanionCtor](p)
 
-  lazy val StructKey: Rep[StructKeyCompanionCtor] = new StructKeyCompanionCtor {
+  lazy val RStructKey: Rep[StructKeyCompanionCtor] = new StructKeyCompanionCtor {
   }
 
   object StructKeyMethods {
@@ -81,7 +85,10 @@ trait StructKeysDefs extends StructKeys {
       }
     }
   }
+} // of object StructKey
+  registerEntityObject("StructKey", StructKey)
 
+object IndexStructKey extends EntityObject("IndexStructKey") {
   case class IndexStructKeyCtor[Schema <: Struct]
       (override val index: Rep[Int])(implicit eSchema: Elem[Schema])
     extends IndexStructKey[Schema](index) with Def[IndexStructKey[Schema]] {
@@ -93,8 +100,8 @@ trait StructKeysDefs extends StructKeys {
     with ConcreteElem[IndexStructKeyData[Schema], IndexStructKey[Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convertStructKey(x: Rep[StructKey[Schema]]) = IndexStructKey(x.index)
-    override def getDefaultRep = IndexStructKey(0)
+    override def convertStructKey(x: Rep[StructKey[Schema]]) = RIndexStructKey(x.index)
+    override def getDefaultRep = RIndexStructKey(0)
     override lazy val tag = {
       implicit val tagSchema = eSchema.tag
       weakTypeTag[IndexStructKey[Schema]]
@@ -107,11 +114,12 @@ trait StructKeysDefs extends StructKeys {
   // 3) Iso for concrete class
   class IndexStructKeyIso[Schema <: Struct](implicit eSchema: Elem[Schema])
     extends EntityIso[IndexStructKeyData[Schema], IndexStructKey[Schema]] with Def[IndexStructKeyIso[Schema]] {
+    private lazy val _safeFrom = fun { p: Rep[IndexStructKey[Schema]] => p.index }
     override def from(p: Rep[IndexStructKey[Schema]]) =
-      p.index
+      tryConvert[IndexStructKey[Schema], Int](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Int]) = {
       val index = p
-      IndexStructKey(index)
+      RIndexStructKey(index)
     }
     lazy val eFrom = element[Int]
     lazy val eTo = new IndexStructKeyElem[Schema](self)
@@ -139,7 +147,7 @@ trait StructKeysDefs extends StructKeys {
     def unapply[Schema <: Struct](p: Rep[StructKey[Schema]]) = unmkIndexStructKey(p)
   }
   lazy val IndexStructKeyRep: Rep[IndexStructKeyCompanionCtor] = new IndexStructKeyCompanionCtor
-  lazy val IndexStructKey: IndexStructKeyCompanionCtor = proxyIndexStructKeyCompanion(IndexStructKeyRep)
+  lazy val RIndexStructKey: IndexStructKeyCompanionCtor = proxyIndexStructKeyCompanion(IndexStructKeyRep)
   implicit def proxyIndexStructKeyCompanion(p: Rep[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
     proxyOps[IndexStructKeyCompanionCtor](p)
   }
@@ -162,6 +170,36 @@ trait StructKeysDefs extends StructKeys {
   implicit def isoIndexStructKey[Schema <: Struct](implicit eSchema: Elem[Schema]): Iso[IndexStructKeyData[Schema], IndexStructKey[Schema]] =
     reifyObject(new IndexStructKeyIso[Schema]()(eSchema))
 
+  def mkIndexStructKey[Schema <: Struct]
+    (index: Rep[Int])(implicit eSchema: Elem[Schema]): Rep[IndexStructKey[Schema]] = {
+    new IndexStructKeyCtor[Schema](index)
+  }
+  def unmkIndexStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: IndexStructKeyElem[Schema] @unchecked =>
+      Some((p.asRep[IndexStructKey[Schema]].index))
+    case _ =>
+      None
+  }
+
+    object IndexStructKeyMethods {
+    object name {
+      def unapply(d: Def[_]): Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IndexStructKeyElem[_]] && method.getName == "name" =>
+          Some(receiver).asInstanceOf[Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method
+  }
+} // of object IndexStructKey
+  registerEntityObject("IndexStructKey", IndexStructKey)
+
+object NameStructKey extends EntityObject("NameStructKey") {
   case class NameStructKeyCtor[Schema <: Struct]
       (override val name: Rep[String])(implicit eSchema: Elem[Schema])
     extends NameStructKey[Schema](name) with Def[NameStructKey[Schema]] {
@@ -173,8 +211,8 @@ trait StructKeysDefs extends StructKeys {
     with ConcreteElem[NameStructKeyData[Schema], NameStructKey[Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convertStructKey(x: Rep[StructKey[Schema]]) = NameStructKey(x.name)
-    override def getDefaultRep = NameStructKey("")
+    override def convertStructKey(x: Rep[StructKey[Schema]]) = RNameStructKey(x.name)
+    override def getDefaultRep = RNameStructKey("")
     override lazy val tag = {
       implicit val tagSchema = eSchema.tag
       weakTypeTag[NameStructKey[Schema]]
@@ -187,11 +225,12 @@ trait StructKeysDefs extends StructKeys {
   // 3) Iso for concrete class
   class NameStructKeyIso[Schema <: Struct](implicit eSchema: Elem[Schema])
     extends EntityIso[NameStructKeyData[Schema], NameStructKey[Schema]] with Def[NameStructKeyIso[Schema]] {
+    private lazy val _safeFrom = fun { p: Rep[NameStructKey[Schema]] => p.name }
     override def from(p: Rep[NameStructKey[Schema]]) =
-      p.name
+      tryConvert[NameStructKey[Schema], String](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[String]) = {
       val name = p
-      NameStructKey(name)
+      RNameStructKey(name)
     }
     lazy val eFrom = element[String]
     lazy val eTo = new NameStructKeyElem[Schema](self)
@@ -219,7 +258,7 @@ trait StructKeysDefs extends StructKeys {
     def unapply[Schema <: Struct](p: Rep[StructKey[Schema]]) = unmkNameStructKey(p)
   }
   lazy val NameStructKeyRep: Rep[NameStructKeyCompanionCtor] = new NameStructKeyCompanionCtor
-  lazy val NameStructKey: NameStructKeyCompanionCtor = proxyNameStructKeyCompanion(NameStructKeyRep)
+  lazy val RNameStructKey: NameStructKeyCompanionCtor = proxyNameStructKeyCompanion(NameStructKeyRep)
   implicit def proxyNameStructKeyCompanion(p: Rep[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
     proxyOps[NameStructKeyCompanionCtor](p)
   }
@@ -242,36 +281,18 @@ trait StructKeysDefs extends StructKeys {
   implicit def isoNameStructKey[Schema <: Struct](implicit eSchema: Elem[Schema]): Iso[NameStructKeyData[Schema], NameStructKey[Schema]] =
     reifyObject(new NameStructKeyIso[Schema]()(eSchema))
 
-  registerModule(StructKeysModule)
-
-  object IndexStructKeyMethods {
-    object name {
-      def unapply(d: Def[_]): Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IndexStructKeyElem[_]] && method.getName == "name" =>
-          Some(receiver).asInstanceOf[Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method
+  def mkNameStructKey[Schema <: Struct]
+    (name: Rep[String])(implicit eSchema: Elem[Schema]): Rep[NameStructKey[Schema]] = {
+    new NameStructKeyCtor[Schema](name)
   }
-
-  def mkIndexStructKey[Schema <: Struct]
-    (index: Rep[Int])(implicit eSchema: Elem[Schema]): Rep[IndexStructKey[Schema]] = {
-    new IndexStructKeyCtor[Schema](index)
-  }
-  def unmkIndexStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: IndexStructKeyElem[Schema] @unchecked =>
-      Some((p.asRep[IndexStructKey[Schema]].index))
+  def unmkNameStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: NameStructKeyElem[Schema] @unchecked =>
+      Some((p.asRep[NameStructKey[Schema]].name))
     case _ =>
       None
   }
 
-  object NameStructKeyMethods {
+    object NameStructKeyMethods {
     object index {
       def unapply(d: Def[_]): Option[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[NameStructKeyElem[_]] && method.getName == "index" =>
@@ -286,17 +307,10 @@ trait StructKeysDefs extends StructKeys {
 
     // WARNING: Cannot generate matcher for method `toString`: Overrides Object method
   }
+} // of object NameStructKey
+  registerEntityObject("NameStructKey", NameStructKey)
 
-  def mkNameStructKey[Schema <: Struct]
-    (name: Rep[String])(implicit eSchema: Elem[Schema]): Rep[NameStructKey[Schema]] = {
-    new NameStructKeyCtor[Schema](name)
-  }
-  def unmkNameStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: NameStructKeyElem[Schema] @unchecked =>
-      Some((p.asRep[NameStructKey[Schema]].name))
-    case _ =>
-      None
-  }
+  registerModule(StructKeysModule)
 }
 
 object StructKeysModule extends scalan.ModuleInfo("scalan.primitives", "StructKeys")
