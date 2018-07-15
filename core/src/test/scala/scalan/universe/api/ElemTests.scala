@@ -7,6 +7,10 @@ import scalan.universe.api.UniverseUtils._
 
 class ElemTests extends BaseCtxTests { suite =>
   class Ctx extends TestContext with SegmentsModule with KindsModule with TypesApi {
+    import Segment._
+    import Slice._
+    import Interval._
+    import Centered._
     val eInt      = element[Int]
     val eDouble   = element[Double]
     val eSegment  = element[Segment]
@@ -25,6 +29,7 @@ class ElemTests extends BaseCtxTests { suite =>
   test("EntityElem.entityDef") {
     val ctx = new Ctx
     import ctx._
+    import Segment._
     {
       val e = element[Segment].asEntityElem
       val d = entityDef(e)
@@ -64,6 +69,8 @@ class ElemTests extends BaseCtxTests { suite =>
   test("extendsTypes") {
     val ctx = new Ctx
     import ctx._
+    import Segment._
+    import Interval._
     def test[A <: Def[_]: Elem ](expected: Set[String]) = {
       val e = element[A]
       val ent = Entity(e)
@@ -149,6 +156,7 @@ class ElemTests extends BaseCtxTests { suite =>
   test("directSpecs") {
     val ctx = new Ctx
     import ctx._
+    import Segment._
     def testSubtypes[A: Elem](expectedElems: Set[Elem[_]]) = {
       val eParent = element[A]
       val specs = eParent.directSpecsExclusive(QueryParams(false)).toSet
@@ -182,6 +190,8 @@ class ElemTests extends BaseCtxTests { suite =>
   test("isConcrete") {
     val ctx = new Ctx
     import ctx._
+    import Segment._
+    import Interval._
     def testIsConcrete[A: Elem](expected: Boolean) = {
       val e = element[A]
       assertResult(expected)(e.isConcrete)
@@ -220,6 +230,7 @@ class ElemTests extends BaseCtxTests { suite =>
   test("allConcreteSpecs") {
     val ctx = new Ctx
     import ctx._
+    import Segment._
     def testAllSpecs[A: Elem](expected: Set[String]) = {
       val e = element[A]
       assertResult(expected)(e.allConcreteSpecs(QueryParams(false)).map(_.name).toSet)

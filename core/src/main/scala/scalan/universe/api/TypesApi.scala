@@ -173,13 +173,14 @@ trait TypesApi { self: Scalan =>
         case d => !!!(s"Unknown type descriptior $d")
       }.toArray
 
+      val obj = getEntityObject(this.name).getOrElse(self)
       if (this.isTrait) {
         val methodName = StringUtil.lowerCaseFirst(this.name) + "Element"
         // self.getClass will return the final cake, which should contain the method
         try {
-          val method = self.getClass.getMethod(methodName, descClasses: _*)
+          val method = obj.getClass.getMethod(methodName, descClasses: _*)
           try {
-            val resultElem = method.invoke(self, paramDescs: _*)
+            val resultElem = method.invoke(obj, paramDescs: _*)
             resultElem.asInstanceOf[Elem[_]]
           } catch {
             case e: Exception =>
@@ -194,9 +195,9 @@ trait TypesApi { self: Scalan =>
         // concrete case, call viewElement(*Iso)
         val methodName = "iso" + this.name
         try {
-          val method = self.getClass.getMethod(methodName, descClasses: _*)
+          val method = obj.getClass.getMethod(methodName, descClasses: _*)
           try {
-            val resultIso = method.invoke(self, paramDescs: _*)
+            val resultIso = method.invoke(obj, paramDescs: _*)
             resultIso.asInstanceOf[Iso[_, _]].eTo
           } catch {
             case e: Exception =>

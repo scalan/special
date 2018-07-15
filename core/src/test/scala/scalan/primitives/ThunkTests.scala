@@ -132,17 +132,21 @@ class ThunkTests extends BaseCtxTests {
   }
 
   trait MyDomainProg extends Scalan with SegmentsModule {
+    import Segment._
+    import Slice._
+    import Interval._
+
     lazy val t1 = fun { (in: Rep[Int]) =>
-      Thunk { Interval(in, in) }.force.length
+      Thunk { RInterval(in, in) }.force.length
     }
     lazy val t2 = fun { (in: Rep[Int]) =>
-      Thunk { Slice(in, in + in) }.force.length
+      Thunk { RSlice(in, in + in) }.force.length
     }
     lazy val t3 = fun { (in: Rep[Segment]) =>
       Thunk { in }.force.length
     }
     lazy val t4 = fun { (in: Rep[Int]) =>
-      t3(Interval(in,in))
+      t3(RInterval(in,in))
     }
 
   }

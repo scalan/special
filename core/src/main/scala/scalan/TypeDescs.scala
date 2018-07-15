@@ -6,6 +6,7 @@ import scala.reflect.runtime.universe._
 import scala.reflect.{AnyValManifest, ClassTag}
 import scalan.meta.ScalanAst._
 import scalan.util._
+import ReflectionUtil.ClassOps
 
 trait TypeDescs extends Base { self: Scalan =>
   sealed trait TypeDesc extends Serializable {
@@ -13,14 +14,14 @@ trait TypeDescs extends Base { self: Scalan =>
     lazy val name: String = getName(_.name)
 
     // <> to delimit because: [] is used inside name; {} looks bad with structs.
-    override def toString = s"${getClass.getSimpleName}<$name>"
+    override def toString = s"${getClass.safeSimpleName}<$name>"
   }
 
   object TypeDesc {
     def apply(tpe: STpeExpr, env: TypeArgSubst): TypeDesc = tpe match {
       case STpePrimitive(name,_) =>
         val methodName = name + "Element"
-        callMethod(methodName, Array(), Nil)
+        callMethod(self, methodName, Array(), Nil)
       case STraitCall("$bar", List(a, b)) =>
         sumElement(TypeDesc(a, env).asElem, TypeDesc(b, env).asElem)
       case STpeTuple(List(a, b)) =>
@@ -32,7 +33,8 @@ trait TypeDescs extends Base { self: Scalan =>
           case Some(t) => t
           case None =>
             val methodName = StringUtil.lowerCaseFirst(name + "Element")
-            callMethod(methodName, Array(), List())
+            val obj = getEntityObject(name).getOrElse(self)
+            callMethod(obj, methodName, Array(), List())
         }
       case STraitCall(name, args) =>
         val argDescs = args.map(p => TypeDesc(p, env))
@@ -42,7 +44,8 @@ trait TypeDescs extends Base { self: Scalan =>
           case d => !!!(s"Unknown type descriptior $d")
         }.toArray[Class[_]]
         val methodName = StringUtil.lowerCaseFirst(name + "Element")
-        callMethod(methodName, argClasses, argDescs)
+        val obj = getEntityObject(name).getOrElse(self)
+        callMethod(obj, methodName, argClasses, argDescs)
 
       case _ => !!!(s"Unexpected STpeExpr: $tpe")
     }
@@ -53,11 +56,11 @@ trait TypeDescs extends Base { self: Scalan =>
   def AllTypes(e: Elem[_]): Boolean = true
   val emptySubst = Map.empty[String, TypeDesc]
 
-  private def callMethod(methodName: String, descClasses: Array[Class[_]], paramDescs: List[AnyRef]): TypeDesc = {
+  private def callMethod(obj: AnyRef, methodName: String, descClasses: Array[Class[_]], paramDescs: List[AnyRef]): TypeDesc = {
     try {
-      val method = self.getClass.getMethod(methodName, descClasses: _*)
+      val method = obj.getClass.getMethod(methodName, descClasses: _*)
       try {
-        val result = method.invoke(self, paramDescs: _*)
+        val result = method.invoke(obj, paramDescs: _*)
         result.asInstanceOf[Elem[_]]
       } catch {
         case e: Exception =>
@@ -221,9 +224,16 @@ trait TypeDescs extends Base { self: Scalan =>
 
     override def getName(f: TypeDesc => String) = {
       import ClassTag._
-      val className = classTag match {
+      val className = try { classTag match {
         case _: AnyValManifest[_] | Any | AnyVal | AnyRef | Object | Nothing | Null => classTag.toString
-        case objectTag => objectTag.runtimeClass.getSimpleName
+        case objectTag =>
+          val cl = objectTag.runtimeClass
+          val name = cl.safeSimpleName
+          name
+      }}
+      catch {
+        case t: Throwable =>
+           ???
       }
       if (typeArgs.isEmpty)
         className
@@ -335,7 +345,8 @@ trait TypeDescs extends Base { self: Scalan =>
     elemCache.getOrElseUpdate(
       (clazz, args), {
         val constructor = optConstructor.getOrElse(getConstructor(clazz))
-        val constructorArgs = self +: args
+        val ownerType = getOwnerParameterType(constructor)
+        val constructorArgs = addOwnerParameter(ownerType, args)
         constructor.newInstance(constructorArgs: _*).asInstanceOf[AnyRef]
       }).asInstanceOf[Elem[_]]
   }

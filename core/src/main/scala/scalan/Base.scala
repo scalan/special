@@ -171,6 +171,19 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def canEqual(other: Any) = other.isInstanceOf[CompanionDef[_]]
   }
 
+  class EntityObject(val entityName: String)
+
+  private[this] val entityObjects = scala.collection.mutable.Map.empty[String, EntityObject]
+
+  def getEntityObject(name: String): Option[EntityObject] = {
+    entityObjects.get(name)
+  }
+
+  protected def registerEntityObject(name: String, obj: EntityObject): Unit = {
+     assert(!entityObjects.contains(name), s"EntityObject for entity $name already registered")
+     entityObjects(name) = obj
+  }
+
   // Allows using ConfigOps without importing com.github.kxbmap.configs.syntax._
   implicit def ConfigOps(x: Config) = new ConfigOps(x)
   def config = Base.config
@@ -258,27 +271,45 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
   }
 
-  private[this] case class ReflectedProductClass(constructor: Constr[_], paramMirrors: List[ParamMirror], hasScalanParameter: Boolean)
+  sealed trait OwnerParameter
+  case object NoOwner extends OwnerParameter
+  case object ScalanOwner extends OwnerParameter
+  case class  EntityObjectOwner(obj: EntityObject) extends OwnerParameter
+
+  private[this] case class ReflectedProductClass(constructor: Constr[_], paramMirrors: List[ParamMirror], hasScalanParameter: OwnerParameter)
 
   private[this] val baseType = typeOf[Base]
+  private[this] val entityObjectType = typeOf[EntityObject]
+
+  protected def getOwnerParameterType(constructor: Constr[_]): OwnerParameter = {
+    val ownerParam = constructor.getParameterTypes.headOption match {
+      case None => NoOwner
+      case Some(firstParamClazz) =>
+        // note: classOf[Base].isAssignableFrom(firstParamClazz) can give wrong result due to the way
+        // Scala compiles traits inheriting from classes
+        val firstParamTpe = ReflectionUtil.classToSymbol(firstParamClazz).toType
+        if (firstParamTpe <:< baseType) ScalanOwner
+        else
+        {
+          getEntityObject(firstParamTpe.typeSymbol.name.toString) match {
+            case Some(obj) =>
+              EntityObjectOwner(obj)
+            case None => NoOwner
+          }
+        } /*else {
+          !!!(s"Unsupported owner: $firstParamTpe")
+        }*/
+    }
+    ownerParam
+  }
 
   private[this] def reflectProductClass(clazz: Class[_], d: Product) = {
     val constructors = clazz.getDeclaredConstructors
     assert(constructors.length == 1, s"Every class extending Def must have one constructor, $clazz has ${constructors.length}")
     val constructor = constructors(0)
-
     val paramMirrors = ReflectionUtil.paramMirrors(d)
-
-    val hasScalanParam = constructor.getParameterTypes.headOption match {
-      case None => false
-      case Some(firstParamClazz) =>
-        // note: classOf[Base].isAssignableFrom(firstParamClazz) can give wrong result due to the way
-        // Scala compiles traits inheriting from classes
-        val firstParamTpe = ReflectionUtil.classToSymbol(firstParamClazz).toType
-        firstParamTpe <:< baseType
-    }
-
-    ReflectedProductClass(constructor, paramMirrors, hasScalanParam)
+    val ownerParam = getOwnerParameterType(constructor)
+    ReflectedProductClass(constructor, paramMirrors, ownerParam)
   }
 
   private[this] val defClasses = collection.mutable.Map.empty[Class[_], ReflectedProductClass]
@@ -300,19 +331,23 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case x => x
   }
 
+  private[scalan] def addOwnerParameter(ownerType: OwnerParameter, params: Seq[Any]): Seq[AnyRef] = {
+    val finalParams = (ownerType match {
+      case EntityObjectOwner(obj) => obj +: params
+      case ScalanOwner => scalan +: params
+      case NoOwner => params
+    })
+    finalParams.asInstanceOf[Seq[AnyRef]]
+  }
+
   def transformProduct(p: Product, t: Transformer): Product = {
     val clazz = p.getClass
-    val ReflectedProductClass(constructor, paramMirrors, hasScalanParameter) =
+    val ReflectedProductClass(constructor, paramMirrors, owner) =
       defClasses.getOrElseUpdate(clazz, reflectProductClass(clazz, p))
 
     val pParams = paramMirrors.map(_.bind(p).get)
     val transformedParams = pParams.map(transformProductParam(_, t))
-    val finalParams =
-      (if (hasScalanParameter)
-        scalan :: transformedParams
-      else
-        transformedParams).asInstanceOf[List[AnyRef]]
-
+    val finalParams = addOwnerParameter(owner, transformedParams)
     try {
       val transformedP = constructor.newInstance(finalParams: _*).asInstanceOf[Product]
       transformedP

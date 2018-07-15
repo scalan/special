@@ -85,6 +85,10 @@ class ConverterTests extends BaseCtxTests {
   test("getConverter") {
     val ctx = new ConvProgStaged
     import ctx._
+    import Segment._
+    import Slice._
+    import Interval._
+    import Centered._
     testConverter[Int, Int](ctx, "convInt")
     testConverter[Int, Double](ctx, "convIntToDouble",false)
     testConverter[(Int,Int), (Int,Int)](ctx, "convPairOfInt")

@@ -3,6 +3,8 @@ package scalan.common
 import scalan.Scalan
 
 trait ViewExamples extends Scalan with SegmentsModule {
+  import Slice._
+  import Interval._
   lazy val v1 = fun { (in: Rep[Interval]) => in }
   lazy val v2 = fun { (in: Rep[Interval]) => Pair(in,in) }
   lazy val v3 = fun { (in: Rep[Interval]) => Pair(in, in.length) }

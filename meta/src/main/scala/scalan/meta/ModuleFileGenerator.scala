@@ -1,17 +1,21 @@
 package scalan.meta
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ArrayBuffer
+import scalan.Entity
 import scalan.meta.Base.!!!
 import scalan.meta.PrintExtensions._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
+import scalan.meta.ScalanAstTraversers.EntityUseTraverser
+import scalan.meta.Symbols.{SNameSymbol, SEntityDefSymbol, SNamedDefSymbol}
 import scalan.util.StringUtil
 import scalan.util.StringUtil.StringUtilExtensions
 import scalan.util.CollectionUtil.TraversableOps
 
-class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: UnitConfig) {
+class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: UnitConfig) {
   import codegen._
-  implicit val context = module.context
+  implicit val context = unit.context
 
   def getCompanionMethods(e: EntityTemplateData) = e.entity.companion.map { comp =>
     val externalConstrs = comp.getMethodsWithAnnotation(ConstructorAnnotation)
@@ -25,8 +29,8 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
     lazy val msgRepRetType = s"Invalid method $md. External methods should have return type of type Rep[T] for some T."
     val allArgs = md.allArgs
     val returnType = md.tpeRes.getOrElse(!!!(msgExplicitRetType))
-    val unreppedReturnType = returnType.unRep(module, config.isVirtualized).getOrElse(!!!(msgRepRetType))
-    val elemDecls = extractImplicitElems(module, method.allArgs, method.tpeArgs, Map())
+    val unreppedReturnType = returnType.unRep(unit, config.isVirtualized).getOrElse(!!!(msgRepRetType))
+    val elemDecls = extractImplicitElems(unit, method.allArgs, method.tpeArgs, Map())
       .filterMap {
         case (ta, Some(expr)) => Some((ta, expr))
         case _ => None
@@ -79,25 +83,10 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
   }
 
   def getSClassExp(clazz: SClassDef) = {
-    val c = ConcreteClassTemplateData(module, clazz)
-    val fields = clazz.args.argNames
-    val fieldsWithType = clazz.args.argNamesAndTypes(config)
-    val parent = clazz.ancestors.head.tpe
-    val b = c.extractionBuilder()
-
+    val c = ConcreteClassTemplateData(unit, clazz)
     s"""
       |${methodExtractorsString(c.unit, config, clazz)}
       |
-      |  def mk${c.typeDecl}
-      |    (${fieldsWithType.rep()})${c.optimizeImplicits().implicitArgsDecl()}: Rep[${c.typeUse}] = {
-      |    new ${c.typeUse("Ctor")}(${fields.rep()})
-      |  }
-      |  def unmk${c.typeDecl}(p: Rep[$parent]) = p.elem.asInstanceOf[Elem[_]] match {
-      |    case _: ${c.elemTypeUse} @unchecked =>
-      |      Some((${fields.rep(f => s"p.asRep[${c.typeUse}].$f")}))
-      |    case _ =>
-      |      None
-      |  }
       |""".stripAndTrim
   }
 
@@ -176,9 +165,9 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
 
   def emitFileHeader = {
     s"""
-      |package ${module.packageName}
+      |package ${unit.packageName}
       |
-      |${(module.imports ++ config.extraImports.map(SImportStat(_))).distinct.rep(i => s"import ${i.name}", "\n")}
+      |${(unit.imports ++ config.extraImports.map(SImportStat(_))).distinct.rep(i => s"import ${i.name}", "\n")}
       |
       |""".stripAndTrim
   }
@@ -243,19 +232,27 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       } else {
         s"EntityElem[$toArgName]"
       }
-    val (optParent, parentElem) = e.firstAncestorType match {
-      case Some(STraitCall("Def", _)) => (None, defaultParentElem)
-      case Some(parent@STraitCall(context.Entity(m, e), parentTpeArgs))  =>
+
+    val (optParent, parentElem) = e.entity.ancestors.collectFirst {
+      case STypeApply(parent@STraitCall(context.Entity(m, e), parentTpeArgs), _) =>
         (Some(parent), s"${e.name}Elem[${join(parentTpeArgs, toArgName)}]")
-      case Some(p) => !!!(s"Unsupported parent type $p of the entity ${e.name}")
-      case None if e.unit.isVirtualized =>
-        !!!(s"Entity ${e.name} must extend Def or another entity")
-      case None => (None, defaultParentElem)
-    }
+    }.getOrElse(
+      e.entity.ancestors.collectFirst {
+        case STypeApply(STraitCall("Def", _), _) => (None, defaultParentElem)
+      }.getOrElse(
+        e.firstAncestorType match {
+          case Some(p) => !!!(s"Unsupported parent type $p of the entity ${e.name}")
+          case None if e.unit.isVirtualized =>
+            !!!(s"Entity ${e.name} must extend Def or another entity")
+          case None => (None, defaultParentElem)
+        }
+      )
+    )
+
     val overrideIfHasParent = optParent.ifDefined("override ")
     val elemMethodName = entityElemMethodName(e.name)
     val elemMethodDefinition = {
-      if (!module.methods.exists(_.name == elemMethodName)) {
+      if (!unit.methods.exists(_.name == elemMethodName)) {
         val elemType = e.elemTypeUse()
         s"""
           |  implicit def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
@@ -298,7 +295,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
     s"""
       |  implicit case object ${e.companionName}Elem extends CompanionElem[${e.companionAbsName}] {
       |    lazy val tag = weakTypeTag[${e.companionAbsName}]
-      |    protected def getDefaultRep = ${e.name}
+      |    protected def getDefaultRep = R${e.name}
       |  }
       |
          |  abstract class ${e.companionAbsName} extends CompanionDef[${e.companionAbsName}]${hasCompanion.opt(s" with ${e.companionName}")} {
@@ -323,14 +320,17 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       constrs.rep(md => externalConstructor(e, md), "\n    ") +
         methods.rep(md => externalMethod(md), "\n    ")
     }
+    val entityName = e.name
     val companionExpString =
       s"""
-        |  lazy val ${e.name}: Rep[${e.companionAbsName}] = new ${e.companionAbsName} {
+        |  lazy val R$entityName: Rep[${e.companionAbsName}] = new ${e.companionAbsName} {
         |    $companionMethods
         |  }
        """.stripMargin
 
     s"""
+      |object $entityName extends EntityObject("$entityName") {
+      |
       |${entityProxy(e)}
       |
       |${if (e.isCont) familyCont(e) else ""}
@@ -343,28 +343,30 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
       |
       |${e.when(_.isCont, familyView)}
       |
-      |${methodExtractorsString(module, config, e.entity)}
+      |${methodExtractorsString(unit, config, e.entity)}
       |
       |${e.when(_.isCont, emitContainerRewriteDef)}
+      |} // of object ${e.name}
+      |  registerEntityObject("$entityName", $entityName)
       |""".stripMargin
   }
 
   def emitClasses = {
-    val concreteClasses = for {clazz <- module.classes} yield {
-      val e = EntityTemplateData(module, clazz.collectAncestorEntities(context).head._1)
+    val concreteClasses = for {clazz <- unit.classes} yield {
+      val e = EntityTemplateData(unit, clazz.collectAncestorEntities(context).head._1)
       val className = clazz.name
-      val c = ConcreteClassTemplateData(module, clazz)
+      val c = ConcreteClassTemplateData(unit, clazz)
       import c.{tpeArgsDecl, tpeArgsUse, implicitArgsUse}
       val fields = clazz.args.argNames
       val fieldsWithType = clazz.args.argNamesAndTypes(config)
-      val fieldTypes = clazz.args.argUnrepTypes(module, config.isVirtualized)
+      val fieldTypes = clazz.args.argUnrepTypes(unit, config.isVirtualized)
       val implicitArgsDecl = c.implicitArgsDecl()
       val parent = clazz.ancestors.head.tpe
       val parentTpeArgsStr = parent.args.rep()
       val elemTypeDecl = c.name + "Elem" + tpeArgsDecl
       val eFrom = {
         val elemMethodName = StringUtil.lowerCaseFirst(className + "DataElem")
-        if (module.methods.exists(_.name == elemMethodName))
+        if (unit.methods.exists(_.name == elemMethodName))
           s"()($elemMethodName)"
         else {
           @tailrec
@@ -407,7 +409,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         val missingFields = classFields.filterNot(entityFields.contains(_))
         if (missingFields.isEmpty) {
           val args = classFields.rep(f => s"x.$f")
-          s"$className($args)"
+          s"R$className($args)"
         }
         else {
           val msg = s"from ${entity.name} to ${clazz.name}: missing fields $missingFields"
@@ -448,7 +450,9 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
           val STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
           s"override lazy val ${m.item.name}: $descName[$tyStr] = $extractedName"
       }, "\n|").stripMargin
+
       s"""
+        |object $className extends EntityObject("$className") {
         |  case class ${c.typeDecl("Ctor") }
         |      (${fieldsWithType.rep(f => s"override val $f") })${c.optimizeImplicits().implicitArgsDecl() }
         |    extends ${c.typeUse }(${fields.rep() })${clazz.selfType.opt(t => s" with ${t.tpe }") } with Def[${c.typeUse }] {
@@ -463,17 +467,17 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
         |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})
         |    override def convert${parent.name}(x: Rep[$parent]) = $converterBody
-        |    override def getDefaultRep = $className(${fieldTypes.rep(zeroSExpr(e.entity)(_))})
+        |    override def getDefaultRep = R$className(${fieldTypes.rep(zeroSExpr(e.entity)(_))})
         |    override lazy val tag = {
         |${implicitTagsFromElems(c)}
         |      weakTypeTag[${c.typeUse}]
         |    }
         |  }
         |
-         |  // state representation type
+        |  // state representation type
         |  type ${className}Data${tpeArgsDecl} = ${dataType(fieldTypes)}
         |
-         |  // 3) Iso for concrete class
+        |  // 3) Iso for concrete class
         |  class ${className}Iso${tpeArgsDecl}${implicitArgsDecl}
         |    extends EntityIso[$dataTpe, ${c.typeUse}] with Def[${className}Iso$tpeArgsUse] {
         |    private lazy val _safeFrom = fun { p: Rep[${c.typeUse }] => ${fields.map(fields => "p." + fields).opt(s => if (s.toList.length > 1) s"(${s.rep() })" else s.rep(), "()") } }
@@ -481,7 +485,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |      tryConvert[${c.typeUse}, ${dataType(fieldTypes)}](eTo, eFrom, p, _safeFrom)
         |    override def to(p: Rep[${dataType(fieldTypes)}]) = {
         |      val ${pairify(fields)} = p
-        |      $className(${fields.rep()})
+        |      R$className(${fields.rep()})
         |    }
         |    lazy val eFrom = $eFrom
         |    lazy val eTo = new ${c.elemTypeUse}(self)
@@ -502,18 +506,18 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |    def selfType = ${className}CompanionElem
         |    override def toString = "${className}Companion"
         |${
-        (fields.length != 1).opt({
-          val s = c.entity.args.args.zipWithIndex.map { case (a, i) => a.name -> s"p._${i + 1}" }.toMap
-          val sb = c.extractionBuilder(s)
-          s"""
-            |    @scalan.OverloadId("fromData")
-            |    def apply${tpeArgsDecl}(p: Rep[$dataTpe])${c.optimizeImplicits().implicitArgsDecl()}: Rep[${c.typeUse}] = {
-            |      ${sb.extractableImplicits(false)}
-            |      iso$className${c.tpeArgNames.opt(ns => s"[${ns.rep()}]")}.to(p)
-            |    }
-            """.stripAndTrim
-        })
-      }
+          (fields.length != 1).opt({
+            val s = c.entity.args.args.zipWithIndex.map { case (a, i) => a.name -> s"p._${i + 1}" }.toMap
+            val sb = c.extractionBuilder(s)
+            s"""
+              |    @scalan.OverloadId("fromData")
+              |    def apply${tpeArgsDecl}(p: Rep[$dataTpe])${c.optimizeImplicits().implicitArgsDecl()}: Rep[${c.typeUse}] = {
+              |      ${sb.extractableImplicits(false)}
+              |      iso$className${c.tpeArgNames.opt(ns => s"[${ns.rep()}]")}.to(p)
+              |    }
+              """.stripAndTrim
+          })
+        }
         |    @scalan.OverloadId("fromFields")
         |    def apply${tpeArgsDecl}(${fieldsWithType.rep()})${c.optimizeImplicits().implicitArgsDecl()}: Rep[${c.typeUse}] =
         |      mk$className(${fields.rep()})
@@ -521,7 +525,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |    def unapply${tpeArgsDecl}(p: Rep[$parent]) = unmk$className(p)
         |  }
         |  lazy val ${c.name}Rep: Rep[${c.companionAbsName}] = new ${c.companionAbsName}
-        |  lazy val ${c.name}: ${c.companionAbsName} = proxy${className}Companion(${c.name}Rep)
+        |  lazy val R${c.name}: ${c.companionAbsName} = proxy${className}Companion(${c.name}Rep)
         |  implicit def proxy${className}Companion(p: Rep[${c.companionAbsName}]): ${c.companionAbsName} = {
         |    proxyOps[${c.companionAbsName}](p)
         |  }
@@ -545,51 +549,85 @@ class ModuleFileGenerator(val codegen: MetaCodegen, module: SUnitDef, config: Un
         |  implicit def iso${c.typeDecl}${implicitArgsDecl}: Iso[$dataTpe, ${c.typeUse}] =
         |    reifyObject(new ${className}Iso${tpeArgsUse}()$implicitArgsUse)
         |
-         |""".stripAndTrim
+        |  def mk${c.typeDecl }
+        |    (${fieldsWithType.rep() })${c.optimizeImplicits().implicitArgsDecl() }: Rep[${c.typeUse }] = {
+        |    new ${c.typeUse("Ctor") }(${fields.rep() })
+        |  }
+        |  def unmk${c.typeDecl }(p: Rep[$parent]) = p.elem.asInstanceOf[Elem[_]] match {
+        |    case _: ${c.elemTypeUse } @unchecked =>
+        |      Some((${fields.rep(f => s"p.asRep[${c.typeUse }].$f") }))
+        |    case _ =>
+        |      None
+        |  }
+        |
+        |  ${methodExtractorsString(unit, config, clazz) }
+        |
+        |} // of object $className
+        |  registerEntityObject("$className", $className)
+        |""".stripAndTrim
     }
     concreteClasses.mkString("\n\n")
   }
 
+  def getUsedEntities(unit: SUnitDef): Seq[SNamedDefSymbol] = {
+    val res = ArrayBuffer.empty[SNamedDefSymbol]
+    def accept(name: String) = {
+      name match {
+        case context.Entity(m, e) =>
+          res += context.newEntitySymbol(m.symbol, e.name)
+        case _ => // do nothing
+      }
+    }
+    val tr = new EntityUseTraverser(accept)
+    tr.unitTraverse(unit)
+    res
+  }
+
   def emitModuleDefs = {
-    val entities = for {entity <- module.traits} yield {
-      val e = EntityTemplateData(module, entity)
+    val entities = for {entity <- unit.traits} yield {
+      val e = EntityTemplateData(unit, entity)
       emitEntityDefs(e)
     }
+    val imports = {
+      val used = getUsedEntities(unit)
+      val ts = unit.traits.map(t => context.newEntitySymbol(unit.symbol, t.name))
+      val cs = unit.classes.map(c => context.newEntitySymbol(unit.symbol, c.name))
+      (used ++ ts ++ cs).map(s => s"import ${s.name}._")
+    }
+
     s"""
       |// Abs -----------------------------------
-      |trait ${module.name}Defs extends ${config.baseContextTrait.opt(t => s"$t with ")}${module.name} {
-      |  ${module.selfTypeString("")}
+      |trait ${unit.name}Defs extends ${config.baseContextTrait.opt(t => s"$t with ")}${unit.name} {
+      |  ${unit.selfTypeString("")}
+      |${imports.mkString("\n")}
       |
       |${entities.mkString("\n\n")}
       |
       |${emitClasses}
       |
-      |  registerModule(${module.name}Module)
-      |
-      |${module.classes.map(getSClassExp).mkString("\n\n")}
-      |
+      |  registerModule(${unit.name}Module)
       |}
       |""".stripAndTrim
   }
 
   def emitModuleInfo = {
-    val moduleName = module.name
+    val moduleName = unit.name
     s"""
-      |object ${moduleName}Module extends scalan.ModuleInfo("${module.packageName}", "$moduleName")
+      |object ${moduleName}Module extends scalan.ModuleInfo("${unit.packageName}", "$moduleName")
        """.stripMargin
   }
 
   def emitDslTraits = {
-    module.origModuleTrait match {
-      case Some(mt) if module.okEmitOrigModuleTrait =>
-        s"trait ${mt.name} extends ${module.packageName}.${mt.ancestors.rep(a => a.tpe.toString, " with ")}"
-      case None if module.okEmitOrigModuleTrait =>
-        val moduleTraitName = module.getModuleTraitName
-        val selfTypeStr = module.selfType match {
+    unit.origModuleTrait match {
+      case Some(mt) if unit.okEmitOrigModuleTrait =>
+        s"trait ${mt.name} extends ${unit.packageName}.${mt.ancestors.rep(a => a.tpe.toString, " with ")}"
+      case None if unit.okEmitOrigModuleTrait =>
+        val moduleTraitName = unit.getModuleTraitName
+        val selfTypeStr = unit.selfType match {
           case Some(SSelfTypeDef(_, List(STraitCall(`moduleTraitName`, Nil)))) => ""
-          case _ => s" {${module.selfTypeString("")}}"
+          case _ => s" {${unit.selfTypeString("")}}"
         }
-        s"trait $moduleTraitName extends ${module.packageName}.impl.${module.name}Defs$selfTypeStr"
+        s"trait $moduleTraitName extends ${unit.packageName}.impl.${unit.name}Defs$selfTypeStr"
       case _ => ""
     }
   }

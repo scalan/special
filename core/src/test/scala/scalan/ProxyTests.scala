@@ -32,6 +32,7 @@ class ProxyTests extends BaseCtxTests {
   test("getResultElem") {
     val ctx = new Ctx
     import ctx._
+    import Segment._
 
     testResultElem[Segment, Int]("start")
 //    testResultElem[SThrowable, SThrowable]("initCause", classOf[Object] -> SThrowable(""))

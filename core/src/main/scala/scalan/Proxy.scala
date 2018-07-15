@@ -409,12 +409,14 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         // FIXME See https://github.com/scalan/scalan/issues/252
         if (classSymbol.asClass.isTrait || classSymbol == baseType.typeSymbol) {
           // abstract case, call *Element
-          val methodName = StringUtil.lowerCaseFirst(classSymbol.name.toString) + "Element"
+          val entityName = classSymbol.name.toString
+          val obj = getEntityObject(entityName).getOrElse(self)
+          val methodName = StringUtil.lowerCaseFirst(entityName) + "Element"
           // self.getClass will return the final cake, which should contain the method
           try {
-            val method = self.getClass.getMethod(methodName, descClasses: _*)
+            val method = obj.getClass.getMethod(methodName, descClasses: _*)
             try {
-              val resultElem = method.invoke(self, paramDescs: _*)
+              val resultElem = method.invoke(obj, paramDescs: _*)
               resultElem.asInstanceOf[Elem[_]]
             } catch {
               case e: Exception =>
@@ -425,12 +427,15 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
               !!!(s"Failed to find element-creating method with name $methodName and parameter classes ${descClasses.map(_.getSimpleName).mkString(", ")}")
           }
         } else {
+          val className = classSymbol.name.toString
           // concrete case, call viewElement(*Iso)
-          val methodName = "iso" + classSymbol.name.toString
+          val methodName = "iso" + className
           try {
-            val method = self.getClass.getMethod(methodName, descClasses: _*)
+            val entityObject = getEntityObject(className)
+            val owner = entityObject.getOrElse(self)
+            val method = owner.getClass.getMethod(methodName, descClasses: _*)
             try {
-              val resultIso = method.invoke(self, paramDescs: _*)
+              val resultIso = method.invoke(owner, paramDescs: _*)
               resultIso.asInstanceOf[Iso[_, _]].eTo
             } catch {
               case e: Exception =>

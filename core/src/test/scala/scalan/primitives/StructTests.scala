@@ -7,6 +7,11 @@ import scalan.compilation.{DummyCompiler, StructsCompiler}
 import scalan.it.BaseItTests
 
 trait StructExamples extends Scalan with SegmentsModule with MetaTestsModule {
+  import Segment._
+  import Slice._
+  import Interval._
+  import Centered._
+
   def eInt = IntElement
 
   lazy val t1 = fun({ (in: Rep[Int]) =>
@@ -60,7 +65,7 @@ trait StructExamples extends Scalan with SegmentsModule with MetaTestsModule {
   })
 
 
-  lazy val t6 = structWrapper(fun { (in: Rep[(Int,Int)]) => Interval(in).shift(10).toData })
+  lazy val t6 = structWrapper(fun { (in: Rep[(Int,Int)]) => RInterval(in).shift(10).toData })
 
   lazy val t2x2_7 = fun { (in: Rep[(Int,Int)]) =>
     Pair(in._1 + in._2, in._1 - in._2)
@@ -77,7 +82,7 @@ trait StructExamples extends Scalan with SegmentsModule with MetaTestsModule {
   lazy val t9 = structWrapper(t9f)
   lazy val t10 = structWrapper(fun { (in: Rep[((Int,Int),Int)]) =>
     val Pair(Pair(x, y), z) = in
-    val i = Interval(x,y)
+    val i = RInterval(x,y)
     Pair(i.length, i.shift(z).toData)
   })
 //  lazy val t11 = structWrapper(fun { (in: Rep[(Array[(Int,Int)],Int)]) =>
@@ -367,6 +372,10 @@ class StructTests extends BaseViewTests {
   test("structIso") {
     val ctx = new Ctx
     import ctx.compiler.scalan._
+    import Segment._
+    import Slice._
+    import Interval._
+    import Centered._
     {
       addUnpackTester { _ => true }
       val eFrom = tupleStructElement(element[(Int,Int)], element[Double], element[Boolean])

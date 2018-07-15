@@ -61,6 +61,10 @@ class ViewTests extends BaseViewTests {
   test("LambdaResultHasViews") {
     val ctx = new ViewTestsCtx with ViewExamples with CommonExamples with SegmentsModule
     import ctx._
+    import Segment._
+    import Slice._
+    import Interval._
+    import Centered._
     testLambdaResultHasViewsWithDataType("t1", t1, element[(Int,Int)])
     testLambdaResultHasViewsWithDataType("t2", t2, element[(Int,Int)])
     testLambdaResultHasViews("t3", t3)
@@ -81,6 +85,10 @@ class ViewTests extends BaseViewTests {
 
   test("LambdaResultHasViews_Sums") {
     val ctx = new ViewTestsCtx with SegmentsModule {
+      import Segment._
+      import Slice._
+      import Interval._
+      import Centered._
       lazy val v1 = fun { (in: Rep[Unit]) => in.asLeft[Slice] }
       lazy val v2 = fun { (in: Rep[(Int,Int)]) => SumView(in.asRight[Unit])(identityIso[Unit], isoSlice) }
     }
@@ -94,7 +102,10 @@ class ViewTests extends BaseViewTests {
   test("getIsoByElem") {
     val ctx = new ViewTestsCtx with SegmentsModule
     import ctx._
-
+    import Segment._
+    import Slice._
+    import Interval._
+    import Centered._
     testGetIso(element[Int], element[Int])
     testGetIso(element[(Int,Int)], element[(Int,Int)])
     testGetIso(element[(Int|Int)], element[(Int|Int)])
@@ -143,7 +154,10 @@ class ViewTests extends BaseViewTests {
   test("getIsoByElem for structs") {
     val ctx = new CtxForStructs
     import ctx._
-
+    import Segment._
+    import Slice._
+    import Interval._
+    import Centered._
     val seIntInt = tuple2StructElement[Int, Int]
     val seIntUnit = tuple2StructElement[Int, Unit]
     val seIntIntInt = tuple3StructElement[Int, Int, Int]

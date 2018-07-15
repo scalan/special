@@ -12,6 +12,7 @@ class ReflectionTests extends BaseCtxTests {
   test("paramMirrors") {
     val ctx = new TestContext with ReflectionExamples
     import ctx._
+    import Interval._
 
     def check(x: Any)(preds: (List[ParamMirror] => Boolean)*) = {
       val paramMirrors = ReflectionUtil.paramMirrors(x)

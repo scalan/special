@@ -39,6 +39,8 @@ class ElemTests extends AbstractElemTests {
 
   val ctx = new Ctx
   import ctx._
+  import Segment._
+  import Interval._
 
   describe("Equality works as expected") {
     it("for elements") {

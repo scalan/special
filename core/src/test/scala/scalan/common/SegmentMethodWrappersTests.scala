@@ -4,14 +4,18 @@ import scala.language.reflectiveCalls
 import scalan._
 
 trait SegmentMethodWrappers extends Scalan with SegmentsModule {
-  lazy val Interval_start  = fun { (in: Rep[IntervalData]) => Interval(in).start }
-  lazy val Slice_start     = fun { (in: Rep[SliceData]) => Slice(in).end }
-  lazy val Interval_length = fun { (in: Rep[IntervalData]) => Interval(in).length }
-  lazy val Slice_length    = fun { (in: Rep[SliceData]) => Slice(in).length }
-  lazy val Interval_end    = fun { (in: Rep[IntervalData]) => Interval(in).end }
-  lazy val Slice_end       = fun { (in: Rep[SliceData]) => Slice(in).end }
-  lazy val Interval_shift  = fun { (in: Rep[(IntervalData, Int)]) => val Pair(i, o) = in; Interval(i).shift(o) }
-  lazy val Slice_shift     = fun { (in: Rep[(SliceData, Int)]) => val Pair(i, o) = in; Slice(i).shift(o) }
+  import Segment._
+  import Slice._
+  import Interval._
+  import Centered._
+  lazy val Interval_start  = fun { (in: Rep[IntervalData]) => RInterval(in).start }
+  lazy val Slice_start     = fun { (in: Rep[SliceData]) => RSlice(in).end }
+  lazy val Interval_length = fun { (in: Rep[IntervalData]) => RInterval(in).length }
+  lazy val Slice_length    = fun { (in: Rep[SliceData]) => RSlice(in).length }
+  lazy val Interval_end    = fun { (in: Rep[IntervalData]) => RInterval(in).end }
+  lazy val Slice_end       = fun { (in: Rep[SliceData]) => RSlice(in).end }
+  lazy val Interval_shift  = fun { (in: Rep[(IntervalData, Int)]) => val Pair(i, o) = in; RInterval(i).shift(o) }
+  lazy val Slice_shift     = fun { (in: Rep[(SliceData, Int)]) => val Pair(i, o) = in; RSlice(i).shift(o) }
 }
 
 class SegmentMethodWrappersTests extends BaseNestedCtxTests {
