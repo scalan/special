@@ -3,6 +3,8 @@ package scalan.primitives
 import scalan.{Base, Scalan}
 
 trait TypeSum extends Base { self: Scalan =>
+  import IsoUR._
+  import Converter._
 
   trait SumOps[A, B] {
     def isLeft: Rep[Boolean]

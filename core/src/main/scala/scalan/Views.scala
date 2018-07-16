@@ -6,6 +6,9 @@ import scala.language.higherKinds
 import scala.collection.mutable.{Map => MutMap}
 
 trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
+  import IsoUR._
+  import Converter._
+  
   type Iso[From, To] = Rep[IsoUR[From, To]]
 
   // TODO try to find a way to generate eTo such that equals and hashCode can refer to it (see commented code)
@@ -205,6 +208,18 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
 }
 
 trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
+  import IsoUR._
+  import Iso1UR._
+  import IdentityIso._
+  import PairIso._
+  import AbsorbFirstUnitIso._
+  import AbsorbSecondUnitIso._
+  import SumIso._
+  import ComposeIso._
+  import FuncIso._
+  import ConverterIso._
+  import ThunkIso._
+  import Converter._
   /**
     * The base type of all isos for user-defined types
     */
@@ -348,11 +363,11 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
       case pe: PairElem[a,b] => (pe.eFst, pe.eSnd) match {
         case (`UnitElement`, eB) =>
           builder(eB) match { case isoB: Iso[s,b] @unchecked =>
-            AbsorbFirstUnitIso(isoB)
+            RAbsorbFirstUnitIso(isoB)
           }
         case (eA, `UnitElement`) =>
           builder(eA) match { case isoA: Iso[s,a] @unchecked =>
-            AbsorbSecondUnitIso(isoA)
+            RAbsorbSecondUnitIso(isoA)
           }
         case (eA, eB) =>
           (builder(eA), builder(eB)) match {
@@ -387,13 +402,13 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     }
   ).asInstanceOf[Iso[_,T]]
 
-  def identityIso[A](implicit elem: Elem[A]): Iso[A, A] = IdentityIso[A]()(elem)
+  def identityIso[A](implicit elem: Elem[A]): Iso[A, A] = RIdentityIso[A]()(elem)
 
   def pairIso[A1, A2, B1, B2](iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Iso[(A1, A2), (B1, B2)] =
-    PairIso[A1, A2, B1, B2](iso1, iso2)
+    RPairIso[A1, A2, B1, B2](iso1, iso2)
 
   def sumIso[A1, A2, B1, B2](iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Iso[A1 | A2, B1 | B2] =
-    SumIso[A1, A2, B1, B2](iso1, iso2)
+    RSumIso[A1, A2, B1, B2](iso1, iso2)
 
   def composeIso[A, B, C](iso2: Iso[B, C], iso1: Iso[A, B]): Iso[A, C] = {
     if (iso2.isIdentity)
@@ -406,7 +421,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
           val composedIso1 = composeIso(iso2d.iso1, iso1d.iso1.asInstanceOf[Iso[a1, b1]])
           val composedIso2 = composeIso(iso2d.iso2, iso1d.iso2.asInstanceOf[Iso[a2, b2]])
           pairIso(composedIso1, composedIso2)
-        case _ => ComposeIso[A, B, C](iso2, iso1)
+        case _ => RComposeIso[A, B, C](iso2, iso1)
       }
   }.asInstanceOf[Iso[A, C]]
 
@@ -426,13 +441,13 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   }
 
   def funcIso[A, B, C, D](iso1: Iso[A, B], iso2: Iso[C, D]): Iso[A => C, B => D] =
-    FuncIso[A, B, C, D](iso1, iso2)
+    RFuncIso[A, B, C, D](iso1, iso2)
 
-  def thunkIso[A,B](iso: Iso[A, B]) = ThunkIso[A, B](iso).asInstanceOf[Iso1[A, B, Thunk]]
+  def thunkIso[A,B](iso: Iso[A, B]) = RThunkIso[A, B](iso).asInstanceOf[Iso1[A, B, Thunk]]
 
   def converterIso[A, B](convTo: Conv[A,B], convFrom: Conv[B,A]): Iso[A,B] = {
     val convToElem = convTo.elem.asInstanceOf[ConverterElem[A, B, _]]
-    ConverterIso[A, B](convTo, convFrom)
+    RConverterIso[A, B](convTo, convFrom)
   }
 
   def convertBeforeIso[A, B, C](convTo: Conv[A,B], convFrom: Conv[B,A], iso0: Iso[B,C]): Iso[A, C] = composeIso(iso0, converterIso(convTo, convFrom))

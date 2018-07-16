@@ -5,6 +5,8 @@ import scala.language.higherKinds
 import scalan.util.ReflectionUtil
 
 trait Entities extends TypeDescs { self: Scalan =>
+  import BaseConverter._
+  
   abstract class EntityElem[A] extends Elem[A] with scala.Equals {
     def parent: Option[Elem[_]]
     val entityName: String = {
@@ -95,7 +97,7 @@ trait Entities extends TypeDescs { self: Scalan =>
       try {
         val convFun: Rep[E => TClass] =
           fun({ x: Rep[E] => eClass.convert(x.asRep[Def[_]])})(Lazy(eEntity))
-        Some(BaseConverter(convFun))
+        Some(RBaseConverter(convFun))
       }
       catch {
         case e: RuntimeException => None

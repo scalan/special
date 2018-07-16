@@ -377,7 +377,7 @@ class SModuleBuilder(implicit val context: AstContext) {
   /** Imports scalan._ and other packages needed by Scalan and further transformations. */
   def addImports(unit: SUnitDef) = {
     val usersImport = unit.imports.collect{
-      case imp @ SImportStat("scalan.compilation.KernelTypes._") => imp
+      case imp @ SImportStat("scalan.compilation.KernelTypes._", _) => imp
     }
     unit.copy(imports = SImportStat("scalan._") :: (usersImport))
   }

@@ -12,7 +12,11 @@ package impl {
 // Abs -----------------------------------
 trait SpecializationsDefs extends Specializations {
   self: Scalan =>
+import IsoUR._
+import IsoFunc._
+import IsoFuncBase._
 
+object IsoFunc extends EntityObject("IsoFunc") {
   // entityProxy: single proxy for each type family
   implicit def proxyIsoFunc[T, R, M](p: Rep[IsoFunc[T, R, M]]): IsoFunc[T, R, M] = {
     proxyOps[IsoFunc[T, R, M]](p)(scala.reflect.classTag[IsoFunc[T, R, M]])
@@ -51,7 +55,7 @@ trait SpecializationsDefs extends Specializations {
 
   implicit case object IsoFuncCompanionElem extends CompanionElem[IsoFuncCompanionCtor] {
     lazy val tag = weakTypeTag[IsoFuncCompanionCtor]
-    protected def getDefaultRep = IsoFunc
+    protected def getDefaultRep = RIsoFunc
   }
 
   abstract class IsoFuncCompanionCtor extends CompanionDef[IsoFuncCompanionCtor] {
@@ -61,7 +65,7 @@ trait SpecializationsDefs extends Specializations {
   implicit def proxyIsoFuncCompanionCtor(p: Rep[IsoFuncCompanionCtor]): IsoFuncCompanionCtor =
     proxyOps[IsoFuncCompanionCtor](p)
 
-  lazy val IsoFunc: Rep[IsoFuncCompanionCtor] = new IsoFuncCompanionCtor {
+  lazy val RIsoFunc: Rep[IsoFuncCompanionCtor] = new IsoFuncCompanionCtor {
   }
 
   object IsoFuncMethods {
@@ -101,7 +105,10 @@ trait SpecializationsDefs extends Specializations {
       }
     }
   }
+} // of object IsoFunc
+  registerEntityObject("IsoFunc", IsoFunc)
 
+object IsoFuncBase extends EntityObject("IsoFuncBase") {
   case class IsoFuncBaseCtor[T, R, M]
       (override val func: Rep[T => R], override val metric: Rep[T => M])
     extends IsoFuncBase[T, R, M](func, metric) with Def[IsoFuncBase[T, R, M]] {
@@ -117,8 +124,8 @@ implicit lazy val eM = metric.elem.eRange
     with ConcreteElem[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] {
     override lazy val parent: Option[Elem[_]] = Some(isoFuncElement(element[T], element[R], element[M]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
-    override def convertIsoFunc(x: Rep[IsoFunc[T, R, M]]) = IsoFuncBase(x.func, x.metric)
-    override def getDefaultRep = IsoFuncBase(constFun[T, R](element[R].defaultRepValue), constFun[T, M](element[M].defaultRepValue))
+    override def convertIsoFunc(x: Rep[IsoFunc[T, R, M]]) = RIsoFuncBase(x.func, x.metric)
+    override def getDefaultRep = RIsoFuncBase(constFun[T, R](element[R].defaultRepValue), constFun[T, M](element[M].defaultRepValue))
     override lazy val tag = {
       implicit val tagT = eT.tag
       implicit val tagR = eR.tag
@@ -133,11 +140,12 @@ implicit lazy val eM = metric.elem.eRange
   // 3) Iso for concrete class
   class IsoFuncBaseIso[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M])
     extends EntityIso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] with Def[IsoFuncBaseIso[T, R, M]] {
+    private lazy val _safeFrom = fun { p: Rep[IsoFuncBase[T, R, M]] => (p.func, p.metric) }
     override def from(p: Rep[IsoFuncBase[T, R, M]]) =
-      (p.func, p.metric)
+      tryConvert[IsoFuncBase[T, R, M], (T => R, T => M)](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(T => R, T => M)]) = {
       val Pair(func, metric) = p
-      IsoFuncBase(func, metric)
+      RIsoFuncBase(func, metric)
     }
     lazy val eFrom = pairElement(element[T => R], element[T => M])
     lazy val eTo = new IsoFuncBaseElem[T, R, M](self)
@@ -178,7 +186,7 @@ implicit val eM = p._2.elem.eRange
     def unapply[T, R, M](p: Rep[IsoFunc[T, R, M]]) = unmkIsoFuncBase(p)
   }
   lazy val IsoFuncBaseRep: Rep[IsoFuncBaseCompanionCtor] = new IsoFuncBaseCompanionCtor
-  lazy val IsoFuncBase: IsoFuncBaseCompanionCtor = proxyIsoFuncBaseCompanion(IsoFuncBaseRep)
+  lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = proxyIsoFuncBaseCompanion(IsoFuncBaseRep)
   implicit def proxyIsoFuncBaseCompanion(p: Rep[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
     proxyOps[IsoFuncBaseCompanionCtor](p)
   }
@@ -204,9 +212,18 @@ implicit val eM = p.metric.elem.eRange
   implicit def isoIsoFuncBase[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Iso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] =
     reifyObject(new IsoFuncBaseIso[T, R, M]()(eT, eR, eM))
 
-  registerModule(SpecializationsModule)
+  def mkIsoFuncBase[T, R, M]
+    (func: Rep[T => R], metric: Rep[T => M]): Rep[IsoFuncBase[T, R, M]] = {
+    new IsoFuncBaseCtor[T, R, M](func, metric)
+  }
+  def unmkIsoFuncBase[T, R, M](p: Rep[IsoFunc[T, R, M]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: IsoFuncBaseElem[T, R, M] @unchecked =>
+      Some((p.asRep[IsoFuncBase[T, R, M]].func, p.asRep[IsoFuncBase[T, R, M]].metric))
+    case _ =>
+      None
+  }
 
-  object IsoFuncBaseMethods {
+    object IsoFuncBaseMethods {
     object apply {
       def unapply(d: Def[_]): Option[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = d match {
         case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[IsoFuncBaseElem[_, _, _]] && method.getName == "apply" =>
@@ -223,17 +240,10 @@ implicit val eM = p.metric.elem.eRange
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
   }
+} // of object IsoFuncBase
+  registerEntityObject("IsoFuncBase", IsoFuncBase)
 
-  def mkIsoFuncBase[T, R, M]
-    (func: Rep[T => R], metric: Rep[T => M]): Rep[IsoFuncBase[T, R, M]] = {
-    new IsoFuncBaseCtor[T, R, M](func, metric)
-  }
-  def unmkIsoFuncBase[T, R, M](p: Rep[IsoFunc[T, R, M]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: IsoFuncBaseElem[T, R, M] @unchecked =>
-      Some((p.asRep[IsoFuncBase[T, R, M]].func, p.asRep[IsoFuncBase[T, R, M]].metric))
-    case _ =>
-      None
-  }
+  registerModule(SpecializationsModule)
 }
 
 object SpecializationsModule extends scalan.ModuleInfo("scalan.dynamic", "Specializations")

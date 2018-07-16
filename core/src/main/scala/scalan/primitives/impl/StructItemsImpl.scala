@@ -11,6 +11,8 @@ package impl {
 // Abs -----------------------------------
 trait StructItemsDefs extends StructItems {
   self: Structs with Scalan =>
+import IsoUR._
+import StructKey._
 import StructKey._
 import StructItem._
 import StructItemBase._

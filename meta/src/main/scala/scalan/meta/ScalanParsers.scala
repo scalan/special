@@ -199,7 +199,7 @@ trait ScalanParsers[+G <: Global] {
     val imports = statements.collect { case i: Import => importStat(i) }
     val isVirtualized = ctx.isVirtualized
 
-    def makeUnitDef(moduleName: String, defs: List[SBodyItem], selfType: Option[SSelfTypeDef], ancestors: List[STypeApply]) = {
+    def makeUnitDef(moduleName: String, cakeImports: List[SImportStat], defs: List[SBodyItem], selfType: Option[SSelfTypeDef], ancestors: List[STypeApply]) = {
       val isDefinedModule = findClassDefByName(
         statements, SUnitDef.moduleTraitName(moduleName)).isDefined
       val classes = defs.collect {
@@ -211,7 +211,7 @@ trait ScalanParsers[+G <: Global] {
       val typeDefs = defs.collect { case t: STpeDef => t }
       val methods = defs.collect { case md: SMethodDef if !isInternalMethodOfCompanion(md, defs) => md }
 
-      SUnitDef(packageName, imports, moduleName,
+      SUnitDef(packageName, imports ++ cakeImports, moduleName,
         typeDefs,
         traits, classes, methods,
         selfType, ancestors,
@@ -231,18 +231,19 @@ trait ScalanParsers[+G <: Global] {
       val ancestors = this.ancestors(unitSym, mainTraitTree.impl.parents)
       val selfType = this.selfType(unitSym, mainTraitTree.impl.self)
       val defs = mainTraitTree.impl.body.flatMap(optBodyItem(unitSym, _, Some(mainTraitTree)))
+      val cakeImports = defs.collect { case SImportStat(n,_) => SImportStat(n, true) }
 
-      makeUnitDef(moduleName, defs, selfType, ancestors)
+      makeUnitDef(moduleName, cakeImports, defs, selfType, ancestors)
     } else {
       val unitSym = ctx.astContext.newUnitSymbol(packageName, moduleName)
       val defs = statements.filterMap { tree => optBodyItem(unitSym, tree, Some(packageDef)) }
-      makeUnitDef(moduleName, defs, None, Nil)
+      makeUnitDef(moduleName, Nil, defs, None, Nil)
     }
     returnParsed(packageDef, unitDef)
   }
 
-  def importStat(i: Import): SImportStat = {
-    SImportStat(i.toString.stripPrefix("import "))
+  def importStat(i: Import, inCake: Boolean = false): SImportStat = {
+    SImportStat(i.toString.stripPrefix("import "), inCake)
   }
 
   def isEvidenceParam(vd: ValDef) = vd.name.toString.startsWith("evidence$")

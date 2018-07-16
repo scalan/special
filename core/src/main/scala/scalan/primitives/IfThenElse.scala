@@ -3,7 +3,7 @@ package scalan.primitives
 import scalan.{Base, Scalan}
 
 trait IfThenElse extends Base with Effects { self: Scalan =>
-
+  import IsoUR._
   def IF(cond: Rep[Boolean]): IfBranch = new IfBranch(cond)
 
   class IfBranch(cond: Rep[Boolean]) {

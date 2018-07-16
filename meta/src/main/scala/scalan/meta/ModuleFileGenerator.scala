@@ -167,7 +167,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
     s"""
       |package ${unit.packageName}
       |
-      |${(unit.imports ++ config.extraImports.map(SImportStat(_))).distinct.rep(i => s"import ${i.name}", "\n")}
+      |${(unit.imports.filterNot(_.inCake) ++ config.extraImports.map(SImportStat(_))).distinct.rep(i => s"import ${i.name}", "\n")}
       |
       |""".stripAndTrim
   }
@@ -571,9 +571,14 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
 
   def getUsedEntities(unit: SUnitDef): Seq[SNamedDefSymbol] = {
     val res = ArrayBuffer.empty[SNamedDefSymbol]
-    def accept(name: String) = {
+    def accept(tpe: STpeExpr) = {
+      val name = tpe match {
+        case context.RepTypeOf(STraitCall(name, _)) => Some(name)
+        case STraitCall(name, _) => Some(name)
+        case _ => None
+      }
       name match {
-        case context.Entity(m, e) =>
+        case Some(context.Entity(m, e)) =>
           res += context.newEntitySymbol(m.symbol, e.name)
         case _ => // do nothing
       }
@@ -589,10 +594,12 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
       emitEntityDefs(e)
     }
     val imports = {
+      val declaredImports = unit.imports.filter(_.inCake)
       val used = getUsedEntities(unit)
       val ts = unit.traits.map(t => context.newEntitySymbol(unit.symbol, t.name))
       val cs = unit.classes.map(c => context.newEntitySymbol(unit.symbol, c.name))
-      (used ++ ts ++ cs).map(s => s"import ${s.name}._")
+      val entityObjects = (used ++ ts ++ cs).map(s => s"import ${s.name}._")
+      declaredImports.distinct.map(i => s"import ${i.name}") ++ entityObjects
     }
 
     s"""

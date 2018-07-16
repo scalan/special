@@ -253,9 +253,9 @@ object ScalanAstTraversers {
     }
   }
 
-  class EntityUseTraverser(accept: String => Unit)(implicit ctx: AstContext) extends AstTraverser {
+  class EntityUseTraverser(accept: STpeExpr => Unit)(implicit ctx: AstContext) extends AstTraverser {
     override def traitCallTraverse(tc: STraitCall): Unit = {
-      accept(tc.name)
+      accept(tc)
       super.traitCallTraverse(tc)
     }
   }

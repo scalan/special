@@ -8,6 +8,8 @@ import scala.reflect.runtime.universe._
 import scalan.util.Covariant
 
 trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects { self: Scalan =>
+  import IsoUR._
+  
   type Th[+T] = Rep[Thunk[T]]
   trait Thunk[+A] { def value: A }
   class ThunkCompanion {

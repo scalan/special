@@ -8,7 +8,7 @@ import scalan.universe.api.UniverseUtils._
 import scalan.util.CollectionUtil._
 
 trait Specializations extends Views with Converters { self: Scalan =>
-
+  import IsoUR._
   type RepIsoFunc[T,R,M] = Rep[IsoFunc[T,R,M]]
   trait IsoFunc[T,R,M] extends Def[IsoFunc[T,R,M]] {
     implicit def eT: Elem[T]
@@ -37,6 +37,9 @@ trait Specializations extends Views with Converters { self: Scalan =>
 }
 
 trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { scalan: Scalan =>
+  import IsoUR._
+  import Converter._
+  import BaseConverter._
 
   trait AbstractSpecKey[F] {
     def format: F
@@ -222,7 +225,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         c    <- HasConv.unapply((iso1.eTo, iso2.eTo))
       }
       yield {
-        BaseConverter(fun({ x: Rep[Any] =>
+        RBaseConverter(fun({ x: Rep[Any] =>
             val a1 = iso1.to(x)
             val a2 = c(a1)
             iso2.from(a2)

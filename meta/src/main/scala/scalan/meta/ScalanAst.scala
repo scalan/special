@@ -446,7 +446,7 @@ object ScalanAst {
     def signature: DefSig
   }
 
-  case class SImportStat(name: String) extends SBodyItem {
+  case class SImportStat(name: String, inCake: Boolean = false) extends SBodyItem {
     override def signature = DefSig(DefType.Import, name, Nil)
   }
 

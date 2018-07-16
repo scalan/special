@@ -14,7 +14,8 @@ import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
 
 trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
-
+  import IsoUR._
+  
   def getStagedFunc(name: String): Rep[_] = {
     val clazz = this.getClass
     val f = clazz.getDeclaredMethod(name)

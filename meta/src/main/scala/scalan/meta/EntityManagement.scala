@@ -25,14 +25,14 @@ class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends Lazy
    
   case class EntityManager(name: String, file: File, resourceFile: File, module: SUnitDef, config: UnitConfig)
 
-  protected val entities = (for(c <- configs) yield {
-    val file = c.getFile
-    val resourceFile = c.getResourceFile
+  protected val entities = (for(conf <- configs) yield {
+    val file = conf.getFile
+    val resourceFile = conf.getResourceFile
     try {
-      val module = parseUnitFile(file)(new ParseCtx(c.isVirtualized))
+      val unit = parseUnitFile(file)(new ParseCtx(conf.isVirtualized))
       inform(s"Adding unit parsed from ${file} (relative to ${FileUtil.currentWorkingDir })")
-      context.addUnit(module)
-      Some((c.name, new EntityManager(module.name, file, resourceFile, module, c)))
+      context.addUnit(unit)
+      Some((conf.name, new EntityManager(unit.name, file, resourceFile, unit, conf)))
     } catch {
       case e: Exception =>
         val msg = s"Failed to parse file at $file (relative to ${FileUtil.currentWorkingDir })"
@@ -42,8 +42,8 @@ class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends Lazy
     }
   }).flatten.toMap
 
-  def createFileGenerator(codegen: MetaCodegen, module: SUnitDef, config: UnitConfig) =
-    new ModuleFileGenerator(codegen, module, config)
+  def createFileGenerator(codegen: MetaCodegen, unit: SUnitDef, config: UnitConfig) =
+    new ModuleFileGenerator(codegen, unit, config)
 
   val enrichPipeline = new ScalanAstTransformers.EnrichPipeline()
 
@@ -51,8 +51,8 @@ class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends Lazy
     entities.get(configName) match {
       case Some(man) =>
         println(s"  generating ${man.file}")
-        val enrichedModule = enrichPipeline(man.module)
-        val g = createFileGenerator(ScalanCodegen, enrichedModule, man.config)
+        val enrichedUnit = enrichPipeline(man.module)
+        val g = createFileGenerator(ScalanCodegen, enrichedUnit, man.config)
 
         val implCode = g.emitImplFile
         val implFile = UnitConfig.getImplFile(man.file, "Impl", "scala")

@@ -39,7 +39,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
 
   def genPackageDef(unit: SUnitDef)(implicit ctx: GenCtx): PackageDef = {
       val ref = genRefTree(unit.packageName)
-      val imports = unit.imports.map(genImport(_))
+      val imports = unit.imports.filterNot(_.inCake).map(genImport(_))
       val moduleBody = List[Tree](genModuleTrait(unit))
       PackageDef(ref,
         imports ++

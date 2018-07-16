@@ -8,7 +8,18 @@ package impl {
 // Abs -----------------------------------
 trait ConvertersDefs extends Converters {
   self: Scalan =>
+import IsoUR._
+import Converter._
+import Converter._
+import IdentityConv._
+import BaseConverter._
+import PairConverter._
+import SumConverter._
+import ComposeConverter._
+import FunctorConverter._
+import NaturalConverter._
 
+object Converter extends EntityObject("Converter") {
   // entityProxy: single proxy for each type family
   implicit def proxyConverter[T, R](p: Rep[Converter[T, R]]): Converter[T, R] = {
     proxyOps[Converter[T, R]](p)(scala.reflect.classTag[Converter[T, R]])
@@ -45,7 +56,7 @@ trait ConvertersDefs extends Converters {
 
   implicit case object ConverterCompanionElem extends CompanionElem[ConverterCompanionCtor] {
     lazy val tag = weakTypeTag[ConverterCompanionCtor]
-    protected def getDefaultRep = Converter
+    protected def getDefaultRep = RConverter
   }
 
   abstract class ConverterCompanionCtor extends CompanionDef[ConverterCompanionCtor] with ConverterCompanion {
@@ -55,7 +66,7 @@ trait ConvertersDefs extends Converters {
   implicit def proxyConverterCompanionCtor(p: Rep[ConverterCompanionCtor]): ConverterCompanionCtor =
     proxyOps[ConverterCompanionCtor](p)
 
-  lazy val Converter: Rep[ConverterCompanionCtor] = new ConverterCompanionCtor {
+  lazy val RConverter: Rep[ConverterCompanionCtor] = new ConverterCompanionCtor {
   }
 
   object ConverterMethods {
@@ -90,7 +101,10 @@ trait ConvertersDefs extends Converters {
 
   object ConverterCompanionMethods {
   }
+} // of object Converter
+  registerEntityObject("Converter", Converter)
 
+object IdentityConv extends EntityObject("IdentityConv") {
   case class IdentityConvCtor[A]
       ()(implicit eT: Elem[A])
     extends IdentityConv[A]() with Def[IdentityConv[A]] {
@@ -102,8 +116,8 @@ trait ConvertersDefs extends Converters {
     with ConcreteElem[IdentityConvData[A], IdentityConv[A]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[A], element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eT -> scalan.util.Invariant))
-    override def convertConverter(x: Rep[Converter[A, A]]) = IdentityConv()
-    override def getDefaultRep = IdentityConv()
+    override def convertConverter(x: Rep[Converter[A, A]]) = RIdentityConv()
+    override def getDefaultRep = RIdentityConv()
     override lazy val tag = {
       implicit val tagA = eT.tag
       weakTypeTag[IdentityConv[A]]
@@ -116,11 +130,12 @@ trait ConvertersDefs extends Converters {
   // 3) Iso for concrete class
   class IdentityConvIso[A](implicit eT: Elem[A])
     extends EntityIso[IdentityConvData[A], IdentityConv[A]] with Def[IdentityConvIso[A]] {
+    private lazy val _safeFrom = fun { p: Rep[IdentityConv[A]] => () }
     override def from(p: Rep[IdentityConv[A]]) =
-      ()
+      tryConvert[IdentityConv[A], Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
-      IdentityConv()
+      RIdentityConv()
     }
     lazy val eFrom = UnitElement
     lazy val eTo = new IdentityConvElem[A](self)
@@ -152,7 +167,7 @@ trait ConvertersDefs extends Converters {
     def unapply[A](p: Rep[Converter[A, A]]) = unmkIdentityConv(p)
   }
   lazy val IdentityConvRep: Rep[IdentityConvCompanionCtor] = new IdentityConvCompanionCtor
-  lazy val IdentityConv: IdentityConvCompanionCtor = proxyIdentityConvCompanion(IdentityConvRep)
+  lazy val RIdentityConv: IdentityConvCompanionCtor = proxyIdentityConvCompanion(IdentityConvRep)
   implicit def proxyIdentityConvCompanion(p: Rep[IdentityConvCompanionCtor]): IdentityConvCompanionCtor = {
     proxyOps[IdentityConvCompanionCtor](p)
   }
@@ -175,6 +190,48 @@ trait ConvertersDefs extends Converters {
   implicit def isoIdentityConv[A](implicit eT: Elem[A]): Iso[IdentityConvData[A], IdentityConv[A]] =
     reifyObject(new IdentityConvIso[A]()(eT))
 
+  def mkIdentityConv[A]
+    ()(implicit eT: Elem[A]): Rep[IdentityConv[A]] = {
+    new IdentityConvCtor[A]()
+  }
+  def unmkIdentityConv[A](p: Rep[Converter[A, A]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: IdentityConvElem[A] @unchecked =>
+      Some(())
+    case _ =>
+      None
+  }
+
+    object IdentityConvMethods {
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[IdentityConvElem[_]] && method.getName == "apply" =>
+          Some((receiver, x)).asInstanceOf[Option[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object isIdentity {
+      def unapply(d: Def[_]): Option[Rep[IdentityConv[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IdentityConvElem[_]] && method.getName == "isIdentity" =>
+          Some(receiver).asInstanceOf[Option[Rep[IdentityConv[A]] forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[IdentityConv[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
+  }
+} // of object IdentityConv
+  registerEntityObject("IdentityConv", IdentityConv)
+
+object BaseConverter extends EntityObject("BaseConverter") {
   case class BaseConverterCtor[T, R]
       (override val convFun: Rep[T => R])
     extends BaseConverter[T, R](convFun) with Def[BaseConverter[T, R]] {
@@ -189,8 +246,8 @@ implicit lazy val eR = convFun.elem.eRange
     with ConcreteElem[BaseConverterData[T, R], BaseConverter[T, R]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[T], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override def convertConverter(x: Rep[Converter[T, R]]) = BaseConverter(x.convFun)
-    override def getDefaultRep = BaseConverter(constFun[T, R](element[R].defaultRepValue))
+    override def convertConverter(x: Rep[Converter[T, R]]) = RBaseConverter(x.convFun)
+    override def getDefaultRep = RBaseConverter(constFun[T, R](element[R].defaultRepValue))
     override lazy val tag = {
       implicit val tagT = eT.tag
       implicit val tagR = eR.tag
@@ -204,11 +261,12 @@ implicit lazy val eR = convFun.elem.eRange
   // 3) Iso for concrete class
   class BaseConverterIso[T, R](implicit eT: Elem[T], eR: Elem[R])
     extends EntityIso[BaseConverterData[T, R], BaseConverter[T, R]] with Def[BaseConverterIso[T, R]] {
+    private lazy val _safeFrom = fun { p: Rep[BaseConverter[T, R]] => p.convFun }
     override def from(p: Rep[BaseConverter[T, R]]) =
-      p.convFun
+      tryConvert[BaseConverter[T, R], T => R](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[T => R]) = {
       val convFun = p
-      BaseConverter(convFun)
+      RBaseConverter(convFun)
     }
     lazy val eFrom = element[T => R]
     lazy val eTo = new BaseConverterElem[T, R](self)
@@ -240,7 +298,7 @@ implicit lazy val eR = convFun.elem.eRange
     def unapply[T, R](p: Rep[Converter[T, R]]) = unmkBaseConverter(p)
   }
   lazy val BaseConverterRep: Rep[BaseConverterCompanionCtor] = new BaseConverterCompanionCtor
-  lazy val BaseConverter: BaseConverterCompanionCtor = proxyBaseConverterCompanion(BaseConverterRep)
+  lazy val RBaseConverter: BaseConverterCompanionCtor = proxyBaseConverterCompanion(BaseConverterRep)
   implicit def proxyBaseConverterCompanion(p: Rep[BaseConverterCompanionCtor]): BaseConverterCompanionCtor = {
     proxyOps[BaseConverterCompanionCtor](p)
   }
@@ -265,6 +323,39 @@ implicit val eR = p.convFun.elem.eRange
   implicit def isoBaseConverter[T, R](implicit eT: Elem[T], eR: Elem[R]): Iso[BaseConverterData[T, R], BaseConverter[T, R]] =
     reifyObject(new BaseConverterIso[T, R]()(eT, eR))
 
+  def mkBaseConverter[T, R]
+    (convFun: Rep[T => R]): Rep[BaseConverter[T, R]] = {
+    new BaseConverterCtor[T, R](convFun)
+  }
+  def unmkBaseConverter[T, R](p: Rep[Converter[T, R]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: BaseConverterElem[T, R] @unchecked =>
+      Some((p.asRep[BaseConverter[T, R]].convFun))
+    case _ =>
+      None
+  }
+
+    object BaseConverterMethods {
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = d match {
+        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[BaseConverterElem[_, _]] && method.getName == "apply" =>
+          Some((receiver, x)).asInstanceOf[Option[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
+  }
+
+  object BaseConverterCompanionMethods {
+  }
+} // of object BaseConverter
+  registerEntityObject("BaseConverter", BaseConverter)
+
+object PairConverter extends EntityObject("PairConverter") {
   case class PairConverterCtor[A1, A2, B1, B2]
       (override val conv1: Conv[A1, B1], override val conv2: Conv[A2, B2])
     extends PairConverter[A1, A2, B1, B2](conv1, conv2) with Def[PairConverter[A1, A2, B1, B2]] {
@@ -284,7 +375,7 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[(A1, A2), (B1, B2)]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to PairConverter: missing fields List(conv1, conv2)")
-    override def getDefaultRep = PairConverter(element[Converter[A1, B1]].defaultRepValue, element[Converter[A2, B2]].defaultRepValue)
+    override def getDefaultRep = RPairConverter(element[Converter[A1, B1]].defaultRepValue, element[Converter[A2, B2]].defaultRepValue)
     override lazy val tag = {
       implicit val tagA1 = eA1.tag
       implicit val tagA2 = eA2.tag
@@ -300,11 +391,12 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   // 3) Iso for concrete class
   class PairConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] with Def[PairConverterIso[A1, A2, B1, B2]] {
+    private lazy val _safeFrom = fun { p: Rep[PairConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
     override def from(p: Rep[PairConverter[A1, A2, B1, B2]]) =
-      (p.conv1, p.conv2)
+      tryConvert[PairConverter[A1, A2, B1, B2], (Converter[A1, B1], Converter[A2, B2])](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(Converter[A1, B1], Converter[A2, B2])]) = {
       val Pair(conv1, conv2) = p
-      PairConverter(conv1, conv2)
+      RPairConverter(conv1, conv2)
     }
     lazy val eFrom = pairElement(element[Converter[A1, B1]], element[Converter[A2, B2]])
     lazy val eTo = new PairConverterElem[A1, A2, B1, B2](self)
@@ -348,7 +440,7 @@ implicit val eB2 = p._2.eR
     def unapply[A1, A2, B1, B2](p: Rep[Converter[(A1, A2), (B1, B2)]]) = unmkPairConverter(p)
   }
   lazy val PairConverterRep: Rep[PairConverterCompanionCtor] = new PairConverterCompanionCtor
-  lazy val PairConverter: PairConverterCompanionCtor = proxyPairConverterCompanion(PairConverterRep)
+  lazy val RPairConverter: PairConverterCompanionCtor = proxyPairConverterCompanion(PairConverterRep)
   implicit def proxyPairConverterCompanion(p: Rep[PairConverterCompanionCtor]): PairConverterCompanionCtor = {
     proxyOps[PairConverterCompanionCtor](p)
   }
@@ -375,6 +467,49 @@ implicit val eB2 = p.conv2.eR
   implicit def isoPairConverter[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] =
     reifyObject(new PairConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
 
+  def mkPairConverter[A1, A2, B1, B2]
+    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[PairConverter[A1, A2, B1, B2]] = {
+    new PairConverterCtor[A1, A2, B1, B2](conv1, conv2)
+  }
+  def unmkPairConverter[A1, A2, B1, B2](p: Rep[Converter[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: PairConverterElem[A1, A2, B1, B2] @unchecked =>
+      Some((p.asRep[PairConverter[A1, A2, B1, B2]].conv1, p.asRep[PairConverter[A1, A2, B1, B2]].conv2))
+    case _ =>
+      None
+  }
+
+    object PairConverterMethods {
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = d match {
+        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] && method.getName == "apply" =>
+          Some((receiver, x)).asInstanceOf[Option[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object isIdentity {
+      def unapply(d: Def[_]): Option[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] && method.getName == "isIdentity" =>
+          Some(receiver).asInstanceOf[Option[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object PairConverterCompanionMethods {
+  }
+} // of object PairConverter
+  registerEntityObject("PairConverter", PairConverter)
+
+object SumConverter extends EntityObject("SumConverter") {
   case class SumConverterCtor[A1, A2, B1, B2]
       (override val conv1: Conv[A1, B1], override val conv2: Conv[A2, B2])
     extends SumConverter[A1, A2, B1, B2](conv1, conv2) with Def[SumConverter[A1, A2, B1, B2]] {
@@ -394,7 +529,7 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to SumConverter: missing fields List(conv1, conv2)")
-    override def getDefaultRep = SumConverter(element[Converter[A1, B1]].defaultRepValue, element[Converter[A2, B2]].defaultRepValue)
+    override def getDefaultRep = RSumConverter(element[Converter[A1, B1]].defaultRepValue, element[Converter[A2, B2]].defaultRepValue)
     override lazy val tag = {
       implicit val tagA1 = eA1.tag
       implicit val tagA2 = eA2.tag
@@ -410,11 +545,12 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   // 3) Iso for concrete class
   class SumConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] with Def[SumConverterIso[A1, A2, B1, B2]] {
+    private lazy val _safeFrom = fun { p: Rep[SumConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
     override def from(p: Rep[SumConverter[A1, A2, B1, B2]]) =
-      (p.conv1, p.conv2)
+      tryConvert[SumConverter[A1, A2, B1, B2], (Converter[A1, B1], Converter[A2, B2])](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(Converter[A1, B1], Converter[A2, B2])]) = {
       val Pair(conv1, conv2) = p
-      SumConverter(conv1, conv2)
+      RSumConverter(conv1, conv2)
     }
     lazy val eFrom = pairElement(element[Converter[A1, B1]], element[Converter[A2, B2]])
     lazy val eTo = new SumConverterElem[A1, A2, B1, B2](self)
@@ -458,7 +594,7 @@ implicit val eB2 = p._2.eR
     def unapply[A1, A2, B1, B2](p: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = unmkSumConverter(p)
   }
   lazy val SumConverterRep: Rep[SumConverterCompanionCtor] = new SumConverterCompanionCtor
-  lazy val SumConverter: SumConverterCompanionCtor = proxySumConverterCompanion(SumConverterRep)
+  lazy val RSumConverter: SumConverterCompanionCtor = proxySumConverterCompanion(SumConverterRep)
   implicit def proxySumConverterCompanion(p: Rep[SumConverterCompanionCtor]): SumConverterCompanionCtor = {
     proxyOps[SumConverterCompanionCtor](p)
   }
@@ -485,6 +621,49 @@ implicit val eB2 = p.conv2.eR
   implicit def isoSumConverter[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] =
     reifyObject(new SumConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
 
+  def mkSumConverter[A1, A2, B1, B2]
+    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[SumConverter[A1, A2, B1, B2]] = {
+    new SumConverterCtor[A1, A2, B1, B2](conv1, conv2)
+  }
+  def unmkSumConverter[A1, A2, B1, B2](p: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: SumConverterElem[A1, A2, B1, B2] @unchecked =>
+      Some((p.asRep[SumConverter[A1, A2, B1, B2]].conv1, p.asRep[SumConverter[A1, A2, B1, B2]].conv2))
+    case _ =>
+      None
+  }
+
+    object SumConverterMethods {
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = d match {
+        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] && method.getName == "apply" =>
+          Some((receiver, x)).asInstanceOf[Option[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object isIdentity {
+      def unapply(d: Def[_]): Option[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] && method.getName == "isIdentity" =>
+          Some(receiver).asInstanceOf[Option[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object SumConverterCompanionMethods {
+  }
+} // of object SumConverter
+  registerEntityObject("SumConverter", SumConverter)
+
+object ComposeConverter extends EntityObject("ComposeConverter") {
   case class ComposeConverterCtor[A, B, C]
       (override val conv2: Conv[B, C], override val conv1: Conv[A, B])
     extends ComposeConverter[A, B, C](conv2, conv1) with Def[ComposeConverter[A, B, C]] {
@@ -502,7 +681,7 @@ implicit lazy val eC = conv2.eR
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[A, C]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to ComposeConverter: missing fields List(conv2, conv1)")
-    override def getDefaultRep = ComposeConverter(element[Converter[B, C]].defaultRepValue, element[Converter[A, B]].defaultRepValue)
+    override def getDefaultRep = RComposeConverter(element[Converter[B, C]].defaultRepValue, element[Converter[A, B]].defaultRepValue)
     override lazy val tag = {
       implicit val tagA = eA.tag
       implicit val tagB = eB.tag
@@ -517,11 +696,12 @@ implicit lazy val eC = conv2.eR
   // 3) Iso for concrete class
   class ComposeConverterIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C])
     extends EntityIso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] with Def[ComposeConverterIso[A, B, C]] {
+    private lazy val _safeFrom = fun { p: Rep[ComposeConverter[A, B, C]] => (p.conv2, p.conv1) }
     override def from(p: Rep[ComposeConverter[A, B, C]]) =
-      (p.conv2, p.conv1)
+      tryConvert[ComposeConverter[A, B, C], (Converter[B, C], Converter[A, B])](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[(Converter[B, C], Converter[A, B])]) = {
       val Pair(conv2, conv1) = p
-      ComposeConverter(conv2, conv1)
+      RComposeConverter(conv2, conv1)
     }
     lazy val eFrom = pairElement(element[Converter[B, C]], element[Converter[A, B]])
     lazy val eTo = new ComposeConverterElem[A, B, C](self)
@@ -562,7 +742,7 @@ implicit val eC = p._1.eR
     def unapply[A, B, C](p: Rep[Converter[A, C]]) = unmkComposeConverter(p)
   }
   lazy val ComposeConverterRep: Rep[ComposeConverterCompanionCtor] = new ComposeConverterCompanionCtor
-  lazy val ComposeConverter: ComposeConverterCompanionCtor = proxyComposeConverterCompanion(ComposeConverterRep)
+  lazy val RComposeConverter: ComposeConverterCompanionCtor = proxyComposeConverterCompanion(ComposeConverterRep)
   implicit def proxyComposeConverterCompanion(p: Rep[ComposeConverterCompanionCtor]): ComposeConverterCompanionCtor = {
     proxyOps[ComposeConverterCompanionCtor](p)
   }
@@ -588,6 +768,48 @@ implicit val eC = p.conv2.eR
   implicit def isoComposeConverter[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C]): Iso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] =
     reifyObject(new ComposeConverterIso[A, B, C]()(eA, eB, eC))
 
+  def mkComposeConverter[A, B, C]
+    (conv2: Conv[B, C], conv1: Conv[A, B]): Rep[ComposeConverter[A, B, C]] = {
+    new ComposeConverterCtor[A, B, C](conv2, conv1)
+  }
+  def unmkComposeConverter[A, B, C](p: Rep[Converter[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: ComposeConverterElem[A, B, C] @unchecked =>
+      Some((p.asRep[ComposeConverter[A, B, C]].conv2, p.asRep[ComposeConverter[A, B, C]].conv1))
+    case _ =>
+      None
+  }
+
+    object ComposeConverterMethods {
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = d match {
+        case MethodCall(receiver, method, Seq(a, _*), _) if receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] && method.getName == "apply" =>
+          Some((receiver, a)).asInstanceOf[Option[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object isIdentity {
+      def unapply(d: Def[_]): Option[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] && method.getName == "isIdentity" =>
+          Some(receiver).asInstanceOf[Option[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
+  }
+} // of object ComposeConverter
+  registerEntityObject("ComposeConverter", ComposeConverter)
+
+object FunctorConverter extends EntityObject("FunctorConverter") {
   case class FunctorConverterCtor[A, B, F[_]]
       (override val itemConv: Conv[A, B])(implicit F: Functor[F])
     extends FunctorConverter[A, B, F](itemConv) with Def[FunctorConverter[A, B, F]] {
@@ -604,7 +826,7 @@ implicit lazy val eB = itemConv.eR
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "F" -> (F -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[F[A], F[B]]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to FunctorConverter: missing fields List(itemConv)")
-    override def getDefaultRep = FunctorConverter(element[Converter[A, B]].defaultRepValue)
+    override def getDefaultRep = RFunctorConverter(element[Converter[A, B]].defaultRepValue)
     override lazy val tag = {
       implicit val tagA = eA.tag
       implicit val tagB = eB.tag
@@ -618,11 +840,12 @@ implicit lazy val eB = itemConv.eR
   // 3) Iso for concrete class
   class FunctorConverterIso[A, B, F[_]](implicit F: Functor[F], eA: Elem[A], eB: Elem[B])
     extends EntityIso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] with Def[FunctorConverterIso[A, B, F]] {
+    private lazy val _safeFrom = fun { p: Rep[FunctorConverter[A, B, F]] => p.itemConv }
     override def from(p: Rep[FunctorConverter[A, B, F]]) =
-      p.itemConv
+      tryConvert[FunctorConverter[A, B, F], Converter[A, B]](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Converter[A, B]]) = {
       val itemConv = p
-      FunctorConverter(itemConv)
+      RFunctorConverter(itemConv)
     }
     lazy val eFrom = element[Converter[A, B]]
     lazy val eTo = new FunctorConverterElem[A, B, F](self)
@@ -655,7 +878,7 @@ implicit lazy val eB = itemConv.eR
     def unapply[A, B, F[_]](p: Rep[Converter[F[A], F[B]]]) = unmkFunctorConverter(p)
   }
   lazy val FunctorConverterRep: Rep[FunctorConverterCompanionCtor] = new FunctorConverterCompanionCtor
-  lazy val FunctorConverter: FunctorConverterCompanionCtor = proxyFunctorConverterCompanion(FunctorConverterRep)
+  lazy val RFunctorConverter: FunctorConverterCompanionCtor = proxyFunctorConverterCompanion(FunctorConverterRep)
   implicit def proxyFunctorConverterCompanion(p: Rep[FunctorConverterCompanionCtor]): FunctorConverterCompanionCtor = {
     proxyOps[FunctorConverterCompanionCtor](p)
   }
@@ -680,6 +903,51 @@ implicit val eB = p.itemConv.eR
   implicit def isoFunctorConverter[A, B, F[_]](implicit F: Functor[F], eA: Elem[A], eB: Elem[B]): Iso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] =
     reifyObject(new FunctorConverterIso[A, B, F]()(F, eA, eB))
 
+  def mkFunctorConverter[A, B, F[_]]
+    (itemConv: Conv[A, B])(implicit F: Functor[F]): Rep[FunctorConverter[A, B, F]] = {
+    new FunctorConverterCtor[A, B, F](itemConv)
+  }
+  def unmkFunctorConverter[A, B, F[_]](p: Rep[Converter[F[A], F[B]]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: FunctorConverterElem[A, B, F] @unchecked =>
+      Some((p.asRep[FunctorConverter[A, B, F]].itemConv))
+    case _ =>
+      None
+  }
+
+    object FunctorConverterMethods {
+    object apply {
+      def unapply(d: Def[_]): Option[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = d match {
+        case MethodCall(receiver, method, Seq(xs, _*), _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) && method.getName == "apply" =>
+          Some((receiver, xs)).asInstanceOf[Option[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object isIdentity {
+      def unapply(d: Def[_]): Option[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = d match {
+        case MethodCall(receiver, method, _, _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) && method.getName == "isIdentity" =>
+          Some(receiver).asInstanceOf[Option[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
+  }
+
+  object FunctorConverterCompanionMethods {
+  }
+} // of object FunctorConverter
+  registerEntityObject("FunctorConverter", FunctorConverter)
+
+object NaturalConverter extends EntityObject("NaturalConverter") {
   case class NaturalConverterCtor[A, F[_], G[_]]
       (override val convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends NaturalConverter[A, F, G](convFun) with Def[NaturalConverter[A, F, G]] {
@@ -691,8 +959,8 @@ implicit val eB = p.itemConv.eR
     with ConcreteElem[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[F[A]], element[G[A]]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "F" -> (cF -> scalan.util.Invariant), "G" -> (cG -> scalan.util.Invariant))
-    override def convertConverter(x: Rep[Converter[F[A], G[A]]]) = NaturalConverter(x.convFun)
-    override def getDefaultRep = NaturalConverter(constFun[F[A], G[A]](element[G[A]].defaultRepValue))
+    override def convertConverter(x: Rep[Converter[F[A], G[A]]]) = RNaturalConverter(x.convFun)
+    override def getDefaultRep = RNaturalConverter(constFun[F[A], G[A]](element[G[A]].defaultRepValue))
     override lazy val tag = {
       implicit val tagA = eA.tag
       weakTypeTag[NaturalConverter[A, F, G]]
@@ -705,11 +973,12 @@ implicit val eB = p.itemConv.eR
   // 3) Iso for concrete class
   class NaturalConverterIso[A, F[_], G[_]](implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends EntityIso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] with Def[NaturalConverterIso[A, F, G]] {
+    private lazy val _safeFrom = fun { p: Rep[NaturalConverter[A, F, G]] => p.convFun }
     override def from(p: Rep[NaturalConverter[A, F, G]]) =
-      p.convFun
+      tryConvert[NaturalConverter[A, F, G], F[A] => G[A]](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[F[A] => G[A]]) = {
       val convFun = p
-      NaturalConverter(convFun)
+      RNaturalConverter(convFun)
     }
     lazy val eFrom = element[F[A] => G[A]]
     lazy val eTo = new NaturalConverterElem[A, F, G](self)
@@ -741,7 +1010,7 @@ implicit val eB = p.itemConv.eR
     def unapply[A, F[_], G[_]](p: Rep[Converter[F[A], G[A]]]) = unmkNaturalConverter(p)
   }
   lazy val NaturalConverterRep: Rep[NaturalConverterCompanionCtor] = new NaturalConverterCompanionCtor
-  lazy val NaturalConverter: NaturalConverterCompanionCtor = proxyNaturalConverterCompanion(NaturalConverterRep)
+  lazy val RNaturalConverter: NaturalConverterCompanionCtor = proxyNaturalConverterCompanion(NaturalConverterRep)
   implicit def proxyNaturalConverterCompanion(p: Rep[NaturalConverterCompanionCtor]): NaturalConverterCompanionCtor = {
     proxyOps[NaturalConverterCompanionCtor](p)
   }
@@ -764,239 +1033,18 @@ implicit val eB = p.itemConv.eR
   implicit def isoNaturalConverter[A, F[_], G[_]](implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Iso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] =
     reifyObject(new NaturalConverterIso[A, F, G]()(eA, cF, cG))
 
-  registerModule(ConvertersModule)
-
-  object IdentityConvMethods {
-    object apply {
-      def unapply(d: Def[_]): Option[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[IdentityConvElem[_]] && method.getName == "apply" =>
-          Some((receiver, x)).asInstanceOf[Option[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Option[Rep[IdentityConv[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IdentityConvElem[_]] && method.getName == "isIdentity" =>
-          Some(receiver).asInstanceOf[Option[Rep[IdentityConv[A]] forSome {type A}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[Rep[IdentityConv[A]] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
+  def mkNaturalConverter[A, F[_], G[_]]
+    (convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Rep[NaturalConverter[A, F, G]] = {
+    new NaturalConverterCtor[A, F, G](convFun)
   }
-
-  def mkIdentityConv[A]
-    ()(implicit eT: Elem[A]): Rep[IdentityConv[A]] = {
-    new IdentityConvCtor[A]()
-  }
-  def unmkIdentityConv[A](p: Rep[Converter[A, A]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: IdentityConvElem[A] @unchecked =>
-      Some(())
+  def unmkNaturalConverter[A, F[_], G[_]](p: Rep[Converter[F[A], G[A]]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: NaturalConverterElem[A, F, G] @unchecked =>
+      Some((p.asRep[NaturalConverter[A, F, G]].convFun))
     case _ =>
       None
   }
 
-  object BaseConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Option[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = d match {
-        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[BaseConverterElem[_, _]] && method.getName == "apply" =>
-          Some((receiver, x)).asInstanceOf[Option[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
-  }
-
-  object BaseConverterCompanionMethods {
-  }
-
-  def mkBaseConverter[T, R]
-    (convFun: Rep[T => R]): Rep[BaseConverter[T, R]] = {
-    new BaseConverterCtor[T, R](convFun)
-  }
-  def unmkBaseConverter[T, R](p: Rep[Converter[T, R]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: BaseConverterElem[T, R] @unchecked =>
-      Some((p.asRep[BaseConverter[T, R]].convFun))
-    case _ =>
-      None
-  }
-
-  object PairConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Option[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] && method.getName == "apply" =>
-          Some((receiver, x)).asInstanceOf[Option[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Option[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] && method.getName == "isIdentity" =>
-          Some(receiver).asInstanceOf[Option[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-  }
-
-  object PairConverterCompanionMethods {
-  }
-
-  def mkPairConverter[A1, A2, B1, B2]
-    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[PairConverter[A1, A2, B1, B2]] = {
-    new PairConverterCtor[A1, A2, B1, B2](conv1, conv2)
-  }
-  def unmkPairConverter[A1, A2, B1, B2](p: Rep[Converter[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: PairConverterElem[A1, A2, B1, B2] @unchecked =>
-      Some((p.asRep[PairConverter[A1, A2, B1, B2]].conv1, p.asRep[PairConverter[A1, A2, B1, B2]].conv2))
-    case _ =>
-      None
-  }
-
-  object SumConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Option[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] && method.getName == "apply" =>
-          Some((receiver, x)).asInstanceOf[Option[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Option[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] && method.getName == "isIdentity" =>
-          Some(receiver).asInstanceOf[Option[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-  }
-
-  object SumConverterCompanionMethods {
-  }
-
-  def mkSumConverter[A1, A2, B1, B2]
-    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[SumConverter[A1, A2, B1, B2]] = {
-    new SumConverterCtor[A1, A2, B1, B2](conv1, conv2)
-  }
-  def unmkSumConverter[A1, A2, B1, B2](p: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: SumConverterElem[A1, A2, B1, B2] @unchecked =>
-      Some((p.asRep[SumConverter[A1, A2, B1, B2]].conv1, p.asRep[SumConverter[A1, A2, B1, B2]].conv2))
-    case _ =>
-      None
-  }
-
-  object ComposeConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Option[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, Seq(a, _*), _) if receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] && method.getName == "apply" =>
-          Some((receiver, a)).asInstanceOf[Option[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Option[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] && method.getName == "isIdentity" =>
-          Some(receiver).asInstanceOf[Option[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
-  }
-
-  def mkComposeConverter[A, B, C]
-    (conv2: Conv[B, C], conv1: Conv[A, B]): Rep[ComposeConverter[A, B, C]] = {
-    new ComposeConverterCtor[A, B, C](conv2, conv1)
-  }
-  def unmkComposeConverter[A, B, C](p: Rep[Converter[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: ComposeConverterElem[A, B, C] @unchecked =>
-      Some((p.asRep[ComposeConverter[A, B, C]].conv2, p.asRep[ComposeConverter[A, B, C]].conv1))
-    case _ =>
-      None
-  }
-
-  object FunctorConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Option[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = d match {
-        case MethodCall(receiver, method, Seq(xs, _*), _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) && method.getName == "apply" =>
-          Some((receiver, xs)).asInstanceOf[Option[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Option[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = d match {
-        case MethodCall(receiver, method, _, _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) && method.getName == "isIdentity" =>
-          Some(receiver).asInstanceOf[Option[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
-  }
-
-  object FunctorConverterCompanionMethods {
-  }
-
-  def mkFunctorConverter[A, B, F[_]]
-    (itemConv: Conv[A, B])(implicit F: Functor[F]): Rep[FunctorConverter[A, B, F]] = {
-    new FunctorConverterCtor[A, B, F](itemConv)
-  }
-  def unmkFunctorConverter[A, B, F[_]](p: Rep[Converter[F[A], F[B]]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: FunctorConverterElem[A, B, F] @unchecked =>
-      Some((p.asRep[FunctorConverter[A, B, F]].itemConv))
-    case _ =>
-      None
-  }
-
-  object NaturalConverterMethods {
+    object NaturalConverterMethods {
     object apply {
       def unapply(d: Def[_]): Option[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}] = d match {
         case MethodCall(receiver, method, Seq(xs, _*), _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: NaturalConverterElem[_, _, _] => true; case _ => false }) && method.getName == "apply" =>
@@ -1011,17 +1059,10 @@ implicit val eB = p.itemConv.eR
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method
   }
+} // of object NaturalConverter
+  registerEntityObject("NaturalConverter", NaturalConverter)
 
-  def mkNaturalConverter[A, F[_], G[_]]
-    (convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Rep[NaturalConverter[A, F, G]] = {
-    new NaturalConverterCtor[A, F, G](convFun)
-  }
-  def unmkNaturalConverter[A, F[_], G[_]](p: Rep[Converter[F[A], G[A]]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: NaturalConverterElem[A, F, G] @unchecked =>
-      Some((p.asRep[NaturalConverter[A, F, G]].convFun))
-    case _ =>
-      None
-  }
+  registerModule(ConvertersModule)
 }
 
 object ConvertersModule extends scalan.ModuleInfo("scalan", "Converters")

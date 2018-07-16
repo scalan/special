@@ -4,6 +4,7 @@ import scala.collection.mutable
 import scalan.{Scalan, Base}
 
 trait Blocks extends Base { self: Scalan =>
+  import IsoUR._
 
   implicit class RepBlock[A](left: Rep[A]) { 
     def |[B](right: Rep[B]) = semicolon(left, right)

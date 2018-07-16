@@ -3,7 +3,8 @@ package scalan
 import OverloadHack.Overloaded2
 
 trait Converters extends ViewsModule { self: Scalan =>
-
+  import IsoUR._
+  import Converter._
   type Conv[T,R] = Rep[Converter[T,R]]
   trait Converter[T,R] extends Def[Converter[T,R]] {
     implicit def eT: Elem[T]
@@ -111,14 +112,33 @@ trait Converters extends ViewsModule { self: Scalan =>
 }
 
 trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
+  import IsoUR._
+  import Iso1UR._
+  import IdentityIso._
+  import PairIso._
+  import AbsorbFirstUnitIso._
+  import AbsorbSecondUnitIso._
+  import SumIso._
+  import ComposeIso._
+  import FuncIso._
+  import ConverterIso._
+  import ThunkIso._
+  import Converter._
+  import IdentityConv._
+  import BaseConverter._
+  import PairConverter._
+  import SumConverter._
+  import ComposeConverter._
+  import FunctorConverter._
+  import NaturalConverter._
 
-  def identityConv[A](implicit elem: Elem[A]): Conv[A, A] = IdentityConv[A]()(elem)
+  def identityConv[A](implicit elem: Elem[A]): Conv[A, A] = RIdentityConv[A]()(elem)
 
-  def baseConv[T,R](f: Rep[T => R]): Conv[T,R] = BaseConverter(f)
+  def baseConv[T,R](f: Rep[T => R]): Conv[T,R] = RBaseConverter(f)
   def funcFromConv[T,R](c: Conv[T,R]): Rep[T => R] = c.convFun
 
   def pairConv[A1, A2, B1, B2](conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Conv[(A1, A2), (B1, B2)] =
-    PairConverter[A1, A2, B1, B2](conv1, conv2)
+    RPairConverter[A1, A2, B1, B2](conv1, conv2)
     
   def composeConv[A, B, B1 >: B, C](c2: Conv[B1, C], c1: Conv[A, B]): Conv[A, C] = {
     if (c2.isIdentity)
@@ -132,7 +152,7 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
           val composedConv2 = composeConv(conv2d.conv2, conv1d.conv2.asInstanceOf[Conv[a2, b2]])
           pairConv(composedConv1, composedConv2)
         case _ =>
-          ComposeConverter[A, B1, C](c2, c1.asConv[A,B1])
+          RComposeConverter[A, B1, C](c2, c1.asConv[A,B1])
       }
   }.asInstanceOf[Conv[A, C]]
 
@@ -169,7 +189,7 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
           c1 <- getConverter(ea1, eb1)
           c2 <- getConverter(ea2, eb2)
         }
-        yield SumConverter(c1, c2)
+        yield RSumConverter(c1, c2)
       case (e1: EntityElem1[a1,to1,_], e2: EntityElem1[a2,to2,_])
         if e1.cont.name == e2.cont.name && e1.cont.isFunctor =>
         implicit val ea1 = e1.eItem
@@ -177,12 +197,12 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
         type F[T] = T
         val F = e1.cont.asInstanceOf[Functor[F]]
         for { c <- getConverter(ea1, ea2) }
-          yield FunctorConverter(c)(F).asRep[Converter[A,B]]
+          yield RFunctorConverter(c)(F).asRep[Converter[A,B]]
       case (eEntity: EntityElem[_], eClass: ConcreteElem[tData,tClass]) =>
         val convOpt = eClass.getConverterFrom(eEntity)
         convOpt
       case (eClass: ConcreteElem[tData,tClass], eEntity: EntityElem[_]) if eClass <:< eEntity =>
-        Some(BaseConverter(identityFun(eClass)).asRep[Converter[A,B]])
+        Some(RBaseConverter(identityFun(eClass)).asRep[Converter[A,B]])
       case _ => None
     }
   }
