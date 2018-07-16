@@ -1,4 +1,4 @@
-package scalan
+package special
 
 import scala.reflect.ClassTag
 

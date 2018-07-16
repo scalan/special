@@ -1,4 +1,6 @@
-package scalan
+package special
+
+import scalan.Builtin
 
 @Builtin("IsoUR")
 trait Iso[A,B] {

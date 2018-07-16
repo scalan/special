@@ -1,4 +1,4 @@
-package library {
+package special.wrappers {
   import scalan._
 
   trait WrappersSpec extends Base { self: WrappersSpecModule =>

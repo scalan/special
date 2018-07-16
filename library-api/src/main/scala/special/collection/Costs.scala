@@ -1,4 +1,4 @@
-package scalan.collection
+package special.collection
 
 trait Costed[Val] {
   def builder: CostedBuilder

@@ -1,7 +1,7 @@
-package library
+package special.wrappers
 
 import scala.reflect.ClassTag
-import scalan.SpecialPredef
+import special.SpecialPredef
 
 trait WrapSpec {
 }

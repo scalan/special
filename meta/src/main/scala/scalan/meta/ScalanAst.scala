@@ -1061,7 +1061,7 @@ object ScalanAst {
   /** Gets name of companion by entity name */
   def comp(name: String) = name + "Companion"
   /** Gets name of the target package to put wrapper based on original package name */
-  def wrapPackage(packageName: String) = packageName
+  def wrapPackage(packageName: String) = "wrappers." + packageName
 
   /** Classification of external types by their names. */
   def isPrimitive(name: String): Boolean = {

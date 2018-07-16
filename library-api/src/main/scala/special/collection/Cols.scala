@@ -1,4 +1,4 @@
-package scalan.collection
+package special.collection
 
 import scala.reflect.ClassTag
 import scalan.{ContainerType, OverloadId, FunctorType}

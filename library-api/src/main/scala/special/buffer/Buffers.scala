@@ -1,6 +1,7 @@
-package scalan.buffer
+package special.buffer
 
-import scalan.{Updater, Iso}
+import special.Iso
+import scalan.Updater
 
 trait Buffer {
   def position: Int

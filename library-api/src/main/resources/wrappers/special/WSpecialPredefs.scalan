@@ -1,9 +1,9 @@
-package scalan {
+package wrappers.special {
   import scalan._
 
   import impl._
 
-  import scala.wrappers.WrappersModule
+  import special.wrappers.WrappersModule
 
   trait WSpecialPredefs extends Base { self: WrappersModule =>
     @External("SpecialPredef") trait WSpecialPredef extends Def[WSpecialPredef] { self =>

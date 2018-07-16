@@ -24,16 +24,16 @@ class SpecialLibraryConfig extends LibraryConfig {
       name = "Either"
     ),
     WrapperConf(baseDir,
-      packageName = "scalan",
+      packageName = "special",
       name = "SpecialPredef"
     )
   ).map(w => (w.name, w)).toMap
 
   val ApiModule: SourceModuleConf = new SourceModuleConf(baseDir, "library-api")
-      .addUnit("WrappersSpec.scala", "library/WrappersSpec.scala", wrapperConfigs)
-      .addUnit("Monoids.scala", "scalan/collection/Monoids.scala")
-      .addUnit("Cols.scala", "scalan/collection/Cols.scala")
-      .addUnit("Costs.scala", "scalan/collection/Costs.scala")
+      .addUnit("WrappersSpec.scala", "special/wrappers/WrappersSpec.scala", wrapperConfigs)
+      .addUnit("Monoids.scala", "special/collection/Monoids.scala")
+      .addUnit("Cols.scala", "special/collection/Cols.scala")
+      .addUnit("Costs.scala", "special/collection/Costs.scala")
 
   val ImplModule = new SourceModuleConf(baseDir, "library-impl")
       .addUnit("MonoidInstances.scala", "scalan/collection/MonoidInstances.scala")

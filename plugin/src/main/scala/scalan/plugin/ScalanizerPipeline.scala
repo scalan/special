@@ -572,7 +572,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val unitName = wmod(wConf.name)
     val wFile = FileUtil.file(
       module.getWrappersRootDir,
-      wConf.packageName.replace('.', '/'),
+      wrapPackage(wConf.packageName).replace('.', '/'),
       unitName + ModuleConf.ResourceFileExtension)
     val wUnit = parseUnitFile(wFile)
     context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )
@@ -587,7 +587,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
       (implicit ctx: ParseCtx) = {
     import ModuleConf._
     val wUnitName = wmod(wConf.name)
-    val packageDir = wConf.packageName.replace('.', '/')
+    val packageDir = wrapPackage(wConf.packageName).replace('.', '/')
     val wResourcePath = s"$packageDir/$wUnitName$ResourceFileExtension"
     val wUnit = scalanizer.loadUnitDefFromResource(wResourcePath)
     context.updateWrapper( wConf.name, WrapperDescr(wUnit, wConf, isImported = true) )

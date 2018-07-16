@@ -1,9 +1,9 @@
-package scala.util {
+package wrappers.scala.util {
   import scalan._
 
   import impl._
 
-  import scala.wrappers.WrappersModule
+  import special.wrappers.WrappersModule
 
   trait WEithers extends Base { self: WrappersModule =>
     @External("Either") trait WEither[A, B] extends Def[WEither[A, B]] { self =>

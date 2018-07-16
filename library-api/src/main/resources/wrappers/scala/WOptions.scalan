@@ -1,9 +1,9 @@
-package scala {
+package wrappers.scala {
   import scalan._
 
   import impl._
 
-  import scala.wrappers.WrappersModule
+  import special.wrappers.WrappersModule
 
   trait WOptions extends Base { self: WrappersModule =>
     @External("Option") @ContainerType @FunctorType trait WOption[A] extends Def[WOption[A]] { self =>
