@@ -1,10 +1,12 @@
-package scalan.collection
+package special.collection
 
 import java.util
 
+import special.SpecialPredef
+
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
-import scalan.{Internal, SpecialPredef, OverloadId}
+import scalan.{Internal, OverloadId}
 
 trait BaseColBuilder extends ColBuilder {
   @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
@@ -54,7 +56,6 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def fold[B](zero: B)(op: ((B, (L, R))) => B) = arr.foldLeft(zero)((b, a) => op((b,a)))
   override def slice(from: Int, until: Int) = builder(ls.slice(from, until), rs.slice(from, until))
   override def sum(m: Monoid[(L, R)]) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
-  //  override def ++(other: Col[(L, R)]) =
 }
 
 class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends Col[A] {

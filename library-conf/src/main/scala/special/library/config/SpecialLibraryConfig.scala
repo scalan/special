@@ -30,15 +30,15 @@ class SpecialLibraryConfig extends LibraryConfig {
   ).map(w => (w.name, w)).toMap
 
   val ApiModule: SourceModuleConf = new SourceModuleConf(baseDir, "library-api")
-      .addUnit("WrappersSpec.scala", "special/wrappers/WrappersSpec.scala", wrapperConfigs)
-      .addUnit("Monoids.scala", "special/collection/Monoids.scala")
-      .addUnit("Cols.scala", "special/collection/Cols.scala")
-      .addUnit("Costs.scala", "special/collection/Costs.scala")
+      .addUnit("special/wrappers/WrappersSpec.scala", wrapperConfigs)
+      .addUnit("special/collection/Monoids.scala")
+      .addUnit("special/collection/Cols.scala")
+      .addUnit("special/collection/Costs.scala")
 
   val ImplModule = new SourceModuleConf(baseDir, "library-impl")
-      .addUnit("MonoidInstances.scala", "scalan/collection/MonoidInstances.scala")
-      .addUnit("ColsOverArrays.scala", "scalan/collection/ColsOverArrays.scala")
-      .addUnit("ConcreteCosts.scala", "scalan/collection/ConcreteCosts.scala")
+      .addUnit("special/collection/MonoidInstances.scala")
+      .addUnit("special/collection/ColsOverArrays.scala")
+      .addUnit("special/collection/ConcreteCosts.scala")
       .dependsOn(ApiModule)
 
   val TargetModule = new TargetModuleConf(baseDir, "library",

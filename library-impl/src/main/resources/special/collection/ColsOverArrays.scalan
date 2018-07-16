@@ -1,4 +1,4 @@
-package scalan.collection {
+package special.collection {
   import scalan._
 
   trait ColsOverArrays extends Base { self: ColsOverArraysModule =>
@@ -67,15 +67,11 @@ package scalan.collection {
       def sum(m: Rep[Monoid[A]]): Rep[A] = m.power(ReplCol.this.value, ReplCol.this.length)
     };
     abstract class ReplColBuilder extends BaseColBuilder;
-    abstract class ArrayFunctor extends Functor[WArray] {
-      override def map[A, B](fa: Rep[WArray[A]])(f: Rep[scala.Function1[A, B]]): Rep[WArray[B]] = fa.map(f)
-    };
     trait BaseColBuilderCompanion;
     trait ColOverArrayCompanion;
     trait ColOverArrayBuilderCompanion;
     trait PairOfColsCompanion;
     trait ReplColCompanion;
-    trait ReplColBuilderCompanion;
-    trait ArrayFunctorCompanion
+    trait ReplColBuilderCompanion
   }
 }

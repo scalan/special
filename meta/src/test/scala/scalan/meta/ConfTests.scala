@@ -15,13 +15,13 @@ class ConfTests extends BaseMetaTests with Examples {
   ).map(w => (w.name, w)).toMap
 
   val warrayModule = new SourceModuleConf("", "warrays")
-      .addUnit("WArrays.scala", "scala/WArrays.scala")
+      .addUnit("scala/WArrays.scala")
   val apiModule = new SourceModuleConf("", "library-api")
-      .addUnit("WrappersSpec.scala", "library/WrappersSpec.scala", wrapperConfigs)
-      .addUnit("Cols.scala", "scalan/collection/Cols.scala")
+      .addUnit("library/WrappersSpec.scala", wrapperConfigs)
+      .addUnit("scalan/collection/Cols.scala")
       .dependsOn(warrayModule)
   val implModule = new SourceModuleConf("", "library-impl")
-      .addUnit("ColsOverArrays.scala", "scalan/collection/ColsOverArrays.scala")
+      .addUnit("scalan/collection/ColsOverArrays.scala")
       .dependsOn(apiModule, warrayModule)
 
   describe("Module dependencies") {

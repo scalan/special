@@ -3,7 +3,6 @@ package scalanizer
 import org.scalatest._
 
 import scala.util.Random
-import scalan.collection.ColOverArrayBuilder
 
 class LinearAlgebraTests extends FunSuite  {
 

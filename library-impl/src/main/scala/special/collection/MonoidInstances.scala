@@ -1,4 +1,4 @@
-package scalan.collection
+package special.collection
 
 class MonoidBuilderInst extends MonoidBuilder {
   val intPlusMonoid = new IntPlusMonoid(0)

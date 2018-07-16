@@ -1,4 +1,4 @@
-package scalan.collection {
+package special.collection {
   import scalan._
 
   trait MonoidInstances extends Base { self: MonoidInstancesModule =>

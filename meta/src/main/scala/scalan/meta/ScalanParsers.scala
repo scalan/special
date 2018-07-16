@@ -424,11 +424,17 @@ trait ScalanParsers[+G <: Global] {
       }
   }
 
+  def isInternal(md: DefDef): Boolean = {
+    val as = parseAnnotations(md)((n, _, _) => SMethodAnnotation(n, Nil, Nil))
+    as.exists(_.annotationClass == "Internal")
+  }
+
   def isExplicitMethod(md: DefDef): Boolean = {
     if (nme.isConstructorName(md.name)) false
     else if (md.mods.isSynthetic) false
     else if (md.mods.isCaseAccessor) false
     else if (md.mods.isParamAccessor) false
+    else if (isInternal(md)) false
     else true
   }
 

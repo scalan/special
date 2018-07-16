@@ -1,8 +1,8 @@
-package scalan.collection
+package special.collection
 
 import scala.reflect.ClassTag
 import scalan.OverloadId
-import scalan.SpecialPredef._
+import special.SpecialPredef._
 
 class CostedPrim[Val](val value: Val, val cost: Int) extends Costed[Val] {
   def builder = new ConcreteCostedBuilder

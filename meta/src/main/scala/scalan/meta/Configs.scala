@@ -121,7 +121,8 @@ class SourceModuleConf(
 
   def hasUnit(unitName: String) = units.contains(unitName)
 
-  def addUnit(unitName: String, unitFile: String, wrappers: Map[String, WrapperConf] = Map()): this.type = {
+  def addUnit(unitFile: String, wrappers: Map[String, WrapperConf] = Map()): this.type = {
+    val unitName = unitFile.lastComponent('/')
     units.add(mkUnit(unitName, unitFile, isVirtualized = false, wrappers))
     this
   }
