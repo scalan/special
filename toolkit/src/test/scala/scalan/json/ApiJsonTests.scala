@@ -1,6 +1,7 @@
 package scalan.json
 
-import scala.wrappers.WrappersModule
+import special.wrappers.WrappersModule
+
 import scalan.Scalan
 
 class ApiJsonTests extends JsonTests {

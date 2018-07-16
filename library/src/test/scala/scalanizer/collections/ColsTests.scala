@@ -1,9 +1,8 @@
 package scalanizer.collections
 
 import scala.language.reflectiveCalls
-import scala.wrappers.WrappersModule
+import special.wrappers.WrappersModule
 import scalan._
-import scalan.collection.ColsModule
 
 class ColsTests extends BaseCtxTests {
   class Ctx extends TestContext with Library {

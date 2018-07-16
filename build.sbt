@@ -10,7 +10,6 @@ lazy val buildSettings = Seq(
     "-unchecked",
     "-deprecation",
     "-Xlint:-unused,_",
-//    "-Xlint",
     "-feature",
     "-Ywarn-adapted-args",
     "-Ywarn-inaccessible",

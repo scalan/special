@@ -2,10 +2,10 @@ package scalan
 
 import java.lang.reflect.Method
 
-import library.WrappersSpecModule
+import special.collection.{ColsModule, CostsModule, ColsOverArraysModule, ConcreteCostsModule, MonoidInstancesModule, MonoidsModule}
+import special.wrappers.WrappersModule
+import special.wrappers.impl.WrappersSpecModule
 
-import scala.wrappers.WrappersModule
-import scalan.collection.{CostsModule, ConcreteCostsModule, ColsModule, MonoidsModule, ColsOverArraysModule, MonoidInstancesModule}
 import scalan.util.ReflectionUtil
 
 trait Library extends Scalan

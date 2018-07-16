@@ -1,7 +1,8 @@
 package scala
 
+import special.wrappers.WrappersModule
+
 import scala.language.reflectiveCalls
-import scala.wrappers.WrappersModule
 import scalan._
 
 class WArrayTests extends BaseCtxTests {

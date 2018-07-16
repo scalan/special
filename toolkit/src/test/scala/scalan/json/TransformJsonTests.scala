@@ -1,8 +1,10 @@
 package scalan.json
 
-import scala.wrappers.WrappersModule
+import special.wrappers.WrappersModule
+
 import scalan.Scalan
 import spray.json._
+
 import scalan.util.FileUtil
 
 class TransformJsonTests extends JsonTests {
