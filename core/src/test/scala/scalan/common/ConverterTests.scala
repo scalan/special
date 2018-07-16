@@ -105,7 +105,8 @@ class ConverterTests extends BaseCtxTests {
 
   test("identityConv") {
     val ctx = new ConvProgStaged
-    import ctx._
+    import ctx._; import Converter._
+    
     val idInt = identityConv[Int]
     val idDouble = identityConv[Double]
     assert(idInt.isIdentity && idDouble.isIdentity)

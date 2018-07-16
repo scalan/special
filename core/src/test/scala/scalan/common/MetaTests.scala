@@ -3,7 +3,6 @@ package scalan.common
 import scalan.Scalan
 
 trait MetaTests { self: MetaTestsModule =>
-
   type RMetaTest[T] = Rep[MetaTest[T]]
   trait MetaTest[T] extends Def[MetaTest[T]] { self =>
     def test: RMetaTest[T]

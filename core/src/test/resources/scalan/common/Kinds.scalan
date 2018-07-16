@@ -3,16 +3,17 @@ package scalan.common
 import scalan.{Base, Scalan}
 
 trait Kinds extends Base { self: KindsModule =>
+  import Kind._; import Bind._; import Return._;
   type RKind[F[_],A] = Rep[Kind[F,A]]
 
   sealed trait Kind[F[_], A] extends Def[Kind[F,A]] {
     implicit def eA: Elem[A]
     implicit def cF: Cont[F]
 
-    def flatMap[B](f: Rep[A] => Rep[Kind[F,B]]): Rep[Kind[F,B]] = Bind(self, fun(f))
+    def flatMap[B](f: Rep[A] => Rep[Kind[F,B]]): Rep[Kind[F,B]] = RBind(self, fun(f))
 
     def mapBy[B](f: Rep[A => B]): Rep[Kind[F,B]] =
-      flatMap(a => Return(f(a)))
+      flatMap(a => RReturn(f(a)))
   }
   trait KindCompanion
 

@@ -11,7 +11,7 @@ import scalan.util.CollectionUtil._
 
 trait TypesApi { self: Scalan =>
   import UniverseUtils._
-
+  import IsoUR._
 
   case class QueryParams(checkVariance: Boolean, typeFilter: Elem[_] => Boolean = AllTypes)
 

@@ -5,6 +5,7 @@ import scalan.common.{CommonExamples, MetaTestsModule, SegmentsModule, ViewExamp
 
 abstract class BaseViewTests extends BaseCtxTests {
   class ViewTestsCtx extends TestContext {
+    import IsoUR._
     def testLambdaResultHasViewsWithDataType[A,B](msg: String, f: Rep[A => B], expectedDataElem: Elem[_]) =
       _testLambdaResultHasViews(msg, f, Some(expectedDataElem))
 

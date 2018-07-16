@@ -3,7 +3,8 @@ package scalan.primitives
 import scalan._
 
 trait StructKeys extends ViewsModule with Entities  { self: Structs with Scalan =>
-
+  import IsoUR._
+  
   type SKey[S <: Struct] = Rep[StructKey[S]]
   trait StructKey[Schema <: Struct] extends Def[StructKey[Schema]] {
     def eSchema: Elem[Schema]

@@ -10,7 +10,6 @@ trait ConvertersDefs extends Converters {
   self: Scalan =>
 import IsoUR._
 import Converter._
-import Converter._
 import IdentityConv._
 import BaseConverter._
 import PairConverter._

@@ -118,6 +118,7 @@ class StructTests extends BaseViewTests {
 
   class Ctx extends TestCompilerContext {
     class ScalanCake extends Scalan with StructExamples with SegmentsModule with MetaTestsModule {
+      import IsoUR._
       def containsTuples(g: PGraph): Boolean = {
         g.scheduleAll.exists(tp => tp.rhs match {
           case First(_) => true
@@ -175,7 +176,7 @@ class StructTests extends BaseViewTests {
 
   test("Structs as generic parameters for entities") {
     val ctx = new Ctx
-    import ctx.compiler.scalan._
+    import ctx.compiler.scalan._; import MetaTest._
 
     val se1 = structElement(Seq("a" -> eInt))
     val se2 = structElement(Seq("a" -> eInt))
@@ -313,7 +314,7 @@ class StructTests extends BaseViewTests {
 
   test("flatteningIso") {
     val ctx = new Ctx
-    import ctx.compiler.scalan._
+    import ctx.compiler.scalan._, IsoUR._
     {
       val iso = testFlattening(tuple2StructElement[Int,Int], tuple2StructElement[Int,Int])
       assert(iso.isIdentity, "when flattening is not necessary should return identity iso")
@@ -405,7 +406,7 @@ class StructTests extends BaseViewTests {
   // TODO switch to nested tests
   test("More flattening") {
     val ctx = new Ctx
-    import ctx.compiler.scalan._
+    import ctx.compiler.scalan._; import IsoUR._
 
     val fis = Seq(es1, es1again, es2, es3).map(flatteningIso)
     val Seq(fi1, fi1again, fi2, fi3) = fis
@@ -423,7 +424,7 @@ class StructTests extends BaseViewTests {
 
   test("mergeIso") {
     val ctx = new Ctx
-    import ctx.compiler.scalan._
+    import ctx.compiler.scalan._; import IsoUR._
 
     val nested1 = structElement(Seq("a" -> element[Int], "b" -> element[Int]))
     val nested2 = structElement(Seq("c" -> element[Int], "d" -> element[Int]))

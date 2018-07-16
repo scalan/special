@@ -594,12 +594,14 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
       emitEntityDefs(e)
     }
     val imports = {
+      val predef = List("import IsoUR._", "import Converter._")
       val declaredImports = unit.imports.filter(_.inCake)
       val used = getUsedEntities(unit)
       val ts = unit.traits.map(t => context.newEntitySymbol(unit.symbol, t.name))
       val cs = unit.classes.map(c => context.newEntitySymbol(unit.symbol, c.name))
       val entityObjects = (used ++ ts ++ cs).map(s => s"import ${s.name}._")
-      declaredImports.distinct.map(i => s"import ${i.name}") ++ entityObjects
+      val res = predef ++ declaredImports.distinct.map(i => s"import ${i.name}") ++ entityObjects
+      res.distinct
     }
 
     s"""

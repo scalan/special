@@ -13,6 +13,7 @@ package impl {
 trait SpecializationsDefs extends Specializations {
   self: Scalan =>
 import IsoUR._
+import Converter._
 import IsoFunc._
 import IsoFuncBase._
 

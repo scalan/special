@@ -5,6 +5,7 @@ import scalan.Scalan
 import scala.reflect.runtime.universe._
 
 trait KindsExamples extends Scalan with KindsModule {
+  import Kind._;
   type Id[A] = A
 
   implicit val functorId: Functor[Id] = new Functor[Id] {

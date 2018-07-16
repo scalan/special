@@ -9,9 +9,11 @@ package impl {
 // Abs -----------------------------------
 trait SegmentsDefs extends scalan.Scalan with Segments {
   self: SegmentsModule =>
+import IsoUR._
+import Converter._
 import Segment._
-import Interval._
 import Slice._
+import Interval._
 import Centered._
 
 object Segment extends EntityObject("Segment") {

@@ -41,6 +41,7 @@ class ElemTests extends AbstractElemTests {
   import ctx._
   import Segment._
   import Interval._
+  import PairIso._; import IsoUR._
 
   describe("Equality works as expected") {
     it("for elements") {
@@ -124,7 +125,7 @@ class ElemTests extends AbstractElemTests {
       type TIso = IsoUR[(Int, Int), Segment]
       val p = fun { p: Rep[(TIso, TIso)] =>
         val Pair(iso1, iso2) = p
-        PairIso(iso1, iso2)
+        RPairIso(iso1, iso2)
       }
 //      emit("p", p)
     }

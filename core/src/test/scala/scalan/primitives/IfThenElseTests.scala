@@ -30,10 +30,11 @@ class IfThenElseTestsSeq extends IfThenElseTests(new Scalan)
 // Note: these tests pass thanks to rewriting of IF with constants
 class IfThenElseTestsExp extends IfThenElseTests(new Scalan with MetaTestsModule) {
   import ctx._
+  import MT0._; import MT1._; import MetaTest._
 
   test("type of if-then-else is the upper bound of its branches") {
     val c = fresh[Boolean]
-    val x = IF (c) THEN MT0(0).asRep[Any] ELSE MT1(toRep(()), 0).asRep[Any]
+    val x = IF (c) THEN RMT0(0).asRep[Any] ELSE RMT1(toRep(()), 0).asRep[Any]
     x.elem shouldEqual element[MetaTest[Unit]]
   }
 }

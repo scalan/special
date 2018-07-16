@@ -12,7 +12,7 @@ package impl {
 trait StructItemsDefs extends StructItems {
   self: Structs with Scalan =>
 import IsoUR._
-import StructKey._
+import Converter._
 import StructKey._
 import StructItem._
 import StructItemBase._

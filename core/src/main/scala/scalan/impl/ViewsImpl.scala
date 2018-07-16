@@ -12,8 +12,6 @@ trait ViewsDefs extends Views {
   self: ViewsModule with Scalan =>
 import IsoUR._
 import Converter._
-import IsoUR._
-import IsoUR._
 import Iso1UR._
 import IdentityIso._
 import PairIso._

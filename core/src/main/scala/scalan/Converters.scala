@@ -3,7 +3,6 @@ package scalan
 import OverloadHack.Overloaded2
 
 trait Converters extends ViewsModule { self: Scalan =>
-  import IsoUR._
   import Converter._
   type Conv[T,R] = Rep[Converter[T,R]]
   trait Converter[T,R] extends Def[Converter[T,R]] {

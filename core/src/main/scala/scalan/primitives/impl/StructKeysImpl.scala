@@ -8,6 +8,8 @@ package impl {
 // Abs -----------------------------------
 trait StructKeysDefs extends StructKeys {
   self: Structs with Scalan =>
+import IsoUR._
+import Converter._
 import StructKey._
 import IndexStructKey._
 import NameStructKey._
