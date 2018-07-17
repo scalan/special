@@ -8,7 +8,15 @@ package impl {
 // Abs -----------------------------------
 trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
   self: Library =>
-  import IsoUR._
+import IsoUR._
+import Converter._
+import IntPlusMonoid._
+import LongPlusMonoid._
+import MonoidBuilder._
+import Monoid._
+import MonoidBuilderInst._
+
+object MonoidBuilderInst extends EntityObject("MonoidBuilderInst") {
   case class MonoidBuilderInstCtor
       ()
     extends MonoidBuilderInst() with Def[MonoidBuilderInst] {
@@ -20,8 +28,8 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
     with ConcreteElem[MonoidBuilderInstData, MonoidBuilderInst] {
     override lazy val parent: Option[Elem[_]] = Some(monoidBuilderElement)
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoidBuilder(x: Rep[MonoidBuilder]) = MonoidBuilderInst()
-    override def getDefaultRep = MonoidBuilderInst()
+    override def convertMonoidBuilder(x: Rep[MonoidBuilder]) = RMonoidBuilderInst()
+    override def getDefaultRep = RMonoidBuilderInst()
     override lazy val tag = {
       weakTypeTag[MonoidBuilderInst]
     }
@@ -38,7 +46,7 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
       tryConvert[MonoidBuilderInst, Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
-      MonoidBuilderInst()
+      RMonoidBuilderInst()
     }
     lazy val eFrom = UnitElement
     lazy val eTo = new MonoidBuilderInstElem(self)
@@ -69,7 +77,7 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
     def unapply(p: Rep[MonoidBuilder]) = unmkMonoidBuilderInst(p)
   }
   lazy val MonoidBuilderInstRep: Rep[MonoidBuilderInstCompanionCtor] = new MonoidBuilderInstCompanionCtor
-  lazy val MonoidBuilderInst: MonoidBuilderInstCompanionCtor = proxyMonoidBuilderInstCompanion(MonoidBuilderInstRep)
+  lazy val RMonoidBuilderInst: MonoidBuilderInstCompanionCtor = proxyMonoidBuilderInstCompanion(MonoidBuilderInstRep)
   implicit def proxyMonoidBuilderInstCompanion(p: Rep[MonoidBuilderInstCompanionCtor]): MonoidBuilderInstCompanionCtor = {
     proxyOps[MonoidBuilderInstCompanionCtor](p)
   }
@@ -92,169 +100,18 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
   implicit def isoMonoidBuilderInst: Iso[MonoidBuilderInstData, MonoidBuilderInst] =
     reifyObject(new MonoidBuilderInstIso())
 
-  case class IntPlusMonoidCtor
-      (override val zero: Rep[Int])
-    extends IntPlusMonoid(zero) with Def[IntPlusMonoid] {
-    override lazy val eT: Elem[Int] = implicitly[Elem[Int]]
-    lazy val selfType = element[IntPlusMonoid]
+  def mkMonoidBuilderInst
+    (): Rep[MonoidBuilderInst] = {
+    new MonoidBuilderInstCtor()
   }
-  // elem for concrete class
-  class IntPlusMonoidElem(val iso: Iso[IntPlusMonoidData, IntPlusMonoid])
-    extends MonoidElem[Int, IntPlusMonoid]
-    with ConcreteElem[IntPlusMonoidData, IntPlusMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Int]]) = IntPlusMonoid(x.zero)
-    override def getDefaultRep = IntPlusMonoid(0)
-    override lazy val tag = {
-      weakTypeTag[IntPlusMonoid]
-    }
+  def unmkMonoidBuilderInst(p: Rep[MonoidBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: MonoidBuilderInstElem @unchecked =>
+      Some(())
+    case _ =>
+      None
   }
 
-  // state representation type
-  type IntPlusMonoidData = Int
-
-  // 3) Iso for concrete class
-  class IntPlusMonoidIso
-    extends EntityIso[IntPlusMonoidData, IntPlusMonoid] with Def[IntPlusMonoidIso] {
-    private lazy val _safeFrom = fun { p: Rep[IntPlusMonoid] => p.zero }
-    override def from(p: Rep[IntPlusMonoid]) =
-      tryConvert[IntPlusMonoid, Int](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Int]) = {
-      val zero = p
-      IntPlusMonoid(zero)
-    }
-    lazy val eFrom = element[Int]
-    lazy val eTo = new IntPlusMonoidElem(self)
-    lazy val selfType = new IntPlusMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
-  }
-  case class IntPlusMonoidIsoElem() extends Elem[IntPlusMonoidIso] {
-    def getDefaultRep = reifyObject(new IntPlusMonoidIso())
-    lazy val tag = {
-      weakTypeTag[IntPlusMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
-  // 4) constructor and deconstructor
-  class IntPlusMonoidCompanionCtor extends CompanionDef[IntPlusMonoidCompanionCtor] with IntPlusMonoidCompanion {
-    def selfType = IntPlusMonoidCompanionElem
-    override def toString = "IntPlusMonoidCompanion"
-
-    @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Int]): Rep[IntPlusMonoid] =
-      mkIntPlusMonoid(zero)
-
-    def unapply(p: Rep[Monoid[Int]]) = unmkIntPlusMonoid(p)
-  }
-  lazy val IntPlusMonoidRep: Rep[IntPlusMonoidCompanionCtor] = new IntPlusMonoidCompanionCtor
-  lazy val IntPlusMonoid: IntPlusMonoidCompanionCtor = proxyIntPlusMonoidCompanion(IntPlusMonoidRep)
-  implicit def proxyIntPlusMonoidCompanion(p: Rep[IntPlusMonoidCompanionCtor]): IntPlusMonoidCompanionCtor = {
-    proxyOps[IntPlusMonoidCompanionCtor](p)
-  }
-
-  implicit case object IntPlusMonoidCompanionElem extends CompanionElem[IntPlusMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[IntPlusMonoidCompanionCtor]
-    protected def getDefaultRep = IntPlusMonoidRep
-  }
-
-  implicit def proxyIntPlusMonoid(p: Rep[IntPlusMonoid]): IntPlusMonoid =
-    proxyOps[IntPlusMonoid](p)
-
-  implicit class ExtendedIntPlusMonoid(p: Rep[IntPlusMonoid]) {
-    def toData: Rep[IntPlusMonoidData] = {
-      isoIntPlusMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIntPlusMonoid: Iso[IntPlusMonoidData, IntPlusMonoid] =
-    reifyObject(new IntPlusMonoidIso())
-
-  case class LongPlusMonoidCtor
-      (override val zero: Rep[Long])
-    extends LongPlusMonoid(zero) with Def[LongPlusMonoid] {
-    override lazy val eT: Elem[Long] = implicitly[Elem[Long]]
-    lazy val selfType = element[LongPlusMonoid]
-  }
-  // elem for concrete class
-  class LongPlusMonoidElem(val iso: Iso[LongPlusMonoidData, LongPlusMonoid])
-    extends MonoidElem[Long, LongPlusMonoid]
-    with ConcreteElem[LongPlusMonoidData, LongPlusMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Long]]) = LongPlusMonoid(x.zero)
-    override def getDefaultRep = LongPlusMonoid(0l)
-    override lazy val tag = {
-      weakTypeTag[LongPlusMonoid]
-    }
-  }
-
-  // state representation type
-  type LongPlusMonoidData = Long
-
-  // 3) Iso for concrete class
-  class LongPlusMonoidIso
-    extends EntityIso[LongPlusMonoidData, LongPlusMonoid] with Def[LongPlusMonoidIso] {
-    private lazy val _safeFrom = fun { p: Rep[LongPlusMonoid] => p.zero }
-    override def from(p: Rep[LongPlusMonoid]) =
-      tryConvert[LongPlusMonoid, Long](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Long]) = {
-      val zero = p
-      LongPlusMonoid(zero)
-    }
-    lazy val eFrom = element[Long]
-    lazy val eTo = new LongPlusMonoidElem(self)
-    lazy val selfType = new LongPlusMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
-  }
-  case class LongPlusMonoidIsoElem() extends Elem[LongPlusMonoidIso] {
-    def getDefaultRep = reifyObject(new LongPlusMonoidIso())
-    lazy val tag = {
-      weakTypeTag[LongPlusMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
-  // 4) constructor and deconstructor
-  class LongPlusMonoidCompanionCtor extends CompanionDef[LongPlusMonoidCompanionCtor] with LongPlusMonoidCompanion {
-    def selfType = LongPlusMonoidCompanionElem
-    override def toString = "LongPlusMonoidCompanion"
-
-    @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Long]): Rep[LongPlusMonoid] =
-      mkLongPlusMonoid(zero)
-
-    def unapply(p: Rep[Monoid[Long]]) = unmkLongPlusMonoid(p)
-  }
-  lazy val LongPlusMonoidRep: Rep[LongPlusMonoidCompanionCtor] = new LongPlusMonoidCompanionCtor
-  lazy val LongPlusMonoid: LongPlusMonoidCompanionCtor = proxyLongPlusMonoidCompanion(LongPlusMonoidRep)
-  implicit def proxyLongPlusMonoidCompanion(p: Rep[LongPlusMonoidCompanionCtor]): LongPlusMonoidCompanionCtor = {
-    proxyOps[LongPlusMonoidCompanionCtor](p)
-  }
-
-  implicit case object LongPlusMonoidCompanionElem extends CompanionElem[LongPlusMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[LongPlusMonoidCompanionCtor]
-    protected def getDefaultRep = LongPlusMonoidRep
-  }
-
-  implicit def proxyLongPlusMonoid(p: Rep[LongPlusMonoid]): LongPlusMonoid =
-    proxyOps[LongPlusMonoid](p)
-
-  implicit class ExtendedLongPlusMonoid(p: Rep[LongPlusMonoid]) {
-    def toData: Rep[LongPlusMonoidData] = {
-      isoLongPlusMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoLongPlusMonoid: Iso[LongPlusMonoidData, LongPlusMonoid] =
-    reifyObject(new LongPlusMonoidIso())
-
-  registerModule(MonoidInstancesModule)
-
-  object MonoidBuilderInstMethods {
+    object MonoidBuilderInstMethods {
     object intPlusMonoid {
       def unapply(d: Def[_]): Option[Rep[MonoidBuilderInst]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "intPlusMonoid" =>
@@ -282,19 +139,102 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
 
   object MonoidBuilderInstCompanionMethods {
   }
+} // of object MonoidBuilderInst
+  registerEntityObject("MonoidBuilderInst", MonoidBuilderInst)
 
-  def mkMonoidBuilderInst
-    (): Rep[MonoidBuilderInst] = {
-    new MonoidBuilderInstCtor()
+object IntPlusMonoid extends EntityObject("IntPlusMonoid") {
+  case class IntPlusMonoidCtor
+      (override val zero: Rep[Int])
+    extends IntPlusMonoid(zero) with Def[IntPlusMonoid] {
+    override lazy val eT: Elem[Int] = implicitly[Elem[Int]]
+    lazy val selfType = element[IntPlusMonoid]
   }
-  def unmkMonoidBuilderInst(p: Rep[MonoidBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: MonoidBuilderInstElem @unchecked =>
-      Some(())
+  // elem for concrete class
+  class IntPlusMonoidElem(val iso: Iso[IntPlusMonoidData, IntPlusMonoid])
+    extends MonoidElem[Int, IntPlusMonoid]
+    with ConcreteElem[IntPlusMonoidData, IntPlusMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertMonoid(x: Rep[Monoid[Int]]) = RIntPlusMonoid(x.zero)
+    override def getDefaultRep = RIntPlusMonoid(0)
+    override lazy val tag = {
+      weakTypeTag[IntPlusMonoid]
+    }
+  }
+
+  // state representation type
+  type IntPlusMonoidData = Int
+
+  // 3) Iso for concrete class
+  class IntPlusMonoidIso
+    extends EntityIso[IntPlusMonoidData, IntPlusMonoid] with Def[IntPlusMonoidIso] {
+    private lazy val _safeFrom = fun { p: Rep[IntPlusMonoid] => p.zero }
+    override def from(p: Rep[IntPlusMonoid]) =
+      tryConvert[IntPlusMonoid, Int](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[Int]) = {
+      val zero = p
+      RIntPlusMonoid(zero)
+    }
+    lazy val eFrom = element[Int]
+    lazy val eTo = new IntPlusMonoidElem(self)
+    lazy val selfType = new IntPlusMonoidIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class IntPlusMonoidIsoElem() extends Elem[IntPlusMonoidIso] {
+    def getDefaultRep = reifyObject(new IntPlusMonoidIso())
+    lazy val tag = {
+      weakTypeTag[IntPlusMonoidIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class IntPlusMonoidCompanionCtor extends CompanionDef[IntPlusMonoidCompanionCtor] with IntPlusMonoidCompanion {
+    def selfType = IntPlusMonoidCompanionElem
+    override def toString = "IntPlusMonoidCompanion"
+
+    @scalan.OverloadId("fromFields")
+    def apply(zero: Rep[Int]): Rep[IntPlusMonoid] =
+      mkIntPlusMonoid(zero)
+
+    def unapply(p: Rep[Monoid[Int]]) = unmkIntPlusMonoid(p)
+  }
+  lazy val IntPlusMonoidRep: Rep[IntPlusMonoidCompanionCtor] = new IntPlusMonoidCompanionCtor
+  lazy val RIntPlusMonoid: IntPlusMonoidCompanionCtor = proxyIntPlusMonoidCompanion(IntPlusMonoidRep)
+  implicit def proxyIntPlusMonoidCompanion(p: Rep[IntPlusMonoidCompanionCtor]): IntPlusMonoidCompanionCtor = {
+    proxyOps[IntPlusMonoidCompanionCtor](p)
+  }
+
+  implicit case object IntPlusMonoidCompanionElem extends CompanionElem[IntPlusMonoidCompanionCtor] {
+    lazy val tag = weakTypeTag[IntPlusMonoidCompanionCtor]
+    protected def getDefaultRep = IntPlusMonoidRep
+  }
+
+  implicit def proxyIntPlusMonoid(p: Rep[IntPlusMonoid]): IntPlusMonoid =
+    proxyOps[IntPlusMonoid](p)
+
+  implicit class ExtendedIntPlusMonoid(p: Rep[IntPlusMonoid]) {
+    def toData: Rep[IntPlusMonoidData] = {
+      isoIntPlusMonoid.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoIntPlusMonoid: Iso[IntPlusMonoidData, IntPlusMonoid] =
+    reifyObject(new IntPlusMonoidIso())
+
+  def mkIntPlusMonoid
+    (zero: Rep[Int]): Rep[IntPlusMonoid] = {
+    new IntPlusMonoidCtor(zero)
+  }
+  def unmkIntPlusMonoid(p: Rep[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: IntPlusMonoidElem @unchecked =>
+      Some((p.asRep[IntPlusMonoid].zero))
     case _ =>
       None
   }
 
-  object IntPlusMonoidMethods {
+    object IntPlusMonoidMethods {
     object plus {
       def unapply(d: Def[_]): Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
         case MethodCall(receiver, method, Seq(x, y, _*), _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "plus" =>
@@ -322,19 +262,102 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
 
   object IntPlusMonoidCompanionMethods {
   }
+} // of object IntPlusMonoid
+  registerEntityObject("IntPlusMonoid", IntPlusMonoid)
 
-  def mkIntPlusMonoid
-    (zero: Rep[Int]): Rep[IntPlusMonoid] = {
-    new IntPlusMonoidCtor(zero)
+object LongPlusMonoid extends EntityObject("LongPlusMonoid") {
+  case class LongPlusMonoidCtor
+      (override val zero: Rep[Long])
+    extends LongPlusMonoid(zero) with Def[LongPlusMonoid] {
+    override lazy val eT: Elem[Long] = implicitly[Elem[Long]]
+    lazy val selfType = element[LongPlusMonoid]
   }
-  def unmkIntPlusMonoid(p: Rep[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: IntPlusMonoidElem @unchecked =>
-      Some((p.asRep[IntPlusMonoid].zero))
+  // elem for concrete class
+  class LongPlusMonoidElem(val iso: Iso[LongPlusMonoidData, LongPlusMonoid])
+    extends MonoidElem[Long, LongPlusMonoid]
+    with ConcreteElem[LongPlusMonoidData, LongPlusMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertMonoid(x: Rep[Monoid[Long]]) = RLongPlusMonoid(x.zero)
+    override def getDefaultRep = RLongPlusMonoid(0l)
+    override lazy val tag = {
+      weakTypeTag[LongPlusMonoid]
+    }
+  }
+
+  // state representation type
+  type LongPlusMonoidData = Long
+
+  // 3) Iso for concrete class
+  class LongPlusMonoidIso
+    extends EntityIso[LongPlusMonoidData, LongPlusMonoid] with Def[LongPlusMonoidIso] {
+    private lazy val _safeFrom = fun { p: Rep[LongPlusMonoid] => p.zero }
+    override def from(p: Rep[LongPlusMonoid]) =
+      tryConvert[LongPlusMonoid, Long](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[Long]) = {
+      val zero = p
+      RLongPlusMonoid(zero)
+    }
+    lazy val eFrom = element[Long]
+    lazy val eTo = new LongPlusMonoidElem(self)
+    lazy val selfType = new LongPlusMonoidIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class LongPlusMonoidIsoElem() extends Elem[LongPlusMonoidIso] {
+    def getDefaultRep = reifyObject(new LongPlusMonoidIso())
+    lazy val tag = {
+      weakTypeTag[LongPlusMonoidIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class LongPlusMonoidCompanionCtor extends CompanionDef[LongPlusMonoidCompanionCtor] with LongPlusMonoidCompanion {
+    def selfType = LongPlusMonoidCompanionElem
+    override def toString = "LongPlusMonoidCompanion"
+
+    @scalan.OverloadId("fromFields")
+    def apply(zero: Rep[Long]): Rep[LongPlusMonoid] =
+      mkLongPlusMonoid(zero)
+
+    def unapply(p: Rep[Monoid[Long]]) = unmkLongPlusMonoid(p)
+  }
+  lazy val LongPlusMonoidRep: Rep[LongPlusMonoidCompanionCtor] = new LongPlusMonoidCompanionCtor
+  lazy val RLongPlusMonoid: LongPlusMonoidCompanionCtor = proxyLongPlusMonoidCompanion(LongPlusMonoidRep)
+  implicit def proxyLongPlusMonoidCompanion(p: Rep[LongPlusMonoidCompanionCtor]): LongPlusMonoidCompanionCtor = {
+    proxyOps[LongPlusMonoidCompanionCtor](p)
+  }
+
+  implicit case object LongPlusMonoidCompanionElem extends CompanionElem[LongPlusMonoidCompanionCtor] {
+    lazy val tag = weakTypeTag[LongPlusMonoidCompanionCtor]
+    protected def getDefaultRep = LongPlusMonoidRep
+  }
+
+  implicit def proxyLongPlusMonoid(p: Rep[LongPlusMonoid]): LongPlusMonoid =
+    proxyOps[LongPlusMonoid](p)
+
+  implicit class ExtendedLongPlusMonoid(p: Rep[LongPlusMonoid]) {
+    def toData: Rep[LongPlusMonoidData] = {
+      isoLongPlusMonoid.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoLongPlusMonoid: Iso[LongPlusMonoidData, LongPlusMonoid] =
+    reifyObject(new LongPlusMonoidIso())
+
+  def mkLongPlusMonoid
+    (zero: Rep[Long]): Rep[LongPlusMonoid] = {
+    new LongPlusMonoidCtor(zero)
+  }
+  def unmkLongPlusMonoid(p: Rep[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: LongPlusMonoidElem @unchecked =>
+      Some((p.asRep[LongPlusMonoid].zero))
     case _ =>
       None
   }
 
-  object LongPlusMonoidMethods {
+    object LongPlusMonoidMethods {
     object plus {
       def unapply(d: Def[_]): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = d match {
         case MethodCall(receiver, method, Seq(x, y, _*), _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "plus" =>
@@ -362,17 +385,10 @@ trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
 
   object LongPlusMonoidCompanionMethods {
   }
+} // of object LongPlusMonoid
+  registerEntityObject("LongPlusMonoid", LongPlusMonoid)
 
-  def mkLongPlusMonoid
-    (zero: Rep[Long]): Rep[LongPlusMonoid] = {
-    new LongPlusMonoidCtor(zero)
-  }
-  def unmkLongPlusMonoid(p: Rep[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: LongPlusMonoidElem @unchecked =>
-      Some((p.asRep[LongPlusMonoid].zero))
-    case _ =>
-      None
-  }
+  registerModule(MonoidInstancesModule)
 }
 
 object MonoidInstancesModule extends scalan.ModuleInfo("special.collection", "MonoidInstances")

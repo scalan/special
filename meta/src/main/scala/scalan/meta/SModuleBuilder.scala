@@ -55,10 +55,16 @@ class SModuleBuilder(implicit val context: AstContext) {
   }
 
   // Pipeline Step
-  def tupleToPair(module: SUnitDef) = {
+  def transConstr(module: SUnitDef) = {
     new AstTransformer {
+      override def selectTransform(select: SSelect) = select match {
+        case ctx.IsGlobalObject(name) =>
+          SSelect(SEmpty(None), "R" + name, None)
+      case _ => super.selectTransform(select)
+      }
       override def constrTransform(constr: SConstr): SConstr = constr match {
         case SConstr("Tuple2", args, tpe) => SConstr("Pair", args, tpe)
+        case SConstr(ctx.Entity(m, e), args, tpe) => SConstr("R" + e.name, args, tpe)
         case _ => constr
       }
     }.moduleTransform(module)
@@ -404,7 +410,7 @@ class ModuleVirtualizationPipeline(implicit val context: AstContext) extends (SU
 
   private val chain = scala.Function.chain(Seq(
     fixExistentialType _,
-    tupleToPair _,
+    transConstr _,
     externalTypeToWrapper _,
     //      composeParentWithExt _,
     addBaseToAncestors _,
@@ -420,7 +426,8 @@ class ModuleVirtualizationPipeline(implicit val context: AstContext) extends (SU
     genEntityImplicits _,
     // genClassesImplicits _, genMethodsImplicits _,
     fixEntityCompanionName _,
-    fixEvidences _
+    fixEvidences _,
+    transConstr _
 //    optimizeModuleImplicits _
   ))
   override def apply(module: Module): Module = chain(module)

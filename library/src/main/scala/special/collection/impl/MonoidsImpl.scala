@@ -8,7 +8,12 @@ package impl {
 // Abs -----------------------------------
 trait MonoidsDefs extends scalan.Scalan with Monoids {
   self: Library =>
+import IsoUR._
+import Converter._
+import Monoid._
+import MonoidBuilder._
 
+object Monoid extends EntityObject("Monoid") {
   // entityProxy: single proxy for each type family
   implicit def proxyMonoid[T](p: Rep[Monoid[T]]): Monoid[T] = {
     proxyOps[Monoid[T]](p)(scala.reflect.classTag[Monoid[T]])
@@ -43,7 +48,7 @@ trait MonoidsDefs extends scalan.Scalan with Monoids {
 
   implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor] {
     lazy val tag = weakTypeTag[MonoidCompanionCtor]
-    protected def getDefaultRep = Monoid
+    protected def getDefaultRep = RMonoid
   }
 
   abstract class MonoidCompanionCtor extends CompanionDef[MonoidCompanionCtor] with MonoidCompanion {
@@ -53,7 +58,7 @@ trait MonoidsDefs extends scalan.Scalan with Monoids {
   implicit def proxyMonoidCompanionCtor(p: Rep[MonoidCompanionCtor]): MonoidCompanionCtor =
     proxyOps[MonoidCompanionCtor](p)
 
-  lazy val Monoid: Rep[MonoidCompanionCtor] = new MonoidCompanionCtor {
+  lazy val RMonoid: Rep[MonoidCompanionCtor] = new MonoidCompanionCtor {
   }
 
   object MonoidMethods {
@@ -96,7 +101,10 @@ trait MonoidsDefs extends scalan.Scalan with Monoids {
 
   object MonoidCompanionMethods {
   }
+} // of object Monoid
+  registerEntityObject("Monoid", Monoid)
 
+object MonoidBuilder extends EntityObject("MonoidBuilder") {
   // entityProxy: single proxy for each type family
   implicit def proxyMonoidBuilder(p: Rep[MonoidBuilder]): MonoidBuilder = {
     proxyOps[MonoidBuilder](p)(scala.reflect.classTag[MonoidBuilder])
@@ -129,7 +137,7 @@ trait MonoidsDefs extends scalan.Scalan with Monoids {
 
   implicit case object MonoidBuilderCompanionElem extends CompanionElem[MonoidBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[MonoidBuilderCompanionCtor]
-    protected def getDefaultRep = MonoidBuilder
+    protected def getDefaultRep = RMonoidBuilder
   }
 
   abstract class MonoidBuilderCompanionCtor extends CompanionDef[MonoidBuilderCompanionCtor] with MonoidBuilderCompanion {
@@ -139,7 +147,7 @@ trait MonoidsDefs extends scalan.Scalan with Monoids {
   implicit def proxyMonoidBuilderCompanionCtor(p: Rep[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
     proxyOps[MonoidBuilderCompanionCtor](p)
 
-  lazy val MonoidBuilder: Rep[MonoidBuilderCompanionCtor] = new MonoidBuilderCompanionCtor {
+  lazy val RMonoidBuilder: Rep[MonoidBuilderCompanionCtor] = new MonoidBuilderCompanionCtor {
   }
 
   object MonoidBuilderMethods {
@@ -170,6 +178,8 @@ trait MonoidsDefs extends scalan.Scalan with Monoids {
 
   object MonoidBuilderCompanionMethods {
   }
+} // of object MonoidBuilder
+  registerEntityObject("MonoidBuilder", MonoidBuilder)
 
   registerModule(MonoidsModule)
 }

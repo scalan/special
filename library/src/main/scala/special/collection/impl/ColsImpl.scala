@@ -8,7 +8,15 @@ package impl {
 // Abs -----------------------------------
 trait ColsDefs extends scalan.Scalan with Cols {
   self: Library =>
-  import IsoUR._
+import IsoUR._
+import Converter._
+import ColBuilder._
+import WArray._
+import Col._
+import PairCol._
+import Enum._
+
+object Col extends EntityObject("Col") {
   // entityProxy: single proxy for each type family
   implicit def proxyCol[A](p: Rep[Col[A]]): Col[A] = {
     proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
@@ -70,7 +78,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
 
   implicit case object ColCompanionElem extends CompanionElem[ColCompanionCtor] {
     lazy val tag = weakTypeTag[ColCompanionCtor]
-    protected def getDefaultRep = Col
+    protected def getDefaultRep = RCol
   }
 
   abstract class ColCompanionCtor extends CompanionDef[ColCompanionCtor] with ColCompanion {
@@ -80,7 +88,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
   implicit def proxyColCompanionCtor(p: Rep[ColCompanionCtor]): ColCompanionCtor =
     proxyOps[ColCompanionCtor](p)
 
-  lazy val Col: Rep[ColCompanionCtor] = new ColCompanionCtor {
+  lazy val RCol: Rep[ColCompanionCtor] = new ColCompanionCtor {
   }
 
   case class ViewCol[A, B](source: Rep[Col[A]], override val innerIso: Iso[A, B])
@@ -265,6 +273,10 @@ trait ColsDefs extends scalan.Scalan with Cols {
     }
   }
 
+  type RepCol[A] = Rep[Col[A]]
+} // of object Col
+  registerEntityObject("Col", Col)
+
   override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewCol[_, _]) =>
       Some((view.source, view.iso))
@@ -275,8 +287,6 @@ trait ColsDefs extends scalan.Scalan with Cols {
     case _ =>
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
-
-  type RepCol[A] = Rep[Col[A]]
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case view1@ViewCol(Def(view2@ViewCol(arr, innerIso2)), innerIso1) =>
@@ -304,6 +314,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
     case _ => super.rewriteDef(d)
   }
 
+object PairCol extends EntityObject("PairCol") {
   // entityProxy: single proxy for each type family
   implicit def proxyPairCol[L, R](p: Rep[PairCol[L, R]]): PairCol[L, R] = {
     proxyOps[PairCol[L, R]](p)(scala.reflect.classTag[PairCol[L, R]])
@@ -340,7 +351,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
 
   implicit case object PairColCompanionElem extends CompanionElem[PairColCompanionCtor] {
     lazy val tag = weakTypeTag[PairColCompanionCtor]
-    protected def getDefaultRep = PairCol
+    protected def getDefaultRep = RPairCol
   }
 
   abstract class PairColCompanionCtor extends CompanionDef[PairColCompanionCtor] with PairColCompanion {
@@ -350,7 +361,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
   implicit def proxyPairColCompanionCtor(p: Rep[PairColCompanionCtor]): PairColCompanionCtor =
     proxyOps[PairColCompanionCtor](p)
 
-  lazy val PairCol: Rep[PairColCompanionCtor] = new PairColCompanionCtor {
+  lazy val RPairCol: Rep[PairColCompanionCtor] = new PairColCompanionCtor {
   }
 
   object PairColMethods {
@@ -381,7 +392,10 @@ trait ColsDefs extends scalan.Scalan with Cols {
 
   object PairColCompanionMethods {
   }
+} // of object PairCol
+  registerEntityObject("PairCol", PairCol)
 
+object ColBuilder extends EntityObject("ColBuilder") {
   // entityProxy: single proxy for each type family
   implicit def proxyColBuilder(p: Rep[ColBuilder]): ColBuilder = {
     proxyOps[ColBuilder](p)(scala.reflect.classTag[ColBuilder])
@@ -414,7 +428,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
 
   implicit case object ColBuilderCompanionElem extends CompanionElem[ColBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[ColBuilderCompanionCtor]
-    protected def getDefaultRep = ColBuilder
+    protected def getDefaultRep = RColBuilder
   }
 
   abstract class ColBuilderCompanionCtor extends CompanionDef[ColBuilderCompanionCtor] with ColBuilderCompanion {
@@ -424,7 +438,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
   implicit def proxyColBuilderCompanionCtor(p: Rep[ColBuilderCompanionCtor]): ColBuilderCompanionCtor =
     proxyOps[ColBuilderCompanionCtor](p)
 
-  lazy val ColBuilder: Rep[ColBuilderCompanionCtor] = new ColBuilderCompanionCtor {
+  lazy val RColBuilder: Rep[ColBuilderCompanionCtor] = new ColBuilderCompanionCtor {
   }
 
   object ColBuilderMethods {
@@ -435,18 +449,6 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object apply_apply_items {
-      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(items, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
-          Some((receiver, items)).asInstanceOf[Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -513,86 +515,14 @@ trait ColsDefs extends scalan.Scalan with Cols {
         case _ => None
       }
     }
-
-    object functorArg {
-      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[WArray[Double]], Functor[WArray])] = d match {
-        case MethodCall(receiver, method, Seq(arr, evF, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "functorArg" =>
-          Some((receiver, arr, evF)).asInstanceOf[Option[(Rep[ColBuilder], Rep[WArray[Double]], Functor[WArray])]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[WArray[Double]], Functor[WArray])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
   }
 
   object ColBuilderCompanionMethods {
   }
+} // of object ColBuilder
+  registerEntityObject("ColBuilder", ColBuilder)
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyFunctor[F[_]](p: Rep[Functor[F]]): Functor[F] = {
-    proxyOps[Functor[F]](p)(scala.reflect.classTag[Functor[F]])
-  }
-
-  // familyElem
-  class FunctorElem[F[_], To <: Functor[F]](implicit _cF: Cont[F])
-    extends EntityElem[To] {
-    def cF = _cF
-    lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("F" -> (cF -> scalan.util.Invariant))
-    override lazy val tag = {
-      weakTypeTag[Functor[F]].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Functor[F]] => convertFunctor(x) }
-      tryConvert(element[Functor[F]], this, x, conv)
-    }
-
-    def convertFunctor(x: Rep[Functor[F]]): Rep[To] = {
-      x.elem.asInstanceOf[Elem[_]] match {
-        case _: FunctorElem[_, _] => x.asRep[To]
-        case e => !!!(s"Expected $x to have FunctorElem[_, _], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
-  }
-
-  implicit def functorElement[F[_]](implicit cF: Cont[F]): Elem[Functor[F]] =
-    cachedElem[FunctorElem[F, Functor[F]]](cF)
-
-  implicit case object FunctorCompanionElem extends CompanionElem[FunctorCompanionCtor] {
-    lazy val tag = weakTypeTag[FunctorCompanionCtor]
-    protected def getDefaultRep = Functor
-  }
-
-  abstract class FunctorCompanionCtor extends CompanionDef[FunctorCompanionCtor] with FunctorCompanion {
-    def selfType = FunctorCompanionElem
-    override def toString = "Functor"
-  }
-  implicit def proxyFunctorCompanionCtor(p: Rep[FunctorCompanionCtor]): FunctorCompanionCtor =
-    proxyOps[FunctorCompanionCtor](p)
-
-  lazy val Functor: Rep[FunctorCompanionCtor] = new FunctorCompanionCtor {
-  }
-
-  object FunctorMethods {
-    object map {
-      def unapply(d: Def[_]): Option[(Rep[Functor[F]], Rep[F[A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(fa, f, _*), _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorElem[_, _] => true; case _ => false }) && method.getName == "map" =>
-          Some((receiver, fa, f)).asInstanceOf[Option[(Rep[Functor[F]], Rep[F[A]], Rep[A => B]) forSome {type F[_]; type A; type B}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[Functor[F]], Rep[F[A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-  }
-
-  object FunctorCompanionMethods {
-  }
-
+object Enum extends EntityObject("Enum") {
   // entityProxy: single proxy for each type family
   implicit def proxyEnum(p: Rep[Enum]): Enum = {
     proxyOps[Enum](p)(scala.reflect.classTag[Enum])
@@ -625,7 +555,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
 
   implicit case object EnumCompanionElem extends CompanionElem[EnumCompanionCtor] {
     lazy val tag = weakTypeTag[EnumCompanionCtor]
-    protected def getDefaultRep = Enum
+    protected def getDefaultRep = REnum
   }
 
   abstract class EnumCompanionCtor extends CompanionDef[EnumCompanionCtor] with EnumCompanion {
@@ -635,7 +565,7 @@ trait ColsDefs extends scalan.Scalan with Cols {
   implicit def proxyEnumCompanionCtor(p: Rep[EnumCompanionCtor]): EnumCompanionCtor =
     proxyOps[EnumCompanionCtor](p)
 
-  lazy val Enum: Rep[EnumCompanionCtor] = new EnumCompanionCtor {
+  lazy val REnum: Rep[EnumCompanionCtor] = new EnumCompanionCtor {
   }
 
   object EnumMethods {
@@ -654,6 +584,8 @@ trait ColsDefs extends scalan.Scalan with Cols {
 
   object EnumCompanionMethods {
   }
+} // of object Enum
+  registerEntityObject("Enum", Enum)
 
   registerModule(ColsModule)
 }

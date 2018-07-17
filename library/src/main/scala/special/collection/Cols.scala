@@ -2,6 +2,11 @@ package special.collection {
   import scalan._
 
   trait Cols extends Base { self: Library =>
+    import ColBuilder._;
+    import WArray._;
+    import Col._;
+    import PairCol._;
+    import Enum._;
     @ContainerType @FunctorType trait Col[A] extends Def[Col[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[ColBuilder];
@@ -32,23 +37,17 @@ package special.collection {
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]];
       def dot[T](xs: Rep[Col[T]], ys: Rep[Col[T]]): Rep[T];
       @throws[NullPointerException] def ddmvm(v: Rep[WArray[Double]]): Rep[Int] = {
-        val xs: Rep[WArray[Int]] = WArray.fill[Int](v.length, Thunk(toRep(0.asInstanceOf[Int])));
+        val xs: Rep[WArray[Int]] = RWArray.fill[Int](v.length, Thunk(toRep(0.asInstanceOf[Int])));
         val c: Rep[WArray[scala.Tuple2[Int, Double]]] = xs.zip(v).map(fun(((d: Rep[scala.Tuple2[Int, Double]]) => d)));
         c.length
-      };
-//      def functorArg(arr: Rep[WArray[Double]])(evF: Functor[WArray]): Rep[WArray[Double]] = evF.map[Double, Double](arr)(fun(((x: Rep[Double]) => x.+(toRep(1.asInstanceOf[Int])))))
+      }
     };
-//    trait Functor[F[_]] extends Def[Functor[F]] {
-//      implicit def cF: Cont[F];
-//      def map[A, B](fa: Rep[F[A]])(f: Rep[scala.Function1[A, B]]): Rep[F[B]]
-//    };
     trait Enum extends Def[Enum] {
       def value: Rep[Int]
     };
     trait ColCompanion;
     trait PairColCompanion;
     trait ColBuilderCompanion;
-    trait FunctorCompanion;
     trait EnumCompanion
   }
 }

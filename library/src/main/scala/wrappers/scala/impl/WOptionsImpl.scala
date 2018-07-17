@@ -1,8 +1,8 @@
-package scala
-
-import special.wrappers.WrappersModule
+package wrappers.scala
 
 import scalan._
+import impl._
+import special.wrappers.WrappersModule
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
@@ -10,7 +10,11 @@ package impl {
 // Abs -----------------------------------
 trait WOptionsDefs extends scalan.Scalan with WOptions {
   self: WrappersModule =>
-  import IsoUR._
+import IsoUR._
+import Converter._
+import WOption._
+
+object WOption extends EntityObject("WOption") {
   // entityProxy: single proxy for each type family
   implicit def proxyWOption[A](p: Rep[WOption[A]]): WOption[A] = {
     proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
@@ -72,7 +76,7 @@ trait WOptionsDefs extends scalan.Scalan with WOptions {
 
   implicit case object WOptionCompanionElem extends CompanionElem[WOptionCompanionCtor] {
     lazy val tag = weakTypeTag[WOptionCompanionCtor]
-    protected def getDefaultRep = WOption
+    protected def getDefaultRep = RWOption
   }
 
   abstract class WOptionCompanionCtor extends CompanionDef[WOptionCompanionCtor] with WOptionCompanion {
@@ -82,7 +86,7 @@ trait WOptionsDefs extends scalan.Scalan with WOptions {
   implicit def proxyWOptionCompanionCtor(p: Rep[WOptionCompanionCtor]): WOptionCompanionCtor =
     proxyOps[WOptionCompanionCtor](p)
 
-  lazy val WOption: Rep[WOptionCompanionCtor] = new WOptionCompanionCtor {
+  lazy val RWOption: Rep[WOptionCompanionCtor] = new WOptionCompanionCtor {
   }
 
   case class ViewWOption[A, B](source: Rep[WOption[A]], override val innerIso: Iso[A, B])
@@ -195,6 +199,10 @@ trait WOptionsDefs extends scalan.Scalan with WOptions {
     }
   }
 
+  type RepWOption[A] = Rep[WOption[A]]
+} // of object WOption
+  registerEntityObject("WOption", WOption)
+  
   override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewWOption[_, _]) =>
       Some((view.source, view.iso))
@@ -205,8 +213,6 @@ trait WOptionsDefs extends scalan.Scalan with WOptions {
     case _ =>
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
-
-  type RepWOption[A] = Rep[WOption[A]]
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case view1@ViewWOption(Def(view2@ViewWOption(arr, innerIso2)), innerIso1) =>
@@ -240,4 +246,4 @@ trait WOptionsDefs extends scalan.Scalan with WOptions {
 object WOptionsModule extends scalan.ModuleInfo("wrappers.scala", "WOptions")
 }
 
-trait WOptionsModule extends scala.impl.WOptionsDefs {self: WrappersModule =>}
+trait WOptionsModule extends wrappers.scala.impl.WOptionsDefs {self: WrappersModule =>}

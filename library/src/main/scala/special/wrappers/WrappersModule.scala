@@ -1,11 +1,12 @@
 package special.wrappers
 
+import wrappers.scala.{WArraysModule, WOptionsModule}
+import wrappers.scala.util.{WEithersModule}
 import wrappers.special.WSpecialPredefsModule
 
-import scala.util.WEithersModule
 
-  trait WrappersModule
-    extends WSpecialPredefsModule
-    with WArraysModule
-    with WOptionsModule
-    with WEithersModule
+trait WrappersModule
+  extends WSpecialPredefsModule
+  with WArraysModule
+  with WOptionsModule
+  with WEithersModule

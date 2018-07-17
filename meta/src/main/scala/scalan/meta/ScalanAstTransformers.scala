@@ -16,9 +16,9 @@ object ScalanAstTransformers {
     }
     def applyTransform(apply: SApply): SApply = {
       val newFun = exprTransform(apply.fun)
+      val newTs = apply.ts map tpeExprTransform
       val newArgss = apply.argss map (sec => SArgSection(sec.map(exprTransform)))
-
-      apply.copy(fun = newFun, argss = newArgss)
+      apply.copy(fun = newFun, ts = newTs, argss = newArgss)
     }
     def tupleTransform(tuple: STuple): STuple = {
       val newExprs = tuple.exprs map exprTransform
@@ -167,15 +167,12 @@ object ScalanAstTransformers {
     def methodArgSectionsTransform(argSections: List[SMethodArgs]): List[SMethodArgs] = {
       argSections mapConserve methodArgsTransform
     }
-    def methodResTransform(res: Option[STpeExpr]): Option[STpeExpr] = res
-    def methodBodyTransform(body: Option[SExpr]): Option[SExpr] = body match {
-      case Some(bodyExpr) => Some(exprTransform(bodyExpr))
-      case None => None
-    }
+    def methodResTransform(res: Option[STpeExpr]): Option[STpeExpr] = res mapConserve tpeExprTransform
+
     def methodTransform(method: SMethodDef): SMethodDef = {
-      val newArgSections = methodArgSectionsTransform(method.argSections)
+      val newArgSections = method.argSections mapConserve (args => SMethodArgs(args.args mapConserve methodArgTransform))
       val newTpeRes = methodResTransform(method.tpeRes)
-      val newBody = methodBodyTransform(method.body)
+      val newBody = method.body mapConserve exprTransform
 
       method.copy(
         argSections = newArgSections,

@@ -1,9 +1,12 @@
-package scala {
-  import special.wrappers.WrappersModule
-
+package wrappers.scala {
   import scalan._
 
+  import impl._
+
+  import special.wrappers.WrappersModule
+
   trait WOptions extends Base { self: WrappersModule =>
+    import WOption._;
     @External("Option") @ContainerType @FunctorType trait WOption[A] extends Def[WOption[A]] {
       implicit def eA: Elem[A];
       @External def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B];

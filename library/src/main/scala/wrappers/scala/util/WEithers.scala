@@ -1,10 +1,12 @@
-package scala.util {
-  import special.wrappers.WrappersModule
-
+package wrappers.scala.util {
   import scalan._
+
   import impl._
 
+  import special.wrappers.WrappersModule
+
   trait WEithers extends Base { self: WrappersModule =>
+    import WEither._;
     @External("Either") trait WEither[A, B] extends Def[WEither[A, B]] {
       implicit def eA: Elem[A];
       implicit def eB: Elem[B];

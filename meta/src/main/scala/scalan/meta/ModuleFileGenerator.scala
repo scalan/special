@@ -7,8 +7,6 @@ import scalan.meta.Base.!!!
 import scalan.meta.PrintExtensions._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
-import scalan.meta.ScalanAstTraversers.EntityUseTraverser
-import scalan.meta.Symbols.{SNameSymbol, SEntityDefSymbol, SNamedDefSymbol}
 import scalan.util.StringUtil
 import scalan.util.StringUtil.StringUtilExtensions
 import scalan.util.CollectionUtil.TraversableOps

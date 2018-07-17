@@ -150,6 +150,10 @@ object ScalanAstExtensions {
 
     def getUsedEntities: Seq[SNamedDefSymbol] = {
       val res = ArrayBuffer.empty[SNamedDefSymbol]
+      object R {
+        def unapply(s: String): Option[String] =
+          if (s.startsWith("R")) Some(s.substring(1)) else None
+      }
       def accept(tpe: STpeExpr) = {
         val name = tpe match {
           case ctx.RepTypeOf(STraitCall(name, _)) => Some(name)
@@ -158,6 +162,8 @@ object ScalanAstExtensions {
         }
         name match {
           case Some(ctx.Entity(m, e)) =>
+            res += ctx.newEntitySymbol(m.symbol, e.name)
+          case Some(R(ctx.Entity(m, e))) =>
             res += ctx.newEntitySymbol(m.symbol, e.name)
           case _ => // do nothing
         }

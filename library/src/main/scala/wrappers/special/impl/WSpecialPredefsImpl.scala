@@ -3,17 +3,20 @@ package wrappers.special
 import scalan._
 import impl._
 import special.wrappers.WrappersModule
-
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-import special.wrappers.WrappersModule
-
 // Abs -----------------------------------
 trait WSpecialPredefsDefs extends scalan.Scalan with WSpecialPredefs {
   self: WrappersModule =>
+import IsoUR._
+import Converter._
+import WEither._
+import WOption._
+import WSpecialPredef._
 
+object WSpecialPredef extends EntityObject("WSpecialPredef") {
   // entityProxy: single proxy for each type family
   implicit def proxyWSpecialPredef(p: Rep[WSpecialPredef]): WSpecialPredef = {
     proxyOps[WSpecialPredef](p)(scala.reflect.classTag[WSpecialPredef])
@@ -46,7 +49,7 @@ trait WSpecialPredefsDefs extends scalan.Scalan with WSpecialPredefs {
 
   implicit case object WSpecialPredefCompanionElem extends CompanionElem[WSpecialPredefCompanionCtor] {
     lazy val tag = weakTypeTag[WSpecialPredefCompanionCtor]
-    protected def getDefaultRep = WSpecialPredef
+    protected def getDefaultRep = RWSpecialPredef
   }
 
   abstract class WSpecialPredefCompanionCtor extends CompanionDef[WSpecialPredefCompanionCtor] with WSpecialPredefCompanion {
@@ -56,7 +59,7 @@ trait WSpecialPredefsDefs extends scalan.Scalan with WSpecialPredefs {
   implicit def proxyWSpecialPredefCompanionCtor(p: Rep[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
     proxyOps[WSpecialPredefCompanionCtor](p)
 
-  lazy val WSpecialPredef: Rep[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
+  lazy val RWSpecialPredef: Rep[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
     def optionGetOrElse[A](opt: Rep[WOption[A]], default: Rep[A]): Rep[A] = {
       implicit val eA = opt.eA
       mkMethodCall(self,
@@ -223,6 +226,8 @@ implicit val eD = fb.elem.eRange
       }
     }
   }
+} // of object WSpecialPredef
+  registerEntityObject("WSpecialPredef", WSpecialPredef)
 
   registerModule(WSpecialPredefsModule)
 }

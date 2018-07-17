@@ -2,8 +2,8 @@ package scalan
 
 import java.lang.reflect.Method
 
-import special.collection.{ColsModule, CostsModule, ColsOverArraysModule, ConcreteCostsModule, MonoidInstancesModule, MonoidsModule}
-import special.wrappers.WrappersModule
+import special.collection.{CostsModule, ConcreteCostsModule, ColsModule, MonoidsModule, ColsOverArraysModule, MonoidInstancesModule}
+import special.wrappers.{WrappersModule, WrappersSpecModule}
 import special.wrappers.impl.WrappersSpecModule
 
 import scalan.util.ReflectionUtil
@@ -17,6 +17,7 @@ trait Library extends Scalan
   with ConcreteCostsModule
   with MonoidsModule
   with MonoidInstancesModule {
+  import WArray._; import Col._; import ColBuilder._; import ReplCol._
 
   override protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = receiver.elem match {
     case ae: WArrayElem[a, _] => m.getName match {
@@ -79,7 +80,7 @@ trait Library extends Scalan
       xs.map(fun { x: Rep[a] => g(f(x)) })
 
     case CM.map(xs, Def(IdentityLambda())) => xs
-    case CM.map(xs, Def(ConstantLambda(res))) => ReplCol(res, xs.length)
+    case CM.map(xs, Def(ConstantLambda(res))) => RReplCol(res, xs.length)
 
     case _ => super.rewriteDef(d)
   }

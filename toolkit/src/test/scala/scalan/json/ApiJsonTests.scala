@@ -13,6 +13,8 @@ class ApiJsonTests extends JsonTests {
     import tester._
     import protocol._
     import ctx._
+    import WArray._
+
     def testLam[A, B](f: Rep[A => B], fileName: String = ""): Unit = {
       val g = new PGraph(f)
       test(g, fileName)

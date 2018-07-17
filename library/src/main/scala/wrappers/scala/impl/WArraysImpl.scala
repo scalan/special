@@ -1,8 +1,8 @@
-package scala
-
-import special.wrappers.WrappersModule
+package wrappers.scala
 
 import scalan._
+import impl._
+import special.wrappers.WrappersModule
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
@@ -10,7 +10,11 @@ package impl {
 // Abs -----------------------------------
 trait WArraysDefs extends scalan.Scalan with WArrays {
   self: WrappersModule =>
-  import IsoUR._
+import IsoUR._
+import Converter._
+import WArray._
+
+object WArray extends EntityObject("WArray") {
   // entityProxy: single proxy for each type family
   implicit def proxyWArray[T](p: Rep[WArray[T]]): WArray[T] = {
     proxyOps[WArray[T]](p)(scala.reflect.classTag[WArray[T]])
@@ -72,7 +76,7 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
 
   implicit case object WArrayCompanionElem extends CompanionElem[WArrayCompanionCtor] {
     lazy val tag = weakTypeTag[WArrayCompanionCtor]
-    protected def getDefaultRep = WArray
+    protected def getDefaultRep = RWArray
   }
 
   abstract class WArrayCompanionCtor extends CompanionDef[WArrayCompanionCtor] with WArrayCompanion {
@@ -82,7 +86,7 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
   implicit def proxyWArrayCompanionCtor(p: Rep[WArrayCompanionCtor]): WArrayCompanionCtor =
     proxyOps[WArrayCompanionCtor](p)
 
-  lazy val WArray: Rep[WArrayCompanionCtor] = new WArrayCompanionCtor {
+  lazy val RWArray: Rep[WArrayCompanionCtor] = new WArrayCompanionCtor {
     def fill[T](n: Rep[Int], elem: Rep[Thunk[T]]): Rep[WArray[T]] = {
       implicit val eT = elem.elem.eItem
       mkMethodCall(self,
@@ -249,6 +253,10 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
     }
   }
 
+  type RepWArray[T] = Rep[WArray[T]]
+} // of object WArray
+  registerEntityObject("WArray", WArray)
+  
   override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewWArray[_, _]) =>
       Some((view.source, view.iso))
@@ -259,8 +267,6 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
     case _ =>
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
-
-  type RepWArray[T] = Rep[WArray[T]]
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case view1@ViewWArray(Def(view2@ViewWArray(arr, innerIso2)), innerIso1) =>
@@ -294,4 +300,4 @@ trait WArraysDefs extends scalan.Scalan with WArrays {
 object WArraysModule extends scalan.ModuleInfo("wrappers.scala", "WArrays")
 }
 
-trait WArraysModule extends scala.impl.WArraysDefs {self: WrappersModule =>}
+trait WArraysModule extends wrappers.scala.impl.WArraysDefs {self: WrappersModule =>}

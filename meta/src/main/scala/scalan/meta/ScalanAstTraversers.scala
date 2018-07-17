@@ -1,7 +1,6 @@
 package scalan.meta
 
-import scalan.meta.ScalanAst.{SArgSection, STraitCall, SClassArg, SLiteralPattern, STpeDef, SWildcardPattern, SUnitDef, SValDef, STypedPattern, STpeArgs, STpeExpr, STpeFunc, SSelPattern, SExpr, STpeArg, STpeEmpty, STuple, SClassDef, SCase, SIf, SIdent, SStableIdPattern, SBindPattern, STpeTuple, SMethodArg, SApplyPattern, SObjectDef, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STypeArgAnnotation, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, SMatch, SPattern, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SSuper, STpeExistential, SSelect, SAltPattern}
-import scalan.meta.Symbols.SEntityDefSymbol
+import scalan.meta.ScalanAst.{STraitCall, SClassArg, SLiteralPattern, STpeDef, SWildcardPattern, SUnitDef, SValDef, STypedPattern, STpeArgs, STpeExpr, STpeFunc, SSelPattern, SExpr, STpeArg, STpeEmpty, STuple, SClassDef, SCase, SIf, SIdent, SStableIdPattern, SBindPattern, STpeTuple, SMethodArg, SApplyPattern, SObjectDef, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STypeArgAnnotation, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, SMatch, SPattern, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SSuper, STpeExistential, SSelect, SAltPattern}
 
 object ScalanAstTraversers {
 
@@ -24,6 +23,7 @@ object ScalanAstTraversers {
     }
     def thisTraverse(sthis: SThis): Unit = {}
     def constrTraverse(constr: SConstr): Unit = {
+      traitCallTraverse(STraitCall(constr.name))
       constr.args foreach exprTraverse
     }
     def ascrTraverse(ascr: SAscr): Unit = {
@@ -249,10 +249,15 @@ object ScalanAstTraversers {
     }
   }
 
-  class EntityUseTraverser(accept: STpeExpr => Unit)(implicit ctx: AstContext) extends AstTraverser {
+  class EntityUseTraverser(accept: STpeExpr => Unit)(implicit override val ctx: AstContext) extends AstTraverser {
     override def traitCallTraverse(tc: STraitCall): Unit = {
       accept(tc)
       super.traitCallTraverse(tc)
+    }
+
+    override def selectTraverse(select: SSelect): Unit = select match {
+      case ctx.IsGlobalObject(name) => accept(STraitCall(name))
+      case _ => super.selectTraverse(select)
     }
   }
 }

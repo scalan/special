@@ -3,20 +3,24 @@ package special.collection {
 
   trait ColsOverArrays extends Base { self: ColsOverArraysModule =>
     import PairCol._;
+    import PairOfCols._;
     import Col._;
+    import ColOverArray._;
     import ColBuilder._;
     import ColOverArrayBuilder._;
     import BaseColBuilder._;
     import WArray._;
+    import ReplColBuilder._;
+    import ReplCol._;
     trait BaseColBuilder extends ColBuilder {
-      @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
+      @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = RPairOfCols(as, bs);
       @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = scala.Predef.???;
-      def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = ColOverArray(arr);
-      def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = this.fromArray[T](WArray.fill[T](n, Thunk(v)));
+      def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = RColOverArray(arr);
+      def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = this.fromArray[T](RWArray.fill[T](n, Thunk(v)));
       def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = scala.Predef.???
     };
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
-      def builder: Rep[ColOverArrayBuilder] = ColOverArrayBuilder();
+      def builder: Rep[ColOverArrayBuilder] = RColOverArrayBuilder();
       def length: Rep[Int] = ColOverArray.this.arr.length;
       def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i);
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ColOverArray.this.builder.fromArray[B](ColOverArray.this.arr.map(f));
@@ -38,15 +42,15 @@ package special.collection {
     };
     abstract class ColOverArrayBuilder extends BaseColBuilder;
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
-      override def builder: Rep[ColBuilder] = ColOverArrayBuilder();
+      override def builder: Rep[ColBuilder] = RColOverArrayBuilder();
       override def arr: Rep[WArray[scala.Tuple2[L, R]]] = PairOfCols.this.ls.arr.zip(PairOfCols.this.rs.arr);
       override def length: Rep[Int] = PairOfCols.this.ls.length;
       override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
-      override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Col[V]] = ColOverArray(PairOfCols.this.arr.map(f));
+      override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Col[V]] = RColOverArray(PairOfCols.this.arr.map(f));
       override def foreach(f: Rep[scala.Function1[scala.Tuple2[L, R], Unit]]): Rep[Unit] = PairOfCols.this.arr.foreach(f);
       override def exists(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.exists(p);
       override def forall(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.forall(p);
-      override def filter(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Col[scala.Tuple2[L, R]]] = ColOverArray(PairOfCols.this.arr.filter(p));
+      override def filter(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Col[scala.Tuple2[L, R]]] = RColOverArray(PairOfCols.this.arr.filter(p));
       override def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, scala.Tuple2[L, R]], B]]): Rep[B] = PairOfCols.this.arr.foldLeft(zero, fun(((in: Rep[scala.Tuple2[B, scala.Tuple2[L, R]]]) => {
         val b: Rep[B] = in._1;
         val a: Rep[scala.Tuple2[L, R]] = in._2;
@@ -60,16 +64,16 @@ package special.collection {
       })))
     };
     abstract class ReplCol[A](val value: Rep[A], val length: Rep[Int]) extends Col[A] {
-      def builder: Rep[ColBuilder] = ReplColBuilder();
+      def builder: Rep[ColBuilder] = RReplColBuilder();
       def arr: Rep[WArray[A]] = ReplCol.this.builder.replicate[A](ReplCol.this.length, ReplCol.this.value).arr;
       def apply(i: Rep[Int]): Rep[A] = ReplCol.this.value;
-      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ReplCol(f.apply(ReplCol.this.value), ReplCol.this.length);
+      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = RReplCol(f.apply(ReplCol.this.value), ReplCol.this.length);
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = scala.Predef.???;
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
-      def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = IF(p.apply(ReplCol.this.value)).THEN(this).ELSE(ReplCol(ReplCol.this.value, toRep(0.asInstanceOf[Int])));
-      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = WSpecialPredef.loopUntil[scala.Tuple2[B, Int]](Pair(zero, toRep(0.asInstanceOf[Int])), fun(((p: Rep[scala.Tuple2[B, Int]]) => p._2.<(ReplCol.this.length))), fun(((p: Rep[scala.Tuple2[B, Int]]) => Pair(op.apply(Tuple2(p._1, ReplCol.this.value)), p._2.+(toRep(1.asInstanceOf[Int]))))))._1;
-      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ReplCol(ReplCol.this.value, until.-(from));
+      def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = IF(p.apply(ReplCol.this.value)).THEN(this).ELSE(RReplCol(ReplCol.this.value, toRep(0.asInstanceOf[Int])));
+      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = RWSpecialPredef.loopUntil[scala.Tuple2[B, Int]](Pair(zero, toRep(0.asInstanceOf[Int])), fun(((p: Rep[scala.Tuple2[B, Int]]) => p._2.<(ReplCol.this.length))), fun(((p: Rep[scala.Tuple2[B, Int]]) => Pair(op.apply(Tuple2(p._1, ReplCol.this.value)), p._2.+(toRep(1.asInstanceOf[Int]))))))._1;
+      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = RReplCol(ReplCol.this.value, until.-(from));
       def sum(m: Rep[Monoid[A]]): Rep[A] = m.power(ReplCol.this.value, ReplCol.this.length)
     };
     abstract class ReplColBuilder extends BaseColBuilder;

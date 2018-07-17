@@ -1,10 +1,14 @@
-package wrappers.special
+package wrappers.special {
+  import scalan._
 
-import special.wrappers.WrappersModule
+  import impl._
 
-import scalan._
+  import special.wrappers.WrappersModule
 
   trait WSpecialPredefs extends Base { self: WrappersModule =>
+    import WEither._;
+    import WOption._;
+    import WSpecialPredef._;
     @External("SpecialPredef") trait WSpecialPredef extends Def[WSpecialPredef];
     trait WSpecialPredefCompanion {
       @External def optionGetOrElse[A](opt: Rep[WOption[A]], default: Rep[A]): Rep[A];
@@ -17,3 +21,4 @@ import scalan._
       @External def loopUntil[A](s1: Rep[A], isMatch: Rep[scala.Function1[A, Boolean]], step: Rep[scala.Function1[A, A]]): Rep[A]
     }
   }
+}

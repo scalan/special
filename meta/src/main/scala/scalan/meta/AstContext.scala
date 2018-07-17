@@ -7,7 +7,7 @@ import java.io.File
 import com.trueaccord.lenses.{Mutation, Lens}
 
 import scala.collection.mutable.{Map => MMap}
-import scalan.meta.ScalanAst.{STraitCall, STpeDef, SUnitDef, STpeExpr, STpeFunc, SEntityAnnotation, createSubst, Entity, SConst, ExternalAnnotation, WrapperDescr, SEntityDef, Module}
+import scalan.meta.ScalanAst.{STraitCall, STpeDef, SUnitDef, STpeExpr, STpeFunc, SExpr, SEntityAnnotation, createSubst, Entity, SConst, ExternalAnnotation, SEmpty, WrapperDescr, SEntityDef, Module, SSelect}
 
 class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], okLoadModules: Boolean = false)
     extends Symbols {
@@ -230,6 +230,14 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
           case Some(SEntityAnnotation(_, _, List(SConst(externalName: String, _)))) => Some((e, externalName))
           case _ => None
         }
+      case _ => None
+    }
+  }
+
+  object IsGlobalObject {
+    def unapply(expr: SExpr): Option[String] = expr match {
+      case SSelect(SEmpty(None), Entity(_,e), None) => Some(e.name)
+
       case _ => None
     }
   }

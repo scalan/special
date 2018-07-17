@@ -1,9 +1,8 @@
-package scala.util
-
-import special.wrappers.WrappersModule
+package wrappers.scala.util
 
 import scalan._
 import impl._
+import special.wrappers.WrappersModule
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
@@ -11,7 +10,11 @@ package impl {
 // Abs -----------------------------------
 trait WEithersDefs extends scalan.Scalan with WEithers {
   self: WrappersModule =>
+import IsoUR._
+import Converter._
+import WEither._
 
+object WEither extends EntityObject("WEither") {
   // entityProxy: single proxy for each type family
   implicit def proxyWEither[A, B](p: Rep[WEither[A, B]]): WEither[A, B] = {
     proxyOps[WEither[A, B]](p)(scala.reflect.classTag[WEither[A, B]])
@@ -48,7 +51,7 @@ trait WEithersDefs extends scalan.Scalan with WEithers {
 
   implicit case object WEitherCompanionElem extends CompanionElem[WEitherCompanionCtor] {
     lazy val tag = weakTypeTag[WEitherCompanionCtor]
-    protected def getDefaultRep = WEither
+    protected def getDefaultRep = RWEither
   }
 
   abstract class WEitherCompanionCtor extends CompanionDef[WEitherCompanionCtor] with WEitherCompanion {
@@ -58,7 +61,7 @@ trait WEithersDefs extends scalan.Scalan with WEithers {
   implicit def proxyWEitherCompanionCtor(p: Rep[WEitherCompanionCtor]): WEitherCompanionCtor =
     proxyOps[WEitherCompanionCtor](p)
 
-  lazy val WEither: Rep[WEitherCompanionCtor] = new WEitherCompanionCtor {
+  lazy val RWEither: Rep[WEitherCompanionCtor] = new WEitherCompanionCtor {
     def cond[A, B](test: Rep[Boolean], right: Rep[Thunk[B]], left: Rep[Thunk[A]]): Rep[WEither[A, B]] = {
       implicit val eA = left.elem.eItem
 implicit val eB = right.elem.eItem
@@ -96,6 +99,8 @@ implicit val eB = right.elem.eItem
       }
     }
   }
+} // of object WEither
+  registerEntityObject("WEither", WEither)
 
   registerModule(WEithersModule)
 }
@@ -103,4 +108,4 @@ implicit val eB = right.elem.eItem
 object WEithersModule extends scalan.ModuleInfo("wrappers.scala.util", "WEithers")
 }
 
-trait WEithersModule extends scala.util.impl.WEithersDefs {self: WrappersModule =>}
+trait WEithersModule extends wrappers.scala.util.impl.WEithersDefs {self: WrappersModule =>}

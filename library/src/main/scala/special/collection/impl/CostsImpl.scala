@@ -8,7 +8,12 @@ package impl {
 // Abs -----------------------------------
 trait CostsDefs extends scalan.Scalan with Costs {
   self: Library =>
+import IsoUR._
+import Converter._
+import CostedBuilder._
+import Costed._
 
+object Costed extends EntityObject("Costed") {
   // entityProxy: single proxy for each type family
   implicit def proxyCosted[Val](p: Rep[Costed[Val]]): Costed[Val] = {
     proxyOps[Costed[Val]](p)(scala.reflect.classTag[Costed[Val]])
@@ -43,7 +48,7 @@ trait CostsDefs extends scalan.Scalan with Costs {
 
   implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor] {
     lazy val tag = weakTypeTag[CostedCompanionCtor]
-    protected def getDefaultRep = Costed
+    protected def getDefaultRep = RCosted
   }
 
   abstract class CostedCompanionCtor extends CompanionDef[CostedCompanionCtor] with CostedCompanion {
@@ -53,7 +58,7 @@ trait CostsDefs extends scalan.Scalan with Costs {
   implicit def proxyCostedCompanionCtor(p: Rep[CostedCompanionCtor]): CostedCompanionCtor =
     proxyOps[CostedCompanionCtor](p)
 
-  lazy val Costed: Rep[CostedCompanionCtor] = new CostedCompanionCtor {
+  lazy val RCosted: Rep[CostedCompanionCtor] = new CostedCompanionCtor {
   }
 
   object CostedMethods {
@@ -96,7 +101,10 @@ trait CostsDefs extends scalan.Scalan with Costs {
 
   object CostedCompanionMethods {
   }
+} // of object Costed
+  registerEntityObject("Costed", Costed)
 
+object CostedBuilder extends EntityObject("CostedBuilder") {
   // entityProxy: single proxy for each type family
   implicit def proxyCostedBuilder(p: Rep[CostedBuilder]): CostedBuilder = {
     proxyOps[CostedBuilder](p)(scala.reflect.classTag[CostedBuilder])
@@ -129,7 +137,7 @@ trait CostsDefs extends scalan.Scalan with Costs {
 
   implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[CostedBuilderCompanionCtor]
-    protected def getDefaultRep = CostedBuilder
+    protected def getDefaultRep = RCostedBuilder
   }
 
   abstract class CostedBuilderCompanionCtor extends CompanionDef[CostedBuilderCompanionCtor] with CostedBuilderCompanion {
@@ -139,7 +147,7 @@ trait CostsDefs extends scalan.Scalan with Costs {
   implicit def proxyCostedBuilderCompanionCtor(p: Rep[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
     proxyOps[CostedBuilderCompanionCtor](p)
 
-  lazy val CostedBuilder: Rep[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
+  lazy val RCostedBuilder: Rep[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
   }
 
   object CostedBuilderMethods {
@@ -147,6 +155,8 @@ trait CostsDefs extends scalan.Scalan with Costs {
 
   object CostedBuilderCompanionMethods {
   }
+} // of object CostedBuilder
+  registerEntityObject("CostedBuilder", CostedBuilder)
 
   registerModule(CostsModule)
 }

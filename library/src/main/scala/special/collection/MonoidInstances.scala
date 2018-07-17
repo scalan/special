@@ -2,10 +2,14 @@ package special.collection {
   import scalan._
 
   trait MonoidInstances extends Base { self: Library =>
+    import IntPlusMonoid._;
+    import LongPlusMonoid._;
+    import MonoidBuilder._;
+    import Monoid._;
     abstract class MonoidBuilderInst extends MonoidBuilder {
-      val `intPlusMonoid ` : Rep[IntPlusMonoid] = IntPlusMonoid(toRep(0.asInstanceOf[Int]));
+      val `intPlusMonoid ` : Rep[IntPlusMonoid] = RIntPlusMonoid(toRep(0.asInstanceOf[Int]));
       def intPlusMonoid: Rep[IntPlusMonoid] = MonoidBuilderInst.this.`intPlusMonoid `;
-      val `longPlusMonoid ` : Rep[LongPlusMonoid] = LongPlusMonoid(toRep(0L.asInstanceOf[Long]));
+      val `longPlusMonoid ` : Rep[LongPlusMonoid] = RLongPlusMonoid(toRep(0L.asInstanceOf[Long]));
       def longPlusMonoid: Rep[LongPlusMonoid] = MonoidBuilderInst.this.`longPlusMonoid `
     };
     abstract class IntPlusMonoid(val zero: Rep[Int]) extends Monoid[Int] {
