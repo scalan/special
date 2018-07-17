@@ -12,6 +12,6 @@ class IntPlusMonoid(val zero: Int) extends Monoid[Int] {
 
 class LongPlusMonoid(val zero: Long) extends Monoid[Long] {
   def plus(x: Long, y: Long) = x + y
-  def power(x: Long, n: Int) = x * n
+  def power(x: Long, n: Int) = x * n.toLong
 }
 

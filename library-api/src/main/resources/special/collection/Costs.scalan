@@ -2,6 +2,8 @@ package special.collection {
   import scalan._
 
   trait Costs extends Base { self: CostsModule =>
+    import CostedBuilder._;
+    import Costed._;
     trait Costed[Val] extends Def[Costed[Val]] {
       implicit def eVal: Elem[Val];
       def builder: Rep[CostedBuilder];

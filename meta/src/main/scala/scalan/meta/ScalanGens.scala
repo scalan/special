@@ -47,15 +47,16 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
       )
   }
 
-  def genModuleTrait(module: SUnitDef)(implicit ctx: GenCtx): Tree = {
-    val methods = module.methods.map(m => genMethod(m)(ctx.copy(toRep = !m.isTypeDesc)))
+  def genModuleTrait(unit: SUnitDef)(implicit ctx: GenCtx): Tree = {
+    val methods = unit.methods.map(m => genMethod(m)(ctx.copy(toRep = !m.isTypeDesc)))
     val newstats =
-      module.typeDefs.map(genTypeDef) :::
-          module.traits.map(genTrait) :::
-          (genConcreteClasses(module.classes) ++ genCompanions(module) ++ methods)
-    val newSelf = genModuleSelf(module)
-    val name = TypeName(module.name)
-    val moduleParents = genParents(module.ancestors)
+      unit.imports.filter(_.inCake).map(genImport) :::
+      unit.typeDefs.map(genTypeDef) :::
+      unit.traits.map(genTrait) :::
+      (genConcreteClasses(unit.classes) ++ genCompanions(unit) ++ methods)
+    val newSelf = genModuleSelf(unit)
+    val name = TypeName(unit.name)
+    val moduleParents = genParents(unit.ancestors)
     val res = q"trait $name extends ..$moduleParents { $newSelf => ..$newstats }"
     res
   }

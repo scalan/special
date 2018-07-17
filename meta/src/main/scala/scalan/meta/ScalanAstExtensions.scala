@@ -5,6 +5,9 @@ package scalan.meta
   */
 import ScalanAst._
 import PrintExtensions._
+import scala.collection.mutable.ArrayBuffer
+import scalan.meta.ScalanAstTraversers.EntityUseTraverser
+import scalan.meta.Symbols.SNamedDefSymbol
 import scalan.util.GraphUtil
 
 object ScalanAstExtensions {
@@ -113,6 +116,7 @@ object ScalanAstExtensions {
   }
 
   implicit class SUnitDefOps(unit: SUnitDef) {
+    import AstLenses._
     implicit val ctx = unit.context
     def packageAndName = s"${unit.packageName}.${unit.name}"
     def fileName = s"${unit.packageName.replace('.','/')}/${unit.name}.scala"
@@ -142,6 +146,31 @@ object ScalanAstExtensions {
     def updateEntities(updater: STraitDef => STraitDef) = {
       val newTraits = unit.traits.map(updater)
       unit.copy(traits = newTraits)(ctx)
+    }
+
+    def getUsedEntities: Seq[SNamedDefSymbol] = {
+      val res = ArrayBuffer.empty[SNamedDefSymbol]
+      def accept(tpe: STpeExpr) = {
+        val name = tpe match {
+          case ctx.RepTypeOf(STraitCall(name, _)) => Some(name)
+          case STraitCall(name, _) => Some(name)
+          case _ => None
+        }
+        name match {
+          case Some(ctx.Entity(m, e)) =>
+            res += ctx.newEntitySymbol(m.symbol, e.name)
+          case _ => // do nothing
+        }
+      }
+      val tr = new EntityUseTraverser(accept)
+      tr.unitTraverse(unit)
+      res.distinct
+    }
+
+    def addInCakeImports: SUnitDef = {
+      val inCakeImports = unit.getUsedEntities.map(s => SImportStat(s.name + "._", true))
+      val withImports = unit.update(_.imports :++= inCakeImports)
+      withImports
     }
   }
 

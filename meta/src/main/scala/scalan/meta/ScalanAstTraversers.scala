@@ -187,52 +187,48 @@ object ScalanAstTraversers {
       case tpedef: STpeDef => tpeDefTraverse(tpedef)
       case _ => throw new NotImplementedError(s"bodyItemTraverse(${bodyItem})")
     }
-    def bodyTraverse(body: List[SBodyItem]): Unit = body foreach bodyItemTraverse
 
     def traitCompTraverse(traitComp: STraitDef): Unit = {
-      bodyTraverse(traitComp.body)
+      traitComp.body foreach bodyItemTraverse
     }
     def classCompTraverse(classComp: SClassDef): Unit = {
-      bodyTraverse(classComp.body)
+      classComp.body foreach bodyItemTraverse
     }
     def objCompTraverse(obj: SObjectDef): Unit = {
-      bodyTraverse(obj.body)
+      obj.body foreach bodyItemTraverse
     }
 
-    def entityCompTraverse(companion: Option[SEntityDef]): Unit = {
+    def entityTraverse(companion: SEntityDef): Unit = {
       companion match {
-        case Some(tr: STraitDef) => traitCompTraverse(tr)
-        case Some(clazz: SClassDef) => classCompTraverse(clazz)
-        case Some(obj: SObjectDef) => objCompTraverse(obj)
-        case None => // nop
+        case tr: STraitDef => traitCompTraverse(tr)
+        case clazz: SClassDef => classCompTraverse(clazz)
+        case obj: SObjectDef => objCompTraverse(obj)
         case _ => throw new NotImplementedError(s"entityCompTraverse($companion)")
       }
     }
 
-    def entityAncestorTraverse(ancestor: STypeApply): Unit = {}
-    def entityAncestorsTraverse(ancestors: List[STypeApply]): Unit = {
-      ancestors foreach entityAncestorTraverse
+    def entityAncestorTraverse(anc: STypeApply): Unit = {
+      traitCallTraverse(anc.tpe)
+      anc.ts foreach exprTraverse
     }
 
     def entityTpeArgTraverse(tpeArg: STpeArg): Unit = {}
-    def entityTpeArgsTraverse(tpeArgs: List[STpeArg]): Unit = {
-      tpeArgs foreach entityTpeArgTraverse
+
+    def traitTraverse(entity: STraitDef): Unit = {
+      entity.tpeArgs foreach entityTpeArgTraverse
+      entity.body foreach bodyItemTraverse
+      entity.companion foreach entityTraverse
+      entity.ancestors foreach entityAncestorTraverse
     }
 
-    def entityTraverse(entity: STraitDef): Unit = {
-      entityTpeArgsTraverse(entity.tpeArgs)
-      bodyTraverse(entity.body)
-      entityCompTraverse(entity.companion)
-      entityAncestorsTraverse(entity.ancestors)
-    }
-
-    def classCompanionTraverse(companion: Option[SEntityDef]): Unit = {
-      companion.foreach {
-        case obj: SObjectDef => bodyTraverse(obj.body)
-        case tr: STraitDef => bodyTraverse(tr.body)
-        case unknown => throw new NotImplementedError(unknown.toString)
-      }
-    }
+//    def classCompanionTraverse(companion: Option[SEntityDef]): Unit = {
+//      companion.foreach {
+//        case obj: SObjectDef => objectTraverse(obj.body)
+//        case tr: STraitDef => bodyTraverse(tr.body)
+//        case c: SClassDef => bodyTraverse(tr.body)
+//        case unknown => throw new NotImplementedError(unknown.toString)
+//      }
+//    }
     def classArgTraverse(classArg: SClassArg): Unit = {
       classArg.default.foreach(exprTraverse)
     }
@@ -240,15 +236,15 @@ object ScalanAstTraversers {
       classArgs.args foreach classArgTraverse
     }
     def classTraverse(c: SClassDef): Unit = {
-      bodyTraverse(c.body)
-      classCompanionTraverse(c.companion)
+      c.body foreach bodyItemTraverse
+      c.companion foreach[Unit] entityTraverse
       classArgsTraverse(c.args)
       classArgsTraverse(c.implicitArgs)
-      entityAncestorsTraverse(c.ancestors)
+      c.ancestors foreach entityAncestorTraverse
     }
 
     def unitTraverse(unit: SUnitDef): Unit = {
-      unit.traits foreach entityTraverse
+      unit.traits foreach traitTraverse
       unit.classes foreach classTraverse
     }
   }

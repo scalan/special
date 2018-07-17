@@ -12,7 +12,7 @@ import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.meta.Symbols.{SEntityDefSymbol, SSymbol, SEntitySymbol, SUnitDefSymbol}
 import scala.tools.nsc.doc.ScaladocSyntaxAnalyzer
-import scalan.util.FileUtil
+import AstLenses._
 
 class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPipeline[G](s) {
   import scalanizer._
@@ -143,20 +143,22 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     RunStep("wrapbackend") { _ =>
       context.forEachWrapper {
         case (_, WrapperDescr(u, config, false)) =>
+          implicit val context = scalanizer.context
           val moduleConf = getSourceModule
           val wSpecPackageName = moduleConf
               .wrapperSpecUnit(config.name)
               .map(_.packageName)
               .getOrElse("wrappers")
-          val wUnit = u.copy(imports = u.imports :+ SImportStat(s"$wSpecPackageName.WrappersModule"))(scalanizer.context)
+          val wUnit = u.copy(imports = u.imports :+ SImportStat(s"$wSpecPackageName.WrappersModule"))
 
           /** Build source code of the wrapper unit and store it in a file */
           val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)
           val optImplicits = optimizeModuleImplicits(wUnitWithoutImpl)
-          val wrapperPackage = genPackageDef(optImplicits, isVirtualized = false)(scalanizer.context)
+          val withImports = optImplicits.addInCakeImports
+          val wrapperPackage = genPackageDef(withImports, isVirtualized = false)
           saveWrapperCode(moduleConf,
-            optImplicits.packageName,
-            optImplicits.name,
+            withImports.packageName,
+            withImports.name,
             showCode(wrapperPackage))
         case _ => // do nothing
       }
@@ -185,7 +187,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
        val unitDef = context.getUnit
 
         /** Generates a virtualized version of original Scala AST, wraps types by Rep[] and etc. */
-        val virtUnitDef = virtPipeline(unitDef)
+        val virtUnitDef = virtPipeline(unitDef).addInCakeImports
 
         /** Scala AST of virtualized module */
         implicit val ctx = GenCtx(scalanizer.context, isVirtualized = false, toRep = true)

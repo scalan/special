@@ -569,25 +569,6 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
     concreteClasses.mkString("\n\n")
   }
 
-  def getUsedEntities(unit: SUnitDef): Seq[SNamedDefSymbol] = {
-    val res = ArrayBuffer.empty[SNamedDefSymbol]
-    def accept(tpe: STpeExpr) = {
-      val name = tpe match {
-        case context.RepTypeOf(STraitCall(name, _)) => Some(name)
-        case STraitCall(name, _) => Some(name)
-        case _ => None
-      }
-      name match {
-        case Some(context.Entity(m, e)) =>
-          res += context.newEntitySymbol(m.symbol, e.name)
-        case _ => // do nothing
-      }
-    }
-    val tr = new EntityUseTraverser(accept)
-    tr.unitTraverse(unit)
-    res
-  }
-
   def emitModuleDefs = {
     val entities = for {entity <- unit.traits} yield {
       val e = EntityTemplateData(unit, entity)
@@ -596,7 +577,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
     val imports = {
       val predef = List("import IsoUR._", "import Converter._")
       val declaredImports = unit.imports.filter(_.inCake)
-      val used = getUsedEntities(unit)
+      val used = unit.getUsedEntities
       val ts = unit.traits.map(t => context.newEntitySymbol(unit.symbol, t.name))
       val cs = unit.classes.map(c => context.newEntitySymbol(unit.symbol, c.name))
       val entityObjects = (used ++ ts ++ cs).map(s => s"import ${s.name}._")

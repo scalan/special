@@ -2,6 +2,8 @@ package special.collection {
   import scalan._
 
   trait Monoids extends Base { self: MonoidsModule =>
+    import Monoid._;
+    import MonoidBuilder._;
     trait Monoid[T] extends Def[Monoid[T]] {
       implicit def eT: Elem[T];
       def zero: Rep[T];

@@ -2,6 +2,11 @@ package special.collection {
   import scalan._
 
   trait Cols extends Base { self: ColsModule =>
+    import ColBuilder._;
+    import WArray._;
+    import Col._;
+    import PairCol._;
+    import Enum._;
     @ContainerType @FunctorType trait Col[A] extends Def[Col[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[ColBuilder];
