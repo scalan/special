@@ -2,6 +2,12 @@ package special.collection {
   import scalan._
 
   trait ColsOverArrays extends Base { self: ColsOverArraysModule =>
+    import PairCol._;
+    import Col._;
+    import ColBuilder._;
+    import ColOverArrayBuilder._;
+    import BaseColBuilder._;
+    import WArray._;
     trait BaseColBuilder extends ColBuilder {
       @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = PairOfCols(as, bs);
       @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = scala.Predef.???;
