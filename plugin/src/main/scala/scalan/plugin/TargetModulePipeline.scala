@@ -63,10 +63,10 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     val targetImpl = saveImplCode(targetSrcRoot, withImplicits.packageName, withImplicits.name, ".scala", boilerplateText)
     val isNewImpl = !targetImpl.exists
 
-    if (isNewTargetFile)
-      global.currentRun.compileLate(new PlainFile(Path(targetSrcFile)))
-    if (isNewImpl)
-      global.currentRun.compileLate(new PlainFile(Path(targetImpl)))
+//    if (isNewTargetFile)
+//      global.currentRun.compileLate(new PlainFile(Path(targetSrcFile)))
+//    if (isNewImpl)
+//      global.currentRun.compileLate(new PlainFile(Path(targetImpl)))
   }
 
 //  def mergeWrapperUnit(unit: SUnitDef) = {

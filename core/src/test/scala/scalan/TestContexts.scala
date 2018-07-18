@@ -24,7 +24,7 @@ trait TestContexts extends TestUtils {
     }
   }
 
-  abstract class TestContext(testName: String) extends Scalan {
+  abstract class TestContext(val testName: String) extends Scalan {
     def this() = this(currentTestNameAsFileName)
 
     override val invokeAll = true
