@@ -38,10 +38,12 @@ trait Metadata { self: Scalan =>
     def setMetadata[B](key: MetaKey[B])(value: B, mirrorWithDef: Option[Boolean] = None) = {
       self.setMetadata(target, key)(value, mirrorWithDef)
     }
+    def withName(name: String) = setMetadata(symNameKey)(name, Some(true))
   }
 
   // TODO better do it with UnboxedTuple, similar to LMS
   val MultipleArgsKey = MetaKey[Int]("emitMuplipleArgs")
+  val symNameKey = MetaKey[String]("symName")
 
   implicit class MultipleArgs(f: Rep[_ => _]) {
     def multipleArgs(n: Int) = f.setMetadata(MultipleArgsKey)(n)

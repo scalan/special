@@ -36,7 +36,7 @@ trait Library extends Scalan
       case "apply" =>
         ReflectionUtil.overloadId(m) match {
           case Some("apply_items") =>
-            val eItem = args(0).asInstanceOf[IndexedSeq[Sym]](0).elem
+            val eItem = args(0).asInstanceOf[Seq[Sym]](0).elem
             colElement(eItem)
           case _ => super.getResultElem(receiver, m, args)
         }
