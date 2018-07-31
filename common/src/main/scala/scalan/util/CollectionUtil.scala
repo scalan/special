@@ -1,8 +1,9 @@
 package scalan.util
 
 import java.util
+import java.util.Objects
 
-import scala.collection.{Seq, mutable}
+import scala.collection.{Seq, mutable, GenIterable}
 import scala.collection.mutable.{HashMap, ArrayBuffer}
 import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
@@ -148,7 +149,7 @@ object CollectionUtil {
   implicit class ListOps[A](source: List[A]) {
   }
 
-  implicit class TraversableOps[A, Source[X] <: Traversable[X]](xs: Source[A]) {
+  implicit class TraversableOps[A, Source[X] <: GenIterable[X]](xs: Source[A]) {
 
     /** Applies 'f' to elements of 'xs' until 'f' returns Some(b),
       * which is immediately returned as result of this method.
@@ -220,6 +221,30 @@ object CollectionUtil {
         else
           cs += x.asInstanceOf[C]
       (bs.result(), cs.result())
+    }
+
+    private def flattenIter(i: Iterator[_]): Iterator[_] = i.flatMap(x => x match {
+      case nested: GenIterable[_] => nested
+      case arr: Array[_] => arr.iterator
+      case _ => Iterator.single(x)
+    })
+
+    def sameElements2[B >: A](that: GenIterable[B]): Boolean = {
+      val i1: Iterator[Any] = flattenIter(xs.iterator)
+      val i2: Iterator[Any] = flattenIter(that.iterator)
+      i1.sameElements(i2)
+    }
+
+    def deepHashCode: Int = {
+      var result: Int = 1
+      for (x <- xs) {
+        val elementHash = x match {
+          case arr: Array[_] => CollectionUtil.deepHashCode(arr)
+          case _ => Objects.hashCode(x)
+        }
+        result = 31 * result + elementHash;
+      }
+      result
     }
   }
 }
