@@ -50,14 +50,15 @@ class ThunkTests extends BaseCtxTests {
     def to(x: Rep[Int]): Rep[Int] = x * x
     lazy val t11 = fun { (in: Rep[Int]) =>
       val x = Thunk { in + 1 }
-      Thunk { to(x.force) }              // test for ThunkIso.to
+      val res = Thunk { to(x.force) }              // test for ThunkIso.to
+      res
     }
   }
 
   test("Thunk matchDefs") {
     val ctx = new TestContext with MyProg
     import ctx._
-    val f = { x: Rep[Int] => x > 1 && Thunk.forced{ x * x < 1 } }
+    val f = { x: Rep[Int] => x * x > 1 && Thunk.forced{ x * x + 1 < 1 } }
     val f1 = fun(f)
     val f2 = fun(f)
     emit("equality", f1, f2)

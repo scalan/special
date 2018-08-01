@@ -261,12 +261,11 @@ trait Transforming { self: Scalan =>
 
     protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Exp[Thunk[A]], thunk: ThunkDef[A]): (Ctx, Sym) = {
       val newThunkSym = fresh(Lazy(mirrorElem(node)))
-      val newScope = new ThunkScope(newThunkSym)
 
-      thunkStack.push(newScope)
+      thunkStack.beginScope(newThunkSym)
       val schedule = thunk.scheduleSyms
       val (t1, newSchedule) = mirrorSymbols(t, rewriter, thunk, schedule)
-      thunkStack.pop
+      thunkStack.endScope()
 
       val newRoot = t1(thunk.root)
       val newThunk = ThunkDef(newRoot, newSchedule.map { case DefTableEntry(te) => te })

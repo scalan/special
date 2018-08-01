@@ -501,23 +501,23 @@ trait Effects extends Base with GraphVizExport { self: Scalan =>
     reflectEffectInternal(d, u /*andAlso Read(mutableInputs)*/, newSym) // will call super.toAtom if mutableInput.isEmpty
   }
 
-  def reflectEffectInternal[A](x: Def[A], u: Summary, newSym: => Exp[A]): Exp[A] = {
+  def reflectEffectInternal[A](d: Def[A], u: Summary, newSym: => Exp[A]): Exp[A] = {
     if (mustPure(u))
-      super.toExp(x, newSym)
+      super.toExp(d, newSym)
     else {
       checkContext()
       // NOTE: reflecting mutable stuff *during mirroring* doesn't work right now.
 
       // FIXME: Reflect(Reflect(ObjectUnsafeImmutable(..))) on delite
-      assert(!x.isInstanceOf[Reflect[_]], x)
+      assert(!d.isInstanceOf[Reflect[_]], d)
 
       val deps = calculateDependencies(u)
-      val zd = Reflect(x,u,deps)
+      val zd = Reflect(d,u,deps)
       if (mustIdempotent(u)) {
         effectsStack find { case Def(d) => d == zd } map { _.asInstanceOf[Exp[A]] } getOrElse {
           //        findDefinition(zd) map (_.sym) filter (context contains _) getOrElse { // local cse TODO: turn around and look at context first??
           val z = newSym
-          if (!x.toString.startsWith("ReadVar")) { // supress output for ReadVar
+          if (!d.toString.startsWith("ReadVar")) { // supress output for ReadVar
             printlog("promoting to effect: " + z + "=" + zd)
             for (w <- u.mayRead)
               printlog("depends on  " + w)

@@ -105,7 +105,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
 
-  class ThunkScope(val thunkSym: Exp[Any], val body: ListBuffer[TableEntry[Any]] = ListBuffer.empty) {
+  class ThunkScope(val parent: ThunkScope, val thunkSym: Exp[Any], val body: ListBuffer[TableEntry[Any]] = ListBuffer.empty) {
     def +=(te: TableEntry[_]) =
       body += te
 
@@ -115,7 +115,14 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
     }
 
     def findDef[T](d: Def[T]): Option[TableEntry[T]] = {
-      body.find(te => te.rhs == d).asInstanceOf[Option[TableEntry[T]]]
+      body.find(te => te.rhs == d) match {
+        case te @ Some(_) => te.asInstanceOf[Option[TableEntry[T]]]
+        case None =>
+          if (parent == null)
+            findDefinition(globalThunkSym, d)
+          else
+            parent.findDef(d)
+      }
     }
   }
 
@@ -123,11 +130,18 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
     var stack = List[ThunkScope]()
     def top: Option[ThunkScope] = stack.headOption
     def push(e: ThunkScope): this.type = { stack = e :: stack; this }
-    def pop: ThunkScope = {
+    @inline def pop: ThunkScope = {
       val res = stack.head
       stack = stack.tail
       res
     }
+    def beginScope(thunkSym: Exp[Any]): ThunkScope = {
+      val parent = if (stack.isEmpty) null else stack.head
+      val scope = new ThunkScope(parent, thunkSym)
+      this.push(scope)
+      scope
+    }
+    @inline def endScope(): Unit = { this.pop }
   }
   protected val thunkStack = new ThunkStack
 
@@ -139,19 +153,18 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
   def thunk_create[A](block: => Rep[A]): Rep[Thunk[A]] = {
     var eA: Elem[A] = null // will be known after block is evaluated
     val newThunkSym = fresh[Thunk[A]](Lazy{ thunkElement(eA) })
-    val newScope = new ThunkScope(newThunkSym)
 
-    thunkStack.push(newScope)
+    val newScope = thunkStack.beginScope(newThunkSym)
     // execute block and add all new definitions to the top scope (see createDefinition)
     // reify all the effects during block execution
     val b @ Block(res) = reifyEffects(block)
     eA = res.elem
     val eTh = newThunkSym.elem  // force lazy value in newThunkSym (see Lazy above)
-    thunkStack.pop
+    thunkStack.endScope()
 
     val scheduled = newScope.scheduleForResult(res)
-    val scheduledSyms = scheduled.map(_.sym).toSet
-    val remaining = newScope.body.filterNot(te => scheduledSyms.contains(te.sym))
+//    val scheduledSyms = scheduled.map(_.sym).toSet
+//    val remaining = newScope.body.filterNot(te => scheduledSyms.contains(te.sym))
 
     val newThunk = ThunkDef(res, scheduled)
     val u = summarizeEffects(b)
@@ -213,7 +226,8 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
   }
 
   override def rewriteDef[T](d: Def[T]) = d match {
-    case ThunkForce(Def(ThunkDef(root, sch))) if sch.map(_.sym) == Seq(root) => root
+    case ThunkForce(Def(ThunkDef(root @ Def(Const(_)), sch))) if sch.map(_.sym) == Seq(root) =>
+      root
     case th @ ThunkDef(HasViews(srcRes, iso: Iso[a,b]), _) => {
       implicit val eA = iso.eFrom
       implicit val eB = iso.eTo
