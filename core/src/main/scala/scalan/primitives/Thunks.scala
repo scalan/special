@@ -14,6 +14,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
   trait Thunk[+A] { def value: A }
   class ThunkCompanion {
     def apply[T](block: => Rep[T]) = thunk_create(block)
+    def forced[T](block: => Rep[T]) = thunk_create(block).force
   }
   val Thunk: ThunkCompanion = new ThunkCompanion
 
@@ -203,8 +204,8 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
   override protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): Option[Subst] = d1 match {
     case ThunkDef(root1, sch1) => d2 match {
       case ThunkDef(root2, sch2) =>
-        matchExps(root1, root2, allowInexactMatch, subst).
-          flatMap(matchIterators(sch1.iterator, sch2.iterator, allowInexactMatch, _))
+        matchIterators(sch1.iterator.map(_.sym), sch2.iterator.map(_.sym), allowInexactMatch, subst).
+            flatMap(matchExps(root1, root2, allowInexactMatch, _))
       case _ => None
     }
     case _ =>
@@ -212,6 +213,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
   }
 
   override def rewriteDef[T](d: Def[T]) = d match {
+    case ThunkForce(Def(ThunkDef(root, sch))) if sch.map(_.sym) == Seq(root) => root
     case th @ ThunkDef(HasViews(srcRes, iso: Iso[a,b]), _) => {
       implicit val eA = iso.eFrom
       implicit val eB = iso.eTo
