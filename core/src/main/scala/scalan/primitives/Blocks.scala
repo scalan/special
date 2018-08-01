@@ -19,8 +19,11 @@ trait Blocks extends Base { self: Scalan =>
   }
   def semicolonMulti[B](xs: Seq[Rep[_]], y: Rep[B]): Rep[B] = {
     val peeled = xs.map(x => peelViews(x))
-    val res = peeled.filterNot(isPureDataflow(_))
-    SemicolonMulti(res, y)
+    val notPure = peeled.filterNot(isPureDataflow(_))
+    val res: Rep[B] =
+      if (notPure.isEmpty) y
+      else SemicolonMulti(notPure, y)
+    res
   }
 
   def peelViews(x: Rep[_]): Rep[_] = x match {
