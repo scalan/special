@@ -4,12 +4,15 @@
 package scalan
 
 import java.lang.reflect.{InvocationTargetException, Method}
+import java.util.Objects
+
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 import scala.util.{Success, Try}
 import org.objenesis.ObjenesisStd
-import net.sf.cglib.proxy.{Enhancer, Factory, InvocationHandler}
+import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
+
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
 
@@ -40,6 +43,24 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         findInvokableMethod[InvokeResult](receiver, method, args.toArray) {
           res => InvokeSuccess(res.asInstanceOf[Sym])
         } { InvokeFailure(_) } { InvokeImpossible }
+
+    //TODO optimize
+    import scalan.util.CollectionUtil.TraversableOps
+    override def equals(other: Any): Boolean = (this eq other.asInstanceOf[AnyRef]) || {
+      other match {
+        case other: MethodCall =>
+          receiver == other.receiver &&
+          method == other.method &&
+          selfType.name == other.selfType.name &&
+          neverInvoke == other.neverInvoke &&
+          args.length == other.args.length &&
+          args.sameElements2(other.args) // this is required in case method have T* arguments
+        case _ => false
+      }
+    }
+
+    override lazy val hashCode: Int =
+      Objects.hash(receiver, method, selfType.name, neverInvoke.asInstanceOf[AnyRef], args.deepHashCode.asInstanceOf[AnyRef])
   }
 
   case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA)
