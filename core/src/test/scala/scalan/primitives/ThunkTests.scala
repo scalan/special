@@ -54,6 +54,16 @@ class ThunkTests extends BaseCtxTests {
     }
   }
 
+  test("Thunk matchDefs") {
+    val ctx = new TestContext with MyProg
+    import ctx._
+    val f = { x: Rep[Int] => x > 1 && Thunk.forced{ x * x < 1 } }
+    val f1 = fun(f)
+    val f2 = fun(f)
+    emit("equality", f1, f2)
+    f1 shouldBe f2
+  }
+
   test("thunksWithoutInlining") {
     val ctx = new TestContext with MyProg {
       def test() = {
