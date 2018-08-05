@@ -9,6 +9,7 @@ trait Entities extends TypeDescs { self: Scalan =>
   
   abstract class EntityElem[A] extends Elem[A] with scala.Equals {
     def parent: Option[Elem[_]]
+    def prestagedClass: Class[_] = !!!(s"Entity $this doesn't have prestagedClass")
     val entityName: String = {
       val elemClassSymbol = ReflectionUtil.classToSymbol(this.getClass)
       val n = elemClassSymbol.name.toString.stripSuffix("Elem")
