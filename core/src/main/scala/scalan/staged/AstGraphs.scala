@@ -54,7 +54,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def freeVars: Set[Sym] = {
       val alldeps = schedule.flatMap { tp => tp.rhs.getDeps }.toSet
-      val free = alldeps filter { s => !(isLocalDef(s) || boundVars.contains(s)) }
+      val free = alldeps filter { s => !(isLocalDef(s) || isBoundVar(s)) }
       free
     }
 
@@ -86,10 +86,11 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def iterateIfs = schedule.iterator.filter(_.isIfThenElse)
 
-    def isIdentity: Boolean = boundVars == roots
-    def isLocalDef(s: Sym): Boolean = scheduleSyms contains s
-    def isLocalDef[T](tp: TableEntry[T]): Boolean = isLocalDef(tp.sym)
-    def isRoot(s: Sym): Boolean = roots contains s
+    @inline def isIdentity: Boolean = boundVars == roots
+    @inline def isBoundVar(s: Sym) = boundVars.contains(s)
+    @inline def isLocalDef(s: Sym): Boolean = scheduleSyms contains s
+    @inline def isLocalDef[T](tp: TableEntry[T]): Boolean = isLocalDef(tp.sym)
+    @inline def isRoot(s: Sym): Boolean = roots contains s
 
     lazy val scheduleAll: Schedule =
       schedule.flatMap {
