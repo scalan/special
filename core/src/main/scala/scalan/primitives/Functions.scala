@@ -11,7 +11,6 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def apply(x: Rep[A]): Rep[B] = mkApply(f, x)
     def >>[C](g: Rep[B => C]) = compose(g, f)
     def <<[C](g: Rep[C => A]) = compose(f, g)
-    def compile: A => B = self.compile(f)
   }
   implicit def fun[A,B](f: Rep[A] => Rep[B])(implicit eA: LElem[A]): Rep[A => B] = mkLambda(f, true)
   implicit def fun2[A,B,C](f: (Rep[A], Rep[B])=>Rep[C])(implicit eA: LElem[A], eB: LElem[B]): Rep[((A,B))=>C] = mkLambda(f)
@@ -336,10 +335,6 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     implicit val eA = g.elem.eDom
     implicit val eC = f.elem.eRange
     fun { x => f(g(x)) }
-  }
-
-  def compile[A, B](f: Rep[A => B]): A => B = {
-    ???
   }
 
   override def rewriteDef[T](d: Def[T]) = d match {
