@@ -3,9 +3,12 @@ package scalan.primitives
 import scalan.{Base, Scalan}
 
 trait Equal extends Base { self: Scalan =>
-  case class Equals[A]() extends BinOp[A, Boolean]("==", _ == _)
+  case class Equals[A: Elem]() extends BinOp[A, Boolean]("==", equalValues[A](_, _))
+
+  def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = x == y
 
   implicit class EqualOps[A](x: Rep[A]) {
+    implicit val eA = x.elem
     def ===(y: Rep[A]): Rep[Boolean] = Equals[A].apply(x, y)
     def !==(y: Rep[A]): Rep[Boolean] = !Equals[A].apply(x, y)
   }

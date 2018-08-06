@@ -1,7 +1,7 @@
 package scalan
 
 import java.lang.reflect.Method
-
+import java.util.Objects
 import special.collection.{CostsModule, ConcreteCostsModule, ColsModule, MonoidsModule, ColsOverArraysModule, MonoidInstancesModule}
 import special.wrappers.{WrappersModule, WrappersSpecModule}
 import special.wrappers.impl.WrappersSpecModule
@@ -18,6 +18,11 @@ trait Library extends Scalan
   with MonoidsModule
   with MonoidInstancesModule {
   import WArray._; import Col._; import ColBuilder._; import ReplCol._
+
+  override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
+    case ea: WArrayElem[_,_] => Objects.deepEquals(x, y)
+    case _ => super.equalValues[A](x, y)
+  }
 
   override protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = receiver.elem match {
     case ae: WArrayElem[a, _] => m.getName match {

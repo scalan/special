@@ -61,6 +61,7 @@ def libraryDefSettings = commonSettings ++ Seq(
 
 lazy val allConfigDependency = "compile->compile;test->test"
 
+pomIncludeRepository := { _ => false }
 cancelable in Global := true
 
 lazy val common = Project("common", file("common"))
@@ -148,9 +149,6 @@ lazy val kotlinBackend = Project("kotlin-backend", file("kotlin-backend")).
     dependsOn(common % allConfigDependency, core % allConfigDependency, library)
     .configs(IntegrationTest)
     .settings(itSettings)
-    .settings(
-      //    libraryDependencies += "org.luaj" % "luaj-jse" % "3.0.1"
-    )
 
 lazy val toolkit = Project("toolkit", file("toolkit")).
     dependsOn(common % allConfigDependency, meta % allConfigDependency, core % allConfigDependency, library % allConfigDependency)
