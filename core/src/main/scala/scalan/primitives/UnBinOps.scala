@@ -16,6 +16,7 @@ trait UnBinOps extends Base { self: Scalan =>
     override def toString = opName
 
     def apply(lhs: Rep[A], rhs: Rep[A]) = applyBinOp(this, lhs, rhs)
+    def applyLazy(lhs: Rep[A], rhs: Rep[Thunk[A]]) = applyBinOpLazy(this, lhs, rhs)
 
     // ideally shouldn't be necessary, but
     // we curently can't handle division by zero properly
@@ -32,10 +33,14 @@ trait UnBinOps extends Base { self: Scalan =>
   case class ApplyBinOp[A, R](op: BinOp[A, R], lhs: Exp[A], rhs: Exp[A]) extends BaseDef[R]()(op.eResult) {
     override def toString = s"$op($lhs, $rhs)"
   }
+  case class ApplyBinOpLazy[A, R](op: BinOp[A, R], lhs: Exp[A], rhs: Exp[Thunk[A]]) extends BaseDef[R]()(op.eResult) {
+    override def toString = s"$op($lhs, $rhs)"
+  }
 
   def applyUnOp[A, R](op: UnOp[A, R], arg: Rep[A]): Rep[R] = ApplyUnOp(op, arg)
 
   def applyBinOp[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[A]): Rep[R] = ApplyBinOp(op, lhs, rhs)
+  def applyBinOpLazy[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[Thunk[A]]): Rep[R] = ApplyBinOpLazy(op, lhs, rhs)
 
   override def rewriteDef[T](d: Def[T]): Sym =
     currentPass.config.constantPropagation match {
