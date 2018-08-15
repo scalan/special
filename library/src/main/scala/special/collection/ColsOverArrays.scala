@@ -25,7 +25,7 @@ package special.collection {
       def builder: Rep[ColOverArrayBuilder] = RColOverArrayBuilder();
       def length: Rep[Int] = ColOverArray.this.arr.length;
       def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i);
-      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ColOverArray.this.builder.fromArray[B](ColOverArray.this.arr.map(f));
+      def map[@Reified B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ColOverArray.this.builder.fromArray[B](ColOverArray.this.arr.map(f));
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = ColOverArray.this.arr.foreach(f);
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = ColOverArray.this.arr.exists(p);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = ColOverArray.this.arr.forall(p);

@@ -13,7 +13,7 @@ package special.collection {
       def arr: Rep[WArray[A]];
       def length: Rep[Int];
       def apply(i: Rep[Int]): Rep[A];
-      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]];
+      def map[@Reified B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]];
       def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys);
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit];
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];
