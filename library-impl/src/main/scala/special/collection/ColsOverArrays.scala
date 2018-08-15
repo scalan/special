@@ -11,7 +11,7 @@ import scalan.{Internal, OverloadId}
 trait BaseColBuilder extends ColBuilder {
   @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
   @OverloadId("apply_items") def apply[T](items: T*): Col[T] = {
-    implicit val tagT = ClassTag[T](items(0).getClass)
+    implicit val tagT = ClassTag.Any.asInstanceOf[ClassTag[T]]
     new ColOverArray[T](items.toArray)
   }
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
