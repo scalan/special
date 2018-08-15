@@ -34,7 +34,7 @@ trait UnBinOps extends Base { self: Scalan =>
     override def toString = s"$op($lhs, $rhs)"
   }
   case class ApplyBinOpLazy[A, R](op: BinOp[A, R], lhs: Exp[A], rhs: Exp[Thunk[A]]) extends BaseDef[R]()(op.eResult) {
-    override def toString = s"$op($lhs, $rhs)"
+    override def toString = s"$lhs $op { $rhs }"
   }
 
   def applyUnOp[A, R](op: UnOp[A, R], arg: Rep[A]): Rep[R] = ApplyUnOp(op, arg)

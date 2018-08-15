@@ -12,10 +12,8 @@ trait Blocks extends Base { self: Scalan =>
 
   case class Semicolon[A,B](left: Rep[A], right: Rep[B]) extends BaseDef[B]()(right.elem)
   case class SemicolonMulti[B](left: Seq[Rep[_]], right: Rep[B]) extends BaseDef[B]()(right.elem)
-  case class ValDef[T](name: String, rhs: Rep[Thunk[T]]) extends BaseDef[T]()(rhs.elem.eItem)
 
   def semicolon[A,B](left: Rep[A], right: Rep[B]): Rep[B] = {
-//    implicit val eR = right.elem
     Semicolon(left, right)
   }
   def semicolonMulti[B](xs: Seq[Rep[_]], y: Rep[B]): Rep[B] = {
@@ -26,7 +24,6 @@ trait Blocks extends Base { self: Scalan =>
       else SemicolonMulti(notPure, y)
     res
   }
-  def valDef[T](name: String, rhs: Rep[Thunk[T]]): Rep[T] = ValDef(name, rhs)
 
   def peelViews(x: Rep[_]): Rep[_] = x match {
     case Def(PairView(s,_,_)) => peelViews(s)

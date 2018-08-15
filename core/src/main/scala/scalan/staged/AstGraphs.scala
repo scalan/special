@@ -144,7 +144,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       }
 
       for (TableEntry(s, d) <- scheduleAll) {
-        val usedSymbols = d.getDeps
+        val usedSymbols = syms(d)
         usedSymbols.foreach(us => addUsage(us, s))
       }
       defMap
@@ -156,14 +156,14 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def globalUsagesOf(s: Sym) = allNodes.get(s) match {
       case Some(node) => node.outSyms
-      case None => List()
+      case None => Nil
     }
 
     def hasManyUsagesGlobal(s: Sym): Boolean = globalUsagesOf(s).lengthCompare(1) > 0
 
     def usagesOf(s: Sym) = node(s) match {
       case Some(node) => node.outSyms
-      case None => List()
+      case None => Nil
     }
 
     def hasManyUsages(s: Sym): Boolean = usagesOf(s).lengthCompare(1) > 0

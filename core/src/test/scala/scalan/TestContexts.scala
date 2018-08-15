@@ -24,7 +24,16 @@ trait TestContexts extends TestUtils {
     }
   }
 
-  abstract class TestContext(val testName: String) extends Scalan {
+  trait TestContextApi { scalan: Scalan =>
+    def invokeAll: Boolean
+    def isInvokeEnabled(d: Def[_], m: Method): Boolean
+    def shouldUnpack(e: Elem[_]): Boolean
+
+    def emit(name: String, ss: Sym*): Unit
+    def emit(s1: => Sym): Unit
+    def emit(s1: => Sym, s2: Sym*): Unit
+  }
+  abstract class TestContext(val testName: String) extends Scalan with TestContextApi {
     def this() = this(currentTestNameAsFileName)
 
     override val invokeAll = true

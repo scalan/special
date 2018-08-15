@@ -28,7 +28,6 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
       new ProgramGraph(newRoots, mapping)
     }
 
-
     def withoutContext = ProgramGraph(roots, implicitly[TransformerOps[Ctx]].empty)
   }
 
