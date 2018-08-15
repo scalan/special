@@ -225,9 +225,17 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
       super.matchDefs(d1, d2, allowInexactMatch, subst)
   }
 
+  object ConstantThunk {
+    def unapply(d: Def[_]): Option[Rep[_]] = d match {
+      case ThunkDef(root @ Def(Const(_)), sch) if sch.map(_.sym) == Seq(root) => Some(root)
+      case _ => None
+    }
+    def unapply(s: Sym): Option[Rep[_]] = s match { case Def(d) => unapply(d) case _ => None }
+  }
+
   override def rewriteDef[T](d: Def[T]) = d match {
-    case ThunkForce(Def(ThunkDef(root @ Def(Const(_)), sch))) if sch.map(_.sym) == Seq(root) =>
-      root
+    case ThunkForce(ConstantThunk(root)) => root
+    case ApplyBinOpLazy(op, l, ConstantThunk(root)) => op.apply(l, root)
     case th @ ThunkDef(HasViews(srcRes, iso: Iso[a,b]), _) => {
       implicit val eA = iso.eFrom
       implicit val eB = iso.eTo
