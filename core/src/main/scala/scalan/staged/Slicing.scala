@@ -99,7 +99,7 @@ trait Slicing extends Scalan {
               Seq[MarkedSym](a.marked(ma.asMark[a]), b.marked(mb.asMark[b]))
           }
 
-        case Apply(f: RFunc[a, b], x) =>
+        case Apply(f: RFunc[a, b], x, _) =>
           val mB = outMark.asMark[b]
           val FuncMarking(mA, _) = analyzeFunc(f, mB)
           Seq[MarkedSym](x.marked(mA))
@@ -797,13 +797,13 @@ trait Slicing extends Scalan {
         case None =>
           assert(false, s"Field $name accessed in a sliced struct with source ${p.toStringWithDefinition}, mark $m")
       }
-    case Apply(IsSliced(f: RFunc[a, b] @unchecked, m: FuncMarking[c, _]), x) =>
+    case Apply(IsSliced(f: RFunc[a, b] @unchecked, m: FuncMarking[c, _]), x, _) =>
       val x1 = m.mDom.projectToExp(x.asRep[c]).asRep[a]
       assert(x1.elem == f.elem.eDom)
       val y1 = f(x1)
       Sliced(y1, m.mRange)
 
-    case Apply(f: RFunc[a, b] @unchecked, IsSliced(x: Rep[c], m)) =>
+    case Apply(f: RFunc[a, b] @unchecked, IsSliced(x: Rep[c], m), _) =>
       // is this correct?
       val f1 = sliceIn(f, m.asMark[a]).asRep[c => b]
       f1(x)

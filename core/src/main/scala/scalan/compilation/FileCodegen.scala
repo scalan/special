@@ -202,7 +202,7 @@ abstract class FileCodegen[+ScalanCake <: Scalan](val scalan: ScalanCake, val co
     case Const(x) => literal(x)
     case ApplyUnOp(op, x) => unOp(op, x)
     case ApplyBinOp(op, x, y) => binOp(op, x, y)
-    case Apply(f, x) =>
+    case Apply(f, x, _) =>
       val args = argList(f, x)
       applyFunction(f, args)
     case ThunkForce(th) =>

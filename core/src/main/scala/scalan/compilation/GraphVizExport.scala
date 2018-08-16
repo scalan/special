@@ -115,7 +115,7 @@ trait GraphVizExport { self: Scalan =>
       val viewStr = d.toString
       val isoStr = v.iso.toString
       s"$viewStr (iso: $isoStr)" */
-    case Apply(f, arg) => s"$f($arg)"
+    case Apply(f, arg, _) => s"$f($arg)"
     case Tup(a, b) => s"($a, $b)"
     case First(pair) => s"$pair._1"
     case Second(pair) => s"$pair._2"

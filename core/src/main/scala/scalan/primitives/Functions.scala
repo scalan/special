@@ -113,12 +113,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def unapply[A,B](lam: Lambda[A, B]): Boolean = lam.isIdentity
   }
 
-  case class Apply[A,B]
-    (f: Exp[A => B], arg: Exp[A])
-    (implicit val eB: LElem[B])   // enforce explicit laziness at call sites to tie recursive knot (see executeFunction)
-      extends Def[B]
-  {
-    def selfType = eB.value
+  case class Apply[A,B](f: Exp[A => B], arg: Exp[A], mayInline: Boolean = true) extends Def[B] {
+    def selfType = f.elem.eRange
   }
 
   implicit class LambdaExtensions[A, B](lam: Lambda[A,B]) {
@@ -230,7 +226,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
               else
                 !!!(s"Stack overflow in applying non-recursive $f($x)", e, f, x)
           }
-        case Def(Apply(_, _)) => // function that is a result of Apply (curried application)
+        case Def(Apply(_, _, _)) => // function that is a result of Apply (curried application)
           Apply(f, x)
         case _ => // unknown function
           Apply(f, x)
@@ -313,7 +309,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         res
       case Some(fs) => // hit recursion call !
         fs.isRecursive = true
-        Apply(fs.asInstanceOf[Exp[A=>B]], x)(Lazy(fSym.elem.eRange))
+        Apply(fs.asInstanceOf[Exp[A=>B]], x)
     }
   }
 
@@ -338,7 +334,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   }
 
   override def rewriteDef[T](d: Def[T]) = d match {
-    case Apply(f @ Def(l: Lambda[a,b]), x) if l.mayInline => {
+    case Apply(f @ Def(l: Lambda[a,b]), x, mayInline) if mayInline && l.mayInline => {
       f(x)
     }
     case _ => super.rewriteDef(d)

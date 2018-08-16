@@ -18,6 +18,8 @@ trait Library extends Scalan
   with MonoidsModule
   with MonoidInstancesModule {
   import WArray._; import Col._; import ColBuilder._; import ReplCol._
+  import Costed._;
+  import CostedFunc._; import Closure._
 
   override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
     case ea: WArrayElem[_,_] => Objects.deepEquals(x, y)
@@ -90,4 +92,11 @@ trait Library extends Scalan
     case _ => super.rewriteDef(d)
   }
 
+  implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
+    def applyCost(x: Rep[A]): Rep[Int] = {
+      val cf = fC.asRep[CostedFunc[Any, A, B]]
+      val y = cf.costFunc.apply(x).asRep[Int]
+      y
+    }
+  }
 }
