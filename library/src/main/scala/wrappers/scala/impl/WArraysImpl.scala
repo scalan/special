@@ -7,7 +7,9 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-// Abs -----------------------------------
+  import scala.collection.mutable
+
+  // Abs -----------------------------------
 trait WArraysDefs extends scalan.Scalan with WArrays {
   self: WrappersModule =>
 import IsoUR._
@@ -15,6 +17,23 @@ import Converter._
 import WArray._
 
 object WArray extends EntityObject("WArray") {
+  case class WArrayConst[T] (arr: mutable.WrappedArray[T], eT: Elem[T]) extends WArray[T] {
+    val selfType: Elem[WArray[T]] = wArrayElement(eT)
+
+    def apply(i: Rep[Int]): Rep[T] = delayInvoke
+    def foreach(f: Rep[T => Unit]): Rep[Unit] = delayInvoke
+    def exists(p: Rep[T => Boolean]): Rep[Boolean] = delayInvoke
+    def forall(p: Rep[T => Boolean]): Rep[Boolean] = delayInvoke
+    def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = delayInvoke
+    def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = delayInvoke
+    def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = delayInvoke
+    def length: Rep[Int] = delayInvoke
+    def map[B](f: Rep[T => B]): Rep[WArray[B]] = delayInvoke
+    def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = delayInvoke
+  }
+
+  def mkWArrayConst[T](arr: Array[T])(implicit eT: Elem[T]): Rep[WArray[T]] = WArrayConst[T](arr, eT)
+
   // entityProxy: single proxy for each type family
   implicit def proxyWArray[T](p: Rep[WArray[T]]): WArray[T] = {
     proxyOps[WArray[T]](p)(scala.reflect.classTag[WArray[T]])

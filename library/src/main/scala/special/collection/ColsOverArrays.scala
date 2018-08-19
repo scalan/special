@@ -45,7 +45,9 @@ package special.collection {
         m.plus(b, a)
       })))
     };
-    abstract class ColOverArrayBuilder extends BaseColBuilder;
+    abstract class ColOverArrayBuilder extends BaseColBuilder {
+      override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke
+    }
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       override def builder: Rep[ColBuilder] = RColOverArrayBuilder();
       override def arr: Rep[WArray[scala.Tuple2[L, R]]] = PairOfCols.this.ls.arr.zip(PairOfCols.this.rs.arr);
