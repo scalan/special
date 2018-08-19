@@ -4,33 +4,70 @@ import scalan.{Base, Scalan}
 
 trait IfThenElse extends Base with Effects { self: Scalan =>
   import IsoUR._
+
+  /** If c then t else e construction with standard lazy evaluation of branches.
+    * The representation uses Thunk for each branch */
   def IF(cond: Rep[Boolean]): IfBranch = new IfBranch(cond)
 
   class IfBranch(cond: Rep[Boolean]) {
     def apply[T](thenp: => Rep[T]) = THEN(thenp)
 
-    def THEN[T](thenp: => Rep[T]) = new ThenBranch[T](cond, thenp)
+    def THEN[T](thenp: => Rep[T]) = new ThenIfBranch[T](cond, thenp)
   }
 
-  class ElseIfBranch[T](cond: Rep[Boolean], outer: ThenBranch[T]) {
+  class ElseIfBranch[T](cond: Rep[Boolean], outer: ThenIfBranch[T]) {
     def apply(thenp: => Rep[T]) = THEN(thenp)
 
-    def THEN(thenp: => Rep[T]) = new ThenBranch[T](cond, thenp) {
+    def THEN(thenp: => Rep[T]) = new ThenIfBranch[T](cond, thenp) {
       override def ELSE(elsep: => Rep[T]) = outer.elseIf(cond, thenp, elsep)
     }
   }
 
-  class ThenBranch[T](cond: Rep[Boolean], thenp: => Rep[T]) {
+  class ThenIfBranch[T](cond: Rep[Boolean], thenp: => Rep[T]) {
+    def ELSE(elsep: => Rep[T]): Rep[T] = ifThenElseLazy(cond, thenp, elsep)
+
+    def elseIf(cond1: => Rep[Boolean], thenp1: => Rep[T], elsep1: => Rep[T]) =
+      ELSE(ifThenElseLazy(cond1, thenp1, elsep1))
+
+    def ELSEIF(cond1: => Rep[Boolean]) = new ElseIfBranch[T](cond1, this)
+  }
+
+  /** If c then t else e construction with automatic branch construction based on data flow analysis. */
+  def IFF(cond: Rep[Boolean]): IffBranch = new IffBranch(cond)
+
+  class IffBranch(cond: Rep[Boolean]) {
+    def apply[T](thenp: => Rep[T]) = THEN(thenp)
+
+    def THEN[T](thenp: => Rep[T]) = new ThenIffBranch[T](cond, thenp)
+  }
+
+  class ElseIffBranch[T](cond: Rep[Boolean], outer: ThenIffBranch[T]) {
+    def apply(thenp: => Rep[T]) = THEN(thenp)
+
+    def THEN(thenp: => Rep[T]) = new ThenIffBranch[T](cond, thenp) {
+      override def ELSE(elsep: => Rep[T]) = outer.elseIf(cond, thenp, elsep)
+    }
+  }
+
+  class ThenIffBranch[T](cond: Rep[Boolean], thenp: => Rep[T]) {
     def ELSE(elsep: => Rep[T]): Rep[T] = ifThenElse(cond, thenp, elsep)
 
     def elseIf(cond1: => Rep[Boolean], thenp1: => Rep[T], elsep1: => Rep[T]) =
       ELSE(ifThenElse(cond1, thenp1, elsep1))
 
-    def ELSEIF(cond1: => Rep[Boolean]) = new ElseIfBranch[T](cond1, this)
+    def ELSEIF(cond1: => Rep[Boolean]) = new ElseIffBranch[T](cond1, this)
   }
 
   case class IfThenElse[T](cond: Exp[Boolean], thenp: Exp[T], elsep: Exp[T]) extends Def[T] {
     lazy val selfType = thenp.elem.leastUpperBound(elsep.elem).asElem[T]
+  }
+
+  case class IfThenElseLazy[T](cond: Exp[Boolean], thenp: Rep[Thunk[T]], elsep: Exp[Thunk[T]]) extends Def[T] {
+    lazy val selfType = {
+      val eThen = thenp.elem.eItem
+      val eElse = elsep.elem.eItem
+      eThen.leastUpperBound(eElse).asElem[T]
+    }
   }
 
   def reifyBranch[T](b: => Exp[T]): Exp[T] = {
@@ -42,6 +79,12 @@ trait IfThenElse extends Base with Effects { self: Scalan =>
     val t = reifyBranch(thenp)
     val e = reifyBranch(elsep)
     IfThenElse(cond, t, e)
+  }
+
+  def ifThenElseLazy[T](cond: Exp[Boolean], thenp: => Exp[T], elsep: => Exp[T]): Exp[T] = {
+    val t = Thunk(thenp)
+    val e = Thunk(elsep)
+    IfThenElseLazy(cond, t, e)
   }
 
   implicit class IfThenElseOps[T](tableEntry: TableEntry[T]) {
@@ -92,7 +135,7 @@ trait IfThenElse extends Base with Effects { self: Scalan =>
     val ea = iso1.eFrom
     val eb = iso2.eFrom
     implicit val ec = iso1.eTo
-    val source = IF (cond) THEN { mkLeft(a)(eb) } ELSE { mkRight(b)(ea) }
+    val source = ifThenElse(cond, { mkLeft(a)(eb) }, { mkRight(b)(ea) })
     val res = SumView(source)(iso1, iso2).self.joinSum
     res
   }
@@ -166,7 +209,7 @@ trait IfThenElse extends Base with Effects { self: Scalan =>
 
     // Rule: (if (c1) t1 else e1, if (c2) t2 else e2) when c1 == c2 ==> if (c1) (t1, t2) else (e1, e2)
     case Tup(Def(IfThenElse(c1, t1, e1)), Def(IfThenElse(c2, t2, e2))) if c1 == c2 =>
-      IF (c1) THEN { Pair(t1, t2) } ELSE { Pair(e1, e2) }
+      ifThenElse(c1, { Pair(t1, t2) }, { Pair(e1, e2) })
 
     // These two rules are commented now. Seem to be inefficient (see test37pairIf test in LmsSmokeItTests )
     /*
@@ -184,7 +227,7 @@ trait IfThenElse extends Base with Effects { self: Scalan =>
     // Rule: (if (c) t else e)(arg) ==> if (c) t(arg) else e(arg)
     case apply: Apply[a, b] => apply.f match {
       case Def(IfThenElse(c, t, e)) =>
-        IF (c) { t.asRep[a=>b](apply.arg) } ELSE { e.asRep[a=>b](apply.arg) }
+        ifThenElse(c, { t.asRep[a=>b](apply.arg) }, { e.asRep[a=>b](apply.arg) })
       case _ => super.rewriteDef(d)
     }
 

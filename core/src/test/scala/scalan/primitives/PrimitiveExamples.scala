@@ -17,8 +17,8 @@ trait PrimitiveExamples extends Scalan {
 
   lazy val ifsWithCommonCond = fun { a: Rep[Int] =>
     val c = a * 2
-    val if1 = IF (a < 10) THEN { c } ELSE {a - 1}
-    val if2 = IF (a < 10) THEN {c + 1} ELSE {a - 1}
+    val if1 = IFF (a < 10) THEN { c } ELSE {a - 1}
+    val if2 = IFF (a < 10) THEN {c + 1} ELSE {a - 1}
 
     if1 + if2
   }

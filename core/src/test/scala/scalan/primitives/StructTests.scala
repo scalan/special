@@ -42,7 +42,7 @@ trait StructExamples extends Scalan with SegmentsModule with MetaTestsModule {
     // If rewritings are added which optimize this to `if (n > 0) then n else n + 1`, change this!
     val s1 = struct("a" -> n, "b" -> n)
     val s2 = struct("a" -> (n + 1), "b" -> (n + 2))
-    val s3 = IF (n > 0) THEN s1 ELSE s2
+    val s3 = IFF (n > 0) THEN s1 ELSE s2
     s3.get[Int]("a") + s3.get[Int]("b")
   }
 
@@ -104,7 +104,7 @@ trait StructExamples extends Scalan with SegmentsModule with MetaTestsModule {
   }
   lazy val t15 = structWrapper(fun { (in: Rep[(Int,Int)]) =>
     val Pair(x, y) = in
-    IF (x > y) { Pair(x,y) } ELSE { Pair(y,x) }
+    IFF (x > y) { Pair(x,y) } ELSE { Pair(y,x) }
   })
 //  lazy val t16 = structWrapper(fun { (in: Rep[((Array[(Int,Int)],Array[((Int,Int), Boolean)]),Int)]) =>
 //    val Pair(Pair(segs1, segs2), z) = in

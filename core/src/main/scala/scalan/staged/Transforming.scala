@@ -244,15 +244,15 @@ trait Transforming { self: Scalan =>
       g.branches.ifBranches.get(node) match {
         case Some(branches) =>
           var tRes: Ctx = t
-          val newIte = IF (t(ite.cond)) THEN {
+          val newIte = ifThenElse(t(ite.cond), {
             val (t1, res) = mirrorBranch(t, rewriter, g, branches.thenBody)
             tRes = t1
             res
-          } ELSE {
+          }, {
             val (t2, res) = mirrorBranch(tRes, rewriter, g, branches.elseBody)
             tRes = t2
             res
-          }
+          })
           (tRes + (node -> newIte), newIte)
         case _ =>
           mirrorDef(t, rewriter, node, ite)

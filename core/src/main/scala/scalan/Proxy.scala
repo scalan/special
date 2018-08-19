@@ -127,11 +127,10 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       def copyMethodCall(newReceiver: Sym) =
         mkMethodCall(newReceiver, m, args, neverInvoke)
 
-      IF (cond) {
-        copyMethodCall(t)
-      } ELSE {
+      ifThenElse(cond,
+        copyMethodCall(t),
         copyMethodCall(e)
-      }
+      )
 
     case call @ MethodCall(receiver, m, args, neverInvoke) =>
       call.tryInvoke match {

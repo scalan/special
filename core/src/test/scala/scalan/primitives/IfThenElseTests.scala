@@ -7,18 +7,18 @@ abstract class IfThenElseTests[A <: Scalan](val ctx: A) extends BaseTests {
   import ctx._
 
   test("simpleIf") {
-    val res = IF (true) THEN 1 ELSE 0
+    val res = IFF (true) THEN 1 ELSE 0
     res shouldEqual toRep(1)
   }
 
   test("elseIf") {
-    val res = IF (false) THEN 0 ELSEIF false THEN 1 ELSE 2
+    val res = IFF (false) THEN 0 ELSEIF false THEN 1 ELSE 2
     res shouldEqual toRep(2)
   }
 
   test("nestedElseIf") {
-    val res1 = IF (false) THEN 0 ELSEIF false THEN 1 ELSEIF true THEN 2 ELSE 3
-    val res2 = IF (false) THEN 0 ELSEIF false THEN 1 ELSEIF false THEN 2 ELSE 3
+    val res1 = IFF (false) THEN 0 ELSEIF false THEN 1 ELSEIF true THEN 2 ELSE 3
+    val res2 = IFF (false) THEN 0 ELSEIF false THEN 1 ELSEIF false THEN 2 ELSE 3
     res1 shouldEqual toRep(2)
     res2 shouldEqual toRep(3)
   }
@@ -34,7 +34,7 @@ class IfThenElseTestsExp extends IfThenElseTests(new Scalan with MetaTestsModule
 
   test("type of if-then-else is the upper bound of its branches") {
     val c = fresh[Boolean]
-    val x = IF (c) THEN RMT0(0).asRep[Any] ELSE RMT1(toRep(()), 0).asRep[Any]
+    val x = IFF (c) THEN RMT0(0).asRep[Any] ELSE RMT1(toRep(()), 0).asRep[Any]
     x.elem shouldEqual element[MetaTest[Unit]]
   }
 }
