@@ -4,7 +4,7 @@ package special.collection {
   trait Costs extends Base { self: Library =>
     import CostedBuilder._;
     import Costed._;
-    trait Costed[Val] extends Def[Costed[Val]] with Sized[Val] {
+    trait Costed[Val] extends Def[Costed[Val]] {
       implicit def eVal: Elem[Val];
       def builder: Rep[CostedBuilder];
       def value: Rep[Val];

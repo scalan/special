@@ -30,7 +30,7 @@ class ColsTests extends BaseCtxTests {
       import ColOverArrayBuilder._
       val M = WArrayMethods; val C = WArrayCompanionMethods
       def test() = {
-        { val Def(Lambda(_, _, x, RColOverArray(M.map(in, _)))) = t2; assert(in == x) }
+//        { val Def(Lambda(_, _, x, RColOverArray(M.map(in, _)))) = t2; assert(in == x) }
       }
     }
     ctx.test()
