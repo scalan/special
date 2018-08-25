@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 /** Relate annotated element with internal type or method given by `value` property.
 * Applied to entities that should be replaced during virtualization by related type.
 * The given related type is said to be pre-virtualized.
-* The 'value' is a name of the class which can resolved in a Scalan cake. E.g. IsoUR*/
+* The 'value' is a name of the class which can be resolved in a Scalan cake. E.g. IsoUR*/
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Builtin {
