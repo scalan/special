@@ -7,6 +7,19 @@ trait UniversalOps extends Base { self: Scalan =>
 
   case class ToString[A]() extends UnOp[A, String]("toString", _.toString)
 
+  /** Represents calculation of size in bytes of the given value.
+    * The descriptor value.elem can be used to decompose value into components.
+    */
+  case class SizeOf[T](value: Rep[T]) extends BaseDef[Long]
+
+  def sizeOf[T](value: Rep[T]): Rep[Long] = SizeOf(value)
+
+  case class Downcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo)
+  case class Upcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo)
+
+  def downcast[To:Elem](value: Rep[_]): Rep[To] = Downcast(value, element[To])
+  def upcast[To:Elem](value: Rep[_]): Rep[To] = Upcast(value, element[To])
+
   implicit class RepUniversalOps[A](x: Rep[A]) {
     def hashCodeRep: Rep[Int] = HashCode[A]().apply(x)
     def toStringRep = ToString[A]().apply(x)

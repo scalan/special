@@ -21,18 +21,11 @@ trait Library extends Scalan
   import Costed._;
   import CostedFunc._; import Closure._
 
-  /** Represents calculation of size in bytes of the given value.
-    * The descriptor value.elem can be used to decompose value into components.
-    */
-  case class SizeOf[T](value: Rep[T]) extends BaseDef[Long]
-
   trait Sized[Val] { node: Costed[Val] =>
     lazy val dataSize: Rep[Long] = {
       sizeOf(value)
     }
   }
-
-  def sizeOf[T](value: Rep[T]): Rep[Long] = SizeOf(value)
 
   override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
     case ea: WArrayElem[_,_] => Objects.deepEquals(x, y)
