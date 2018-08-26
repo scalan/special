@@ -50,6 +50,8 @@ trait ColBuilder {
     case _ => ???
   }
 
+  def xor(left: Col[Byte], right: Col[Byte]): Col[Byte]
+
   def fromItemsTest: Col[Int] = this.apply(1, 2, 3)
   def fromArray[T](arr: Array[T]): Col[T]
   def replicate[T:ClassTag](n: Int, v: T): Col[T]

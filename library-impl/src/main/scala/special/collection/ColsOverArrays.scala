@@ -16,6 +16,10 @@ trait BaseColBuilder extends ColBuilder {
   }
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
   def replicate[T:ClassTag](n: Int, v: T) = this.fromArray(Array.fill(n)(v))
+
+  @NeverInline
+  def xor(left: Col[Byte], right: Col[Byte]) = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
+
   def dot[A](xs: Col[A], ys: Col[A]): A = ???
 }
 
