@@ -9,11 +9,16 @@ import scalan.util.CollectionUtil
 import scalan.{Internal, NeverInline, OverloadId}
 
 trait BaseColBuilder extends ColBuilder {
-  @OverloadId("apply")       def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
-  @OverloadId("apply_items") def apply[T](items: T*): Col[T] = {
+  @OverloadId("apply")
+  def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
+
+  @OverloadId("apply_items")
+  @NeverInline
+  def apply[T](items: T*): Col[T] = {
     implicit val tagT = ClassTag.Any.asInstanceOf[ClassTag[T]]
     new ColOverArray[T](items.toArray)
   }
+
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
   def replicate[T:ClassTag](n: Int, v: T) = this.fromArray(Array.fill(n)(v))
 
@@ -69,6 +74,7 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def arr: Array[(L, R)] = ls.arr.zip(rs.arr)
   override def length: Int = ls.length
   override def apply(i: Int): (L, R) = (ls(i), rs(i))
+  @NeverInline
   override def getOrElse(i: Int, default: => (L, R)) =
     if (i >= 0 && i < this.length)
       this.apply(i)
@@ -83,9 +89,9 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def filter(p: ((L, R)) => Boolean): Col[(L,R)] = new ColOverArray(arr.filter(p))
   override def fold[B](zero: B)(op: ((B, (L, R))) => B) = arr.foldLeft(zero)((b, a) => op((b,a)))
   override def slice(from: Int, until: Int) = builder(ls.slice(from, until), rs.slice(from, until))
-  def append(other: Col[(L, R)]) = {
-    val (ols, ors) = builder.unzip(other)
-    builder(ls.append(ols), rs.append(ors))
+  def append(other: Col[(L, R)]): Col[(L,R)] = {
+    val arrs = builder.unzip(other)
+    builder(ls.append(arrs._1), rs.append(arrs._2))
   }
   override def sum(m: Monoid[(L, R)]) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
 }
@@ -94,6 +100,7 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
   def builder: ColBuilder = new ReplColBuilder
   def arr: Array[A] = builder.replicate(length, value).arr
   def apply(i: Int): A = value
+  @NeverInline
   def getOrElse(i: Int, default: => A) = if (i >= 0 && i < this.length) value else default
   def map[B: ClassTag](f: A => B): Col[B] = new ReplCol(f(value), length)
   def foreach(f: A => Unit): Unit = ???

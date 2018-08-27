@@ -1,7 +1,7 @@
 package special.collection
 
 import scala.reflect.ClassTag
-import scalan.OverloadId
+import scalan.{OverloadId, NeverInline}
 import special.SpecialPredef._
 
 trait ConcreteCosted[Val] extends Costed[Val] {
@@ -22,16 +22,19 @@ class CostedSum[L,R](
       val left: Costed[Unit],
       val right: Costed[Unit]) extends ConcreteCosted[Either[L, R]]
 {
+  @NeverInline
   def cost: Int = left.cost max right.cost + builder.ConstructSumCost
+  @NeverInline
   def dataSize: Long = left.dataSize max right.dataSize + builder.SumTagSize
 }
 
+/** @param cost Cost of creating the closure object of this function, doesn't include the cost of creating environment
+  * @param dataSize Size of memory necessary to store the closure object, doesn't include the dataSize of storing environment
+  * */
 class CostedFunc[Env,Arg,Res](
       val envCosted: Costed[Env],
       val func: ((Env, Arg)) => Costed[Res],
-      /** Cost of creating the closure object of this function, doesn't include the cost of creating environment */
       val cost: Int,
-      /** Size of memory necessary to store the closure object, doesn't include the dataSize of storing environment */
       val dataSize: Long) extends ConcreteCosted[Arg => Res]
 {
   def value: Arg => Res = (a: Arg) => func.apply((this.envCosted.value, a)).value
