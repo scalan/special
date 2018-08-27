@@ -24,7 +24,7 @@ class ArrayWrapSpec extends WrapSpec {
 /** Wrappers spec for Option */
 class OptionWrapSpec extends WrapSpec {
   def get[A](xs: Option[A]): A = xs.get
-  def getOrElse[A](xs: Option[A], default: A): A = xs.getOrElse(default)
+  def getOrElse[A](xs: Option[A], default: =>A): A = xs.getOrElse(default)
   def map[A,B](xs: Option[A], f: A => B): Option[B] = xs.map(f)
   def flatMap[A,B](xs: Option[A], f: A => Option[B]): Option[B] = xs.flatMap(f)
   def filter[A](xs: Option[A], f: A => Boolean): Option[A] = xs.filter(f)
