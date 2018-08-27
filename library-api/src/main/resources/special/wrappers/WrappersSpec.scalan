@@ -22,6 +22,7 @@ package special.wrappers {
     };
     abstract class OptionWrapSpec extends WrapSpec {
       def get[A](xs: Rep[WOption[A]]): Rep[A] = xs.get;
+      def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = xs.getOrElse[A](default);
       def map[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, B]]): Rep[WOption[B]] = xs.map[B](f);
       def flatMap[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]] = xs.flatMap[B](f);
       def filter[A](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = xs.filter(f);

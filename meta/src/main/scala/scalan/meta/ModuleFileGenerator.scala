@@ -343,9 +343,9 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
       |
       |${methodExtractorsString(unit, config, e.entity)}
       |
-      |${e.when(_.isCont, emitContainerRewriteDef)}
       |} // of object ${e.name}
       |  registerEntityObject("$entityName", $entityName)
+      |${e.when(_.isCont, emitContainerRewriteDef)}
       |""".stripMargin
   }
 

@@ -110,7 +110,11 @@ object ScalanAstExtensions {
 
     def declaration(config: UnitConfig, includeOverride: Boolean) = {
       val typesDecl = md.tpeArgs.declString
-      val argss = md.argSections.rep(sec => s"(${sec.argNamesAndTypes(config).rep()})", "")
+      val argss = md.argSections.rep(sec => {
+        val hasImplicits = sec.args.exists(_.impFlag)
+        val implicitWord = if (hasImplicits) "implicit " else ""
+        s"($implicitWord${sec.argNamesAndTypes(config).rep()})"
+      }, "")
       s"${includeOverride.opt("override ")}def ${md.name}$typesDecl$argss: ${explicitReturnType(config)}"
     }
   }

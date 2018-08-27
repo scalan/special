@@ -30,22 +30,22 @@ class OptionWrapSpec extends WrapSpec {
   def filter[A](xs: Option[A], f: A => Boolean): Option[A] = xs.filter(f)
   def isDefined[A](xs: Option[A]): Boolean  = xs.isDefined
   def isEmpty[A](xs: Option[A]): Boolean  = xs.isEmpty
-  def fold[A,B](xs: Option[A], ifEmpty: B, f: A => B): B = xs.fold(ifEmpty)(f)
+  def fold[A,B](xs: Option[A], ifEmpty: =>B, f: A => B): B = xs.fold(ifEmpty)(f)
 };
 
 /** Wrappers spec for Either */
 class EitherWrapSpec extends WrapSpec {
   def fold[A,B,C](xs: Either[A,B], fa: A => C, fb: B => C): C = xs.fold(fa, fb)
-  def cond[A,B](c: Boolean, a: A, b: B): Either[A,B] = scala.util.Either.cond(c, b, a)
+  def cond[A,B](c: Boolean, a: =>A, b: =>B): Either[A,B] = scala.util.Either.cond(c, b, a)
 };
 
 class SpecialPredefWrapSpec extends WrapSpec {
   def loopUntil[A](s1: A, isMatch: A => Boolean, step: A => A): A = SpecialPredef.loopUntil(s1, isMatch, step)
-  def cast[A:ClassTag](v: Any): Option[A] = SpecialPredef.cast[A](v)
+  def cast[A](v: Any)(implicit cA: ClassTag[A]): Option[A] = SpecialPredef.cast[A](v)
   def mapSum[A,B,C,D](e: Either[A,B], fa: A => C, fb: B => D): Either[C,D] = SpecialPredef.eitherMap(e, fa, fb)
   def some[A](x: A): Option[A] = SpecialPredef.some(x)
-  def none[A:ClassTag]: Option[A] = SpecialPredef.none[A]
-  def left[A,B](a: A): Either[A,B] = SpecialPredef.left[A,B](a)
-  def right[A,B](b: B): Either[A,B] = SpecialPredef.right[A,B](b)
+  def none[A](implicit cA: ClassTag[A]): Option[A] = SpecialPredef.none[A]
+  def left[A,B](a: A)(implicit cB: ClassTag[B]): Either[A,B] = SpecialPredef.left[A,B](a)
+  def right[A,B](b: B)(implicit cA: ClassTag[A]): Either[A,B] = SpecialPredef.right[A,B](b)
   def optionGetOrElse[A](opt: Option[A], default: A): A = SpecialPredef.optionGetOrElse(opt, default)
 }
