@@ -345,6 +345,7 @@ object ScalanAst {
   final val ContainerTypeAnnotation  = classOf[ContainerType].getSimpleName
   final val FunctorTypeAnnotation    = classOf[FunctorType].getSimpleName
   final val ReifiedTypeArgAnnotation = classOf[Reified].getSimpleName
+  final val NeverInlineAnnotation    = classOf[NeverInline].getSimpleName
 
 
   object ExternalEntityAnnotation {

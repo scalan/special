@@ -445,7 +445,7 @@ trait ScalanParsers[+G <: Global] {
       if (isExplicitMethod(md))
         md.tpt match {
           case AppliedTypeTree(tpt, _) if tpt.toString == "Elem" =>
-            Some(methodDef(owner, md, true))
+            Some(methodDef(owner, md, isElem = true))
           case _ =>
             Some(methodDef(owner, md))
         }
@@ -521,9 +521,10 @@ trait ScalanParsers[+G <: Global] {
 
   //  val HasExternalAnnotation = new ExtractAnnotation("External")
   //  val HasConstructorAnnotation = new ExtractAnnotation("Constructor")
-  val HasArgListAnnotation = new HasAnnotation(ArgListAnnotation)
-  val OverloadIdAnnotation = new HasAnnotation("OverloadId")
-  val ReifiedAnnotation = new HasAnnotation(ReifiedTypeArgAnnotation)
+  val HasArgListAnnotation  = new HasAnnotation(ArgListAnnotation)
+  val OverloadIdAnnotation  = new HasAnnotation("OverloadId")
+  val ReifiedAnnotation     = new HasAnnotation(ReifiedTypeArgAnnotation)
+  val HasNeverInlineAnnotation = new HasAnnotation(NeverInlineAnnotation)
 
   def methodDef(owner: SSymbol, md: DefDef, isElem: Boolean = false)(implicit ctx: ParseCtx) = {
     val methodSym = SEntityItemSymbol(owner, md.name, DefType.Def)
@@ -547,7 +548,14 @@ trait ScalanParsers[+G <: Global] {
       case (n, ts, as) =>
         SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(methodSym, _)))
     }
-    val optBody: Option[SExpr] = optExpr(methodSym, md.rhs)
+    val optNeverInline = annotations.collectFirst { case a @ SMethodAnnotation(NeverInlineAnnotation, _,_) => a }
+    val rhs = optNeverInline match {
+      case Some(_) =>
+        Ident(TermName("delayInvoke"))
+      case None =>
+        md.rhs
+    }
+    val optBody: Option[SExpr] = optExpr(methodSym, rhs)
     val isTypeDesc = md.tpt match {
       case AppliedTypeTree(tpt, _) if Set("Elem", "Cont").contains(tpt.toString) =>
         true
