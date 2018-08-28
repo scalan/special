@@ -164,8 +164,8 @@ class SModuleBuilder(implicit val context: AstContext) {
   }
 
   /** ClassTags are removed because in virtualized code they can be extracted from Elems. */
-  def removeClassTagsFromSignatures(unit: SUnitDef) = {
-    new RemoveClassTagFromSignatures().moduleTransform(unit)
+  def replaceClassTagsWithElems(unit: SUnitDef) = {
+    new ReplaceClassTagWithElemsInSignatures().moduleTransform(unit)
   }
 
 //  def replaceClassTagByElem(unit: SUnitDef) = {
@@ -225,7 +225,7 @@ class SModuleBuilder(implicit val context: AstContext) {
       case _ => None
     }
     /** The function checks that the Elem is already defined somewhere in scope. */
-    def isElemAlreadyDefined(classArg: SClassArg): Boolean = unpackElem(classArg) match {
+    def isElemAlreadyDefined(owner: NamedDef, classArg: SClassArg): Boolean = unpackElem(classArg) match {
       case Some(_) => true
       case None => false
     }
@@ -237,7 +237,7 @@ class SModuleBuilder(implicit val context: AstContext) {
         isTypeDesc = true)
     }
     val newClasses = unit.classes.map { c =>
-      val (definedElems, elemArgs) = genImplicitArgsForClass(c)(unit.context) partition isElemAlreadyDefined
+      val (definedElems, elemArgs) = genImplicitArgsForClass(c)(unit.context) partition (isElemAlreadyDefined(c, _))
       val newArgs = (c.implicitArgs.args ++ elemArgs).distinctBy(_.tpe match {
         case TypeDescTpe(_,ty) => ty
         case t => t
@@ -404,7 +404,7 @@ class SModuleBuilder(implicit val context: AstContext) {
 
 }
 
-class ModuleVirtualizationPipeline(implicit val context: AstContext) extends (SUnitDef => SUnitDef) {
+class SourceUnitVirtualization(implicit val context: AstContext) extends (SUnitDef => SUnitDef) {
   val moduleBuilder = new SModuleBuilder()
   import moduleBuilder._
 
@@ -420,10 +420,10 @@ class ModuleVirtualizationPipeline(implicit val context: AstContext) extends (SU
     addImports _,
     checkEntityCompanion _,
     checkClassCompanion _,
-    removeClassTagsFromSignatures _,
+    genEntityImplicits _,
+    replaceClassTagsWithElems _,
 //    replaceClassTagByElem _,
     eliminateClassTagApply _,
-    genEntityImplicits _,
     // genClassesImplicits _, genMethodsImplicits _,
     fixEntityCompanionName _,
     fixEvidences _,

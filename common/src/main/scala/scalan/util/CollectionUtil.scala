@@ -151,6 +151,18 @@ object CollectionUtil {
 
   implicit class TraversableOps[A, Source[X] <: GenIterable[X]](xs: Source[A]) {
 
+    def filterCast[B:ClassTag](implicit cbf: CanBuildFrom[Source[A], B, Source[B]]): Source[B] = {
+      val b = cbf()
+      for (x <- xs) {
+        x match {
+          case y: B =>
+            b += y
+          case _ =>
+        }
+      }
+      b.result()
+    }
+
     /** Applies 'f' to elements of 'xs' until 'f' returns Some(b),
       * which is immediately returned as result of this method.
       * If not such element found, returns None as result. */

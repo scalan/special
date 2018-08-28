@@ -136,7 +136,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 //        val resourcesRoot = target.getResourcesRootDir
 //        saveCode(resourcesRoot, wUnit.packageName, wUnit.name, ".scalan", showCode(wPackage))
 
-        val wOptiUnit = optimizeModuleImplicits(wUnit)
+        val wOptiUnit = optimizeUnitImplicits(wUnit)
         val optiPackage = genPackageDef(wOptiUnit, isVirtualized = true)(context)
         saveCode(sourceRoot, wOptiUnit.packageName, wOptiUnit.name, ".scala", showCode(optiPackage))
 

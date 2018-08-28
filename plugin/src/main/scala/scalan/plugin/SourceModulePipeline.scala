@@ -19,7 +19,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
   import scalanizer.global._
   val name = "scalanizer"
   val runAfter = List("typer")
-  val virtPipeline = new ModuleVirtualizationPipeline()(context)
+  val virtPipeline = new SourceUnitVirtualization()(context)
 
   override def isEnabled: Boolean = {
     val moduleName = s.moduleName
@@ -124,7 +124,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
             updateSelf _,
             checkEntityCompanion _,
             constr2apply _,
-            removeClassTagsFromSignatures _,
+            replaceClassTagsWithElems _,
             preventNameConflict _,
             genEntityImplicits _,
             genMethodsImplicits _,
@@ -153,7 +153,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 
           /** Build source code of the wrapper unit and store it in a file */
           val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)
-          val optImplicits = optimizeModuleImplicits(wUnitWithoutImpl)
+          val optImplicits = optimizeUnitImplicits(wUnitWithoutImpl)
           val withImports = optImplicits.addInCakeImports
           val wrapperPackage = genPackageDef(withImports, isVirtualized = false)
           saveWrapperCode(moduleConf,
@@ -169,7 +169,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
         // this unit has been added in 'dependencies' step
         val existingUnit = context.getUnit
 
-        // now it can be replaced with the body which has passed namer and typer
+        // now it can be merged with the unit which has passed namer and typer
         implicit val ctx = new ParseCtx(isVirtualized = false)(scalanizer.context)
         val typedUnitDef = unitDefFromTree(unitFileName, unit.body)
 
@@ -187,7 +187,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
        val unitDef = context.getUnit
 
         /** Generates a virtualized version of original Scala AST, wraps types by Rep[] and etc. */
-        var virtUnitDef = virtPipeline(unitDef)
+        var virtUnitDef = optimizeUnitImplicits(virtPipeline(unitDef))
         virtUnitDef = virtUnitDef.addInCakeImports
 
         /** Scala AST of virtualized module */

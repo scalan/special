@@ -158,23 +158,22 @@ object ScalanAstTransformers {
     def bindPatternTransform(arg: SBindPattern) = arg
     def applyPatternTransform(arg: SApplyPattern) = arg
 
-    def methodArgTransform(arg: SMethodArg): SMethodArg = arg
-    def methodArgsTransform(args: SMethodArgs): SMethodArgs = {
-      val newArgs = args.args mapConserve methodArgTransform
-
+    def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = arg
+    def methodArgsTransform(m: SMethodDef, args: SMethodArgs): SMethodArgs = {
+      val newArgs = args.args mapConserve (methodArgTransform(m, _))
       args.copy(args = newArgs)
     }
-    def methodArgSectionsTransform(argSections: List[SMethodArgs]): List[SMethodArgs] = {
-      argSections mapConserve methodArgsTransform
+    def methodArgSectionsTransform(m: SMethodDef, argSections: List[SMethodArgs]): List[SMethodArgs] = {
+      argSections mapConserve (methodArgsTransform(m, _))
     }
     def methodResTransform(res: Option[STpeExpr]): Option[STpeExpr] = res mapConserve tpeExprTransform
 
-    def methodTransform(method: SMethodDef): SMethodDef = {
-      val newArgSections = method.argSections mapConserve (args => SMethodArgs(args.args mapConserve methodArgTransform))
-      val newTpeRes = methodResTransform(method.tpeRes)
-      val newBody = method.body mapConserve exprTransform
+    def methodTransform(m: SMethodDef): SMethodDef = {
+      val newArgSections = methodArgSectionsTransform(m, m.argSections)
+      val newTpeRes = methodResTransform(m.tpeRes)
+      val newBody = m.body mapConserve exprTransform
 
-      method.copy(
+      m.copy(
         argSections = newArgSections,
         tpeRes = newTpeRes,
         body = newBody
@@ -292,7 +291,7 @@ object ScalanAstTransformers {
   class AstReplacer(name: String, repl: String => String)(implicit context: AstContext) extends AstTransformer {
     val typeTransformer = new TypeReplacer(name, repl)
 
-    override def methodArgTransform(arg: SMethodArg): SMethodArg = {
+    override def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = {
       arg.copy(tpe = typeTransformer(arg.tpe))
     }
     override def methodResTransform(res: Option[STpeExpr]): Option[STpeExpr] = res match {
@@ -453,7 +452,7 @@ object ScalanAstTransformers {
     override def methodResTransform(res: Option[STpeExpr]): Option[STpeExpr] = {
       res.map(typeTrans)
     }
-    override def methodArgTransform(arg: SMethodArg): SMethodArg = {
+    override def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = {
       arg.copy(tpe = typeTrans(arg.tpe))
     }
     override def classArgTransform(classArg: SClassArg): SClassArg = {
@@ -477,7 +476,7 @@ object ScalanAstTransformers {
       case Some(resType) => Some(typeRenamer(resType))
       case _ => res
     }
-    override def methodArgTransform(arg: SMethodArg): SMethodArg = {
+    override def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = {
       val newTpe = typeRenamer(arg.tpe)
       arg.copy(tpe = newTpe)
     }
@@ -526,28 +525,29 @@ object ScalanAstTransformers {
 
   class ExtType2WrapperTypeTransformer(name: String) extends TypeReplacer(name, wrap)
 
-  class RemoveClassTagFromSignatures(implicit ctx: AstContext) extends AstTransformer {
-    override def methodArgsTransform(args: SMethodArgs): SMethodArgs = {
+  class ReplaceClassTagWithElemsInSignatures(implicit ctx: AstContext) extends AstTransformer {
+    override def methodArgsTransform(m: SMethodDef, args: SMethodArgs): SMethodArgs = {
       // filter out ClassTag args
-      val newArgs = args.args.filter { marg => marg.tpe match {
-        case ClassTagTpe(_) => false
-        case _ => true
-      }} mapConserve methodArgTransform
+      val newArgs = args.args.map { marg => marg.tpe match {
+        case ClassTagTpe(tpe) => marg.copy(tpe = ElemTpe(tpe))
+        case _ => marg
+      }} mapConserve (methodArgTransform(m, _))
       args.copy(args = newArgs)
     }
-    override def methodArgSectionsTransform(argSections: List[SMethodArgs]): List[SMethodArgs] = {
-      argSections mapConserve methodArgsTransform filterNot { _.args.isEmpty }
+    override def methodArgSectionsTransform(m: SMethodDef, argSections: List[SMethodArgs]): List[SMethodArgs] = {
+      argSections mapConserve (methodArgsTransform(m, _)) filterNot { _.args.isEmpty }
     }
     override def bodyTransform(body: List[SBodyItem]): List[SBodyItem] = {
-      body filter{
-        case SMethodDef(_,_,_,_,Some(STraitCall("ClassTag", _)),true,_,_,_,_,_) => false
-        case _ => true
+      val newBody = body map {
+        case m @ SMethodDef(_,_,_,_,Some(ClassTagTpe(tpe)),true,_,_,_,_,_) => m.copy(tpeRes = Some(ElemTpe(tpe)))
+        case bi => bi
       } mapConserve bodyItemTransform
+      super.bodyTransform(newBody)
     }
     override def classArgsTransform(classArgs: SClassArgs): SClassArgs = {
-      val newArgs = classArgs.args.filter { _.tpe match {
-        case ClassTagTpe(_) => false
-        case _ => true
+      val newArgs = classArgs.args.map { a => a.tpe match {
+        case ClassTagTpe(tpe) => a.copy(tpe = ElemTpe(tpe))
+        case _ => a
       }} mapConserve classArgTransform
       classArgs.copy(args = newArgs)
     }

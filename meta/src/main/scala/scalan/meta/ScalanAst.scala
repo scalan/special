@@ -6,7 +6,7 @@ import com.trueaccord.lenses.Updatable
 import com.typesafe.config.ConfigUtil
 
 import scala.collection.immutable.{HashMap, HashSet}
-import scala.collection.mutable
+import scala.collection.{mutable, GenIterable}
 import scalan.meta.PrintExtensions._
 import scala.collection.mutable.{Map => MMap}
 import scala.reflect.internal.ModifierFlags
@@ -59,12 +59,6 @@ object ScalanAst {
     def toTypeApply = STypeApply(this, Nil)
   }
 
-  object RepeatedArgType {
-    def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
-      case STraitCall("RepeatedArg", List(targ)) => Some(targ)
-      case _ => None
-    }
-  }
   case class STpePrimitive(val name: String, defaultValueString: String) extends STpeExpr {
     override def toString = name
   }
@@ -985,6 +979,10 @@ object ScalanAst {
     def createTpeSubst(args: List[STpeExpr]): STpeSubst = e.tpeArgs.map(_.name).zip(args).toMap
   }
 
+  implicit class NamedDefTraversableOps[T <: NamedDef, Source[X] <: GenIterable[X]](xs: Source[T]) {
+    def apply(name: String): T = xs.find(_.name == name).get
+  }
+
   case class SClassDef(
       owner: SSymbol,
       name: String,
@@ -1201,9 +1199,24 @@ object ScalanAst {
     }
   }
 
+  object ElemTpe {
+    def apply(tpe: STpeExpr) = STraitCall("Elem", List(tpe))
+    def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
+      case STraitCall("Elem", List(arg)) => Some(arg)
+      case _ => None
+    }
+  }
+
   object TypeDescArg {
     def unapply(arg: SMethodOrClassArg): Option[(String, String)] = arg.tpe match {
       case TypeDescTpe(descName, STraitCall(typeName, Nil)) => Some((descName, typeName))
+      case _ => None
+    }
+  }
+
+  object RepeatedArgType {
+    def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
+      case STraitCall("RepeatedArg", List(targ)) => Some(targ)
       case _ => None
     }
   }
@@ -1290,7 +1303,7 @@ object ScalanAst {
     optArgs.copy(body = newBody)
   }
 
-  def optimizeModuleImplicits(module: SUnitDef): SUnitDef = {
+  def optimizeUnitImplicits(module: SUnitDef): SUnitDef = {
     implicit val ctx = module.context
     val newTraits = module.traits.map(e => optimizeTraitImplicits(e))
     val newClasses = module.classes.map(c => optimizeClassImplicits(c))
