@@ -9,10 +9,6 @@ class ColsTests extends BaseCtxTests {
     import WArray._
     import ColOverArray._
     import ColOverArrayBuilder._
-    lazy val t1 = fun { (xs: Rep[WArray[Double]]) =>
-      val b = RColOverArrayBuilder()
-      b.ddmvm(xs)
-    }
     lazy val t2 = fun { (xs: Rep[WArray[Double]]) =>
       val c = RColOverArray(xs)
       c.map(fun { x => x + 1.0 })
@@ -34,7 +30,6 @@ class ColsTests extends BaseCtxTests {
       }
     }
     ctx.test()
-    ctx.emit("t1", ctx.t1)
     ctx.emit("t2", ctx.t2)
     ctx.emit("t3", ctx.t3)
   }

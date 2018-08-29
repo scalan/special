@@ -24,8 +24,6 @@ trait BaseColBuilder extends ColBuilder {
 
   @NeverInline
   def xor(left: Col[Byte], right: Col[Byte]) = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
-
-  def dot[A](xs: Col[A], ys: Col[A]): A = ???
 }
 
 class ColOverArray[A](val arr: Array[A]) extends Col[A] {
@@ -103,7 +101,8 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
   @NeverInline
   def getOrElse(i: Int, default: => A) = if (i >= 0 && i < this.length) value else default
   def map[B: ClassTag](f: A => B): Col[B] = new ReplCol(f(value), length)
-  def foreach(f: A => Unit): Unit = ???
+  @NeverInline
+  def foreach(f: A => Unit): Unit = (0 until length).foreach(_ => f(value))
   def exists(p: A => Boolean): Boolean = p(value)
   def forall(p: A => Boolean): Boolean = p(value)
   def filter(p: A => Boolean): Col[A] = if (p(value)) this else new ReplCol(value, 0)

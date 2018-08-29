@@ -55,13 +55,6 @@ trait ColBuilder {
   def fromItemsTest: Col[Int] = this.apply(1, 2, 3)
   def fromArray[T](arr: Array[T]): Col[T]
   def replicate[T:ClassTag](n: Int, v: T): Col[T]
-  def dot[T](xs: Col[T], ys: Col[T]): T
-  @throws[NullPointerException]
-  def ddmvm(v: Array[Double]): Int = {
-    val xs = Array.fill(v.length)(0)
-    val c = xs.zip(v).map(d => d)
-    c.length
-  }
 }
 
 trait Enum {
