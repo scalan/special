@@ -6,87 +6,75 @@ package special.collection {
     import PairOfCols._;
     import Col._;
     import ColOverArray._;
-    import ReplCol._;
-    import ReplColBuilder._;
     import ColBuilder._;
     import ColOverArrayBuilder._;
     import BaseColBuilder._;
     import WArray._;
+    import ReplColBuilder._;
+    import ReplCol._;
     import Monoid._;
     import WSpecialPredef._;
     trait BaseColBuilder extends ColBuilder {
       @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = RPairOfCols(as, bs);
-      @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke
+      @OverloadId(value = "apply_items") @NeverInline def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke;
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = RColOverArray(arr);
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = this.fromArray[T](RWArray.fill[T](n, Thunk(v)));
-      def dot[A](xs: Rep[Col[A]], ys: Rep[Col[A]]): Rep[A] = delayInvoke
+      @NeverInline def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = delayInvoke
     };
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColOverArrayBuilder] = RColOverArrayBuilder();
       def length: Rep[Int] = ColOverArray.this.arr.length;
       def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i);
-      def map[@Reified B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ColOverArray.this.builder.fromArray[B](ColOverArray.this.arr.map(f));
+      @NeverInline def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = delayInvoke;
+      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = ColOverArray.this.builder.fromArray[B](ColOverArray.this.arr.map(f));
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = ColOverArray.this.arr.foreach(f);
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = ColOverArray.this.arr.exists(p);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = ColOverArray.this.arr.forall(p);
       def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = ColOverArray.this.builder.fromArray[A](ColOverArray.this.arr.filter(p));
-      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = {
-        implicit val eB = zero.elem
-        ColOverArray.this.arr.foldLeft(zero, fun(((in: Rep[scala.Tuple2[B, A]]) => {
-          val b: Rep[B] = in._1;
-          val a: Rep[A] = in._2;
-          op.apply(Pair(b, a))
-        })))
-      };
-      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ColOverArray.this.builder.fromArray[A](ColOverArray.this.arr.slice(from, until))
+      @NeverInline def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke;
+      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = ColOverArray.this.builder.fromArray[A](ColOverArray.this.arr.slice(from, until));
       def sum(m: Rep[Monoid[A]]): Rep[A] = ColOverArray.this.arr.foldLeft(m.zero, fun(((in: Rep[scala.Tuple2[A, A]]) => {
         val b: Rep[A] = in._1;
         val a: Rep[A] = in._2;
         m.plus(b, a)
-      })))
+      })));
+      @NeverInline def append(other: Rep[Col[A]]): Rep[Col[A]] = delayInvoke
     };
     abstract class ColOverArrayBuilder extends BaseColBuilder {
-      override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke
-    }
+      @NeverInline override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke
+    };
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       override def builder: Rep[ColBuilder] = RColOverArrayBuilder();
       override def arr: Rep[WArray[scala.Tuple2[L, R]]] = PairOfCols.this.ls.arr.zip(PairOfCols.this.rs.arr);
       override def length: Rep[Int] = PairOfCols.this.ls.length;
       override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
+      @NeverInline override def getOrElse(i: Rep[Int], default: Rep[Thunk[scala.Tuple2[L, R]]]): Rep[scala.Tuple2[L, R]] = delayInvoke;
       override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Col[V]] = RColOverArray(PairOfCols.this.arr.map(f));
       override def foreach(f: Rep[scala.Function1[scala.Tuple2[L, R], Unit]]): Rep[Unit] = PairOfCols.this.arr.foreach(f);
       override def exists(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.exists(p);
       override def forall(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.forall(p);
       override def filter(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Col[scala.Tuple2[L, R]]] = RColOverArray(PairOfCols.this.arr.filter(p));
-      override def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, scala.Tuple2[L, R]], B]]): Rep[B] = {
-        implicit val eB = zero.elem
-        PairOfCols.this.arr.foldLeft(zero, fun(((in: Rep[scala.Tuple2[B, scala.Tuple2[L, R]]]) => {
-          val b: Rep[B] = in.head;
-          val a: Rep[scala.Tuple2[L, R]] = in.tail;
-          op.apply(Pair(b, a))
-        })))
+      @NeverInline override def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, scala.Tuple2[L, R]], B]]): Rep[B] = delayInvoke;
+      override def slice(from: Rep[Int], until: Rep[Int]): Rep[PairCol[L, R]] = PairOfCols.this.builder.apply[L, R](PairOfCols.this.ls.slice(from, until), PairOfCols.this.rs.slice(from, until));
+      def append(other: Rep[Col[scala.Tuple2[L, R]]]): Rep[Col[scala.Tuple2[L, R]]] = {
+        val arrs: Rep[scala.Tuple2[Col[L], Col[R]]] = PairOfCols.this.builder.unzip[L, R](other);
+        PairOfCols.this.builder.apply[L, R](PairOfCols.this.ls.append(arrs._1), PairOfCols.this.rs.append(arrs._2))
       };
-      override def slice(from: Rep[Int], until: Rep[Int]): Rep[PairCol[L, R]] = PairOfCols.this.builder.apply[L, R](PairOfCols.this.ls.slice(from, until), PairOfCols.this.rs.slice(from, until))
-      override def sum(m: Rep[Monoid[scala.Tuple2[L, R]]]): Rep[scala.Tuple2[L, R]] = PairOfCols.this.arr.foldLeft(m.zero, fun(((in: Rep[scala.Tuple2[scala.Tuple2[L, R], scala.Tuple2[L, R]]]) => {
-        val b: Rep[scala.Tuple2[L, R]] = in.head;
-        val a: Rep[scala.Tuple2[L, R]] = in.tail;
-        m.plus(b, a)
-      })))
+      @NeverInline override def sum(m: Rep[Monoid[scala.Tuple2[L, R]]]): Rep[scala.Tuple2[L, R]] = delayInvoke
     };
     abstract class ReplCol[A](val value: Rep[A], val length: Rep[Int]) extends Col[A] {
       def builder: Rep[ColBuilder] = RReplColBuilder();
       def arr: Rep[WArray[A]] = ReplCol.this.builder.replicate[A](ReplCol.this.length, ReplCol.this.value).arr;
       def apply(i: Rep[Int]): Rep[A] = ReplCol.this.value;
+      @NeverInline def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = delayInvoke;
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = RReplCol(f.apply(ReplCol.this.value), ReplCol.this.length);
-      def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = scala.Predef.???;
+      @NeverInline def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = delayInvoke;
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(ReplCol.this.value);
       def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = IF(p.apply(ReplCol.this.value)).THEN(this).ELSE(RReplCol(ReplCol.this.value, toRep(0.asInstanceOf[Int])));
-      def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = {
-        implicit val eB = zero.elem
-        RWSpecialPredef.loopUntil[scala.Tuple2[B, Int]](Pair(zero, toRep(0.asInstanceOf[Int])), fun(((p: Rep[scala.Tuple2[B, Int]]) => p._2.<(ReplCol.this.length))), fun(((p: Rep[scala.Tuple2[B, Int]]) => Pair(op.apply(Tuple2(p._1, ReplCol.this.value)), p._2.+(toRep(1.asInstanceOf[Int]))))))._1
-      };
-      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = RReplCol(ReplCol.this.value, until.-(from))
+      @NeverInline def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke;
+      def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = RReplCol(ReplCol.this.value, until.-(from));
+      @NeverInline def append(other: Rep[Col[A]]): Rep[Col[A]] = delayInvoke;
       def sum(m: Rep[Monoid[A]]): Rep[A] = m.power(ReplCol.this.value, ReplCol.this.length)
     };
     abstract class ReplColBuilder extends BaseColBuilder;

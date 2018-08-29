@@ -171,6 +171,18 @@ object WOption extends EntityObject("WOption") {
       }
     }
 
+    object getOrElse {
+      def unapply(d: Def[_]): Option[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(default, _*), _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "getOrElse" =>
+          Some((receiver, default)).asInstanceOf[Option[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object get {
       def unapply(d: Def[_]): Option[Rep[WOption[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "get" =>
@@ -186,6 +198,8 @@ object WOption extends EntityObject("WOption") {
 
   object WOptionCompanionMethods {
   }
+} // of object WOption
+  registerEntityObject("WOption", WOption)
 
   object UserTypeWOption {
     def unapply(s: Sym): Option[Iso[_, _]] = {
@@ -199,10 +213,6 @@ object WOption extends EntityObject("WOption") {
     }
   }
 
-  type RepWOption[A] = Rep[WOption[A]]
-} // of object WOption
-  registerEntityObject("WOption", WOption)
-  
   override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewWOption[_, _]) =>
       Some((view.source, view.iso))
@@ -213,6 +223,8 @@ object WOption extends EntityObject("WOption") {
     case _ =>
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
+
+  type RepWOption[A] = Rep[WOption[A]]
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case view1@ViewWOption(Def(view2@ViewWOption(arr, innerIso2)), innerIso1) =>

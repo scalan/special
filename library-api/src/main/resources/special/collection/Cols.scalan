@@ -39,13 +39,7 @@ package special.collection {
       def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]];
       def fromItemsTest: Rep[Col[Int]] = this.apply[Int](toRep(1.asInstanceOf[Int]), toRep(2.asInstanceOf[Int]), toRep(3.asInstanceOf[Int]));
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]];
-      def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]];
-      def dot[T](xs: Rep[Col[T]], ys: Rep[Col[T]]): Rep[T];
-      @throws[NullPointerException] def ddmvm(v: Rep[WArray[Double]]): Rep[Int] = {
-        val xs: Rep[WArray[Int]] = RWArray.fill[Int](v.length, Thunk(toRep(0.asInstanceOf[Int])));
-        val c: Rep[WArray[scala.Tuple2[Int, Double]]] = xs.zip(v).map(fun(((d: Rep[scala.Tuple2[Int, Double]]) => d)));
-        c.length
-      }
+      def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]]
     };
     trait Enum extends Def[Enum] {
       def value: Rep[Int]

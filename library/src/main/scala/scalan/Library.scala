@@ -18,8 +18,7 @@ trait Library extends Scalan
   with MonoidsModule
   with MonoidInstancesModule {
   import WArray._; import Col._; import ColBuilder._; import ReplCol._
-  import Costed._;
-  import CostedFunc._; import Closure._
+  import CostedFunc._;
 
   trait Sized[Val] { node: Costed[Val] =>
     lazy val dataSize: Rep[Long] = {

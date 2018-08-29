@@ -259,6 +259,8 @@ object WArray extends EntityObject("WArray") {
       }
     }
   }
+} // of object WArray
+  registerEntityObject("WArray", WArray)
 
   object UserTypeWArray {
     def unapply(s: Sym): Option[Iso[_, _]] = {
@@ -272,10 +274,6 @@ object WArray extends EntityObject("WArray") {
     }
   }
 
-  type RepWArray[T] = Rep[WArray[T]]
-} // of object WArray
-  registerEntityObject("WArray", WArray)
-  
   override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewWArray[_, _]) =>
       Some((view.source, view.iso))
@@ -286,6 +284,8 @@ object WArray extends EntityObject("WArray") {
     case _ =>
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
+
+  type RepWArray[T] = Rep[WArray[T]]
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case view1@ViewWArray(Def(view2@ViewWArray(arr, innerIso2)), innerIso1) =>

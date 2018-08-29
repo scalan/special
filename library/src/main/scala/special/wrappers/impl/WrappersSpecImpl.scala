@@ -415,6 +415,18 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
       }
     }
 
+    object getOrElse {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(xs, default, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "getOrElse" =>
+          Some((receiver, xs, default)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object map {
       def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "map" =>
@@ -476,12 +488,12 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
     }
 
     object fold {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, Seq(xs, ifEmpty, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "fold" =>
-          Some((receiver, xs, ifEmpty, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}]]
+          Some((receiver, xs, ifEmpty, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -602,12 +614,12 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
     }
 
     object cond {
-      def unapply(d: Def[_]): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[A], Rep[B]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, Seq(c, a, b, _*), _) if receiver.elem.isInstanceOf[EitherWrapSpecElem] && method.getName == "cond" =>
-          Some((receiver, c, a, b)).asInstanceOf[Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[A], Rep[B]) forSome {type A; type B}]]
+          Some((receiver, c, a, b)).asInstanceOf[Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[A], Rep[B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -728,12 +740,12 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     }
 
     object cast {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(v, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "cast" =>
-          Some((receiver, v, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}]]
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(v, cA, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "cast" =>
+          Some((receiver, v, cA, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -764,36 +776,36 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     }
 
     object none {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "none" =>
-          Some((receiver, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}]]
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(cA, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "none" =>
+          Some((receiver, cA, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
     object left {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(a, emB, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "left" =>
-          Some((receiver, a, emB)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}]]
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(a, cB, emB, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "left" =>
+          Some((receiver, a, cB, emB)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
     }
 
     object right {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(b, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "right" =>
-          Some((receiver, b, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}]]
+      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(b, cA, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "right" =>
+          Some((receiver, b, cA, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

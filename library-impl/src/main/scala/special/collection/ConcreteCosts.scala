@@ -37,7 +37,9 @@ class CostedFunc[Env,Arg,Res](
       val cost: Int,
       val dataSize: Long) extends ConcreteCosted[Arg => Res]
 {
-  def value: Arg => Res = (a: Arg) => func.apply((this.envCosted.value, a)).value
+  lazy val value: Arg => Res = (a: Arg) => func.apply((this.envCosted.value, a)).value
+  lazy val costFunc: Arg => Int = (a: Arg) => func.apply((this.envCosted.value, a)).cost
+  lazy val dataSizeFunc: Arg => Long = (a: Arg) => func.apply((this.envCosted.value, a)).dataSize
 }
 
 class CostedArray[Item](
@@ -77,7 +79,9 @@ class CostedNestedArray[Item]
       (implicit val cItem: ClassTag[Item]) extends ConcreteCosted[Array[Array[Item]]]
 {
   def value: Array[Array[Item]] = rows.map(r => r.value).arr
+  @NeverInline
   def cost: Int = rows.map(r => r.cost).sum(builder.monoidBuilder.intPlusMonoid)
+  @NeverInline
   def dataSize: Long = rows.map(r => r.dataSize).sum(builder.monoidBuilder.longPlusMonoid)
 }
 
@@ -86,7 +90,9 @@ class CostedNestedCol[Item]
       (implicit val cItem: ClassTag[Item]) extends ConcreteCosted[Col[Col[Item]]]
 {
   def value: Col[Col[Item]] = rows.map(r => r.value)
+  @NeverInline
   def cost: Int = rows.map(r => r.cost).sum(builder.monoidBuilder.intPlusMonoid)
+  @NeverInline
   def dataSize: Long = rows.map(r => r.dataSize).sum(builder.monoidBuilder.longPlusMonoid)
 }
 

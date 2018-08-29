@@ -37,6 +37,7 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def exists(p: A => Boolean) = arr.exists(p)
   def forall(p: A => Boolean) = arr.forall(p)
   def filter(p: A => Boolean) = builder.fromArray(arr.filter(p))
+  @NeverInline
   def fold[B](zero: B)(op: ((B, A)) => B) = arr.foldLeft(zero)((b, a) => op((b, a)))
   def slice(from: Int, until: Int) = builder.fromArray(arr.slice(from, until))
   def sum(m: Monoid[A]) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
@@ -85,12 +86,14 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def exists(p: ((L, R)) => Boolean) = arr.exists(p)
   override def forall(p: ((L, R)) => Boolean) = arr.forall(p)
   override def filter(p: ((L, R)) => Boolean): Col[(L,R)] = new ColOverArray(arr.filter(p))
+  @NeverInline
   override def fold[B](zero: B)(op: ((B, (L, R))) => B) = arr.foldLeft(zero)((b, a) => op((b,a)))
   override def slice(from: Int, until: Int) = builder(ls.slice(from, until), rs.slice(from, until))
   def append(other: Col[(L, R)]): Col[(L,R)] = {
     val arrs = builder.unzip(other)
     builder(ls.append(arrs._1), rs.append(arrs._2))
   }
+  @NeverInline
   override def sum(m: Monoid[(L, R)]) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
 }
 
@@ -106,6 +109,7 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
   def exists(p: A => Boolean): Boolean = p(value)
   def forall(p: A => Boolean): Boolean = p(value)
   def filter(p: A => Boolean): Col[A] = if (p(value)) this else new ReplCol(value, 0)
+  @NeverInline
   def fold[B](zero: B)(op: ((B, A)) => B): B =
     SpecialPredef.loopUntil[(B, Int)]((zero,0),
       p => p._2 < length,

@@ -11,15 +11,15 @@ trait ColsOverArraysDefs extends scalan.Scalan with ColsOverArrays {
 import IsoUR._
 import Converter._
 import PairCol._
+import PairOfCols._
 import Col._
+import ColOverArray._
 import ColBuilder._
 import ColOverArrayBuilder._
 import BaseColBuilder._
 import WArray._
-import ColOverArray._
-import PairOfCols._
-import ReplCol._
 import ReplColBuilder._
+import ReplCol._
 
 object BaseColBuilder extends EntityObject("BaseColBuilder") {
   // entityProxy: single proxy for each type family
@@ -106,13 +106,13 @@ object BaseColBuilder extends EntityObject("BaseColBuilder") {
       }
     }
 
-    object dot {
-      def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, ys, _*), _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "dot" =>
-          Some((receiver, xs, ys)).asInstanceOf[Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}]]
+    object xor {
+      def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Rep[Col[Byte]], Rep[Col[Byte]])] = d match {
+        case MethodCall(receiver, method, Seq(left, right, _*), _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "xor" =>
+          Some((receiver, left, right)).asInstanceOf[Option[(Rep[BaseColBuilder], Rep[Col[Byte]], Rep[Col[Byte]])]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[BaseColBuilder], Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[BaseColBuilder], Rep[Col[Byte]], Rep[Col[Byte]])] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -257,6 +257,18 @@ object ColOverArray extends EntityObject("ColOverArray") {
       }
     }
 
+    object getOrElse {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(i, default, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "getOrElse" =>
+          Some((receiver, i, default)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object map {
       def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "map" =>
@@ -348,6 +360,18 @@ object ColOverArray extends EntityObject("ColOverArray") {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object append {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[Col[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(other, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "append" =>
+          Some((receiver, other)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[Col[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[Col[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -455,6 +479,17 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
   }
 
     object ColOverArrayBuilderMethods {
+    object fromArray {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(arr, _*), _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "fromArray" =>
+          Some((receiver, arr)).asInstanceOf[Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColOverArrayBuilderCompanionMethods {
@@ -620,6 +655,18 @@ implicit val eR = p.rs.eA
       }
     }
 
+    object getOrElse {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[Int], Rep[Thunk[(L, R)]]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(i, default, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "getOrElse" =>
+          Some((receiver, i, default)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[Int], Rep[Thunk[(L, R)]]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[Int], Rep[Thunk[(L, R)]]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object map {
       def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[((L, R)) => V]) forSome {type L; type R; type V}] = d match {
         case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "map" =>
@@ -699,6 +746,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[Int], Rep[Int]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object append {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[Col[(L, R)]]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, Seq(other, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "append" =>
+          Some((receiver, other)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[Col[(L, R)]]) forSome {type L; type R}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[Col[(L, R)]]) forSome {type L; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -861,6 +920,18 @@ object ReplCol extends EntityObject("ReplCol") {
       }
     }
 
+    object getOrElse {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(i, default, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "getOrElse" =>
+          Some((receiver, i, default)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object map {
       def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "map" =>
@@ -940,6 +1011,18 @@ object ReplCol extends EntityObject("ReplCol") {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Int], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object append {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(other, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "append" =>
+          Some((receiver, other)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

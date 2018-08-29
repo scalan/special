@@ -25,7 +25,9 @@ package special.collection {
       @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
     abstract class CostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[scala.Tuple2[Env, Arg], Costed[Res]]], val cost: Rep[Int], val dataSize: Rep[Long]) extends ConcreteCosted[scala.Function1[Arg, Res]] {
-      def value: Rep[scala.Function1[Arg, Res]] = fun(((a: Rep[Arg]) => CostedFunc.this.func.apply(Pair(this.envCosted.value, a)).value))
+      lazy val value: Rep[scala.Function1[Arg, Res]] = fun(((a: Rep[Arg]) => func.apply(Tuple(this.envCosted.value, a)).value));
+      lazy val costFunc: Rep[scala.Function1[Arg, Int]] = fun(((a: Rep[Arg]) => func.apply(Tuple(this.envCosted.value, a)).cost));
+      lazy val dataSizeFunc: Rep[scala.Function1[Arg, Long]] = fun(((a: Rep[Arg]) => func.apply(Tuple(this.envCosted.value, a)).dataSize))
     };
     abstract class CostedArray[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Int]], val sizes: Rep[Col[Long]]) extends ConcreteCosted[WArray[Item]] {
       def value: Rep[WArray[Item]] = CostedArray.this.values.arr;
@@ -49,13 +51,13 @@ package special.collection {
     };
     abstract class CostedNestedArray[Item](val rows: Rep[Col[Costed[WArray[Item]]]]) extends ConcreteCosted[WArray[WArray[Item]]] {
       def value: Rep[WArray[WArray[Item]]] = CostedNestedArray.this.rows.map[WArray[Item]](fun(((r: Rep[Costed[WArray[Item]]]) => r.value))).arr;
-      def cost: Rep[Int] = CostedNestedArray.this.rows.map[Int](fun(((r: Rep[Costed[WArray[Item]]]) => r.cost)))(((ClassTag.Int): ClassTag[Int])).sum(CostedNestedArray.this.builder.monoidBuilder.intPlusMonoid);
-      def dataSize: Rep[Long] = CostedNestedArray.this.rows.map[Long](fun(((r: Rep[Costed[WArray[Item]]]) => r.dataSize)))(((ClassTag.Long): ClassTag[Long])).sum(CostedNestedArray.this.builder.monoidBuilder.longPlusMonoid)
+      @NeverInline def cost: Rep[Int] = delayInvoke;
+      @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
     abstract class CostedNestedCol[Item](val rows: Rep[Col[Costed[Col[Item]]]]) extends ConcreteCosted[Col[Col[Item]]] {
       def value: Rep[Col[Col[Item]]] = CostedNestedCol.this.rows.map[Col[Item]](fun(((r: Rep[Costed[Col[Item]]]) => r.value)));
-      def cost: Rep[Int] = CostedNestedCol.this.rows.map[Int](fun(((r: Rep[Costed[Col[Item]]]) => r.cost)))(((ClassTag.Int): ClassTag[Int])).sum(CostedNestedCol.this.builder.monoidBuilder.intPlusMonoid);
-      def dataSize: Rep[Long] = CostedNestedCol.this.rows.map[Long](fun(((r: Rep[Costed[Col[Item]]]) => r.dataSize)))(((ClassTag.Long): ClassTag[Long])).sum(CostedNestedCol.this.builder.monoidBuilder.longPlusMonoid)
+      @NeverInline def cost: Rep[Int] = delayInvoke;
+      @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
     abstract class ConcreteCostedBuilder extends CostedBuilder {
       def monoidBuilder: Rep[MonoidBuilderInst] = RMonoidBuilderInst()

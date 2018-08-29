@@ -97,6 +97,18 @@ object Costed extends EntityObject("Costed") {
         case _ => None
       }
     }
+
+    object dataSize {
+      def unapply(d: Def[_]): Option[Rep[Costed[Val]] forSome {type Val}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "dataSize" =>
+          Some(receiver).asInstanceOf[Option[Rep[Costed[Val]] forSome {type Val}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[Costed[Val]] forSome {type Val}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object CostedCompanionMethods {
@@ -151,6 +163,41 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
   }
 
   object CostedBuilderMethods {
+    object ConstructTupleCost {
+      def unapply(d: Def[_]): Option[Rep[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "ConstructTupleCost" =>
+          Some(receiver).asInstanceOf[Option[Rep[CostedBuilder]]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[CostedBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object ConstructSumCost {
+      def unapply(d: Def[_]): Option[Rep[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "ConstructSumCost" =>
+          Some(receiver).asInstanceOf[Option[Rep[CostedBuilder]]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[CostedBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object SumTagSize {
+      def unapply(d: Def[_]): Option[Rep[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "SumTagSize" =>
+          Some(receiver).asInstanceOf[Option[Rep[CostedBuilder]]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[CostedBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object CostedBuilderCompanionMethods {

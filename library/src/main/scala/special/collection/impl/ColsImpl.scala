@@ -149,6 +149,18 @@ object Col extends EntityObject("Col") {
       }
     }
 
+    object getOrElse {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(i, default, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "getOrElse" =>
+          Some((receiver, i, default)).asInstanceOf[Option[(Rep[Col[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[Int], Rep[Thunk[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object map {
       def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "map" =>
@@ -221,6 +233,18 @@ object Col extends EntityObject("Col") {
       }
     }
 
+    object where {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "where" =>
+          Some((receiver, p)).asInstanceOf[Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object fold {
       def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, Seq(zero, op, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "fold" =>
@@ -256,10 +280,24 @@ object Col extends EntityObject("Col") {
         case _ => None
       }
     }
+
+    object append {
+      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(other, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "append" =>
+          Some((receiver, other)).asInstanceOf[Option[(Rep[Col[A]], Rep[Col[A]]) forSome {type A}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[Col[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object ColCompanionMethods {
   }
+} // of object Col
+  registerEntityObject("Col", Col)
 
   object UserTypeCol {
     def unapply(s: Sym): Option[Iso[_, _]] = {
@@ -273,10 +311,6 @@ object Col extends EntityObject("Col") {
     }
   }
 
-  type RepCol[A] = Rep[Col[A]]
-} // of object Col
-  registerEntityObject("Col", Col)
-
   override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewCol[_, _]) =>
       Some((view.source, view.iso))
@@ -287,6 +321,8 @@ object Col extends EntityObject("Col") {
     case _ =>
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
+
+  type RepCol[A] = Rep[Col[A]]
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case view1@ViewCol(Def(view2@ViewCol(arr, innerIso2)), innerIso1) =>
@@ -454,13 +490,27 @@ object ColBuilder extends EntityObject("ColBuilder") {
       }
     }
 
-    object apply_apply_items {
-      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(items, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
-          Some((receiver, items)).asInstanceOf[Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}]]
+    // WARNING: Cannot generate matcher for method `apply`: Method has repeated argument items
+
+    object unzip {
+      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[Col[(A, B)]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "unzip" =>
+          Some((receiver, xs)).asInstanceOf[Option[(Rep[ColBuilder], Rep[Col[(A, B)]]) forSome {type A; type B}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[Col[(A, B)]]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object xor {
+      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[Col[Byte]], Rep[Col[Byte]])] = d match {
+        case MethodCall(receiver, method, Seq(left, right, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "xor" =>
+          Some((receiver, left, right)).asInstanceOf[Option[(Rep[ColBuilder], Rep[Col[Byte]], Rep[Col[Byte]])]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[Col[Byte]], Rep[Col[Byte]])] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -497,30 +547,6 @@ object ColBuilder extends EntityObject("ColBuilder") {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object dot {
-      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[Col[T]], Rep[Col[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(xs, ys, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "dot" =>
-          Some((receiver, xs, ys)).asInstanceOf[Option[(Rep[ColBuilder], Rep[Col[T]], Rep[Col[T]]) forSome {type T}]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[Col[T]], Rep[Col[T]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => None
-      }
-    }
-
-    object ddmvm {
-      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Rep[WArray[Double]])] = d match {
-        case MethodCall(receiver, method, Seq(v, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "ddmvm" =>
-          Some((receiver, v)).asInstanceOf[Option[(Rep[ColBuilder], Rep[WArray[Double]])]]
-        case _ => None
-      }
-      def unapply(exp: Sym): Option[(Rep[ColBuilder], Rep[WArray[Double]])] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
