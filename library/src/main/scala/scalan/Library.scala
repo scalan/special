@@ -100,7 +100,12 @@ trait Library extends Scalan
   implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
     def applyCost(x: Rep[A]): Rep[Int] = {
       val cf = fC.asRep[CostedFunc[Any, A, B]]
-      val y = cf.costFunc.apply(x).asRep[Int]
+      val y = cf.costFunc(x)
+      y
+    }
+    def applyDataSize(x: Rep[A]): Rep[Long] = {
+      val cf = fC.asRep[CostedFunc[Any, A, B]]
+      val y = cf.dataSizeFunc(x)
       y
     }
   }
