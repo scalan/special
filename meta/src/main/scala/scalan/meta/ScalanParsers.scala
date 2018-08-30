@@ -424,9 +424,10 @@ trait ScalanParsers[+G <: Global] {
       }
   }
 
-  def isInternal(md: DefDef): Boolean = {
+  def isInternal(md: ValOrDefDef): Boolean = {
     val as = parseAnnotations(md)((n, _, _) => SMethodAnnotation(n, Nil, Nil))
-    as.exists(_.annotationClass == "Internal")
+    as.exists(_.annotationClass == "Internal") ||
+    md.name.toString.startsWith("__") && md.name.toString.endsWith("__")
   }
 
   def isExplicitMethod(md: DefDef): Boolean = {
@@ -451,6 +452,15 @@ trait ScalanParsers[+G <: Global] {
         }
       else
         None
+    case vd: ValDef =>
+      if (!isInternal(vd))
+        vd match {
+          case vd if vd.mods.isParamAccessor => None
+          case _ =>
+            Some(valDef(owner, vd, parentScope))
+        }
+      else
+        None
 //    case LabelDef(name, params, rhs) =>
 //      SLabelDef(owner, name, params.map(_.toString()), parseExpr(owner, rhs))
     case td: TypeDef =>
@@ -467,11 +477,6 @@ trait ScalanParsers[+G <: Global] {
         None
     case od: ModuleDef =>
       Some(objectDef(owner, od))
-    case vd: ValDef => vd match {
-      case vd if vd.mods.isParamAccessor => None
-      case _ =>
-        Some(valDef(owner, vd, parentScope))
-    }
     case EmptyTree =>
       None
     // calls in constructor

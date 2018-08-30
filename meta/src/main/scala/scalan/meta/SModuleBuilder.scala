@@ -422,7 +422,6 @@ class SourceUnitVirtualization(implicit val context: AstContext) extends (SUnitD
     checkClassCompanion _,
     genEntityImplicits _,
     replaceClassTagsWithElems _,
-//    replaceClassTagByElem _,
     eliminateClassTagApply _,
     // genClassesImplicits _, genMethodsImplicits _,
     fixEntityCompanionName _,
