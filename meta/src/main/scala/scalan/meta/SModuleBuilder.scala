@@ -64,7 +64,8 @@ class SModuleBuilder(implicit val context: AstContext) {
       }
       override def constrTransform(constr: SConstr): SConstr = constr match {
         case SConstr("Tuple2", args, tpe) => SConstr("Pair", args, tpe)
-        case SConstr(ctx.Entity(m, e), args, tpe) => SConstr("R" + e.name, args, tpe)
+        case SConstr(ctx.Entity(_, e), args, tpe) => SConstr("R" + e.name, args, tpe)
+        case SConstr(ctx.ExternalType(_, e), args, tpe) => SConstr("R" + e.name, args, tpe)
         case _ => constr
       }
     }.moduleTransform(module)

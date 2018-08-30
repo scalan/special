@@ -223,6 +223,14 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
       findModuleEntity(name)
   }
 
+  object ExternalType {
+    def unapply(name: String): Option[(Module, Entity)] = getWrapper(name) match {
+      case Some(wd) =>
+        Some((wd.unit, wd.unit.traits(0)))
+      case None => None
+    }
+  }
+
   object WrapperEntity {
     def unapply(name: String): Option[(SEntityDef, String)] = name match {
       case Entity(_, e) =>
@@ -237,7 +245,7 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
   object IsGlobalObject {
     def unapply(expr: SExpr): Option[String] = expr match {
       case SSelect(SEmpty(None), Entity(_,e), None) => Some(e.name)
-
+      case SSelect(SEmpty(None), ExternalType(_,e), None) => Some(e.name)
       case _ => None
     }
   }

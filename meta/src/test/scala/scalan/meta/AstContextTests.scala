@@ -1,6 +1,7 @@
 package scalan.meta
 
-import scalan.meta.ScalanAst.{STraitCall, STpeExpr, STpeFunc, TpeString, TpeInt}
+import scalan.{FunctorType, ContainerType}
+import scalan.meta.ScalanAst.{STraitCall, STpeExpr, STpeFunc, WrapperConf, TpeString, WrapperDescr, TpeInt}
 
 class AstContextTests extends BaseMetaTests with Examples {
 
@@ -10,7 +11,12 @@ class AstContextTests extends BaseMetaTests with Examples {
     val cols = parseModule(colsVirtModule)
     context.addUnit(cols)
     val warrays = parseModule(warraysModule)
-    context.addUnit(warrays)
+    val arrayConf = WrapperConf("",
+      packageName = "scala",
+      name = "Array",
+      annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
+    )
+    context.updateWrapper("Array", WrapperDescr(warrays, arrayConf))
     val itersApi = parseModule(itersApiModule)
     context.addUnit(itersApi)
     val itersImpl = parseModule(itersImplModule)
@@ -46,6 +52,10 @@ class AstContextTests extends BaseMetaTests with Examples {
     it("resolve recognize wrapper entity by name") {
       "WArray" should matchPattern { case context.WrapperEntity(e, "Array") if e.name == "WArray" => }
       "Collection" shouldNot matchPattern { case context.WrapperEntity(e, _) => }
+    }
+
+    it("resolve recognize external type by name") {
+      "Array" should matchPattern { case context.ExternalType(u, e) if e.name == "WArray" && u.name == "WArrays" => }
     }
   }
 
