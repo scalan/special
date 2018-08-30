@@ -191,23 +191,24 @@ class MetaCodegen {
         }).orElse {
           m.name match {
             case "toString" | "hashCode" if m.allArgs.isEmpty =>
-              Some("Overrides Object method")
+              Some(s"Overrides Object method ${m.name}")
             case "equals" | "canEqual" if m.allArgs.length == 1 =>
-              Some("Overrides Object method")
+              Some(s"Overrides Object method ${m.name}")
             case _ => None
           }
         }.orElse {
           m.tpeRes.filter(!_.isRep(module, config.isVirtualized)).map {
             returnTpe => s"Method's return type $returnTpe is not a Rep"
           }
-        }.orElse {
-          m.allArgs
-            .find(a => a.tpe match { case RepeatedArgType(t) => true case _ => false })
-            .map(a => s"Method has repeated argument ${a.name}")
         }
+//        .orElse {
+//          m.allArgs
+//            .find(a => a.tpe match { case RepeatedArgType(t) => true case _ => false })
+//            .map(a => s"Method has repeated argument ${a.name}")
+//        }
       }
 
-      def methodExtractor(m: SMethodDef) = {
+      def methodExtractor(m: SMethodDef): String = {
         reasonToSkipMethod(m) match {
           case Some(reason) =>
             s"    // WARNING: Cannot generate matcher for method `${m.name}`: $reason"
@@ -225,10 +226,18 @@ class MetaCodegen {
             val returnType = {
               val receiverType = s"Rep[${e.name + e.tpeArgs.asTypeParams(_.name)}]"
               val argTypes = methodArgs.map { arg =>
-                if (config.isVirtualized || arg.isTypeDesc)
-                  arg.tpe.toString
-                else
-                  "Rep[" + arg.tpe.toString + "]"
+                arg.tpe match {
+                  case RepeatedArgType(t) =>
+                    if (config.isVirtualized)
+                      s"Seq[$t]"
+                    else
+                      s"Seq[Rep[$t]]"
+                  case _ =>
+                    if (config.isVirtualized || arg.isTypeDesc)
+                      arg.tpe.toString
+                    else
+                      s"Rep[${arg.tpe}]"
+                }
               }
               val receiverAndArgTypes = ((if (isCompanion) Nil else List(receiverType)) ++ argTypes) match {
                 case Seq() => "Unit"

@@ -337,13 +337,21 @@ class SModuleBuilder(implicit val context: AstContext) {
       case m: SMethodDef if m.name == "<init>" => true
       case _ => false
     }
+    var iConstr = 0
     val applies = constrs collect {
-      case c: SMethodDef => c.copy(
-        name = "apply",
-        tpeArgs = (e.tpeArgs ++ c.tpeArgs).distinct,
-        // This is an internal annotation. And it should be ignored during in the backend.
-        annotations = List(SMethodAnnotation("Constructor", Nil, List(SAssign(SIdent("original"), c))))
-      )
+      case c: SMethodDef =>
+        iConstr += 1
+        val overloadName = "constructor_" + iConstr
+        c.copy(
+          name = "apply",
+          tpeArgs = (e.tpeArgs ++ c.tpeArgs).distinct,
+          overloadId = Some(overloadName),
+          // This is an internal annotation. And it should be ignored during in the backend.
+          annotations = List(
+            SMethodAnnotation("Constructor", Nil, List(SAssign(SIdent("original"), c))),
+            SMethodAnnotation("OverloadId", Nil, List(SAssign(SIdent("value"), SConst(overloadName))))
+          )
+        )
     }
     val newEntityCompanion = e.companion match {
       case Some(companion: STraitDef) => Some(companion.copy(body = applies ++ companion.body))
