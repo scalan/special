@@ -18,6 +18,7 @@ trait Library extends Scalan
   with MonoidsModule
   with MonoidInstancesModule {
   import WArray._; import Col._; import ColBuilder._; import ReplCol._
+  import Costed._
   import CostedFunc._;
 
   trait Sized[Val] { node: Costed[Val] =>
@@ -98,15 +99,14 @@ trait Library extends Scalan
   }
 
   implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
-    def applyCost(x: Rep[A]): Rep[Int] = {
-      val cf = fC.asRep[CostedFunc[Any, A, B]]
-      val y = cf.costFunc(x)
-      y
-    }
-    def applyDataSize(x: Rep[A]): Rep[Long] = {
-      val cf = fC.asRep[CostedFunc[Any, A, B]]
-      val y = cf.dataSizeFunc(x)
-      y
+    def applyCosted(x: Rep[Costed[A]]): Rep[Costed[B]] = {
+      val fC_elem = fC.elem.asInstanceOf[CostedElem[A => B,_]].eVal
+      implicit val eA = fC_elem.eDom
+      implicit val eB = fC_elem.eRange
+      val res = tryConvert(
+            element[CostedFunc[Unit,A,B]], element[Costed[B]], fC,
+            fun { f: Rep[CostedFunc[Unit,A,B]] => f.func(x) })
+      res
     }
   }
 }

@@ -8,6 +8,7 @@ package special.collection {
     import WEither._;
     import WArray._;
     import Col._;
+    import CostedCol._;
     import MonoidBuilderInst._;
     import CostedBuilder._;
     trait ConcreteCosted[Val] extends Costed[Val] {
@@ -24,20 +25,20 @@ package special.collection {
       @NeverInline def cost: Rep[Int] = delayInvoke;
       @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
-    abstract class CostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[scala.Tuple2[Env, Arg], Costed[Res]]], val cost: Rep[Int], val dataSize: Rep[Long]) extends ConcreteCosted[scala.Function1[Arg, Res]] {
-      lazy val value: Rep[scala.Function1[Arg, Res]] = fun(((a: Rep[Arg]) => func.apply(Tuple(this.envCosted.value, a)).value));
-      lazy val costFunc: Rep[scala.Function1[Arg, Int]] = fun(((a: Rep[Arg]) => func.apply(Tuple(this.envCosted.value, a)).cost));
-      lazy val dataSizeFunc: Rep[scala.Function1[Arg, Long]] = fun(((a: Rep[Arg]) => func.apply(Tuple(this.envCosted.value, a)).dataSize))
+    abstract class CostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], val cost: Rep[Int], val dataSize: Rep[Long]) extends ConcreteCosted[scala.Function1[Arg, Res]] {
+      @NeverInline def value: Rep[scala.Function1[Arg, Res]] = delayInvoke
     };
     abstract class CostedArray[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Int]], val sizes: Rep[Col[Long]]) extends ConcreteCosted[WArray[Item]] {
       def value: Rep[WArray[Item]] = CostedArray.this.values.arr;
       def cost: Rep[Int] = CostedArray.this.costs.sum(CostedArray.this.builder.monoidBuilder.intPlusMonoid);
       def dataSize: Rep[Long] = CostedArray.this.sizes.sum(CostedArray.this.builder.monoidBuilder.longPlusMonoid)
     };
-    abstract class CostedCol[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Int]], val sizes: Rep[Col[Long]]) extends ConcreteCosted[Col[Item]] {
+    abstract class CostedCol[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Int]], val sizes: Rep[Col[Long]], val valuesCost: Rep[Int]) extends ConcreteCosted[Col[Item]] {
       def value: Rep[Col[Item]] = CostedCol.this.values;
       def cost: Rep[Int] = CostedCol.this.costs.sum(CostedCol.this.builder.monoidBuilder.intPlusMonoid);
-      def dataSize: Rep[Long] = CostedCol.this.sizes.sum(CostedCol.this.builder.monoidBuilder.longPlusMonoid)
+      def dataSize: Rep[Long] = CostedCol.this.sizes.sum(CostedCol.this.builder.monoidBuilder.longPlusMonoid);
+      @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedCol[Res]] = delayInvoke;
+      @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedCol[Item]] = delayInvoke
     };
     abstract class CostedPairArray[L, R](val ls: Rep[Costed[WArray[L]]], val rs: Rep[Costed[WArray[R]]]) extends ConcreteCosted[WArray[scala.Tuple2[L, R]]] {
       def value: Rep[WArray[scala.Tuple2[L, R]]] = CostedPairArray.this.ls.value.zip(CostedPairArray.this.rs.value);

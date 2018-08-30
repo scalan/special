@@ -33,13 +33,15 @@ class CostedSum[L,R](
   * */
 class CostedFunc[Env,Arg,Res](
       val envCosted: Costed[Env],
-      val func: ((Env, Arg)) => Costed[Res],
+      val func: Costed[Arg] => Costed[Res],
       val cost: Int,
       val dataSize: Long) extends ConcreteCosted[Arg => Res]
 {
-  lazy val value: Arg => Res = (a: Arg) => func.apply((this.envCosted.value, a)).value
-  lazy val costFunc: Arg => Int = (a: Arg) => func.apply((this.envCosted.value, a)).cost
-  lazy val dataSizeFunc: Arg => Long = (a: Arg) => func.apply((this.envCosted.value, a)).dataSize
+  @NeverInline
+  def value: Arg => Res = ???
+//  lazy val value: Arg => Res = (a: Arg) => func.apply((this.envCosted.value, a)).value
+//  lazy val costFunc: Arg => Int = (a: Arg) => func.apply((this.envCosted.value, a)).cost
+//  lazy val dataSizeFunc: Arg => Long = (a: Arg) => func.apply((this.envCosted.value, a)).dataSize
 }
 
 class CostedArray[Item](
@@ -55,11 +57,16 @@ class CostedArray[Item](
 class CostedCol[Item](
       val values: Col[Item],
       val costs: Col[Int],
-      val sizes: Col[Long]) extends ConcreteCosted[Col[Item]]
+      val sizes: Col[Long],
+      val valuesCost: Int) extends ConcreteCosted[Col[Item]]
 {
   def value: Col[Item] = values
   def cost: Int = costs.sum(builder.monoidBuilder.intPlusMonoid)
   def dataSize: Long = sizes.sum(builder.monoidBuilder.longPlusMonoid)
+  @NeverInline
+  def mapCosted[Res](f: Costed[Item] => Costed[Res]): CostedCol[Res] = ???
+  @NeverInline
+  def filterCosted(f: Costed[Item] => Costed[Boolean]): CostedCol[Item] = ???
 }
 
 class CostedPairArray[L,R](val ls: Costed[Array[L]], val rs: Costed[Array[R]]) extends ConcreteCosted[Array[(L,R)]] {
