@@ -15,6 +15,14 @@ import Converter._
 import WEither._
 
 object WEither extends EntityObject("WEither") {
+  case class WEitherConst[A,B] (wrappedValue: Either[A,B], eA: Elem[A], eB: Elem[B])
+      extends WEither[A,B] with WrapperConst[Either[A,B]] {
+    val selfType: Elem[WEither[A,B]] = wEitherElement(eA, eB)
+    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = delayInvoke
+  }
+
+  def mkWEitherConst[A,B](v: Either[A,B])(implicit eA: Elem[A], eB: Elem[B]): Rep[WEither[A,B]] = WEitherConst[A,B](v, eA, eB)
+
   // entityProxy: single proxy for each type family
   implicit def proxyWEither[A, B](p: Rep[WEither[A, B]]): WEither[A, B] = {
     proxyOps[WEither[A, B]](p)(scala.reflect.classTag[WEither[A, B]])

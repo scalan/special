@@ -17,7 +17,8 @@ import Converter._
 import WArray._
 
 object WArray extends EntityObject("WArray") {
-  case class WArrayConst[T] (arr: mutable.WrappedArray[T], eT: Elem[T]) extends WArray[T] {
+  case class WArrayConst[T] (wrappedValue: mutable.WrappedArray[T], eT: Elem[T])
+    extends WArray[T] with WrapperConst[mutable.WrappedArray[T]] {
     val selfType: Elem[WArray[T]] = wArrayElement(eT)
 
     def apply(i: Rep[Int]): Rep[T] = delayInvoke

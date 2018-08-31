@@ -171,6 +171,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def canEqual(other: Any) = other.isInstanceOf[CompanionDef[_]]
   }
 
+  trait WrapperConst[T] {
+    def wrappedValue: T
+  }
+
   class EntityObject(val entityName: String)
 
   private[this] val entityObjects = scala.collection.mutable.Map.empty[String, EntityObject]

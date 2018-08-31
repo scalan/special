@@ -15,6 +15,21 @@ import Converter._
 import WOption._
 
 object WOption extends EntityObject("WOption") {
+  case class WOptionConst[T] (wrappedValue: Option[T], eA: Elem[T])
+      extends WOption[T] with WrapperConst[Option[T]] {
+    val selfType: Elem[WOption[T]] = wOptionElement(eA)
+    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[T => B]): Rep[B] = delayInvoke
+    def isEmpty: Rep[Boolean] = delayInvoke
+    def isDefined: Rep[Boolean] = delayInvoke
+    def filter(p: Rep[T => Boolean]): Rep[WOption[T]] = delayInvoke
+    def flatMap[B](f: Rep[T => WOption[B]]): Rep[WOption[B]] = delayInvoke
+    def map[B](f: Rep[T => B]): Rep[WOption[B]] = delayInvoke
+    def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = delayInvoke
+    def get: Rep[T] = delayInvoke
+  }
+
+  def mkWOptionConst[T](v: Option[T])(implicit eT: Elem[T]): Rep[WOption[T]] = WOptionConst[T](v, eT)
+
   // entityProxy: single proxy for each type family
   implicit def proxyWOption[A](p: Rep[WOption[A]]): WOption[A] = {
     proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
