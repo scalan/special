@@ -492,7 +492,11 @@ trait Structs extends Effects with StructItemsModule with StructKeysModule { sel
     val fields = outFields.map(fn => (fn, field(struct, fn)))
   }
 
-  def struct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]): Rep[T] = SimpleStruct(tag, fields)
+  def struct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]): Rep[T] = {
+    val names = fields.map(_._1)
+    assert(names.distinct.lengthCompare(fields.length) == 0, s"Fields of struct should be distinct but $names")
+    SimpleStruct(tag, fields)
+  }
   def field(struct: Rep[Struct], field: String): Rep[_] = {
     struct.elem match {
       case se: StructElem[a] =>
