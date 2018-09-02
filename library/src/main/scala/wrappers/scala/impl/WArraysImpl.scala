@@ -17,10 +17,10 @@ import Converter._
 import WArray._
 
 object WArray extends EntityObject("WArray") {
-  case class WArrayConst[T] (wrappedValue: mutable.WrappedArray[T], eT: Elem[T])
-    extends WArray[T] with WrapperConst[mutable.WrappedArray[T]] {
+  case class WArrayConst[T] (wrappedValue: Array[T], eT: Elem[T])
+    extends WArray[T] with WrapperConst[Array[T]] {
     val selfType: Elem[WArray[T]] = wArrayElement(eT)
-
+     
     def apply(i: Rep[Int]): Rep[T] = delayInvoke
     def foreach(f: Rep[T => Unit]): Rep[Unit] = delayInvoke
     def exists(p: Rep[T => Boolean]): Rep[Boolean] = delayInvoke
