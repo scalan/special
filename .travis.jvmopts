@@ -1,5 +1,5 @@
 -Xmx4g
--Xss2m
+-Xss3M
 -XX:+CMSClassUnloadingEnabled
 -XX:+UseConcMarkSweepGC
 -XX:ReservedCodeCacheSize=96m

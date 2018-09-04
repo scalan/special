@@ -7,6 +7,7 @@ import configs.syntax._
 import com.typesafe.config.{ConfigFactory, Config}
 import com.typesafe.scalalogging.LazyLogging
 
+import scala.annotation.implicitNotFound
 import scala.annotation.unchecked.uncheckedVariance
 import scala.collection.{mutable, TraversableOnce}
 import scala.collection.mutable.ListBuffer
@@ -171,8 +172,55 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def canEqual(other: Any) = other.isInstanceOf[CompanionDef[_]]
   }
 
-  trait WrapperConst[T] {
-    def wrappedValue: T
+  object Liftables {
+    trait LiftedConst[T] {
+      def constValue: T
+    }
+
+    /** Describes lifting constant values of type T to IR nodes of the correspoding staged type WT.
+      * In general WT is different type obtained by virtualization procedure. */
+    @implicitNotFound(msg = "Cannot find implicit for Liftable[${T},${WT}].")
+    trait Liftable[T, WT] {
+      def eW: Elem[WT]
+      def lift(x: T): Rep[WT]
+      def unlift(w: Rep[WT]): T
+
+      protected def unliftError(w: Rep[WT]) =
+        !!!(s"Cannot unlift simbol $w using $this")
+
+      override def hashCode(): Int = eW.hashCode() + 1 // to make Elem and Liftable differ
+      override def equals(obj: Any): Boolean = super.equals(obj) || (obj match {
+        case other: Liftable[_,_] => other.eW == eW
+        case _ => false
+      })
+      override def toString: String = s"Liftable($eW)"
+    }
+
+    def liftable[T, WT](implicit lT: Liftable[T,WT]) = lT
+    def liftConst[T,WT](x: T)(implicit lT: Liftable[T,WT]): Rep[WT] = lT.lift(x)
+
+    class BaseLiftable[T](implicit eT: Elem[T]) extends Liftable[T, T] {
+      def eW = eT
+      def lift(x: T) = toRep(x)
+      def unlift(w: Rep[T]) = w.asValue
+    }
+
+    class PairLiftable[A,B,WA,WB](implicit lA: Liftable[A, WA], lB: Liftable[B, WB]) extends Liftable[(A,B), (WA,WB)] {
+      def eW: Elem[(WA, WB)] = pairElement(lA.eW, lB.eW)
+      def lift(x: (A, B)): Rep[(WA, WB)] = Pair(lA.lift(x._1), lB.lift(x._2))
+      def unlift(w: Rep[(WA, WB)]): (A, B) = { val Pair(wa, wb) = w; (lA.unlift(wa), lB.unlift(wb)) }
+    }
+
+    implicit val BooleanIsLiftable = new BaseLiftable[Boolean]
+    implicit val ByteIsLiftable = new BaseLiftable[Byte]
+    implicit val ShortIsLiftable = new BaseLiftable[Short]
+    implicit val IntIsLiftable = new BaseLiftable[Int]
+    implicit val LongIsLiftable = new BaseLiftable[Long]
+    implicit val StringIsLiftable = new BaseLiftable[String]
+    implicit val FloatIsLiftable = new BaseLiftable[Float]
+    implicit val DoubleIsLiftable = new BaseLiftable[Double]
+    implicit val UnitIsLiftable = new BaseLiftable[Unit]
+    implicit val CharIsLiftable = new BaseLiftable[Char]
   }
 
   class EntityObject(val entityName: String)

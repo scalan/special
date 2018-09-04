@@ -15,13 +15,27 @@ import Converter._
 import WEither._
 
 object WEither extends EntityObject("WEither") {
-  case class WEitherConst[A,B] (wrappedValue: Either[A,B], eA: Elem[A], eB: Elem[B])
-      extends WEither[A,B] with WrapperConst[Either[A,B]] {
-    val selfType: Elem[WEither[A,B]] = wEitherElement(eA, eB)
-    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = delayInvoke
+  import Liftables._
+  case class WEitherConst[A,B,WA,WB](constValue: Either[A,B], lA: Liftable[A, WA], lB: Liftable[B,WB])
+      extends WEither[WA,WB] with LiftedConst[Either[A,B]] {
+    implicit def eA: Elem[WA] = lA.eW
+    implicit def eB: Elem[WB] = lB.eW
+    val selfType: Elem[WEither[WA,WB]] = wEitherElement(eA, eB)
+    def fold[C](fa: Rep[WA => C], fb: Rep[WB => C]): Rep[C] = delayInvoke
   }
 
-  def mkWEitherConst[A,B](v: Either[A,B])(implicit eA: Elem[A], eB: Elem[B]): Rep[WEither[A,B]] = WEitherConst[A,B](v, eA, eB)
+  case class LiftableEither[A,B,WA,WB](lA: Liftable[A, WA], lB: Liftable[B, WB]) extends Liftable[A | B, WEither[WA, WB]] {
+    def eW: Elem[WEither[WA,WB]] = wEitherElement(lA.eW, lB.eW)
+    def lift(x: A | B): Rep[WEither[WA, WB]] = WEitherConst(x, lA, lB)
+    def unlift(w: Rep[WEither[WA, WB]]): Either[A, B] = w match {
+      case Def(WEitherConst(x: Either[A,B], lLeft, lRight)) if lLeft == lA && lRight == lB => x
+      case _ => unliftError(w)
+    }
+  }
+
+  implicit def liftableEither[A,B,WA,WB]
+      (implicit lA: Liftable[A,WA], lB: Liftable[B,WB]): Liftable[Either[A,B], WEither[WA,WB]] =
+    LiftableEither(lA, lB)
 
   // entityProxy: single proxy for each type family
   implicit def proxyWEither[A, B](p: Rep[WEither[A, B]]): WEither[A, B] = {

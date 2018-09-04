@@ -17,23 +17,35 @@ import Converter._
 import WArray._
 
 object WArray extends EntityObject("WArray") {
-  case class WArrayConst[T] (wrappedValue: Array[T], eT: Elem[T])
-    extends WArray[T] with WrapperConst[Array[T]] {
-    val selfType: Elem[WArray[T]] = wArrayElement(eT)
+  import Liftables._
+  case class WArrayConst[T, WT](constValue: Array[T], lT: Liftable[T, WT])
+    extends WArray[WT] with LiftedConst[Array[T]] {
+    implicit def eT: Elem[WT] = lT.eW
+    val selfType: Elem[WArray[WT]] = wArrayElement(lT.eW)
      
-    def apply(i: Rep[Int]): Rep[T] = delayInvoke
-    def foreach(f: Rep[T => Unit]): Rep[Unit] = delayInvoke
-    def exists(p: Rep[T => Boolean]): Rep[Boolean] = delayInvoke
-    def forall(p: Rep[T => Boolean]): Rep[Boolean] = delayInvoke
-    def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = delayInvoke
-    def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = delayInvoke
-    def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = delayInvoke
+    def apply(i: Rep[Int]): Rep[WT] = delayInvoke
+    def foreach(f: Rep[WT => Unit]): Rep[Unit] = delayInvoke
+    def exists(p: Rep[WT => Boolean]): Rep[Boolean] = delayInvoke
+    def forall(p: Rep[WT => Boolean]): Rep[Boolean] = delayInvoke
+    def filter(p: Rep[WT => Boolean]): Rep[WArray[WT]] = delayInvoke
+    def foldLeft[B](zero: Rep[B], op: Rep[((B, WT)) => B]): Rep[B] = delayInvoke
+    def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[WT]] = delayInvoke
     def length: Rep[Int] = delayInvoke
-    def map[B](f: Rep[T => B]): Rep[WArray[B]] = delayInvoke
-    def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = delayInvoke
+    def map[B](f: Rep[WT => B]): Rep[WArray[B]] = delayInvoke
+    def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(WT, B)]] = delayInvoke
   }
 
-  def mkWArrayConst[T](arr: Array[T])(implicit eT: Elem[T]): Rep[WArray[T]] = WArrayConst[T](arr, eT)
+  case class LiftableArray[T, WT](lT: Liftable[T, WT]) extends Liftable[Array[T], WArray[WT]] {
+    def eW: Elem[WArray[WT]] = wArrayElement(lT.eW)
+    def lift(x: Array[T]): Rep[WArray[WT]] = WArrayConst(x, lT)
+    def unlift(w: Rep[WArray[WT]]): Array[T] = w match {
+      case Def(WArrayConst(x: Array[_], l)) if l == lT => x.asInstanceOf[Array[T]]
+      case _ => unliftError(w)
+    }
+  }
+
+  implicit def liftableArray[T,WT](implicit lT: Liftable[T,WT]): Liftable[Array[T], WArray[WT]] =
+    LiftableArray(lT)
 
   // entityProxy: single proxy for each type family
   implicit def proxyWArray[T](p: Rep[WArray[T]]): WArray[T] = {

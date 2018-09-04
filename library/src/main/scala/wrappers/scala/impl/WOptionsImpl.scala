@@ -15,20 +15,32 @@ import Converter._
 import WOption._
 
 object WOption extends EntityObject("WOption") {
-  case class WOptionConst[T] (wrappedValue: Option[T], eA: Elem[T])
-      extends WOption[T] with WrapperConst[Option[T]] {
-    val selfType: Elem[WOption[T]] = wOptionElement(eA)
-    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[T => B]): Rep[B] = delayInvoke
+  import Liftables._
+  case class WOptionConst[T, WT] (constValue: Option[T], lT: Liftable[T, WT])
+      extends WOption[WT] with LiftedConst[Option[T]] {
+    implicit def eA: Elem[WT] = lT.eW
+    val selfType: Elem[WOption[WT]] = wOptionElement(lT.eW)
+    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[WT => B]): Rep[B] = delayInvoke
     def isEmpty: Rep[Boolean] = delayInvoke
     def isDefined: Rep[Boolean] = delayInvoke
-    def filter(p: Rep[T => Boolean]): Rep[WOption[T]] = delayInvoke
-    def flatMap[B](f: Rep[T => WOption[B]]): Rep[WOption[B]] = delayInvoke
-    def map[B](f: Rep[T => B]): Rep[WOption[B]] = delayInvoke
+    def filter(p: Rep[WT => Boolean]): Rep[WOption[WT]] = delayInvoke
+    def flatMap[B](f: Rep[WT => WOption[B]]): Rep[WOption[B]] = delayInvoke
+    def map[B](f: Rep[WT => B]): Rep[WOption[B]] = delayInvoke
     def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = delayInvoke
-    def get: Rep[T] = delayInvoke
+    def get: Rep[WT] = delayInvoke
   }
 
-  def mkWOptionConst[T](v: Option[T])(implicit eT: Elem[T]): Rep[WOption[T]] = WOptionConst[T](v, eT)
+  case class LiftableOption[T, WT](lT: Liftable[T, WT]) extends Liftable[Option[T], WOption[WT]] {
+    def eW: Elem[WOption[WT]] = wOptionElement(lT.eW)
+    def lift(x: Option[T]): Rep[WOption[WT]] = WOptionConst(x, lT)
+    def unlift(w: Rep[WOption[WT]]): Option[T] = w match {
+      case Def(WOptionConst(x: Option[T], l)) if l == lT => x
+      case _ => unliftError(w)
+    }
+  }
+
+  implicit def liftableOption[T,WT](implicit lT: Liftable[T,WT]): Liftable[Option[T], WOption[WT]] =
+    LiftableOption(lT)
 
   // entityProxy: single proxy for each type family
   implicit def proxyWOption[A](p: Rep[WOption[A]]): WOption[A] = {
