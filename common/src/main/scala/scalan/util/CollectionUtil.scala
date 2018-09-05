@@ -186,6 +186,34 @@ object CollectionUtil {
        b.result()
     }
 
+    def mapUnzip[B1, B2](f: A => (B1,B2))
+        (implicit cbf1: CanBuildFrom[Source[A], B1, Source[B1]],
+            cbf2: CanBuildFrom[Source[A], B2, Source[B2]]): (Source[B1], Source[B2]) =
+    {
+      val b1 = cbf1()
+      val b2 = cbf2()
+      for (x <- xs) {
+        val (y1, y2) = f(x)
+        b1 += y1; b2 += y2
+      }
+      (b1.result(), b2.result())
+    }
+
+    def mapUnzip[B1, B2, B3](f: A => (B1,B2,B3))
+        (implicit cbf1: CanBuildFrom[Source[A], B1, Source[B1]],
+            cbf2: CanBuildFrom[Source[A], B2, Source[B2]],
+            cbf3: CanBuildFrom[Source[A], B3, Source[B3]]): (Source[B1], Source[B2], Source[B3]) =
+    {
+      val b1 = cbf1()
+      val b2 = cbf2()
+      val b3 = cbf3()
+      for (x <- xs) {
+        val (y1, y2, y3) = f(x)
+        b1 += y1; b2 += y2; b3 += y3
+      }
+      (b1.result(), b2.result(), b3.result())
+    }
+
     def distinctBy[K](key: A => K)(implicit cbf: CanBuildFrom[Source[A], A, Source[A]]): Source[A] = {
       val keys = mutable.Set[K]()
       val b = cbf()

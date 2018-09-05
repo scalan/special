@@ -46,6 +46,23 @@ class CollectionUtilTests extends BaseTests {
     xs.filterMap(x => if (x <= 2) Some(s"x = $x") else None) should be(List("x = 1", "x = 2"))
   }
 
+  test("mapUnzip") {
+    val xs = Seq(1, 2, 3)
+
+    {
+      val (ints, strings, plus1s) = xs.mapUnzip(x => (x, x.toString, x + 1))
+      ints shouldBe Seq(1, 2, 3)
+      strings shouldBe Seq("1", "2", "3")
+      plus1s shouldBe Seq(2, 3, 4)
+    }
+    
+    {
+      val (ints, strings) = xs.mapUnzip(x => (x, x.toString))
+      ints shouldBe Seq(1, 2, 3)
+      strings shouldBe Seq("1", "2", "3")
+    }
+  }
+
   test("mapFirst") {
     val xs = List(1, 2, 3)
     xs.findMap(x => if (x > 2) Some(s"x = $x") else None) should be(Some("x = 3"))
