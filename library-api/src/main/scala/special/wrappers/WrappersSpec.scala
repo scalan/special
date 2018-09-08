@@ -12,7 +12,7 @@ class ArrayWrapSpec extends WrapSpec {
   def length[A](xs: Array[A]) = xs.length
   def fill[A:ClassTag](n: Int, elem: A): Array[A] = Array.fill(n)(elem)
   def slice[A](xs: Array[A], from: Int, until: Int): Array[A] = xs.slice(from, until)
-  def foldLeft[A, B](xs: Array[A], zero: B, op: (B, A) => B): B = xs.foldLeft(zero)(op)
+  def foldLeft[A, B](xs: Array[A], zero: B, op: ((B, A)) => B): B = xs.foldLeft(zero)((x,y) => op((x,y)))
   def filter[A](xs: Array[A], p: A => Boolean): Array[A] = xs.filter(p)
   def forall[A](xs: Array[A], p: A => Boolean): Boolean = xs.forall(p)
   def exists[A](xs: Array[A], p: A => Boolean): Boolean = xs.exists(p)

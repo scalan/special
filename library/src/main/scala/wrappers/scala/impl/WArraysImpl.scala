@@ -107,12 +107,21 @@ object WArray extends EntityObject("WArray") {
           cls.getMethod("exists", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("exists", xsCls, classOf[Function1[_,_]])),
           cls.getMethod("forall", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("forall", xsCls, classOf[Function1[_,_]])),
           cls.getMethod("filter", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("filter", xsCls, classOf[Function1[_,_]])),
-          cls.getMethod("foldLeft", SymClass, SymClass) -> WMethodDesc(spec, wrapCls.getMethod("foldLeft", xsCls, classOf[AnyRef], classOf[Function2[_,_,_]])),
+          cls.getMethod("foldLeft", SymClass, SymClass) -> WMethodDesc(spec, wrapCls.getMethod("foldLeft", xsCls, classOf[AnyRef], classOf[Function1[_,_]])),
           cls.getMethod("slice", SymClass, SymClass) -> WMethodDesc(spec, wrapCls.getMethod("slice", xsCls, classOf[Int], classOf[Int])),
           cls.getMethod("length") -> WMethodDesc(spec, wrapCls.getMethod("length", xsCls)),
           cls.getMethod("zip", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("zip", xsCls, classOf[Array[_]])),
       )
     }
+
+    override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
+      case WArrayMethods.map(xs, f) =>
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
+        super.invokeUnlifted(newMC, dataEnv)
+      case _ =>
+        super.invokeUnlifted(mc, dataEnv)
+    }
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override lazy val tag = {

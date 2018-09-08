@@ -217,6 +217,18 @@ trait Base extends LazyLogging { scalan: Scalan =>
       def unlift(w: Rep[(A, B)]): (SA, SB) = { val Pair(wa, wb) = w; (lA.unlift(wa), lB.unlift(wb)) }
     }
 
+    case class FuncConst[SA,SB,A,B](f: SA => SB)(implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends BaseDef[A => B]()(funcElement(lA.eW, lB.eW))
+
+    class FuncLiftable[SA,SB,A,B](implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[SA => SB, A => B] {
+      val eW: Elem[A => B] = funcElement(lA.eW, lB.eW)
+      val sourceClassTag = { classTag[SA => SB] }
+      def lift(srcF: SA => SB): Rep[A => B] = FuncConst[SA,SB,A,B](srcF)
+      def unlift(f: Rep[A => B]): SA => SB = f match {
+        case Def(FuncConst(srcF)) => srcF.asInstanceOf[SA => SB]
+        case _ => unliftError(f)
+      }
+    }
+
     implicit lazy val BooleanIsLiftable = BooleanElement.liftable.asLiftable[Boolean,Boolean]
     implicit lazy val ByteIsLiftable    = ByteElement.liftable.asLiftable[Byte,Byte]
     implicit lazy val ShortIsLiftable   = ShortElement.liftable.asLiftable[Short,Short]
@@ -227,6 +239,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
     implicit lazy val DoubleIsLiftable  = DoubleElement.liftable.asLiftable[Double,Double]
     implicit lazy val UnitIsLiftable    = UnitElement.liftable.asLiftable[Unit,Unit]
     implicit lazy val CharIsLiftable    = CharElement.liftable.asLiftable[Char,Char]
+
+    implicit def PairIsLiftable[SA,SB,A,B]
+        (implicit lA: Liftable[SA, A], lB: Liftable[SB, B]): Liftable[(SA, SB), (A, B)] =
+      new PairLiftable[SA,SB,A,B]
+
+    implicit def FuncIsLiftable[SA,SB,A,B]
+        (implicit lA: Liftable[SA, A], lB: Liftable[SB, B]): Liftable[SA => SB, A => B] =
+      new FuncLiftable[SA,SB,A,B]
   }
 
   class EntityObject(val entityName: String)

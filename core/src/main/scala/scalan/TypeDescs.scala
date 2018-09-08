@@ -230,7 +230,10 @@ trait TypeDescs extends Base { self: Scalan =>
       methods.get(mc.method) match {
         case Some(md: WMethodDesc) =>
           val srcArgs = getSourceValues(dataEnv, mc.receiver +: mc.args:_*)
-          md.method.invoke(md.wrapSpec, srcArgs:_*)
+
+          val res = md.method.invoke(md.wrapSpec, srcArgs:_*)
+          // this if is required because res == null in case of Unit return type
+          if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
         case None =>
           !!!(s"Cannot perform unliftedInvoke of $mc")
       }
