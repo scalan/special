@@ -7,6 +7,10 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
+  import java.lang.reflect.Method
+
+  import special.wrappers.ArrayWrapSpec
+
   import scala.collection.mutable
 
   // Abs -----------------------------------
@@ -18,33 +22,38 @@ import WArray._
 
 object WArray extends EntityObject("WArray") {
   import Liftables._
-  case class WArrayConst[T, WT](constValue: Array[T], lT: Liftable[T, WT])
-    extends WArray[WT] with LiftedConst[Array[T]] {
-    implicit def eT: Elem[WT] = lT.eW
-    val selfType: Elem[WArray[WT]] = wArrayElement(lT.eW)
-     
-    def apply(i: Rep[Int]): Rep[WT] = delayInvoke
-    def foreach(f: Rep[WT => Unit]): Rep[Unit] = delayInvoke
-    def exists(p: Rep[WT => Boolean]): Rep[Boolean] = delayInvoke
-    def forall(p: Rep[WT => Boolean]): Rep[Boolean] = delayInvoke
-    def filter(p: Rep[WT => Boolean]): Rep[WArray[WT]] = delayInvoke
-    def foldLeft[B](zero: Rep[B], op: Rep[((B, WT)) => B]): Rep[B] = delayInvoke
-    def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[WT]] = delayInvoke
+  case class WArrayConst[ST, T](constValue: Array[ST], lT: Liftable[ST, T])
+    extends WArray[T] with LiftedConst[Array[ST], WArray[T]] {
+    implicit def eT: Elem[T] = lT.eW
+    val selfType: Elem[WArray[T]] = wArrayElement(lT.eW)
+    val liftable: Liftables.Liftable[Array[ST], WArray[T]] = liftableArray(lT)
+
+    def apply(i: Rep[Int]): Rep[T] = delayInvoke
+    def foreach(f: Rep[T => Unit]): Rep[Unit] = delayInvoke
+    def exists(p: Rep[T => Boolean]): Rep[Boolean] = delayInvoke
+    def forall(p: Rep[T => Boolean]): Rep[Boolean] = delayInvoke
+    def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = delayInvoke
+    def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = delayInvoke
+    def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = delayInvoke
     def length: Rep[Int] = delayInvoke
-    def map[B](f: Rep[WT => B]): Rep[WArray[B]] = delayInvoke
-    def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(WT, B)]] = delayInvoke
+    def map[B](f: Rep[T => B]): Rep[WArray[B]] = delayInvoke
+    def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = delayInvoke
   }
 
-  case class LiftableArray[T, WT](lT: Liftable[T, WT]) extends Liftable[Array[T], WArray[WT]] {
-    def eW: Elem[WArray[WT]] = wArrayElement(lT.eW)
-    def lift(x: Array[T]): Rep[WArray[WT]] = WArrayConst(x, lT)
-    def unlift(w: Rep[WArray[WT]]): Array[T] = w match {
-      case Def(WArrayConst(x: Array[_], l)) if l == lT => x.asInstanceOf[Array[T]]
+  case class LiftableArray[ST, T](lT: Liftable[ST, T]) extends Liftable[Array[ST], WArray[T]] {
+    def eW: Elem[WArray[T]] = wArrayElement(lT.eW)
+    def sourceClassTag: ClassTag[Array[ST]] = {
+      implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
+      classTag[Array[ST]]
+    }
+    def lift(x: Array[ST]): Rep[WArray[T]] = WArrayConst(x, lT)
+    def unlift(w: Rep[WArray[T]]): Array[ST] = w match {
+      case Def(WArrayConst(x: Array[_], l)) if l == lT => x.asInstanceOf[Array[ST]]
       case _ => unliftError(w)
     }
   }
 
-  implicit def liftableArray[T,WT](implicit lT: Liftable[T,WT]): Liftable[Array[T], WArray[WT]] =
+  implicit def liftableArray[ST,T](implicit lT: Liftable[ST,T]): Liftable[Array[ST], WArray[T]] =
     LiftableArray(lT)
 
   // entityProxy: single proxy for each type family
@@ -83,6 +92,27 @@ object WArray extends EntityObject("WArray") {
   class WArrayElem[T, To <: WArray[T]](implicit _eT: Elem[T])
     extends EntityElem1[T, To, WArray](_eT, container[WArray]) {
     def eT = _eT
+    override def liftable: Liftables.Liftable[Array[_], To] =
+      liftableArray(_eT.liftable).asLiftable[Array[_], To]
+
+    override protected def collectMethods: Map[Method, WMethodDesc] = {
+      val wrapCls = classOf[ArrayWrapSpec]
+      val xsCls = classOf[Array[T]]
+      val cls = classOf[WArray[T]]
+      val spec = new ArrayWrapSpec
+      super.collectMethods ++ Seq(
+          cls.getMethod("apply", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("apply", xsCls, classOf[Int])),
+          cls.getMethod("map", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("map", xsCls, classOf[Function1[_,_]], CtClass)),
+          cls.getMethod("foreach", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("foreach", xsCls, classOf[Function1[_,_]])),
+          cls.getMethod("exists", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("exists", xsCls, classOf[Function1[_,_]])),
+          cls.getMethod("forall", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("forall", xsCls, classOf[Function1[_,_]])),
+          cls.getMethod("filter", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("filter", xsCls, classOf[Function1[_,_]])),
+          cls.getMethod("foldLeft", SymClass, SymClass) -> WMethodDesc(spec, wrapCls.getMethod("foldLeft", xsCls, classOf[AnyRef], classOf[Function2[_,_,_]])),
+          cls.getMethod("slice", SymClass, SymClass) -> WMethodDesc(spec, wrapCls.getMethod("slice", xsCls, classOf[Int], classOf[Int])),
+          cls.getMethod("length") -> WMethodDesc(spec, wrapCls.getMethod("length", xsCls)),
+          cls.getMethod("zip", SymClass) -> WMethodDesc(spec, wrapCls.getMethod("zip", xsCls, classOf[Array[_]])),
+      )
+    }
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override lazy val tag = {
@@ -105,6 +135,8 @@ object WArray extends EntityObject("WArray") {
 
   implicit def wArrayElement[T](implicit eT: Elem[T]): Elem[WArray[T]] =
     cachedElem[WArrayElem[T, WArray[T]]](eT)
+
+  implicit def extendWArrayElement[T](elem: Elem[WArray[T]]): WArrayElem[T,_] = elem.asInstanceOf[WArrayElem[T,_]]
 
   implicit case object WArrayCompanionElem extends CompanionElem[WArrayCompanionCtor] {
     lazy val tag = weakTypeTag[WArrayCompanionCtor]

@@ -16,25 +16,31 @@ import WEither._
 
 object WEither extends EntityObject("WEither") {
   import Liftables._
-  case class WEitherConst[A,B,WA,WB](constValue: Either[A,B], lA: Liftable[A, WA], lB: Liftable[B,WB])
-      extends WEither[WA,WB] with LiftedConst[Either[A,B]] {
-    implicit def eA: Elem[WA] = lA.eW
-    implicit def eB: Elem[WB] = lB.eW
-    val selfType: Elem[WEither[WA,WB]] = wEitherElement(eA, eB)
-    def fold[C](fa: Rep[WA => C], fb: Rep[WB => C]): Rep[C] = delayInvoke
+  case class WEitherConst[SA,SB,A,B](constValue: Either[SA,SB], lA: Liftable[SA, A], lB: Liftable[SB,B])
+      extends WEither[A,B] with LiftedConst[Either[SA,SB], WEither[A,B]] {
+    implicit def eA: Elem[A] = lA.eW
+    implicit def eB: Elem[B] = lB.eW
+    val selfType: Elem[WEither[A,B]] = wEitherElement(eA, eB)
+    val liftable = liftableEither(lA, lB)
+    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = delayInvoke
   }
 
-  case class LiftableEither[A,B,WA,WB](lA: Liftable[A, WA], lB: Liftable[B, WB]) extends Liftable[A | B, WEither[WA, WB]] {
-    def eW: Elem[WEither[WA,WB]] = wEitherElement(lA.eW, lB.eW)
-    def lift(x: A | B): Rep[WEither[WA, WB]] = WEitherConst(x, lA, lB)
-    def unlift(w: Rep[WEither[WA, WB]]): Either[A, B] = w match {
-      case Def(WEitherConst(x: Either[A,B], lLeft, lRight)) if lLeft == lA && lRight == lB => x
+  case class LiftableEither[SA,SB,A,B](lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[SA | SB, WEither[A, B]] {
+    def eW: Elem[WEither[A,B]] = wEitherElement(lA.eW, lB.eW)
+    def sourceClassTag: ClassTag[Either[SA, SB]] = {
+      implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+      implicit val tagSB = lB.eW.sourceClassTag.asInstanceOf[ClassTag[SB]]
+      classTag[Either[SA,SB]]
+    }
+    def lift(x: SA | SB): Rep[WEither[A, B]] = WEitherConst(x, lA, lB)
+    def unlift(w: Rep[WEither[A, B]]): Either[SA, SB] = w match {
+      case Def(WEitherConst(x: Either[SA,SB], lLeft, lRight)) if lLeft == lA && lRight == lB => x
       case _ => unliftError(w)
     }
   }
 
-  implicit def liftableEither[A,B,WA,WB]
-      (implicit lA: Liftable[A,WA], lB: Liftable[B,WB]): Liftable[Either[A,B], WEither[WA,WB]] =
+  implicit def liftableEither[SA,SB,A,B]
+      (implicit lA: Liftable[SA,A], lB: Liftable[SB,B]): Liftable[Either[SA,SB], WEither[A,B]] =
     LiftableEither(lA, lB)
 
   // entityProxy: single proxy for each type family
@@ -47,6 +53,8 @@ object WEither extends EntityObject("WEither") {
     extends EntityElem[To] {
     def eA = _eA
     def eB = _eB
+    override def liftable: Liftables.Liftable[Either[_,_], To] =
+      liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_,_], To]
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
     override lazy val tag = {

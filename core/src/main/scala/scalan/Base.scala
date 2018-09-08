@@ -1,6 +1,6 @@
 package scalan
 
-import java.lang.reflect.{Constructor => Constr}
+import java.lang.reflect.{Method, Constructor => Constr}
 import java.util.{Objects, Arrays}
 
 import configs.syntax._
@@ -11,6 +11,7 @@ import scala.annotation.implicitNotFound
 import scala.annotation.unchecked.uncheckedVariance
 import scala.collection.{mutable, TraversableOnce}
 import scala.collection.mutable.ListBuffer
+import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil}
 import scala.reflect.runtime.universe._
@@ -173,19 +174,20 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   object Liftables {
-    trait LiftedConst[T] {
-      def constValue: T
+    trait LiftedConst[ST, T] {
+      def constValue: ST
+      def liftable: Liftable[ST, T]
     }
 
-    /** Describes lifting constant values of type T to IR nodes of the correspoding staged type WT.
-      * In general WT is different type obtained by virtualization procedure. */
-    @implicitNotFound(msg = "Cannot find implicit for Liftable[${T},${WT}].")
-    trait Liftable[T, WT] {
-      def eW: Elem[WT]
-      def lift(x: T): Rep[WT]
-      def unlift(w: Rep[WT]): T
-
-      protected def unliftError(w: Rep[WT]) =
+    /** Describes lifting constant values of type ST (Source Type) to IR nodes of the correspoding staged type T.
+      * In general T is different type obtained by virtualization procedure from ST. */
+    @implicitNotFound(msg = "Cannot find implicit for Liftable[${ST},${T}].")
+    trait Liftable[ST, T] {
+      def sourceClassTag: ClassTag[ST]
+      def eW: Elem[T]
+      def lift(x: ST): Rep[T]
+      def unlift(w: Rep[T]): ST
+      protected def unliftError(w: Rep[T]) =
         !!!(s"Cannot unlift simbol $w using $this")
 
       override def hashCode(): Int = eW.hashCode() + 1 // to make Elem and Liftable differ
@@ -195,32 +197,36 @@ trait Base extends LazyLogging { scalan: Scalan =>
       })
       override def toString: String = s"Liftable($eW)"
     }
-
-    def liftable[T, WT](implicit lT: Liftable[T,WT]) = lT
-    def liftConst[T,WT](x: T)(implicit lT: Liftable[T,WT]): Rep[WT] = lT.lift(x)
+    implicit class LiftableOps(l: Liftable[_,_]) {
+      @inline def asLiftable[ST,T]: Liftable[ST,T] = l.asInstanceOf[Liftable[ST,T]]
+    }
+    def liftable[ST, T](implicit lT: Liftable[ST,T]) = lT
+    def liftConst[ST,T](x: ST)(implicit lT: Liftable[ST,T]): Rep[T] = lT.lift(x)
 
     class BaseLiftable[T](implicit eT: Elem[T]) extends Liftable[T, T] {
+      def sourceClassTag: ClassTag[T] = eT.classTag
       def eW = eT
       def lift(x: T) = toRep(x)
       def unlift(w: Rep[T]) = w.asValue
     }
 
-    class PairLiftable[A,B,WA,WB](implicit lA: Liftable[A, WA], lB: Liftable[B, WB]) extends Liftable[(A,B), (WA,WB)] {
-      def eW: Elem[(WA, WB)] = pairElement(lA.eW, lB.eW)
-      def lift(x: (A, B)): Rep[(WA, WB)] = Pair(lA.lift(x._1), lB.lift(x._2))
-      def unlift(w: Rep[(WA, WB)]): (A, B) = { val Pair(wa, wb) = w; (lA.unlift(wa), lB.unlift(wb)) }
+    class PairLiftable[SA,SB,A,B](implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[(SA,SB), (A,B)] {
+      val eW: Elem[(A, B)] = pairElement(lA.eW, lB.eW)
+      val sourceClassTag = { classTag[(SA, SB)] }
+      def lift(x: (SA, SB)): Rep[(A, B)] = Pair(lA.lift(x._1), lB.lift(x._2))
+      def unlift(w: Rep[(A, B)]): (SA, SB) = { val Pair(wa, wb) = w; (lA.unlift(wa), lB.unlift(wb)) }
     }
 
-    implicit val BooleanIsLiftable = new BaseLiftable[Boolean]
-    implicit val ByteIsLiftable = new BaseLiftable[Byte]
-    implicit val ShortIsLiftable = new BaseLiftable[Short]
-    implicit val IntIsLiftable = new BaseLiftable[Int]
-    implicit val LongIsLiftable = new BaseLiftable[Long]
-    implicit val StringIsLiftable = new BaseLiftable[String]
-    implicit val FloatIsLiftable = new BaseLiftable[Float]
-    implicit val DoubleIsLiftable = new BaseLiftable[Double]
-    implicit val UnitIsLiftable = new BaseLiftable[Unit]
-    implicit val CharIsLiftable = new BaseLiftable[Char]
+    implicit lazy val BooleanIsLiftable = BooleanElement.liftable.asLiftable[Boolean,Boolean]
+    implicit lazy val ByteIsLiftable    = ByteElement.liftable.asLiftable[Byte,Byte]
+    implicit lazy val ShortIsLiftable   = ShortElement.liftable.asLiftable[Short,Short]
+    implicit lazy val IntIsLiftable     = IntElement.liftable.asLiftable[Int,Int]
+    implicit lazy val LongIsLiftable    = LongElement.liftable.asLiftable[Long,Long]
+    implicit lazy val StringIsLiftable  = StringElement.liftable.asLiftable[String,String]
+    implicit lazy val FloatIsLiftable   = FloatElement.liftable.asLiftable[Float,Float]
+    implicit lazy val DoubleIsLiftable  = DoubleElement.liftable.asLiftable[Double,Double]
+    implicit lazy val UnitIsLiftable    = UnitElement.liftable.asLiftable[Unit,Unit]
+    implicit lazy val CharIsLiftable    = CharElement.liftable.asLiftable[Char,Char]
   }
 
   class EntityObject(val entityName: String)
@@ -272,6 +278,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def show(emitMetadata: Boolean): Unit = show(defaultGraphVizConfig.copy(emitMetadata = emitMetadata))
     def show(config: GraphVizConfig): Unit = showGraphs(this)(config)
   }
+
   type Sym = Exp[_]
 
   abstract class BaseDef[+T](implicit val selfType: Elem[T @uncheckedVariance]) extends Def[T]

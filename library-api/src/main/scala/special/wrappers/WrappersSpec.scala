@@ -3,8 +3,7 @@ package special.wrappers
 import scala.reflect.ClassTag
 import special.SpecialPredef
 
-trait WrapSpec {
-}
+
 /** NOTES:
   * 1) to avoid fallbackCanBuildFrom to pop up to wrappers add ClassTag context bound */
 class ArrayWrapSpec extends WrapSpec {

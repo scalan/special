@@ -1,12 +1,15 @@
 package scalan
 
+import java.lang.reflect.Method
+
 import scala.annotation.implicitNotFound
 import scala.collection.immutable.ListMap
 import scala.reflect.runtime.universe._
 import scala.reflect.{AnyValManifest, ClassTag}
 import scalan.meta.ScalanAst._
 import scalan.util._
-import ReflectionUtil.ClassOps
+import scalan.util.ReflectionUtil.ClassOps
+import scala.collection.mutable
 
 trait TypeDescs extends Base { self: Scalan =>
   sealed trait TypeDesc extends Serializable {
@@ -179,6 +182,31 @@ trait TypeDescs extends Base { self: Scalan =>
 
   type LElem[A] = Lazy[Elem[A]] // lazy element
 
+  val SymClass = classOf[Sym]
+  val CtClass = classOf[ClassTag[_]]
+
+  type DataEnv = mutable.Map[Sym, AnyRef]
+
+  implicit class EnvOps(env: DataEnv) {
+    import Liftables._
+    def lifted[ST, T](x: ST)(implicit lT: Liftable[ST, T]): Rep[T] = {
+      val xSym = lT.lift(x)
+      env += (xSym -> x.asInstanceOf[AnyRef])
+      xSym
+    }
+  }
+
+  case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method)
+
+  def getSourceValues(dataEnv: DataEnv, stagedValues: AnyRef*): Seq[AnyRef] = {
+    val vs = stagedValues.map {
+      case s: Sym => dataEnv(s)
+      case vec: Seq[AnyRef]@unchecked => getSourceValues(dataEnv, vec:_*)
+      case e: Elem[_] => e.sourceClassTag
+    }
+    vs
+  }
+
   /**
     * Reified type representation in Scalan.
     *
@@ -186,10 +214,27 @@ trait TypeDescs extends Base { self: Scalan =>
     */
   @implicitNotFound(msg = "No Elem available for ${A}.")
   abstract class Elem[A] extends TypeDesc { _: scala.Equals =>
+    import Liftables._
     def tag: WeakTypeTag[A]
     final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
     // classTag.runtimeClass is cheap, no reason to make it lazy
     final def runtimeClass: Class[_] = classTag.runtimeClass
+    def liftable: Liftable[_, A] =
+      !!!(s"Cannot get Liftable instance for $this")
+
+    final lazy val sourceClassTag: ClassTag[_] = liftable.sourceClassTag
+    protected def collectMethods: Map[Method, WMethodDesc] = Map()
+    protected lazy val methods: Map[Method, WMethodDesc] = collectMethods
+
+    def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = {
+      methods.get(mc.method) match {
+        case Some(md: WMethodDesc) =>
+          val srcArgs = getSourceValues(dataEnv, mc.receiver +: mc.args:_*)
+          md.method.invoke(md.wrapSpec, srcArgs:_*)
+        case None =>
+          !!!(s"Cannot perform unliftedInvoke of $mc")
+      }
+    }
 
     def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
     lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
@@ -479,21 +524,49 @@ trait TypeDescs extends Base { self: Scalan =>
     def unapply(t: ArgElem): Option[STpeArg] = Some(t.tyArg)
   }
 
-  val AnyElement: Elem[Any] = new BaseElem[Any](null)
-  val AnyRefElement: Elem[AnyRef] = new BaseElem[AnyRef](null)
+  val AnyElement: Elem[Any] = new BaseElem[Any](null) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  val AnyRefElement: Elem[AnyRef] = new BaseElem[AnyRef](null) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+
   // very ugly casts but should be safe
   val NothingElement: Elem[Nothing] =
-    new BaseElem[Null](null)(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]).asElem[Nothing]
-  implicit val BooleanElement: Elem[Boolean] = new BaseElem(false)
-  implicit val ByteElement: Elem[Byte] = new BaseElem(0.toByte)
-  implicit val ShortElement: Elem[Short] = new BaseElem(0.toShort)
-  implicit val IntElement: Elem[Int] = new BaseElem(0)
-  implicit val LongElement: Elem[Long] = new BaseElem(0L)
-  implicit val FloatElement: Elem[Float] = new BaseElem(0.0F)
-  implicit val DoubleElement: Elem[Double] = new BaseElem(0.0)
-  implicit val UnitElement: Elem[Unit] = new BaseElem(())
-  implicit val StringElement: Elem[String] = new BaseElem("")
-  implicit val CharElement: Elem[Char] = new BaseElem('\u0000')
+    new BaseElem[Null](null)(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]) {
+      override def liftable = new Liftables.BaseLiftable()(this)
+    }.asElem[Nothing]
+
+  implicit val BooleanElement: Elem[Boolean] = new BaseElem(false) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val ByteElement: Elem[Byte] = new BaseElem(0.toByte) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val ShortElement: Elem[Short] = new BaseElem(0.toShort) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val IntElement: Elem[Int] = new BaseElem(0) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val LongElement: Elem[Long] = new BaseElem(0L) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val FloatElement: Elem[Float] = new BaseElem(0.0F) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val DoubleElement: Elem[Double] = new BaseElem(0.0) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val UnitElement: Elem[Unit] = new BaseElem(()) {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val StringElement: Elem[String] = new BaseElem("") {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
+  implicit val CharElement: Elem[Char] = new BaseElem('\u0000') {
+    override def liftable = new Liftables.BaseLiftable()(this)
+  }
 
   implicit def pairElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[(A, B)] =
     cachedElem[PairElem[A, B]](ea, eb)

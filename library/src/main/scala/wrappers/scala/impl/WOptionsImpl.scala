@@ -16,30 +16,35 @@ import WOption._
 
 object WOption extends EntityObject("WOption") {
   import Liftables._
-  case class WOptionConst[T, WT] (constValue: Option[T], lT: Liftable[T, WT])
-      extends WOption[WT] with LiftedConst[Option[T]] {
-    implicit def eA: Elem[WT] = lT.eW
-    val selfType: Elem[WOption[WT]] = wOptionElement(lT.eW)
-    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[WT => B]): Rep[B] = delayInvoke
+  case class WOptionConst[ST, T] (constValue: Option[ST], lT: Liftable[ST, T])
+      extends WOption[T] with LiftedConst[Option[ST], WOption[T]] {
+    implicit def eA: Elem[T] = lT.eW
+    val selfType: Elem[WOption[T]] = wOptionElement(lT.eW)
+    val liftable = liftableOption(lT)
+    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[T => B]): Rep[B] = delayInvoke
     def isEmpty: Rep[Boolean] = delayInvoke
     def isDefined: Rep[Boolean] = delayInvoke
-    def filter(p: Rep[WT => Boolean]): Rep[WOption[WT]] = delayInvoke
-    def flatMap[B](f: Rep[WT => WOption[B]]): Rep[WOption[B]] = delayInvoke
-    def map[B](f: Rep[WT => B]): Rep[WOption[B]] = delayInvoke
+    def filter(p: Rep[T => Boolean]): Rep[WOption[T]] = delayInvoke
+    def flatMap[B](f: Rep[T => WOption[B]]): Rep[WOption[B]] = delayInvoke
+    def map[B](f: Rep[T => B]): Rep[WOption[B]] = delayInvoke
     def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = delayInvoke
-    def get: Rep[WT] = delayInvoke
+    def get: Rep[T] = delayInvoke
   }
 
-  case class LiftableOption[T, WT](lT: Liftable[T, WT]) extends Liftable[Option[T], WOption[WT]] {
-    def eW: Elem[WOption[WT]] = wOptionElement(lT.eW)
-    def lift(x: Option[T]): Rep[WOption[WT]] = WOptionConst(x, lT)
-    def unlift(w: Rep[WOption[WT]]): Option[T] = w match {
-      case Def(WOptionConst(x: Option[T], l)) if l == lT => x
+  case class LiftableOption[ST, T](lT: Liftable[ST, T]) extends Liftable[Option[ST], WOption[T]] {
+    def eW: Elem[WOption[T]] = wOptionElement(lT.eW)
+    def sourceClassTag: ClassTag[Option[ST]] = {
+      implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
+      classTag[Option[ST]]
+    }
+    def lift(x: Option[ST]): Rep[WOption[T]] = WOptionConst(x, lT)
+    def unlift(w: Rep[WOption[T]]): Option[ST] = w match {
+      case Def(WOptionConst(x: Option[ST], l)) if l == lT => x
       case _ => unliftError(w)
     }
   }
 
-  implicit def liftableOption[T,WT](implicit lT: Liftable[T,WT]): Liftable[Option[T], WOption[WT]] =
+  implicit def liftableOption[ST,T](implicit lT: Liftable[ST,T]): Liftable[Option[ST], WOption[T]] =
     LiftableOption(lT)
 
   // entityProxy: single proxy for each type family
@@ -78,6 +83,8 @@ object WOption extends EntityObject("WOption") {
   class WOptionElem[A, To <: WOption[A]](implicit _eA: Elem[A])
     extends EntityElem1[A, To, WOption](_eA, container[WOption]) {
     def eA = _eA
+    override def liftable: Liftables.Liftable[Option[_], To] =
+      liftableOption(_eA.liftable).asLiftable[Option[_], To]
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
     override lazy val tag = {
