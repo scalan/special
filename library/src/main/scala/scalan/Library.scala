@@ -94,7 +94,10 @@ trait Library extends Scalan
 
     case CM.map(xs, Def(IdentityLambda())) => xs
     case CM.map(xs, Def(ConstantLambda(res))) => RReplCol(res, xs.length)
-
+    case CM.sum(CBM.replicate(_, n, x: Rep[Int] @unchecked), Def(_: IntPlusMonoid)) =>
+      x * n
+    case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>
+      x * n.toLong
     case _ => super.rewriteDef(d)
   }
 
