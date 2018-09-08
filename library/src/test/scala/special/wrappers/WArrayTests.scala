@@ -1,22 +1,12 @@
-package scala
-
-import special.wrappers.WrappersModule
+package special.wrappers
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls
-import scalan._
 
-class WArrayTests extends BaseCtxTests {
-  class Ctx extends TestContext with WrappersModule {
-    import WArray._
-    lazy val t1 = fun { (xs: Rep[WArray[Int]]) => xs.length }
-    lazy val t2 = fun { (xs: Rep[WArray[Int]]) => xs(10) }
-    lazy val t3 = fun { (xs: Rep[WArray[Int]]) => xs.zip(RWArray.fill(xs.length, Thunk(10))) }
-    lazy val t4 = fun { (xs: Rep[WArray[Int]]) => xs.map(fun {x => x + 1}) }
-  }
+class WArrayTests extends WrappersTests {
 
   test("WArray methods") {
-    val ctx = new Ctx {
+    val ctx = new WrappersCtx {
       import WArray._
       val M = WArrayMethods; val C = WArrayCompanionMethods
       def test() = {
@@ -34,27 +24,13 @@ class WArrayTests extends BaseCtxTests {
     ctx.emit("t4", ctx.t4)
   }
 
-
   test("invokeUnlifted") {
-    val ctx = new Ctx
+    val ctx = new WrappersCtx
     import ctx._
     import Liftables._
     import WArray._
-    /** Check the MethodCall reified in f can be mapped to unlifted method which can be invoked.*/
-    def check[ST, T](obj: ST, f: (DataEnv, Rep[T]) => Sym, expected: Any)(implicit lT: Liftable[ST,T]) = {
-      val objSym: Rep[T] = liftConst(obj)
-      val env = mutable.Map[Sym, AnyRef]()
-      env += (objSym -> obj.asInstanceOf[AnyRef])
-      val resSym = f(env, objSym)
-      resSym match {
-        case Def(mc: MethodCall) =>
-          val res = objSym.elem.invokeUnlifted(mc, env)
-          res shouldBe expected
-      }
-    }
 
     val arr = Array(1, 2, 3)
-
     check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.apply(env.lifted(2)), arr.apply(2))
 
     var sum1 = 0
