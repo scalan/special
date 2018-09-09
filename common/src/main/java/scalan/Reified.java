@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 * of the method or class. For example if x: Rep[T] then eT can be obtained by x.elem.
 * The need for reified type arguments come from ClassTag[T] context bounds or implicit parameters
 * in the source code. */
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.TYPE_PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Reified {
     //String value();

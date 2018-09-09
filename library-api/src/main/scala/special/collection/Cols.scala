@@ -12,7 +12,7 @@ trait Col[A] {
   def apply(i: Int): A
   def getOrElse(i: Int, default: => A): A
   def map[B: ClassTag](f: A => B): Col[B]
-  def zip[B](ys: Col[B]): PairCol[A, B] = builder(this, ys)
+  def zip[B](ys: Col[B]): PairCol[A, B]
   def foreach(f: A => Unit): Unit
   def exists(p: A => Boolean): Boolean
   def forall(p: A => Boolean): Boolean

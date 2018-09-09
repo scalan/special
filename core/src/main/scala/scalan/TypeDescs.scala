@@ -196,7 +196,11 @@ trait TypeDescs extends Base { self: Scalan =>
     }
   }
 
-  case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method)
+  sealed trait MethodDesc {
+    def method: Method
+  }
+  case class RMethodDesc(method: Method) extends MethodDesc
+  case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method) extends MethodDesc
 
   def getSourceValues(dataEnv: DataEnv, stagedValues: AnyRef*): Seq[AnyRef] = {
     val vs = stagedValues.map {
@@ -223,20 +227,25 @@ trait TypeDescs extends Base { self: Scalan =>
       !!!(s"Cannot get Liftable instance for $this")
 
     final lazy val sourceClassTag: ClassTag[_] = liftable.sourceClassTag
-    protected def collectMethods: Map[Method, WMethodDesc] = Map()
-    protected lazy val methods: Map[Method, WMethodDesc] = collectMethods
+    protected def collectMethods: Map[Method, MethodDesc] = Map()
+    protected lazy val methods: Map[Method, MethodDesc] = collectMethods
 
     def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = {
-      methods.get(mc.method) match {
+      val res = methods.get(mc.method) match {
         case Some(md: WMethodDesc) =>
           val srcArgs = getSourceValues(dataEnv, mc.receiver +: mc.args:_*)
-
           val res = md.method.invoke(md.wrapSpec, srcArgs:_*)
-          // this if is required because res == null in case of Unit return type
-          if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
+          res
+        case Some(md: RMethodDesc) =>
+          val srcObj = getSourceValues(dataEnv, mc.receiver).head
+          val srcArgs = getSourceValues(dataEnv, mc.args:_*)
+          val res = md.method.invoke(srcObj, srcArgs:_*)
+          res
         case None =>
           !!!(s"Cannot perform unliftedInvoke of $mc")
       }
+      // this if is required because res == null in case of Unit return type
+      if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
     }
 
     def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
@@ -363,6 +372,24 @@ trait TypeDescs extends Base { self: Scalan =>
       val b = es.next()
       step(a, b, es)
     }
+
+    def methodKey(m: Method) = {
+      val ann = m.getDeclaredAnnotation(classOf[OverloadId])
+      if (ann != null)
+        s"${m.getName}_${ann.value}"
+      else
+        m.getName
+    }
+
+    def declaredMethods(cls: Class[_], srcCls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
+      val rmethods = cls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
+      val smethods = srcCls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
+      val mapping = CollectionUtil.joinSeqs(rmethods, smethods)(methodKey, methodKey)
+      mapping.map { case (rm, sm) =>
+        (rm, RMethodDesc(sm))
+      }.to[Seq]
+    }
+
   }
 
   private val debug$ElementCounter = counter[Elem[_]]
@@ -446,6 +473,8 @@ trait TypeDescs extends Base { self: Scalan =>
     override def getName(f: TypeDesc => String) = s"(${f(eFst)}, ${f(eSnd)})"
     override def buildTypeArgs = ListMap("A" -> (eFst -> Covariant), "B" -> (eSnd -> Covariant))
     protected def getDefaultRep = Pair(eFst.defaultRepValue, eSnd.defaultRepValue)
+    override def liftable: Liftables.Liftable[_, (A, B)] =
+      Liftables.PairIsLiftable(eFst.liftable, eSnd.liftable).asLiftable[Either[_,_], (A,B)]
   }
 
   case class SumElem[A, B](eLeft: Elem[A], eRight: Elem[B]) extends Elem[A | B] {

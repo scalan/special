@@ -5,6 +5,9 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
+  import java.lang.reflect.Method
+
+  import scalan.util.CollectionUtil
 // Abs -----------------------------------
 trait ColsDefs extends scalan.Scalan with Cols {
   self: Library =>
@@ -17,6 +20,46 @@ import PairCol._
 import Enum._
 
 object Col extends EntityObject("Col") {
+  import Liftables._
+  type SCol[T] = special.collection.Col[T]
+  case class ColConst[SA, A](constValue: SCol[SA], lA: Liftable[SA, A])
+      extends Col[A] with LiftedConst[SCol[SA], Col[A]] {
+    implicit def eA: Elem[A] = lA.eW
+    val selfType: Elem[Col[A]] = colElement(lA.eW)
+    val liftable: Liftables.Liftable[SCol[SA], Col[A]] = liftableCol(lA)
+
+    def apply(i: Rep[Int]): Rep[A] = delayInvoke
+    def foreach(f: Rep[A => Unit]): Rep[Unit] = delayInvoke
+    def exists(p: Rep[A => Boolean]): Rep[Boolean] = delayInvoke
+    def forall(p: Rep[A => Boolean]): Rep[Boolean] = delayInvoke
+    def filter(p: Rep[A => Boolean]): Rep[Col[A]] = delayInvoke
+    def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke
+    def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = delayInvoke
+    def length: Rep[Int] = delayInvoke
+    def map[B](f: Rep[A => B]): Rep[Col[B]] = delayInvoke
+    def builder: Rep[ColBuilder] = delayInvoke
+    def arr: Rep[WArray[A]] = delayInvoke
+    def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = delayInvoke
+    def sum(m: Rep[Monoid[A]]): Rep[A] = delayInvoke
+    def append(other: Rep[Col[A]]): Rep[Col[A]] = delayInvoke
+  }
+
+  case class LiftableCol[SA, A](lA: Liftable[SA, A]) extends Liftable[SCol[SA], Col[A]] {
+    def eW: Elem[Col[A]] = colElement(lA.eW)
+    def sourceClassTag: ClassTag[SCol[SA]] = {
+      implicit val tagST = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+      classTag[SCol[SA]]
+    }
+    def lift(x: SCol[SA]): Rep[Col[A]] = ColConst(x, lA)
+    def unlift(w: Rep[Col[A]]): SCol[SA] = w match {
+      case Def(ColConst(x: SCol[_], l)) if l == lA => x.asInstanceOf[SCol[SA]]
+      case _ => unliftError(w)
+    }
+  }
+
+  implicit def liftableCol[SA,A](implicit lA: Liftable[SA,A]): Liftable[SCol[SA], Col[A]] =
+    LiftableCol(lA)
+
   // entityProxy: single proxy for each type family
   implicit def proxyCol[A](p: Rep[Col[A]]): Col[A] = {
     proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
@@ -53,6 +96,25 @@ object Col extends EntityObject("Col") {
   class ColElem[A, To <: Col[A]](implicit _eA: Elem[A])
     extends EntityElem1[A, To, Col](_eA, container[Col]) {
     def eA = _eA
+
+    override val liftable: Liftables.Liftable[SCol[_], To] =
+      liftableCol(_eA.liftable).asLiftable[SCol[_], To]
+
+    override protected def collectMethods: Map[Method, MethodDesc] = {
+      super.collectMethods ++ Elem.declaredMethods(classOf[Col[A]], classOf[SCol[A]], Set(
+        "apply", "foreach", "exists", "forall", "filter", "fold", "slice", "length",
+        "map", "builder", "arr", "getOrElse", "sum", "append"
+      ))
+    }
+
+    override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
+      case ColMethods.map(xs, f) =>
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
+        super.invokeUnlifted(newMC, dataEnv)
+      case _ =>
+        super.invokeUnlifted(mc, dataEnv)
+    }
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
     override lazy val tag = {
@@ -432,6 +494,32 @@ object PairCol extends EntityObject("PairCol") {
   registerEntityObject("PairCol", PairCol)
 
 object ColBuilder extends EntityObject("ColBuilder") {
+  import Liftables._
+  type SColBuilder = special.collection.ColBuilder
+  case class ColBuilderConst(constValue: SColBuilder)
+      extends ColBuilder with LiftedConst[SColBuilder, ColBuilder] {
+    val selfType: Elem[ColBuilder] = colBuilderElement
+    val liftable: Liftables.Liftable[SColBuilder, ColBuilder] = LiftableColBuilder
+
+    def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke
+    def apply[A, B](as: Rep[Col[A]],bs: Rep[Col[B]]): Rep[PairCol[A,B]] = delayInvoke
+    def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = delayInvoke
+    def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke
+    def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = delayInvoke
+  }
+
+  implicit case object LiftableColBuilder extends Liftable[SColBuilder, ColBuilder] {
+    def eW: Elem[ColBuilder] = colBuilderElement
+    def sourceClassTag: ClassTag[SColBuilder] = {
+      classTag[SColBuilder]
+    }
+    def lift(x: SColBuilder): Rep[ColBuilder] = ColBuilderConst(x)
+    def unlift(w: Rep[ColBuilder]): SColBuilder = w match {
+      case Def(ColBuilderConst(x: SColBuilder)) => x
+      case _ => unliftError(w)
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyColBuilder(p: Rep[ColBuilder]): ColBuilder = {
     proxyOps[ColBuilder](p)(scala.reflect.classTag[ColBuilder])
@@ -440,6 +528,25 @@ object ColBuilder extends EntityObject("ColBuilder") {
   // familyElem
   class ColBuilderElem[To <: ColBuilder]
     extends EntityElem[To] {
+    override val liftable: Liftables.Liftable[_, To] = LiftableColBuilder.asLiftable[SColBuilder, To]
+
+    override protected def collectMethods: Map[Method, MethodDesc] = {
+      val srcCls = classOf[SColBuilder]
+      val cls = classOf[ColBuilder]
+      super.collectMethods ++
+          Elem.declaredMethods(cls, srcCls, Set(
+            "apply", "fromArray", "xor", "replicate"
+          ))
+    }
+
+    override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
+      case ColMethods.map(xs, f) =>
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
+        super.invokeUnlifted(newMC, dataEnv)
+      case _ =>
+        super.invokeUnlifted(mc, dataEnv)
+    }
+    
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {

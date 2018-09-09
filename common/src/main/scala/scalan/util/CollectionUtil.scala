@@ -30,9 +30,9 @@ object CollectionUtil {
       }
     }
 
-  def createMultiMap[K,V](kvs: Seq[(K,V)]): Map[K, ArrayBuffer[V]] = {
+  def createMultiMap[K,V](kvs: GenIterable[(K,V)]): Map[K, ArrayBuffer[V]] = {
     val res = HashMap.empty[K, ArrayBuffer[V]]
-    for ((k,v) <- kvs) {
+    kvs.foreach { case (k, v) =>
       if (res.contains(k))
         res(k) += v
       else
@@ -42,7 +42,7 @@ object CollectionUtil {
     res.toMap
   }
 
-  def joinSeqs[O, I, K](outer: Seq[O], inner: Seq[I])(outKey: O=>K, inKey: I=>K): Seq[(O,I)] = {
+  def joinSeqs[O, I, K](outer: GenIterable[O], inner: GenIterable[I])(outKey: O=>K, inKey: I=>K): GenIterable[(O,I)] = {
     val kvs = createMultiMap(inner.map(i => (inKey(i), i)))
     val res = outer.flatMap(o => {
       val ko = outKey(o)

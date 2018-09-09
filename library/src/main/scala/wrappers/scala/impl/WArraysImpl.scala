@@ -92,11 +92,12 @@ object WArray extends EntityObject("WArray") {
   class WArrayElem[T, To <: WArray[T]](implicit _eT: Elem[T])
     extends EntityElem1[T, To, WArray](_eT, container[WArray]) {
     def eT = _eT
-    override def liftable: Liftables.Liftable[Array[_], To] =
+    override val liftable: Liftables.Liftable[Array[_], To] =
       liftableArray(_eT.liftable).asLiftable[Array[_], To]
 
-    override protected def collectMethods: Map[Method, WMethodDesc] = {
+    override protected def collectMethods: Map[Method, MethodDesc] = {
       val wrapCls = classOf[ArrayWrapSpec]
+      implicit val tagT = eT.classTag
       val xsCls = classOf[Array[T]]
       val cls = classOf[WArray[T]]
       val spec = new ArrayWrapSpec

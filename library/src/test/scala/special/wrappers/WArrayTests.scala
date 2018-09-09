@@ -2,6 +2,7 @@ package special.wrappers
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls
+import scalan.Library
 
 class WArrayTests extends WrappersTests {
 
@@ -55,5 +56,27 @@ class WArrayTests extends WrappersTests {
     check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.map(env.lifted(inc)), arr.map(inc))
     val arr2 = Array("a", "b", "c")
     check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.zip(env.lifted(arr2)), arr.zip(arr2))
+  }
+
+  test("invokeUnlifted for Col") {
+    val ctx = new WrappersCtx with Library
+    import ctx._
+    import Liftables._
+    import WArray._
+    import Col._
+    import ColBuilder._
+
+    val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
+    val arr = Array(1, 2, 3)
+    val col = Cols.fromArray(arr)
+//    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.apply(env.lifted(2)), col.apply(2))
+//
+//    val inc = (x: Int) => x + 1
+//    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.map(env.lifted(inc)), col.map(inc))
+//
+//    check(Cols, (env: DataEnv, Cols: Rep[ColBuilder]) => Cols.fromArray(env.lifted(arr)), Cols.fromArray(arr))
+    check(Cols,
+      (env: DataEnv, Cols: Rep[ColBuilder]) => Cols.apply(env.lifted(1), env.lifted(2), env.lifted(3)),
+      Cols.apply(1, 2, 3))
   }
 }
