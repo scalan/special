@@ -61,7 +61,7 @@ class CostedCol[Item](
       val valuesCost: Int) extends ConcreteCosted[Col[Item]]
 {
   def value: Col[Item] = values
-  def cost: Int = costs.sum(builder.monoidBuilder.intPlusMonoid)
+  def cost: Int = valuesCost + costs.sum(builder.monoidBuilder.intPlusMonoid)
   def dataSize: Long = sizes.sum(builder.monoidBuilder.longPlusMonoid)
   @NeverInline
   def mapCosted[Res](f: Costed[Item] => Costed[Res]): CostedCol[Res] = ???

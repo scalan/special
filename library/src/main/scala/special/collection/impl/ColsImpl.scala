@@ -103,7 +103,7 @@ object Col extends EntityObject("Col") {
     override protected def collectMethods: Map[Method, MethodDesc] = {
       super.collectMethods ++ Elem.declaredMethods(classOf[Col[A]], classOf[SCol[A]], Set(
         "apply", "foreach", "exists", "forall", "filter", "fold", "slice", "length",
-        "map", "builder", "arr", "getOrElse", "sum", "append"
+        "map", "builder", "arr", "getOrElse", "sum", "append", "zip"
       ))
     }
 
