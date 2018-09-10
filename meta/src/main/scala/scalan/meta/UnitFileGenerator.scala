@@ -2,6 +2,7 @@ package scalan.meta
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ArrayBuffer
+import scala.tools.nsc.Global
 import scalan.Entity
 import scalan.meta.Base.!!!
 import scalan.meta.PrintExtensions._
@@ -11,7 +12,7 @@ import scalan.util.StringUtil
 import scalan.util.StringUtil.StringUtilExtensions
 import scalan.util.CollectionUtil.TraversableOps
 
-class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: UnitConfig) {
+class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanGens[G], val codegen: MetaCodegen, unit: SUnitDef, config: UnitConfig) {
   import codegen._
   implicit val context = unit.context
 
@@ -67,6 +68,57 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
     }
 
     genConstr(method.copy(argSections = method.cleanedArgs))
+  }
+
+  def getWrapperName(entityName: String)(implicit ctx: AstContext): Option[(String, String)] = entityName match {
+    case ctx.WrapperEntity(m, _, srcName) => Some((m.packageName, srcName))
+//    case ctx.Entity(m, e) => (s"${m.packageName}.${e.name}", false)
+    case _ => None //!!!(s"Cannot find srcEntityName($entityName)")
+  }
+
+  def entityConst(e: EntityTemplateData) = {
+    val entityName = e.name
+    val optWrapperName = getWrapperName(entityName)
+    val notWrapper = optWrapperName.isEmpty
+    val (sName, fullName) = optWrapperName match {
+      case Some((wrapperPackage, n)) =>
+        val packageName = wrapperPackage.stripPrefix("wrappers.")
+        (n, s"$packageName.$n")
+      case None =>
+        (e.name, s"${e.unit.packageName}.${e.name}")
+    }
+    val SName = "S" + sName
+    val tpeArgsS   = e.tpeArgs.map(a => STpeArg("S" + a.name))
+    val typesDeclS = tpeArgsS.declString
+    val typesUseS  = tpeArgsS.useString
+    val tpeArgs   = tpeArgsS ++ e.tpeArgs
+    val typesDecl = e.tpeArgsDecl
+    val typesUse  = e.tpeArgsUse
+    val zippedTpeArgs = tpeArgsS.zip(e.tpeArgs)
+    val elemMethodName = entityElemMethodName(e.name)
+    val liftableMethodElem = (if (e.tpeArgs.isEmpty) "Liftable" else "liftable") + (if (notWrapper) e.name else SName)
+    s"""
+      |  // entityConst: single const for each entity
+      |  import Liftables._
+      |  ${notWrapper.opt(s"type $SName$typesDecl = $fullName$typesUse")}
+      |  case class ${entityName}Const${(tpeArgsS ++ e.tpeArgs).declString}(
+      |        constValue: $SName$typesUseS${zippedTpeArgs.opt(z => s""",
+      |        ${z.rep {case (sa,a) => s"l${a.name}: Liftable[${sa.name}, ${a.name}]"}}""".stripAndTrim)}
+      |      ) extends $entityName$typesUse with LiftedConst[$SName$typesUseS, $entityName$typesUse] {
+      |${e.tpeArgs.rep(a =>
+         s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
+       )}
+      |    val selfType: Elem[$entityName$typesUse] = $elemMethodName${e.tpeArgs.opt(args => "(" + args.rep(a => s"l${a.name}.eW") + ")")}
+      |    val liftable: Liftable[$SName$typesUseS, $entityName$typesUse] = $liftableMethodElem${e.tpeArgs.opt(args => "(" + args.rep(a => s"l${a.name}") + ")")}
+      |${e.entity.body.collect { case m: SMethodDef if m.body.isEmpty => m }.rep({ m =>
+         implicit val ctx = parsers.GenCtx(context, config.isVirtualized)
+         s"""|    def ${m.name}""".stripAndTrim
+       },"\n")}
+      |    def apply(i: Rep[Int]): Rep[T] = delayInvoke
+      |  }
+      |
+      |
+      |""".stripAndTrim
   }
 
   def entityProxy(e: EntityTemplateData) = {
@@ -328,6 +380,7 @@ class ModuleFileGenerator(val codegen: MetaCodegen, unit: SUnitDef, config: Unit
 
     s"""
       |object $entityName extends EntityObject("$entityName") {
+      |${entityConst(e)}
       |
       |${entityProxy(e)}
       |

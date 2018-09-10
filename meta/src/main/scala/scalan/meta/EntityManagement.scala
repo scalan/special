@@ -18,7 +18,7 @@ class Parsers(val configs: List[UnitConfig]) extends ScalanParsersEx[Global] {
   initCompiler()
 }
 
-class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends LazyLogging {
+class EntityManagement[+G <: Global](val parsers: ScalanParsers[G] with ScalanGens[G]) extends LazyLogging {
   import parsers._
   def configs = parsers.context.unitConfigs.values
   implicit def context = parsers.context
@@ -43,7 +43,7 @@ class EntityManagement[+G <: Global](val parsers: ScalanParsers[G]) extends Lazy
   }).flatten.toMap
 
   def createFileGenerator(codegen: MetaCodegen, unit: SUnitDef, config: UnitConfig) =
-    new ModuleFileGenerator(codegen, unit, config)
+    new UnitFileGenerator[G](parsers, codegen, unit, config)
 
   val enrichPipeline = new ScalanAstTransformers.EnrichPipeline()
 

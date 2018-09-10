@@ -524,7 +524,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
 
   /** Calls Scalan Meta to generate boilerplate code for the unit. */
   def genUnitBoilerplateText(mc: ModuleConf, unit: SUnitDef, isVirtualized: Boolean): String = {
-    val gen = new scalan.meta.ModuleFileGenerator(
+    val gen = new scalan.meta.UnitFileGenerator(scalanizer,
       ScalanCodegen, unit, mc.mkUnit(unit.unitFileName, unit.fileName, isVirtualized))
     val implCode = gen.emitImplFile
     implCode

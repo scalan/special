@@ -50,8 +50,8 @@ class AstContextTests extends BaseMetaTests with Examples {
     }
 
     it("resolve recognize wrapper entity by name") {
-      "WArray" should matchPattern { case context.WrapperEntity(e, "Array") if e.name == "WArray" => }
-      "Collection" shouldNot matchPattern { case context.WrapperEntity(e, _) => }
+      "WArray" should matchPattern { case context.WrapperEntity(_, e, "Array") if e.name == "WArray" => }
+      "Collection" shouldNot matchPattern { case context.WrapperEntity(_, e, _) => }
     }
 
     it("resolve recognize external type by name") {

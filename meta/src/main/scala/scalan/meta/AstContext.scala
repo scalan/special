@@ -232,10 +232,10 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
   }
 
   object WrapperEntity {
-    def unapply(name: String): Option[(SEntityDef, String)] = name match {
-      case Entity(_, e) =>
+    def unapply(name: String): Option[(Module, Entity, String)] = name match {
+      case Entity(m, e) =>
         e.getAnnotation(ExternalAnnotation) match {
-          case Some(SEntityAnnotation(_, _, List(SConst(externalName: String, _)))) => Some((e, externalName))
+          case Some(SEntityAnnotation(_, _, List(SConst(externalName: String, _)))) => Some((m, e, externalName))
           case _ => None
         }
       case _ => None

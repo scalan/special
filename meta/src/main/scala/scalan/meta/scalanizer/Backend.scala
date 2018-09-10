@@ -2,7 +2,7 @@ package scalan.meta.scalanizer
 
 import scala.tools.nsc.Global
 import scalan.meta.ScalanAst._
-import scalan.meta.{ScalanCodegen, ModuleFileGenerator}
+import scalan.meta.{ScalanCodegen, UnitFileGenerator}
 
 trait Backend[+G <: Global] extends ScalanizerBase[G] {
 
@@ -10,7 +10,7 @@ trait Backend[+G <: Global] extends ScalanizerBase[G] {
   def genUDModuleBoilerplateText(unitName: String, unit: SUnitDef): String = {
     val unitConf = snConfig.getUnitConfig(unitName)
     val unitSym = context.newUnitSymbol(unit.packageName, unit.name)
-    val gen = new ModuleFileGenerator(
+    val gen = new UnitFileGenerator(this,
       ScalanCodegen,
       unit.copy(
         origModuleTrait = Some(createModuleTrait(unitSym)),
