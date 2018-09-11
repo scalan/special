@@ -69,12 +69,14 @@ class WArrayTests extends WrappersTests {
     val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
     val arr = Array(1, 2, 3)
     val col = Cols.fromArray(arr)
-//    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.apply(env.lifted(2)), col.apply(2))
-//
-//    val inc = (x: Int) => x + 1
-//    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.map(env.lifted(inc)), col.map(inc))
-//
-//    check(Cols, (env: DataEnv, Cols: Rep[ColBuilder]) => Cols.fromArray(env.lifted(arr)), Cols.fromArray(arr))
+
+    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.apply(env.lifted(2)), col.apply(2))
+
+    val inc = (x: Int) => x + 1
+    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.map(env.lifted(inc)), col.map(inc))
+
+    check(Cols, (env: DataEnv, Cols: Rep[ColBuilder]) => Cols.fromArray(env.lifted(arr)), Cols.fromArray(arr))
+
     check(Cols,
       (env: DataEnv, Cols: Rep[ColBuilder]) => Cols.apply(env.lifted(1), env.lifted(2), env.lifted(3)),
       Cols.apply(1, 2, 3))

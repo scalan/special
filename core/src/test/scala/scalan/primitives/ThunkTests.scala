@@ -6,7 +6,7 @@ import scala.language.reflectiveCalls
 import scalan._
 import scalan.common.{SegmentsModule}
 
-class ThunkTests extends BaseCtxTests {
+class ThunkTests extends BaseCtxTests with BaseLiftableTests {
   trait MyProg extends Scalan {
     lazy val t1 = fun { (in: Rep[Int]) =>
       Thunk { in }
@@ -201,4 +201,14 @@ class ThunkTests extends BaseCtxTests {
     ctx.emit("t2_iso", ctx.t2)
   }
 
+  test("invokeUnlifted") {
+    val ctx = new TestContext with LiftableTestKit {}
+    import ctx._
+    import Liftables._
+
+    val th = () => 10
+    
+//    check(th, (env: DataEnv, Cols: Rep[Thunk[Int]]) => Cols.apply(env.lifted(1), env.lifted(2), env.lifted(3)),
+//      Cols.apply(1, 2, 3))
+  }
 }
