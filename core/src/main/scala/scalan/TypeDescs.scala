@@ -203,10 +203,12 @@ trait TypeDescs extends Base { self: Scalan =>
   case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method) extends MethodDesc
 
   def getSourceValues(dataEnv: DataEnv, stagedValues: AnyRef*): Seq[AnyRef] = {
-    val vs = stagedValues.map {
-      case s: Sym => dataEnv(s)
-      case vec: Seq[AnyRef]@unchecked => getSourceValues(dataEnv, vec:_*)
-      case e: Elem[_] => e.sourceClassTag
+    import OverloadHack._
+    val vs = stagedValues.flatMap {
+      case s: Sym => Seq(dataEnv(s))
+      case vec: Seq[AnyRef]@unchecked => Seq(getSourceValues(dataEnv, vec:_*))
+      case e: Elem[_] => Seq(e.sourceClassTag)
+      case _: Overloaded1 | _: Overloaded2 | _: Overloaded3 | _: Overloaded4 | _: Overloaded5 | _: Overloaded6 => Nil
     }
     vs
   }
