@@ -87,7 +87,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       case None =>
         (e.name, s"${e.unit.packageName}.${e.name}")
     }
-    val SName = "S" + sName
+    val SName = if (notWrapper) "S" + sName else sName
     val tpeArgsS   = e.tpeArgs.map(a => STpeArg("S" + a.name))
     val typesDeclS = tpeArgsS.declString
     val tyUseS  = tpeArgsS.useString
@@ -101,8 +101,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     def optArgs(args: Iterable[(STpeArg, STpeArg)])(prefix: String, show: (String, String) => String, postfix: String): String =
       args.opt(args => prefix + repArgs(args)(show) + postfix)
     val elemMethodName = entityElemMethodName(e.name)
-    val isGeneric = e.tpeArgs.isEmpty
-    val liftableMethod = (if (isGeneric) "Liftable" else "liftable") + sName
+    val isGeneric = e.tpeArgs.nonEmpty
+    val liftableMethod = (if (!isGeneric) "Liftable" else "liftable") + sName
   }
 
   def entityConst(e: EntityTemplateData) = {
@@ -130,7 +130,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
        },"\n")}
       |  }
       |
-      |  case class Liftable$sName$typesDeclAll${optArgs(zipped)("(", (sa,a) => s"l$a: Liftable[$sa, $a]", ")")}
+      |  ${if(isGeneric) "case class" else "object"} Liftable$sName$typesDeclAll${optArgs(zipped)("(", (sa,a) => s"l$a: Liftable[$sa, $a]", ")")}
       |    extends Liftable[$SName$tyUseS, $EName$tyUse] {
       |    def eW: Elem[$EName$tyUse] = $elemMethodName${optArgs(zipped)("(", (_,a) => s"l$a.eW", ")")}
       |    def sourceClassTag: ClassTag[$SName$tyUseS] = {
@@ -146,10 +146,11 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |      case _ => unliftError(w)
       |    }
       |  }
-      |
+      |${isGeneric.opt(s"""
       |  implicit def $liftableMethod$typesDeclAll${
              optArgs(zipped)("(implicit ", (sa,a) => s"l$a: Liftable[$sa,$a]", ")")}: Liftable[$SName$tyUseS, $EName$tyUse] =
       |    Liftable$sName${optArgs(zipped)("(", (sa,a) => s"l$a", ")")}
+         """.stripAndTrim)}
       |""".stripAndTrim
   }
 

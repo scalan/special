@@ -46,7 +46,6 @@ object MetaTest extends EntityObject("MetaTest") {
       case _ => unliftError(w)
     }
   }
-
   implicit def liftableMetaTest[ST, T](implicit lT: Liftable[ST,T]): Liftable[SMetaTest[ST], MetaTest[T]] =
     LiftableMetaTest(lT)
 

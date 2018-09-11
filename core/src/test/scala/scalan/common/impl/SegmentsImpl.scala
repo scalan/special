@@ -17,6 +17,36 @@ import Interval._
 import Centered._
 
 object Segment extends EntityObject("Segment") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SSegment = scalan.common.Segment
+  case class SegmentConst(
+        constValue: SSegment
+      ) extends Segment with LiftedConst[SSegment, Segment] {
+    val liftable: Liftable[SSegment, Segment] = LiftableSegment
+    val selfType: Elem[Segment] = liftable.eW
+    def start: Rep[Int] = delayInvoke
+    def length: Rep[Int] = delayInvoke
+    def end: Rep[Int] = delayInvoke
+    def shift(ofs: Rep[Int]): Rep[Segment] = delayInvoke
+    def attach(seg: Rep[Segment]): Rep[Segment] = delayInvoke
+  }
+
+  object LiftableSegment
+    extends Liftable[SSegment, Segment] {
+    def eW: Elem[Segment] = segmentElement
+    def sourceClassTag: ClassTag[SSegment] = {
+      classTag[SSegment]
+    }
+    def lift(x: SSegment): Rep[Segment] = SegmentConst(x)
+    def unlift(w: Rep[Segment]): SSegment = w match {
+      case Def(SegmentConst(x: SSegment))
+            => x.asInstanceOf[SSegment]
+      case _ => unliftError(w)
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxySegment(p: Rep[Segment]): Segment = {
     proxyOps[Segment](p)(scala.reflect.classTag[Segment])
@@ -25,6 +55,14 @@ object Segment extends EntityObject("Segment") {
   // familyElem
   class SegmentElem[To <: Segment]
     extends EntityElem[To] {
+    override val liftable = LiftableSegment.asLiftable[SSegment, To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++ Elem.declaredMethods(classOf[Segment], classOf[SSegment], Set(
+        "start", "length", "end", "shift", "attach"
+      ))
+    }
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {

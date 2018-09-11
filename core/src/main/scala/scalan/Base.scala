@@ -217,7 +217,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
       def unlift(w: Rep[(A, B)]): (SA, SB) = { val Pair(wa, wb) = w; (lA.unlift(wa), lB.unlift(wb)) }
     }
 
-    case class FuncConst[SA,SB,A,B](f: SA => SB)(implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends BaseDef[A => B]()(funcElement(lA.eW, lB.eW))
+    case class FuncConst[SA,SB,A,B](constValue: SA => SB)(implicit lA: Liftable[SA, A], lB: Liftable[SB, B])
+          extends BaseDef[A => B]()(funcElement(lA.eW, lB.eW))
+             with LiftedConst[SA => SB, A => B] {
+      val liftable = Liftables.liftable[SA => SB, A => B]
+    }
 
     class FuncLiftable[SA,SB,A,B](implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[SA => SB, A => B] {
       val eW: Elem[A => B] = funcElement(lA.eW, lB.eW)

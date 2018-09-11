@@ -35,8 +35,36 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
     }
   }
 
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SThunk[T] = () => T
+
+  case class ThunkConst[ST, T](constValue: SThunk[ST], lT: Liftable[ST, T])
+      extends BaseDef[Thunk[T]]()(thunkElement(lT.eW))
+         with LiftedConst[SThunk[ST], Thunk[T]] {
+    val liftable: Liftable[SThunk[ST], Thunk[T]] = liftableThunk(lT)
+  }
+
+  case class LiftableThunk[ST, T](lT: Liftable[ST, T]) extends Liftable[SThunk[ST], Thunk[T]] {
+    def eW: Elem[Thunk[T]] = thunkElement(lT.eW)
+    def sourceClassTag: ClassTag[SThunk[ST]] = {
+      implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
+      classTag[SThunk[ST]]
+    }
+    def lift(x: SThunk[ST]): Rep[Thunk[T]] = ThunkConst(x, lT)
+    def unlift(w: Rep[Thunk[T]]): SThunk[ST] = w match {
+      case Def(ThunkConst(x: SThunk[_], l)) if l == lT => x.asInstanceOf[SThunk[ST]]
+      case _ => unliftError(w)
+    }
+  }
+
+  implicit def liftableThunk[ST,T](implicit lT: Liftable[ST,T]): Liftable[SThunk[ST], Thunk[T]] =
+    LiftableThunk(lT)
+
+
   case class ThunkElem[A](override val eItem: Elem[A])
     extends EntityElem1[A, Thunk[A], Thunk](eItem, container[Thunk]) {
+    override val liftable = liftableThunk(eItem.liftable).asLiftable[SThunk[_], Thunk[A]]
     def parent: Option[Elem[_]] = None
     override lazy val typeArgs = TypeArgs("A" -> (eItem -> Covariant))
     lazy val tag = {

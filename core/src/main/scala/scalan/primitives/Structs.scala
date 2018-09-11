@@ -52,8 +52,38 @@ trait Structs extends Effects with StructItemsModule with StructKeysModule { sel
   }
   type RStruct = Rep[Struct]
 
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SStruct = Array[AnyRef]
+
+  case class StructConst[T <: Struct](constValue: SStruct, _selfType: StructElem[T])
+        extends AbstractStruct[T] with LiftedConst[SStruct, T] {
+    override lazy val selfType = _selfType
+    def tag = _selfType.structTag
+    val fields: Seq[(String, Rep[Any])] =
+      constValue.zip(_selfType.fields).map { case (v, (fn, e)) => (fn, toRep(v)(e.asElem[AnyRef])) }
+    def liftable = liftableStruct(_selfType)
+  }
+
+  case class LiftableStruct[T <: Struct](eW: Elem[T]) extends Liftable[SStruct, T] {
+    val sourceClassTag = classTag[SStruct]
+    def lift(x: SStruct): Rep[T] = StructConst(x, eW)
+    def unlift(w: Rep[T]): SStruct = w match {
+      case Def(StructConst(x: SStruct, _)) => x
+      case _ => unliftError(w)
+    }
+  }
+
+  implicit def liftableStruct[T <: Struct](implicit e: Elem[T]): Liftable[SStruct, T] =
+    LiftableStruct(e)
+
+  def liftStruct[T <: Struct](x: SStruct)(implicit eT: Elem[T]): Rep[T] = StructConst(x, eT)
+
   case class StructElem[T <: Struct](structTag: StructTag[T], fields: Seq[(String, Elem[_])]) extends Elem[T] {
     lazy val tag = structTag.typeTag
+
+    override def liftable: Liftables.Liftable[_, T] = liftableStruct(this).asLiftable[SStruct, T]
+
     protected def getDefaultRep =
       struct(structTag, fields.map { case (fn,fe) => (fn, fe.defaultRepValue) }: _*)
     def get(fieldName: String): Option[Elem[_]] = fields.find(_._1 == fieldName).map(_._2)
