@@ -33,10 +33,10 @@ object Segment extends EntityObject("Segment") {
     def attach(seg: Rep[Segment]): Rep[Segment] = delayInvoke
   }
 
-  object LiftableSegment
+  implicit object LiftableSegment
     extends Liftable[SSegment, Segment] {
-    def eW: Elem[Segment] = segmentElement
-    def sourceClassTag: ClassTag[SSegment] = {
+    lazy val eW: Elem[Segment] = segmentElement
+    lazy val sourceClassTag: ClassTag[SSegment] = {
       classTag[SSegment]
     }
     def lift(x: SSegment): Rep[Segment] = SegmentConst(x)

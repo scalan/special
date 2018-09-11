@@ -333,6 +333,8 @@ object ScalanAst {
       tpeArgs: List[STpeExpr],
       args: List[SExpr]) extends SAnnotation
 
+  final val EntityAnnotation         = classOf[scalan.Entity].getSimpleName
+  final val LiftableAnnotation       = classOf[Liftable].getSimpleName
   final val ConstructorAnnotation    = classOf[Constructor].getSimpleName
   final val ExternalAnnotation       = classOf[External].getSimpleName
   final val ArgListAnnotation        = classOf[ArgList].getSimpleName
@@ -762,6 +764,20 @@ object ScalanAst {
     def companion: Option[SEntityDef]
 
     def isTrait: Boolean
+    
+    def isWrapper(implicit ctx: AstContext): Boolean = name match {
+      case ctx.WrapperEntity(_,_,_) => true
+      case _ => false
+    }
+
+    def isLiftable(implicit ctx: AstContext): Boolean = {
+      if (isWrapper) return true
+      getAnnotation(LiftableAnnotation) match {
+        case Some(SEntityAnnotation(_,_,_)) => true
+        case _ => false
+      }
+    }
+
     def asTrait: STraitDef = { assert(this.isInstanceOf[STraitDef], s"$this is not trait"); this.asInstanceOf[STraitDef] }
     def asClass: SClassDef = { assert(this.isInstanceOf[SClassDef], s"$this is not class"); this.asInstanceOf[SClassDef] }
     def asObject: SObjectDef = { assert(this.isInstanceOf[SObjectDef], s"$this is not object"); this.asInstanceOf[SObjectDef] }

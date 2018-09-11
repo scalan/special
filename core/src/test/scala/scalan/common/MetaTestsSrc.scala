@@ -1,5 +1,8 @@
 package scalan.common
 
+import scalan.Liftable
+
+@Liftable
 trait MetaTest[T] {
   def test: MetaTest[T]
   def give: T

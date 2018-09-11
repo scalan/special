@@ -130,10 +130,10 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
        },"\n")}
       |  }
       |
-      |  ${if(isGeneric) "case class" else "object"} Liftable$sName$typesDeclAll${optArgs(zipped)("(", (sa,a) => s"l$a: Liftable[$sa, $a]", ")")}
+      |  ${if(isGeneric) "case class" else "implicit object"} Liftable$sName$typesDeclAll${optArgs(zipped)("(", (sa,a) => s"l$a: Liftable[$sa, $a]", ")")}
       |    extends Liftable[$SName$tyUseS, $EName$tyUse] {
-      |    def eW: Elem[$EName$tyUse] = $elemMethodName${optArgs(zipped)("(", (_,a) => s"l$a.eW", ")")}
-      |    def sourceClassTag: ClassTag[$SName$tyUseS] = {
+      |    lazy val eW: Elem[$EName$tyUse] = $elemMethodName${optArgs(zipped)("(", (_,a) => s"l$a.eW", ")")}
+      |    lazy val sourceClassTag: ClassTag[$SName$tyUseS] = {
       |      ${repArgs(zipped){ (sa,a) =>
            s"implicit val tag$sa = l$a.eW.sourceClassTag.asInstanceOf[ClassTag[$sa]]"}
              }
@@ -151,6 +151,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
              optArgs(zipped)("(implicit ", (sa,a) => s"l$a: Liftable[$sa,$a]", ")")}: Liftable[$SName$tyUseS, $EName$tyUse] =
       |    Liftable$sName${optArgs(zipped)("(", (sa,a) => s"l$a", ")")}
          """.stripAndTrim)}
+
       |""".stripAndTrim
   }
 
@@ -362,7 +363,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  class $elemTypeDecl${e.implicitArgsDecl("_")}
       |    extends $parentElem {
       |${e.implicitArgs.rep(a => s"    ${(e.entity.isAbstractInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
-      |${liftableSupport()}
+      |${e.entity.isLiftable.opt(liftableSupport())}
       |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElemStr(p, e.tpeArgs)})", "None")}
       |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})
       |    override lazy val tag = {
@@ -427,8 +428,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
 
     s"""
       |object $entityName extends EntityObject("$entityName") {
-      |${entityConst(e)}
-      |
+      |${e.entity.isLiftable.opt(entityConst(e))}
       |${entityProxy(e)}
       |
       |${if (e.isCont) familyCont(e) else ""}

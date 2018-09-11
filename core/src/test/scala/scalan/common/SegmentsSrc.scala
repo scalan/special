@@ -1,5 +1,8 @@
 package scalan.common
 
+import scalan.Liftable
+
+@Liftable
 trait Segment {
   def start: Int
   def length: Int

@@ -11,6 +11,7 @@ trait Segments { self: SegmentsModule =>
   import Centered._
 
   type RSeg = Rep[Segment]
+  @scalan.Liftable
   trait Segment extends Def[Segment] { self =>
     def start: Rep[Int]
     def length: Rep[Int]

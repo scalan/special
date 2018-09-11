@@ -1,6 +1,5 @@
 package scalan.common
 
-import scalan.Scalan
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
 
@@ -34,8 +33,8 @@ object MetaTest extends EntityObject("MetaTest") {
 
   case class LiftableMetaTest[ST, T](lT: Liftable[ST, T])
     extends Liftable[SMetaTest[ST], MetaTest[T]] {
-    def eW: Elem[MetaTest[T]] = metaTestElement(lT.eW)
-    def sourceClassTag: ClassTag[SMetaTest[ST]] = {
+    lazy val eW: Elem[MetaTest[T]] = metaTestElement(lT.eW)
+    lazy val sourceClassTag: ClassTag[SMetaTest[ST]] = {
       implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
       classTag[SMetaTest[ST]]
     }

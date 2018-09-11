@@ -1,9 +1,8 @@
 package scalan.common
 
-import scalan.Scalan
-
 trait MetaTests { self: MetaTestsModule =>
   type RMetaTest[T] = Rep[MetaTest[T]]
+  @scalan.Liftable
   trait MetaTest[T] extends Def[MetaTest[T]] { self =>
     def test: RMetaTest[T]
     def give: Rep[T]
