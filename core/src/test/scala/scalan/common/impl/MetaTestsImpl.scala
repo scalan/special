@@ -16,6 +16,40 @@ import MT1._
 import MT2._
 
 object MetaTest extends EntityObject("MetaTest") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SMetaTest[T] = scalan.common.MetaTest[T]
+  case class MetaTestConst[ST, T](
+        constValue: SMetaTest[ST],
+        lT: Liftable[ST, T]
+      ) extends MetaTest[T] with LiftedConst[SMetaTest[ST], MetaTest[T]] {
+    implicit def eT: Elem[T] = lT.eW
+    val liftable: Liftable[SMetaTest[ST], MetaTest[T]] = liftableMetaTest(lT)
+    val selfType: Elem[MetaTest[T]] = liftable.eW
+    def test: RMetaTest[T] = delayInvoke
+    def give: Rep[T] = delayInvoke
+    def size: Rep[Int] = delayInvoke
+  }
+
+  case class LiftableMetaTest[ST, T](lT: Liftable[ST, T])
+    extends Liftable[SMetaTest[ST], MetaTest[T]] {
+    def eW: Elem[MetaTest[T]] = metaTestElement(lT.eW)
+    def sourceClassTag: ClassTag[SMetaTest[ST]] = {
+      implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
+      classTag[SMetaTest[ST]]
+    }
+    def lift(x: SMetaTest[ST]): Rep[MetaTest[T]] = MetaTestConst(x, lT)
+    def unlift(w: Rep[MetaTest[T]]): SMetaTest[ST] = w match {
+      case Def(MetaTestConst(x: SMetaTest[_], _lT))
+            if _lT == lT => x.asInstanceOf[SMetaTest[ST]]
+      case _ => unliftError(w)
+    }
+  }
+
+  implicit def liftableMetaTest[ST, T](implicit lT: Liftable[ST,T]): Liftable[SMetaTest[ST], MetaTest[T]] =
+    LiftableMetaTest(lT)
+
   // entityProxy: single proxy for each type family
   implicit def proxyMetaTest[T](p: Rep[MetaTest[T]]): MetaTest[T] = {
     proxyOps[MetaTest[T]](p)(scala.reflect.classTag[MetaTest[T]])
@@ -25,6 +59,15 @@ object MetaTest extends EntityObject("MetaTest") {
   class MetaTestElem[T, To <: MetaTest[T]](implicit _eT: Elem[T])
     extends EntityElem[To] {
     def eT = _eT
+
+    override val liftable = liftableMetaTest(_eT.liftable).asLiftable[SMetaTest[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++ Elem.declaredMethods(classOf[MetaTest[T]], classOf[SMetaTest[_]], Set(
+        "test", "give", "size"
+      ))
+    }
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override lazy val tag = {

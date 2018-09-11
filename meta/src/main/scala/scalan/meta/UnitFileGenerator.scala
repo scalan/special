@@ -76,11 +76,11 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     case _ => None //!!!(s"Cannot find srcEntityName($entityName)")
   }
 
-  def entityConst(e: EntityTemplateData) = {
-    val entityName = e.name
-    val optWrapperName = getWrapperName(entityName)
+  class LiftableInfo(e: EntityTemplateData) {
+    val EName = e.name
+    val optWrapperName = getWrapperName(EName)
     val notWrapper = optWrapperName.isEmpty
-    val (sName, fullName) = optWrapperName match {
+    val (sName: String, fullName) = optWrapperName match {
       case Some((wrapperPackage, n)) =>
         val packageName = wrapperPackage.stripPrefix("wrappers.")
         (n, s"$packageName.$n")
@@ -90,34 +90,66 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val SName = "S" + sName
     val tpeArgsS   = e.tpeArgs.map(a => STpeArg("S" + a.name))
     val typesDeclS = tpeArgsS.declString
-    val typesUseS  = tpeArgsS.useString
+    val tyUseS  = tpeArgsS.useString
+    val typesDecl = e.tpeArgs.declString
+    val tyUse  = e.tpeArgs.useString
     val tpeArgs   = tpeArgsS ++ e.tpeArgs
-    val typesDecl = e.tpeArgsDecl
-    val typesUse  = e.tpeArgsUse
-    val zippedTpeArgs = tpeArgsS.zip(e.tpeArgs)
+    val typesDeclAll = tpeArgs.declString
+    val zipped = tpeArgsS.zip(e.tpeArgs)
+    def repArgs(args: Iterable[(STpeArg, STpeArg)])(show: (String, String) => String): String =
+      args.rep {case (sa,a) => show(sa.name, a.name) }
+    def optArgs(args: Iterable[(STpeArg, STpeArg)])(prefix: String, show: (String, String) => String, postfix: String): String =
+      args.opt(args => prefix + repArgs(args)(show) + postfix)
     val elemMethodName = entityElemMethodName(e.name)
-    val liftableMethodElem = (if (e.tpeArgs.isEmpty) "Liftable" else "liftable") + (if (notWrapper) e.name else SName)
+    val isGeneric = e.tpeArgs.isEmpty
+    val liftableMethod = (if (isGeneric) "Liftable" else "liftable") + sName
+  }
+
+  def entityConst(e: EntityTemplateData) = {
+    val info = new LiftableInfo(e); import info._
     s"""
       |  // entityConst: single const for each entity
       |  import Liftables._
-      |  ${notWrapper.opt(s"type $SName$typesDecl = $fullName$typesUse")}
-      |  case class ${entityName}Const${(tpeArgsS ++ e.tpeArgs).declString}(
-      |        constValue: $SName$typesUseS${zippedTpeArgs.opt(z => s""",
-      |        ${z.rep {case (sa,a) => s"l${a.name}: Liftable[${sa.name}, ${a.name}]"}}""".stripAndTrim)}
-      |      ) extends $entityName$typesUse with LiftedConst[$SName$typesUseS, $entityName$typesUse] {
+      |  import scala.reflect.{ClassTag, classTag}
+      |  ${notWrapper.opt(s"type $SName$typesDecl = $fullName$tyUse")}
+      |  case class ${EName}Const$typesDeclAll(
+      |        constValue: $SName$tyUseS${zipped.opt(z => s""",
+      |        ${repArgs(z){(sa,a) => s"l$a: Liftable[$sa, $a]"}}""".stripAndTrim)}
+      |      ) extends $EName$tyUse with LiftedConst[$SName$tyUseS, $EName$tyUse] {
       |${e.tpeArgs.rep(a =>
          s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
        )}
-      |    val selfType: Elem[$entityName$typesUse] = $elemMethodName${e.tpeArgs.opt(args => "(" + args.rep(a => s"l${a.name}.eW") + ")")}
-      |    val liftable: Liftable[$SName$typesUseS, $entityName$typesUse] = $liftableMethodElem${e.tpeArgs.opt(args => "(" + args.rep(a => s"l${a.name}") + ")")}
-      |${e.entity.body.collect { case m: SMethodDef if m.body.isEmpty => m }.rep({ m =>
+      |    val liftable: Liftable[$SName$tyUseS, $EName$tyUse] = $liftableMethod${
+                                                                optArgs(zipped)("(", (_,a) => s"l$a", ")")}
+      |    val selfType: Elem[$EName$tyUse] = liftable.eW
+      |${e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }.rep({ m =>
          implicit val ctx = parsers.GenCtx(context, config.isVirtualized)
-         s"""|    def ${m.name}""".stripAndTrim
+         val mtree = parsers.genMethod(m.copy(body = Some(SIdent("delayInvoke"))))
+         val code = parsers.global.showCode(mtree)
+         s"""|    ${code}""".stripAndTrim
        },"\n")}
-      |    def apply(i: Rep[Int]): Rep[T] = delayInvoke
       |  }
       |
+      |  case class Liftable$sName$typesDeclAll${optArgs(zipped)("(", (sa,a) => s"l$a: Liftable[$sa, $a]", ")")}
+      |    extends Liftable[$SName$tyUseS, $EName$tyUse] {
+      |    def eW: Elem[$EName$tyUse] = $elemMethodName${optArgs(zipped)("(", (_,a) => s"l$a.eW", ")")}
+      |    def sourceClassTag: ClassTag[$SName$tyUseS] = {
+      |      ${repArgs(zipped){ (sa,a) =>
+           s"implicit val tag$sa = l$a.eW.sourceClassTag.asInstanceOf[ClassTag[$sa]]"}
+             }
+      |      classTag[$SName$tyUseS]
+      |    }
+      |    def lift(x: $SName$tyUseS): Rep[$EName$tyUse] = ${EName}Const(x${optArgs(zipped)(", ", (_,a) => s"l$a", "")})
+      |    def unlift(w: Rep[$EName$tyUse]): $SName$tyUseS = w match {
+      |      case Def(${EName}Const(x: $SName${optArgs(zipped)("[", (_,_) => "_", "]")}${optArgs(zipped)(", ", (_,a) => s"_l$a", "")}))
+      |           ${optArgs(zipped)(" if ", (_,a) => s"_l$a == l$a", "")} => x.asInstanceOf[$SName$tyUseS]
+      |      case _ => unliftError(w)
+      |    }
+      |  }
       |
+      |  implicit def $liftableMethod$typesDeclAll${
+             optArgs(zipped)("(implicit ", (sa,a) => s"l$a: Liftable[$sa,$a]", ")")}: Liftable[$SName$tyUseS, $EName$tyUse] =
+      |    Liftable$sName${optArgs(zipped)("(", (sa,a) => s"l$a", ")")}
       |""".stripAndTrim
   }
 
@@ -310,12 +342,26 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
           |""".stripMargin
       } else ""
     }
-
+    def liftableSupport() = {
+      val info = new LiftableInfo(e); import info._
+      val SNameForSome = SName + optArgs(zipped)("[",(_,_) => "_" ,"]")
+      s"""
+        |    override val liftable = $liftableMethod${
+           e.implicitArgs.opt(args => "(" + args.rep(a => s"_${a.name}.liftable") + ")")}.asLiftable[$SNameForSome, To]
+        |
+        |    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+        |      super.collectMethods ++ Elem.declaredMethods(classOf[${e.typeUse}], classOf[$SNameForSome], Set(
+        |        ${e.entity.body.collect {case m: SMethodDef if !m.isTypeDesc => m }.rep(m => s""""${m.name}"""")}
+        |      ))
+        |    }
+       """.stripMargin
+    }
     s"""
       |  // familyElem
       |  class $elemTypeDecl${e.implicitArgsDecl("_")}
       |    extends $parentElem {
       |${e.implicitArgs.rep(a => s"    ${(e.entity.isAbstractInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
+      |${liftableSupport()}
       |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElemStr(p, e.tpeArgs)})", "None")}
       |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})
       |    override lazy val tag = {
