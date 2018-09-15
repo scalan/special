@@ -17,7 +17,8 @@ trait Library extends Scalan
   with ConcreteCostsModule
   with MonoidsModule
   with MonoidInstancesModule {
-  import WArray._; import Col._; import ColBuilder._; import ReplCol._
+  import WArray._; import WOption._
+  import Col._; import ColBuilder._; import ReplCol._
   import Costed._
   import CostedFunc._;
 
@@ -33,6 +34,12 @@ trait Library extends Scalan
   }
 
   override protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = receiver.elem match {
+    case ae: WOptionElem[a, _] => m.getName match {
+      case "getOrElse" =>
+        val f = args(0).asInstanceOf[Rep[Thunk[Any]]]
+        f.elem.eItem
+      case _ => super.getResultElem(receiver, m, args)
+    }
     case ae: WArrayElem[a, _] => m.getName match {
       case "map" =>
         val f = args(0).asInstanceOf[Rep[a => Any]]

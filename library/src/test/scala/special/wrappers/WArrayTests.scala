@@ -9,6 +9,11 @@ class WArrayTests extends WrappersTests {
   test("WArray methods") {
     val ctx = new WrappersCtx {
       import WArray._
+      lazy val t1 = fun { (xs: Rep[WArray[Int]]) => xs.length }
+      lazy val t2 = fun { (xs: Rep[WArray[Int]]) => xs(10) }
+      lazy val t3 = fun { (xs: Rep[WArray[Int]]) => xs.zip(RWArray.fill(xs.length, Thunk(10))) }
+      lazy val t4 = fun { (xs: Rep[WArray[Int]]) => xs.map(fun {x => x + 1}) }
+
       val M = WArrayMethods; val C = WArrayCompanionMethods
       def test() = {
         { val Def(Lambda(_, _, x, M.length(obj))) = t1; assert(x == obj) }

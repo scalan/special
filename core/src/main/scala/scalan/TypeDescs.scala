@@ -392,6 +392,16 @@ trait TypeDescs extends Base { self: Scalan =>
       }.to[Seq]
     }
 
+    def declaredWrapperMethods(wrapSpec: special.wrappers.WrapSpec, wcls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
+      val specCls = wrapSpec.getClass
+      val wMethods = wcls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
+      val specMethods = specCls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
+      val mapping = CollectionUtil.joinSeqs(wMethods, specMethods)(methodKey, methodKey)
+      mapping.map { case (wm, sm) =>
+        (wm, WMethodDesc(wrapSpec, sm))
+      }.to[Seq]
+    }
+
   }
 
   private val debug$ElementCounter = counter[Elem[_]]

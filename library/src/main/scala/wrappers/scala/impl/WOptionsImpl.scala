@@ -7,7 +7,10 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-// Abs -----------------------------------
+  import java.lang.reflect.Method
+  import special.wrappers.OptionWrapSpec
+
+  // Abs -----------------------------------
 trait WOptionsDefs extends scalan.Scalan with WOptions {
   self: WrappersModule =>
 import IsoUR._
@@ -79,12 +82,21 @@ object WOption extends EntityObject("WOption") {
   def wOptionIso[A, B](innerIso: Iso[A, B]) =
     reifyObject(WOptionIso[A, B](innerIso)).asInstanceOf[Iso1[A, B, WOption]]
 
+  private val _OptionWrapSpec = new OptionWrapSpec
+
   // familyElem
   class WOptionElem[A, To <: WOption[A]](implicit _eA: Elem[A])
     extends EntityElem1[A, To, WOption](_eA, container[WOption]) {
     def eA = _eA
     override def liftable: Liftables.Liftable[Option[_], To] =
       liftableOption(_eA.liftable).asLiftable[Option[_], To]
+
+    override protected def collectMethods: Map[Method, MethodDesc] = {
+      super.collectMethods ++ Elem.declaredWrapperMethods(_OptionWrapSpec, classOf[WOption[A]], Set(
+        "get", "getOrElse", "flatMap", "filter", "map", "fold", "isEmpty", "isDefined"
+      ))
+    }
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
     override lazy val tag = {

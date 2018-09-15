@@ -200,15 +200,4 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
     ctx.emit("t1_iso", ctx.t1)
     ctx.emit("t2_iso", ctx.t2)
   }
-
-  test("invokeUnlifted") {
-    val ctx = new TestContext with LiftableTestKit {}
-    import ctx._
-    import Liftables._
-
-    val th = () => 10
-    
-//    check(th, (env: DataEnv, Cols: Rep[Thunk[Int]]) => Cols.apply(env.lifted(1), env.lifted(2), env.lifted(3)),
-//      Cols.apply(1, 2, 3))
-  }
 }
