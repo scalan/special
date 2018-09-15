@@ -14,5 +14,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.TYPE_PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Reified {
-    //String value();
+    String value() default "";
 }

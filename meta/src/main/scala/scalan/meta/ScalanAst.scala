@@ -466,6 +466,9 @@ object ScalanAst {
     override def exprType = ??? // TODO build STpeFunc for this method type
     def externalOpt: Option[SMethodAnnotation] = annotations.find(_.annotationClass == "External")
 
+    def getAnnotation(annotName: String) = annotations.find(a => a.annotationClass == annotName)
+    def hasAnnotation(annotName: String) = getAnnotation(annotName).isDefined
+
 //    def isExtractableArg(module: SModuleDef, tpeArg: STpeArg): Boolean = {
 //      allArgs.exists(a => STpePath.find(module, a.tpe, tpeArg.name).isDefined)
 //    }
@@ -1267,7 +1270,7 @@ object ScalanAst {
     val newSections = m.argSections.filterMap(as => {
       val newArgs = as.args.filter {
         case arg@TypeDescArg(_, tyName) if arg.impFlag =>
-          !canBeExtracted(explicitArgs, tyName)
+          !canBeExtracted(explicitArgs, tyName) || m.hasAnnotation(ReifiedTypeArgAnnotation)
         case _ => true
       }
       if (newArgs.nonEmpty) Some(SMethodArgs(newArgs)) else None
