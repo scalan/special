@@ -185,14 +185,29 @@ trait TypeDescs extends Base { self: Scalan =>
   val SymClass = classOf[Sym]
   val CtClass = classOf[ClassTag[_]]
 
-  type DataEnv = mutable.Map[Sym, AnyRef]
+  type DataEnv = Map[Sym, AnyRef]
 
-  implicit class EnvOps(env: DataEnv) {
-    import Liftables._
-    def lifted[ST, T](x: ST)(implicit lT: Liftable[ST, T]): Rep[T] = {
+  /** State monad for symbols computed in an environment. */
+  case class EnvRep[A](run: DataEnv => (DataEnv, Rep[A])) {
+    def flatMap[B](f: Rep[A] => EnvRep[B]): EnvRep[B] = EnvRep { env =>
+      val (env1, x) = run(env)
+      val res = f(x).run(env1)
+      res
+    }
+    def map[B](f: Rep[A] => Rep[B]): EnvRep[B] = EnvRep { env =>
+      val (env1, x) = run(env)
+      val y = f(x)
+      (env1, y)
+    }
+  }
+  object EnvRep {
+    def add[T](entry: (Rep[T], AnyRef)): EnvRep[T] =
+      EnvRep { env => val (sym, value) = entry; (env + (sym -> value), sym) }
+
+    def lifted[ST, T](x: ST)(implicit lT: Liftables.Liftable[ST, T]): EnvRep[T] = EnvRep { env =>
       val xSym = lT.lift(x)
-      env += (xSym -> x.asInstanceOf[AnyRef])
-      xSym
+      val resEnv = env + (xSym -> x.asInstanceOf[AnyRef])
+      (resEnv, xSym)
     }
   }
 

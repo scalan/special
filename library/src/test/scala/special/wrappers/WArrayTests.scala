@@ -35,32 +35,36 @@ class WArrayTests extends WrappersTests {
     import ctx._
     import Liftables._
     import WArray._
+    import EnvRep._
 
     val arr = Array(1, 2, 3)
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.apply(env.lifted(2)), arr.apply(2))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arg <- lifted(2) } yield xs.apply(arg) }, arr.apply(2))
 
     var sum1 = 0
     val f1 = (x: Int) => sum1 += x
     var sum2 = 0
     val f2 = (x: Int) => sum2 += x
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.foreach(env.lifted(f1)), arr.foreach(f2))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arg <- lifted(f1) } yield xs.foreach(arg) }, arr.foreach(f2))
     sum2 shouldBe sum2
 
     val p = (x: Int) => x == 2
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.exists(env.lifted(p)), arr.exists(p))
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.forall(env.lifted(p)), arr.forall(p))
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.filter(env.lifted(p)), arr.filter(p))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arg <- lifted(p) } yield xs.exists(arg) }, arr.exists(p))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arg <- lifted(p) } yield xs.forall(arg) }, arr.forall(p))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arg <- lifted(p) } yield xs.filter(arg) }, arr.filter(p))
 
     val add = (p: (Int,Int)) => p._1 + p._2
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.foldLeft(env.lifted(0), env.lifted(add)), arr.foldLeft(0)((x,y) => add((x,y))))
+    check(arr, { env: EnvRep[WArray[Int]] =>
+      for { xs <- env; z <- lifted(0); addL <- lifted(add) } yield xs.foldLeft(z, addL) },
+      arr.foldLeft(0)((x,y) => add((x,y))))
 
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.slice(env.lifted(1), env.lifted(2)), arr.slice(1, 2))
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.length, arr.length)
+    check(arr, { env: EnvRep[WArray[Int]] =>
+      for { xs <- env; f <- lifted(1); u <- lifted(2) } yield xs.slice(f, u) }, arr.slice(1, 2))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env } yield xs.length }, arr.length)
 
     val inc = (x: Int) => x + 1
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.map(env.lifted(inc)), arr.map(inc))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; incL <- lifted(inc) } yield xs.map(incL) }, arr.map(inc))
     val arr2 = Array("a", "b", "c")
-    check(arr, (env: DataEnv, xs: Rep[WArray[Int]]) => xs.zip(env.lifted(arr2)), arr.zip(arr2))
+    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arr2L <- lifted(arr2) } yield xs.zip(arr2L) }, arr.zip(arr2))
   }
 
   test("invokeUnlifted for Col") {
@@ -70,20 +74,23 @@ class WArrayTests extends WrappersTests {
     import WArray._
     import Col._
     import ColBuilder._
+    import EnvRep._
 
     val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
     val arr = Array(1, 2, 3)
     val col = Cols.fromArray(arr)
 
-    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.apply(env.lifted(2)), col.apply(2))
+    check(col, { env: EnvRep[Col[Int]] => for {xs <- env; arg <- lifted(2) } yield xs.apply(arg) }, col.apply(2))
 
     val inc = (x: Int) => x + 1
-    check(col, (env: DataEnv, xs: Rep[Col[Int]]) => xs.map(env.lifted(inc)), col.map(inc))
+    check(col, { env: EnvRep[Col[Int]] => for { xs <- env; incL <- lifted(inc) } yield xs.map(incL) }, col.map(inc))
 
-    check(Cols, (env: DataEnv, Cols: Rep[ColBuilder]) => Cols.fromArray(env.lifted(arr)), Cols.fromArray(arr))
+    check(Cols, { env: EnvRep[ColBuilder] => for { Cols <- env; arrL <- lifted(arr) } yield Cols.fromArray(arrL) }, Cols.fromArray(arr))
 
     check(Cols,
-      (env: DataEnv, Cols: Rep[ColBuilder]) => Cols.apply(env.lifted(1), env.lifted(2), env.lifted(3)),
+      {env: EnvRep[ColBuilder] => for {
+          Cols <- env; x1 <- lifted(1); x2 <- lifted(2); x3 <- lifted(3)
+        } yield Cols.apply(x1, x2, x3) },
       Cols.apply(1, 2, 3))
   }
 }

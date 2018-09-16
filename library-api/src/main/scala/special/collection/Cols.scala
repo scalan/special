@@ -1,7 +1,7 @@
 package special.collection
 
 import scala.reflect.ClassTag
-import scalan.{FunctorType, ContainerType, OverloadId, NeverInline}
+import scalan._
 
 @ContainerType
 @FunctorType
@@ -30,6 +30,9 @@ trait Col[A] {
     */
   def slice(from: Int, until: Int): Col[A]
   def append(other: Col[A]): Col[A]
+
+  @Internal
+  override def toString = s"Col(${arr.mkString(",")})"
 }
 
 trait PairCol[L,R] extends Col[(L,R)] {
