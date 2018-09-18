@@ -4,6 +4,7 @@ import java.lang.reflect.Method
 
 import scala.language.higherKinds
 import scala.collection.mutable.{Map => MutMap}
+import scalan.meta.TypeDesc
 
 trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
   import IsoUR._

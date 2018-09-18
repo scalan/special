@@ -7,17 +7,9 @@ import scala.collection.immutable.ListMap
 import scala.reflect.runtime.universe._
 import scala.reflect.{AnyValManifest, ClassTag}
 import scalan.meta.ScalanAst._
+import scalan.meta.{TypeDesc, RType}
 import scalan.util._
 import scalan.util.ReflectionUtil.ClassOps
-import scala.collection.mutable
-
-sealed trait TypeDesc extends Serializable {
-  def getName(f: TypeDesc => String): String
-  lazy val name: String = getName(_.name)
-
-  // <> to delimit because: [] is used inside name; {} looks bad with structs.
-  override def toString = s"${getClass.safeSimpleName}<$name>"
-}
 
 trait TypeDescs extends Base { self: Scalan =>
 
@@ -235,12 +227,9 @@ trait TypeDescs extends Base { self: Scalan =>
     * @tparam A The represented type
     */
   @implicitNotFound(msg = "No Elem available for ${A}.")
-  abstract class Elem[A] extends TypeDesc { _: scala.Equals =>
+  abstract class Elem[A] extends RType[A] { _: scala.Equals =>
     import Liftables._
-    def tag: WeakTypeTag[A]
-    final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
-    // classTag.runtimeClass is cheap, no reason to make it lazy
-    final def runtimeClass: Class[_] = classTag.runtimeClass
+
     def liftable: Liftable[_, A] =
       !!!(s"Cannot get Liftable instance for $this")
 
@@ -266,9 +255,6 @@ trait TypeDescs extends Base { self: Scalan =>
       if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
     }
 
-    def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
-    lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
-    def typeArgsIterator = typeArgs.valuesIterator.map(_._1)
     final def copyWithTypeArgs(args: Iterator[TypeDesc]) = {
       try {
         val res = _copyWithTypeArgs(args)
@@ -297,26 +283,6 @@ trait TypeDescs extends Base { self: Scalan =>
     protected def getDefaultRep: Rep[A]
     lazy val defaultRepValue = getDefaultRep
 
-    override def getName(f: TypeDesc => String) = {
-      import ClassTag._
-      val className = try { classTag match {
-        case _: AnyValManifest[_] | Any | AnyVal | AnyRef | Object | Nothing | Null => classTag.toString
-        case objectTag =>
-          val cl = objectTag.runtimeClass
-          val name = cl.safeSimpleName
-          name
-      }}
-      catch {
-        case t: Throwable =>
-           ???
-      }
-      if (typeArgs.isEmpty)
-        className
-      else {
-        val typeArgString = typeArgsIterator.map(f).mkString(", ")
-        s"$className[$typeArgString]"
-      }
-    }
 
     def leastUpperBound(e: Elem[_]): Elem[_] =
       commonBound(e, isUpper = true)

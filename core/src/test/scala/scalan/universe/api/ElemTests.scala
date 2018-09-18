@@ -2,7 +2,8 @@ package scalan.universe.api
 
 import scala.language.reflectiveCalls
 import scalan._
-import scalan.common.{SegmentsModule, KindsModule, ViewExamples, CommonExamples}
+import scalan.common.{SegmentsModule, KindsModule, CommonExamples, ViewExamples}
+import scalan.meta.TypeDesc
 import scalan.universe.api.UniverseUtils._
 
 class ElemTests extends BaseCtxTests { suite =>

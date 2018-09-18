@@ -5,6 +5,7 @@ import scala.reflect.runtime.universe._
 import scalan.util.CollectionUtil
 import OverloadHack._
 import scalan.compilation.GraphVizConfig
+import scalan.meta.TypeDesc
 
 /**
  The code is inspired by LMS structs and is used in Scalan with the same semantics

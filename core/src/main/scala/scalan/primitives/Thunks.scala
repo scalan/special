@@ -3,8 +3,9 @@ package scalan.primitives
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{Lazy, ViewsModule, Scalan, TypeDesc}
+import scalan.{Lazy, ViewsModule, Scalan}
 import scala.reflect.runtime.universe._
+import scalan.meta.TypeDesc
 import scalan.util.Covariant
 
 trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects { self: Scalan =>

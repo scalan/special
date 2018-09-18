@@ -26,7 +26,11 @@ class SpecialLibraryConfig extends LibraryConfig {
     WrapperConf(baseDir,
       packageName = "special",
       name = "SpecialPredef"
-    )
+    ),
+    WrapperConf(baseDir,
+      packageName = "scalan.meta",
+      name = "TypeDesc"
+    ),
   ).map(w => (w.name, w)).toMap
 
   val ApiModule: SourceModuleConf = new SourceModuleConf(baseDir, "library-api")

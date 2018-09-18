@@ -14,6 +14,7 @@ import org.objenesis.ObjenesisStd
 import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
 
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
+import scalan.meta.TypeDesc
 import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
 
 trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
@@ -560,6 +561,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
 //            val elemParts = extractParts(elem, classSymbol, List(typeOf[Unit]), tpe)
             extractElems(/*elemParts ++ */rest, unknownParams, knownParams)
           }
+        case (d, tpe) :: rest => !!!(s"Unknown TypeDesc $d")
       }
 
   // TODO Combine with extractElems

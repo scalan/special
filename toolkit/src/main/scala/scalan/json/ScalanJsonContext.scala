@@ -5,8 +5,9 @@ import java.lang.reflect.Method
 import spray.json.{JsObject, JsArray, JsString, JsValue, JsBoolean}
 
 import scala.collection.Seq
-import scalan.{Scalan, TypeDesc}
+import scalan.Scalan
 import scala.collection.mutable.{Map => MMap}
+import scalan.meta.TypeDesc
 
 trait ScalanJsonContext[C <: Scalan] { self: ScalanJsonProtocol[C] =>
   val ctx: C

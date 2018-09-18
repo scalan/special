@@ -2,6 +2,7 @@ package special.wrappers
 
 import scala.reflect.ClassTag
 import special.SpecialPredef
+import scalan.meta.TypeDesc
 
 
 /** NOTES:
@@ -47,4 +48,8 @@ class SpecialPredefWrapSpec extends WrapSpec {
   def left[A,B](a: A)(implicit cB: ClassTag[B]): Either[A,B] = SpecialPredef.left[A,B](a)
   def right[A,B](b: B)(implicit cA: ClassTag[A]): Either[A,B] = SpecialPredef.right[A,B](b)
   def optionGetOrElse[A](opt: Option[A], default: A): A = SpecialPredef.optionGetOrElse(opt, default)
+}
+
+class TypeDescWrapSpec extends WrapSpec {
+  def name(d: TypeDesc): String = d.name
 }
