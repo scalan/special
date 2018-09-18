@@ -1,9 +1,11 @@
 package scalan.json
 
 import java.lang.reflect.Method
+
 import spray.json.{JsObject, JsArray, JsString, JsValue, JsBoolean}
+
 import scala.collection.Seq
-import scalan.Scalan
+import scalan.{Scalan, TypeDesc}
 import scala.collection.mutable.{Map => MMap}
 
 trait ScalanJsonContext[C <: Scalan] { self: ScalanJsonProtocol[C] =>

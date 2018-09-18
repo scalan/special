@@ -2,7 +2,7 @@ package scalan.compilation.kotlin
 
 import java.io.PrintWriter
 
-import scalan.Scalan
+import scalan.{Scalan, TypeDesc}
 import scalan.compilation.{IndentLevel, FileCodegen, CodegenConfig}
 import scalan.meta.ScalanAst._
 import scalan.meta.PrintExtensions._

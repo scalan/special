@@ -11,14 +11,15 @@ import scalan.util._
 import scalan.util.ReflectionUtil.ClassOps
 import scala.collection.mutable
 
-trait TypeDescs extends Base { self: Scalan =>
-  sealed trait TypeDesc extends Serializable {
-    def getName(f: TypeDesc => String): String
-    lazy val name: String = getName(_.name)
+sealed trait TypeDesc extends Serializable {
+  def getName(f: TypeDesc => String): String
+  lazy val name: String = getName(_.name)
 
-    // <> to delimit because: [] is used inside name; {} looks bad with structs.
-    override def toString = s"${getClass.safeSimpleName}<$name>"
-  }
+  // <> to delimit because: [] is used inside name; {} looks bad with structs.
+  override def toString = s"${getClass.safeSimpleName}<$name>"
+}
+
+trait TypeDescs extends Base { self: Scalan =>
 
   object TypeDesc {
     def apply(tpe: STpeExpr, env: TypeArgSubst): TypeDesc = tpe match {
