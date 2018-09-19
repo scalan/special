@@ -5,6 +5,7 @@ import scalan._
 
 @ContainerType
 @FunctorType
+@scalan.Liftable
 trait Col[A] {
   def builder: ColBuilder
   def arr: Array[A]
@@ -40,6 +41,7 @@ trait PairCol[L,R] extends Col[(L,R)] {
   def rs: Col[R]
 }
 
+@scalan.Liftable
 trait ColBuilder {
   @OverloadId("apply")
   def apply[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]

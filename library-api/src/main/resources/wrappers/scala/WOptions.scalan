@@ -7,7 +7,7 @@ package wrappers.scala {
 
   trait WOptions extends Base { self: WrappersModule =>
     import WOption._;
-    @External("Option") @ContainerType @FunctorType trait WOption[A] extends Def[WOption[A]] { self =>
+    @External("Option") @ContainerType @FunctorType @Liftable trait WOption[A] extends Def[WOption[A]] { self =>
       implicit def eA: Elem[A];
       @External def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B];
       @External def isEmpty: Rep[Boolean];

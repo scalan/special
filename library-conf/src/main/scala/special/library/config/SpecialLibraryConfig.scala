@@ -1,6 +1,6 @@
 package special.library.config
 
-import scalan.{ContainerType, FunctorType}
+import scalan.{FunctorType, ContainerType, Liftable}
 import scalan.meta.ScalanAst.WrapperConf
 import scalan.meta.{LibraryConfig, TargetModuleConf, ConfMap, SourceModuleConf}
 
@@ -12,16 +12,17 @@ class SpecialLibraryConfig extends LibraryConfig {
     WrapperConf(baseDir,
       packageName = "scala",
       name = "Array",
-      annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
+      annotations = List(classOf[ContainerType], classOf[FunctorType], classOf[Liftable]).map(_.getSimpleName)
     ),
     WrapperConf(baseDir,
       packageName = "scala",
       name = "Option",
-      annotations = List(classOf[ContainerType], classOf[FunctorType]).map(_.getSimpleName)
+      annotations = List(classOf[ContainerType], classOf[FunctorType], classOf[Liftable]).map(_.getSimpleName)
     ),
     WrapperConf(baseDir,
       packageName = "scala.util",
-      name = "Either"
+      name = "Either",
+      annotations = List(classOf[Liftable]).map(_.getSimpleName)
     ),
     WrapperConf(baseDir,
       packageName = "special",
@@ -29,7 +30,8 @@ class SpecialLibraryConfig extends LibraryConfig {
     ),
     WrapperConf(baseDir,
       packageName = "scalan.meta",
-      name = "RType"
+      name = "RType",
+      annotations = List(classOf[Liftable]).map(_.getSimpleName)
     ),
   ).map(w => (w.name, w)).toMap
 
