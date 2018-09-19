@@ -29,7 +29,7 @@ class SpecialLibraryConfig extends LibraryConfig {
     ),
     WrapperConf(baseDir,
       packageName = "scalan.meta",
-      name = "TypeDesc"
+      name = "RType"
     ),
   ).map(w => (w.name, w)).toMap
 
@@ -43,6 +43,7 @@ class SpecialLibraryConfig extends LibraryConfig {
       .addUnit("special/collection/MonoidInstances.scala")
       .addUnit("special/collection/ColsOverArrays.scala")
       .addUnit("special/collection/ConcreteCosts.scala")
+      .addUnit("special/collection/CostedOptions.scala")
       .dependsOn(ApiModule)
 
   val TargetModule = new TargetModuleConf(baseDir, "library",

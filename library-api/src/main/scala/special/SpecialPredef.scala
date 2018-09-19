@@ -23,4 +23,7 @@ object SpecialPredef {
   def right[A,B](b: B): Either[A,B] = Right(b)
 
   def optionGetOrElse[A](opt: Option[A], default: A): A = opt.getOrElse(default)
+
+  def rewritableMethod =
+    sys.error(s"Shouldn't be called, instead it should be either handled in rewrite rule, or overridden in derived class.")
 }

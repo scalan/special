@@ -2,7 +2,8 @@ package special.wrappers
 
 import scala.reflect.ClassTag
 import special.SpecialPredef
-import scalan.meta.TypeDesc
+
+import scalan.meta.RType
 
 
 /** NOTES:
@@ -50,6 +51,6 @@ class SpecialPredefWrapSpec extends WrapSpec {
   def optionGetOrElse[A](opt: Option[A], default: A): A = SpecialPredef.optionGetOrElse(opt, default)
 }
 
-class TypeDescWrapSpec extends WrapSpec {
-  def name(d: TypeDesc): String = d.name
+class RTypeWrapSpec extends WrapSpec {
+  def name[T](d: RType[T]): String = d.name
 }

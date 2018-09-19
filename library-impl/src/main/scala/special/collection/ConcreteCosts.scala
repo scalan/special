@@ -1,8 +1,10 @@
 package special.collection
 
 import scala.reflect.ClassTag
-import scalan.{OverloadId, NeverInline}
+import scalan.{NeverInline, Reified, OverloadId, Internal}
 import special.SpecialPredef._
+
+import scalan.meta.RType
 
 trait ConcreteCosted[Val] extends Costed[Val] {
   def builder = new ConcreteCostedBuilder
@@ -105,6 +107,12 @@ class CostedNestedCol[Item]
 
 class ConcreteCostedBuilder extends CostedBuilder {
   def monoidBuilder = new MonoidBuilderInst
+
+  @NeverInline
+  def costedValue[T](x: T, optCost: Option[Int])(implicit cT: RType[T]): Costed[T] = rewritableMethod
+
+  @NeverInline
+  def defaultValue[T](valueType: RType[T]): T = rewritableMethod
 }
 
 //trait Closure[Env, Arg, Res] {
