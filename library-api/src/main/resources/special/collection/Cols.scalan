@@ -15,7 +15,7 @@ package special.collection {
       def apply(i: Rep[Int]): Rep[A];
       def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A];
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]];
-      def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys);
+      def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]];
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit];
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];

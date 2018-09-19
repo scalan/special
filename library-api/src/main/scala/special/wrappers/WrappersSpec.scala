@@ -5,10 +5,12 @@ import special.SpecialPredef
 
 import scalan.meta.RType
 
+trait WrapSpecBase extends WrapSpec {
+}
 
 /** NOTES:
   * 1) to avoid fallbackCanBuildFrom to pop up to wrappers add ClassTag context bound */
-class ArrayWrapSpec extends WrapSpec {
+class ArrayWrapSpec extends WrapSpecBase {
   def zip[A,B](xs: Array[A], ys: Array[B]): Array[(A,B)] = xs.zip(ys)
   def map[A,B:ClassTag](xs: Array[A], f: A => B) = xs.map(f)
   def length[A](xs: Array[A]) = xs.length
@@ -23,7 +25,7 @@ class ArrayWrapSpec extends WrapSpec {
 };
 
 /** Wrappers spec for Option */
-class OptionWrapSpec extends WrapSpec {
+class OptionWrapSpec extends WrapSpecBase {
   def get[A](xs: Option[A]): A = xs.get
   def getOrElse[A](xs: Option[A], default: =>A): A = xs.getOrElse(default)
   def map[A,B](xs: Option[A], f: A => B): Option[B] = xs.map(f)
@@ -35,12 +37,12 @@ class OptionWrapSpec extends WrapSpec {
 };
 
 /** Wrappers spec for Either */
-class EitherWrapSpec extends WrapSpec {
+class EitherWrapSpec extends WrapSpecBase {
   def fold[A,B,C](xs: Either[A,B], fa: A => C, fb: B => C): C = xs.fold(fa, fb)
   def cond[A,B](c: Boolean, a: =>A, b: =>B): Either[A,B] = scala.util.Either.cond(c, b, a)
 };
 
-class SpecialPredefWrapSpec extends WrapSpec {
+class SpecialPredefWrapSpec extends WrapSpecBase {
   def loopUntil[A](s1: A, isMatch: A => Boolean, step: A => A): A = SpecialPredef.loopUntil(s1, isMatch, step)
   def cast[A](v: Any)(implicit cA: ClassTag[A]): Option[A] = SpecialPredef.cast[A](v)
   def mapSum[A,B,C,D](e: Either[A,B], fa: A => C, fb: B => D): Either[C,D] = SpecialPredef.eitherMap(e, fa, fb)
@@ -51,6 +53,6 @@ class SpecialPredefWrapSpec extends WrapSpec {
   def optionGetOrElse[A](opt: Option[A], default: A): A = SpecialPredef.optionGetOrElse(opt, default)
 }
 
-class RTypeWrapSpec extends WrapSpec {
+class RTypeWrapSpec extends WrapSpecBase {
   def name[T](d: RType[T]): String = d.name
 }
