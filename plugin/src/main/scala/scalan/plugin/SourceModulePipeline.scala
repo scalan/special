@@ -124,11 +124,11 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
             updateSelf _,
             checkEntityCompanion _,
             constr2apply _,
-            replaceClassTagsWithElems _,
+            replaceImplicitDescriptorsWithElems _,
             preventNameConflict _,
+            moduleBuilder.externalTypeToWrapper _,
             genEntityImplicits _,
             genMethodsImplicits _,
-            replaceExternalTypeByWrapper _,
             /** Currently, inheritance of type wrappers is not supported.
               * Print warnings and remove ancestors. */
             filterAncestors _
@@ -187,14 +187,15 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
        val unitDef = context.getUnit
 
         /** Generates a virtualized version of original Scala AST, wraps types by Rep[] and etc. */
-        var virtUnitDef = optimizeUnitImplicits(virtPipeline(unitDef))
-        virtUnitDef = virtUnitDef.addInCakeImports
+        val virtUnitDef = virtPipeline(unitDef)
+        var optUnitDef = optimizeUnitImplicits(virtUnitDef)
+        optUnitDef = optUnitDef.addInCakeImports
 
         /** Scala AST of virtualized module */
         implicit val ctx = GenCtx(scalanizer.context, isVirtualized = false, toRep = true)
-        val virtAst = genPackageDef(virtUnitDef)
+        val virtAst = genPackageDef(optUnitDef)
         
-        saveCodeToResources(module, virtUnitDef.packageName, virtUnitDef.name, showCode(virtAst))
+        saveCodeToResources(module, optUnitDef.packageName, optUnitDef.name, showCode(virtAst))
       }
     },
 

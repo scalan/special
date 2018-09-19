@@ -595,7 +595,7 @@ trait ScalanParsers[+G <: Global] {
     else if (Pattern.matches(funcPattern, fullName)) {
       argTpeExprs.length match {
         case 1 =>
-          STraitCall("scala.Function0", argTpeExprs)
+          STraitCall("Function0", argTpeExprs)
         case 2 =>
           val domainTpeExpr = argTpeExprs(0)
           STpeFunc(domainTpeExpr, argTpeExprs.last)

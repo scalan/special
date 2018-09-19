@@ -50,10 +50,10 @@ class CostedSome[T](val costedValue: Costed[T]) extends CostedOption[T] {
   def map[B](f: Costed[T => B]): Costed[Option[B]] = rewritableMethod
 }
 
-class CostedNone[T](val cost: Int)(implicit val valueType: RType[T]) extends CostedOption[T] {
-  def value = SpecialPredef.none[T](valueType)
+class CostedNone[T](val cost: Int)(implicit val eT: RType[T]) extends CostedOption[T] {
+  def value = SpecialPredef.none[T](eT)
   def dataSize = builder.SumTagSize
-  def get = builder.costedValue(builder.defaultValue(valueType), SpecialPredef.some(cost))
+  def get = builder.costedValue(builder.defaultValue(eT), SpecialPredef.some(cost))
 
   @NeverInline
   def getOrElse(default: Costed[() => T]) = rewritableMethod

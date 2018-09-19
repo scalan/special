@@ -164,7 +164,8 @@ object ScalanAstTransformers {
       args.copy(args = newArgs)
     }
     def methodArgSectionsTransform(m: SMethodDef, argSections: List[SMethodArgs]): List[SMethodArgs] = {
-      argSections mapConserve (methodArgsTransform(m, _))
+      val newSections = argSections mapConserve (methodArgsTransform(m, _))
+      newSections
     }
     def methodResTransform(res: Option[STpeExpr]): Option[STpeExpr] = res mapConserve tpeExprTransform
 
@@ -521,35 +522,50 @@ object ScalanAstTransformers {
     override def apply(module: Module): Module = chain(module)
   }
 
-  class External2WrapperTypeTransformer(name: String)(implicit context: AstContext) extends AstReplacer(name, wrap)
+  class External2WrapperTypeTransformer(name: String)(implicit context: AstContext) extends AstReplacer(name, wrap) {
+  }
 
   class ExtType2WrapperTypeTransformer(name: String) extends TypeReplacer(name, wrap)
 
-  class ReplaceClassTagWithElemsInSignatures(implicit ctx: AstContext) extends AstTransformer {
-    override def methodArgsTransform(m: SMethodDef, args: SMethodArgs): SMethodArgs = {
-      // filter out ClassTag args
-      val newArgs = args.args.map { marg => marg.tpe match {
-        case ClassTagTpe(tpe) => marg.copy(tpe = ElemTpe(tpe))
-        case _ => marg
-      }} mapConserve (methodArgTransform(m, _))
-      args.copy(args = newArgs)
+  class ReplaceImplicitDescriptorsWithElemsInSignatures(implicit ctx: AstContext) extends AstTransformer {
+    override def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = {
+      val newArg = arg.tpe match {
+        case SourceDescriptorTpe(tpe) if arg.impFlag => arg.copy(tpe = ElemTpe(tpe))
+        case _ => super.methodArgTransform(m, arg)
+      }
+      newArg
     }
-    override def methodArgSectionsTransform(m: SMethodDef, argSections: List[SMethodArgs]): List[SMethodArgs] = {
-      argSections mapConserve (methodArgsTransform(m, _)) filterNot { _.args.isEmpty }
+
+    // replace result types of implicit methods only
+    override def bodyItemTransform(bodyItem: SBodyItem): SBodyItem = bodyItem match {
+      case m @ SMethodDef(_,_,_,_,Some(SourceDescriptorTpe(tpe)),true,_,_,_,_,_) => m.copy(tpeRes = Some(ElemTpe(tpe)))
+      case bi => super.bodyItemTransform(bi)
     }
-    override def bodyTransform(body: List[SBodyItem]): List[SBodyItem] = {
-      val newBody = body map {
-        case m @ SMethodDef(_,_,_,_,Some(ClassTagTpe(tpe)),true,_,_,_,_,_) => m.copy(tpeRes = Some(ElemTpe(tpe)))
-        case bi => bi
-      } mapConserve bodyItemTransform
-      super.bodyTransform(newBody)
+
+    override def classArgTransform(arg: SClassArg): SClassArg = arg.tpe match {
+      case SourceDescriptorTpe(tpe) if arg.isImplicit => arg.copy(tpe = ElemTpe(tpe))
+      case _ => super.classArgTransform(arg)
     }
-    override def classArgsTransform(classArgs: SClassArgs): SClassArgs = {
-      val newArgs = classArgs.args.map { a => a.tpe match {
-        case ClassTagTpe(tpe) => a.copy(tpe = ElemTpe(tpe))
-        case _ => a
-      }} mapConserve classArgTransform
-      classArgs.copy(args = newArgs)
-    }
+
+    //    override def methodArgsTransform(m: SMethodDef, args: SMethodArgs): SMethodArgs = {
+//      // transform ClassTag and RType implicit args to Elem
+//      val newArgs = args.args.map { marg => marg.tpe match {
+//        case SourceDescriptorTpe(tpe) if marg.impFlag => marg.copy(tpe = ElemTpe(tpe))
+//        case _ => marg
+//      }} mapConserve (methodArgTransform(m, _))
+//      args.copy(args = newArgs)
+//    }
+//    override def methodArgSectionsTransform(m: SMethodDef, argSections: List[SMethodArgs]): List[SMethodArgs] = {
+//      argSections mapConserve (methodArgsTransform(m, _)) filterNot { _.args.isEmpty }
+//    }
+
+//    override def bodyTransform(body: List[SBodyItem]): List[SBodyItem] = {
+//      val newBody = body map {
+//        case m @ SMethodDef(_,_,_,_,Some(SourceDescriptorTpe(tpe)),true,_,_,_,_,_) => m.copy(tpeRes = Some(ElemTpe(tpe)))
+//        case bi => bi
+//      } mapConserve bodyItemTransform
+//      super.bodyTransform(newBody)
+//    }
+
   }
 }

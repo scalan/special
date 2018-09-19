@@ -165,8 +165,8 @@ class SModuleBuilder(implicit val context: AstContext) {
   }
 
   /** ClassTags are removed because in virtualized code they can be extracted from Elems. */
-  def replaceClassTagsWithElems(unit: SUnitDef) = {
-    new ReplaceClassTagWithElemsInSignatures().moduleTransform(unit)
+  def replaceImplicitDescriptorsWithElems(unit: SUnitDef) = {
+    new ReplaceImplicitDescriptorsWithElemsInSignatures().moduleTransform(unit)
   }
 
 //  def replaceClassTagByElem(unit: SUnitDef) = {
@@ -199,7 +199,7 @@ class SModuleBuilder(implicit val context: AstContext) {
       override def applyTransform(apply: SApply): SApply = {
         val newArgss = apply.argss.filterMap { sec =>
           val newArgs = sec.args.filterNot { a =>
-            val t = a.exprType.flatMap(ClassTagTpe.unapply)
+            val t = a.exprType.flatMap(SourceDescriptorTpe.unapply)
             t.isDefined
           }
           if (newArgs.isEmpty) None
@@ -310,13 +310,13 @@ class SModuleBuilder(implicit val context: AstContext) {
       }
 
       override def identTransform(ident: SIdent): SExpr = ident match {
-        case SIdent(name, Some(STraitCall("ClassTag", targs))) if name.startsWith("evidence$") =>
-          super.exprApplyTransform(implicitElem(targs))
+        case SIdent(name, Some(SourceDescriptorTpe(targ))) if name.startsWith("evidence$") =>
+          super.exprApplyTransform(implicitElem(List(targ)))
         case _ => super.identTransform(ident)
       }
       override def selectTransform(select: SSelect): SExpr = select match {
-        case SSelect(_, name, Some(STraitCall("ClassTag", targs))) if name.startsWith("evidence$") =>
-          super.exprApplyTransform(implicitElem(targs))
+        case SSelect(_, name, Some(SourceDescriptorTpe(targ))) if name.startsWith("evidence$") =>
+          super.exprApplyTransform(implicitElem(List(targ)))
         case _ => super.selectTransform(select)
       }
     }.moduleTransform(module)
@@ -420,6 +420,7 @@ class SourceUnitVirtualization(implicit val context: AstContext) extends (SUnitD
   private val chain = scala.Function.chain(Seq(
     fixExistentialType _,
     transConstr _,
+    replaceImplicitDescriptorsWithElems _,
     externalTypeToWrapper _,
     //      composeParentWithExt _,
     addBaseToAncestors _,
@@ -430,7 +431,7 @@ class SourceUnitVirtualization(implicit val context: AstContext) extends (SUnitD
     checkEntityCompanion _,
     checkClassCompanion _,
     genEntityImplicits _,
-    replaceClassTagsWithElems _,
+
     eliminateClassTagApply _,
     // genClassesImplicits _, genMethodsImplicits _,
     fixEntityCompanionName _,

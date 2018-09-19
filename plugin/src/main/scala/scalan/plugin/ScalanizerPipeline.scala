@@ -220,7 +220,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     val argsWithoutClassTags = argSections.filterMap { section =>
       val filteredArgs = section.args.filterMap { arg =>
         arg.tpe match {
-          case ClassTagTpe(tT) =>
+          case SourceDescriptorTpe(tT) =>
             tpeArgs.find(t => t.name == tT.name) match {
               case Some(tpeArg) =>
                 reifiedArgs += tpeArg // remember that is should be @Reified
@@ -552,19 +552,19 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     * The external type Array is replaced by its wrapper WArray
     * trait Col[A] { def arr: WArray[A]; }
     * */
-  def replaceExternalTypeByWrapper(module: SUnitDef)(implicit ctx: AstContext): SUnitDef = {
-    class TypeInWrappersTransformer(name: String) extends External2WrapperTypeTransformer(name) {
-      override def classArgTransform(classArg: SClassArg) = classArg
-
-      override def entityAncestorTransform(ancestor: STypeApply): STypeApply = {
-        ancestor.copy(tpe = typeTransformer.traitCallTransform(ancestor.tpe))
-      }
-    }
-    val wrappedModule = ctx.externalTypes.foldLeft(module) { (acc, externalTypeName) =>
-      new TypeInWrappersTransformer(externalTypeName).moduleTransform(acc)
-    }
-    wrappedModule
-  }
+//  def replaceExternalTypeByWrapper(unit: SUnitDef)(implicit ctx: AstContext): SUnitDef = {
+//    class TypeInWrappersTransformer(name: String) extends External2WrapperTypeTransformer(name) {
+//      override def classArgTransform(classArg: SClassArg) = classArg
+//
+//      override def entityAncestorTransform(ancestor: STypeApply): STypeApply = {
+//        ancestor.copy(tpe = typeTransformer.traitCallTransform(ancestor.tpe))
+//      }
+//    }
+//    val wrappedModule = ctx.externalTypes.foldLeft(unit) { (acc, externalTypeName) =>
+//      new TypeInWrappersTransformer(externalTypeName).moduleTransform(acc)
+//    }
+//    wrappedModule
+//  }
 
   def loadWrapperFromFile
       (step: PipelineStep, module: ModuleConf, wConf: WrapperConf)

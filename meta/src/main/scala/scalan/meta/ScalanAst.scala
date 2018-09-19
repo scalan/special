@@ -1211,9 +1211,10 @@ object ScalanAst {
     }
   }
 
-  object ClassTagTpe {
+  object SourceDescriptorTpe {
     def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
       case STraitCall("ClassTag", List(arg)) => Some(arg)
+      case STraitCall("RType", List(arg)) => Some(arg)
       case _ => None
     }
   }

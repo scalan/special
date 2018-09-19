@@ -85,7 +85,7 @@ class TransformerTests extends BaseMetaTests with Examples {
     }
     it("removeClassTagsFromSignatures") {
        val b = new SModuleBuilder()
-       val test = b.replaceClassTagsWithElems(tests).classes("Test")
+       val test = b.replaceImplicitDescriptorsWithElems(tests).classes("Test")
        val m2 = test.body.filterCast[SMethodDef].apply("m2")
        m2.argSections.find(sec => sec.args.find(a => ElemTpe.unapply(a.tpe).isDefined).isDefined).isDefined shouldBe true
     }
