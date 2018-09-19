@@ -45,7 +45,7 @@ class SpecialPredefWrapSpec extends WrapSpec {
   def cast[A](v: Any)(implicit cA: ClassTag[A]): Option[A] = SpecialPredef.cast[A](v)
   def mapSum[A,B,C,D](e: Either[A,B], fa: A => C, fb: B => D): Either[C,D] = SpecialPredef.eitherMap(e, fa, fb)
   def some[A](x: A): Option[A] = SpecialPredef.some(x)
-  def none[A](implicit cA: ClassTag[A]): Option[A] = SpecialPredef.none[A]
+  def none[A](implicit cA: RType[A]): Option[A] = SpecialPredef.none[A]
   def left[A,B](a: A)(implicit cB: ClassTag[B]): Either[A,B] = SpecialPredef.left[A,B](a)
   def right[A,B](b: B)(implicit cA: ClassTag[A]): Either[A,B] = SpecialPredef.right[A,B](b)
   def optionGetOrElse[A](opt: Option[A], default: A): A = SpecialPredef.optionGetOrElse(opt, default)

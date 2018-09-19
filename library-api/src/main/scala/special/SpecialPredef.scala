@@ -1,6 +1,8 @@
 package special
 
 import scala.reflect.ClassTag
+import scalan.Reified
+import scalan.meta.RType
 
 object SpecialPredef {
   def loopUntil[A](s1: A, isMatch: A => Boolean, step: A => A): A = {
@@ -16,7 +18,7 @@ object SpecialPredef {
 
   def some[A](x: A): Option[A] = Some(x)
 
-  def none[A:ClassTag]: Option[A] = Option.empty[A]
+  @Reified("A") def none[A](implicit tA: RType[A]): Option[A] = Option.empty[A]
 
   def left[A,B](a: A): Either[A,B] = Left(a)
   

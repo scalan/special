@@ -1,6 +1,7 @@
 package scalan.meta
 
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 class TypeDescTests extends BaseMetaTests {
   describe("implicit resolution") {
@@ -9,9 +10,9 @@ class TypeDescTests extends BaseMetaTests {
         val t= implicitly[RType[T]]
         t.toString shouldBe name
       }
-      test[Int]("WeakRType<Int>")
-      test[String]("WeakRType<String>")
-      test[Array[Int]]("WeakRType<int[]>")
+      test[Int]("WeakRType<Int>")(RType[Int])
+      test[String]("WeakRType<String>")(RType[String])
+      test[Array[Int]]("WeakRType<int[]>")(RType[Array[Int]])
     }
 
     it("resolve ClassTag") {
@@ -20,9 +21,9 @@ class TypeDescTests extends BaseMetaTests {
         val ct = implicitly[ClassTag[T]]
         ct.toString shouldBe name
       }
-      test[Int]("Int")
-      test[String]("java.lang.String")
-      test[Array[Int]]("Array[int]")
+      test[Int]("Int")(RType[Int])
+      test[String]("java.lang.String")(RType[String])
+      test[Array[Int]]("Array[int]")(RType[Array[Int]])
     }
 
   }
