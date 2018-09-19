@@ -210,12 +210,13 @@ trait TypeDescs extends Base { self: Scalan =>
   case class RMethodDesc(method: Method) extends MethodDesc
   case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method) extends MethodDesc
 
-  def getSourceValues(dataEnv: DataEnv, stagedValues: AnyRef*): Seq[AnyRef] = {
+  def getSourceValues(dataEnv: DataEnv, transformElems: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
     import OverloadHack._
     val vs = stagedValues.flatMap {
       case s: Sym => Seq(dataEnv(s))
-      case vec: Seq[AnyRef]@unchecked => Seq(getSourceValues(dataEnv, vec:_*))
-      case e: Elem[_] => Seq(e.sourceClassTag)
+      case vec: Seq[AnyRef]@unchecked => Seq(getSourceValues(dataEnv, transformElems, vec:_*))
+      case e: Elem[_] => Seq(if (transformElems) e.sourceClassTag else e)
+      case c: ClassTag[_] => Seq(c)
       case _: Overloaded1 | _: Overloaded2 | _: Overloaded3 | _: Overloaded4 | _: Overloaded5 | _: Overloaded6 => Nil
     }
     vs
@@ -240,12 +241,13 @@ trait TypeDescs extends Base { self: Scalan =>
     def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = {
       val res = methods.get(mc.method) match {
         case Some(md: WMethodDesc) =>
-          val srcArgs = getSourceValues(dataEnv, mc.receiver +: mc.args:_*)
+          val srcArgs = getSourceValues(dataEnv, true, mc.receiver +: mc.args:_*)
           val res = md.method.invoke(md.wrapSpec, srcArgs:_*)
           res
         case Some(md: RMethodDesc) =>
-          val srcObj = getSourceValues(dataEnv, mc.receiver).head
-          val srcArgs = getSourceValues(dataEnv, mc.args:_*)
+          val hasClassTag = md.method.getParameterTypes.exists(p => p.isInstanceOf[ClassTag[_]])
+          val srcObj = getSourceValues(dataEnv, hasClassTag, mc.receiver).head
+          val srcArgs = getSourceValues(dataEnv, hasClassTag, mc.args:_*)
           val res = md.method.invoke(srcObj, srcArgs:_*)
           res
         case None =>

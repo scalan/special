@@ -109,7 +109,7 @@ object Col extends EntityObject("Col") {
 
     override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
       case ColMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange.classTag)(mc.selfType)
         super.invokeUnlifted(newMC, dataEnv)
       case _ =>
         super.invokeUnlifted(mc, dataEnv)
