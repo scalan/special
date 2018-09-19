@@ -593,12 +593,18 @@ trait ScalanParsers[+G <: Global] {
     if (Pattern.matches(tuplePattern, fullName))
       STpeTuple(argTpeExprs)
     else if (Pattern.matches(funcPattern, fullName)) {
-      val domainTpeExpr = argTpeExprs.length match {
-        case 2 => argTpeExprs(0)
-        case n if n > 2 => STpeTuple(argTpeExprs.init)
-        case _ => !!!(s"fullName=$fullName shortName=$shortName argTpeExprs=$argTpeExprs")
+      argTpeExprs.length match {
+        case 1 =>
+          STraitCall("scala.Function0", argTpeExprs)
+        case 2 =>
+          val domainTpeExpr = argTpeExprs(0)
+          STpeFunc(domainTpeExpr, argTpeExprs.last)
+        case n if n > 2 =>
+          val domainTpeExpr = STpeTuple(argTpeExprs.init)
+          STpeFunc(domainTpeExpr, argTpeExprs.last)
+        case _ =>
+          !!!(s"fullName=$fullName shortName=$shortName argTpeExprs=$argTpeExprs")
       }
-      STpeFunc(domainTpeExpr, argTpeExprs.last)
     } else
       STraitCall(shortName, argTpeExprs)
   }
@@ -856,7 +862,8 @@ trait ScalanParsers[+G <: Global] {
       case _ => throw new NotImplementedError(showRaw(tpe, printTypes = Some(true)))
     }
     case annot: AnnotatedType => parseType(annot.underlying)
-    case tpe => throw new NotImplementedError(showRaw(tpe, printTypes = Some(true)))
+    case tpe =>
+      throw new NotImplementedError(showRaw(tpe, printTypes = Some(true)))
   }
 
   def parseMethodType(tparams: List[Symbol], m: Type): STpeMethod = {
