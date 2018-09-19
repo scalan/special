@@ -46,7 +46,7 @@ trait RType[A] extends TypeDesc {
 }
 
 object RType {
-  implicit def weakTypeTagToRType[A](implicit tag: WeakTypeTag[A]): RType[A] = WeakRType(tag)
+  def apply[A](implicit tag: WeakTypeTag[A]): RType[A] = WeakRType(tag)
   implicit def rtypeToClassTag[A](implicit t: RType[A]): ClassTag[A] = t.classTag
 
   case class WeakRType[A](tag: WeakTypeTag[A]) extends RType[A] {
