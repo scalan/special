@@ -2,10 +2,12 @@ package scalan
 
 import java.lang.reflect.Method
 import java.util.Objects
-import special.collection.{CostsModule, ConcreteCostsModule, ColsModule, MonoidsModule, ColsOverArraysModule, MonoidInstancesModule}
-import special.wrappers.{WrappersModule, WrappersSpecModule}
+
+import special.collection._
+import special.wrappers.{WrappersSpecModule, WrappersModule}
 import special.wrappers.impl.WrappersSpecModule
 
+import scalan.meta.RType
 import scalan.util.ReflectionUtil
 
 trait Library extends Scalan
@@ -16,16 +18,24 @@ trait Library extends Scalan
   with CostsModule
   with ConcreteCostsModule
   with MonoidsModule
-  with MonoidInstancesModule {
+  with MonoidInstancesModule
+  with CostedOptionsModule {
   import WArray._; import WOption._
+  import WRType._
   import Col._; import ColBuilder._; import ReplCol._
   import Costed._
   import CostedFunc._;
+  import Liftables._
 
   trait Sized[Val] { node: Costed[Val] =>
     lazy val dataSize: Rep[Long] = {
       sizeOf(value)
     }
+  }
+
+  def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
+    val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
+    liftableRType(lT).lift(eT.asInstanceOf[RType[Any]])
   }
 
   override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {

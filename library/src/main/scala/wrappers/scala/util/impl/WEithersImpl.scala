@@ -7,7 +7,9 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-// Abs -----------------------------------
+  import special.wrappers.EitherWrapSpec
+
+  // Abs -----------------------------------
 trait WEithersDefs extends scalan.Scalan with WEithers {
   self: WrappersModule =>
 import IsoUR._
@@ -15,34 +17,40 @@ import Converter._
 import WEither._
 
 object WEither extends EntityObject("WEither") {
+  // entityConst: single const for each entity
   import Liftables._
-  case class WEitherConst[SA,SB,A,B](constValue: Either[SA,SB], lA: Liftable[SA, A], lB: Liftable[SB,B])
-      extends WEither[A,B] with LiftedConst[Either[SA,SB], WEither[A,B]] {
+  import scala.reflect.{ClassTag, classTag}
+
+  case class WEitherConst[SA, SB, A, B](
+        constValue: Either[SA, SB],
+        lA: Liftable[SA, A], lB: Liftable[SB, B]
+      ) extends WEither[A, B] with LiftedConst[Either[SA, SB], WEither[A, B]] {
     implicit def eA: Elem[A] = lA.eW
     implicit def eB: Elem[B] = lB.eW
-    val selfType: Elem[WEither[A,B]] = wEitherElement(eA, eB)
-    val liftable = liftableEither(lA, lB)
-    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = delayInvoke
+    val liftable: Liftable[Either[SA, SB], WEither[A, B]] = liftableEither(lA, lB)
+    val selfType: Elem[WEither[A, B]] = liftable.eW
+    @External def fold[C](fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C] = delayInvoke
   }
 
-  case class LiftableEither[SA,SB,A,B](lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[SA | SB, WEither[A, B]] {
-    def eW: Elem[WEither[A,B]] = wEitherElement(lA.eW, lB.eW)
-    def sourceClassTag: ClassTag[Either[SA, SB]] = {
+  case class LiftableEither[SA, SB, A, B](lA: Liftable[SA, A], lB: Liftable[SB, B])
+    extends Liftable[Either[SA, SB], WEither[A, B]] {
+    lazy val eW: Elem[WEither[A, B]] = wEitherElement(lA.eW, lB.eW)
+    lazy val sourceClassTag: ClassTag[Either[SA, SB]] = {
       implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
       implicit val tagSB = lB.eW.sourceClassTag.asInstanceOf[ClassTag[SB]]
-      classTag[Either[SA,SB]]
+      classTag[Either[SA, SB]]
     }
-    def lift(x: SA | SB): Rep[WEither[A, B]] = WEitherConst(x, lA, lB)
+    def lift(x: Either[SA, SB]): Rep[WEither[A, B]] = WEitherConst(x, lA, lB)
     def unlift(w: Rep[WEither[A, B]]): Either[SA, SB] = w match {
-      case Def(WEitherConst(x: Either[SA,SB], lLeft, lRight)) if lLeft == lA && lRight == lB => x
+      case Def(WEitherConst(x: Either[_, _], _lA, _lB))
+            if _lA == lA && _lB == lB => x.asInstanceOf[Either[SA, SB]]
       case _ => unliftError(w)
     }
   }
-
-  implicit def liftableEither[SA,SB,A,B]
-      (implicit lA: Liftable[SA,A], lB: Liftable[SB,B]): Liftable[Either[SA,SB], WEither[A,B]] =
+  implicit def liftableEither[SA, SB, A, B](implicit lA: Liftable[SA,A], lB: Liftable[SB,B]): Liftable[Either[SA, SB], WEither[A, B]] =
     LiftableEither(lA, lB)
 
+  private val _EitherWrapSpec = new EitherWrapSpec
   // entityProxy: single proxy for each type family
   implicit def proxyWEither[A, B](p: Rep[WEither[A, B]]): WEither[A, B] = {
     proxyOps[WEither[A, B]](p)(scala.reflect.classTag[WEither[A, B]])
@@ -53,8 +61,16 @@ object WEither extends EntityObject("WEither") {
     extends EntityElem[To] {
     def eA = _eA
     def eB = _eB
-    override def liftable: Liftables.Liftable[Either[_,_], To] =
-      liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_,_], To]
+
+    override val liftable = liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_, _], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredWrapperMethods(_EitherWrapSpec, classOf[WEither[A, B]], Set(
+        "fold"
+        ))
+    }
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
     override lazy val tag = {

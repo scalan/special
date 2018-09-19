@@ -80,7 +80,17 @@ object BaseColBuilder extends EntityObject("BaseColBuilder") {
       }
     }
 
-    // WARNING: Cannot generate matcher for method `apply`: Method has repeated argument items
+    object apply_apply_items {
+      def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(items, emT, _*), _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
+          Some((receiver, items, emT)).asInstanceOf[Option[(Rep[BaseColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[BaseColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
 
     object fromArray {
       def unapply(d: Def[_]): Option[(Rep[BaseColBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
@@ -360,6 +370,18 @@ object ColOverArray extends EntityObject("ColOverArray") {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object zip {
+      def unapply(d: Def[_]): Option[(Rep[ColOverArray[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(ys, _*), _) if receiver.elem.isInstanceOf[ColOverArrayElem[_]] && method.getName == "zip" =>
+          Some((receiver, ys)).asInstanceOf[Option[(Rep[ColOverArray[A]], Rep[Col[B]]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ColOverArray[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
@@ -774,6 +796,18 @@ implicit val eR = p.rs.eA
         case _ => None
       }
     }
+
+    object zip {
+      def unapply(d: Def[_]): Option[(Rep[PairOfCols[L, R]], Rep[Col[B]]) forSome {type L; type R; type B}] = d match {
+        case MethodCall(receiver, method, Seq(ys, _*), _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "zip" =>
+          Some((receiver, ys)).asInstanceOf[Option[(Rep[PairOfCols[L, R]], Rep[Col[B]]) forSome {type L; type R; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[PairOfCols[L, R]], Rep[Col[B]]) forSome {type L; type R; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
   }
 
   object PairOfColsCompanionMethods {
@@ -999,6 +1033,18 @@ object ReplCol extends EntityObject("ReplCol") {
         case _ => None
       }
       def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object zip {
+      def unapply(d: Def[_]): Option[(Rep[ReplCol[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, Seq(ys, _*), _) if receiver.elem.isInstanceOf[ReplColElem[_]] && method.getName == "zip" =>
+          Some((receiver, ys)).asInstanceOf[Option[(Rep[ReplCol[A]], Rep[Col[B]]) forSome {type A; type B}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ReplCol[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

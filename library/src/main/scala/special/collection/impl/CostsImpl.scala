@@ -23,6 +23,7 @@ object Costed extends EntityObject("Costed") {
   class CostedElem[Val, To <: Costed[Val]](implicit _eVal: Elem[Val])
     extends EntityElem[To] {
     def eVal = _eVal
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
     override lazy val tag = {
@@ -187,6 +188,18 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
       }
     }
 
+    object SelectFieldCost {
+      def unapply(d: Def[_]): Option[Rep[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "SelectFieldCost" =>
+          Some(receiver).asInstanceOf[Option[Rep[CostedBuilder]]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[Rep[CostedBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
     object SumTagSize {
       def unapply(d: Def[_]): Option[Rep[CostedBuilder]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "SumTagSize" =>
@@ -194,6 +207,30 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
         case _ => None
       }
       def unapply(exp: Sym): Option[Rep[CostedBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object costedValue {
+      def unapply(d: Def[_]): Option[(Rep[CostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(x, optCost, _*), _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "costedValue" =>
+          Some((receiver, x, optCost)).asInstanceOf[Option[(Rep[CostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[CostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object defaultValue {
+      def unapply(d: Def[_]): Option[(Rep[CostedBuilder], Rep[WRType[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(valueType, _*), _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "defaultValue" =>
+          Some((receiver, valueType)).asInstanceOf[Option[(Rep[CostedBuilder], Rep[WRType[T]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[CostedBuilder], Rep[WRType[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

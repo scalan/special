@@ -36,7 +36,7 @@ package special.collection {
     };
     abstract class CostedCol[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Int]], val sizes: Rep[Col[Long]], val valuesCost: Rep[Int]) extends ConcreteCosted[Col[Item]] {
       def value: Rep[Col[Item]] = CostedCol.this.values;
-      def cost: Rep[Int] = valuesCost + CostedCol.this.costs.sum(CostedCol.this.builder.monoidBuilder.intPlusMonoid);
+      def cost: Rep[Int] = CostedCol.this.valuesCost.+(CostedCol.this.costs.sum(CostedCol.this.builder.monoidBuilder.intPlusMonoid));
       def dataSize: Rep[Long] = CostedCol.this.sizes.sum(CostedCol.this.builder.monoidBuilder.longPlusMonoid);
       @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedCol[Res]] = delayInvoke;
       @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedCol[Item]] = delayInvoke
@@ -64,7 +64,9 @@ package special.collection {
       @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
     abstract class ConcreteCostedBuilder extends CostedBuilder {
-      def monoidBuilder: Rep[MonoidBuilderInst] = RMonoidBuilderInst()
+      def monoidBuilder: Rep[MonoidBuilderInst] = RMonoidBuilderInst();
+      @NeverInline def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = delayInvoke;
+      @NeverInline def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = delayInvoke
     };
     trait ConcreteCostedCompanion;
     trait CostedPrimCompanion;

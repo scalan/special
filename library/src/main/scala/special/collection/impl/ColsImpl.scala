@@ -5,9 +5,6 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  import java.lang.reflect.Method
-
-  import scalan.util.CollectionUtil
 // Abs -----------------------------------
 trait ColsDefs extends scalan.Scalan with Cols {
   self: Library =>
@@ -20,44 +17,49 @@ import PairCol._
 import Enum._
 
 object Col extends EntityObject("Col") {
+  // entityConst: single const for each entity
   import Liftables._
-  type SCol[T] = special.collection.Col[T]
-  case class ColConst[SA, A](constValue: SCol[SA], lA: Liftable[SA, A])
-      extends Col[A] with LiftedConst[SCol[SA], Col[A]] {
+  import scala.reflect.{ClassTag, classTag}
+  type SCol[A] = special.collection.Col[A]
+  case class ColConst[SA, A](
+        constValue: SCol[SA],
+        lA: Liftable[SA, A]
+      ) extends Col[A] with LiftedConst[SCol[SA], Col[A]] {
     implicit def eA: Elem[A] = lA.eW
-    val selfType: Elem[Col[A]] = colElement(lA.eW)
-    val liftable: Liftables.Liftable[SCol[SA], Col[A]] = liftableCol(lA)
-
-    def apply(i: Rep[Int]): Rep[A] = delayInvoke
-    def foreach(f: Rep[A => Unit]): Rep[Unit] = delayInvoke
-    def exists(p: Rep[A => Boolean]): Rep[Boolean] = delayInvoke
-    def forall(p: Rep[A => Boolean]): Rep[Boolean] = delayInvoke
-    def filter(p: Rep[A => Boolean]): Rep[Col[A]] = delayInvoke
-    def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke
-    def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = delayInvoke
-    def length: Rep[Int] = delayInvoke
-    def map[B](f: Rep[A => B]): Rep[Col[B]] = delayInvoke
+    val liftable: Liftable[SCol[SA], Col[A]] = liftableCol(lA)
+    val selfType: Elem[Col[A]] = liftable.eW
     def builder: Rep[ColBuilder] = delayInvoke
     def arr: Rep[WArray[A]] = delayInvoke
+    def length: Rep[Int] = delayInvoke
+    def apply(i: Rep[Int]): Rep[A] = delayInvoke
     def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = delayInvoke
+    def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = delayInvoke
+    def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = delayInvoke
+    def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = delayInvoke
+    def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = delayInvoke
+    def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = delayInvoke
+    def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Col[A]] = delayInvoke
+    def fold[B](zero: Rep[B])(op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke
     def sum(m: Rep[Monoid[A]]): Rep[A] = delayInvoke
+    def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = delayInvoke
     def append(other: Rep[Col[A]]): Rep[Col[A]] = delayInvoke
   }
 
-  case class LiftableCol[SA, A](lA: Liftable[SA, A]) extends Liftable[SCol[SA], Col[A]] {
-    def eW: Elem[Col[A]] = colElement(lA.eW)
-    def sourceClassTag: ClassTag[SCol[SA]] = {
-      implicit val tagST = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+  case class LiftableCol[SA, A](lA: Liftable[SA, A])
+    extends Liftable[SCol[SA], Col[A]] {
+    lazy val eW: Elem[Col[A]] = colElement(lA.eW)
+    lazy val sourceClassTag: ClassTag[SCol[SA]] = {
+      implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
       classTag[SCol[SA]]
     }
     def lift(x: SCol[SA]): Rep[Col[A]] = ColConst(x, lA)
     def unlift(w: Rep[Col[A]]): SCol[SA] = w match {
-      case Def(ColConst(x: SCol[_], l)) if l == lA => x.asInstanceOf[SCol[SA]]
+      case Def(ColConst(x: SCol[_], _lA))
+            if _lA == lA => x.asInstanceOf[SCol[SA]]
       case _ => unliftError(w)
     }
   }
-
-  implicit def liftableCol[SA,A](implicit lA: Liftable[SA,A]): Liftable[SCol[SA], Col[A]] =
+  implicit def liftableCol[SA, A](implicit lA: Liftable[SA,A]): Liftable[SCol[SA], Col[A]] =
     LiftableCol(lA)
 
   // entityProxy: single proxy for each type family
@@ -97,14 +99,13 @@ object Col extends EntityObject("Col") {
     extends EntityElem1[A, To, Col](_eA, container[Col]) {
     def eA = _eA
 
-    override val liftable: Liftables.Liftable[SCol[_], To] =
-      liftableCol(_eA.liftable).asLiftable[SCol[_], To]
+    override val liftable = liftableCol(_eA.liftable).asLiftable[SCol[_], To]
 
-    override protected def collectMethods: Map[Method, MethodDesc] = {
-      super.collectMethods ++ Elem.declaredMethods(classOf[Col[A]], classOf[SCol[A]], Set(
-        "apply", "foreach", "exists", "forall", "filter", "fold", "slice", "length",
-        "map", "builder", "arr", "getOrElse", "sum", "append", "zip"
-      ))
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[Col[A]], classOf[SCol[_]], Set(
+        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "sum", "slice", "append"
+        ))
     }
 
     override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
@@ -423,6 +424,7 @@ object PairCol extends EntityObject("PairCol") {
     extends ColElem[(L, R), To] {
     def eL = _eL
     def eR = _eR
+
     override lazy val parent: Option[Elem[_]] = Some(colElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
     override lazy val tag = {
@@ -494,28 +496,32 @@ object PairCol extends EntityObject("PairCol") {
   registerEntityObject("PairCol", PairCol)
 
 object ColBuilder extends EntityObject("ColBuilder") {
+  // entityConst: single const for each entity
   import Liftables._
+  import scala.reflect.{ClassTag, classTag}
   type SColBuilder = special.collection.ColBuilder
-  case class ColBuilderConst(constValue: SColBuilder)
-      extends ColBuilder with LiftedConst[SColBuilder, ColBuilder] {
-    val selfType: Elem[ColBuilder] = colBuilderElement
-    val liftable: Liftables.Liftable[SColBuilder, ColBuilder] = LiftableColBuilder
-
-    def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke
-    def apply[A, B](as: Rep[Col[A]],bs: Rep[Col[B]]): Rep[PairCol[A,B]] = delayInvoke
+  case class ColBuilderConst(
+        constValue: SColBuilder
+      ) extends ColBuilder with LiftedConst[SColBuilder, ColBuilder] {
+    val liftable: Liftable[SColBuilder, ColBuilder] = LiftableColBuilder
+    val selfType: Elem[ColBuilder] = liftable.eW
+    @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = delayInvoke
+    @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke
     def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = delayInvoke
     def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke
     def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = delayInvoke
   }
 
-  implicit case object LiftableColBuilder extends Liftable[SColBuilder, ColBuilder] {
-    def eW: Elem[ColBuilder] = colBuilderElement
-    def sourceClassTag: ClassTag[SColBuilder] = {
+  implicit object LiftableColBuilder
+    extends Liftable[SColBuilder, ColBuilder] {
+    lazy val eW: Elem[ColBuilder] = colBuilderElement
+    lazy val sourceClassTag: ClassTag[SColBuilder] = {
       classTag[SColBuilder]
     }
     def lift(x: SColBuilder): Rep[ColBuilder] = ColBuilderConst(x)
     def unlift(w: Rep[ColBuilder]): SColBuilder = w match {
-      case Def(ColBuilderConst(x: SColBuilder)) => x
+      case Def(ColBuilderConst(x: SColBuilder))
+            => x.asInstanceOf[SColBuilder]
       case _ => unliftError(w)
     }
   }
@@ -528,25 +534,15 @@ object ColBuilder extends EntityObject("ColBuilder") {
   // familyElem
   class ColBuilderElem[To <: ColBuilder]
     extends EntityElem[To] {
-    override val liftable: Liftables.Liftable[_, To] = LiftableColBuilder.asLiftable[SColBuilder, To]
+    override val liftable = LiftableColBuilder.asLiftable[SColBuilder, To]
 
-    override protected def collectMethods: Map[Method, MethodDesc] = {
-      val srcCls = classOf[SColBuilder]
-      val cls = classOf[ColBuilder]
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
-          Elem.declaredMethods(cls, srcCls, Set(
-            "apply", "fromArray", "xor", "replicate"
-          ))
+        Elem.declaredMethods(classOf[ColBuilder], classOf[SColBuilder], Set(
+        "apply", "apply", "unzip", "xor", "fromItemsTest", "fromArray", "replicate"
+        ))
     }
 
-    override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
-      case ColMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
-        super.invokeUnlifted(newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(mc, dataEnv)
-    }
-    
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
@@ -598,12 +594,12 @@ object ColBuilder extends EntityObject("ColBuilder") {
     }
 
     object apply_apply_items {
-      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(items, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
-          Some((receiver, items)).asInstanceOf[Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}]]
+      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(items, emT, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
+          Some((receiver, items, emT)).asInstanceOf[Option[(Rep[ColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[ColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

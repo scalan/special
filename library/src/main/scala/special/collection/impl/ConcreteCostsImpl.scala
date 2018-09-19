@@ -39,6 +39,7 @@ object ConcreteCosted extends EntityObject("ConcreteCosted") {
   class ConcreteCostedElem[Val, To <: ConcreteCosted[Val]](implicit _eVal: Elem[Val])
     extends CostedElem[Val, To] {
     override def eVal = _eVal
+
     override lazy val parent: Option[Elem[_]] = Some(costedElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
     override lazy val tag = {
@@ -1637,6 +1638,30 @@ object ConcreteCostedBuilder extends EntityObject("ConcreteCostedBuilder") {
         case _ => None
       }
       def unapply(exp: Sym): Option[Rep[ConcreteCostedBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object costedValue {
+      def unapply(d: Def[_]): Option[(Rep[ConcreteCostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(x, optCost, _*), _) if receiver.elem.isInstanceOf[ConcreteCostedBuilderElem] && method.getName == "costedValue" =>
+          Some((receiver, x, optCost)).asInstanceOf[Option[(Rep[ConcreteCostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ConcreteCostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+
+    object defaultValue {
+      def unapply(d: Def[_]): Option[(Rep[ConcreteCostedBuilder], Rep[WRType[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(valueType, _*), _) if receiver.elem.isInstanceOf[ConcreteCostedBuilderElem] && method.getName == "defaultValue" =>
+          Some((receiver, valueType)).asInstanceOf[Option[(Rep[ConcreteCostedBuilder], Rep[WRType[T]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[ConcreteCostedBuilder], Rep[WRType[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }

@@ -23,6 +23,7 @@ object Monoid extends EntityObject("Monoid") {
   class MonoidElem[T, To <: Monoid[T]](implicit _eT: Elem[T])
     extends EntityElem[To] {
     def eT = _eT
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override lazy val tag = {

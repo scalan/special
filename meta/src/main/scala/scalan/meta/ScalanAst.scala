@@ -774,7 +774,6 @@ object ScalanAst {
     }
 
     def isLiftable(implicit ctx: AstContext): Boolean = {
-      if (isWrapper) return true
       getAnnotation(LiftableAnnotation) match {
         case Some(SEntityAnnotation(_,_,_)) => true
         case _ => false

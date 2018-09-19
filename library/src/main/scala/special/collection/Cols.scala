@@ -7,7 +7,7 @@ package special.collection {
     import Col._;
     import PairCol._;
     import Enum._;
-    @ContainerType @FunctorType trait Col[A] extends Def[Col[A]] {
+    @ContainerType @FunctorType @Liftable trait Col[A] extends Def[Col[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[ColBuilder];
       def arr: Rep[WArray[A]];
@@ -15,7 +15,7 @@ package special.collection {
       def apply(i: Rep[Int]): Rep[A];
       def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A];
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]];
-      def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = Col.this.builder.apply[A, B](this, ys);
+      def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]];
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit];
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean];
@@ -32,7 +32,7 @@ package special.collection {
       def ls: Rep[Col[L]];
       def rs: Rep[Col[R]]
     };
-    trait ColBuilder extends Def[ColBuilder] {
+    @Liftable trait ColBuilder extends Def[ColBuilder] {
       @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]];
       @OverloadId(value = "apply_items") def apply[T](items: Rep[T]*): Rep[Col[T]];
       @NeverInline def unzip[A, B](xs: Rep[Col[scala.Tuple2[A, B]]]): Rep[scala.Tuple2[Col[A], Col[B]]] = delayInvoke;

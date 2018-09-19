@@ -10,7 +10,7 @@ trait WrappersSpecDefs extends scalan.Scalan with WrappersSpec {
   self: Library =>
 import IsoUR._
 import Converter._
-import WrapSpec._
+import WrapSpecBase._
 import WArray._
 import WOption._
 import WEither._
@@ -18,60 +18,61 @@ import ArrayWrapSpec._
 import OptionWrapSpec._
 import EitherWrapSpec._
 import SpecialPredefWrapSpec._
+import RTypeWrapSpec._
 
-object WrapSpec extends EntityObject("WrapSpec") {
+object WrapSpecBase extends EntityObject("WrapSpecBase") {
   // entityProxy: single proxy for each type family
-  implicit def proxyWrapSpec(p: Rep[WrapSpec]): WrapSpec = {
-    proxyOps[WrapSpec](p)(scala.reflect.classTag[WrapSpec])
+  implicit def proxyWrapSpecBase(p: Rep[WrapSpecBase]): WrapSpecBase = {
+    proxyOps[WrapSpecBase](p)(scala.reflect.classTag[WrapSpecBase])
   }
 
   // familyElem
-  class WrapSpecElem[To <: WrapSpec]
+  class WrapSpecBaseElem[To <: WrapSpecBase]
     extends EntityElem[To] {
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
-      weakTypeTag[WrapSpec].asInstanceOf[WeakTypeTag[To]]
+      weakTypeTag[WrapSpecBase].asInstanceOf[WeakTypeTag[To]]
     }
     override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[WrapSpec] => convertWrapSpec(x) }
-      tryConvert(element[WrapSpec], this, x, conv)
+      val conv = fun {x: Rep[WrapSpecBase] => convertWrapSpecBase(x) }
+      tryConvert(element[WrapSpecBase], this, x, conv)
     }
 
-    def convertWrapSpec(x: Rep[WrapSpec]): Rep[To] = {
+    def convertWrapSpecBase(x: Rep[WrapSpecBase]): Rep[To] = {
       x.elem match {
-        case _: WrapSpecElem[_] => x.asRep[To]
-        case e => !!!(s"Expected $x to have WrapSpecElem[_], but got $e", x)
+        case _: WrapSpecBaseElem[_] => x.asRep[To]
+        case e => !!!(s"Expected $x to have WrapSpecBaseElem[_], but got $e", x)
       }
     }
     override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def wrapSpecElement: Elem[WrapSpec] =
-    cachedElem[WrapSpecElem[WrapSpec]]()
+  implicit def wrapSpecBaseElement: Elem[WrapSpecBase] =
+    cachedElem[WrapSpecBaseElem[WrapSpecBase]]()
 
-  implicit case object WrapSpecCompanionElem extends CompanionElem[WrapSpecCompanionCtor] {
-    lazy val tag = weakTypeTag[WrapSpecCompanionCtor]
-    protected def getDefaultRep = RWrapSpec
+  implicit case object WrapSpecBaseCompanionElem extends CompanionElem[WrapSpecBaseCompanionCtor] {
+    lazy val tag = weakTypeTag[WrapSpecBaseCompanionCtor]
+    protected def getDefaultRep = RWrapSpecBase
   }
 
-  abstract class WrapSpecCompanionCtor extends CompanionDef[WrapSpecCompanionCtor] with WrapSpecCompanion {
-    def selfType = WrapSpecCompanionElem
-    override def toString = "WrapSpec"
+  abstract class WrapSpecBaseCompanionCtor extends CompanionDef[WrapSpecBaseCompanionCtor] with WrapSpecBaseCompanion {
+    def selfType = WrapSpecBaseCompanionElem
+    override def toString = "WrapSpecBase"
   }
-  implicit def proxyWrapSpecCompanionCtor(p: Rep[WrapSpecCompanionCtor]): WrapSpecCompanionCtor =
-    proxyOps[WrapSpecCompanionCtor](p)
+  implicit def proxyWrapSpecBaseCompanionCtor(p: Rep[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
+    proxyOps[WrapSpecBaseCompanionCtor](p)
 
-  lazy val RWrapSpec: Rep[WrapSpecCompanionCtor] = new WrapSpecCompanionCtor {
-  }
-
-  object WrapSpecMethods {
+  lazy val RWrapSpecBase: Rep[WrapSpecBaseCompanionCtor] = new WrapSpecBaseCompanionCtor {
   }
 
-  object WrapSpecCompanionMethods {
+  object WrapSpecBaseMethods {
   }
-} // of object WrapSpec
-  registerEntityObject("WrapSpec", WrapSpec)
+
+  object WrapSpecBaseCompanionMethods {
+  }
+} // of object WrapSpecBase
+  registerEntityObject("WrapSpecBase", WrapSpecBase)
 
 object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
   case class ArrayWrapSpecCtor
@@ -81,11 +82,11 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
   }
   // elem for concrete class
   class ArrayWrapSpecElem(val iso: Iso[ArrayWrapSpecData, ArrayWrapSpec])
-    extends WrapSpecElem[ArrayWrapSpec]
+    extends WrapSpecBaseElem[ArrayWrapSpec]
     with ConcreteElem[ArrayWrapSpecData, ArrayWrapSpec] {
-    override lazy val parent: Option[Elem[_]] = Some(wrapSpecElement)
+    override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertWrapSpec(x: Rep[WrapSpec]) = RArrayWrapSpec()
+    override def convertWrapSpecBase(x: Rep[WrapSpecBase]) = RArrayWrapSpec()
     override def getDefaultRep = RArrayWrapSpec()
     override lazy val tag = {
       weakTypeTag[ArrayWrapSpec]
@@ -131,7 +132,7 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
     def apply(): Rep[ArrayWrapSpec] =
       mkArrayWrapSpec()
 
-    def unapply(p: Rep[WrapSpec]) = unmkArrayWrapSpec(p)
+    def unapply(p: Rep[WrapSpecBase]) = unmkArrayWrapSpec(p)
   }
   lazy val ArrayWrapSpecRep: Rep[ArrayWrapSpecCompanionCtor] = new ArrayWrapSpecCompanionCtor
   lazy val RArrayWrapSpec: ArrayWrapSpecCompanionCtor = proxyArrayWrapSpecCompanion(ArrayWrapSpecRep)
@@ -161,7 +162,7 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
     (): Rep[ArrayWrapSpec] = {
     new ArrayWrapSpecCtor()
   }
-  def unmkArrayWrapSpec(p: Rep[WrapSpec]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkArrayWrapSpec(p: Rep[WrapSpecBase]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ArrayWrapSpecElem @unchecked =>
       Some(())
     case _ =>
@@ -315,11 +316,11 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
   }
   // elem for concrete class
   class OptionWrapSpecElem(val iso: Iso[OptionWrapSpecData, OptionWrapSpec])
-    extends WrapSpecElem[OptionWrapSpec]
+    extends WrapSpecBaseElem[OptionWrapSpec]
     with ConcreteElem[OptionWrapSpecData, OptionWrapSpec] {
-    override lazy val parent: Option[Elem[_]] = Some(wrapSpecElement)
+    override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertWrapSpec(x: Rep[WrapSpec]) = ROptionWrapSpec()
+    override def convertWrapSpecBase(x: Rep[WrapSpecBase]) = ROptionWrapSpec()
     override def getDefaultRep = ROptionWrapSpec()
     override lazy val tag = {
       weakTypeTag[OptionWrapSpec]
@@ -365,7 +366,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
     def apply(): Rep[OptionWrapSpec] =
       mkOptionWrapSpec()
 
-    def unapply(p: Rep[WrapSpec]) = unmkOptionWrapSpec(p)
+    def unapply(p: Rep[WrapSpecBase]) = unmkOptionWrapSpec(p)
   }
   lazy val OptionWrapSpecRep: Rep[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor
   lazy val ROptionWrapSpec: OptionWrapSpecCompanionCtor = proxyOptionWrapSpecCompanion(OptionWrapSpecRep)
@@ -395,7 +396,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
     (): Rep[OptionWrapSpec] = {
     new OptionWrapSpecCtor()
   }
-  def unmkOptionWrapSpec(p: Rep[WrapSpec]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkOptionWrapSpec(p: Rep[WrapSpecBase]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: OptionWrapSpecElem @unchecked =>
       Some(())
     case _ =>
@@ -513,11 +514,11 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
   }
   // elem for concrete class
   class EitherWrapSpecElem(val iso: Iso[EitherWrapSpecData, EitherWrapSpec])
-    extends WrapSpecElem[EitherWrapSpec]
+    extends WrapSpecBaseElem[EitherWrapSpec]
     with ConcreteElem[EitherWrapSpecData, EitherWrapSpec] {
-    override lazy val parent: Option[Elem[_]] = Some(wrapSpecElement)
+    override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertWrapSpec(x: Rep[WrapSpec]) = REitherWrapSpec()
+    override def convertWrapSpecBase(x: Rep[WrapSpecBase]) = REitherWrapSpec()
     override def getDefaultRep = REitherWrapSpec()
     override lazy val tag = {
       weakTypeTag[EitherWrapSpec]
@@ -563,7 +564,7 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
     def apply(): Rep[EitherWrapSpec] =
       mkEitherWrapSpec()
 
-    def unapply(p: Rep[WrapSpec]) = unmkEitherWrapSpec(p)
+    def unapply(p: Rep[WrapSpecBase]) = unmkEitherWrapSpec(p)
   }
   lazy val EitherWrapSpecRep: Rep[EitherWrapSpecCompanionCtor] = new EitherWrapSpecCompanionCtor
   lazy val REitherWrapSpec: EitherWrapSpecCompanionCtor = proxyEitherWrapSpecCompanion(EitherWrapSpecRep)
@@ -593,7 +594,7 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
     (): Rep[EitherWrapSpec] = {
     new EitherWrapSpecCtor()
   }
-  def unmkEitherWrapSpec(p: Rep[WrapSpec]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkEitherWrapSpec(p: Rep[WrapSpecBase]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: EitherWrapSpecElem @unchecked =>
       Some(())
     case _ =>
@@ -639,11 +640,11 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   }
   // elem for concrete class
   class SpecialPredefWrapSpecElem(val iso: Iso[SpecialPredefWrapSpecData, SpecialPredefWrapSpec])
-    extends WrapSpecElem[SpecialPredefWrapSpec]
+    extends WrapSpecBaseElem[SpecialPredefWrapSpec]
     with ConcreteElem[SpecialPredefWrapSpecData, SpecialPredefWrapSpec] {
-    override lazy val parent: Option[Elem[_]] = Some(wrapSpecElement)
+    override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertWrapSpec(x: Rep[WrapSpec]) = RSpecialPredefWrapSpec()
+    override def convertWrapSpecBase(x: Rep[WrapSpecBase]) = RSpecialPredefWrapSpec()
     override def getDefaultRep = RSpecialPredefWrapSpec()
     override lazy val tag = {
       weakTypeTag[SpecialPredefWrapSpec]
@@ -689,7 +690,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     def apply(): Rep[SpecialPredefWrapSpec] =
       mkSpecialPredefWrapSpec()
 
-    def unapply(p: Rep[WrapSpec]) = unmkSpecialPredefWrapSpec(p)
+    def unapply(p: Rep[WrapSpecBase]) = unmkSpecialPredefWrapSpec(p)
   }
   lazy val SpecialPredefWrapSpecRep: Rep[SpecialPredefWrapSpecCompanionCtor] = new SpecialPredefWrapSpecCompanionCtor
   lazy val RSpecialPredefWrapSpec: SpecialPredefWrapSpecCompanionCtor = proxySpecialPredefWrapSpecCompanion(SpecialPredefWrapSpecRep)
@@ -719,7 +720,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     (): Rep[SpecialPredefWrapSpec] = {
     new SpecialPredefWrapSpecCtor()
   }
-  def unmkSpecialPredefWrapSpec(p: Rep[WrapSpec]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkSpecialPredefWrapSpec(p: Rep[WrapSpecBase]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: SpecialPredefWrapSpecElem @unchecked =>
       Some(())
     case _ =>
@@ -828,6 +829,120 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   }
 } // of object SpecialPredefWrapSpec
   registerEntityObject("SpecialPredefWrapSpec", SpecialPredefWrapSpec)
+
+object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
+  case class RTypeWrapSpecCtor
+      ()
+    extends RTypeWrapSpec() with Def[RTypeWrapSpec] {
+    lazy val selfType = element[RTypeWrapSpec]
+  }
+  // elem for concrete class
+  class RTypeWrapSpecElem(val iso: Iso[RTypeWrapSpecData, RTypeWrapSpec])
+    extends WrapSpecBaseElem[RTypeWrapSpec]
+    with ConcreteElem[RTypeWrapSpecData, RTypeWrapSpec] {
+    override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+    override def convertWrapSpecBase(x: Rep[WrapSpecBase]) = RRTypeWrapSpec()
+    override def getDefaultRep = RRTypeWrapSpec()
+    override lazy val tag = {
+      weakTypeTag[RTypeWrapSpec]
+    }
+  }
+
+  // state representation type
+  type RTypeWrapSpecData = Unit
+
+  // 3) Iso for concrete class
+  class RTypeWrapSpecIso
+    extends EntityIso[RTypeWrapSpecData, RTypeWrapSpec] with Def[RTypeWrapSpecIso] {
+    private lazy val _safeFrom = fun { p: Rep[RTypeWrapSpec] => () }
+    override def from(p: Rep[RTypeWrapSpec]) =
+      tryConvert[RTypeWrapSpec, Unit](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[Unit]) = {
+      val unit = p
+      RRTypeWrapSpec()
+    }
+    lazy val eFrom = UnitElement
+    lazy val eTo = new RTypeWrapSpecElem(self)
+    lazy val selfType = new RTypeWrapSpecIsoElem
+    def productArity = 0
+    def productElement(n: Int) = ???
+  }
+  case class RTypeWrapSpecIsoElem() extends Elem[RTypeWrapSpecIso] {
+    def getDefaultRep = reifyObject(new RTypeWrapSpecIso())
+    lazy val tag = {
+      weakTypeTag[RTypeWrapSpecIso]
+    }
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
+  }
+  // 4) constructor and deconstructor
+  class RTypeWrapSpecCompanionCtor extends CompanionDef[RTypeWrapSpecCompanionCtor] with RTypeWrapSpecCompanion {
+    def selfType = RTypeWrapSpecCompanionElem
+    override def toString = "RTypeWrapSpecCompanion"
+    @scalan.OverloadId("fromData")
+    def apply(p: Rep[RTypeWrapSpecData]): Rep[RTypeWrapSpec] = {
+      isoRTypeWrapSpec.to(p)
+    }
+
+    @scalan.OverloadId("fromFields")
+    def apply(): Rep[RTypeWrapSpec] =
+      mkRTypeWrapSpec()
+
+    def unapply(p: Rep[WrapSpecBase]) = unmkRTypeWrapSpec(p)
+  }
+  lazy val RTypeWrapSpecRep: Rep[RTypeWrapSpecCompanionCtor] = new RTypeWrapSpecCompanionCtor
+  lazy val RRTypeWrapSpec: RTypeWrapSpecCompanionCtor = proxyRTypeWrapSpecCompanion(RTypeWrapSpecRep)
+  implicit def proxyRTypeWrapSpecCompanion(p: Rep[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor = {
+    proxyOps[RTypeWrapSpecCompanionCtor](p)
+  }
+
+  implicit case object RTypeWrapSpecCompanionElem extends CompanionElem[RTypeWrapSpecCompanionCtor] {
+    lazy val tag = weakTypeTag[RTypeWrapSpecCompanionCtor]
+    protected def getDefaultRep = RTypeWrapSpecRep
+  }
+
+  implicit def proxyRTypeWrapSpec(p: Rep[RTypeWrapSpec]): RTypeWrapSpec =
+    proxyOps[RTypeWrapSpec](p)
+
+  implicit class ExtendedRTypeWrapSpec(p: Rep[RTypeWrapSpec]) {
+    def toData: Rep[RTypeWrapSpecData] = {
+      isoRTypeWrapSpec.from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoRTypeWrapSpec: Iso[RTypeWrapSpecData, RTypeWrapSpec] =
+    reifyObject(new RTypeWrapSpecIso())
+
+  def mkRTypeWrapSpec
+    (): Rep[RTypeWrapSpec] = {
+    new RTypeWrapSpecCtor()
+  }
+  def unmkRTypeWrapSpec(p: Rep[WrapSpecBase]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: RTypeWrapSpecElem @unchecked =>
+      Some(())
+    case _ =>
+      None
+  }
+
+    object RTypeWrapSpecMethods {
+    object name {
+      def unapply(d: Def[_]): Option[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, Seq(d, _*), _) if receiver.elem.isInstanceOf[RTypeWrapSpecElem] && method.getName == "name" =>
+          Some((receiver, d)).asInstanceOf[Option[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}]]
+        case _ => None
+      }
+      def unapply(exp: Sym): Option[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => None
+      }
+    }
+  }
+
+  object RTypeWrapSpecCompanionMethods {
+  }
+} // of object RTypeWrapSpec
+  registerEntityObject("RTypeWrapSpec", RTypeWrapSpec)
 
   registerModule(WrappersSpecModule)
 }

@@ -7,7 +7,7 @@ package wrappers.scala.util {
 
   trait WEithers extends Base { self: WrappersModule =>
     import WEither._;
-    @External("Either") trait WEither[A, B] extends Def[WEither[A, B]] {
+    @External("Either") @Liftable trait WEither[A, B] extends Def[WEither[A, B]] {
       implicit def eA: Elem[A];
       implicit def eB: Elem[B];
       @External def fold[C](fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C]

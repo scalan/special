@@ -7,7 +7,6 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  import java.lang.reflect.Method
   import special.wrappers.OptionWrapSpec
 
   // Abs -----------------------------------
@@ -18,38 +17,45 @@ import Converter._
 import WOption._
 
 object WOption extends EntityObject("WOption") {
+  // entityConst: single const for each entity
   import Liftables._
-  case class WOptionConst[ST, T] (constValue: Option[ST], lT: Liftable[ST, T])
-      extends WOption[T] with LiftedConst[Option[ST], WOption[T]] {
-    implicit def eA: Elem[T] = lT.eW
-    val selfType: Elem[WOption[T]] = wOptionElement(lT.eW)
-    val liftable = liftableOption(lT)
-    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[T => B]): Rep[B] = delayInvoke
-    def isEmpty: Rep[Boolean] = delayInvoke
-    def isDefined: Rep[Boolean] = delayInvoke
-    def filter(p: Rep[T => Boolean]): Rep[WOption[T]] = delayInvoke
-    def flatMap[B](f: Rep[T => WOption[B]]): Rep[WOption[B]] = delayInvoke
-    def map[B](f: Rep[T => B]): Rep[WOption[B]] = delayInvoke
-    def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = delayInvoke
-    def get: Rep[T] = delayInvoke
+  import scala.reflect.{ClassTag, classTag}
+
+  case class WOptionConst[SA, A](
+        constValue: Option[SA],
+        lA: Liftable[SA, A]
+      ) extends WOption[A] with LiftedConst[Option[SA], WOption[A]] {
+    implicit def eA: Elem[A] = lA.eW
+    val liftable: Liftable[Option[SA], WOption[A]] = liftableOption(lA)
+    val selfType: Elem[WOption[A]] = liftable.eW
+    @External def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = delayInvoke
+    @External def isEmpty: Rep[Boolean] = delayInvoke
+    @External def isDefined: Rep[Boolean] = delayInvoke
+    @External def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = delayInvoke
+    @External def flatMap[B](f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]] = delayInvoke
+    @External def map[B](f: Rep[scala.Function1[A, B]]): Rep[WOption[B]] = delayInvoke
+    @External def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = delayInvoke
+    @External def get: Rep[A] = delayInvoke
   }
 
-  case class LiftableOption[ST, T](lT: Liftable[ST, T]) extends Liftable[Option[ST], WOption[T]] {
-    def eW: Elem[WOption[T]] = wOptionElement(lT.eW)
-    def sourceClassTag: ClassTag[Option[ST]] = {
-      implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
-      classTag[Option[ST]]
+  case class LiftableOption[SA, A](lA: Liftable[SA, A])
+    extends Liftable[Option[SA], WOption[A]] {
+    lazy val eW: Elem[WOption[A]] = wOptionElement(lA.eW)
+    lazy val sourceClassTag: ClassTag[Option[SA]] = {
+      implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+      classTag[Option[SA]]
     }
-    def lift(x: Option[ST]): Rep[WOption[T]] = WOptionConst(x, lT)
-    def unlift(w: Rep[WOption[T]]): Option[ST] = w match {
-      case Def(WOptionConst(x: Option[ST], l)) if l == lT => x
+    def lift(x: Option[SA]): Rep[WOption[A]] = WOptionConst(x, lA)
+    def unlift(w: Rep[WOption[A]]): Option[SA] = w match {
+      case Def(WOptionConst(x: Option[_], _lA))
+            if _lA == lA => x.asInstanceOf[Option[SA]]
       case _ => unliftError(w)
     }
   }
+  implicit def liftableOption[SA, A](implicit lA: Liftable[SA,A]): Liftable[Option[SA], WOption[A]] =
+    LiftableOption(lA)
 
-  implicit def liftableOption[ST,T](implicit lT: Liftable[ST,T]): Liftable[Option[ST], WOption[T]] =
-    LiftableOption(lT)
-
+  private val _OptionWrapSpec = new OptionWrapSpec
   // entityProxy: single proxy for each type family
   implicit def proxyWOption[A](p: Rep[WOption[A]]): WOption[A] = {
     proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
@@ -82,19 +88,18 @@ object WOption extends EntityObject("WOption") {
   def wOptionIso[A, B](innerIso: Iso[A, B]) =
     reifyObject(WOptionIso[A, B](innerIso)).asInstanceOf[Iso1[A, B, WOption]]
 
-  private val _OptionWrapSpec = new OptionWrapSpec
-
   // familyElem
   class WOptionElem[A, To <: WOption[A]](implicit _eA: Elem[A])
     extends EntityElem1[A, To, WOption](_eA, container[WOption]) {
     def eA = _eA
-    override def liftable: Liftables.Liftable[Option[_], To] =
-      liftableOption(_eA.liftable).asLiftable[Option[_], To]
 
-    override protected def collectMethods: Map[Method, MethodDesc] = {
-      super.collectMethods ++ Elem.declaredWrapperMethods(_OptionWrapSpec, classOf[WOption[A]], Set(
-        "get", "getOrElse", "flatMap", "filter", "map", "fold", "isEmpty", "isDefined"
-      ))
+    override val liftable = liftableOption(_eA.liftable).asLiftable[Option[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredWrapperMethods(_OptionWrapSpec, classOf[WOption[A]], Set(
+        "fold", "isEmpty", "isDefined", "filter", "flatMap", "map", "getOrElse", "get"
+        ))
     }
 
     lazy val parent: Option[Elem[_]] = None
