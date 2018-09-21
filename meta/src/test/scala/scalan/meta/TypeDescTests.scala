@@ -4,15 +4,15 @@ import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
 class TypeDescTests extends BaseMetaTests {
+  import RType._
   describe("implicit resolution") {
     it("resolve RType") {
       def test[T: RType](name: String) = {
-        val t= implicitly[RType[T]]
+        val t= RType[T]
         t.toString shouldBe name
       }
-      test[Int]("WeakRType<Int>")(RType[Int])
-      test[String]("WeakRType<String>")(RType[String])
-      test[Array[Int]]("WeakRType<int[]>")(RType[Array[Int]])
+      test[Int]("ConcreteRType<Int>")(RType[Int])
+      test[String]("ConcreteRType<String>")(RType[String])
     }
 
     it("resolve ClassTag") {
@@ -23,7 +23,6 @@ class TypeDescTests extends BaseMetaTests {
       }
       test[Int]("Int")(RType[Int])
       test[String]("java.lang.String")(RType[String])
-      test[Array[Int]]("Array[int]")(RType[Array[Int]])
     }
 
   }

@@ -531,7 +531,7 @@ trait ScalanParsers[+G <: Global] {
   val ReifiedAnnotation     = new HasAnnotation(ReifiedTypeArgAnnotation)
   val HasNeverInlineAnnotation = new HasAnnotation(NeverInlineAnnotation)
 
-  def methodDef(owner: SSymbol, md: DefDef, isElem: Boolean = false)(implicit ctx: ParseCtx) = {
+  def methodDef(owner: SSymbol, md: DefDef, isElem: Boolean = false)(implicit ctx: ParseCtx) = try {
     val methodSym = SEntityItemSymbol(owner, md.name, DefType.Def)
     val tpeArgs = this.tpeArgs(methodSym, md.tparams, md.vparamss.lastOption.getOrElse(Nil))
     val args0 = md.vparamss.map(methodArgs(methodSym, _))
@@ -570,6 +570,9 @@ trait ScalanParsers[+G <: Global] {
 
     returnParsed(md, SMethodDef(owner, md.name, tpeArgs, args, tpeRes, isImplicit, isOverride,
       optOverloadId, annotations, optBody, isTypeDesc))
+  } catch {
+    case e: Throwable =>
+      throw new RuntimeException(s"Cannot parse MethodDef $md from $owner", e)
   }
 
   def methodArgs(owner: SSymbol, vds: List[ValDef])(implicit ctx: ParseCtx): SMethodArgs = vds match {

@@ -1,8 +1,9 @@
 package scalan.meta
 
 import scala.collection.immutable.ListMap
-import scala.reflect.{ClassTag, AnyValManifest}
-import scala.reflect.runtime.universe.WeakTypeTag
+import scala.reflect.runtime.universe
+import scala.reflect.{AnyValManifest, ClassTag}
+import scala.reflect.runtime.universe.{WeakTypeTag, TypeTag}
 import scalan.util.{Variance, ReflectionUtil}
 import scalan.util.ReflectionUtil.ClassOps
 
@@ -46,9 +47,24 @@ trait RType[A] extends TypeDesc {
 }
 
 object RType {
-  def apply[A](implicit tag: WeakTypeTag[A]): RType[A] = WeakRType(tag)
+  def apply[A](implicit t: RType[A]): RType[A] = t
   implicit def rtypeToClassTag[A](implicit t: RType[A]): ClassTag[A] = t.classTag
 
-  case class WeakRType[A](tag: WeakTypeTag[A]) extends RType[A] {
+  case class ConcreteRType[A](tag: WeakTypeTag[A]) extends RType[A]
+
+  implicit val ByteType : RType[Byte]  = ConcreteRType[Byte] (universe.weakTypeTag[Byte])
+  implicit val ShortType: RType[Short] = ConcreteRType[Short](universe.weakTypeTag[Short])
+  implicit val IntType  : RType[Int]   = ConcreteRType[Int]  (universe.weakTypeTag[Int])
+  implicit val LongType : RType[Long]  = ConcreteRType[Long] (universe.weakTypeTag[Long])
+  implicit val StringType: RType[String] = ConcreteRType[String] (universe.weakTypeTag[String])
+
+  implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairRType(tA, tB)
+
+  case class PairRType[A,B](tA: RType[A], tB: RType[B]) extends RType[(A,B)] {
+    def tag: universe.WeakTypeTag[(A, B)] = universe.weakTypeTag[(A,B)]
+  }
+
+  object syntax {
+    implicit def rtypeFromTypeTag[A](implicit tag: TypeTag[A]): RType[A] = RType[A]
   }
 }

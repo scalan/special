@@ -342,6 +342,8 @@ trait TypeDescs extends Base { self: Scalan =>
     }
   }
   object Elem {
+    implicit def rtypeToElem[SA, A](tSA: RType[SA])(implicit lA: Liftables.Liftable[SA,A]): Elem[A] = lA.eW
+
     def unapply[T, E <: Elem[T]](s: Rep[T]): Option[E] = Some(s.elem.asInstanceOf[E])
 
     def pairify(es: Iterator[Elem[_]]): Elem[_] = {

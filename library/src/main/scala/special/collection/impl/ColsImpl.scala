@@ -594,12 +594,12 @@ object ColBuilder extends EntityObject("ColBuilder") {
     }
 
     object apply_apply_items {
-      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(items, emT, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
-          Some((receiver, items, emT)).asInstanceOf[Option[(Rep[ColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}]]
+      def unapply(d: Def[_]): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, Seq(items, _*), _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
+          Some((receiver, items)).asInstanceOf[Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}]]
         case _ => None
       }
-      def unapply(exp: Sym): Option[(Rep[ColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Option[(Rep[ColBuilder], Seq[Rep[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => None
       }
