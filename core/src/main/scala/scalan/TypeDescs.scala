@@ -245,7 +245,7 @@ trait TypeDescs extends Base { self: Scalan =>
           val res = md.method.invoke(md.wrapSpec, srcArgs:_*)
           res
         case Some(md: RMethodDesc) =>
-          val hasClassTag = md.method.getParameterTypes.exists(p => p.isInstanceOf[ClassTag[_]])
+          val hasClassTag = md.method.getParameterTypes.exists(p => p.getSimpleName == "ClassTag")
           val srcObj = getSourceValues(dataEnv, hasClassTag, mc.receiver).head
           val srcArgs = getSourceValues(dataEnv, hasClassTag, mc.args:_*)
           val res = md.method.invoke(srcObj, srcArgs:_*)
