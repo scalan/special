@@ -495,9 +495,13 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
 
   def defaultUnpackTester(e: Elem[_]) = true //e match { case pe: PairElem[_,_] => false case _ => true }
 
+  val performUnapplyViews: Boolean = true
+
   object HasViews {
     def unapply[T](s: Exp[T]): Option[Unpacked[T]] =
-      unapplyViews(s)
+      if (performUnapplyViews)
+        unapplyViews(s)
+      else None
   }
 
   // for simplifying unapplyViews
