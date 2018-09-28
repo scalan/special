@@ -2,7 +2,7 @@ package scalan.primitives
 
 import scalan.{Base, Scalan}
 
-trait IfThenElse extends Base with Effects { self: Scalan =>
+trait IfThenElse extends Base { self: Scalan =>
   import IsoUR._
 
   /** If c then t else e construction with standard lazy evaluation of branches.
@@ -71,7 +71,7 @@ trait IfThenElse extends Base with Effects { self: Scalan =>
   }
 
   def reifyBranch[T](b: => Exp[T]): Exp[T] = {
-    val Block(res) = reifyEffects(b)
+    val res = reifyEffects(b)
     res
   }
 
@@ -91,45 +91,6 @@ trait IfThenElse extends Base with Effects { self: Scalan =>
     def isIfThenElse = tableEntry.rhs match { case IfThenElse(_,_,_) => true case _ => false }
   }
   
-  override def aliasSyms(e: Any): List[Exp[Any]] = e match {
-    case IfThenElse(c,a,b) => syms(a):::syms(b)
-    case _ => super.aliasSyms(e)
-  }
-
-  override def containSyms(e: Any): List[Exp[Any]] = e match {
-    case IfThenElse(c,a,b) => Nil
-    case _ => super.containSyms(e)
-  }
-
-  override def extractSyms(e: Any): List[Exp[Any]] = e match {
-    case IfThenElse(c,a,b) => Nil
-    case _ => super.extractSyms(e)
-  }
-
-  override def copySyms(e: Any): List[Exp[Any]] = e match {
-    case IfThenElse(c,a,b) => Nil // could return a,b but implied by aliasSyms
-    case _ => super.copySyms(e)
-  }
-
-
-  override def symsFreq(e: Any): List[(Exp[Any], Double)] = e match {
-    case IfThenElse(c, t, e) => freqNormal(c) ++ freqCold(t) ++ freqCold(e)
-    case _ => super.symsFreq(e)
-  }
-
-  override def boundSyms(e: Any): List[Exp[Any]] = e match {
-    case IfThenElse(c, t, e) => effectSyms(t):::effectSyms(e)
-    case _ => super.boundSyms(e)
-  }
-
-  override def effectSyms(x: Any): List[Exp[Any]] = x match {
-    case IfThenElse(c, t, e) =>
-      val ts = Def.unapply(t).map(d => effectSyms(d)).toList.flatten
-      val es = Def.unapply(e).map(d => effectSyms(d)).toList.flatten
-      ts ::: es
-    case _ => super.effectSyms(x)
-  }
-
   def liftFromIfThenElse[A,B,C](cond: Rep[Boolean], a: Rep[A], b: Rep[B], iso1: Iso[A,C], iso2: Iso[B,C]): Rep[C] = {
     assertEqualElems(iso1.eTo, iso2.eTo, s"liftFromIfThenElse($cond, $a, $b, $iso1, $iso2)")
     val ea = iso1.eFrom

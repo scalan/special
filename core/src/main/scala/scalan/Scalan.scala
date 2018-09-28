@@ -28,7 +28,6 @@ class Scalan
   with Analyzing
   with Exceptions
   with StringOps
-  with Effects
   with RewriteRules
   with GraphVizExport
   with ViewsModule

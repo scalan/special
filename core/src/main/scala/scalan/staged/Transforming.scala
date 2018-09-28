@@ -204,14 +204,12 @@ trait Transforming { self: Scalan =>
       lambdaStack.push(newLambdaSym)
 
       // original root
-      val originalRoot = lam.y match {
-        case Def(Reify(x, _, _)) => x
-        case _ => lam.y
-      }
+      val originalRoot = lam.y
+
       // new effects may appear during body mirroring (i.e. new Reflect nodes)
       // thus we need to forget original Reify node and create a new one
-      val Block(newRoot) = reifyEffects({
-        val schedule = lam.filterReifyRoots(lam.scheduleSingleLevel).map(_.sym)
+      val newRoot = reifyEffects({
+        val schedule = lam.scheduleSingleLevel
         val (t2, _) = mirrorSymbols(t1, rewriter, lam, schedule)
         tRes = t2
         tRes(originalRoot) // this will be a new root (wrapped in Reify if needed)
@@ -230,11 +228,8 @@ trait Transforming { self: Scalan =>
 
     protected def mirrorBranch[A](t: Ctx, rewriter: Rewriter, g: AstGraph, branch: ThunkDef[A]): (Ctx, Sym) = {
       // get original root unwrapping Reify nodes
-      val originalRoot = branch.root match {
-        case Def(Reify(x, _, _)) => x
-        case _ => branch.root
-      }
-      val schedule = branch.filterReifyRoots(branch.scheduleSingleLevel).map(_.sym)
+      val originalRoot = branch.root
+      val schedule = branch.scheduleSingleLevel
       val (t2, _) = mirrorSymbols(t, rewriter, branch, schedule)
       val newRoot = t2(originalRoot)
       (t2, newRoot)

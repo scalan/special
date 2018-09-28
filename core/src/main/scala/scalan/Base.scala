@@ -23,16 +23,6 @@ import scala.reflect.runtime.universe._
 trait Base extends LazyLogging { scalan: Scalan =>
   type Rep[+A] = Exp[A]
   type |[+A, +B] = Either[A, B]
-  type IntRep = Rep[Int]
-  type BoolRep = Rep[Boolean]
-  type UnitRep = Rep[Unit]
-  type NothingRep = Rep[Nothing]
-  type ByteRep = Rep[Byte]
-  type ShortRep = Rep[Short]
-  type CharRep = Rep[Char]
-  type LongRep = Rep[Long]
-  type FloatRep = Rep[Float]
-  type DoubleRep = Rep[Double]
   type :=>[-A, +B] = PartialFunction[A, B]
   type RFunc[-A,+B] = Rep[Function1[A,B]]
   type RPair[+A, +B] = Rep[(A,B)]
@@ -450,6 +440,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
     toExp(obj, fresh[A](Lazy(obj.selfType)))
   }
 
+  def reifyEffects[A](block: => Exp[A]): Exp[A] = block
+
   def toRep[A](x: A)(implicit eA: Elem[A]):Rep[A] = eA match {
     case _: BaseElem[_] => Const(x)
     case _: FuncElem[_, _] => Const(x)
@@ -546,10 +538,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
     out.result()
   }
 
-  def flatMapIterable[A, T](iterable: Iterable[A], f: A => TraversableOnce[T]) =
+  @inline def flatMapIterable[A, T](iterable: Iterable[A], f: A => TraversableOnce[T]) =
     flatMapWithBuffer(iterable.iterator, f)
 
-  def flatMapProduct[T](p: Product, f: Any => TraversableOnce[T]): List[T] = {
+  @inline def flatMapProduct[T](p: Product, f: Any => TraversableOnce[T]): List[T] = {
     val iter = p.productIterator
     flatMapWithBuffer(iter, f)
   }
@@ -569,59 +561,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case _ => Nil
   }
   def dep(d: Def[_]): List[Rep[_]] = syms(d)
-
-  // symbols which are bound in a definition
-  def boundSyms(e: Any): List[Rep[Any]] = e match {
-    case ss: Iterable[Any] => flatMapWithBuffer(ss.iterator, boundSyms)
-    case p: Product => flatMapProduct(p, boundSyms)
-    case _ => Nil
-  }
-
-  // symbols which are bound in a definition, but also defined elsewhere
-  def tunnelSyms(e: Any): List[Rep[Any]] = e match {
-    case ss: Iterable[Any] => flatMapWithBuffer(ss.iterator, tunnelSyms)
-    case p: Product => flatMapProduct(p, tunnelSyms)
-    case _ => Nil
-  }
-
-  // symbols of effectful components of a definition
-  def effectSyms(x: Any): List[Rep[Any]] = x match {
-    case ss: Iterable[Any] => flatMapWithBuffer(ss.iterator, effectSyms)
-    case p: Product => flatMapProduct(p, effectSyms)
-    case _ => Nil
-  }
-
-  // soft dependencies: they are not required but if they occur,
-  // they must be scheduled before
-  def softSyms(e: Any): List[Rep[Any]] = e match {
-    // empty by default
-    //case s: Rep[Any] => List(s)
-    case ss: Iterable[Any] => flatMapWithBuffer(ss.iterator, softSyms)
-    case p: Product => flatMapProduct(p, softSyms)
-    case _ => Nil
-  }
-
-  // generic symbol traversal: f is expected to call rsyms again
-  def rsyms[T](e: Any)(f: Any=>List[T]): List[T] = e match {
-    case s: Rep[Any] => f(s)
-    case ss: Iterable[Any] => flatMapWithBuffer(ss.iterator, f)
-    case p: Product => flatMapProduct(p, f)
-    case _ => Nil
-  }
-
-  // frequency information for dependencies: used/computed
-  // often (hot) or not often (cold). used to drive code motion.
-  def symsFreq(e: Any): List[(Rep[Any], Double)] = e match {
-    case s: Rep[Any] => List((s,1.0))
-    case ss: Iterable[Any] => flatMapWithBuffer(ss.iterator, symsFreq)
-    case p: Product => flatMapProduct(p, symsFreq)
-    //case _ => rsyms(e)(symsFreq)
-    case _ => Nil
-  }
-
-  def freqNormal(e: Any) = symsFreq(e)
-  def freqHot(e: Any) = symsFreq(e).map(p=>(p._1,p._2*1000.0))
-  def freqCold(e: Any) = symsFreq(e).map(p=>(p._1,p._2*0.5))
 
   implicit class ExpForSomeOps(symbol: Rep[_]) {
     def inputs: List[Rep[Any]] = dep(symbol)

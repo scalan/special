@@ -278,7 +278,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     implicit val eA = leA.value
     var eB: Elem[B] = null // will be known after f is executed
     val fSym = fresh[A => B](Lazy { assert(eB != null); funcElement(eA, eB) })
-    val Block(y) = reifyEffects(executeFunction(f, x, fSym))
+    val y = reifyEffects(executeFunction(f, x, fSym))
     eB = y.elem
     val eF = fSym.elem // force lazy value in sSym
     reifyFunction0(f, x, y, fSym, mayInline)

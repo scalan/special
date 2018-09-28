@@ -30,22 +30,12 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
   implicit class ScheduleOps(sch: Schedule) {
     def symbols = sch.map(_.sym)
-    def getEffectfulSyms: Set[Sym] =
-      sch.flatMap(tp => effectSyms(tp.rhs)).toSet
   }
 
   def getScope(g: PGraph, vars: List[Sym]): Schedule = {
-    def loop(currScope: immutable.Set[Sym]): Schedule = {
-      val sch = g.scheduleFrom(currScope)
-      val currSch = g.getRootsIfEmpty(sch)
-      val es = currSch.getEffectfulSyms
-      val newEffects = es -- currScope
-      if (newEffects.isEmpty)
-        currSch
-      else
-        loop(currScope ++ newEffects)
-    }
-    loop(vars.toSet)
+    val sch = g.scheduleFrom(vars.toSet)
+    val currSch = g.getRootsIfEmpty(sch)
+    currSch
   }
 
   trait AstGraph { thisGraph =>
@@ -101,16 +91,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
     /**
      * Returns definitions which are not assigned to sub-branches
      */
-    def scheduleSingleLevel = schedule.filter(tp => !isAssignedToIfBranch(tp.sym))
-
-    def filterReifyRoots(schedule: Schedule): Schedule = {
-      val filtered = schedule.filter(tp => tp.rhs match {
-        case Reify(_,_,_) if isRoot(tp.sym) =>
-          false
-        case _ => true
-      })
-      filtered
-    }
+    def scheduleSingleLevel: Seq[Sym] = schedule.collect { case tp if !isAssignedToIfBranch(tp.sym) => tp.sym }
 
     /**
      * Symbol Usage information for this graph

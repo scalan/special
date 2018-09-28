@@ -19,7 +19,7 @@ import scalan.meta.TypeDesc
  - no SourceContext, withPos
  - mirroring implemented in Scalan way (though consistent with LMS)
  */
-trait Structs extends Effects with StructItemsModule with StructKeysModule { self: Scalan =>
+trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   import IsoUR._
   // TODO consider if T type parameter is needed here and for AbstractStruct
   // It's only useful if we'll have some static typing on structs later (Shapeless' records?)
@@ -552,50 +552,50 @@ trait Structs extends Effects with StructItemsModule with StructKeysModule { sel
     case _ => super.syms(e)
   }
 
-  override def symsFreq(e: Any): List[(Exp[Any], Double)] = e match {
-    case s: ProjectionStruct => symsFreq(s.struct)
-    case s: AbstractStruct[_] => s.fields.flatMap(e => symsFreq(e._2)).toList
-    case _ => super.symsFreq(e)
-  }
+//  override def symsFreq(e: Any): List[(Exp[Any], Double)] = e match {
+//    case s: ProjectionStruct => symsFreq(s.struct)
+//    case s: AbstractStruct[_] => s.fields.flatMap(e => symsFreq(e._2)).toList
+//    case _ => super.symsFreq(e)
+//  }
 
-  override def effectSyms(e: Any): List[Exp[Any]] = e match {
-    case s: ProjectionStruct => effectSyms(s.struct)
-    case s: AbstractStruct[_] => s.fields.flatMap(e => effectSyms(e._2)).toList
-    case _ => super.effectSyms(e)
-  }
+//  override def effectSyms(e: Any): List[Exp[Any]] = e match {
+//    case s: ProjectionStruct => effectSyms(s.struct)
+//    case s: AbstractStruct[_] => s.fields.flatMap(e => effectSyms(e._2)).toList
+//    case _ => super.effectSyms(e)
+//  }
 
-  override def readSyms(e: Any): List[Exp[Any]] = e match {
-    case s: AbstractStruct[_] => Nil //struct creation doesn't de-reference any of its inputs
-    case _ => super.readSyms(e)
-  }
+//  override def readSyms(e: Any): List[Exp[Any]] = e match {
+//    case s: AbstractStruct[_] => Nil //struct creation doesn't de-reference any of its inputs
+//    case _ => super.readSyms(e)
+//  }
 
-  override def aliasSyms(e: Any): List[Exp[Any]] = e match {
-    case SimpleStruct(tag,fields) => Nil
-    case FieldUpdate(s, fn, v) => Nil
-    case FieldApply(s,x) => Nil
-    case _ => super.aliasSyms(e)
-  }
-
-  override def containSyms(e: Any): List[Exp[Any]] = e match {
-    case SimpleStruct(tag,fields) => fields.collect { case (k, v: Sym) => v }.toList
-    case FieldUpdate(s, fn, v) => List(v)
-    case FieldApply(s,x) => Nil
-    case _ => super.containSyms(e)
-  }
-
-  override def extractSyms(e: Any): List[Exp[Any]] = e match {
-    case SimpleStruct(tag,fields) => Nil
-    case FieldUpdate(_,_,_) => Nil
-    case FieldApply(s,x) => syms(s)
-    case _ => super.extractSyms(e)
-  }
-
-  override def copySyms(e: Any): List[Exp[Any]] = e match {
-    case SimpleStruct(tag,fields) => Nil
-    case FieldUpdate(_,_,_) => Nil
-    case FieldApply(s,x) => Nil
-    case _ => super.copySyms(e)
-  }
+//  override def aliasSyms(e: Any): List[Exp[Any]] = e match {
+//    case SimpleStruct(tag,fields) => Nil
+//    case FieldUpdate(s, fn, v) => Nil
+//    case FieldApply(s,x) => Nil
+//    case _ => super.aliasSyms(e)
+//  }
+//
+//  override def containSyms(e: Any): List[Exp[Any]] = e match {
+//    case SimpleStruct(tag,fields) => fields.collect { case (k, v: Sym) => v }.toList
+//    case FieldUpdate(s, fn, v) => List(v)
+//    case FieldApply(s,x) => Nil
+//    case _ => super.containSyms(e)
+//  }
+//
+//  override def extractSyms(e: Any): List[Exp[Any]] = e match {
+//    case SimpleStruct(tag,fields) => Nil
+//    case FieldUpdate(_,_,_) => Nil
+//    case FieldApply(s,x) => syms(s)
+//    case _ => super.extractSyms(e)
+//  }
+//
+//  override def copySyms(e: Any): List[Exp[Any]] = e match {
+//    case SimpleStruct(tag,fields) => Nil
+//    case FieldUpdate(_,_,_) => Nil
+//    case FieldApply(s,x) => Nil
+//    case _ => super.copySyms(e)
+//  }
 
   override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
     case SimpleStruct(tag, fields) =>

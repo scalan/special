@@ -8,7 +8,7 @@ import scala.reflect.runtime.universe._
 import scalan.meta.TypeDesc
 import scalan.util.Covariant
 
-trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects { self: Scalan =>
+trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scalan =>
   import IsoUR._
   
   type Th[+T] = Rep[Thunk[T]]
@@ -186,18 +186,15 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
     val newScope = thunkStack.beginScope(newThunkSym)
     // execute block and add all new definitions to the top scope (see createDefinition)
     // reify all the effects during block execution
-    val b @ Block(res) = reifyEffects(block)
+    val res = reifyEffects(block)
     eA = res.elem
     val eTh = newThunkSym.elem  // force lazy value in newThunkSym (see Lazy above)
     thunkStack.endScope()
 
     val scheduled = newScope.scheduleForResult(res)
-//    val scheduledSyms = scheduled.map(_.sym).toSet
-//    val remaining = newScope.body.filterNot(te => scheduledSyms.contains(te.sym))
 
     val newThunk = ThunkDef(res, scheduled)
-    val u = summarizeEffects(b)
-    reflectEffect(newThunk, u, newThunkSym)
+    toExp(newThunk, newThunkSym)
   }
 
   def thunk_map[A, B](t: Th[A], f: Rep[A => B]): Th[B] = {
@@ -237,11 +234,11 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport with Effects
     implicit def selfType = thunk.elem.eItem
   }
 
-  override def effectSyms(x: Any): List[Exp[Any]] = x match {
-//    case ThunkDef(_, sch) =>
-//      flatMapIterable(sch.map(_.sym), effectSyms)
-    case _ => super.effectSyms(x)
-  }
+//  override def effectSyms(x: Any): List[Exp[Any]] = x match {
+////    case ThunkDef(_, sch) =>
+////      flatMapIterable(sch.map(_.sym), effectSyms)
+//    case _ => super.effectSyms(x)
+//  }
 
   override protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): Option[Subst] = d1 match {
     case ThunkDef(root1, sch1) => d2 match {
