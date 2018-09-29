@@ -51,6 +51,36 @@ trait Blocks extends Base { self: Scalan =>
     if (xs.contains(y)) xs else (xs ++ List(y))
   }
 
+  override def rewriteViews[T](d: Def[T]) = d match {
+    // Rule: V(a, iso1) ; V(b, iso2)) ==> iso2.to(a ; b)
+    case block@Semicolon(HasViews(a, iso1: Iso[a, c]), HasViews(b, iso2: Iso[b, d])) =>
+      iso2.to(Semicolon(a.asRep[a], b.asRep[b]))
+
+    // Rule: a ; V(b, iso2)) ==> iso2.to(a ; b)
+    case block@Semicolon(a: Rep[a], HasViews(b, iso2: Iso[b, d])) =>
+      iso2.to(Semicolon(a, b.asRep[b]))
+
+    // Rule: V(a, iso1) ; b ==> a ; b
+    case block@Semicolon(HasViews(a, iso1: Iso[a, c]), b: Rep[b]) =>
+      Semicolon(a.asRep[a], b)
+
+    // Rule: as ;; V(b, iso2)) ==> iso2.to(as ; b)
+    case block@SemicolonMulti(as, HasViews(b, iso2: Iso[b, d])) =>
+      iso2.to(SemicolonMulti(as, b.asRep[b]))
+
+    // WARNING: this should be the last rule in this method
+    // Rule: ..V(a, iso).. ;; b ==> ..peelViews(a).. ; b
+    case SemicolonMulti(as, b) if shouldUnpackTuples =>
+      val peeled = as.map(peelViews(_))
+      if (peeled == as)
+        super.rewriteViews(d)
+      else
+        semicolonMulti(peeled, b)
+
+    case _ =>
+      super.rewriteViews(d)
+  }
+
   override def rewriteDef[T](d: Def[T]) = d match {
     case Semicolon(a, Def(Semicolon(b,c))) => semicolonMulti(Seq(a,b), c)
     case Semicolon(Def(Semicolon(a,b)), c) => semicolonMulti(Seq(a,b), c)
@@ -77,19 +107,6 @@ trait Blocks extends Base { self: Scalan =>
           res += a
       }
       semicolonMulti(res.result().distinct, d)
-
-    // Rule: as ;; V(b, iso2)) ==> iso2.to(as ; b)
-    case block@SemicolonMulti(as, HasViews(b, iso2: Iso[b, d])) =>
-      iso2.to(SemicolonMulti(as, b.asRep[b]))
-
-    // WARNING: this should be the last rule in this method
-    // Rule: ..V(a, iso).. ;; b ==> ..peelViews(a).. ; b
-    case SemicolonMulti(as, b) if shouldUnpackTuples =>
-      val peeled = as.map(peelViews(_))
-      if (peeled == as)
-        super.rewriteDef(d)
-      else
-        semicolonMulti(peeled, b)
 
     case _ =>
       super.rewriteDef (d)

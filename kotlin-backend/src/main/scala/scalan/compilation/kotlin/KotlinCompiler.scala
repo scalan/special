@@ -1,10 +1,12 @@
 package scalan.compilation.kotlin
 
 import java.io.File
-import scalan.Scalan
-import scalan.compilation.{ScalanCompiler, GraphVizConfig, CodegenConfig}
 
-class KotlinCompiler[+IR <: Scalan](val _scalan: IR, val config: CodegenConfig)
+import scalan.Scalan
+import scalan.compilation.{CodegenConfig, ScalanCompiler, GraphVizConfig}
+import scalan.primitives.Blocks
+
+class KotlinCompiler[+IR <: Scalan with Blocks](val _scalan: IR, val config: CodegenConfig)
   extends ScalanCompiler[IR, KotlinFileCodegen[IR]](_scalan) {
   import scalan._
 

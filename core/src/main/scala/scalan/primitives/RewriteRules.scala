@@ -36,18 +36,20 @@ trait RewriteRules extends Base { self: Scalan =>
   def postulate[A:Elem, B:Elem, C:Elem, R](p: (Rep[A], Rep[B], Rep[C]) => RRewrite[R]): RRewrite[R] =
     p(fresh[A], fresh[B], fresh[C])
 
+  //hotspot: need to avoid allocations
   override def rewrite[T](s: Exp[T]): Sym = {
-    val result = rewriteWithRules(rewriteRules)(s)
-    result.getOrElse {
-      super.rewrite(s)
-    }
+    var result: Sym = null
+    if (rewriteRules.nonEmpty)
+      result = rewriteWithRules(rewriteRules)(s)
+    if (result != null) result
+    else super.rewrite(s)
   }
 
-  def rewriteWithRules[T](rules: List[RewriteRule[_]])(s: Exp[T]): Option[Sym] = {
+  def rewriteWithRules[T](rules: List[RewriteRule[_]])(s: Exp[T]): Sym = {
     val eT = s.elem
     val iterator = rules.iterator
-    var result: Option[Sym] = None
-    while (iterator.hasNext && result.isEmpty) {
+    var result: Sym = null
+    while (iterator.hasNext && result == null) {
       val rule = iterator.next()
       if (rule.eA >:> eT)
         result = rule.asInstanceOf[RewriteRule[T]](s)
@@ -66,15 +68,15 @@ trait RewriteRules extends Base { self: Scalan =>
 
   trait RewriteRule[A] {
     def eA: Elem[A]
-    def apply(x: Exp[A]): Option[Sym]
+    def apply(x: Exp[A]): Sym
   }
 
   case class PatternRewriteRule[A](lhs: Rep[A], rhs: Rep[A], eA: Elem[A]) extends RewriteRule[A] {
     val g = new PGraph(rhs)
 
-    def apply(s: Exp[A]) = patternMatch(lhs, s).map { subst =>
+    def apply(s: Exp[A]): Sym = patternMatch(lhs, s).fold[Sym](null) { subst =>
       val g1 = g.transform(DefaultMirror, NoRewriting, new MapTransformer(subst))
-      g1.roots.head.asRep[A]
+      g1.roots.head
     }
   }
 
@@ -85,11 +87,11 @@ trait RewriteRules extends Base { self: Scalan =>
     }
 
   class RulesRewriter(rules: List[RewriteRule[_]]) extends Rewriter {
-    def apply[T](x: Exp[T]) = {
-      rewriteWithRules(rules)(x) match {
-        case Some(y) => y.asRep[T]
-        case None => x
-      }
+    def apply[T](x: Exp[T]): Exp[T] = {
+      if (rules.isEmpty) return x
+      val res = rewriteWithRules(rules)(x)
+      if (res != null) res.asRep[T]
+      else x
     }
   }
 }

@@ -50,7 +50,7 @@ class RewriteRulesSuite extends BaseShouldTests {
     val lam = testFunc.getLambda
     val rewritten = rule(lam.y)
     rewritten match {
-      case Some(res) => 
+      case res if res != null =>
         ctx.emitDepGraph(List(Pair(lam.y, res)), prefix, "LemmaRule/originalAndRewritten")(GraphVizConfig.default)
       case _ => 
         fail("should apply pattern")

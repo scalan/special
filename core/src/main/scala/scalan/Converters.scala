@@ -216,16 +216,20 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
       Convert(eFrom, eTo, x, conv)
   }
 
-  override def rewriteDef[T](d: Def[T]) = d match {
-    // Rule: convert(eFrom, eTo, x, conv) if x.elem <:< eFrom  ==>  conv(x)
-    case Convert(eFrom: Elem[from], eTo: Elem[to], x,  conv) if x.elem <:< eFrom =>
-      conv(x)
-
+  override def rewriteViews[T](d: Def[T]) = d match {
     case Convert(eFrom: Elem[from], eTo: Elem[to], HasViews(_x, _iso: Iso[Def[_], _] @unchecked),  _conv) =>
       val iso = _iso.asInstanceOf[Iso[Def[_], from]]
       val conv = _conv.asRep[from => to]
       val x = _x.asRep[Def[_]]
       tryConvert(x.elem, eTo, x, iso.toFun >> conv)
+
+    case _ => super.rewriteViews(d)
+  }
+
+  override def rewriteDef[T](d: Def[T]) = d match {
+    // Rule: convert(eFrom, eTo, x, conv) if x.elem <:< eFrom  ==>  conv(x)
+    case Convert(eFrom: Elem[from], eTo: Elem[to], x,  conv) if x.elem <:< eFrom =>
+      conv(x)
 
     case _ => super.rewriteDef(d)
   }

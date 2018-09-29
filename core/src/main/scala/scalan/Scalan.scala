@@ -22,7 +22,6 @@ class Scalan
   with UniversalOps
   with Functions
   with IfThenElse
-  with Blocks
   with PatternMatching
   with Transforming
   with Analyzing

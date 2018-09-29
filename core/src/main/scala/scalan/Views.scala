@@ -495,11 +495,9 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
 
   def defaultUnpackTester(e: Elem[_]) = true //e match { case pe: PairElem[_,_] => false case _ => true }
 
-  val performUnapplyViews: Boolean = true
-
   object HasViews {
     def unapply[T](s: Exp[T]): Option[Unpacked[T]] =
-      if (performUnapplyViews)
+      if (performViewsLifting)
         unapplyViews(s)
       else None
   }
@@ -590,7 +588,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     lazy val iso = sumIso(iso1, iso2)
   }
 
-  override def rewriteDef[T](d: Def[T]) = d match {
+  override def rewriteViews[T](d: Def[T]) = d match {
     // Rule: (V(a, iso1), V(b, iso2)) ==> V((a,b), PairIso(iso1, iso2))
     case Tup(HasViews(a, iso1: Iso[a, c]), HasViews(b, iso2: Iso[b, d])) =>
       PairView((a.asRep[a], b.asRep[b]), iso1, iso2)
@@ -602,18 +600,6 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     // Rule: (a, V(b, iso2)) ==> V((a,b), PairIso(id, iso2))
     case Tup(a: Rep[a], HasViews(b, iso2: Iso[b, d])) =>
       PairView((a, b.asRep[b]), identityIso(a.elem), iso2).self
-
-    // Rule: V(a, iso1) ; V(b, iso2)) ==> iso2.to(a ; b)
-    case block@Semicolon(HasViews(a, iso1: Iso[a, c]), HasViews(b, iso2: Iso[b, d])) =>
-      iso2.to(Semicolon(a.asRep[a], b.asRep[b]))
-
-    // Rule: a ; V(b, iso2)) ==> iso2.to(a ; b)
-    case block@Semicolon(a: Rep[a], HasViews(b, iso2: Iso[b, d])) =>
-      iso2.to(Semicolon(a, b.asRep[b]))
-
-    // Rule: V(a, iso1) ; b ==> a ; b
-    case block@Semicolon(HasViews(a, iso1: Iso[a, c]), b: Rep[b]) =>
-      Semicolon(a.asRep[a], b)
 
     // Rule: PairView(source, iso1, _)._1  ==> iso1.to(source._1)
     case First(Def(view@PairView(source,_,_))) =>
@@ -658,7 +644,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
       val loopRes = LoopUntil(start1, step1, isMatch1)
       iso.to(loopRes)
 
-    case _ => super.rewriteDef(d)
+    case _ => super.rewriteViews(d)
   }
 }
 

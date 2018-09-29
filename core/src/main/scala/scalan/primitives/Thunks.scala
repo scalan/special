@@ -259,9 +259,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     def unapply(s: Sym): Option[Rep[_]] = s match { case Def(d) => unapply(d) case _ => None }
   }
 
-  override def rewriteDef[T](d: Def[T]) = d match {
-    case ThunkForce(ConstantThunk(root)) => root
-    case ApplyBinOpLazy(op, l, ConstantThunk(root)) => op.apply(l, root)
+  override def rewriteViews[T](d: Def[T]) = d match {
     case th @ ThunkDef(HasViews(srcRes, iso: Iso[a,b]), _) => {
       implicit val eA = iso.eFrom
       implicit val eB = iso.eTo
@@ -273,6 +271,12 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
       implicit val eA = innerIso.eFrom
       innerIso.to(srcTh.asRep[Thunk[a]].force)
     }
+    case _ => super.rewriteViews(d)
+  }
+
+  override def rewriteDef[T](d: Def[T]) = d match {
+    case ThunkForce(ConstantThunk(root)) => root
+    case ApplyBinOpLazy(op, l, ConstantThunk(root)) => op.apply(l, root)
     case _ => super.rewriteDef(d)
   }
 

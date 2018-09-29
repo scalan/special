@@ -168,22 +168,6 @@ trait TypeSum extends Base { self: Scalan =>
       implicit val eT = eRes.eSnd
       foldD.sum.foldBy(foldD.left >> fun(_._2), foldD.right >> fun(_._2))
 
-    // Rule: Left[A,B](V(a, iso)) ==> V(Left(a), SumIso(iso, iso[B]))
-    case l@SLeft(HasViews(a, iso: Iso[a1, b1])) =>
-      val eR = l.eRight
-      getIsoByElem(eR) match {
-        case iso1: Iso[a2, b2] =>
-          SumView(a.asRep[a1].asLeft(iso1.eFrom))(iso, iso1).self
-      }
-
-    // Rule: Right[A,B](V(a, iso)) ==> V(Right(a), SumIso(iso[A], iso))
-    case r@SRight(HasViews(a, iso: Iso[a1, b1])) =>
-      val eL = r.eLeft
-      getIsoByElem(eL) match {
-        case iso1: Iso[a2, b2] =>
-          SumView(a.asRep[a1].asRight(iso1.eFrom))(iso1, iso).self
-      }
-
     case SumMap(Def(SRight(x)), f: RFunc[_, b]@unchecked, g) =>
       g(x).asRight[b](f.elem.eRange)
 
@@ -198,12 +182,6 @@ trait TypeSum extends Base { self: Scalan =>
 
     case f@SumFold(Def(m: SumMap[a0, b0, a, b]), left, right) =>
       m.sum.foldBy(left << m.left, right << m.right)
-
-    case foldD@SumFold(sum,
-                       LambdaResultHasViews(left, iso1: Iso[a, c]),
-                       LambdaResultHasViews(right, iso2: Iso[_, _])) if iso1 == iso2 =>
-      val newFold = liftFromSumFold(sum, left, right, iso1)
-      newFold
 
     case foldD: SumFold[a, b, T] => foldD.sum match {
       // Rule: fold(if (c) t else e, l, r) ==> if (c) fold(t, l, r) else fold(e, l, r)
@@ -235,15 +213,6 @@ trait TypeSum extends Base { self: Scalan =>
       case _ => super.rewriteDef(d)
     }
 
-    // Rule:
-    case call@MethodCall(
-      Def(foldD@SumFold(sum,
-          LambdaResultHasViews(left, iso1: Iso[a, c]),
-          LambdaResultHasViews(right, iso2: Iso[_, _]))),
-      m, args, neverInvoke) if iso1 == iso2 =>
-      val newFold = liftFromSumFold(foldD.sum, foldD.left, foldD.right, iso1)
-      mkMethodCall(newFold, m, args, neverInvoke, call.selfType)
-
     case call@MethodCall(Def(foldD@SumFold(sum, left, right)), m, args, neverInvoke) => {
       implicit val resultElem: Elem[T] = d.selfType
       def copyMethodCall(newReceiver: Sym) =
@@ -258,4 +227,37 @@ trait TypeSum extends Base { self: Scalan =>
     case _ => super.rewriteDef(d)
   }
 
+  override def rewriteViews[T](d: Def[T]) = d match {
+    // Rule: Left[A,B](V(a, iso)) ==> V(Left(a), SumIso(iso, iso[B]))
+    case l@SLeft(HasViews(a, iso: Iso[a1, b1])) =>
+      val eR = l.eRight
+      getIsoByElem(eR) match {
+        case iso1: Iso[a2, b2] =>
+          SumView(a.asRep[a1].asLeft(iso1.eFrom))(iso, iso1).self
+      }
+
+    // Rule: Right[A,B](V(a, iso)) ==> V(Right(a), SumIso(iso[A], iso))
+    case r@SRight(HasViews(a, iso: Iso[a1, b1])) =>
+      val eL = r.eLeft
+      getIsoByElem(eL) match {
+        case iso1: Iso[a2, b2] =>
+          SumView(a.asRep[a1].asRight(iso1.eFrom))(iso1, iso).self
+      }
+
+    case foldD@SumFold(sum,
+          LambdaResultHasViews(left, iso1: Iso[a, c]),
+          LambdaResultHasViews(right, iso2: Iso[_, _])) if iso1 == iso2 =>
+      val newFold = liftFromSumFold(sum, left, right, iso1)
+      newFold
+
+    // Rule:
+    case call@MethodCall(
+          Def(foldD@SumFold(sum,
+          LambdaResultHasViews(left, iso1: Iso[a, c]),
+          LambdaResultHasViews(right, iso2: Iso[_, _]))), m, args, neverInvoke) if iso1 == iso2 =>
+      val newFold = liftFromSumFold(foldD.sum, foldD.left, foldD.right, iso1)
+      mkMethodCall(newFold, m, args, neverInvoke, call.selfType)
+
+    case _ => super.rewriteViews(d)
+  }
 }

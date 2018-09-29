@@ -147,6 +147,18 @@ trait IfThenElse extends Base { self: Scalan =>
     }
   }
 
+  override def rewriteViews[T](d: Def[T]) = d match {
+    // Rule: if (c) V(a, iso1) else V(b, iso2) when IsConvertible(iso1.eTo, iso2.eTo) ==>
+    case IfThenElseHasViewsWithConvertibleBranches(
+          cond, thenp, elsep, iso1: Iso[a, c], iso2: Iso[b, d], cTo, cFrom) =>
+      val c = cond
+      val t = thenp.asRep[a]
+      val e = elsep.asRep[b]
+      liftFromIfThenElse(c, t, e, iso1, iso2, cTo.asRep[Converter[c,d]], cFrom.asRep[Converter[d,c]])
+
+    case _ => super.rewriteViews(d)
+  }
+
   override def rewriteDef[T](d: Def[T]) = d match {
     // Rule: if (true) t else e ==> t
     case IfThenElse(Def(Const(true)), t, _) => t
@@ -160,13 +172,6 @@ trait IfThenElse extends Base { self: Scalan =>
     // Rule: if (!c) t else e ==> if (c) e else t
     case IfThenElse(Def(ApplyUnOp(not, c: Rep[Boolean @unchecked])), t, e) if not == Not => ifThenElse(c, e, t)
 
-    // Rule: if (c) V(a, iso1) else V(b, iso2) when IsConvertible(iso1.eTo, iso2.eTo) ==>
-    case IfThenElseHasViewsWithConvertibleBranches(
-           cond, thenp, elsep, iso1: Iso[a, c], iso2: Iso[b, d], cTo, cFrom) =>
-      val c = cond
-      val t = thenp.asRep[a]
-      val e = elsep.asRep[b]
-      liftFromIfThenElse(c, t, e, iso1, iso2, cTo.asRep[Converter[c,d]], cFrom.asRep[Converter[d,c]])
 
     // Rule: (if (c1) t1 else e1, if (c2) t2 else e2) when c1 == c2 ==> if (c1) (t1, t2) else (e1, e2)
     case Tup(Def(IfThenElse(c1, t1, e1)), Def(IfThenElse(c2, t2, e2))) if c1 == c2 =>

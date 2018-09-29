@@ -55,7 +55,7 @@ trait RewriteRuleSuite[A] extends BaseShouldTests {
     val test = testExpr()
     val rewritten = rule(test)
     rewritten match {
-      case Some(res) =>
+      case res if res != null =>
         ctx.emitDepGraph(List(Pair(test, res)), folder, "LemmaRule/originalAndRewritten")(GraphVizConfig.default)
       case _ =>
         fail("should apply pattern")
