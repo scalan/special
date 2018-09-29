@@ -55,21 +55,11 @@ trait AstGraphs extends Transforming { self: Scalan =>
       }
       else sch
 
-    def schedule: Schedule = {
-      if (boundVars.isEmpty)
-        buildScheduleForResult(roots, _.getDeps)
-      else
-      if (isIdentity) Nil
-      else {
-        val g = new PGraph(roots)
-        val scope = getScope(g, boundVars)
-        scope
-      }
-    }
+    def schedule: Schedule
 
-    def scheduleFrom(x: immutable.Set[Sym]): Schedule = {
-      val locals = GraphUtil.depthFirstSetFrom[Sym](x)(sym => usagesOf(sym).filter(domain.contains))
-      schedule.filter(locals contains _.sym)
+    def scheduleFrom(vars: immutable.Set[Sym]): Schedule = {
+      val locals = GraphUtil.depthFirstSetFrom[Sym](vars)(sym => usagesOf(sym).filter(domain.contains))
+      schedule.filter(te => locals.contains(te.sym) && !te.sym.isVar)
     }
 
     lazy val scheduleSyms = schedule.map { _.sym }
@@ -346,7 +336,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
     val lambdas = startNodes.flatMap(_.lambda).toSet
 
     def succ(tp: TableEntry[_]): Schedule = {
-      val ns = neighbours(tp.sym).filterNot(lambdas.contains)
+      val ns = neighbours(tp.sym).filterNot(s => lambdas.contains(s) || s.isVar)
       ns.flatMap { e =>
         findDefinition(e).toList
       }

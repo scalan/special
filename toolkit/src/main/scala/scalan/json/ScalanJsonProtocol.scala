@@ -44,7 +44,7 @@ class ScalanJsonProtocol[C <: Scalan](val ctx: C) extends DefaultJsonProtocol wi
       case d: ApplyUnOp[_, _] => d.op.opName
       case d: ApplyBinOp[_, _] => d.op.opName
       case d: MethodCall => d.getClass.getSimpleName
-      case First(_) | Second(_) => d.getClass.getSimpleName
+      case First(_) | Second(_) | Variable(_) => d.getClass.getSimpleName
       case _ => ctx.!!!(s"Don't know how to get opName for $d")
     }
     private def addDef(opName: String, args: Seq[Sym], eRes: Element): Sym = (opName, args, eRes) match {
@@ -67,6 +67,9 @@ class ScalanJsonProtocol[C <: Scalan](val ctx: C) extends DefaultJsonProtocol wi
 //              case x => ctx.!!!(s"MethodCall with non-Sym argument $x is not supported for Json serialization of $d")
 //            }}
         JsArray(params.map(JsString(_)) :+ elementFormat.write(sym.elem): _*)
+      case Def(d @ Variable(id)) =>
+        val str = s"${opName(d)}(s${id})"
+        JsArray(JsString(str), elementFormat.write(d.selfType))
       case Def(d) =>
         val args = syms(d).map(mapSym(_))
         val str = s"${opName(d)}(${args.rep()})"
@@ -97,9 +100,13 @@ class ScalanJsonProtocol[C <: Scalan](val ctx: C) extends DefaultJsonProtocol wi
         val s = toRep(value)(e)
         s
       case JsDef(opName, argIds, eRes) =>
-        val argSyms = argIds.map(idToSym(_))
-        val s = addDef(opName, argSyms, eRes)
-        s
+        if (opName == "Variable") {
+          reifyObject(Variable(argIds.head)(Lazy(eRes)))
+        } else {
+          val argSyms = argIds.map(idToSym(_))
+          val s = addDef(opName, argSyms, eRes)
+          s
+        }
       case _ => deserializationError(s"Cannot read Def from $json")
     }
   }

@@ -140,7 +140,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
     def scheduleForResult(root: Exp[Any]): Schedule = {
       val bodySet = body.map(_.sym).toSet
-      buildScheduleForResult(Seq(root), _.getDeps.filter(bodySet.contains(_)))
+      buildScheduleForResult(Seq(root), _.getDeps.filter(s => bodySet.contains(s) && !s.isVar))
     }
 
     def findDef[T](d: Def[T]): Option[TableEntry[T]] = {
@@ -191,7 +191,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     val eTh = newThunkSym.elem  // force lazy value in newThunkSym (see Lazy above)
     thunkStack.endScope()
 
-    val scheduled = newScope.scheduleForResult(res)
+    val scheduled = if (res.isVar) Nil else newScope.scheduleForResult(res)
 
     val newThunk = ThunkDef(res, scheduled)
     toExp(newThunk, newThunkSym)

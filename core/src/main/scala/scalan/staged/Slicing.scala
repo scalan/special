@@ -219,7 +219,7 @@ trait Slicing extends Scalan {
     def |/|[R](key: KeyPath, inner: SliceMarking[R]) = !!!(s"Inner marking is not possible for base type ${elem}")
     def projectToExp(x: Exp[T]): Sym = x
     def projectedElem: Elem[_] = elem
-    def makeSlot = fresh[T](Lazy(elem))
+    def makeSlot = variable[T](Lazy(elem))
     def set(slot: Exp[T], value: Sym) = {
       assert(value.elem == elem)
       value.asRep[T]
@@ -465,7 +465,7 @@ trait Slicing extends Scalan {
     val projectedElem: Elem[_] =
       funcElement(mDom.projectedElem, mRange.projectedElem)
     def makeSlot: Exp[A => B] =
-      SlicedFunc(fresh(Lazy(funcElement(mDom.projectedElem, mRange.projectedElem))), this)
+      SlicedFunc(variable(Lazy(funcElement(mDom.projectedElem, mRange.projectedElem))), this)
     def set(slot: Exp[A => B], value: Sym) = slot match {
       case Def(sf: SlicedFunc[a, b, a1, b1]) =>
         SlicedFunc(value.asRep[a1 => b1], this)
@@ -520,7 +520,7 @@ trait Slicing extends Scalan {
     }
 
     def makeSlot =
-      SlicedTraversable(fresh(Lazy(projectedElem)), innerMark, cF)
+      SlicedTraversable(variable(Lazy(projectedElem)), innerMark, cF)
 
     def set(slot: Exp[F[T]], value: Sym) = slot match {
       case Def(sliced: SlicedTraversable[T, a, F] @unchecked) =>
@@ -577,7 +577,7 @@ trait Slicing extends Scalan {
         }
     }
 
-    def makeSlot = SlicedThunk(fresh(Lazy(projectedElem)), this)
+    def makeSlot = SlicedThunk(variable(Lazy(projectedElem)), this)
     def set(slot: Exp[Thunk[A]], value: Sym) = slot match {
       case Def(sf: SlicedThunk[a, a1]) =>
         SlicedThunk(value.asRep[Thunk[a1]], this)

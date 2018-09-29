@@ -31,10 +31,10 @@ trait RewriteRules extends Base { self: Scalan =>
     def <=>(y: Rep[A]): Rep[Rewrite[A]] = self.mkRewrite(x, y)
   }
 
-  def postulate[A:Elem, R](p: Rep[A] => RRewrite[R]): RRewrite[R] = p(fresh[A])
-  def postulate[A:Elem, B:Elem, R](p: (Rep[A], Rep[B]) => RRewrite[R]): RRewrite[R] = p(fresh[A], fresh[B])
+  def postulate[A:Elem, R](p: Rep[A] => RRewrite[R]): RRewrite[R] = p(variable[A])
+  def postulate[A:Elem, B:Elem, R](p: (Rep[A], Rep[B]) => RRewrite[R]): RRewrite[R] = p(variable[A], variable[B])
   def postulate[A:Elem, B:Elem, C:Elem, R](p: (Rep[A], Rep[B], Rep[C]) => RRewrite[R]): RRewrite[R] =
-    p(fresh[A], fresh[B], fresh[C])
+    p(variable[A], variable[B], variable[C])
 
   //hotspot: need to avoid allocations
   override def rewrite[T](s: Exp[T]): Sym = {

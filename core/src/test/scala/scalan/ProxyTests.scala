@@ -23,7 +23,7 @@ class ProxyTests extends BaseCtxTests {
       val (paramClasses, realParams) = params.unzip
       val method = clazz.getMethod(name, paramClasses: _*)
       val receiverElem = elemFromType(tpe, Map.empty, definitions.NothingTpe)
-      val receiver = fresh(Lazy(receiverElem))
+      val receiver = variable(Lazy(receiverElem))
       val actualResultElem = getResultElem(receiver, method, realParams.toList)
 
       assertResult(expectedResultElem)(actualResultElem)

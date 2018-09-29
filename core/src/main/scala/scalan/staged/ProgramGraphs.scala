@@ -14,7 +14,10 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
     override def boundVars = Nil
     override def freeVars = Set()
-    override lazy val schedule = super.schedule
+    override lazy val schedule = {
+      buildScheduleForResult(roots, _.getDeps)
+    }
+
 
     def transform(m: Mirror[Ctx], rw: Rewriter, t: Ctx): ProgramGraph[Ctx] = {
       val t0 = t merge mapping

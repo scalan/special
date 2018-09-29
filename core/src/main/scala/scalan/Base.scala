@@ -275,7 +275,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     private[scalan] def isRecursive_=(b: Boolean) = { isRec = b }
 
     def isVar: Boolean = this match {
-      case Def(_) => false
+      case Def(d) => d.isInstanceOf[Variable[_]]
       case _ => true
     }
 
@@ -298,6 +298,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
   abstract class BaseDef[+T](implicit val selfType: Elem[T @uncheckedVariance]) extends Def[T]
 
   case class Const[T](x: T)(implicit val eT: Elem[T]) extends BaseDef[T]
+
+  case class Variable[T](id: Int)(implicit eT: LElem[T]) extends Def[T] {
+    def selfType: Elem[T] = eT.value
+  }
+  def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](SingleSym.freshId)
 
   abstract class Transformer {
     def apply[A](x: Rep[A]): Rep[A]
@@ -632,12 +637,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
     */
   object SingleSym {
     private var currId = 0
-    def fresh[T: LElem]: Rep[T] = {
+    def freshId: Int = { currId += 1; currId }
+    def freshSym[T: LElem]: Rep[T] = {
       currId += 1
       SingleSym(currId)
     }
   }
-  case class SingleSym[+T](id: Int)(implicit private val eT: LElem[T @uncheckedVariance]) extends Rep[T] {
+  case class SingleSym[+T](id: Int)(implicit private val eT: LElem[T @uncheckedVariance]) extends Exp[T] {
     override def elem: Elem[T @uncheckedVariance] = this match {
       case Def(d) => d.selfType
       case _ => eT.value
@@ -649,7 +655,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def toStringWithDefinition = toStringWithType + definition.map(d => s" = $d").getOrElse("")
   }
 
-  def fresh[T: LElem]: Rep[T] = SingleSym.fresh[T]
+  def fresh[T: LElem]: Rep[T] = SingleSym.freshSym[T]
 
   case class TableEntrySingle[T](sym: Rep[T], rhs: Def[T], lambda: Option[Rep[_]]) extends TableEntry[T]
 
@@ -659,7 +665,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def unapply[T](tp: TableEntry[T]): Option[(Rep[T], Def[T])] = Some((tp.sym, tp.rhs))
     //def unapply[T](s: Rep[T]): Option[TableEntry[T]] = findDefinition(s)
   }
-  protected val globalThunkSym: Rep[_] = fresh[Int] // we could use any type here
+
+  //TODO replace with Variable once symbols are merged with Defs
+  protected lazy val globalThunkSym: Rep[_] = fresh[Int] // we could use any type here
+
   private[this] val expToGlobalDefs: mutable.Map[Rep[_], TableEntry[_]] = mutable.HashMap.empty
   private[this] val defToGlobalDefs: mutable.Map[(Rep[_], Def[_]), TableEntry[_]] = mutable.HashMap.empty
 

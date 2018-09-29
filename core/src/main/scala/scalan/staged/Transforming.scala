@@ -164,7 +164,7 @@ trait Transforming { self: Scalan =>
 
     // every mirrorXXX method should return a pair (t + (v -> v1), v1)
     protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Exp[A]): (Ctx, Sym) = {
-      val newVar = fresh(Lazy(mirrorElem(v)))
+      val newVar = variable(Lazy(mirrorElem(v)))
       val (t1, mirroredMetadata) = mirrorMetadata(t, v, newVar)
       setAllMetadata(newVar, mirroredMetadata)
       (t1 + (v -> newVar), newVar)

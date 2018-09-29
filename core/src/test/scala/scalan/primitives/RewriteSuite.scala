@@ -25,7 +25,7 @@ class RewriteSuite extends BaseTests {
   }
 
   test("One-sided constant propagation") {
-    val x = fresh[Boolean]
+    val x = variable[Boolean]
 
     (x && true) shouldEqual x
 
@@ -33,7 +33,7 @@ class RewriteSuite extends BaseTests {
 
     (x === false) shouldEqual !x
 
-    val num = fresh[Double]
+    val num = variable[Double]
 
     (num * 1.0) shouldEqual num
 

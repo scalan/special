@@ -57,7 +57,14 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     val boundVars = List(x)
     val roots = List(y)
     override lazy val freeVars = super.freeVars
-    override lazy val schedule = super.schedule
+    override lazy val  schedule: Schedule = {
+      if (isIdentity) Nil
+      else {
+        val g = new PGraph(roots)
+        val scope = getScope(g, boundVars)
+        scope
+      }
+    }
 
     def isGlobalLambda: Boolean =
       freeVars.forall { x =>
@@ -146,7 +153,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   protected def matchExps(s1: Sym, s2: Sym, allowInexactMatch: Boolean, subst: Subst): Option[Subst] = s1 match {
     case _ if s1 == s2 || subst.get(s1) == Some(s2) || subst.get(s2) == Some(s1) =>
       Some(subst)
-    case Def(d1) => s2 match {
+    case Def(d1) if !d1.isInstanceOf[Variable[_]] => s2 match {
       case Def(d2) =>
         matchDefs(d1, d2, allowInexactMatch, subst).map(_ + (s1 -> s2))
       case _ => None
@@ -256,13 +263,13 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   //   Function reification
 
   def mkLambda[A,B](f: Exp[A] => Exp[B], mayInline: Boolean)(implicit eA: LElem[A]): Exp[A=>B] = {
-    val x = fresh[A]
+    val x = variable[A]
     lambda(x)(f, mayInline)
   }
 
   def mkLambda[A,B,C](f: Rep[A]=>Rep[B]=>Rep[C])
                      (implicit eA: LElem[A], eB: Elem[B]): Rep[A=>B=>C] = {
-    val y = fresh[B]
+    val y = variable[B]
     mkLambda((a: Rep[A]) => lambda(y)((b:Rep[B]) => f(a)(b), true), true)
   }
 
