@@ -79,9 +79,10 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     cachedElem[ThunkElem[T]](eItem)
   implicit def extendThunkElement[T](elem: Elem[Thunk[T]]): ThunkElem[T] = elem.asInstanceOf[ThunkElem[T]]
 
-  case class ThunkDef[A](val root: Exp[A], override val schedule: Schedule)
+  class ThunkDef[A](val root: Exp[A], _schedule: =>Schedule)
     extends BaseDef[Thunk[A]]()(thunkElement(root.elem)) with AstGraph with Product {
     implicit val eA: Elem[A] = root.elem
+    override lazy val schedule: Schedule = _schedule
     // structural equality pattern implementation
     override lazy val hashCode: Int = 41 * (41 + root.hashCode) + schedule.hashCode
     override def equals(other: Any) =
@@ -106,11 +107,16 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     override lazy val freeVars = super.freeVars
     val roots = List(root)
   }
+  object ThunkDef {
+    def unapply(d: ThunkDef[_]): Option[(Rep[T], Schedule) forSome {type T}] = d match {
+      case th: ThunkDef[_] => Some((th.root, th.schedule))
+      case _ => None
+    }
+  }
 
   override def transformDef[A](d: Def[A], t: Transformer) = d match {
     case thunk: ThunkDef[a] =>
       implicit lazy val eA = thunk.eA
-      val newSym = fresh[Thunk[a]]
       val newSchedule = for {
         tp <- thunk.schedule
         res <- t(tp.sym) match {
@@ -118,7 +124,8 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
           case _ => Nil
         }
       } yield res
-      val newThunk = ThunkDef(t(thunk.root), newSchedule)
+      val newThunk = new ThunkDef(t(thunk.root), newSchedule)
+      val newSym = newThunk.self
       toExp(newThunk, newSym)
     case _ => super.transformDef(d, t)
   }
@@ -180,20 +187,20 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   }
 
   def thunk_create[A](block: => Rep[A]): Rep[Thunk[A]] = {
-    var eA: Elem[A] = null // will be known after block is evaluated
-    val newThunkSym = fresh[Thunk[A]](Lazy{ thunkElement(eA) })
+    var schedule: Schedule = null
+    val resPH = placeholder(Lazy(AnyElement)).asRep[A] // will be known after block is evaluated
+    val newThunk = new ThunkDef(resPH, { assert(schedule != null); schedule })
+    val newThunkSym = newThunk.self
 
     val newScope = thunkStack.beginScope(newThunkSym)
     // execute block and add all new definitions to the top scope (see createDefinition)
     // reify all the effects during block execution
     val res = reifyEffects(block)
-    eA = res.elem
-    val eTh = newThunkSym.elem  // force lazy value in newThunkSym (see Lazy above)
+    resPH.assignDefFrom(res)
+    schedule = if (res.isVar) Nil else newScope.scheduleForResult(res)
+
+    val sh = newThunk.schedule  // force lazy value in newThunk (see Lazy above)
     thunkStack.endScope()
-
-    val scheduled = if (res.isVar) Nil else newScope.scheduleForResult(res)
-
-    val newThunk = ThunkDef(res, scheduled)
     toExp(newThunk, newThunkSym)
   }
 
@@ -263,7 +270,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     case th @ ThunkDef(HasViews(srcRes, iso: Iso[a,b]), _) => {
       implicit val eA = iso.eFrom
       implicit val eB = iso.eTo
-      val newTh = Thunk { iso.from(forceThunkDefByMirror(th)) }   // execute original th as part of new thunk
+      val newTh = Thunk { iso.from(forceThunkDefByMirror(th.asInstanceOf[ThunkDef[b]])) }   // execute original th as part of new thunk
       ThunkView(newTh)(iso)
     }
     case ThunkForce(HasViews(srcTh, Def(iso: ThunkIso[a, b]))) => {

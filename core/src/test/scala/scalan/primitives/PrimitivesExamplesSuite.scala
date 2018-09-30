@@ -9,11 +9,7 @@ import scalan.compilation.GraphVizExport
 
 class PrimitivesExamplesSuite extends BaseShouldTests {
 
-  def seq = new Scalan with PrimitiveExamples {}
   def staged = new Scalan with PrimitiveExamples {}
-  "Examples trait" should "be mixable in Seq context" in {
-      val ctx = seq
-  }
   it should "be mixable in Staged context" in {
     val ctx = staged
   }

@@ -28,10 +28,9 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     sameArgFun(f) { x => h(f(x), g(x)) }
   }
 
-  class Lambda[A, B](val f: Option[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], private val self0: Rep[A => B], val mayInline: Boolean)
+  class Lambda[A, B](val f: Option[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean)
                     (implicit val eA: Elem[A] = x.elem, val eB: Elem[B] = y.elem)
     extends BaseDef[A => B] with AstGraph with Product { thisLambda =>
-    override lazy val self = self0
 
     // ensure all lambdas of the same type have the same hashcode,
     // so they are tested for alpha-equivalence
@@ -83,9 +82,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   override def transformDef[A](d: Def[A], t: Transformer) = d match {
     case l: Lambda[a, b] =>
-      import l.{eA, eB}
-      val newSym = fresh[a => b]
-      val newLam = new Lambda(None, t(l.x), t(l.y), newSym, l.mayInline)
+      val newLam = new Lambda(None, t(l.x), t(l.y), l.mayInline)
+      val newSym = newLam.self
       toExp(newLam, newSym).asRep[A]
     case _ => super.transformDef(d, t)
   }
@@ -283,12 +281,17 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   private def lambda[A,B](x: Rep[A])(f: Exp[A] => Exp[B], mayInline: Boolean)(implicit leA: LElem[A]): Exp[A=>B] = {
     implicit val eA = leA.value
-    var eB: Elem[B] = null // will be known after f is executed
-    val fSym = fresh[A => B](Lazy { assert(eB != null); funcElement(eA, eB) })
-    val y = reifyEffects(executeFunction(f, x, fSym))
-    eB = y.elem
-    val eF = fSym.elem // force lazy value in sSym
-    reifyFunction0(f, x, y, fSym, mayInline)
+
+    // ySym will be assigned after f is executed
+    val ySym = placeholder(Lazy(AnyElement)).asRep[B]
+
+    val lam = new Lambda(Some(f), x, ySym, mayInline)
+    val lamSym = lam.self
+
+    val y = reifyEffects(executeFunction(f, x, lamSym))
+    ySym.assignDefFrom(y)
+
+    findOrCreateDefinition(lam, lamSym)
   }
 
   class LambdaStack {
@@ -318,11 +321,6 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         fs.isRecursive = true
         Apply(fs.asInstanceOf[Exp[A=>B]], x)
     }
-  }
-
-  private def reifyFunction0[A, B](fun: Exp[A] => Exp[B], x: Exp[A], y: Exp[B], fSym: Exp[A => B], mayInline: Boolean): Exp[A => B] = {
-    val lam = new Lambda(Some(fun), x, y, fSym, mayInline)
-    findOrCreateDefinition(lam, fSym)
   }
 
   def identityFun[A](implicit e: Elem[A]) = fun[A, A](x => x)

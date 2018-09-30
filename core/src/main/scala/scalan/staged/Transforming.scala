@@ -188,12 +188,12 @@ trait Transforming { self: Scalan =>
       (t2 + (node -> res), res)
     }
 
-    protected def getMirroredLambdaSym[A, B](node: Exp[A => B]): Sym = fresh(Lazy(mirrorElem(node)))
+    protected def getMirroredLambdaSym[A, B](node: Exp[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
 
     // require: should be called after oldlam.schedule is mirrored
     private def getMirroredLambdaDef(t: Ctx, newLambdaSym: Sym, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
       val newVar = t(oldLam.x)
-      val newLambdaDef = new Lambda(None, newVar, newRoot, newLambdaSym.asRep[Any=>Any], oldLam.mayInline)
+      val newLambdaDef = new Lambda(None, newVar, newRoot, oldLam.mayInline)
       newLambdaDef
     }
 
@@ -255,7 +255,10 @@ trait Transforming { self: Scalan =>
     }
 
     protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Exp[Thunk[A]], thunk: ThunkDef[A]): (Ctx, Sym) = {
-      val newThunkSym = fresh(Lazy(mirrorElem(node)))
+      var schedulePH: Schedule = null
+      val newRootPH = placeholder(Lazy(node.elem.eItem))
+      val newThunk = new ThunkDef(newRootPH, { assert(schedulePH != null); schedulePH })
+      val newThunkSym = newThunk.self
 
       thunkStack.beginScope(newThunkSym)
       val schedule = thunk.scheduleSyms
@@ -263,8 +266,9 @@ trait Transforming { self: Scalan =>
       thunkStack.endScope()
 
       val newRoot = t1(thunk.root)
-      val newThunk = ThunkDef(newRoot, newSchedule.map { case DefTableEntry(te) => te })
-
+      newRootPH.assignDefFrom(newRoot)
+      schedulePH = newSchedule.map { case DefTableEntry(te) => te }
+      
       createDefinition(newThunkSym, newThunk)
       (t1 + (node -> newThunkSym), newThunkSym)
     }

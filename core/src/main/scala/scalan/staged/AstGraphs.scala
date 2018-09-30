@@ -234,7 +234,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
         val tbody = ts.filter(tp => !(eSet.contains(tp.sym) || cSet.contains(tp.sym) || isUsedBeforeIf(tp.sym)))
         val ebody = es.filter(tp => !(tSet.contains(tp.sym) || cSet.contains(tp.sym) || isUsedBeforeIf(tp.sym)))
 
-        IfBranches(thisGraph, ifSym, ThunkDef(t, tbody), ThunkDef(e, ebody))
+        IfBranches(thisGraph, ifSym, new ThunkDef(t, tbody), new ThunkDef(e, ebody))
       }
 
       def assignBranch(sym: Sym, ifSym: Sym, thenOrElse: Boolean) = {
@@ -313,8 +313,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
       val thenClean = thenBody.schedule.filter(tp => assignments(tp.sym).ifSym == ifSym)
       val elseClean = elseBody.schedule.filter(tp => assignments(tp.sym).ifSym == ifSym)
       IfBranches(graph, ifSym,
-        ThunkDef(thenBody.root, thenClean),
-        ThunkDef(elseBody.root, elseClean))
+        new ThunkDef(thenBody.root, thenClean),
+        new ThunkDef(elseBody.root, elseClean))
     }
     override def toString = {
       val Def(IfThenElse(cond,_,_)) = ifSym

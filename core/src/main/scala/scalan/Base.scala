@@ -16,6 +16,11 @@ import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil}
 import scala.reflect.runtime.universe._
 
+class ValOpt[+T](val d: T) extends AnyVal {
+  @inline def isEmpty = false
+  @inline def get: T = d
+}
+
 /**
   * The Base trait houses common AST nodes. It also manages a list of encountered Definitions which
   * allows for common sub-expression elimination (CSE).
@@ -52,8 +57,15 @@ trait Base extends LazyLogging { scalan: Scalan =>
   implicit def liftToRep[A:Elem](x: A): Rep[A] = toRep(x)
 
   trait Def[+T] extends Product {
+    /** Unique id of the node. Initially undefined, should be defined after Def is added to the graph.
+      * Doesn't participate in equality of this Def.
+      * Use only to provide global Def numbering. */
+    private [scalan] var nodeId: Int = 0
+    @inline private [scalan] def assignId(): Unit = {
+      nodeId = SingleSym.freshId
+    }
     def selfType: Elem[T @uncheckedVariance]
-    lazy val self: Rep[T] = reifyObject(this)
+    lazy val self: Rep[T] = symbolOf(this)
 
     override def equals(other: Any) = other match {
       // check that nodes correspond to same operation, have the same type, and the same arguments
@@ -151,7 +163,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   object Def {
-    def unapply[T](e: Rep[T]): Option[Def[T]] = def_unapply(e)
+    def unapply[T](e: Rep[T]): ValOpt[Def[T]] = def_unapply(e)
   }
   object && {
     def unapply[T](x: T): Option[(T,T)] = Some((x, x))
@@ -269,10 +281,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
   abstract class Exp[+T] {
     def elem: Elem[T @uncheckedVariance]
     def varName: String
-
+    def rhs: Def[T]
     private[scalan] var isRec = false
     def isRecursive: Boolean = isRec
     private[scalan] def isRecursive_=(b: Boolean) = { isRec = b }
+    private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit
 
     def isVar: Boolean = this match {
       case Def(d) => d.isInstanceOf[Variable[_]]
@@ -299,10 +312,17 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   case class Const[T](x: T)(implicit val eT: Elem[T]) extends BaseDef[T]
 
-  case class Variable[T](id: Int)(implicit eT: LElem[T]) extends Def[T] {
+  case class Variable[T](varId: Int)(implicit eT: LElem[T]) extends Def[T] {
     def selfType: Elem[T] = eT.value
   }
   def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](SingleSym.freshId)
+
+  /** Symbols may temporary refer to this node until their target node is updated. */
+  case class Placeholder[T](eT: LElem[T]) extends Def[T] {
+    def selfType: Elem[T] = eT.value
+  }
+
+  def placeholder[T](implicit eT: LElem[T]): Rep[T] = SingleSym.freshSym[T](Placeholder[T](eT))
 
   abstract class Transformer {
     def apply[A](x: Rep[A]): Rep[A]
@@ -442,7 +462,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   implicit def reifyObject[A](obj: Def[A]): Rep[A] = {
-    toExp(obj, fresh[A](Lazy(obj.selfType)))
+    toExp(obj, obj.self)
   }
 
   def reifyEffects[A](block: => Exp[A]): Exp[A] = block
@@ -473,7 +493,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case _ => delayInvoke
   }
 
-  def def_unapply[T](e: Rep[T]): Option[Def[T]] = findDefinition(e).map(_.rhs)
+  def def_unapply[T](e: Rep[T]): ValOpt[Def[T]] = new ValOpt(e.rhs)
 
   //  override def repDef_getElem[T <: Def[_]](x: Rep[T]): Elem[T] = x.elem
   //  override def rep_getElem[T](x: Rep[T]): Elem[T] = x.elem
@@ -637,25 +657,37 @@ trait Base extends LazyLogging { scalan: Scalan =>
     */
   object SingleSym {
     private var currId = 0
-    def freshId: Int = { currId += 1; currId }
-    def freshSym[T: LElem]: Rep[T] = {
-      currId += 1
-      SingleSym(currId)
+    @inline def freshId: Int = { currId += 1; currId }
+    @inline def freshSym[T](d: Def[T]): Rep[T] = {
+      new SingleSym(d)
     }
   }
-  case class SingleSym[+T](id: Int)(implicit private val eT: LElem[T @uncheckedVariance]) extends Exp[T] {
-    override def elem: Elem[T @uncheckedVariance] = this match {
-      case Def(d) => d.selfType
-      case _ => eT.value
+
+  /** Light weight stateless immutable reference to a graph node.
+    * Two symbols are equal if they refer to exactly the same instance of node.
+    * */
+  class SingleSym[+T](private var _rhs: Def[T @uncheckedVariance]) extends Exp[T] {
+    override def elem: Elem[T @uncheckedVariance] = _rhs.selfType
+    def rhs: Def[T] = _rhs
+
+    private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit = {
+      assert(sym.elem <:< elem, s"violated pre-condition ${sym.elem} <:< $elem")
+      _rhs = sym.rhs.asInstanceOf[Def[T]]
     }
-    def varName = "s" + id
+
+    def varName = "s" + _rhs.nodeId
     override def toString = varName
+    def toStringWithDefinition = toStringWithType + s" = ${_rhs}"
 
-    lazy val definition = findDefinition(this).map(_.rhs)
-    def toStringWithDefinition = toStringWithType + definition.map(d => s" = $d").getOrElse("")
+    override def equals(obj: scala.Any): Boolean = obj != null && (obj match {
+      case other: SingleSym[_] => _rhs eq other.rhs
+      case _ => false
+    })
+
+    override def hashCode(): Int = _rhs.hashCode
   }
 
-  def fresh[T: LElem]: Rep[T] = SingleSym.freshSym[T]
+  def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
 
   case class TableEntrySingle[T](sym: Rep[T], rhs: Def[T], lambda: Option[Rep[_]]) extends TableEntry[T]
 
@@ -667,7 +699,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   //TODO replace with Variable once symbols are merged with Defs
-  protected lazy val globalThunkSym: Rep[_] = fresh[Int] // we could use any type here
+  protected lazy val globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
   private[this] val expToGlobalDefs: mutable.Map[Rep[_], TableEntry[_]] = mutable.HashMap.empty
   private[this] val defToGlobalDefs: mutable.Map[(Rep[_], Def[_]), TableEntry[_]] = mutable.HashMap.empty
@@ -706,9 +738,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
     optScope match {
       case Some(scope) =>
+        te.rhs.assignId()
         defToGlobalDefs += (scope.thunkSym, te.rhs) -> te
         scope += te
       case None =>
+        te.rhs.assignId()
         defToGlobalDefs += (globalThunkSym, te.rhs) -> te
     }
 
