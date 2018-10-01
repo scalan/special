@@ -17,7 +17,7 @@ import scalan.util.{ParamMirror, ReflectionUtil}
 import scala.reflect.runtime.universe._
 
 class ValOpt[+T](val d: T) extends AnyVal {
-  @inline def isEmpty = false
+  @inline def isEmpty = d == null
   @inline def get: T = d
 }
 
@@ -60,10 +60,19 @@ trait Base extends LazyLogging { scalan: Scalan =>
     /** Unique id of the node. Initially undefined, should be defined after Def is added to the graph.
       * Doesn't participate in equality of this Def.
       * Use only to provide global Def numbering. */
-    private [scalan] var nodeId: Int = 0
+    private[scalan] var nodeId: Int = 0
     @inline private [scalan] def assignId(): Unit = {
+      assert(nodeId == 0, s"Definition $this has already been assigned with nodeId=$nodeId")
       nodeId = SingleSym.freshId
     }
+
+    private[scalan] var _tableEntry: TableEntry[T @uncheckedVariance] = _
+    @inline def tableEntry: TableEntry[T] = _tableEntry
+    @inline private[scalan] def tableEntry_=(te: TableEntry[T @uncheckedVariance]) = {
+      assert(_tableEntry == null, s"TableEntry already assigned for $this definition")
+      _tableEntry = te
+    }
+
     def selfType: Elem[T @uncheckedVariance]
     lazy val self: Rep[T] = symbolOf(this)
 
@@ -285,7 +294,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
     private[scalan] var isRec = false
     def isRecursive: Boolean = isRec
     private[scalan] def isRecursive_=(b: Boolean) = { isRec = b }
+    private[scalan] def assignDef[B >: T](sym: Def[B]): Unit
     private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit
+
+    def isPlaceholder: Boolean = rhs.isInstanceOf[Placeholder[_]]
 
     def isVar: Boolean = this match {
       case Def(d) => d.isInstanceOf[Variable[_]]
@@ -547,7 +559,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   object DefTableEntry {
-    def unapply[T](e: Rep[T]): Option[TableEntry[T]] = findDefinition(e)
+    def unapply[T](e: Rep[T]): ValOpt[TableEntry[T]] = new ValOpt(e.rhs.tableEntry)
   }
 
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
@@ -604,10 +616,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
       case Def(_: Lambda[_, _]) => true
       case _ => false
     }
-    def tp: TableEntry[_] = findDefinition(symbol).getOrElse {
-      !!!(s"No definition found for $symbol", symbol)
-    }
-    def sameScopeAs(other: Rep[_]): Boolean = this.tp.lambda == other.tp.lambda
   }
 
   implicit class DefForSomeOps(d: Def[_]) {
@@ -670,9 +678,12 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def elem: Elem[T @uncheckedVariance] = _rhs.selfType
     def rhs: Def[T] = _rhs
 
+    private[scalan] def assignDef[B >: T](d: Def[B]): Unit = {
+      assert(d.selfType <:< elem, s"violated pre-condition ${d.selfType} <:< $elem")
+      _rhs = d.asInstanceOf[Def[T]]
+    }
     private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit = {
-      assert(sym.elem <:< elem, s"violated pre-condition ${sym.elem} <:< $elem")
-      _rhs = sym.rhs.asInstanceOf[Def[T]]
+      assignDef(sym.rhs)
     }
 
     def varName = "s" + _rhs.nodeId
@@ -695,19 +706,16 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def apply[T](sym: Rep[T], rhs: Def[T]) = new TableEntrySingle(sym, rhs, None)
     def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]) = new TableEntrySingle(sym, rhs, Some(lam))
     def unapply[T](tp: TableEntry[T]): Option[(Rep[T], Def[T])] = Some((tp.sym, tp.rhs))
-    //def unapply[T](s: Rep[T]): Option[TableEntry[T]] = findDefinition(s)
   }
 
   //TODO replace with Variable once symbols are merged with Defs
   protected lazy val globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
-  private[this] val expToGlobalDefs: mutable.Map[Rep[_], TableEntry[_]] = mutable.HashMap.empty
   private[this] val defToGlobalDefs: mutable.Map[(Rep[_], Def[_]), TableEntry[_]] = mutable.HashMap.empty
 
-  def allSymbols = expToGlobalDefs.keys
 
   def findDefinition[T](s: Rep[T]): Option[TableEntry[T]] =
-    expToGlobalDefs.get(s).asInstanceOf[Option[TableEntry[T]]]
+    Option(s.rhs.tableEntry)
 
   def findDefinition[T](thunk: Rep[_], d: Def[T]): Option[TableEntry[T]] =
     defToGlobalDefs.get((thunk,d)).asInstanceOf[Option[TableEntry[T]]]
@@ -732,21 +740,18 @@ trait Base extends LazyLogging { scalan: Scalan =>
     createDefinition(thunkStack.top, s, d)
 
   private def createDefinition[T](optScope: Option[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
-    val te = lambdaStack.top match {
-      case Some(fSym) => TableEntry(s, d, fSym)
-      case _ => TableEntry(s, d)
-    }
+    val te = TableEntry(s, d)
     optScope match {
       case Some(scope) =>
         te.rhs.assignId()
+        te.rhs.tableEntry = te
         defToGlobalDefs += (scope.thunkSym, te.rhs) -> te
         scope += te
       case None =>
         te.rhs.assignId()
+        te.rhs.tableEntry = te
         defToGlobalDefs += (globalThunkSym, te.rhs) -> te
     }
-
-    expToGlobalDefs += te.sym -> te
     te
   }
 

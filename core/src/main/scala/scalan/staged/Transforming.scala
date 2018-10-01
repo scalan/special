@@ -191,7 +191,7 @@ trait Transforming { self: Scalan =>
     protected def getMirroredLambdaSym[A, B](node: Exp[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
 
     // require: should be called after oldlam.schedule is mirrored
-    private def getMirroredLambdaDef(t: Ctx, newLambdaSym: Sym, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
+    private def getMirroredLambdaDef(t: Ctx, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
       val newVar = t(oldLam.x)
       val newLambdaDef = new Lambda(None, newVar, newRoot, oldLam.mayInline)
       newLambdaDef
@@ -216,7 +216,8 @@ trait Transforming { self: Scalan =>
       })
 
       lambdaStack.pop
-      val newLambda = getMirroredLambdaDef(tRes, newLambdaSym, lam, newRoot)
+      val newLambda = getMirroredLambdaDef(tRes, lam, newRoot)
+      newLambdaSym.assignDef(newLambda)
       createDefinition(newLambdaSym, newLambda)
       val newLambdaExp = toExp(newLambda, newLambdaSym)
 

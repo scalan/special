@@ -29,9 +29,17 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   }
 
   class Lambda[A, B](val f: Option[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean)
-                    (implicit val eA: Elem[A] = x.elem, val eB: Elem[B] = y.elem)
-    extends BaseDef[A => B] with AstGraph with Product { thisLambda =>
-
+    extends Def[A => B] with AstGraph with Product { thisLambda =>
+    def eA = x.elem
+    def eB = y.elem
+    private var _selfType: Elem[A => B] = _
+    def selfType: Elem[A => B] =
+      if (_selfType != null) _selfType
+      else {
+        val res = funcElement(eA, eB)
+        if (!y.isPlaceholder) _selfType = res  // memoize once y is assigned
+        res
+      }
     // ensure all lambdas of the same type have the same hashcode,
     // so they are tested for alpha-equivalence
     override lazy val hashCode: Int = 41 * (41 + x.elem.hashCode) + y.elem.hashCode
@@ -280,7 +288,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   }
 
   private def lambda[A,B](x: Rep[A])(f: Exp[A] => Exp[B], mayInline: Boolean)(implicit leA: LElem[A]): Exp[A=>B] = {
-    implicit val eA = leA.value
+//    implicit val eA = leA.value
 
     // ySym will be assigned after f is executed
     val ySym = placeholder(Lazy(AnyElement)).asRep[B]

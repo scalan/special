@@ -80,17 +80,32 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   implicit def extendThunkElement[T](elem: Elem[Thunk[T]]): ThunkElem[T] = elem.asInstanceOf[ThunkElem[T]]
 
   class ThunkDef[A](val root: Exp[A], _schedule: =>Schedule)
-    extends BaseDef[Thunk[A]]()(thunkElement(root.elem)) with AstGraph with Product {
-    implicit val eA: Elem[A] = root.elem
+    extends Def[Thunk[A]] with AstGraph with Product {
+    // every Thunk instance have unique id (this is different from other nodes)
+    assignId()
+
+    override private[scalan] def assignId(): Unit = {
+      if (nodeId == 0) super.assignId()
+    }
+
+    implicit def eA: Elem[A] = root.elem
+    private var _selfType: Elem[Thunk[A]] = _
+    def selfType: Elem[Thunk[A]] =
+      if (_selfType != null) _selfType
+      else {
+        val res = thunkElement(eA)
+        if (!root.isPlaceholder) _selfType = res  // memoize once root is assigned
+        res
+      }
+
     override lazy val schedule: Schedule = _schedule
     // structural equality pattern implementation
-    override lazy val hashCode: Int = 41 * (41 + root.hashCode) + schedule.hashCode
+    override lazy val hashCode: Int = nodeId //41 * (41 + root.hashCode) + schedule.hashCode
     override def equals(other: Any) =
       other match {
-        case that: ThunkDef[_] =>
-          (that canEqual this) &&
-            (this.root equals that.root) &&
-            (this.schedule equals that.schedule)
+        case that: ThunkDef[_] => nodeId == that.nodeId
+//            (this.root equals that.root) &&
+//            (this.schedule equals that.schedule)
         case _ => false
       }
     override def toString = s"Th($root, [${scheduleSyms.mkString(",")}])"

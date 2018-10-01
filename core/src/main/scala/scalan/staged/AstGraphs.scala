@@ -332,11 +332,12 @@ trait AstGraphs extends Transforming { self: Scalan =>
   case class LambdaBranches(ifBranches: Map[Sym, IfBranches], assignments: Map[Sym, BranchPath])
 
   def buildScheduleForResult(st: Seq[Sym], neighbours: Sym => Seq[Sym]): Schedule = {
-    val startNodes = st.flatMap(e => findDefinition(e).toList)
-    val lambdas = startNodes.flatMap(_.lambda).toSet
+    val startNodes = st.collect { case DefTableEntry(te) => te }//st.flatMap(e => findDefinition(e).toList)
+//    val lambdas = startNodes.flatMap(_.lambda).toSet
 
     def succ(tp: TableEntry[_]): Schedule = {
-      val ns = neighbours(tp.sym).filterNot(s => lambdas.contains(s) || s.isVar)
+      assert(tp != null, s"Null TableEntry when buildScheduleForResult($st)")
+      val ns = neighbours(tp.sym).filterNot(s => /*lambdas.contains(s) ||*/ s.isVar)
       ns.flatMap { e =>
         findDefinition(e).toList
       }

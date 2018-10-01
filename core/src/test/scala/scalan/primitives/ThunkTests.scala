@@ -123,7 +123,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
         assert(isInlineThunksOnForce, "precondition for tests");
         {
           val Def(Lambda(_, _, x, Def(th@ThunkDef(res, sch)))) = t11
-          assert(sch.size == 3 && th.freeVars.contains(x) && th.freeVars.size == 1)
+          assert(sch.size == 2 && th.freeVars.contains(x) && th.freeVars.size == 2)
         }
       }
     }
