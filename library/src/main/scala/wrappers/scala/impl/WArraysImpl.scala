@@ -60,7 +60,9 @@ object WArray extends EntityObject("WArray") {
   private val _ArrayWrapSpec = new ArrayWrapSpec
   // entityProxy: single proxy for each type family
   implicit def proxyWArray[T](p: Rep[WArray[T]]): WArray[T] = {
-    proxyOps[WArray[T]](p)(scala.reflect.classTag[WArray[T]])
+    if (p.rhs.isInstanceOf[WArray[_]]) p.rhs.asInstanceOf[WArray[T]]
+    else
+      proxyOps[WArray[T]](p)(scala.reflect.classTag[WArray[T]])
   }
 
   implicit def castWArrayElement[T](elem: Elem[WArray[T]]): WArrayElem[T, WArray[T]] =
@@ -145,7 +147,10 @@ object WArray extends EntityObject("WArray") {
     override def toString = "WArray"
   }
   implicit def proxyWArrayCompanionCtor(p: Rep[WArrayCompanionCtor]): WArrayCompanionCtor =
-    proxyOps[WArrayCompanionCtor](p)
+    if (p.rhs.isInstanceOf[WArrayCompanionCtor])
+      p.rhs.asInstanceOf[WArrayCompanionCtor]
+    else
+      proxyOps[WArrayCompanionCtor](p)
 
   lazy val RWArray: Rep[WArrayCompanionCtor] = new WArrayCompanionCtor {
     def fill[T](n: Rep[Int], elem: Rep[Thunk[T]]): Rep[WArray[T]] = {

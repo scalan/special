@@ -1,4 +1,6 @@
 package special.collection {
+  import java.lang.reflect.Method
+
   import scalan._
 
   trait ColsOverArrays extends Base { self: Library =>
@@ -41,8 +43,12 @@ package special.collection {
       def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = ColOverArray.this.builder.apply[A, B](this, ys);
       @NeverInline def append(other: Rep[Col[A]]): Rep[Col[A]] = delayInvoke
     };
+    def getMethod(obj: Any, name: String, argTypes: Seq[Class[_]]): Method = {
+      obj.getClass.getMethod(name, argTypes:_*)
+    }
     abstract class ColOverArrayBuilder extends BaseColBuilder {
-      @NeverInline override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke
+      @NeverInline override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] =
+        mkMethodCall(self, getMethod(this, "fromArray", Seq(classOf[Rep[_]])), List(arr), true, colElement(arr.elem.eItem)).asRep[Col[T]]
     };
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       override def builder: Rep[ColBuilder] = RColOverArrayBuilder();

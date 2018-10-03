@@ -64,7 +64,9 @@ object Col extends EntityObject("Col") {
 
   // entityProxy: single proxy for each type family
   implicit def proxyCol[A](p: Rep[Col[A]]): Col[A] = {
-    proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
+    if (p.rhs.isInstanceOf[Col[_]]) p.rhs.asInstanceOf[Col[A]]
+    else
+      proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
   }
 
   implicit def castColElement[A](elem: Elem[Col[A]]): ColElem[A, Col[A]] =
@@ -528,7 +530,9 @@ object ColBuilder extends EntityObject("ColBuilder") {
 
   // entityProxy: single proxy for each type family
   implicit def proxyColBuilder(p: Rep[ColBuilder]): ColBuilder = {
-    proxyOps[ColBuilder](p)(scala.reflect.classTag[ColBuilder])
+    if (p.rhs.isInstanceOf[ColBuilder]) p.rhs.asInstanceOf[ColBuilder]
+    else
+      proxyOps[ColBuilder](p)(scala.reflect.classTag[ColBuilder])
   }
 
   // familyElem

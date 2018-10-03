@@ -177,6 +177,10 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     proxy.asInstanceOf[Ops]
   }
 
+  def isDescMethod(m: Method): Boolean = {
+    classOf[TypeDesc].isAssignableFrom(m.getReturnType)
+  }
+
   private def findInvokableMethod[A](receiver: Sym, m: Method, args: Array[AnyRef])
                                     (onInvokeSuccess: AnyRef => A)
                                     (onInvokeException: Throwable => A)
@@ -197,33 +201,31 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       } catch {
         case e: Exception => onInvokeException(baseCause(e))
       }
-    receiver match {
-      case Def(d) =>
-        @tailrec
-        def findMethodLoop(m: Method): Option[Method] =
-          if (shouldInvoke(d, m, args))
-            Some(m)
-          else
-            getSuperMethod(m) match {
-              case None =>
-                None
-              case Some(superMethod) =>
-                findMethodLoop(superMethod)
-            }
-
-        findMethodLoop(m) match {
-          case Some(m1) =>
-            tryInvoke(d, m1)
+    val d = receiver.rhs
+    @tailrec
+    def findMethodLoop(m: Method): Option[Method] =
+      if (shouldInvoke(d, m, args))
+        Some(m)
+      else
+        getSuperMethod(m) match {
           case None =>
-            tryInvokeElem(d.selfType)
+            None
+          case Some(superMethod) =>
+            findMethodLoop(superMethod)
         }
-      case _ =>
-        // when receiver is Lambda variable (there is no Def) it still has Elem,
-        // so when we are accessing one of the descriptior properties
-        // we can find a method in the elem with the same name and use it to return requested desciptor
-        // TODO check invariant that all the nodes and their elems have equal descriptors
-        val e = receiver.elem
-        tryInvokeElem(e)
+
+    findMethodLoop(m) match {
+      case Some(m1) =>
+        tryInvoke(d, m1)
+      case None =>
+        if (isDescMethod(m)) {
+          // when receiver is Lambda variable (there is no Def) it still has Elem,
+          // so when we are accessing one of the descriptior properties
+          // we can find a method in the elem with the same name and use it to return requested desciptor
+          // TODO check invariant that all the nodes and their elems have equal descriptors
+          tryInvokeElem(d.selfType)
+        } else
+          onNoMethodFound
     }
   }
 
@@ -767,7 +769,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       def mkMethodCall(neverInvoke: Boolean) =
         Proxy.this.mkMethodCall(receiver, m, args.toList, neverInvoke)
 
-      val res = findInvokableMethod(receiver, m, args)(identity) {
+      val res = findInvokableMethod(receiver, m, args)(identity)({
         case ExternalMethodException(className, methodName) =>
           mkMethodCall(neverInvoke = true)
             .setMetadata(externalClassNameMetaKey)(className)
@@ -776,9 +778,9 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
           mkMethodCall(neverInvoke = false)
         case cause =>
           throwInvocationException("Method invocation", cause, receiver, m, args)
-      } {
+      })({
         mkMethodCall(neverInvoke = false)
-      }
+      })
       res
     }
   }

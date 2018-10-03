@@ -3,6 +3,7 @@ package scalanizer.collections
 import scala.language.reflectiveCalls
 import special.wrappers.WrappersModule
 import scalan._
+import scalan.util.BenchmarkUtil._
 
 class ColsTests extends BaseCtxTests {
   class Ctx extends TestContext with Library {
@@ -32,6 +33,26 @@ class ColsTests extends BaseCtxTests {
     ctx.test()
     ctx.emit("t2", ctx.t2)
     ctx.emit("t3", ctx.t3)
+  }
+
+  test("measure: create proxy") {
+    val ctx = new Ctx {
+      override val performViewsLifting = false
+    }
+    import ctx._
+    import Col._
+    import ColBuilder._
+    import ColOverArrayBuilder._
+
+    val colBuilder: Rep[ColBuilder] = RColOverArrayBuilder()
+    var res: Sym = null
+    measure(10) { i =>
+      for (j <- 0 until 30000) {
+        val col = colBuilder.replicate(i*j, 0)
+        res = col.map(fun {x => x + 1})
+      }
+    }
+    emit("res", res)
   }
 
 }

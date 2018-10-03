@@ -2,18 +2,10 @@ package scalanizer.collections
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls
+import scalan.util.BenchmarkUtil._
 
 class CostedTests extends BaseCostedTests {
 
-  def measure[T](nIters: Int)(action: Int => Unit): Unit = {
-    for (i <- 1 to nIters) {
-      val start = System.currentTimeMillis()
-      val res = action(i)
-      val end = System.currentTimeMillis()
-      val iterTime = end - start
-      println(s"Iter $i: $iterTime ms")
-    }
-  }
   lazy val ctx = new Ctx { }
   import ctx._
   import WArray._
