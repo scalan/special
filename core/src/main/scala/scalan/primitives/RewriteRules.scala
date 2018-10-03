@@ -73,10 +73,15 @@ trait RewriteRules extends Base { self: Scalan =>
 
   case class PatternRewriteRule[A](lhs: Rep[A], rhs: Rep[A], eA: Elem[A]) extends RewriteRule[A] {
     val g = new PGraph(rhs)
-
-    def apply(s: Exp[A]): Sym = patternMatch(lhs, s).fold[Sym](null) { subst =>
-      val g1 = g.transform(DefaultMirror, NoRewriting, new MapTransformer(subst))
-      g1.roots.head
+    import scalan.util.CollectionUtil._
+    
+    def apply(s: Exp[A]): Sym = {
+      val optSubst = patternMatch(lhs, s)
+      if (optSubst.isDefined) {
+        val subst = optSubst.get
+        val g1 = g.transform(DefaultMirror, NoRewriting, new MapTransformer(subst.toImmutableMap))
+        g1.roots.head
+      } else null
     }
   }
 

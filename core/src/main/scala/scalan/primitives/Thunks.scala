@@ -3,7 +3,7 @@ package scalan.primitives
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{Lazy, ViewsModule, Scalan}
+import scalan.{Lazy, ViewsModule, Scalan, ValOpt}
 import scala.reflect.runtime.universe._
 import scalan.meta.TypeDesc
 import scalan.util.Covariant
@@ -262,12 +262,14 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 //    case _ => super.effectSyms(x)
 //  }
 
-  override protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): Option[Subst] = d1 match {
+  override protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = d1 match {
     case ThunkDef(root1, sch1) => d2 match {
       case ThunkDef(root2, sch2) =>
-        matchIterators(sch1.iterator.map(_.sym), sch2.iterator.map(_.sym), allowInexactMatch, subst).
-            flatMap(matchExps(root1, root2, allowInexactMatch, _))
-      case _ => None
+        var res = matchIterators(sch1.iterator.map(_.sym), sch2.iterator.map(_.sym), allowInexactMatch, subst)
+        if (res.isDefined)
+          res = matchExps(root1, root2, allowInexactMatch, res.get)
+        res
+      case _ => ValOpt.None
     }
     case _ =>
       super.matchDefs(d1, d2, allowInexactMatch, subst)

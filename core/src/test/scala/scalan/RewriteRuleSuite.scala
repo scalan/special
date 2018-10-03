@@ -3,6 +3,7 @@ package scalan
 import java.io.File
 
 import scalan.compilation.{GraphVizExport, GraphVizConfig}
+import scalan.util.CollectionUtil._
 
 /**
  * Base trait for testing specific rewrite rules
@@ -41,8 +42,8 @@ trait RewriteRuleSuite[A] extends BaseShouldTests {
     val ctx = getCtx
     import ctx._
     patternMatch(rule.lhs, testExpr()) match {
-      case Some(subst) =>
-        subst should not be(Map.empty)
+      case ValOpt(subst) =>
+        subst.toImmutableMap should not be(Map.empty)
       case _ =>
         fail("should recognize pattern")
     }

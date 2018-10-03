@@ -1,7 +1,9 @@
 package scalan.primitives
 
+import java.util
+
 import scalan.staged.ProgramGraphs
-import scalan.{Base, Scalan, Lazy}
+import scalan.{ValOpt, Lazy, Base, Scalan}
 import scala.collection.mutable
 import scala.language.implicitConversions
 
@@ -46,7 +48,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     override def equals(other: Any) =
       other match {
         case that: Lambda[_,_] =>
-          (that canEqual this) && matchLambdas(this, that, false, Map.empty).isDefined
+          (that canEqual this) && matchLambdas(this, that, false, emptyMatchSubst).isDefined
         case _ => false
       }
     override def toString = s"Lambda(${if (f.isDefined) "f is Some" else "f is None"}, $x => $y})"
@@ -150,70 +152,81 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def argsTree = getLambda.argsTree
   }
 
-  type Subst = Map[Sym, Sym]
+  type Subst = java.util.HashMap[Sym, Sym]
+  @inline def emptyMatchSubst: Subst = new util.HashMap[Sym,Sym]()
 
-  def alphaEqual(s1: Sym, s2: Sym): Boolean = matchExps(s1, s2, false, Map.empty).isDefined
+  def alphaEqual(s1: Sym, s2: Sym): Boolean = matchExps(s1, s2, false, emptyMatchSubst).isDefined
 
-  def patternMatch(s1: Sym, s2: Sym): Option[Subst] = matchExps(s1, s2, true, Map.empty)
+  def patternMatch(s1: Sym, s2: Sym): ValOpt[Subst] = matchExps(s1, s2, true, emptyMatchSubst)
 
-  protected def matchExps(s1: Sym, s2: Sym, allowInexactMatch: Boolean, subst: Subst): Option[Subst] = s1 match {
-    case _ if s1 == s2 || subst.get(s1) == Some(s2) || subst.get(s2) == Some(s1) =>
-      Some(subst)
+  protected def matchExps(s1: Sym, s2: Sym, allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = s1 match {
+    case _ if s1 == s2 || subst.get(s1) == s2 || subst.get(s2) == s1 =>
+      ValOpt(subst)
     case Def(d1) if !d1.isInstanceOf[Variable[_]] => s2 match {
       case Def(d2) =>
-        matchDefs(d1, d2, allowInexactMatch, subst).map(_ + (s1 -> s2))
-      case _ => None
+        val res = matchDefs(d1, d2, allowInexactMatch, subst)
+        if (res.isDefined) {
+          res.get.put(s1, s2)
+        }
+        res
+      case _ => ValOpt.None
     }
     case _ =>
-      if (allowInexactMatch && !subst.contains(s1)) {
-        Some(subst + (s1 -> s2))
+      if (allowInexactMatch && !subst.containsKey(s1)) {
+        subst.put(s1, s2)
+        ValOpt(subst)
       } else {
-        None
+        ValOpt.None
       }
   }
 
   @inline
-  private def matchLambdas(lam1: Lambda[_, _], lam2: Lambda[_, _], allowInexactMatch: Boolean, subst: Subst) =
-    if (lam1.x.elem == lam2.x.elem)
-      matchExps(lam1.y, lam2.y, allowInexactMatch, subst + (lam1.x -> lam2.x))
+  private def matchLambdas(lam1: Lambda[_, _], lam2: Lambda[_, _], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] =
+    if (lam1.x.elem == lam2.x.elem) {
+      subst.put(lam1.x, lam2.x)
+      matchExps(lam1.y, lam2.y, allowInexactMatch, subst)
+    }
     else
-      None
+      ValOpt.None
 
-  protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): Option[Subst] = d1 match {
+  protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = d1 match {
     case lam1: Lambda[_, _] => d2 match {
       case lam2: Lambda[_, _] =>
         matchLambdas(lam1, lam2, allowInexactMatch, subst)
-      case _ => None
+      case _ => ValOpt.None
     }
     case _ =>
       if (d1.getClass == d2.getClass && d1.productArity == d2.productArity && d1.selfType.name == d2.selfType.name) {
         matchIterators(d1.productIterator, d2.productIterator, allowInexactMatch, subst)
       } else
-        None
+        ValOpt.None
   }
 
   // generalize to Seq or Iterable if we get nodes with deps of these types
-  protected def matchIterators(i1: Iterator[_], i2: Iterator[_], allowInexactMatch: Boolean, subst: Subst): Option[Subst] =
+  protected def matchIterators(i1: Iterator[_], i2: Iterator[_], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] =
     if (i1.hasNext) {
       if (i2.hasNext) {
-        matchAny(i1.next(), i2.next(), allowInexactMatch, subst).flatMap(matchIterators(i1, i2, allowInexactMatch, _))
-      } else None
+        var res = matchAny(i1.next(), i2.next(), allowInexactMatch, subst)
+        if (res.isDefined)
+          res = matchIterators(i1, i2, allowInexactMatch, res.get)
+        res
+      } else ValOpt.None
     } else {
-      if (i2.hasNext) None else Some(subst)
+      if (i2.hasNext) ValOpt.None else ValOpt(subst)
     }
 
-  protected def matchAny(a1: Any, a2: Any, allowInexactMatch: Boolean, subst: Subst): Option[Subst] = a1 match {
+  protected def matchAny(a1: Any, a2: Any, allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = a1 match {
     case s1: Sym => a2 match {
       case s2: Sym =>
         matchExps(s1, s2, allowInexactMatch, subst)
-      case _ => None
+      case _ => ValOpt.None
     }
     case l1: Iterable[_] => a2 match {
       case l2: Iterable[_] =>
         matchIterators(l1.iterator, l2.iterator, allowInexactMatch, subst)
-      case _ => None
+      case _ => ValOpt.None
     }
-    case _ => if (a1 == a2) Some(subst) else None
+    case _ => if (a1 == a2) ValOpt(subst) else ValOpt.None
   }
 
   //=====================================================================================

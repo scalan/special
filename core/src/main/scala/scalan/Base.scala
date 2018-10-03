@@ -19,8 +19,13 @@ import scala.reflect.runtime.universe._
 class ValOpt[+T](val d: T) extends AnyVal {
   @inline def isEmpty = d == null
   @inline def get: T = d
+  @inline def isDefined = d != null
 }
-
+object ValOpt {
+  val None: ValOpt[Null] = (new ValOpt(null))
+  def apply[T](x: T): ValOpt[T] = new ValOpt(x)
+  def unapply[T](opt: ValOpt[T]): ValOpt[T] = opt
+}
 /**
   * The Base trait houses common AST nodes. It also manages a list of encountered Definitions which
   * allows for common sub-expression elimination (CSE).

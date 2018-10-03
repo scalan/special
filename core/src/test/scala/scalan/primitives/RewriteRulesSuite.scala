@@ -4,7 +4,8 @@ import java.io.File
 import java.lang.reflect.Method
 
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{BaseShouldTests, Scalan}
+import scalan.{BaseShouldTests, Scalan, ValOpt}
+import scalan.util.CollectionUtil._
 
 class RewriteRulesSuite extends BaseShouldTests {
 
@@ -36,8 +37,8 @@ class RewriteRulesSuite extends BaseShouldTests {
     val lam = testFunc.getLambda
     ctx.emitDepGraph(List(rule.lhs, testFunc), prefix, "LemmaRule/patternAndTestFunc")(GraphVizConfig.default)
     patternMatch(rule.lhs, lam.y) match {
-      case Some(subst) =>
-        subst should not be(Map.empty)
+      case ValOpt(subst) =>
+        subst.toImmutableMap should not be(Map.empty)
       case _ => 
         fail("should recognize pattern")
     }

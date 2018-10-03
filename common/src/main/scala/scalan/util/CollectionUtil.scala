@@ -2,6 +2,7 @@ package scalan.util
 
 import java.util
 import java.util.Objects
+import java.util.function.BiConsumer
 
 import scala.collection.{Seq, mutable, GenIterable}
 import scala.collection.mutable.{HashMap, ArrayBuffer}
@@ -147,6 +148,14 @@ object CollectionUtil {
   }
 
   implicit class ListOps[A](source: List[A]) {
+  }
+
+  implicit class HashMapOps[K,V](source: java.util.HashMap[K,V]) {
+    def toImmutableMap: Map[K,V] = {
+      var res = Map[K,V]()
+      source.forEach((t: K, u: V) => res = res + (t -> u))
+      res
+    }
   }
 
   implicit class TraversableOps[A, Source[X] <: GenIterable[X]](xs: Source[A]) {
