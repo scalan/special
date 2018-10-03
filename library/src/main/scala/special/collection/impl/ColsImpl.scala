@@ -167,14 +167,14 @@ object Col extends EntityObject("Col") {
 
   object ColMethods {
     object builder {
-      def unapply(d: Def[_]): Option[Rep[Col[A]] forSome {type A}] = d match {
+      def unapply(d: Def[_]): ValOpt[Rep[Col[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "builder" =>
-          Some(receiver).asInstanceOf[Option[Rep[Col[A]] forSome {type A}]]
-        case _ => None
+          ValOpt(receiver).asInstanceOf[ValOpt[Rep[Col[A]] forSome {type A}]]
+        case _ => ValOpt.None
       }
-      def unapply(exp: Sym): Option[Rep[Col[A]] forSome {type A}] = exp match {
+      def unapply(exp: Sym): ValOpt[Rep[Col[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => ValOpt.None
       }
     }
 
@@ -227,26 +227,26 @@ object Col extends EntityObject("Col") {
     }
 
     object map {
-      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "map" =>
-          Some((receiver, f)).asInstanceOf[Option[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "map" =>
+          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => ValOpt.None
       }
-      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => ValOpt.None
       }
     }
 
     object zip {
-      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(ys, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "zip" =>
-          Some((receiver, ys)).asInstanceOf[Option[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "zip" =>
+          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
+        case _ => ValOpt.None
       }
-      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => ValOpt.None
       }
     }
 
@@ -323,14 +323,14 @@ object Col extends EntityObject("Col") {
     }
 
     object sum {
-      def unapply(d: Def[_]): Option[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(m, _*), _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "sum" =>
-          Some((receiver, m)).asInstanceOf[Option[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "sum" =>
+          Some((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}]]
+        case _ => ValOpt.None
       }
-      def unapply(exp: Sym): Option[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => ValOpt.None
       }
     }
 

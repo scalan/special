@@ -269,26 +269,26 @@ object WArray extends EntityObject("WArray") {
     }
 
     object map {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
-        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "map" =>
-          Some((receiver, f)).asInstanceOf[Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "map" =>
+          Some((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
+        case _ => ValOpt.None
       }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = exp match {
+      def unapply(exp: Sym): ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => ValOpt.None
       }
     }
 
     object zip {
-      def unapply(d: Def[_]): Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
-        case MethodCall(receiver, method, Seq(ys, _*), _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "zip" =>
-          Some((receiver, ys)).asInstanceOf[Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "zip" =>
+          Some((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
+        case _ => ValOpt.None
       }
-      def unapply(exp: Sym): Option[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = exp match {
+      def unapply(exp: Sym): ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => ValOpt.None
       }
     }
   }
