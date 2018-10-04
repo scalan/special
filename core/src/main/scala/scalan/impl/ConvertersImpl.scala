@@ -21,7 +21,9 @@ import NaturalConverter._
 object Converter extends EntityObject("Converter") {
   // entityProxy: single proxy for each type family
   implicit def proxyConverter[T, R](p: Rep[Converter[T, R]]): Converter[T, R] = {
-    proxyOps[Converter[T, R]](p)(scala.reflect.classTag[Converter[T, R]])
+    if (p.rhs.isInstanceOf[Converter[T, R]@unchecked]) p.rhs.asInstanceOf[Converter[T, R]]
+    else
+      proxyOps[Converter[T, R]](p)(scala.reflect.classTag[Converter[T, R]])
   }
 
   // familyElem
@@ -171,7 +173,10 @@ object IdentityConv extends EntityObject("IdentityConv") {
   lazy val IdentityConvRep: Rep[IdentityConvCompanionCtor] = new IdentityConvCompanionCtor
   lazy val RIdentityConv: IdentityConvCompanionCtor = proxyIdentityConvCompanion(IdentityConvRep)
   implicit def proxyIdentityConvCompanion(p: Rep[IdentityConvCompanionCtor]): IdentityConvCompanionCtor = {
-    proxyOps[IdentityConvCompanionCtor](p)
+    if (p.rhs.isInstanceOf[IdentityConvCompanionCtor])
+      p.rhs.asInstanceOf[IdentityConvCompanionCtor]
+    else
+      proxyOps[IdentityConvCompanionCtor](p)
   }
 
   implicit case object IdentityConvCompanionElem extends CompanionElem[IdentityConvCompanionCtor] {
@@ -304,7 +309,10 @@ implicit lazy val eR = convFun.elem.eRange
   lazy val BaseConverterRep: Rep[BaseConverterCompanionCtor] = new BaseConverterCompanionCtor
   lazy val RBaseConverter: BaseConverterCompanionCtor = proxyBaseConverterCompanion(BaseConverterRep)
   implicit def proxyBaseConverterCompanion(p: Rep[BaseConverterCompanionCtor]): BaseConverterCompanionCtor = {
-    proxyOps[BaseConverterCompanionCtor](p)
+    if (p.rhs.isInstanceOf[BaseConverterCompanionCtor])
+      p.rhs.asInstanceOf[BaseConverterCompanionCtor]
+    else
+      proxyOps[BaseConverterCompanionCtor](p)
   }
 
   implicit case object BaseConverterCompanionElem extends CompanionElem[BaseConverterCompanionCtor] {
@@ -447,7 +455,10 @@ implicit val eB2 = p._2.eR
   lazy val PairConverterRep: Rep[PairConverterCompanionCtor] = new PairConverterCompanionCtor
   lazy val RPairConverter: PairConverterCompanionCtor = proxyPairConverterCompanion(PairConverterRep)
   implicit def proxyPairConverterCompanion(p: Rep[PairConverterCompanionCtor]): PairConverterCompanionCtor = {
-    proxyOps[PairConverterCompanionCtor](p)
+    if (p.rhs.isInstanceOf[PairConverterCompanionCtor])
+      p.rhs.asInstanceOf[PairConverterCompanionCtor]
+    else
+      proxyOps[PairConverterCompanionCtor](p)
   }
 
   implicit case object PairConverterCompanionElem extends CompanionElem[PairConverterCompanionCtor] {
@@ -603,7 +614,10 @@ implicit val eB2 = p._2.eR
   lazy val SumConverterRep: Rep[SumConverterCompanionCtor] = new SumConverterCompanionCtor
   lazy val RSumConverter: SumConverterCompanionCtor = proxySumConverterCompanion(SumConverterRep)
   implicit def proxySumConverterCompanion(p: Rep[SumConverterCompanionCtor]): SumConverterCompanionCtor = {
-    proxyOps[SumConverterCompanionCtor](p)
+    if (p.rhs.isInstanceOf[SumConverterCompanionCtor])
+      p.rhs.asInstanceOf[SumConverterCompanionCtor]
+    else
+      proxyOps[SumConverterCompanionCtor](p)
   }
 
   implicit case object SumConverterCompanionElem extends CompanionElem[SumConverterCompanionCtor] {
@@ -753,7 +767,10 @@ implicit val eC = p._1.eR
   lazy val ComposeConverterRep: Rep[ComposeConverterCompanionCtor] = new ComposeConverterCompanionCtor
   lazy val RComposeConverter: ComposeConverterCompanionCtor = proxyComposeConverterCompanion(ComposeConverterRep)
   implicit def proxyComposeConverterCompanion(p: Rep[ComposeConverterCompanionCtor]): ComposeConverterCompanionCtor = {
-    proxyOps[ComposeConverterCompanionCtor](p)
+    if (p.rhs.isInstanceOf[ComposeConverterCompanionCtor])
+      p.rhs.asInstanceOf[ComposeConverterCompanionCtor]
+    else
+      proxyOps[ComposeConverterCompanionCtor](p)
   }
 
   implicit case object ComposeConverterCompanionElem extends CompanionElem[ComposeConverterCompanionCtor] {
@@ -891,7 +908,10 @@ implicit lazy val eB = itemConv.eR
   lazy val FunctorConverterRep: Rep[FunctorConverterCompanionCtor] = new FunctorConverterCompanionCtor
   lazy val RFunctorConverter: FunctorConverterCompanionCtor = proxyFunctorConverterCompanion(FunctorConverterRep)
   implicit def proxyFunctorConverterCompanion(p: Rep[FunctorConverterCompanionCtor]): FunctorConverterCompanionCtor = {
-    proxyOps[FunctorConverterCompanionCtor](p)
+    if (p.rhs.isInstanceOf[FunctorConverterCompanionCtor])
+      p.rhs.asInstanceOf[FunctorConverterCompanionCtor]
+    else
+      proxyOps[FunctorConverterCompanionCtor](p)
   }
 
   implicit case object FunctorConverterCompanionElem extends CompanionElem[FunctorConverterCompanionCtor] {
@@ -1025,7 +1045,10 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   lazy val NaturalConverterRep: Rep[NaturalConverterCompanionCtor] = new NaturalConverterCompanionCtor
   lazy val RNaturalConverter: NaturalConverterCompanionCtor = proxyNaturalConverterCompanion(NaturalConverterRep)
   implicit def proxyNaturalConverterCompanion(p: Rep[NaturalConverterCompanionCtor]): NaturalConverterCompanionCtor = {
-    proxyOps[NaturalConverterCompanionCtor](p)
+    if (p.rhs.isInstanceOf[NaturalConverterCompanionCtor])
+      p.rhs.asInstanceOf[NaturalConverterCompanionCtor]
+    else
+      proxyOps[NaturalConverterCompanionCtor](p)
   }
 
   implicit case object NaturalConverterCompanionElem extends CompanionElem[NaturalConverterCompanionCtor] {

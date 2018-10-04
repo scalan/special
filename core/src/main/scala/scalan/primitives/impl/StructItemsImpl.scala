@@ -20,7 +20,9 @@ import StructItemBase._
 object StructItem extends EntityObject("StructItem") {
   // entityProxy: single proxy for each type family
   implicit def proxyStructItem[Val, Schema <: Struct](p: Rep[StructItem[Val, Schema]]): StructItem[Val, Schema] = {
-    proxyOps[StructItem[Val, Schema]](p)(scala.reflect.classTag[StructItem[Val, Schema]])
+    if (p.rhs.isInstanceOf[StructItem[Val, Schema]@unchecked]) p.rhs.asInstanceOf[StructItem[Val, Schema]]
+    else
+      proxyOps[StructItem[Val, Schema]](p)(scala.reflect.classTag[StructItem[Val, Schema]])
   }
 
   // familyElem
@@ -173,7 +175,10 @@ implicit val eSchema = p._1.eSchema
   lazy val StructItemBaseRep: Rep[StructItemBaseCompanionCtor] = new StructItemBaseCompanionCtor
   lazy val RStructItemBase: StructItemBaseCompanionCtor = proxyStructItemBaseCompanion(StructItemBaseRep)
   implicit def proxyStructItemBaseCompanion(p: Rep[StructItemBaseCompanionCtor]): StructItemBaseCompanionCtor = {
-    proxyOps[StructItemBaseCompanionCtor](p)
+    if (p.rhs.isInstanceOf[StructItemBaseCompanionCtor])
+      p.rhs.asInstanceOf[StructItemBaseCompanionCtor]
+    else
+      proxyOps[StructItemBaseCompanionCtor](p)
   }
 
   implicit case object StructItemBaseCompanionElem extends CompanionElem[StructItemBaseCompanionCtor] {

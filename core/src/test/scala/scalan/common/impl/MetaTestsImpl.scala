@@ -69,7 +69,9 @@ object MetaTest extends EntityObject("MetaTest") {
 
   // entityProxy: single proxy for each type family
   implicit def proxyMetaTest[T](p: Rep[MetaTest[T]]): MetaTest[T] = {
-    proxyOps[MetaTest[T]](p)(scala.reflect.classTag[MetaTest[T]])
+    if (p.rhs.isInstanceOf[MetaTest[T]@unchecked]) p.rhs.asInstanceOf[MetaTest[T]]
+    else
+      proxyOps[MetaTest[T]](p)(scala.reflect.classTag[MetaTest[T]])
   }
 
   // familyElem
@@ -229,7 +231,10 @@ object MT0 extends EntityObject("MT0") {
   lazy val MT0Rep: Rep[MT0CompanionCtor] = new MT0CompanionCtor
   lazy val RMT0: MT0CompanionCtor = proxyMT0Companion(MT0Rep)
   implicit def proxyMT0Companion(p: Rep[MT0CompanionCtor]): MT0CompanionCtor = {
-    proxyOps[MT0CompanionCtor](p)
+    if (p.rhs.isInstanceOf[MT0CompanionCtor])
+      p.rhs.asInstanceOf[MT0CompanionCtor]
+    else
+      proxyOps[MT0CompanionCtor](p)
   }
 
   implicit case object MT0CompanionElem extends CompanionElem[MT0CompanionCtor] {
@@ -376,7 +381,10 @@ object MT1 extends EntityObject("MT1") {
   lazy val MT1Rep: Rep[MT1CompanionCtor] = new MT1CompanionCtor
   lazy val RMT1: MT1CompanionCtor = proxyMT1Companion(MT1Rep)
   implicit def proxyMT1Companion(p: Rep[MT1CompanionCtor]): MT1CompanionCtor = {
-    proxyOps[MT1CompanionCtor](p)
+    if (p.rhs.isInstanceOf[MT1CompanionCtor])
+      p.rhs.asInstanceOf[MT1CompanionCtor]
+    else
+      proxyOps[MT1CompanionCtor](p)
   }
 
   implicit case object MT1CompanionElem extends CompanionElem[MT1CompanionCtor] {
@@ -515,7 +523,10 @@ implicit val eB = p._2.elem
   lazy val MT2Rep: Rep[MT2CompanionCtor] = new MT2CompanionCtor
   lazy val RMT2: MT2CompanionCtor = proxyMT2Companion(MT2Rep)
   implicit def proxyMT2Companion(p: Rep[MT2CompanionCtor]): MT2CompanionCtor = {
-    proxyOps[MT2CompanionCtor](p)
+    if (p.rhs.isInstanceOf[MT2CompanionCtor])
+      p.rhs.asInstanceOf[MT2CompanionCtor]
+    else
+      proxyOps[MT2CompanionCtor](p)
   }
 
   implicit case object MT2CompanionElem extends CompanionElem[MT2CompanionCtor] {

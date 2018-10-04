@@ -17,7 +17,9 @@ import NameStructKey._
 object StructKey extends EntityObject("StructKey") {
   // entityProxy: single proxy for each type family
   implicit def proxyStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]): StructKey[Schema] = {
-    proxyOps[StructKey[Schema]](p)(scala.reflect.classTag[StructKey[Schema]])
+    if (p.rhs.isInstanceOf[StructKey[Schema]@unchecked]) p.rhs.asInstanceOf[StructKey[Schema]]
+    else
+      proxyOps[StructKey[Schema]](p)(scala.reflect.classTag[StructKey[Schema]])
   }
 
   // familyElem
@@ -154,7 +156,10 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   lazy val IndexStructKeyRep: Rep[IndexStructKeyCompanionCtor] = new IndexStructKeyCompanionCtor
   lazy val RIndexStructKey: IndexStructKeyCompanionCtor = proxyIndexStructKeyCompanion(IndexStructKeyRep)
   implicit def proxyIndexStructKeyCompanion(p: Rep[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
-    proxyOps[IndexStructKeyCompanionCtor](p)
+    if (p.rhs.isInstanceOf[IndexStructKeyCompanionCtor])
+      p.rhs.asInstanceOf[IndexStructKeyCompanionCtor]
+    else
+      proxyOps[IndexStructKeyCompanionCtor](p)
   }
 
   implicit case object IndexStructKeyCompanionElem extends CompanionElem[IndexStructKeyCompanionCtor] {
@@ -266,7 +271,10 @@ object NameStructKey extends EntityObject("NameStructKey") {
   lazy val NameStructKeyRep: Rep[NameStructKeyCompanionCtor] = new NameStructKeyCompanionCtor
   lazy val RNameStructKey: NameStructKeyCompanionCtor = proxyNameStructKeyCompanion(NameStructKeyRep)
   implicit def proxyNameStructKeyCompanion(p: Rep[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
-    proxyOps[NameStructKeyCompanionCtor](p)
+    if (p.rhs.isInstanceOf[NameStructKeyCompanionCtor])
+      p.rhs.asInstanceOf[NameStructKeyCompanionCtor]
+    else
+      proxyOps[NameStructKeyCompanionCtor](p)
   }
 
   implicit case object NameStructKeyCompanionElem extends CompanionElem[NameStructKeyCompanionCtor] {

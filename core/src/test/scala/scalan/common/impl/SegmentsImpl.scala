@@ -79,7 +79,9 @@ object Segment extends EntityObject("Segment") {
 
   // entityProxy: single proxy for each type family
   implicit def proxySegment(p: Rep[Segment]): Segment = {
-    proxyOps[Segment](p)(scala.reflect.classTag[Segment])
+    if (p.rhs.isInstanceOf[Segment@unchecked]) p.rhs.asInstanceOf[Segment]
+    else
+      proxyOps[Segment](p)(scala.reflect.classTag[Segment])
   }
 
   // familyElem
@@ -273,7 +275,10 @@ object Interval extends EntityObject("Interval") {
   lazy val IntervalRep: Rep[IntervalCompanionCtor] = new IntervalCompanionCtor
   lazy val RInterval: IntervalCompanionCtor = proxyIntervalCompanion(IntervalRep)
   implicit def proxyIntervalCompanion(p: Rep[IntervalCompanionCtor]): IntervalCompanionCtor = {
-    proxyOps[IntervalCompanionCtor](p)
+    if (p.rhs.isInstanceOf[IntervalCompanionCtor])
+      p.rhs.asInstanceOf[IntervalCompanionCtor]
+    else
+      proxyOps[IntervalCompanionCtor](p)
   }
 
   implicit case object IntervalCompanionElem extends CompanionElem[IntervalCompanionCtor] {
@@ -414,7 +419,10 @@ object Slice extends EntityObject("Slice") {
   lazy val SliceRep: Rep[SliceCompanionCtor] = new SliceCompanionCtor
   lazy val RSlice: SliceCompanionCtor = proxySliceCompanion(SliceRep)
   implicit def proxySliceCompanion(p: Rep[SliceCompanionCtor]): SliceCompanionCtor = {
-    proxyOps[SliceCompanionCtor](p)
+    if (p.rhs.isInstanceOf[SliceCompanionCtor])
+      p.rhs.asInstanceOf[SliceCompanionCtor]
+    else
+      proxyOps[SliceCompanionCtor](p)
   }
 
   implicit case object SliceCompanionElem extends CompanionElem[SliceCompanionCtor] {
@@ -556,7 +564,10 @@ object Centered extends EntityObject("Centered") {
   lazy val CenteredRep: Rep[CenteredCompanionCtor] = new CenteredCompanionCtor
   lazy val RCentered: CenteredCompanionCtor = proxyCenteredCompanion(CenteredRep)
   implicit def proxyCenteredCompanion(p: Rep[CenteredCompanionCtor]): CenteredCompanionCtor = {
-    proxyOps[CenteredCompanionCtor](p)
+    if (p.rhs.isInstanceOf[CenteredCompanionCtor])
+      p.rhs.asInstanceOf[CenteredCompanionCtor]
+    else
+      proxyOps[CenteredCompanionCtor](p)
   }
 
   implicit case object CenteredCompanionElem extends CompanionElem[CenteredCompanionCtor] {

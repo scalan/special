@@ -160,7 +160,9 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |  // entityProxy: single proxy for each type family
       |  implicit def proxy$entityName${typesDecl}(p: Rep[${e.typeUse}]): ${e.typeUse} = {
-      |    proxyOps[${e.typeUse}](p)(scala.reflect.classTag[${e.typeUse}])
+      |    if (p.rhs.isInstanceOf[${e.typeUse}@unchecked]) p.rhs.asInstanceOf[${e.typeUse}]
+      |    else
+      |      proxyOps[${e.typeUse}](p)(scala.reflect.classTag[${e.typeUse}])
       |  }
       |""".stripAndTrim
   }
@@ -630,7 +632,10 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  lazy val ${c.name}Rep: Rep[${c.companionAbsName}] = new ${c.companionAbsName}
         |  lazy val R${c.name}: ${c.companionAbsName} = proxy${className}Companion(${c.name}Rep)
         |  implicit def proxy${className}Companion(p: Rep[${c.companionAbsName}]): ${c.companionAbsName} = {
-        |    proxyOps[${c.companionAbsName}](p)
+        |    if (p.rhs.isInstanceOf[${c.companionAbsName}])
+        |      p.rhs.asInstanceOf[${c.companionAbsName}]
+        |    else
+        |      proxyOps[${c.companionAbsName}](p)
         |  }
         |
         |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionAbsName}] {

@@ -17,7 +17,9 @@ import Return._
 object Kind extends EntityObject("Kind") {
   // entityProxy: single proxy for each type family
   implicit def proxyKind[F[_], A](p: Rep[Kind[F, A]]): Kind[F, A] = {
-    proxyOps[Kind[F, A]](p)(scala.reflect.classTag[Kind[F, A]])
+    if (p.rhs.isInstanceOf[Kind[F, A]@unchecked]) p.rhs.asInstanceOf[Kind[F, A]]
+    else
+      proxyOps[Kind[F, A]](p)(scala.reflect.classTag[Kind[F, A]])
   }
 
   // familyElem
@@ -153,7 +155,10 @@ object Return extends EntityObject("Return") {
   lazy val ReturnRep: Rep[ReturnCompanionCtor] = new ReturnCompanionCtor
   lazy val RReturn: ReturnCompanionCtor = proxyReturnCompanion(ReturnRep)
   implicit def proxyReturnCompanion(p: Rep[ReturnCompanionCtor]): ReturnCompanionCtor = {
-    proxyOps[ReturnCompanionCtor](p)
+    if (p.rhs.isInstanceOf[ReturnCompanionCtor])
+      p.rhs.asInstanceOf[ReturnCompanionCtor]
+    else
+      proxyOps[ReturnCompanionCtor](p)
   }
 
   implicit case object ReturnCompanionElem extends CompanionElem[ReturnCompanionCtor] {
@@ -274,7 +279,10 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
   lazy val BindRep: Rep[BindCompanionCtor] = new BindCompanionCtor
   lazy val RBind: BindCompanionCtor = proxyBindCompanion(BindRep)
   implicit def proxyBindCompanion(p: Rep[BindCompanionCtor]): BindCompanionCtor = {
-    proxyOps[BindCompanionCtor](p)
+    if (p.rhs.isInstanceOf[BindCompanionCtor])
+      p.rhs.asInstanceOf[BindCompanionCtor]
+    else
+      proxyOps[BindCompanionCtor](p)
   }
 
   implicit case object BindCompanionElem extends CompanionElem[BindCompanionCtor] {

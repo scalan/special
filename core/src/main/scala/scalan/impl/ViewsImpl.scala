@@ -27,7 +27,9 @@ import ThunkIso._
 object IsoUR extends EntityObject("IsoUR") {
   // entityProxy: single proxy for each type family
   implicit def proxyIsoUR[From, To](p: Rep[IsoUR[From, To]]): IsoUR[From, To] = {
-    proxyOps[IsoUR[From, To]](p)(scala.reflect.classTag[IsoUR[From, To]])
+    if (p.rhs.isInstanceOf[IsoUR[From, To]@unchecked]) p.rhs.asInstanceOf[IsoUR[From, To]]
+    else
+      proxyOps[IsoUR[From, To]](p)(scala.reflect.classTag[IsoUR[From, To]])
   }
 
   // familyElem
@@ -114,7 +116,9 @@ object IsoUR extends EntityObject("IsoUR") {
 object Iso1UR extends EntityObject("Iso1UR") {
   // entityProxy: single proxy for each type family
   implicit def proxyIso1UR[A, B, C[_]](p: Rep[Iso1UR[A, B, C]]): Iso1UR[A, B, C] = {
-    proxyOps[Iso1UR[A, B, C]](p)(scala.reflect.classTag[Iso1UR[A, B, C]])
+    if (p.rhs.isInstanceOf[Iso1UR[A, B, C]@unchecked]) p.rhs.asInstanceOf[Iso1UR[A, B, C]]
+    else
+      proxyOps[Iso1UR[A, B, C]](p)(scala.reflect.classTag[Iso1UR[A, B, C]])
   }
 
   // familyElem
@@ -260,7 +264,10 @@ object IdentityIso extends EntityObject("IdentityIso") {
   lazy val IdentityIsoRep: Rep[IdentityIsoCompanionCtor] = new IdentityIsoCompanionCtor
   lazy val RIdentityIso: IdentityIsoCompanionCtor = proxyIdentityIsoCompanion(IdentityIsoRep)
   implicit def proxyIdentityIsoCompanion(p: Rep[IdentityIsoCompanionCtor]): IdentityIsoCompanionCtor = {
-    proxyOps[IdentityIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[IdentityIsoCompanionCtor])
+      p.rhs.asInstanceOf[IdentityIsoCompanionCtor]
+    else
+      proxyOps[IdentityIsoCompanionCtor](p)
   }
 
   implicit case object IdentityIsoCompanionElem extends CompanionElem[IdentityIsoCompanionCtor] {
@@ -424,7 +431,10 @@ implicit val eB2 = p._2.eTo
   lazy val PairIsoRep: Rep[PairIsoCompanionCtor] = new PairIsoCompanionCtor
   lazy val RPairIso: PairIsoCompanionCtor = proxyPairIsoCompanion(PairIsoRep)
   implicit def proxyPairIsoCompanion(p: Rep[PairIsoCompanionCtor]): PairIsoCompanionCtor = {
-    proxyOps[PairIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[PairIsoCompanionCtor])
+      p.rhs.asInstanceOf[PairIsoCompanionCtor]
+    else
+      proxyOps[PairIsoCompanionCtor](p)
   }
 
   implicit case object PairIsoCompanionElem extends CompanionElem[PairIsoCompanionCtor] {
@@ -579,7 +589,10 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
   lazy val AbsorbFirstUnitIsoRep: Rep[AbsorbFirstUnitIsoCompanionCtor] = new AbsorbFirstUnitIsoCompanionCtor
   lazy val RAbsorbFirstUnitIso: AbsorbFirstUnitIsoCompanionCtor = proxyAbsorbFirstUnitIsoCompanion(AbsorbFirstUnitIsoRep)
   implicit def proxyAbsorbFirstUnitIsoCompanion(p: Rep[AbsorbFirstUnitIsoCompanionCtor]): AbsorbFirstUnitIsoCompanionCtor = {
-    proxyOps[AbsorbFirstUnitIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[AbsorbFirstUnitIsoCompanionCtor])
+      p.rhs.asInstanceOf[AbsorbFirstUnitIsoCompanionCtor]
+    else
+      proxyOps[AbsorbFirstUnitIsoCompanionCtor](p)
   }
 
   implicit case object AbsorbFirstUnitIsoCompanionElem extends CompanionElem[AbsorbFirstUnitIsoCompanionCtor] {
@@ -729,7 +742,10 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
   lazy val AbsorbSecondUnitIsoRep: Rep[AbsorbSecondUnitIsoCompanionCtor] = new AbsorbSecondUnitIsoCompanionCtor
   lazy val RAbsorbSecondUnitIso: AbsorbSecondUnitIsoCompanionCtor = proxyAbsorbSecondUnitIsoCompanion(AbsorbSecondUnitIsoRep)
   implicit def proxyAbsorbSecondUnitIsoCompanion(p: Rep[AbsorbSecondUnitIsoCompanionCtor]): AbsorbSecondUnitIsoCompanionCtor = {
-    proxyOps[AbsorbSecondUnitIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[AbsorbSecondUnitIsoCompanionCtor])
+      p.rhs.asInstanceOf[AbsorbSecondUnitIsoCompanionCtor]
+    else
+      proxyOps[AbsorbSecondUnitIsoCompanionCtor](p)
   }
 
   implicit case object AbsorbSecondUnitIsoCompanionElem extends CompanionElem[AbsorbSecondUnitIsoCompanionCtor] {
@@ -895,7 +911,10 @@ implicit val eB2 = p._2.eTo
   lazy val SumIsoRep: Rep[SumIsoCompanionCtor] = new SumIsoCompanionCtor
   lazy val RSumIso: SumIsoCompanionCtor = proxySumIsoCompanion(SumIsoRep)
   implicit def proxySumIsoCompanion(p: Rep[SumIsoCompanionCtor]): SumIsoCompanionCtor = {
-    proxyOps[SumIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[SumIsoCompanionCtor])
+      p.rhs.asInstanceOf[SumIsoCompanionCtor]
+    else
+      proxyOps[SumIsoCompanionCtor](p)
   }
 
   implicit case object SumIsoCompanionElem extends CompanionElem[SumIsoCompanionCtor] {
@@ -1057,7 +1076,10 @@ implicit val eC = p._1.eTo
   lazy val ComposeIsoRep: Rep[ComposeIsoCompanionCtor] = new ComposeIsoCompanionCtor
   lazy val RComposeIso: ComposeIsoCompanionCtor = proxyComposeIsoCompanion(ComposeIsoRep)
   implicit def proxyComposeIsoCompanion(p: Rep[ComposeIsoCompanionCtor]): ComposeIsoCompanionCtor = {
-    proxyOps[ComposeIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[ComposeIsoCompanionCtor])
+      p.rhs.asInstanceOf[ComposeIsoCompanionCtor]
+    else
+      proxyOps[ComposeIsoCompanionCtor](p)
   }
 
   implicit case object ComposeIsoCompanionElem extends CompanionElem[ComposeIsoCompanionCtor] {
@@ -1224,7 +1246,10 @@ implicit val eD = p._2.eTo
   lazy val FuncIsoRep: Rep[FuncIsoCompanionCtor] = new FuncIsoCompanionCtor
   lazy val RFuncIso: FuncIsoCompanionCtor = proxyFuncIsoCompanion(FuncIsoRep)
   implicit def proxyFuncIsoCompanion(p: Rep[FuncIsoCompanionCtor]): FuncIsoCompanionCtor = {
-    proxyOps[FuncIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[FuncIsoCompanionCtor])
+      p.rhs.asInstanceOf[FuncIsoCompanionCtor]
+    else
+      proxyOps[FuncIsoCompanionCtor](p)
   }
 
   implicit case object FuncIsoCompanionElem extends CompanionElem[FuncIsoCompanionCtor] {
@@ -1381,7 +1406,10 @@ implicit val eB = p._1.eR
   lazy val ConverterIsoRep: Rep[ConverterIsoCompanionCtor] = new ConverterIsoCompanionCtor
   lazy val RConverterIso: ConverterIsoCompanionCtor = proxyConverterIsoCompanion(ConverterIsoRep)
   implicit def proxyConverterIsoCompanion(p: Rep[ConverterIsoCompanionCtor]): ConverterIsoCompanionCtor = {
-    proxyOps[ConverterIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[ConverterIsoCompanionCtor])
+      p.rhs.asInstanceOf[ConverterIsoCompanionCtor]
+    else
+      proxyOps[ConverterIsoCompanionCtor](p)
   }
 
   implicit case object ConverterIsoCompanionElem extends CompanionElem[ConverterIsoCompanionCtor] {
@@ -1529,7 +1557,10 @@ implicit override lazy val eB = innerIso.eTo
   lazy val ThunkIsoRep: Rep[ThunkIsoCompanionCtor] = new ThunkIsoCompanionCtor
   lazy val RThunkIso: ThunkIsoCompanionCtor = proxyThunkIsoCompanion(ThunkIsoRep)
   implicit def proxyThunkIsoCompanion(p: Rep[ThunkIsoCompanionCtor]): ThunkIsoCompanionCtor = {
-    proxyOps[ThunkIsoCompanionCtor](p)
+    if (p.rhs.isInstanceOf[ThunkIsoCompanionCtor])
+      p.rhs.asInstanceOf[ThunkIsoCompanionCtor]
+    else
+      proxyOps[ThunkIsoCompanionCtor](p)
   }
 
   implicit case object ThunkIsoCompanionElem extends CompanionElem[ThunkIsoCompanionCtor] {

@@ -21,7 +21,9 @@ import IsoFuncBase._
 object IsoFunc extends EntityObject("IsoFunc") {
   // entityProxy: single proxy for each type family
   implicit def proxyIsoFunc[T, R, M](p: Rep[IsoFunc[T, R, M]]): IsoFunc[T, R, M] = {
-    proxyOps[IsoFunc[T, R, M]](p)(scala.reflect.classTag[IsoFunc[T, R, M]])
+    if (p.rhs.isInstanceOf[IsoFunc[T, R, M]@unchecked]) p.rhs.asInstanceOf[IsoFunc[T, R, M]]
+    else
+      proxyOps[IsoFunc[T, R, M]](p)(scala.reflect.classTag[IsoFunc[T, R, M]])
   }
 
   // familyElem
@@ -194,7 +196,10 @@ implicit val eM = p._2.elem.eRange
   lazy val IsoFuncBaseRep: Rep[IsoFuncBaseCompanionCtor] = new IsoFuncBaseCompanionCtor
   lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = proxyIsoFuncBaseCompanion(IsoFuncBaseRep)
   implicit def proxyIsoFuncBaseCompanion(p: Rep[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
-    proxyOps[IsoFuncBaseCompanionCtor](p)
+    if (p.rhs.isInstanceOf[IsoFuncBaseCompanionCtor])
+      p.rhs.asInstanceOf[IsoFuncBaseCompanionCtor]
+    else
+      proxyOps[IsoFuncBaseCompanionCtor](p)
   }
 
   implicit case object IsoFuncBaseCompanionElem extends CompanionElem[IsoFuncBaseCompanionCtor] {

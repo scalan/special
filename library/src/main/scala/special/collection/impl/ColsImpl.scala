@@ -65,7 +65,7 @@ object Col extends EntityObject("Col") {
 
   // entityProxy: single proxy for each type family
   implicit def proxyCol[A](p: Rep[Col[A]]): Col[A] = {
-    if (p.rhs.isInstanceOf[Col[_]]) p.rhs.asInstanceOf[Col[A]]
+    if (p.rhs.isInstanceOf[Col[A]@unchecked]) p.rhs.asInstanceOf[Col[A]]
     else
       proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
   }
