@@ -3,9 +3,10 @@ package scalan.primitives
 import java.util
 
 import scalan.staged.ProgramGraphs
-import scalan.{ValOpt, Lazy, Base, Scalan}
+import scalan.{Lazy, Base, Scalan}
 import scala.collection.mutable
 import scala.language.implicitConversions
+import scalan.util.ValOpt
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
@@ -30,7 +31,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     sameArgFun(f) { x => h(f(x), g(x)) }
   }
 
-  class Lambda[A, B](val f: Option[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean)
+  class Lambda[A, B](val f: ValOpt[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean)
     extends Def[A => B] with AstGraph with Product { thisLambda =>
     def eA = x.elem
     def eB = y.elem
@@ -82,17 +83,21 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       }
   }
 
-  type LambdaData[A,B] = (Lambda[A,B], Option[Exp[A] => Exp[B]], Exp[A], Exp[B])
+  type LambdaData[A,B] = (Lambda[A,B], ValOpt[Exp[A] => Exp[B]], Exp[A], Exp[B])
   object Lambda {
-    def unapply[A,B](lam: Lambda[A, B]): Option[LambdaData[A,B]] = lam match {
-      case null => None
-      case _ => Some((lam, lam.f, lam.x, lam.y))
+    def unapply[A,B](lam: Lambda[A, B]): ValOpt[LambdaData[A,B]] = {
+      val res: LambdaData[A,B] =
+        if (lam == null) null
+        else {
+          (lam, lam.f, lam.x, lam.y)
+        }
+      ValOpt(res)
     }
   }
 
   override def transformDef[A](d: Def[A], t: Transformer) = d match {
     case l: Lambda[a, b] =>
-      val newLam = new Lambda(None, t(l.x), t(l.y), l.mayInline)
+      val newLam = new Lambda(ValOpt.None, t(l.x), t(l.y), l.mayInline)
       val newSym = newLam.self
       toExp(newLam, newSym).asRep[A]
     case _ => super.transformDef(d, t)
@@ -262,8 +267,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def unfoldLambda[A,B](lam: Lambda[A,B], x: Exp[A]): Exp[B] = {
     lam.f match {
-      case Some(g) => g(x) // unfold initial non-recursive function
-      case None => mirrorApply(lam, x)  // f is mirrored, unfold it by mirroring
+      case ValOpt(g) => g(x) // unfold initial non-recursive function
+      case _ => mirrorApply(lam, x)  // f is mirrored, unfold it by mirroring
     }
   }
 
@@ -275,7 +280,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   def mirrorApply[A,B](lam: Lambda[A, B], s: Exp[A]): Exp[B] = {
     val body = lam.scheduleSyms
     val (t, _) = DefaultMirror.mirrorSymbols(new MapTransformer(lam.x -> s), NoRewriting, lam, body)
-    t(lam.y).asRep[B]
+    t(lam.y).asInstanceOf[Rep[B]]
   }
 
   //=====================================================================================
@@ -304,9 +309,9 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 //    implicit val eA = leA.value
 
     // ySym will be assigned after f is executed
-    val ySym = placeholder(Lazy(AnyElement)).asRep[B]
+    val ySym = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[B]]
 
-    val lam = new Lambda(Some(f), x, ySym, mayInline)
+    val lam = new Lambda(ValOpt(f), x, ySym, mayInline)
     val lamSym = lam.self
 
     val y = reifyEffects(executeFunction(f, x, lamSym))

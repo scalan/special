@@ -2,8 +2,9 @@ package scalan
 
 import java.io.File
 
-import scalan.compilation.{GraphVizExport, GraphVizConfig}
+import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.util.CollectionUtil._
+import scalan.util.ValOpt
 
 /**
  * Base trait for testing specific rewrite rules

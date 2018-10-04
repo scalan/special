@@ -41,43 +41,45 @@ object GraphUtil {
   private final class Tarjan[T](succ: T => Seq[T]) {
     private var id = 0
     private var stack: List[T] = Nil
-    private val mark: Map[T, Int] = new HashMap()
+    private val mark = AVHashMap[T,Int](127)
 
     val res: Buffer[Seq[T]] = new ArrayBuffer()
 
     def visit(node: T): Int = {
-      mark.getOrElse(node, {
-        id += 1
+      mark.get(node) match {
+        case ValOpt(n) => n
+        case _ =>
+          id += 1
 
-        mark.put(node, id)
-        stack = node :: stack
-        //    println("push " + node)
+          mark.put(node, id)
+          stack = node :: stack
+          //    println("push " + node)
 
-        var min: Int = id
-        for (child <- succ(node)) {
-          val m = visit(child)
+          var min: Int = id
+          for (child <- succ(node)) {
+            val m = visit(child)
 
-          if (m < min)
-            min = m
-        }
+            if (m < min)
+              min = m
+          }
 
-        if (min == mark(node)) {
-          val scc: Buffer[T] = new ArrayBuffer()
+          if (min == mark(node)) {
+            val scc: Buffer[T] = new ArrayBuffer()
 
-          var loop: Boolean = true
-          do {
-            val element = stack.head
-            stack = stack.tail
-            //        println("appending " + element)
-            scc.append(element)
-            mark.put(element, Integer.MAX_VALUE)
-            loop = element != node
-          } while (loop)
+            var loop: Boolean = true
+            do {
+              val element = stack.head
+              stack = stack.tail
+              //        println("appending " + element)
+              scc.append(element)
+              mark.put(element, Integer.MAX_VALUE)
+              loop = element != node
+            } while (loop)
 
-          res.append(scc.toSeq)
-        }
-        min
-      })
+            res.append(scc.toSeq)
+          }
+          min
+      }
     }
   }
 }

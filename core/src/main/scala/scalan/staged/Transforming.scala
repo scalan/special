@@ -3,8 +3,9 @@ package scalan.staged
 import java.lang.reflect.Method
 
 import scala.collection.{Seq, mutable}
-import scalan.{Lazy, Scalan, DelayInvokeException}
+import scalan.{Lazy, DelayInvokeException, Scalan}
 import scala.reflect.runtime.universe._
+import scalan.util.ValOpt
 
 trait Transforming { self: Scalan =>
 
@@ -78,7 +79,7 @@ trait Transforming { self: Scalan =>
       this(substPairs.toMap)
     }
     def apply[A](x: Exp[A]): Exp[A] = subst.get(x) match {
-      case Some(y) if y != x => apply(y.asRep[A]) // transitive closure
+      case Some(y) if y != x => apply(y.asInstanceOf[Rep[A]]) // transitive closure
       case _ => x
     }
     def isDefinedAt(x: Rep[_]) = subst.contains(x)
@@ -120,7 +121,7 @@ trait Transforming { self: Scalan =>
       case Def(call: MethodCall) =>
         call.tryInvoke match {
           case InvokeSuccess(res) =>
-            res.asRep[T]
+            res.asInstanceOf[Rep[T]]
           case InvokeFailure(e) =>
             if (e.isInstanceOf[DelayInvokeException])
               x
@@ -193,7 +194,7 @@ trait Transforming { self: Scalan =>
     // require: should be called after oldlam.schedule is mirrored
     private def getMirroredLambdaDef(t: Ctx, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
       val newVar = t(oldLam.x)
-      val newLambdaDef = new Lambda(None, newVar, newRoot, oldLam.mayInline)
+      val newLambdaDef = new Lambda(ValOpt.None, newVar, newRoot, oldLam.mayInline)
       newLambdaDef
     }
 
@@ -294,13 +295,13 @@ trait Transforming { self: Scalan =>
           node match {
             case Def(d) => d match {
               case lam: Lambda[a, b] =>
-                val (t1, mirrored) = mirrorLambda(t, rewriter, node.asRep[a => b], lam)
+                val (t1, mirrored) = mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
                 setMirroredMetadata(t1, node, mirrored)
               case th: ThunkDef[a] =>
-                val (t1, mirrored) = mirrorThunk(t, rewriter, node.asRep[Thunk[a]], th)
+                val (t1, mirrored) = mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
                 setMirroredMetadata(t1, node, mirrored)
               case ite: IfThenElse[a] =>
-                val (t1, mirrored) = mirrorIfThenElse(t, rewriter, g, node.asRep[a], ite)
+                val (t1, mirrored) = mirrorIfThenElse(t, rewriter, g, node.asInstanceOf[Rep[a]], ite)
                 setMirroredMetadata(t1, node, mirrored)
               case _ =>
                 mirrorDef(t, rewriter, node, d)
@@ -337,7 +338,7 @@ trait Transforming { self: Scalan =>
   type TuplePath = List[Int]
 
   def projectPath(x:Exp[Any], path: TuplePath) = {
-    val res = path.foldLeft(x)((y,i) => TupleProjection(y.asRep[(Any,Any)], i))
+    val res = path.foldLeft(x)((y,i) => TupleProjection(y.asInstanceOf[Rep[(Any,Any)]], i))
     res
   }
 
@@ -347,7 +348,7 @@ trait Transforming { self: Scalan =>
   def projectTree(root:Exp[Any], tree: ProjectionTree): ProjectionTree = {
     val newChildren = tree.children.map(child => {
       val i = projectionIndex(child.root)
-      val newChildRoot = TupleProjection(root.asRep[(Any,Any)], i)
+      val newChildRoot = TupleProjection(root.asInstanceOf[Rep[(Any,Any)]], i)
       projectTree(newChildRoot, child)
     })
     ProjectionTree(root, newChildren)

@@ -72,7 +72,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       val args1 = args.map(transformProductParam(_, t).asInstanceOf[AnyRef])
       val receiver1 = t(receiver)
       // in the case neverInvoke is false, the method is invoked in rewriteDef
-      mkMethodCall(receiver1, method, args1, neverInvoke).asRep[A]
+      mkMethodCall(receiver1, method, args1, neverInvoke).asInstanceOf[Rep[A]]
     case _ => super.transformDef(d, t)
   }
 
@@ -147,7 +147,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   }
 
   def methodCallEx[A](receiver: Rep[_], m: Method, args: List[AnyRef]): Rep[A] =
-    mkMethodCall(receiver, m, args, true).asRep[A]
+    mkMethodCall(receiver, m, args, true).asInstanceOf[Rep[A]]
 
   def newObjEx[A](args: Any*)(implicit eA: Elem[A]): Rep[A] = {
     reifyObject(NewObject[A](eA, args.toList, true))

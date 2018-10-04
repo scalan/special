@@ -5,7 +5,9 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-// Abs -----------------------------------
+  import scalan.util.ValOpt
+
+  // Abs -----------------------------------
 trait ColsDefs extends scalan.Scalan with Cols {
   self: Library =>
 import IsoUR._
@@ -229,7 +231,8 @@ object Col extends EntityObject("Col") {
     object map {
       def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "map" =>
-          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}]]
+          val res = (receiver, args(0)).asInstanceOf[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}]
+          ValOpt(res)
         case _ => ValOpt.None
       }
       def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
@@ -325,7 +328,7 @@ object Col extends EntityObject("Col") {
     object sum {
       def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "sum" =>
-          Some((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}]]
+          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}]]
         case _ => ValOpt.None
       }
       def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
@@ -381,7 +384,7 @@ object Col extends EntityObject("Col") {
       Some((view.source, view.iso))
     case UserTypeCol(iso: Iso[a, b]) =>
       val newIso = colIso(iso)
-      val repr = reifyObject(UnpackView(s.asRep[Col[b]], newIso))
+      val repr = reifyObject(UnpackView(asRep[Col[b]](s), newIso))
       Some((repr, newIso))
     case _ =>
       super.unapplyViews(s)
@@ -399,16 +402,16 @@ object Col extends EntityObject("Col") {
       case (_, Def(IdentityLambda())) =>
         xs
       case (xs: RepCol[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
-        val f1 = f.asRep[a => c]
+        val f1 = asRep[a => c](f)
         implicit val eB = iso.eFrom
         val s = xs.map(f1 >> iso.fromFun)
         val res = ViewCol(s, iso)
         res
       case (HasViews(source, Def(contIso: ColIso[a, b])), f: RFunc[_, c]@unchecked) =>
-        val f1 = f.asRep[b => c]
+        val f1 = asRep[b => c](f)
         val iso = contIso.innerIso
         implicit val eC = f1.elem.eRange
-        source.asRep[Col[a]].map(iso.toFun >> f1)
+        asRep[Col[a]](source).map(iso.toFun >> f1)
       case _ =>
         super.rewriteDef(d)
     }
@@ -441,7 +444,7 @@ object PairCol extends EntityObject("PairCol") {
 
     def convertPairCol(x: Rep[PairCol[L, R]]): Rep[To] = {
       x.elem match {
-        case _: PairColElem[_, _, _] => x.asRep[To]
+        case _: PairColElem[_, _, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have PairColElem[_, _, _], but got $e", x)
       }
     }
@@ -559,7 +562,7 @@ object ColBuilder extends EntityObject("ColBuilder") {
 
     def convertColBuilder(x: Rep[ColBuilder]): Rep[To] = {
       x.elem match {
-        case _: ColBuilderElem[_] => x.asRep[To]
+        case _: ColBuilderElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have ColBuilderElem[_], but got $e", x)
       }
     }
@@ -696,7 +699,7 @@ object Enum extends EntityObject("Enum") {
 
     def convertEnum(x: Rep[Enum]): Rep[To] = {
       x.elem match {
-        case _: EnumElem[_] => x.asRep[To]
+        case _: EnumElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have EnumElem[_], but got $e", x)
       }
     }

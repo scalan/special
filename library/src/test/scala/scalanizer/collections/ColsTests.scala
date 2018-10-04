@@ -2,6 +2,8 @@ package scalanizer.collections
 
 import scala.language.reflectiveCalls
 import special.wrappers.WrappersModule
+import sun.misc.GC
+
 import scalan._
 import scalan.util.BenchmarkUtil._
 

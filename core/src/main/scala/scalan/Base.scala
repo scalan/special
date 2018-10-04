@@ -1,7 +1,7 @@
 package scalan
 
 import java.lang.reflect.{Method, Constructor => Constr}
-import java.util.{Objects, Arrays}
+import java.util.{HashMap, Objects, Arrays, function}
 
 import configs.syntax._
 import com.typesafe.config.{ConfigFactory, Config}
@@ -13,19 +13,10 @@ import scala.collection.{mutable, TraversableOnce}
 import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
-import scalan.util.{ParamMirror, ReflectionUtil}
+import scalan.util.{ValOpt, ParamMirror, ReflectionUtil, AVHashMap}
 import scala.reflect.runtime.universe._
 
-class ValOpt[+T](val d: T) extends AnyVal {
-  @inline def isEmpty = d == null
-  @inline def get: T = d
-  @inline def isDefined = d != null
-}
-object ValOpt {
-  val None: ValOpt[Null] = (new ValOpt(null))
-  def apply[T](x: T): ValOpt[T] = new ValOpt(x)
-  def unapply[T](opt: ValOpt[T]): ValOpt[T] = opt
-}
+
 /**
   * The Base trait houses common AST nodes. It also manages a list of encountered Definitions which
   * allows for common sub-expression elimination (CSE).
@@ -55,6 +46,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
   implicit class RepForSomeExtension(x: Rep[_]) {
     def asRep[T]: Rep[T] = x.asInstanceOf[Rep[T]]
   }
+  @inline final def asRep[T](x: Rep[_]): Rep[T] = x.asInstanceOf[Rep[T]]
+
   implicit class RepExtension[A](x: Rep[A]) {
     def asValue: A = valueFromRep(x)
   }
@@ -79,7 +72,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
 
     def selfType: Elem[T @uncheckedVariance]
-    lazy val self: Rep[T] = symbolOf(this)
+    val self: Rep[T] = symbolOf(this)
 
     override def equals(other: Any) = other match {
       // check that nodes correspond to same operation, have the same type, and the same arguments
@@ -271,15 +264,15 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   class EntityObject(val entityName: String)
 
-  private[this] val entityObjects = scala.collection.mutable.Map.empty[String, EntityObject]
+  private[this] val entityObjects = AVHashMap[String, EntityObject](100)
 
-  def getEntityObject(name: String): Option[EntityObject] = {
+  def getEntityObject(name: String): ValOpt[EntityObject] = {
     entityObjects.get(name)
   }
 
   protected def registerEntityObject(name: String, obj: EntityObject): Unit = {
-     assert(!entityObjects.contains(name), s"EntityObject for entity $name already registered")
-     entityObjects(name) = obj
+     assert(!entityObjects.containsKey(name), s"EntityObject for entity $name already registered")
+     entityObjects.put(name, obj)
   }
 
   // Allows using ConfigOps without importing com.github.kxbmap.configs.syntax._
@@ -303,17 +296,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
     private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit
 
     def isPlaceholder: Boolean = rhs.isInstanceOf[Placeholder[_]]
-
-    def isVar: Boolean = this match {
-      case Def(d) => d.isInstanceOf[Variable[_]]
-      case _ => true
-    }
-
-    def isConst: Boolean = this match {
-      case Def(Const(_)) => true
-      case _ => isCompanion
-    }
-
+    def isVar: Boolean = rhs.isInstanceOf[Variable[_]]
+    def isConst: Boolean = rhs.isInstanceOf[Const[_]]
     def isCompanion: Boolean = elem.isInstanceOf[CompanionElem[_]]
 
     def toStringWithDefinition: String
@@ -397,9 +381,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
   private[this] val entityObjectType = typeOf[EntityObject]
 
   protected def getOwnerParameterType(constructor: Constr[_]): OwnerParameter = {
-    val ownerParam = constructor.getParameterTypes.headOption match {
-      case None => NoOwner
-      case Some(firstParamClazz) =>
+    val paramTypes = constructor.getParameterTypes
+    val ownerParam =
+      if (paramTypes.length == 0) NoOwner
+      else {
+        val firstParamClazz = paramTypes(0)
         // note: classOf[Base].isAssignableFrom(firstParamClazz) can give wrong result due to the way
         // Scala compiles traits inheriting from classes
         val firstParamTpe = ReflectionUtil.classToSymbol(firstParamClazz).toType
@@ -407,14 +393,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
         else
         {
           getEntityObject(firstParamTpe.typeSymbol.name.toString) match {
-            case Some(obj) =>
+            case ValOpt(obj) =>
               EntityObjectOwner(obj)
-            case None => NoOwner
+            case _ => NoOwner
           }
         } /*else {
           !!!(s"Unsupported owner: $firstParamTpe")
         }*/
-    }
+      }
     ownerParam
   }
 
@@ -427,7 +413,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     ReflectedProductClass(constructor, paramMirrors, ownerParam)
   }
 
-  private[this] val defClasses = collection.mutable.Map.empty[Class[_], ReflectedProductClass]
+  private[this] val defClasses = AVHashMap[Class[_], ReflectedProductClass](255)
 
   def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case c: Const[_] => c.self
@@ -455,10 +441,19 @@ trait Base extends LazyLogging { scalan: Scalan =>
     finalParams.asInstanceOf[Seq[AnyRef]]
   }
 
+  /** @hotspot */
   def transformProduct(p: Product, t: Transformer): Product = {
     val clazz = p.getClass
-    val ReflectedProductClass(constructor, paramMirrors, owner) =
-      defClasses.getOrElseUpdate(clazz, reflectProductClass(clazz, p))
+    val ReflectedProductClass(constructor, paramMirrors, owner) = {
+      var opt = defClasses.get(clazz)
+      opt match {
+        case ValOpt(rpc) => rpc
+        case _ =>
+          val rpc = reflectProductClass(clazz, p)
+          defClasses.put(clazz, rpc)
+          rpc
+      }
+    }
 
     val pParams = paramMirrors.map(_.bind(p).get)
     val transformedParams = pParams.map(transformProductParam(_, t))
@@ -512,43 +507,27 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def def_unapply[T](e: Rep[T]): ValOpt[Def[T]] = new ValOpt(e.rhs)
 
-  //  override def repDef_getElem[T <: Def[_]](x: Rep[T]): Elem[T] = x.elem
-  //  override def rep_getElem[T](x: Rep[T]): Elem[T] = x.elem
-
-  object Var {
-    def unapply[T](e: Rep[T]): Option[Rep[T]] = e match {
-      case Def(_) => None
-      case _ => Some(e)
-    }
-  }
-
   object ExpWithElem {
-    def unapply[T](s: Rep[T]): Option[(Rep[T],Elem[T])] = Some((s, s.elem))
+    def unapply[T](s: Rep[T]): ValOpt[(Rep[T],Elem[T])] = ValOpt((s, s.elem))
   }
-
-  /**
-    * Used for staged methods which can't be implemented based on other methods.
-    * This just returns a value of the desired type.
-    */
-  def defaultImpl[T](implicit elem: Elem[T]): Rep[T] = elem.defaultRepValue
 
   abstract class Stm // statement (links syms and definitions)
 
-  implicit class StmOps(stm: Stm) {
-    def lhs: List[Rep[Any]] = stm match {
-      case TableEntry(sym, rhs) => sym :: Nil
-    }
-
-    def defines[A](sym: Rep[A]): Option[Def[A]] = stm match {
-      case TableEntry(`sym`, rhs: Def[A] @unchecked) => Some(rhs)
-      case _ => None
-    }
-
-    def defines[A](rhs: Def[A]): Option[Rep[A]] = stm match {
-      case TableEntry(sym: Rep[A] @unchecked, `rhs`) => Some(sym)
-      case _ => None
-    }
-  }
+//  implicit class StmOps(stm: Stm) {
+//    def lhs: List[Rep[Any]] = stm match {
+//      case TableEntry(sym, rhs) => sym :: Nil
+//    }
+//
+//    def defines[A](sym: Rep[A]): Option[Def[A]] = stm match {
+//      case TableEntry(`sym`, rhs: Def[A] @unchecked) => Some(rhs)
+//      case _ => None
+//    }
+//
+//    def defines[A](rhs: Def[A]): Option[Rep[A]] = stm match {
+//      case TableEntry(sym: Rep[A] @unchecked, `rhs`) => Some(sym)
+//      case _ => None
+//    }
+//  }
 
   trait TableEntry[+T] extends Stm {
     def sym: Rep[T]
@@ -703,7 +682,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def hashCode(): Int = _rhs.hashCode
   }
 
-  def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
+  @inline def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
 
   case class TableEntrySingle[T](sym: Rep[T], rhs: Def[T], lambda: Option[Rep[_]]) extends TableEntry[T]
 
@@ -716,46 +695,45 @@ trait Base extends LazyLogging { scalan: Scalan =>
   //TODO replace with Variable once symbols are merged with Defs
   protected lazy val globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
-  private[this] val defToGlobalDefs: mutable.Map[(Rep[_], Def[_]), TableEntry[_]] = mutable.HashMap.empty
+  private[this] val defToGlobalDefs = AVHashMap[(Rep[_], Def[_]), TableEntry[_]](1000)
 
+  def findDefinition[T](s: Rep[T]): ValOpt[TableEntry[T]] =
+    ValOpt(s.rhs.tableEntry)
 
-  def findDefinition[T](s: Rep[T]): Option[TableEntry[T]] =
-    Option(s.rhs.tableEntry)
+  def findDefinition[T](thunk: Rep[_], d: Def[T]): TableEntry[T] =
+    defToGlobalDefs((thunk,d)).asInstanceOf[TableEntry[T]]
 
-  def findDefinition[T](thunk: Rep[_], d: Def[T]): Option[TableEntry[T]] =
-    defToGlobalDefs.get((thunk,d)).asInstanceOf[Option[TableEntry[T]]]
-
+  /** @hotspot */
   def findOrCreateDefinition[T](d: Def[T], newSym: => Rep[T]): Rep[T] = {
     val optScope = thunkStack.top
-    val optFound = optScope match {
-      case Some(scope) =>
+    var te = optScope match {
+      case ValOpt(scope) =>
         scope.findDef(d)
-      case None =>
+      case _ =>
         findDefinition(globalThunkSym, d)
     }
-    val te = optFound.getOrElse {
-      createDefinition(optScope, newSym, d)
+    if (te == null) {
+      te = createDefinition(optScope, newSym, d)
     }
-    assert(te.rhs == d, s"${if (optFound.isDefined) "Found" else "Created"} unequal definition ${te.rhs} with symbol ${te.sym.toStringWithType} for $d")
+//    assert(te.rhs == d, s"${if (te !) "Found" else "Created"} unequal definition ${te.rhs} with symbol ${te.sym.toStringWithType} for $d")
     te.sym
-
   }
 
   def createDefinition[T](s: Rep[T], d: Def[T]): TableEntry[T] =
     createDefinition(thunkStack.top, s, d)
 
-  private def createDefinition[T](optScope: Option[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
+  private def createDefinition[T](optScope: ValOpt[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
     val te = TableEntry(s, d)
     optScope match {
-      case Some(scope) =>
+      case ValOpt(scope) =>
         te.rhs.assignId()
         te.rhs.tableEntry = te
-        defToGlobalDefs += (scope.thunkSym, te.rhs) -> te
+        defToGlobalDefs.put((scope.thunkSym, te.rhs), te)
         scope += te
-      case None =>
+      case _ =>
         te.rhs.assignId()
         te.rhs.tableEntry = te
-        defToGlobalDefs += (globalThunkSym, te.rhs) -> te
+        defToGlobalDefs.put((globalThunkSym, te.rhs), te)
     }
     te
   }
@@ -773,7 +751,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     var currDef = d
     do {
       currSym = res
-      val ns = rewrite(currSym).asRep[T]
+      val ns = rewrite(currSym).asInstanceOf[Rep[T]]
       ns match {
         case null =>
           currDef = null

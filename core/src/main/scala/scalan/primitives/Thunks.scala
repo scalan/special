@@ -3,10 +3,10 @@ package scalan.primitives
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{Lazy, ViewsModule, Scalan, ValOpt}
+import scalan.{Lazy, ViewsModule, Scalan}
 import scala.reflect.runtime.universe._
 import scalan.meta.TypeDesc
-import scalan.util.Covariant
+import scalan.util.{Covariant, ValOpt}
 
 trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scalan =>
   import IsoUR._
@@ -156,6 +156,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
       super.unapplyViews(s)
   }).asInstanceOf[Option[Unpacked[T]]]
 
+
   class ThunkScope(val parent: ThunkScope, val thunkSym: Exp[Any], val body: ListBuffer[TableEntry[Any]] = ListBuffer.empty) {
     def +=(te: TableEntry[_]) =
       body += te
@@ -165,21 +166,21 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
       buildScheduleForResult(Seq(root), _.getDeps.filter(s => bodySet.contains(s) && !s.isVar))
     }
 
-    def findDef[T](d: Def[T]): Option[TableEntry[T]] = {
-      body.find(te => te.rhs == d) match {
-        case te @ Some(_) => te.asInstanceOf[Option[TableEntry[T]]]
-        case None =>
-          if (parent == null)
-            findDefinition(globalThunkSym, d)
-          else
-            parent.findDef(d)
+    // TODO optimize using ListMap
+    def findDef[T](d: Def[T]): TableEntry[T] = {
+      for (te <- body) {
+        if (te.rhs == d) return te.asInstanceOf[TableEntry[T]]
       }
+      if (parent == null)
+        findDefinition(globalThunkSym, d)
+      else
+        parent.findDef(d)
     }
   }
 
   class ThunkStack {
     var stack = List[ThunkScope]()
-    def top: Option[ThunkScope] = stack.headOption
+    def top: ValOpt[ThunkScope] = if (stack.isEmpty) ValOpt.None else ValOpt(stack.head)
     def push(e: ThunkScope): this.type = { stack = e :: stack; this }
     @inline def pop: ThunkScope = {
       val res = stack.head
@@ -197,13 +198,13 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   protected val thunkStack = new ThunkStack
 
   protected def currentThunkSym = thunkStack.top match {
-    case Some(scope) => scope.thunkSym
-    case None => globalThunkSym
+    case ValOpt(scope) => scope.thunkSym
+    case _ => globalThunkSym
   }
 
   def thunk_create[A](block: => Rep[A]): Rep[Thunk[A]] = {
     var schedule: Schedule = null
-    val resPH = placeholder(Lazy(AnyElement)).asRep[A] // will be known after block is evaluated
+    val resPH = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[A]] // will be known after block is evaluated
     val newThunk = new ThunkDef(resPH, { assert(schedule != null); schedule })
     val newThunkSym = newThunk.self
 
@@ -239,7 +240,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   def forceThunkDefByMirror[A](th: ThunkDef[A], subst: MapTransformer = MapTransformer.Empty): Exp[A] = {
     val body = th.scheduleSyms
     val (t, _) = DefaultMirror.mirrorSymbols(subst, NoRewriting, th, body)
-    t(th.root).asRep[A]
+    t(th.root).asInstanceOf[Rep[A]]
   }
 
   def thunk_force[A](t: Th[A]): Rep[A] =
@@ -293,7 +294,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     case ThunkForce(HasViews(srcTh, Def(iso: ThunkIso[a, b]))) => {
       val innerIso = iso.innerIso
       implicit val eA = innerIso.eFrom
-      innerIso.to(srcTh.asRep[Thunk[a]].force)
+      innerIso.to(srcTh.asInstanceOf[Rep[Thunk[a]]].force)
     }
     case _ => super.rewriteViews(d)
   }

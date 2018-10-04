@@ -42,7 +42,7 @@ trait LogicalOps extends Base { self: Scalan =>
     case ApplyBinOp(op, lhs, rhs) =>
       op.asInstanceOf[BinOp[_, _]] match {
         case _: Equals[_] if lhs.elem == BooleanElement && rhs.elem == BooleanElement =>
-          matchBoolConsts(d, lhs, rhs, x => x, x => !x.asRep[Boolean], _ => true, _ => false)
+          matchBoolConsts(d, lhs, rhs, x => x, x => !x.asInstanceOf[Rep[Boolean]], _ => true, _ => false)
         case And =>
           matchBoolConsts(d, lhs, rhs, x => x, _ => false, x => x, _ => false)
         case Or =>

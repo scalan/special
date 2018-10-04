@@ -544,7 +544,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     def unapply[T](e: Exp[T]): Option[Unpacked[T]] =
       e match {
         case Def(UnpackableDef(source, iso: Iso[a, T] @unchecked)) =>
-          Some((source.asRep[a], iso))
+          Some((source.asInstanceOf[Rep[a]], iso))
         case _ =>
           val eT = e.elem
           eT match {
@@ -557,7 +557,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
 
   object LambdaResultHasViews {
     def unapply[A,C](l: Rep[A => C]): Option[UnpackedLambdaResult[A,C]] = l match {
-      case Def(Lambda(_, _, _, HasViews(_, iso: Iso[b, _]))) =>
+      case Def(Lambda(_, _, _, HasViews(_, iso: Iso[b, C]@unchecked))) =>
         Some((l, iso))
       case _ => None
     }

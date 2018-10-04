@@ -15,7 +15,7 @@ trait Tuples extends Base { self: Scalan =>
 
   object IsPair {
     def unapply[A,B](s: Sym): Option[Rep[(A,B)]] = s.elem match {
-      case pe: PairElem[_,_] => Some(s.asRep[(A,B)])
+      case pe: PairElem[_,_] => Some(s.asInstanceOf[Rep[(A,B)]])
       case _ => None
     }
   }

@@ -95,7 +95,7 @@ trait RewriteRules extends Base { self: Scalan =>
     def apply[T](x: Exp[T]): Exp[T] = {
       if (rules.isEmpty) return x
       val res = rewriteWithRules(rules)(x)
-      if (res != null) res.asRep[T]
+      if (res != null) res.asInstanceOf[Rep[T]]
       else x
     }
   }

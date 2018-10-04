@@ -1,6 +1,7 @@
 package scalan.staged
 
 import scala.collection._
+import scala.collection.mutable.ArrayBuffer
 import scalan.Scalan
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
@@ -332,15 +333,19 @@ trait AstGraphs extends Transforming { self: Scalan =>
   case class LambdaBranches(ifBranches: Map[Sym, IfBranches], assignments: Map[Sym, BranchPath])
 
   def buildScheduleForResult(st: Seq[Sym], neighbours: Sym => Seq[Sym]): Schedule = {
-    val startNodes = st.collect { case DefTableEntry(te) => te }//st.flatMap(e => findDefinition(e).toList)
-//    val lambdas = startNodes.flatMap(_.lambda).toSet
+    val startNodes = st.collect { case DefTableEntry(te) => te }
 
     def succ(tp: TableEntry[_]): Schedule = {
       assert(tp != null, s"Null TableEntry when buildScheduleForResult($st)")
-      val ns = neighbours(tp.sym).filterNot(s => /*lambdas.contains(s) ||*/ s.isVar)
-      ns.flatMap { e =>
-        findDefinition(e).toList
+      val res = new ArrayBuffer[TableEntry[_]](8)
+      for (n <- neighbours(tp.sym)) {
+        if (!n.isVar) {
+          val teOpt = findDefinition(n)
+          if (teOpt.isDefined)
+            res += teOpt.get
+        }
       }
+      res
     }
 
     val components = GraphUtil.stronglyConnectedComponents[TableEntry[_]](startNodes)(succ)

@@ -48,7 +48,7 @@ package special.collection {
     }
     abstract class ColOverArrayBuilder extends BaseColBuilder {
       @NeverInline override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] =
-        mkMethodCall(self, getMethod(this, "fromArray", Seq(classOf[Rep[_]])), List(arr), true, colElement(arr.elem.eItem)).asRep[Col[T]]
+        asRep[Col[T]](mkMethodCall(self, getMethod(this, "fromArray", Seq(classOf[Rep[_]])), List(arr), true, colElement(arr.elem.eItem)))
     };
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       override def builder: Rep[ColBuilder] = RColOverArrayBuilder();

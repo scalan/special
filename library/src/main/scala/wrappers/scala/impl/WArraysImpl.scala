@@ -9,6 +9,8 @@ import scala.reflect._
 package impl {
   import special.wrappers.ArrayWrapSpec
 
+  import scalan.util.ValOpt
+
   // Abs -----------------------------------
 trait WArraysDefs extends scalan.Scalan with WArrays {
   self: WrappersModule =>
@@ -271,7 +273,7 @@ object WArray extends EntityObject("WArray") {
     object map {
       def unapply(d: Def[_]): ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "map" =>
-          Some((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
+          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
         case _ => ValOpt.None
       }
       def unapply(exp: Sym): ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = exp match {
@@ -283,7 +285,7 @@ object WArray extends EntityObject("WArray") {
     object zip {
       def unapply(d: Def[_]): ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "zip" =>
-          Some((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
+          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
         case _ => ValOpt.None
       }
       def unapply(exp: Sym): ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = exp match {

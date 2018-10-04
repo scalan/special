@@ -9,6 +9,8 @@ import scala.reflect._
 package impl {
   import special.wrappers.OptionWrapSpec
 
+  import scalan.util.ValOpt
+
   // Abs -----------------------------------
 trait WOptionsDefs extends scalan.Scalan with WOptions {
   self: WrappersModule =>
@@ -213,12 +215,12 @@ object WOption extends EntityObject("WOption") {
     object map {
       def unapply(d: Def[_]): ValOpt[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "map" =>
-          Some((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
+          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
         case _ => ValOpt.None
       }
-      def unapply(exp: Sym): Option[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): ValOpt[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => ValOpt.None
       }
     }
 
