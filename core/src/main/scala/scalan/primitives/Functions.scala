@@ -3,7 +3,7 @@ package scalan.primitives
 import java.util
 
 import scalan.staged.ProgramGraphs
-import scalan.{ValOpt, Lazy, Base, Scalan}
+import scalan.{Nullable, Lazy, Base, Scalan}
 import scala.language.implicitConversions
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
@@ -29,7 +29,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     sameArgFun(f) { x => h(f(x), g(x)) }
   }
 
-  class Lambda[A, B](val f: ValOpt[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean)
+  class Lambda[A, B](val f: Nullable[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean)
     extends Def[A => B] with AstGraph with Product { thisLambda =>
     def eA = x.elem
     def eB = y.elem
@@ -81,21 +81,21 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       }
   }
 
-  type LambdaData[A,B] = (Lambda[A,B], ValOpt[Exp[A] => Exp[B]], Exp[A], Exp[B])
+  type LambdaData[A,B] = (Lambda[A,B], Nullable[Exp[A] => Exp[B]], Exp[A], Exp[B])
   object Lambda {
-    def unapply[A,B](lam: Lambda[A, B]): ValOpt[LambdaData[A,B]] = {
+    def unapply[A,B](lam: Lambda[A, B]): Nullable[LambdaData[A,B]] = {
       val res: LambdaData[A,B] =
         if (lam == null) null
         else {
           (lam, lam.f, lam.x, lam.y)
         }
-      ValOpt(res)
+      Nullable(res)
     }
   }
 
   override def transformDef[A](d: Def[A], t: Transformer) = d match {
     case l: Lambda[a, b] =>
-      val newLam = new Lambda(ValOpt.None, t(l.x), t(l.y), l.mayInline)
+      val newLam = new Lambda(Nullable.None, t(l.x), t(l.y), l.mayInline)
       val newSym = newLam.self
       toExp(newLam, newSym).asRep[A]
     case _ => super.transformDef(d, t)
@@ -160,11 +160,11 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def alphaEqual(s1: Sym, s2: Sym): Boolean = matchExps(s1, s2, false, emptyMatchSubst).isDefined
 
-  def patternMatch(s1: Sym, s2: Sym): ValOpt[Subst] = matchExps(s1, s2, true, emptyMatchSubst)
+  def patternMatch(s1: Sym, s2: Sym): Nullable[Subst] = matchExps(s1, s2, true, emptyMatchSubst)
 
-  protected def matchExps(s1: Sym, s2: Sym, allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = s1 match {
+  protected def matchExps(s1: Sym, s2: Sym, allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] = s1 match {
     case _ if s1 == s2 || subst.get(s1) == s2 || subst.get(s2) == s1 =>
-      ValOpt(subst)
+      Nullable(subst)
     case Def(d1) if !d1.isInstanceOf[Variable[_]] => s2 match {
       case Def(d2) =>
         val res = matchDefs(d1, d2, allowInexactMatch, subst)
@@ -172,64 +172,64 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
           res.get.put(s1, s2)
         }
         res
-      case _ => ValOpt.None
+      case _ => Nullable.None
     }
     case _ =>
       if (allowInexactMatch && !subst.containsKey(s1)) {
         subst.put(s1, s2)
-        ValOpt(subst)
+        Nullable(subst)
       } else {
-        ValOpt.None
+        Nullable.None
       }
   }
 
   @inline
-  private def matchLambdas(lam1: Lambda[_, _], lam2: Lambda[_, _], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] =
+  private def matchLambdas(lam1: Lambda[_, _], lam2: Lambda[_, _], allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] =
     if (lam1.x.elem == lam2.x.elem) {
       subst.put(lam1.x, lam2.x)
       matchExps(lam1.y, lam2.y, allowInexactMatch, subst)
     }
     else
-      ValOpt.None
+      Nullable.None
 
-  protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = d1 match {
+  protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] = d1 match {
     case lam1: Lambda[_, _] => d2 match {
       case lam2: Lambda[_, _] =>
         matchLambdas(lam1, lam2, allowInexactMatch, subst)
-      case _ => ValOpt.None
+      case _ => Nullable.None
     }
     case _ =>
       if (d1.getClass == d2.getClass && d1.productArity == d2.productArity && d1.selfType.name == d2.selfType.name) {
         matchIterators(d1.productIterator, d2.productIterator, allowInexactMatch, subst)
       } else
-        ValOpt.None
+        Nullable.None
   }
 
   // generalize to Seq or Iterable if we get nodes with deps of these types
-  protected def matchIterators(i1: Iterator[_], i2: Iterator[_], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] =
+  protected def matchIterators(i1: Iterator[_], i2: Iterator[_], allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] =
     if (i1.hasNext) {
       if (i2.hasNext) {
         var res = matchAny(i1.next(), i2.next(), allowInexactMatch, subst)
         if (res.isDefined)
           res = matchIterators(i1, i2, allowInexactMatch, res.get)
         res
-      } else ValOpt.None
+      } else Nullable.None
     } else {
-      if (i2.hasNext) ValOpt.None else ValOpt(subst)
+      if (i2.hasNext) Nullable.None else Nullable(subst)
     }
 
-  protected def matchAny(a1: Any, a2: Any, allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = a1 match {
+  protected def matchAny(a1: Any, a2: Any, allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] = a1 match {
     case s1: Sym => a2 match {
       case s2: Sym =>
         matchExps(s1, s2, allowInexactMatch, subst)
-      case _ => ValOpt.None
+      case _ => Nullable.None
     }
     case l1: Iterable[_] => a2 match {
       case l2: Iterable[_] =>
         matchIterators(l1.iterator, l2.iterator, allowInexactMatch, subst)
-      case _ => ValOpt.None
+      case _ => Nullable.None
     }
-    case _ => if (a1 == a2) ValOpt(subst) else ValOpt.None
+    case _ => if (a1 == a2) Nullable(subst) else Nullable.None
   }
 
   //=====================================================================================
@@ -265,7 +265,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def unfoldLambda[A,B](lam: Lambda[A,B], x: Exp[A]): Exp[B] = {
     lam.f match {
-      case ValOpt(g) => g(x) // unfold initial non-recursive function
+      case Nullable(g) => g(x) // unfold initial non-recursive function
       case _ => mirrorApply(lam, x)  // f is mirrored, unfold it by mirroring
     }
   }
@@ -309,7 +309,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     // ySym will be assigned after f is executed
     val ySym = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[B]]
 
-    val lam = new Lambda(ValOpt(f), x, ySym, mayInline)
+    val lam = new Lambda(Nullable(f), x, ySym, mayInline)
     val lamSym = lam.self
 
     val y = reifyEffects(executeFunction(f, x, lamSym))

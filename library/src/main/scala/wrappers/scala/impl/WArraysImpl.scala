@@ -269,26 +269,26 @@ object WArray extends EntityObject("WArray") {
     }
 
     object map {
-      def unapply(d: Def[_]): ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "map" =>
-          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
-        case _ => ValOpt.None
+          Nullable((receiver, args(0))).asInstanceOf[Nullable[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): ValOpt[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => ValOpt.None
+        case _ => Nullable.None
       }
     }
 
     object zip {
-      def unapply(d: Def[_]): ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "zip" =>
-          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
-        case _ => ValOpt.None
+          Nullable((receiver, args(0))).asInstanceOf[Nullable[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): ValOpt[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => ValOpt.None
+        case _ => Nullable.None
       }
     }
   }

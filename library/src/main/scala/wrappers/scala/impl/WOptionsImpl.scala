@@ -211,14 +211,14 @@ object WOption extends EntityObject("WOption") {
     }
 
     object map {
-      def unapply(d: Def[_]): ValOpt[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "map" =>
-          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
-        case _ => ValOpt.None
+          Nullable((receiver, args(0))).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): ValOpt[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => ValOpt.None
+        case _ => Nullable.None
       }
     }
 

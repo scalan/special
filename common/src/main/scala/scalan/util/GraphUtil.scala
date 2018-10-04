@@ -1,7 +1,7 @@
 package scalan.util
 
 import scala.collection.mutable.{Buffer, ArrayBuffer}
-import scalan.{ValOpt, AVHashMap}
+import scalan.{Nullable, AVHashMap}
 
 object GraphUtil {
    def depthFirstSetFrom[A](starts: Set[A])(neighbours: A => TraversableOnce[A]): Set[A] = {
@@ -48,7 +48,7 @@ object GraphUtil {
 
     def visit(node: T): Int = {
       mark.get(node) match {
-        case ValOpt(n) => n
+        case Nullable(n) => n
         case _ =>
           id += 1
 

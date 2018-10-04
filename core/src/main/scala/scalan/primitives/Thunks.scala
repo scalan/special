@@ -3,7 +3,7 @@ package scalan.primitives
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{Lazy, ViewsModule, Scalan, ValOpt}
+import scalan.{Lazy, ViewsModule, Scalan, Nullable}
 import scala.reflect.runtime.universe._
 import scalan.meta.TypeDesc
 import scalan.util.Covariant
@@ -180,7 +180,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   class ThunkStack {
     var stack = List[ThunkScope]()
-    def top: ValOpt[ThunkScope] = if (stack.isEmpty) ValOpt.None else ValOpt(stack.head)
+    def top: Nullable[ThunkScope] = if (stack.isEmpty) Nullable.None else Nullable(stack.head)
     def push(e: ThunkScope): this.type = { stack = e :: stack; this }
     @inline def pop: ThunkScope = {
       val res = stack.head
@@ -198,7 +198,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   protected val thunkStack = new ThunkStack
 
   protected def currentThunkSym = thunkStack.top match {
-    case ValOpt(scope) => scope.thunkSym
+    case Nullable(scope) => scope.thunkSym
     case _ => globalThunkSym
   }
 
@@ -263,14 +263,14 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 //    case _ => super.effectSyms(x)
 //  }
 
-  override protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): ValOpt[Subst] = d1 match {
+  override protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] = d1 match {
     case ThunkDef(root1, sch1) => d2 match {
       case ThunkDef(root2, sch2) =>
         var res = matchIterators(sch1.iterator.map(_.sym), sch2.iterator.map(_.sym), allowInexactMatch, subst)
         if (res.isDefined)
           res = matchExps(root1, root2, allowInexactMatch, res.get)
         res
-      case _ => ValOpt.None
+      case _ => Nullable.None
     }
     case _ =>
       super.matchDefs(d1, d2, allowInexactMatch, subst)

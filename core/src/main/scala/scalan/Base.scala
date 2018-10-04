@@ -170,7 +170,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   object Def {
-    def unapply[T](e: Rep[T]): ValOpt[Def[T]] = def_unapply(e)
+    def unapply[T](e: Rep[T]): Nullable[Def[T]] = def_unapply(e)
   }
   object && {
     def unapply[T](x: T): Option[(T,T)] = Some((x, x))
@@ -266,7 +266,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   private[this] val entityObjects = AVHashMap[String, EntityObject](100)
 
-  def getEntityObject(name: String): ValOpt[EntityObject] = {
+  def getEntityObject(name: String): Nullable[EntityObject] = {
     entityObjects.get(name)
   }
 
@@ -393,7 +393,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
         else
         {
           getEntityObject(firstParamTpe.typeSymbol.name.toString) match {
-            case ValOpt(obj) =>
+            case Nullable(obj) =>
               EntityObjectOwner(obj)
             case _ => NoOwner
           }
@@ -447,7 +447,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     val ReflectedProductClass(constructor, paramMirrors, owner) = {
       var opt = defClasses.get(clazz)
       opt match {
-        case ValOpt(rpc) => rpc
+        case Nullable(rpc) => rpc
         case _ =>
           val rpc = reflectProductClass(clazz, p)
           defClasses.put(clazz, rpc)
@@ -505,10 +505,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case _ => delayInvoke
   }
 
-  def def_unapply[T](e: Rep[T]): ValOpt[Def[T]] = new ValOpt(e.rhs)
+  def def_unapply[T](e: Rep[T]): Nullable[Def[T]] = new Nullable(e.rhs)
 
   object ExpWithElem {
-    def unapply[T](s: Rep[T]): ValOpt[(Rep[T],Elem[T])] = ValOpt((s, s.elem))
+    def unapply[T](s: Rep[T]): Nullable[(Rep[T],Elem[T])] = Nullable((s, s.elem))
   }
 
   abstract class Stm // statement (links syms and definitions)
@@ -543,7 +543,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   object DefTableEntry {
-    def unapply[T](e: Rep[T]): ValOpt[TableEntry[T]] = new ValOpt(e.rhs.tableEntry)
+    def unapply[T](e: Rep[T]): Nullable[TableEntry[T]] = new Nullable(e.rhs.tableEntry)
   }
 
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
@@ -697,8 +697,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   private[this] val defToGlobalDefs = AVHashMap[(Rep[_], Def[_]), TableEntry[_]](1000)
 
-  def findDefinition[T](s: Rep[T]): ValOpt[TableEntry[T]] =
-    ValOpt(s.rhs.tableEntry)
+  def findDefinition[T](s: Rep[T]): Nullable[TableEntry[T]] =
+    Nullable(s.rhs.tableEntry)
 
   def findDefinition[T](thunk: Rep[_], d: Def[T]): TableEntry[T] =
     defToGlobalDefs((thunk,d)).asInstanceOf[TableEntry[T]]
@@ -707,7 +707,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   def findOrCreateDefinition[T](d: Def[T], newSym: => Rep[T]): Rep[T] = {
     val optScope = thunkStack.top
     var te = optScope match {
-      case ValOpt(scope) =>
+      case Nullable(scope) =>
         scope.findDef(d)
       case _ =>
         findDefinition(globalThunkSym, d)
@@ -722,10 +722,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
   def createDefinition[T](s: Rep[T], d: Def[T]): TableEntry[T] =
     createDefinition(thunkStack.top, s, d)
 
-  private def createDefinition[T](optScope: ValOpt[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
+  private def createDefinition[T](optScope: Nullable[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
     val te = TableEntry(s, d)
     optScope match {
-      case ValOpt(scope) =>
+      case Nullable(scope) =>
         te.rhs.assignId()
         te.rhs.tableEntry = te
         defToGlobalDefs.put((scope.thunkSym, te.rhs), te)

@@ -168,14 +168,14 @@ object Col extends EntityObject("Col") {
 
   object ColMethods {
     object builder {
-      def unapply(d: Def[_]): ValOpt[Rep[Col[A]] forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Col[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "builder" =>
-          ValOpt(receiver).asInstanceOf[ValOpt[Rep[Col[A]] forSome {type A}]]
-        case _ => ValOpt.None
+          Nullable(receiver).asInstanceOf[Nullable[Rep[Col[A]] forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): ValOpt[Rep[Col[A]] forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Col[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => ValOpt.None
+        case _ => Nullable.None
       }
     }
 
@@ -228,27 +228,27 @@ object Col extends EntityObject("Col") {
     }
 
     object map {
-      def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "map" =>
           val res = (receiver, args(0)).asInstanceOf[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}]
-          ValOpt(res)
-        case _ => ValOpt.None
+          Nullable(res)
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Col[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => ValOpt.None
+        case _ => Nullable.None
       }
     }
 
     object zip {
-      def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "zip" =>
-          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
-        case _ => ValOpt.None
+          Nullable((receiver, args(0))).asInstanceOf[Nullable[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => ValOpt.None
+        case _ => Nullable.None
       }
     }
 
@@ -325,14 +325,14 @@ object Col extends EntityObject("Col") {
     }
 
     object sum {
-      def unapply(d: Def[_]): ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColElem[_, _]] && method.getName == "sum" =>
-          ValOpt((receiver, args(0))).asInstanceOf[ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}]]
-        case _ => ValOpt.None
+          Nullable((receiver, args(0))).asInstanceOf[Nullable[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): ValOpt[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Col[A]], Rep[Monoid[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => ValOpt.None
+        case _ => Nullable.None
       }
     }
 

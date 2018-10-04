@@ -42,7 +42,7 @@ trait RewriteRuleSuite[A] extends BaseShouldTests {
     val ctx = getCtx
     import ctx._
     patternMatch(rule.lhs, testExpr()) match {
-      case ValOpt(subst) =>
+      case Nullable(subst) =>
         subst.toImmutableMap should not be(Map.empty)
       case _ =>
         fail("should recognize pattern")

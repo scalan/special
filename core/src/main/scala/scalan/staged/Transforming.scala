@@ -3,7 +3,7 @@ package scalan.staged
 import java.lang.reflect.Method
 
 import scala.collection.{Seq, mutable}
-import scalan.{Lazy, DelayInvokeException, Scalan, ValOpt}
+import scalan.{Lazy, DelayInvokeException, Scalan, Nullable}
 import scala.reflect.runtime.universe._
 
 trait Transforming { self: Scalan =>
@@ -193,7 +193,7 @@ trait Transforming { self: Scalan =>
     // require: should be called after oldlam.schedule is mirrored
     private def getMirroredLambdaDef(t: Ctx, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
       val newVar = t(oldLam.x)
-      val newLambdaDef = new Lambda(ValOpt.None, newVar, newRoot, oldLam.mayInline)
+      val newLambdaDef = new Lambda(Nullable.None, newVar, newRoot, oldLam.mayInline)
       newLambdaDef
     }
 
