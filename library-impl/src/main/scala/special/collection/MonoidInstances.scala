@@ -6,12 +6,12 @@ class MonoidBuilderInst extends MonoidBuilder {
 }
 
 class IntPlusMonoid(val zero: Int) extends Monoid[Int] {
-  def plus(x: Int, y: Int) = x + y
-  def power(x: Int, n: Int) = x * n
+  def plus(x: Int, y: Int): Int = x + y
+  def power(x: Int, n: Int): Int = x * n
 }
 
 class LongPlusMonoid(val zero: Long) extends Monoid[Long] {
-  def plus(x: Long, y: Long) = x + y
-  def power(x: Long, n: Int) = x * n.toLong
+  def plus(x: Long, y: Long): Long = x + y
+  def power(x: Long, n: Int): Long = x * n.toLong
 }
 

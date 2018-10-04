@@ -30,14 +30,20 @@ object WRType extends EntityObject("WRType") {
     implicit def eA: Elem[A] = lA.eW
     val liftable: Liftable[RType[SA], WRType[A]] = liftableRType(lA)
     val selfType: Elem[WRType[A]] = liftable.eW
-    @External def name: Rep[String] = delayInvoke
+
+    def name: Rep[String] = {
+      asRep[String](mkMethodCall(self,
+        this.getClass.getMethod("name"),
+        List(),
+        true, element[String]))
+    }
   }
 
   case class LiftableRType[SA, A](lA: Liftable[SA, A])
     extends Liftable[RType[SA], WRType[A]] {
     lazy val eW: Elem[WRType[A]] = wRTypeElement(lA.eW)
     lazy val sourceClassTag: ClassTag[RType[SA]] = {
-      implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
       classTag[RType[SA]]
     }
     def lift(x: RType[SA]): Rep[WRType[A]] = WRTypeConst(x, lA)
@@ -53,7 +59,9 @@ object WRType extends EntityObject("WRType") {
   private val _RTypeWrapSpec = new RTypeWrapSpec
   // entityProxy: single proxy for each type family
   implicit def proxyWRType[A](p: Rep[WRType[A]]): WRType[A] = {
-    proxyOps[WRType[A]](p)(scala.reflect.classTag[WRType[A]])
+    if (p.rhs.isInstanceOf[WRType[A]@unchecked]) p.rhs.asInstanceOf[WRType[A]]
+    else
+      proxyOps[WRType[A]](p)(scala.reflect.classTag[WRType[A]])
   }
 
   // familyElem
@@ -110,14 +118,15 @@ object WRType extends EntityObject("WRType") {
 
   object WRTypeMethods {
     object name {
-      def unapply(d: Def[_]): Option[Rep[WRType[A]] forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[WRType[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WRTypeElem[_, _]] && method.getName == "name" =>
-          Some(receiver).asInstanceOf[Option[Rep[WRType[A]] forSome {type A}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[WRType[A]] forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[WRType[A]] forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[WRType[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

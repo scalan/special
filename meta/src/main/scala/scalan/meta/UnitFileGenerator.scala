@@ -199,16 +199,16 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |      case (_, Def(IdentityLambda())) =>
       |        xs
       |      case (xs: ${e.entityRepSynonym.name}[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
-      |        val f1 = f.asRep[a => c]
+      |        val f1 = asRep[a => c](f)
       |        implicit val eB = iso.eFrom
       |        val s = xs.map(f1 >> iso.fromFun)
       |        val res = View${e.name}(s, iso)
       |        res
       |      case (HasViews(source, Def(contIso: ${e.name}Iso[a, b])), f: RFunc[_, c]@unchecked) =>
-      |        val f1 = f.asRep[b => c]
+      |        val f1 = asRep[b => c](f)
       |        val iso = contIso.innerIso
       |        implicit val eC = f1.elem.eRange
-      |        source.asRep[${e.name}[a]].map(iso.toFun >> f1)
+      |        asRep[${e.name}[a]](source).map(iso.toFun >> f1)
       |      case _ =>
       |        super.rewriteDef(d)
       |    }""".stripMargin
@@ -233,7 +233,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |      Some((view.source, view.iso))
       |    case UserType${e.name}(iso: Iso[a, b]) =>
       |      val newIso = ${StringUtil.lowerCaseFirst(e.name)}Iso(iso)
-      |      val repr = reifyObject(UnpackView(s.asRep[${e.name}[b]], newIso))
+      |      val repr = reifyObject(UnpackView(asRep[${e.name}[b]](s), newIso))
       |      Some((repr, newIso))
       |    case _ =>
       |      super.unapplyViews(s)
@@ -379,7 +379,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |
          |    def convert${e.name}(x: Rep[${e.typeUse}]): Rep[$toArgName] = {
       |      x.elem${e.t.hasHighKindTpeArg.opt(".asInstanceOf[Elem[_]]")} match {
-      |        case _: $wildcardElem => x.asRep[$toArgName]
+      |        case _: $wildcardElem => asRep[$toArgName](x)
       |        case e => !!!(s"Expected $$x to have $wildcardElem, but got $$e", x)
       |      }
       |    }

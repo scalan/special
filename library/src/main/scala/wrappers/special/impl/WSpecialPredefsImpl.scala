@@ -19,7 +19,9 @@ import WSpecialPredef._
 object WSpecialPredef extends EntityObject("WSpecialPredef") {
   // entityProxy: single proxy for each type family
   implicit def proxyWSpecialPredef(p: Rep[WSpecialPredef]): WSpecialPredef = {
-    proxyOps[WSpecialPredef](p)(scala.reflect.classTag[WSpecialPredef])
+    if (p.rhs.isInstanceOf[WSpecialPredef@unchecked]) p.rhs.asInstanceOf[WSpecialPredef]
+    else
+      proxyOps[WSpecialPredef](p)(scala.reflect.classTag[WSpecialPredef])
   }
 
   // familyElem
@@ -62,41 +64,41 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   lazy val RWSpecialPredef: Rep[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
     def optionGetOrElse[A](opt: Rep[WOption[A]], default: Rep[A]): Rep[A] = {
       implicit val eA = opt.eA
-      mkMethodCall(self,
+      asRep[A](mkMethodCall(self,
         this.getClass.getMethod("optionGetOrElse", classOf[Sym], classOf[Sym]),
         List(opt, default),
-        true, element[A]).asRep[A]
+        true, element[A]))
     }
 
     def right[A, B](b: Rep[B])(implicit emA: Elem[A]): Rep[WEither[A, B]] = {
       implicit val eB = b.elem
-      mkMethodCall(self,
+      asRep[WEither[A, B]](mkMethodCall(self,
         this.getClass.getMethod("right", classOf[Sym], classOf[Sym]),
         List(b, emA),
-        true, element[WEither[A, B]]).asRep[WEither[A, B]]
+        true, element[WEither[A, B]]))
     }
 
     def left[A, B](a: Rep[A])(implicit emB: Elem[B]): Rep[WEither[A, B]] = {
       implicit val eA = a.elem
-      mkMethodCall(self,
+      asRep[WEither[A, B]](mkMethodCall(self,
         this.getClass.getMethod("left", classOf[Sym], classOf[Sym]),
         List(a, emB),
-        true, element[WEither[A, B]]).asRep[WEither[A, B]]
+        true, element[WEither[A, B]]))
     }
 
     def none[A](implicit emA: Elem[A]): Rep[WOption[A]] = {
-      mkMethodCall(self,
+      asRep[WOption[A]](mkMethodCall(self,
         this.getClass.getMethod("none", classOf[Sym]),
         List(emA),
-        true, element[WOption[A]]).asRep[WOption[A]]
+        true, element[WOption[A]]))
     }
 
     def some[A](x: Rep[A]): Rep[WOption[A]] = {
       implicit val eA = x.elem
-      mkMethodCall(self,
+      asRep[WOption[A]](mkMethodCall(self,
         this.getClass.getMethod("some", classOf[Sym]),
         List(x),
-        true, element[WOption[A]]).asRep[WOption[A]]
+        true, element[WOption[A]]))
     }
 
     def eitherMap[A, B, C, D](e: Rep[WEither[A, B]], fa: Rep[A => C], fb: Rep[B => D]): Rep[WEither[C, D]] = {
@@ -104,25 +106,25 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
 implicit val eB = e.eB
 implicit val eC = fa.elem.eRange
 implicit val eD = fb.elem.eRange
-      mkMethodCall(self,
+      asRep[WEither[C, D]](mkMethodCall(self,
         this.getClass.getMethod("eitherMap", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(e, fa, fb),
-        true, element[WEither[C, D]]).asRep[WEither[C, D]]
+        true, element[WEither[C, D]]))
     }
 
     def cast[T](v: Rep[Any])(implicit emT: Elem[T]): Rep[WOption[T]] = {
-      mkMethodCall(self,
+      asRep[WOption[T]](mkMethodCall(self,
         this.getClass.getMethod("cast", classOf[Sym], classOf[Sym]),
         List(v, emT),
-        true, element[WOption[T]]).asRep[WOption[T]]
+        true, element[WOption[T]]))
     }
 
     def loopUntil[A](s1: Rep[A], isMatch: Rep[A => Boolean], step: Rep[A => A]): Rep[A] = {
       implicit val eA = s1.elem
-      mkMethodCall(self,
+      asRep[A](mkMethodCall(self,
         this.getClass.getMethod("loopUntil", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(s1, isMatch, step),
-        true, element[A]).asRep[A]
+        true, element[A]))
     }
   }
 
@@ -131,98 +133,106 @@ implicit val eD = fb.elem.eRange
 
   object WSpecialPredefCompanionMethods {
     object optionGetOrElse {
-      def unapply(d: Def[_]): Option[(Rep[WOption[A]], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(opt, default, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "optionGetOrElse" =>
-          Some((opt, default)).asInstanceOf[Option[(Rep[WOption[A]], Rep[A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "optionGetOrElse" =>
+          val res = (args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[WOption[A]], Rep[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object right {
-      def unapply(d: Def[_]): Option[(Rep[B], Elem[A]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(b, emA, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "right" =>
-          Some((b, emA)).asInstanceOf[Option[(Rep[B], Elem[A]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[B], Elem[A]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "right" =>
+          val res = (args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[B], Elem[A]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[B], Elem[A]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[B], Elem[A]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object left {
-      def unapply(d: Def[_]): Option[(Rep[A], Elem[B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(a, emB, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "left" =>
-          Some((a, emB)).asInstanceOf[Option[(Rep[A], Elem[B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[A], Elem[B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "left" =>
+          val res = (args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[A], Elem[B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[A], Elem[B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[A], Elem[B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object none {
-      def unapply(d: Def[_]): Option[Elem[A] forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(emA, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "none" =>
-          Some(emA).asInstanceOf[Option[Elem[A] forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[Elem[A] forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "none" =>
+          val res = args(0)
+          Nullable(res).asInstanceOf[Nullable[Elem[A] forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Elem[A] forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[Elem[A] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object some {
-      def unapply(d: Def[_]): Option[Rep[A] forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "some" =>
-          Some(x).asInstanceOf[Option[Rep[A] forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "some" =>
+          val res = args(0)
+          Nullable(res).asInstanceOf[Nullable[Rep[A] forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[A] forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[A] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object eitherMap {
-      def unapply(d: Def[_]): Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = d match {
-        case MethodCall(receiver, method, Seq(e, fa, fb, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "eitherMap" =>
-          Some((e, fa, fb)).asInstanceOf[Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "eitherMap" =>
+          val res = (args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object cast {
-      def unapply(d: Def[_]): Option[(Rep[Any], Elem[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(v, emT, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "cast" =>
-          Some((v, emT)).asInstanceOf[Option[(Rep[Any], Elem[T]) forSome {type T}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Any], Elem[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "cast" =>
+          val res = (args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Any], Elem[T]) forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Any], Elem[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Any], Elem[T]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object loopUntil {
-      def unapply(d: Def[_]): Option[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(s1, isMatch, step, _*), _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "loopUntil" =>
-          Some((s1, isMatch, step)).asInstanceOf[Option[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "loopUntil" =>
+          val res = (args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

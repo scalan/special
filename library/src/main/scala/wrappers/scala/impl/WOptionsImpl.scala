@@ -28,21 +28,73 @@ object WOption extends EntityObject("WOption") {
     implicit def eA: Elem[A] = lA.eW
     val liftable: Liftable[Option[SA], WOption[A]] = liftableOption(lA)
     val selfType: Elem[WOption[A]] = liftable.eW
-    @External def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = delayInvoke
-    @External def isEmpty: Rep[Boolean] = delayInvoke
-    @External def isDefined: Rep[Boolean] = delayInvoke
-    @External def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = delayInvoke
-    @External def flatMap[B](f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]] = delayInvoke
-    @External def map[B](f: Rep[scala.Function1[A, B]]): Rep[WOption[B]] = delayInvoke
-    @External def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = delayInvoke
-    @External def get: Rep[A] = delayInvoke
+
+    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
+      implicit val eB = ifEmpty.elem.eItem
+      asRep[B](mkMethodCall(self,
+        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        List(ifEmpty, f),
+        true, element[B]))
+    }
+
+    def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        this.getClass.getMethod("isEmpty"),
+        List(),
+        true, element[Boolean]))
+    }
+
+    def isDefined: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        this.getClass.getMethod("isDefined"),
+        List(),
+        true, element[Boolean]))
+    }
+
+    def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
+      asRep[WOption[A]](mkMethodCall(self,
+        this.getClass.getMethod("filter", classOf[Sym]),
+        List(p),
+        true, element[WOption[A]]))
+    }
+
+    def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      asRep[WOption[B]](mkMethodCall(self,
+        this.getClass.getMethod("flatMap", classOf[Sym]),
+        List(f),
+        true, element[WOption[B]]))
+    }
+
+    def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
+      implicit val eB = f.elem.eRange
+      asRep[WOption[B]](mkMethodCall(self,
+        this.getClass.getMethod("map", classOf[Sym]),
+        List(f),
+        true, element[WOption[B]]))
+    }
+
+    def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
+      implicit val eB = default.elem.eItem
+      asRep[B](mkMethodCall(self,
+        this.getClass.getMethod("getOrElse", classOf[Sym]),
+        List(default),
+        true, element[B]))
+    }
+
+    def get: Rep[A] = {
+      asRep[A](mkMethodCall(self,
+        this.getClass.getMethod("get"),
+        List(),
+        true, element[A]))
+    }
   }
 
   case class LiftableOption[SA, A](lA: Liftable[SA, A])
     extends Liftable[Option[SA], WOption[A]] {
     lazy val eW: Elem[WOption[A]] = wOptionElement(lA.eW)
     lazy val sourceClassTag: ClassTag[Option[SA]] = {
-      implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
       classTag[Option[SA]]
     }
     def lift(x: Option[SA]): Rep[WOption[A]] = WOptionConst(x, lA)
@@ -58,7 +110,9 @@ object WOption extends EntityObject("WOption") {
   private val _OptionWrapSpec = new OptionWrapSpec
   // entityProxy: single proxy for each type family
   implicit def proxyWOption[A](p: Rep[WOption[A]]): WOption[A] = {
-    proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
+    if (p.rhs.isInstanceOf[WOption[A]@unchecked]) p.rhs.asInstanceOf[WOption[A]]
+    else
+      proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
   }
 
   implicit def castWOptionElement[A](elem: Elem[WOption[A]]): WOptionElem[A, WOption[A]] =
@@ -151,69 +205,75 @@ object WOption extends EntityObject("WOption") {
 
   object WOptionMethods {
     object fold {
-      def unapply(d: Def[_]): Option[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(ifEmpty, f, _*), _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "fold" =>
-          Some((receiver, ifEmpty, f)).asInstanceOf[Option[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "fold" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object isEmpty {
-      def unapply(d: Def[_]): Option[Rep[WOption[A]] forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[WOption[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "isEmpty" =>
-          Some(receiver).asInstanceOf[Option[Rep[WOption[A]] forSome {type A}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[WOption[A]] forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[WOption[A]] forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object isDefined {
-      def unapply(d: Def[_]): Option[Rep[WOption[A]] forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[WOption[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "isDefined" =>
-          Some(receiver).asInstanceOf[Option[Rep[WOption[A]] forSome {type A}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[WOption[A]] forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[WOption[A]] forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object filter {
-      def unapply(d: Def[_]): Option[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(p, _*), _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "filter" =>
-          Some((receiver, p)).asInstanceOf[Option[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "filter" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object flatMap {
-      def unapply(d: Def[_]): Option[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(f, _*), _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "flatMap" =>
-          Some((receiver, f)).asInstanceOf[Option[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "flatMap" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object map {
       def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "map" =>
-          Nullable((receiver, args(0))).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
@@ -223,26 +283,28 @@ object WOption extends EntityObject("WOption") {
     }
 
     object getOrElse {
-      def unapply(d: Def[_]): Option[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(default, _*), _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "getOrElse" =>
-          Some((receiver, default)).asInstanceOf[Option[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "getOrElse" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object get {
-      def unapply(d: Def[_]): Option[Rep[WOption[A]] forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[WOption[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "get" =>
-          Some(receiver).asInstanceOf[Option[Rep[WOption[A]] forSome {type A}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[WOption[A]] forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[WOption[A]] forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

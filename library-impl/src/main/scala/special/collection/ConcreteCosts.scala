@@ -115,25 +115,3 @@ class ConcreteCostedBuilder extends CostedBuilder {
   def defaultValue[T](valueType: RType[T]): T = rewritableMethod
 }
 
-//trait Closure[Env, Arg, Res] {
-//  def env: Env
-//
-//  @OverloadId("apply_with_env")
-//  def apply(e: Env, a: Arg): Res
-//
-//  @OverloadId("apply")
-//  def apply(a: Arg): Res = this.apply(env, a)
-//}
-//
-//class ClosureBase[Env, Arg, Res](
-//    val env: Env,
-//    val func: ((Env, Arg)) => Res,
-//    val cost: Int,
-//    val dataSize: Long) extends Closure[Env, Arg, Res]
-//{
-//  def apply(e: Env, a: Arg) = func((e, a))
-//}
-
-//class ClosureCol[Env, Arg, Res](val envs: Col[Env], func: (Env, Arg) => Res) extends Col[Closure[Env, Arg, Res]] {
-//}
-

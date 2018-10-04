@@ -16,7 +16,9 @@ import MonoidBuilder._
 object Monoid extends EntityObject("Monoid") {
   // entityProxy: single proxy for each type family
   implicit def proxyMonoid[T](p: Rep[Monoid[T]]): Monoid[T] = {
-    proxyOps[Monoid[T]](p)(scala.reflect.classTag[Monoid[T]])
+    if (p.rhs.isInstanceOf[Monoid[T]@unchecked]) p.rhs.asInstanceOf[Monoid[T]]
+    else
+      proxyOps[Monoid[T]](p)(scala.reflect.classTag[Monoid[T]])
   }
 
   // familyElem
@@ -64,38 +66,41 @@ object Monoid extends EntityObject("Monoid") {
 
   object MonoidMethods {
     object zero {
-      def unapply(d: Def[_]): Option[Rep[Monoid[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Monoid[T]] forSome {type T}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidElem[_, _]] && method.getName == "zero" =>
-          Some(receiver).asInstanceOf[Option[Rep[Monoid[T]] forSome {type T}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Monoid[T]] forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Monoid[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Monoid[T]] forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object plus {
-      def unapply(d: Def[_]): Option[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(x, y, _*), _) if receiver.elem.isInstanceOf[MonoidElem[_, _]] && method.getName == "plus" =>
-          Some((receiver, x, y)).asInstanceOf[Option[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MonoidElem[_, _]] && method.getName == "plus" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object power {
-      def unapply(d: Def[_]): Option[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(x, n, _*), _) if receiver.elem.isInstanceOf[MonoidElem[_, _]] && method.getName == "power" =>
-          Some((receiver, x, n)).asInstanceOf[Option[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MonoidElem[_, _]] && method.getName == "power" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -108,7 +113,9 @@ object Monoid extends EntityObject("Monoid") {
 object MonoidBuilder extends EntityObject("MonoidBuilder") {
   // entityProxy: single proxy for each type family
   implicit def proxyMonoidBuilder(p: Rep[MonoidBuilder]): MonoidBuilder = {
-    proxyOps[MonoidBuilder](p)(scala.reflect.classTag[MonoidBuilder])
+    if (p.rhs.isInstanceOf[MonoidBuilder@unchecked]) p.rhs.asInstanceOf[MonoidBuilder]
+    else
+      proxyOps[MonoidBuilder](p)(scala.reflect.classTag[MonoidBuilder])
   }
 
   // familyElem
@@ -153,26 +160,28 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
 
   object MonoidBuilderMethods {
     object intPlusMonoid {
-      def unapply(d: Def[_]): Option[Rep[MonoidBuilder]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilder]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "intPlusMonoid" =>
-          Some(receiver).asInstanceOf[Option[Rep[MonoidBuilder]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MonoidBuilder]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object longPlusMonoid {
-      def unapply(d: Def[_]): Option[Rep[MonoidBuilder]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilder]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "longPlusMonoid" =>
-          Some(receiver).asInstanceOf[Option[Rep[MonoidBuilder]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MonoidBuilder]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

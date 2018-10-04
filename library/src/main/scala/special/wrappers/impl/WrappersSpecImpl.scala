@@ -23,7 +23,9 @@ import RTypeWrapSpec._
 object WrapSpecBase extends EntityObject("WrapSpecBase") {
   // entityProxy: single proxy for each type family
   implicit def proxyWrapSpecBase(p: Rep[WrapSpecBase]): WrapSpecBase = {
-    proxyOps[WrapSpecBase](p)(scala.reflect.classTag[WrapSpecBase])
+    if (p.rhs.isInstanceOf[WrapSpecBase@unchecked]) p.rhs.asInstanceOf[WrapSpecBase]
+    else
+      proxyOps[WrapSpecBase](p)(scala.reflect.classTag[WrapSpecBase])
   }
 
   // familyElem
@@ -137,7 +139,10 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
   lazy val ArrayWrapSpecRep: Rep[ArrayWrapSpecCompanionCtor] = new ArrayWrapSpecCompanionCtor
   lazy val RArrayWrapSpec: ArrayWrapSpecCompanionCtor = proxyArrayWrapSpecCompanion(ArrayWrapSpecRep)
   implicit def proxyArrayWrapSpecCompanion(p: Rep[ArrayWrapSpecCompanionCtor]): ArrayWrapSpecCompanionCtor = {
-    proxyOps[ArrayWrapSpecCompanionCtor](p)
+    if (p.rhs.isInstanceOf[ArrayWrapSpecCompanionCtor])
+      p.rhs.asInstanceOf[ArrayWrapSpecCompanionCtor]
+    else
+      proxyOps[ArrayWrapSpecCompanionCtor](p)
   }
 
   implicit case object ArrayWrapSpecCompanionElem extends CompanionElem[ArrayWrapSpecCompanionCtor] {
@@ -171,134 +176,145 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
 
     object ArrayWrapSpecMethods {
     object zip {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[WArray[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(xs, ys, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "zip" =>
-          Some((receiver, xs, ys)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[WArray[B]]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[WArray[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "zip" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[WArray[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[WArray[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[WArray[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object map {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "map" =>
-          Some((receiver, xs, f)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "map" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object length {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "length" =>
-          Some((receiver, xs)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "length" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object fill {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[Int], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(n, elem, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "fill" =>
-          Some((receiver, n, elem)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[Int], Rep[A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[Int], Rep[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "fill" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[Int], Rep[A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[Int], Rep[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[Int], Rep[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object slice {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, from, until, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "slice" =>
-          Some((receiver, xs, from, until)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int], Rep[Int]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "slice" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int], Rep[Int]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int], Rep[Int]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object foldLeft {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(xs, zero, op, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "foldLeft" =>
-          Some((receiver, xs, zero, op)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "foldLeft" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object filter {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, p, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "filter" =>
-          Some((receiver, xs, p)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "filter" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object forall {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, p, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "forall" =>
-          Some((receiver, xs, p)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "forall" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object exists {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, p, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "exists" =>
-          Some((receiver, xs, p)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "exists" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object foreach {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Unit]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, p, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "foreach" =>
-          Some((receiver, xs, p)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Unit]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Unit]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "foreach" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Unit]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Unit]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[A => Unit]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object apply {
-      def unapply(d: Def[_]): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, i, _*), _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "apply" =>
-          Some((receiver, xs, i)).asInstanceOf[Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ArrayWrapSpecElem] && method.getName == "apply" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[ArrayWrapSpec], Rep[WArray[A]], Rep[Int]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -371,7 +387,10 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
   lazy val OptionWrapSpecRep: Rep[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor
   lazy val ROptionWrapSpec: OptionWrapSpecCompanionCtor = proxyOptionWrapSpecCompanion(OptionWrapSpecRep)
   implicit def proxyOptionWrapSpecCompanion(p: Rep[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor = {
-    proxyOps[OptionWrapSpecCompanionCtor](p)
+    if (p.rhs.isInstanceOf[OptionWrapSpecCompanionCtor])
+      p.rhs.asInstanceOf[OptionWrapSpecCompanionCtor]
+    else
+      proxyOps[OptionWrapSpecCompanionCtor](p)
   }
 
   implicit case object OptionWrapSpecCompanionElem extends CompanionElem[OptionWrapSpecCompanionCtor] {
@@ -405,98 +424,106 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
 
     object OptionWrapSpecMethods {
     object get {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "get" =>
-          Some((receiver, xs)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "get" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object getOrElse {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, default, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "getOrElse" =>
-          Some((receiver, xs, default)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "getOrElse" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object map {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "map" =>
-          Some((receiver, xs, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "map" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object flatMap {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "flatMap" =>
-          Some((receiver, xs, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "flatMap" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object filter {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "filter" =>
-          Some((receiver, xs, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "filter" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object isDefined {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "isDefined" =>
-          Some((receiver, xs)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "isDefined" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object isEmpty {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(xs, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "isEmpty" =>
-          Some((receiver, xs)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "isEmpty" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object fold {
-      def unapply(d: Def[_]): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(xs, ifEmpty, f, _*), _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "fold" =>
-          Some((receiver, xs, ifEmpty, f)).asInstanceOf[Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "fold" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -569,7 +596,10 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
   lazy val EitherWrapSpecRep: Rep[EitherWrapSpecCompanionCtor] = new EitherWrapSpecCompanionCtor
   lazy val REitherWrapSpec: EitherWrapSpecCompanionCtor = proxyEitherWrapSpecCompanion(EitherWrapSpecRep)
   implicit def proxyEitherWrapSpecCompanion(p: Rep[EitherWrapSpecCompanionCtor]): EitherWrapSpecCompanionCtor = {
-    proxyOps[EitherWrapSpecCompanionCtor](p)
+    if (p.rhs.isInstanceOf[EitherWrapSpecCompanionCtor])
+      p.rhs.asInstanceOf[EitherWrapSpecCompanionCtor]
+    else
+      proxyOps[EitherWrapSpecCompanionCtor](p)
   }
 
   implicit case object EitherWrapSpecCompanionElem extends CompanionElem[EitherWrapSpecCompanionCtor] {
@@ -603,26 +633,28 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
 
     object EitherWrapSpecMethods {
     object fold {
-      def unapply(d: Def[_]): Option[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, Seq(xs, fa, fb, _*), _) if receiver.elem.isInstanceOf[EitherWrapSpecElem] && method.getName == "fold" =>
-          Some((receiver, xs, fa, fb)).asInstanceOf[Option[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[EitherWrapSpecElem] && method.getName == "fold" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[EitherWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object cond {
-      def unapply(d: Def[_]): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(c, a, b, _*), _) if receiver.elem.isInstanceOf[EitherWrapSpecElem] && method.getName == "cond" =>
-          Some((receiver, c, a, b)).asInstanceOf[Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[EitherWrapSpecElem] && method.getName == "cond" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[EitherWrapSpec], Rep[Boolean], Rep[Thunk[A]], Rep[Thunk[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -695,7 +727,10 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   lazy val SpecialPredefWrapSpecRep: Rep[SpecialPredefWrapSpecCompanionCtor] = new SpecialPredefWrapSpecCompanionCtor
   lazy val RSpecialPredefWrapSpec: SpecialPredefWrapSpecCompanionCtor = proxySpecialPredefWrapSpecCompanion(SpecialPredefWrapSpecRep)
   implicit def proxySpecialPredefWrapSpecCompanion(p: Rep[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor = {
-    proxyOps[SpecialPredefWrapSpecCompanionCtor](p)
+    if (p.rhs.isInstanceOf[SpecialPredefWrapSpecCompanionCtor])
+      p.rhs.asInstanceOf[SpecialPredefWrapSpecCompanionCtor]
+    else
+      proxyOps[SpecialPredefWrapSpecCompanionCtor](p)
   }
 
   implicit case object SpecialPredefWrapSpecCompanionElem extends CompanionElem[SpecialPredefWrapSpecCompanionCtor] {
@@ -729,98 +764,106 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
     object SpecialPredefWrapSpecMethods {
     object loopUntil {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(s1, isMatch, step, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "loopUntil" =>
-          Some((receiver, s1, isMatch, step)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "loopUntil" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object cast {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(v, cA, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "cast" =>
-          Some((receiver, v, cA, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "cast" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object mapSum {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = d match {
-        case MethodCall(receiver, method, Seq(e, fa, fb, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "mapSum" =>
-          Some((receiver, e, fa, fb)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "mapSum" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object some {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(x, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "some" =>
-          Some((receiver, x)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "some" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object none {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(cA, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "none" =>
-          Some((receiver, cA, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "none" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object left {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(a, cB, emB, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "left" =>
-          Some((receiver, a, cB, emB)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "left" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object right {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(b, cA, emA, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "right" =>
-          Some((receiver, b, cA, emA)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "right" =>
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object optionGetOrElse {
-      def unapply(d: Def[_]): Option[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, Seq(opt, default, _*), _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "optionGetOrElse" =>
-          Some((receiver, opt, default)).asInstanceOf[Option[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "optionGetOrElse" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -893,7 +936,10 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   lazy val RTypeWrapSpecRep: Rep[RTypeWrapSpecCompanionCtor] = new RTypeWrapSpecCompanionCtor
   lazy val RRTypeWrapSpec: RTypeWrapSpecCompanionCtor = proxyRTypeWrapSpecCompanion(RTypeWrapSpecRep)
   implicit def proxyRTypeWrapSpecCompanion(p: Rep[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor = {
-    proxyOps[RTypeWrapSpecCompanionCtor](p)
+    if (p.rhs.isInstanceOf[RTypeWrapSpecCompanionCtor])
+      p.rhs.asInstanceOf[RTypeWrapSpecCompanionCtor]
+    else
+      proxyOps[RTypeWrapSpecCompanionCtor](p)
   }
 
   implicit case object RTypeWrapSpecCompanionElem extends CompanionElem[RTypeWrapSpecCompanionCtor] {
@@ -927,14 +973,15 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
 
     object RTypeWrapSpecMethods {
     object name {
-      def unapply(d: Def[_]): Option[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, Seq(d, _*), _) if receiver.elem.isInstanceOf[RTypeWrapSpecElem] && method.getName == "name" =>
-          Some((receiver, d)).asInstanceOf[Option[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[RTypeWrapSpecElem] && method.getName == "name" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

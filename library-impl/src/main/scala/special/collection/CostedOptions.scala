@@ -27,14 +27,14 @@ trait CostedOption[T] extends ConcreteCosted[Option[T]]
 }
 
 class CostedSome[T](val costedValue: Costed[T]) extends CostedOption[T] {
-  def value = SpecialPredef.some(costedValue.value)
-  def dataSize = builder.SumTagSize + costedValue.dataSize
-  def cost = costedValue.cost + builder.ConstructSumCost  // see doc comments for CostedOption
-  def get = costedValue
-  def getOrElse(default: Costed[() => T]) = costedValue
+  def value: Option[T] = SpecialPredef.some(costedValue.value)
+  def dataSize: Long = builder.SumTagSize + costedValue.dataSize
+  def cost: Int = costedValue.cost + builder.ConstructSumCost  // see doc comments for CostedOption
+  def get: Costed[T] = costedValue
+  def getOrElse(default: Costed[() => T]): Costed[T] = costedValue
 
   @NeverInline
-  def fold[B](ifEmpty: Costed[() => B], f: Costed[T => B]) = rewritableMethod
+  def fold[B](ifEmpty: Costed[() => B], f: Costed[T => B]): Costed[B] = rewritableMethod
 
   def isEmpty: Costed[Boolean] = new CostedPrim(false, costedValue.cost + builder.SelectFieldCost, 1L)
 
@@ -44,35 +44,35 @@ class CostedSome[T](val costedValue: Costed[T]) extends CostedOption[T] {
   def filter(p: Costed[T => Boolean]): Costed[Option[T]] = rewritableMethod
 
   @NeverInline
-  def flatMap[B](f: Costed[T => Option[B]]) = rewritableMethod
+  def flatMap[B](f: Costed[T => Option[B]]): Costed[Option[B]] = rewritableMethod
 
   @NeverInline
   def map[B](f: Costed[T => B]): Costed[Option[B]] = rewritableMethod
 }
 
 class CostedNone[T](val cost: Int)(implicit val eT: RType[T]) extends CostedOption[T] {
-  def value = SpecialPredef.none[T](eT)
-  def dataSize = builder.SumTagSize
-  def get = builder.costedValue(builder.defaultValue(eT), SpecialPredef.some(cost))
+  def value: Option[T] = SpecialPredef.none[T](eT)
+  def dataSize: Long = builder.SumTagSize
+  def get: Costed[T] = builder.costedValue(builder.defaultValue(eT), SpecialPredef.some(cost))
 
   @NeverInline
-  def getOrElse(default: Costed[() => T]) = rewritableMethod
+  def getOrElse(default: Costed[() => T]): Costed[T] = rewritableMethod
 
   @NeverInline
-  def fold[B](ifEmpty: Costed[() => B], f: Costed[T => B]) = rewritableMethod
+  def fold[B](ifEmpty: Costed[() => B], f: Costed[T => B]): Costed[B] = rewritableMethod
 
-  def isEmpty = new CostedPrim(true, cost + builder.SelectFieldCost, 1L)
+  def isEmpty: Costed[Boolean] = new CostedPrim(true, cost + builder.SelectFieldCost, 1L)
 
-  def isDefined = new CostedPrim(false, cost + builder.SelectFieldCost, 1L)
-
-  @NeverInline
-  def filter(p: Costed[T => Boolean]) = rewritableMethod
+  def isDefined: Costed[Boolean] = new CostedPrim(false, cost + builder.SelectFieldCost, 1L)
 
   @NeverInline
-  def flatMap[B](f: Costed[T => Option[B]]) = rewritableMethod
+  def filter(p: Costed[T => Boolean]): Costed[Option[T]] = rewritableMethod
 
   @NeverInline
-  def map[B](f: Costed[T => B]) = rewritableMethod
+  def flatMap[B](f: Costed[T => Option[B]]): Costed[Option[B]] = rewritableMethod
+
+  @NeverInline
+  def map[B](f: Costed[T => B]): Costed[Option[B]] = rewritableMethod
 }
 
 

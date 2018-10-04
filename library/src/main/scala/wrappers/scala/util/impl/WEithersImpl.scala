@@ -27,33 +27,42 @@ object WEither extends EntityObject("WEither") {
       ) extends WEither[A, B] with LiftedConst[Either[SA, SB], WEither[A, B]] {
     implicit def eA: Elem[A] = lA.eW
     implicit def eB: Elem[B] = lB.eW
-    val liftable: Liftable[Either[SA, SB], WEither[A, B]] = liftableEither(lA, lB)
+    val liftable: Liftable[Either[SA, SB], WEither[A, B]] = liftableEither(lA,lB)
     val selfType: Elem[WEither[A, B]] = liftable.eW
-    @External def fold[C](fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C] = delayInvoke
+
+    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
+      implicit val eC = fa.elem.eRange
+      asRep[C](mkMethodCall(self,
+        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        List(fa, fb),
+        true, element[C]))
+    }
   }
 
-  case class LiftableEither[SA, SB, A, B](lA: Liftable[SA, A], lB: Liftable[SB, B])
+  case class LiftableEither[SA, SB, A, B](lA: Liftable[SA, A],lB: Liftable[SB, B])
     extends Liftable[Either[SA, SB], WEither[A, B]] {
-    lazy val eW: Elem[WEither[A, B]] = wEitherElement(lA.eW, lB.eW)
+    lazy val eW: Elem[WEither[A, B]] = wEitherElement(lA.eW,lB.eW)
     lazy val sourceClassTag: ClassTag[Either[SA, SB]] = {
-      implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
       implicit val tagSB = lB.eW.sourceClassTag.asInstanceOf[ClassTag[SB]]
       classTag[Either[SA, SB]]
     }
-    def lift(x: Either[SA, SB]): Rep[WEither[A, B]] = WEitherConst(x, lA, lB)
+    def lift(x: Either[SA, SB]): Rep[WEither[A, B]] = WEitherConst(x, lA,lB)
     def unlift(w: Rep[WEither[A, B]]): Either[SA, SB] = w match {
-      case Def(WEitherConst(x: Either[_, _], _lA, _lB))
+      case Def(WEitherConst(x: Either[_,_], _lA,_lB))
             if _lA == lA && _lB == lB => x.asInstanceOf[Either[SA, SB]]
       case _ => unliftError(w)
     }
   }
-  implicit def liftableEither[SA, SB, A, B](implicit lA: Liftable[SA,A], lB: Liftable[SB,B]): Liftable[Either[SA, SB], WEither[A, B]] =
-    LiftableEither(lA, lB)
+  implicit def liftableEither[SA, SB, A, B](implicit lA: Liftable[SA,A],lB: Liftable[SB,B]): Liftable[Either[SA, SB], WEither[A, B]] =
+    LiftableEither(lA,lB)
 
   private val _EitherWrapSpec = new EitherWrapSpec
   // entityProxy: single proxy for each type family
   implicit def proxyWEither[A, B](p: Rep[WEither[A, B]]): WEither[A, B] = {
-    proxyOps[WEither[A, B]](p)(scala.reflect.classTag[WEither[A, B]])
+    if (p.rhs.isInstanceOf[WEither[A, B]@unchecked]) p.rhs.asInstanceOf[WEither[A, B]]
+    else
+      proxyOps[WEither[A, B]](p)(scala.reflect.classTag[WEither[A, B]])
   }
 
   // familyElem
@@ -62,7 +71,7 @@ object WEither extends EntityObject("WEither") {
     def eA = _eA
     def eB = _eB
 
-    override val liftable = liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_, _], To]
+    override val liftable = liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_,_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -111,37 +120,39 @@ object WEither extends EntityObject("WEither") {
     def cond[A, B](test: Rep[Boolean], right: Rep[Thunk[B]], left: Rep[Thunk[A]]): Rep[WEither[A, B]] = {
       implicit val eA = left.elem.eItem
 implicit val eB = right.elem.eItem
-      mkMethodCall(self,
+      asRep[WEither[A, B]](mkMethodCall(self,
         this.getClass.getMethod("cond", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(test, right, left),
-        true, element[WEither[A, B]]).asRep[WEither[A, B]]
+        true, element[WEither[A, B]]))
     }
   }
 
   object WEitherMethods {
     object fold {
-      def unapply(d: Def[_]): Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, Seq(fa, fb, _*), _) if receiver.elem.isInstanceOf[WEitherElem[_, _, _]] && method.getName == "fold" =>
-          Some((receiver, fa, fb)).asInstanceOf[Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WEitherElem[_, _, _]] && method.getName == "fold" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => C]) forSome {type A; type B; type C}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
 
   object WEitherCompanionMethods {
     object cond {
-      def unapply(d: Def[_]): Option[(Rep[Boolean], Rep[Thunk[B]], Rep[Thunk[A]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(test, right, left, _*), _) if receiver.elem == WEitherCompanionElem && method.getName == "cond" =>
-          Some((test, right, left)).asInstanceOf[Option[(Rep[Boolean], Rep[Thunk[B]], Rep[Thunk[A]]) forSome {type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Boolean], Rep[Thunk[B]], Rep[Thunk[A]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem == WEitherCompanionElem && method.getName == "cond" =>
+          val res = (args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Boolean], Rep[Thunk[B]], Rep[Thunk[A]]) forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Boolean], Rep[Thunk[B]], Rep[Thunk[A]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Boolean], Rep[Thunk[B]], Rep[Thunk[A]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

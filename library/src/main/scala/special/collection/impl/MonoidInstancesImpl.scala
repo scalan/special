@@ -79,7 +79,10 @@ object MonoidBuilderInst extends EntityObject("MonoidBuilderInst") {
   lazy val MonoidBuilderInstRep: Rep[MonoidBuilderInstCompanionCtor] = new MonoidBuilderInstCompanionCtor
   lazy val RMonoidBuilderInst: MonoidBuilderInstCompanionCtor = proxyMonoidBuilderInstCompanion(MonoidBuilderInstRep)
   implicit def proxyMonoidBuilderInstCompanion(p: Rep[MonoidBuilderInstCompanionCtor]): MonoidBuilderInstCompanionCtor = {
-    proxyOps[MonoidBuilderInstCompanionCtor](p)
+    if (p.rhs.isInstanceOf[MonoidBuilderInstCompanionCtor])
+      p.rhs.asInstanceOf[MonoidBuilderInstCompanionCtor]
+    else
+      proxyOps[MonoidBuilderInstCompanionCtor](p)
   }
 
   implicit case object MonoidBuilderInstCompanionElem extends CompanionElem[MonoidBuilderInstCompanionCtor] {
@@ -113,26 +116,28 @@ object MonoidBuilderInst extends EntityObject("MonoidBuilderInst") {
 
     object MonoidBuilderInstMethods {
     object intPlusMonoid {
-      def unapply(d: Def[_]): Option[Rep[MonoidBuilderInst]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "intPlusMonoid" =>
-          Some(receiver).asInstanceOf[Option[Rep[MonoidBuilderInst]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MonoidBuilderInst]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object longPlusMonoid {
-      def unapply(d: Def[_]): Option[Rep[MonoidBuilderInst]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "longPlusMonoid" =>
-          Some(receiver).asInstanceOf[Option[Rep[MonoidBuilderInst]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MonoidBuilderInst]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -202,7 +207,10 @@ object IntPlusMonoid extends EntityObject("IntPlusMonoid") {
   lazy val IntPlusMonoidRep: Rep[IntPlusMonoidCompanionCtor] = new IntPlusMonoidCompanionCtor
   lazy val RIntPlusMonoid: IntPlusMonoidCompanionCtor = proxyIntPlusMonoidCompanion(IntPlusMonoidRep)
   implicit def proxyIntPlusMonoidCompanion(p: Rep[IntPlusMonoidCompanionCtor]): IntPlusMonoidCompanionCtor = {
-    proxyOps[IntPlusMonoidCompanionCtor](p)
+    if (p.rhs.isInstanceOf[IntPlusMonoidCompanionCtor])
+      p.rhs.asInstanceOf[IntPlusMonoidCompanionCtor]
+    else
+      proxyOps[IntPlusMonoidCompanionCtor](p)
   }
 
   implicit case object IntPlusMonoidCompanionElem extends CompanionElem[IntPlusMonoidCompanionCtor] {
@@ -236,26 +244,28 @@ object IntPlusMonoid extends EntityObject("IntPlusMonoid") {
 
     object IntPlusMonoidMethods {
     object plus {
-      def unapply(d: Def[_]): Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, Seq(x, y, _*), _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "plus" =>
-          Some((receiver, x, y)).asInstanceOf[Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "plus" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object power {
-      def unapply(d: Def[_]): Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, Seq(x, n, _*), _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "power" =>
-          Some((receiver, x, n)).asInstanceOf[Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "power" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -325,7 +335,10 @@ object LongPlusMonoid extends EntityObject("LongPlusMonoid") {
   lazy val LongPlusMonoidRep: Rep[LongPlusMonoidCompanionCtor] = new LongPlusMonoidCompanionCtor
   lazy val RLongPlusMonoid: LongPlusMonoidCompanionCtor = proxyLongPlusMonoidCompanion(LongPlusMonoidRep)
   implicit def proxyLongPlusMonoidCompanion(p: Rep[LongPlusMonoidCompanionCtor]): LongPlusMonoidCompanionCtor = {
-    proxyOps[LongPlusMonoidCompanionCtor](p)
+    if (p.rhs.isInstanceOf[LongPlusMonoidCompanionCtor])
+      p.rhs.asInstanceOf[LongPlusMonoidCompanionCtor]
+    else
+      proxyOps[LongPlusMonoidCompanionCtor](p)
   }
 
   implicit case object LongPlusMonoidCompanionElem extends CompanionElem[LongPlusMonoidCompanionCtor] {
@@ -359,26 +372,28 @@ object LongPlusMonoid extends EntityObject("LongPlusMonoid") {
 
     object LongPlusMonoidMethods {
     object plus {
-      def unapply(d: Def[_]): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = d match {
-        case MethodCall(receiver, method, Seq(x, y, _*), _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "plus" =>
-          Some((receiver, x, y)).asInstanceOf[Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "plus" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object power {
-      def unapply(d: Def[_]): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = d match {
-        case MethodCall(receiver, method, Seq(x, n, _*), _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "power" =>
-          Some((receiver, x, n)).asInstanceOf[Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "power" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
