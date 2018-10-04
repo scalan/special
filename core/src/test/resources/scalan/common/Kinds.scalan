@@ -1,6 +1,6 @@
 package scalan.common
 
-import scalan.{Base, Scalan}
+import scalan._
 
 trait Kinds extends Base { self: KindsModule =>
   import Kind._; import Bind._; import Return._;

@@ -26,11 +26,41 @@ object Segment extends EntityObject("Segment") {
       ) extends Segment with LiftedConst[SSegment, Segment] {
     val liftable: Liftable[SSegment, Segment] = LiftableSegment
     val selfType: Elem[Segment] = liftable.eW
-    def start: Rep[Int] = delayInvoke
-    def length: Rep[Int] = delayInvoke
-    def end: Rep[Int] = delayInvoke
-    def shift(ofs: Rep[Int]): Rep[Segment] = delayInvoke
-    def attach(seg: Rep[Segment]): Rep[Segment] = delayInvoke
+
+    def start: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        this.getClass.getMethod("start"),
+        List(),
+        true, element[Int]))
+    }
+
+    def length: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        this.getClass.getMethod("length"),
+        List(),
+        true, element[Int]))
+    }
+
+    def end: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        this.getClass.getMethod("end"),
+        List(),
+        true, element[Int]))
+    }
+
+    def shift(ofs: Rep[Int]): Rep[Segment] = {
+      asRep[Segment](mkMethodCall(self,
+        this.getClass.getMethod("shift", classOf[Sym]),
+        List(ofs),
+        true, element[Segment]))
+    }
+
+    def attach(seg: Rep[Segment]): Rep[Segment] = {
+      asRep[Segment](mkMethodCall(self,
+        this.getClass.getMethod("attach", classOf[Sym]),
+        List(seg),
+        true, element[Segment]))
+    }
   }
 
   implicit object LiftableSegment
@@ -103,62 +133,67 @@ object Segment extends EntityObject("Segment") {
 
   object SegmentMethods {
     object start {
-      def unapply(d: Def[_]): Option[Rep[Segment]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "start" =>
-          Some(receiver).asInstanceOf[Option[Rep[Segment]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Segment]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Segment]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object length {
-      def unapply(d: Def[_]): Option[Rep[Segment]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "length" =>
-          Some(receiver).asInstanceOf[Option[Rep[Segment]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Segment]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Segment]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object end {
-      def unapply(d: Def[_]): Option[Rep[Segment]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "end" =>
-          Some(receiver).asInstanceOf[Option[Rep[Segment]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Segment]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Segment]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object shift {
-      def unapply(d: Def[_]): Option[(Rep[Segment], Rep[Int])] = d match {
-        case MethodCall(receiver, method, Seq(ofs, _*), _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "shift" =>
-          Some((receiver, ofs)).asInstanceOf[Option[(Rep[Segment], Rep[Int])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Segment], Rep[Int])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "shift" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Int])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Segment], Rep[Int])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Segment], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object attach {
-      def unapply(d: Def[_]): Option[(Rep[Segment], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, Seq(seg, _*), _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "attach" =>
-          Some((receiver, seg)).asInstanceOf[Option[(Rep[Segment], Rep[Segment])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Segment], Rep[Segment])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "attach" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Segment])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Segment], Rep[Segment])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Segment], Rep[Segment])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -272,38 +307,41 @@ object Interval extends EntityObject("Interval") {
 
     object IntervalMethods {
     object length {
-      def unapply(d: Def[_]): Option[Rep[Interval]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Interval]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "length" =>
-          Some(receiver).asInstanceOf[Option[Rep[Interval]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Interval]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Interval]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Interval]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object shift {
-      def unapply(d: Def[_]): Option[(Rep[Interval], Rep[Int])] = d match {
-        case MethodCall(receiver, method, Seq(ofs, _*), _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "shift" =>
-          Some((receiver, ofs)).asInstanceOf[Option[(Rep[Interval], Rep[Int])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Interval], Rep[Int])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "shift" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Int])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Interval], Rep[Int])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Interval], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object attach {
-      def unapply(d: Def[_]): Option[(Rep[Interval], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, Seq(seg, _*), _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "attach" =>
-          Some((receiver, seg)).asInstanceOf[Option[(Rep[Interval], Rep[Segment])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Interval], Rep[Segment])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "attach" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Segment])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Interval], Rep[Segment])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Interval], Rep[Segment])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -410,38 +448,41 @@ object Slice extends EntityObject("Slice") {
 
     object SliceMethods {
     object end {
-      def unapply(d: Def[_]): Option[Rep[Slice]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Slice]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "end" =>
-          Some(receiver).asInstanceOf[Option[Rep[Slice]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Slice]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Slice]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Slice]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object shift {
-      def unapply(d: Def[_]): Option[(Rep[Slice], Rep[Int])] = d match {
-        case MethodCall(receiver, method, Seq(ofs, _*), _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "shift" =>
-          Some((receiver, ofs)).asInstanceOf[Option[(Rep[Slice], Rep[Int])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Slice], Rep[Int])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "shift" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Int])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Slice], Rep[Int])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Slice], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object attach {
-      def unapply(d: Def[_]): Option[(Rep[Slice], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, Seq(seg, _*), _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "attach" =>
-          Some((receiver, seg)).asInstanceOf[Option[(Rep[Slice], Rep[Segment])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Slice], Rep[Segment])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "attach" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Segment])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Slice], Rep[Segment])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Slice], Rep[Segment])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -549,62 +590,67 @@ object Centered extends EntityObject("Centered") {
 
     object CenteredMethods {
     object start {
-      def unapply(d: Def[_]): Option[Rep[Centered]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "start" =>
-          Some(receiver).asInstanceOf[Option[Rep[Centered]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Centered]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Centered]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object end {
-      def unapply(d: Def[_]): Option[Rep[Centered]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "end" =>
-          Some(receiver).asInstanceOf[Option[Rep[Centered]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Centered]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Centered]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object length {
-      def unapply(d: Def[_]): Option[Rep[Centered]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "length" =>
-          Some(receiver).asInstanceOf[Option[Rep[Centered]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[Centered]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[Centered]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object shift {
-      def unapply(d: Def[_]): Option[(Rep[Centered], Rep[Int])] = d match {
-        case MethodCall(receiver, method, Seq(ofs, _*), _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "shift" =>
-          Some((receiver, ofs)).asInstanceOf[Option[(Rep[Centered], Rep[Int])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Centered], Rep[Int])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "shift" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Int])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Centered], Rep[Int])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Centered], Rep[Int])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object attach {
-      def unapply(d: Def[_]): Option[(Rep[Centered], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, Seq(seg, _*), _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "attach" =>
-          Some((receiver, seg)).asInstanceOf[Option[(Rep[Centered], Rep[Segment])]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Centered], Rep[Segment])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "attach" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Segment])]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Centered], Rep[Segment])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Centered], Rep[Segment])] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

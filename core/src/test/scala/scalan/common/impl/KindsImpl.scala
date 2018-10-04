@@ -1,6 +1,6 @@
 package scalan.common
 
-import scalan.{Base, Scalan}
+import scalan._
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
 
@@ -25,6 +25,7 @@ object Kind extends EntityObject("Kind") {
     extends EntityElem[To] {
     def cF = _cF
     def eA = _eA
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("F" -> (cF -> scalan.util.Invariant), "A" -> (eA -> scalan.util.Invariant))
     override lazy val tag = {
@@ -67,14 +68,15 @@ object Kind extends EntityObject("Kind") {
     // WARNING: Cannot generate matcher for method `flatMap`: Method has function arguments f
 
     object mapBy {
-      def unapply(d: Def[_]): Option[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = d match {
-        case MethodCall(receiver, method, Seq(f, _*), _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: KindElem[_, _, _] => true; case _ => false }) && method.getName == "mapBy" =>
-          Some((receiver, f)).asInstanceOf[Option[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}]]
-        case _ => None
+      def unapply(d: Def[_]): Nullable[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: KindElem[_, _, _] => true; case _ => false }) && method.getName == "mapBy" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

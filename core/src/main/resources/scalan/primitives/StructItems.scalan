@@ -72,10 +72,10 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
   implicit class StructExtensionsForStructItem[S <: Struct](s: Rep[S]) {
     def getItem[A](i: Int): Rep[StructItem[A, S]] = {
       val item = struct_getItem(s, i)
-      item.asRep[StructItem[A,S]]
+      item.asInstanceOf[Rep[StructItem[A,S]]]
     }
-    def getItem[A](i: Rep[Int]): Rep[StructItem[A, S]] = struct_getItem(s, i).asRep[StructItem[A,S]]
-    def getItem[A](k: Rep[StructKey[S]])(implicit o: Overloaded2): Rep[StructItem[A,S]] = struct_getItem(s, k.index).asRep[StructItem[A,S]]
+    def getItem[A](i: Rep[Int]): Rep[StructItem[A, S]] = struct_getItem(s, i).asInstanceOf[Rep[StructItem[A,S]]]
+    def getItem[A](k: Rep[StructKey[S]])(implicit o: Overloaded2): Rep[StructItem[A,S]] = struct_getItem(s, k.index).asInstanceOf[Rep[StructItem[A,S]]]
     def setItem(i: Rep[Int], v: Rep[_]): Rep[S] = struct_setItem(s, i, v)
     def setItem(k: Rep[StructKey[S]], v: Rep[_])(implicit o: Overloaded2): Rep[S] = struct_setItem(s, k.index, v)
   }

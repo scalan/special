@@ -1,5 +1,6 @@
 package scalan.common
 
+import scalan._
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
 
@@ -26,16 +27,34 @@ object MetaTest extends EntityObject("MetaTest") {
     implicit def eT: Elem[T] = lT.eW
     val liftable: Liftable[SMetaTest[ST], MetaTest[T]] = liftableMetaTest(lT)
     val selfType: Elem[MetaTest[T]] = liftable.eW
-    def test: RMetaTest[T] = delayInvoke
-    def give: Rep[T] = delayInvoke
-    def size: Rep[Int] = delayInvoke
+
+    def test: RMetaTest[T] = {
+      asRep[MetaTest[T]](mkMethodCall(self,
+        this.getClass.getMethod("test"),
+        List(),
+        true, element[MetaTest[T]]))
+    }
+
+    def give: Rep[T] = {
+      asRep[T](mkMethodCall(self,
+        this.getClass.getMethod("give"),
+        List(),
+        true, element[T]))
+    }
+
+    def size: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        this.getClass.getMethod("size"),
+        List(),
+        true, element[Int]))
+    }
   }
 
   case class LiftableMetaTest[ST, T](lT: Liftable[ST, T])
     extends Liftable[SMetaTest[ST], MetaTest[T]] {
     lazy val eW: Elem[MetaTest[T]] = metaTestElement(lT.eW)
     lazy val sourceClassTag: ClassTag[SMetaTest[ST]] = {
-      implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
+            implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
       classTag[SMetaTest[ST]]
     }
     def lift(x: SMetaTest[ST]): Rep[MetaTest[T]] = MetaTestConst(x, lT)
@@ -61,9 +80,10 @@ object MetaTest extends EntityObject("MetaTest") {
     override val liftable = liftableMetaTest(_eT.liftable).asLiftable[SMetaTest[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
-      super.collectMethods ++ Elem.declaredMethods(classOf[MetaTest[T]], classOf[SMetaTest[_]], Set(
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[MetaTest[T]], classOf[SMetaTest[_]], Set(
         "test", "give", "size"
-      ))
+        ))
     }
 
     lazy val parent: Option[Elem[_]] = None
@@ -106,38 +126,41 @@ object MetaTest extends EntityObject("MetaTest") {
 
   object MetaTestMethods {
     object test {
-      def unapply(d: Def[_]): Option[Rep[MetaTest[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MetaTest[T]] forSome {type T}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MetaTestElem[_, _]] && method.getName == "test" =>
-          Some(receiver).asInstanceOf[Option[Rep[MetaTest[T]] forSome {type T}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MetaTest[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object give {
-      def unapply(d: Def[_]): Option[Rep[MetaTest[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MetaTest[T]] forSome {type T}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MetaTestElem[_, _]] && method.getName == "give" =>
-          Some(receiver).asInstanceOf[Option[Rep[MetaTest[T]] forSome {type T}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MetaTest[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object size {
-      def unapply(d: Def[_]): Option[Rep[MetaTest[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MetaTest[T]] forSome {type T}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MetaTestElem[_, _]] && method.getName == "size" =>
-          Some(receiver).asInstanceOf[Option[Rep[MetaTest[T]] forSome {type T}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MetaTest[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -240,38 +263,41 @@ object MT0 extends EntityObject("MT0") {
 
     object MT0Methods {
     object test {
-      def unapply(d: Def[_]): Option[Rep[MT0]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MT0]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MT0Elem] && method.getName == "test" =>
-          Some(receiver).asInstanceOf[Option[Rep[MT0]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MT0]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MT0]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object give {
-      def unapply(d: Def[_]): Option[Rep[MT0]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MT0]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MT0Elem] && method.getName == "give" =>
-          Some(receiver).asInstanceOf[Option[Rep[MT0]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MT0]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MT0]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object eT {
-      def unapply(d: Def[_]): Option[Rep[MT0]] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MT0]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MT0Elem] && method.getName == "eT" =>
-          Some(receiver).asInstanceOf[Option[Rep[MT0]]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MT0]] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MT0]] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -385,26 +411,28 @@ object MT1 extends EntityObject("MT1") {
 
     object MT1Methods {
     object test {
-      def unapply(d: Def[_]): Option[Rep[MT1[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MT1[T]] forSome {type T}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MT1Elem[_]] && method.getName == "test" =>
-          Some(receiver).asInstanceOf[Option[Rep[MT1[T]] forSome {type T}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MT1[T]] forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MT1[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MT1[T]] forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object give {
-      def unapply(d: Def[_]): Option[Rep[MT1[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MT1[T]] forSome {type T}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MT1Elem[_]] && method.getName == "give" =>
-          Some(receiver).asInstanceOf[Option[Rep[MT1[T]] forSome {type T}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MT1[T]] forSome {type T}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MT1[T]] forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MT1[T]] forSome {type T}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -523,26 +551,28 @@ implicit val eB = p.values.elem
 
     object MT2Methods {
     object test {
-      def unapply(d: Def[_]): Option[Rep[MT2[A, B]] forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MT2Elem[_, _]] && method.getName == "test" =>
-          Some(receiver).asInstanceOf[Option[Rep[MT2[A, B]] forSome {type A; type B}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MT2[A, B]] forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MT2[A, B]] forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object give {
-      def unapply(d: Def[_]): Option[Rep[MT2[A, B]] forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MT2Elem[_, _]] && method.getName == "give" =>
-          Some(receiver).asInstanceOf[Option[Rep[MT2[A, B]] forSome {type A; type B}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MT2[A, B]] forSome {type A; type B}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[MT2[A, B]] forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }

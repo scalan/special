@@ -244,7 +244,7 @@ class MetaCodegen {
                 case Seq(single) => single
                 case many => many.mkString("(", ", ", ")")
               }
-              s"Option[$receiverAndArgTypes${typeVars.opt(typeVars => s" forSome {${typeVars.map("type " + _).mkString("; ")}}")}]"
+              receiverAndArgTypes + typeVars.opt(typeVars => s" forSome {${typeVars.map("type " + _).mkString("; ")}}")
             }
             val overloadId = m.overloadId
             val cleanedMethodName = ScalaNameUtil.cleanScalaName(m.name)
@@ -261,7 +261,7 @@ class MetaCodegen {
               }
             }
 
-            val matchResult = ((if (isCompanion) Nil else List("receiver")) ++ methodArgs.map(_.name)) match {
+            val matchResult = ((if (isCompanion) Nil else List("receiver")) ++ methodArgs.indices.map(i => s"args($i)")) match {
               case Seq() => "()"
               case Seq(single) => single
               case many => many.mkString("(", ", ", ")")
@@ -269,7 +269,7 @@ class MetaCodegen {
 
             val methodPattern = {
               // _* is for dummy implicit arguments
-              val methodArgsPattern = if (methodArgs.isEmpty) "_" else s"Seq(${methodArgs.rep(_.name)}, _*)"
+              val methodArgsPattern = if (methodArgs.isEmpty) "_" else "args"
               val typeArgsNum =
                 if (isCompanion) {
                   0
@@ -306,14 +306,15 @@ class MetaCodegen {
             // See http://hseeberger.github.io/blog/2013/10/04/name-based-extractors-in-scala-2-dot-11/
 
             s"""    object $matcherName {
-              |      def unapply(d: Def[_]): $returnType = d match {
+              |      def unapply(d: Def[_]): Nullable[$returnType] = d match {
               |        case $methodPattern =>
-              |          Some($matchResult).asInstanceOf[$returnType]
-              |        case _ => None
+              |          val res = $matchResult
+              |          Nullable(res).asInstanceOf[Nullable[$returnType]]
+              |        case _ => Nullable.None
               |      }
-              |      def unapply(exp: Sym): $returnType = exp match {
+              |      def unapply(exp: Sym): Nullable[$returnType] = exp match {
               |        case Def(d) => unapply(d)
-              |        case _ => None
+              |        case _ => Nullable.None
               |      }
               |    }""".stripAndTrim
         }

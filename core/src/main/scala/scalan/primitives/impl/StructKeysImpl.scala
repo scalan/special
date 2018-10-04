@@ -24,6 +24,7 @@ object StructKey extends EntityObject("StructKey") {
   class StructKeyElem[Schema <: Struct, To <: StructKey[Schema]](implicit _eSchema: Elem[Schema])
     extends EntityElem[To] {
     def eSchema = _eSchema
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
     override lazy val tag = {
@@ -64,26 +65,28 @@ object StructKey extends EntityObject("StructKey") {
 
   object StructKeyMethods {
     object index {
-      def unapply(d: Def[_]): Option[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructKeyElem[_, _]] && method.getName == "index" =>
-          Some(receiver).asInstanceOf[Option[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object name {
-      def unapply(d: Def[_]): Option[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructKeyElem[_, _]] && method.getName == "name" =>
-          Some(receiver).asInstanceOf[Option[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
@@ -185,18 +188,19 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
 
     object IndexStructKeyMethods {
     object name {
-      def unapply(d: Def[_]): Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IndexStructKeyElem[_]] && method.getName == "name" =>
-          Some(receiver).asInstanceOf[Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
-    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method
+    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
   }
 } // of object IndexStructKey
   registerEntityObject("IndexStructKey", IndexStructKey)
@@ -296,18 +300,19 @@ object NameStructKey extends EntityObject("NameStructKey") {
 
     object NameStructKeyMethods {
     object index {
-      def unapply(d: Def[_]): Option[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[NameStructKeyElem[_]] && method.getName == "index" =>
-          Some(receiver).asInstanceOf[Option[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
-    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method
+    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
   }
 } // of object NameStructKey
   registerEntityObject("NameStructKey", NameStructKey)

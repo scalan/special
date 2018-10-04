@@ -24,8 +24,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
 
   def externalMethod(method: SMethodDef) = {
     val md = optimizeMethodImplicits(method)
-    val msgExplicitRetType = "External methods should be declared with explicit type of returning value (result type)"
-    lazy val msgRepRetType = s"Invalid method $md. External methods should have return type of type Rep[T] for some T."
+    def msgExplicitRetType = s"Method ${method.name} should be declared with explicit type of returning value (result type): $method"
+    def msgRepRetType = s"Invalid method $md. External methods should have return type of type Rep[T] for some T."
     val allArgs = md.allArgs
     val returnType = md.tpeRes.getOrElse(!!!(msgExplicitRetType))
     val unreppedReturnType = returnType.unRep(unit, config.isVirtualized).getOrElse(!!!(msgRepRetType))
@@ -49,10 +49,10 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |    ${md.declaration(config, md.body.isDefined)} = {
       |      ${elemDecls.rep({ case (ta, expr) => s"implicit val e${ta.name} = $expr" }, "\n")}
-      |      mkMethodCall(self,
+      |      asRep[$unreppedReturnType](mkMethodCall(self,
       |        this.getClass.getMethod("${md.name}"$finalArgClasses),
       |        List($finalArgs),
-      |        true, element[$unreppedReturnType]).asRep[$unreppedReturnType]
+      |        true, element[$unreppedReturnType]))
       |    }
       |""".stripMargin
   }
@@ -124,10 +124,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
                                                                 optArgs(zipped)("(", (_,a) => s"l$a", ",", ")")}
       |    val selfType: Elem[$EName$tyUse] = liftable.eW
       |${e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }.rep({ m =>
-         implicit val ctx = parsers.GenCtx(context, config.isVirtualized)
-         val mtree = parsers.genMethod(m.copy(body = Some(SIdent("delayInvoke"))))
-         val code = parsers.global.showCode(mtree)
-         s"""|    ${code}""".stripAndTrim
+         s"""|    ${externalMethod(m)}""".stripAndTrim
        },"\n")}
       |  }
       |
@@ -560,6 +557,11 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    ${b.extractableImplicits(inClassBody = true) }
         |    ${elemDefs}
         |    lazy val selfType = element[${c.typeUse }]
+        |    ${
+          c.c.body.collect { case m: SMethodDef if m.hasAnnotation("NeverInline") && !m.isTypeDesc => m }.rep({ m =>
+            externalMethod(m)
+          }, "\n")
+        }
         |  }
         |  // elem for concrete class
         |  class $elemTypeDecl(val iso: Iso[$dataTpe, ${c.typeUse}])${c.implicitArgsDeclConcreteElem}

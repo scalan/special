@@ -2,6 +2,7 @@ package scalan.dynamic
 
 import java.lang.reflect.Method
 
+import scalan.meta.TypeDesc
 import scalan.{Lazy, _}
 import scalan.universe.api.TypesApi
 import scalan.universe.api.UniverseUtils._
@@ -479,7 +480,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 
   override def rewriteDef[T](d: Def[T]) = d match {
 
-    case Apply(Def(k: DynKernel[a,b]), x: Rep[a1]) =>
+    case Apply(Def(k: DynKernel[a,b]), x: Rep[a1], _) =>
       implicit val ea1 = x.elem
       implicit val eb = k.eB
       ea1.getDataIso match {

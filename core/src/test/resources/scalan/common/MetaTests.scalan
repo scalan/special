@@ -1,5 +1,7 @@
 package scalan.common
 
+import scalan._
+
 trait MetaTests { self: MetaTestsModule =>
   type RMetaTest[T] = Rep[MetaTest[T]]
   @scalan.Liftable

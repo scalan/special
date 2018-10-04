@@ -28,6 +28,7 @@ object StructItem extends EntityObject("StructItem") {
     extends EntityElem[To] {
     def eVal = _eVal
     def eSchema = _eSchema
+
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Covariant), "Schema" -> (eSchema -> scalan.util.Invariant))
     override lazy val tag = {
@@ -69,26 +70,28 @@ object StructItem extends EntityObject("StructItem") {
 
   object StructItemMethods {
     object key {
-      def unapply(d: Def[_]): Option[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructItemElem[_, _, _]] && method.getName == "key" =>
-          Some(receiver).asInstanceOf[Option[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
 
     object value {
-      def unapply(d: Def[_]): Option[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = d match {
+      def unapply(d: Def[_]): Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructItemElem[_, _, _]] && method.getName == "value" =>
-          Some(receiver).asInstanceOf[Option[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}]]
-        case _ => None
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}]]
+        case _ => Nullable.None
       }
-      def unapply(exp: Sym): Option[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = exp match {
+      def unapply(exp: Sym): Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = exp match {
         case Def(d) => unapply(d)
-        case _ => None
+        case _ => Nullable.None
       }
     }
   }
