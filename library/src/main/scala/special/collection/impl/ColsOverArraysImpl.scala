@@ -410,6 +410,8 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       ()
     extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
     lazy val selfType = element[ColOverArrayBuilder]
+    @NeverInline override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] =
+      asRep[Col[T]](mkMethodCall(self, getClass.getMethod("fromArray", classOf[Rep[_]]), List(arr), true, colElement(arr.elem.eItem)))
   }
   // elem for concrete class
   class ColOverArrayBuilderElem(val iso: Iso[ColOverArrayBuilderData, ColOverArrayBuilder])

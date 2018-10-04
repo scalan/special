@@ -3,9 +3,8 @@ package scalan.staged
 import java.lang.reflect.Method
 
 import scala.collection.{Seq, mutable}
-import scalan.{Lazy, DelayInvokeException, Scalan}
+import scalan.{Lazy, DelayInvokeException, Scalan, ValOpt}
 import scala.reflect.runtime.universe._
-import scalan.util.ValOpt
 
 trait Transforming { self: Scalan =>
 

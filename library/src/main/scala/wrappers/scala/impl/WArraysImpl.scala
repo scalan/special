@@ -9,8 +9,6 @@ import scala.reflect._
 package impl {
   import special.wrappers.ArrayWrapSpec
 
-  import scalan.util.ValOpt
-
   // Abs -----------------------------------
 trait WArraysDefs extends scalan.Scalan with WArrays {
   self: WrappersModule =>

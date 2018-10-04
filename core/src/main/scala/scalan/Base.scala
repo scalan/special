@@ -13,7 +13,7 @@ import scala.collection.{mutable, TraversableOnce}
 import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
-import scalan.util.{ValOpt, ParamMirror, ReflectionUtil, AVHashMap}
+import scalan.util.{ParamMirror, ReflectionUtil}
 import scala.reflect.runtime.universe._
 
 

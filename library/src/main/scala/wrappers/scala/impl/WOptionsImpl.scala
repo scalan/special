@@ -9,8 +9,6 @@ import scala.reflect._
 package impl {
   import special.wrappers.OptionWrapSpec
 
-  import scalan.util.ValOpt
-
   // Abs -----------------------------------
 trait WOptionsDefs extends scalan.Scalan with WOptions {
   self: WrappersModule =>

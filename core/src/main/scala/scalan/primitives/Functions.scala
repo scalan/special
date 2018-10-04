@@ -3,10 +3,8 @@ package scalan.primitives
 import java.util
 
 import scalan.staged.ProgramGraphs
-import scalan.{Lazy, Base, Scalan}
-import scala.collection.mutable
+import scalan.{ValOpt, Lazy, Base, Scalan}
 import scala.language.implicitConversions
-import scalan.util.ValOpt
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
 

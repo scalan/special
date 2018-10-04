@@ -5,7 +5,6 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  import scalan.util.ValOpt
 
   // Abs -----------------------------------
 trait ColsDefs extends scalan.Scalan with Cols {

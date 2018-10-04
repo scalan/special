@@ -1,6 +1,7 @@
 package scalan.util
 
-import scala.collection.mutable.{HashMap, Map, Buffer, ArrayBuffer}
+import scala.collection.mutable.{Buffer, ArrayBuffer}
+import scalan.{ValOpt, AVHashMap}
 
 object GraphUtil {
    def depthFirstSetFrom[A](starts: Set[A])(neighbours: A => TraversableOnce[A]): Set[A] = {

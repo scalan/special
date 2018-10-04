@@ -4,9 +4,8 @@ import java.io.File
 import java.lang.reflect.Method
 
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{BaseShouldTests, Scalan}
+import scalan.{BaseShouldTests, Scalan, ValOpt}
 import scalan.util.CollectionUtil._
-import scalan.util.ValOpt
 
 class RewriteRulesSuite extends BaseShouldTests {
 

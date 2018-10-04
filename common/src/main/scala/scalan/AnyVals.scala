@@ -1,4 +1,4 @@
-package scalan.util
+package scalan
 
 import java.util.HashMap
 

@@ -58,9 +58,10 @@ object Segment extends EntityObject("Segment") {
     override val liftable = LiftableSegment.asLiftable[SSegment, To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
-      super.collectMethods ++ Elem.declaredMethods(classOf[Segment], classOf[SSegment], Set(
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[Segment], classOf[SSegment], Set(
         "start", "length", "end", "shift", "attach"
-      ))
+        ))
     }
 
     lazy val parent: Option[Elem[_]] = None
@@ -172,6 +173,13 @@ object Interval extends EntityObject("Interval") {
       (override val start: Rep[Int], override val end: Rep[Int])
     extends Interval(start, end) with Def[Interval] {
     lazy val selfType = element[Interval]
+
+    override def attach(seg: Rep[Segment]): Rep[Segment] = {
+      asRep[Segment](mkMethodCall(self,
+        this.getClass.getMethod("attach", classOf[Sym]),
+        List(seg),
+        true, element[Segment]))
+    }
   }
   // elem for concrete class
   class IntervalElem(val iso: Iso[IntervalData, Interval])

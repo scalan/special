@@ -24,6 +24,7 @@ trait Segments { self: SegmentsModule =>
   abstract class Interval(val start: Rep[Int], val end: Rep[Int]) extends Segment {
     def length = end - start
     def shift(ofs: Rep[Int]) = RInterval(start + ofs, end + ofs)
+    @NeverInline
     def attach(seg: Rep[Segment]): Rep[Segment] = seg match {
       case RInterval(start, end) =>
         seg
