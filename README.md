@@ -44,6 +44,13 @@ If you want to start working on an issue (existing or one you just raised), plea
 
 We thank JetBrains for [supporting](https://www.jetbrains.com/buy/opensource/) Scalan project since 2016 by providing All Products Pack subscription.
 
+<img src="https://www.yourkit.com/images/yklogo.png"/>
+
+We thank YourKit for support of open source projects with its full-featured Java Profiler.
+YourKit, LLC is the creator of <a href="https://www.yourkit.com/java/profiler/">YourKit Java Profiler</a>
+and <a href="https://www.yourkit.com/.net/profiler/">YourKit .NET Profiler</a>,
+innovative and intelligent tools for profiling Java and .NET applications.
+
 ## See also
 
 [Scalan](https://github.com/scalan/scalan) - the original framework for domain-specific compilation. Currently frozen and most usefull ideas are being reincarnated in Special. 
