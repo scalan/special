@@ -7,6 +7,7 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
+  // manual fix
   import special.wrappers.EitherWrapSpec
 
   // Abs -----------------------------------
@@ -94,7 +95,7 @@ object WEither extends EntityObject("WEither") {
 
     def convertWEither(x: Rep[WEither[A, B]]): Rep[To] = {
       x.elem match {
-        case _: WEitherElem[_, _, _] => x.asRep[To]
+        case _: WEitherElem[_, _, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have WEitherElem[_, _, _], but got $e", x)
       }
     }

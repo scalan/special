@@ -39,7 +39,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
 
     def convertWSpecialPredef(x: Rep[WSpecialPredef]): Rep[To] = {
       x.elem match {
-        case _: WSpecialPredefElem[_] => x.asRep[To]
+        case _: WSpecialPredefElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have WSpecialPredefElem[_], but got $e", x)
       }
     }

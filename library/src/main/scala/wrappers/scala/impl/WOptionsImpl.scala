@@ -7,6 +7,7 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
+  // manual fix
   import special.wrappers.OptionWrapSpec
 
   // Abs -----------------------------------
@@ -169,7 +170,7 @@ object WOption extends EntityObject("WOption") {
 
     def convertWOption(x: Rep[WOption[A]]): Rep[To] = {
       x.elem match {
-        case _: WOptionElem[_, _] => x.asRep[To]
+        case _: WOptionElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have WOptionElem[_, _], but got $e", x)
       }
     }
@@ -331,7 +332,7 @@ object WOption extends EntityObject("WOption") {
       Some((view.source, view.iso))
     case UserTypeWOption(iso: Iso[a, b]) =>
       val newIso = wOptionIso(iso)
-      val repr = reifyObject(UnpackView(s.asRep[WOption[b]], newIso))
+      val repr = reifyObject(UnpackView(asRep[WOption[b]](s), newIso))
       Some((repr, newIso))
     case _ =>
       super.unapplyViews(s)
@@ -349,16 +350,16 @@ object WOption extends EntityObject("WOption") {
       case (_, Def(IdentityLambda())) =>
         xs
       case (xs: RepWOption[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
-        val f1 = f.asRep[a => c]
+        val f1 = asRep[a => c](f)
         implicit val eB = iso.eFrom
         val s = xs.map(f1 >> iso.fromFun)
         val res = ViewWOption(s, iso)
         res
       case (HasViews(source, Def(contIso: WOptionIso[a, b])), f: RFunc[_, c]@unchecked) =>
-        val f1 = f.asRep[b => c]
+        val f1 = asRep[b => c](f)
         val iso = contIso.innerIso
         implicit val eC = f1.elem.eRange
-        source.asRep[WOption[a]].map(iso.toFun >> f1)
+        asRep[WOption[a]](source).map(iso.toFun >> f1)
       case _ =>
         super.rewriteDef(d)
     }

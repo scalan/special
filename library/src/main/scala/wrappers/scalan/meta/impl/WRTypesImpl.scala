@@ -7,6 +7,7 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
+  // manual fix
   import special.wrappers.RTypeWrapSpec
 
   import scalan.meta.RType
@@ -91,7 +92,7 @@ object WRType extends EntityObject("WRType") {
 
     def convertWRType(x: Rep[WRType[A]]): Rep[To] = {
       x.elem match {
-        case _: WRTypeElem[_, _] => x.asRep[To]
+        case _: WRTypeElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have WRTypeElem[_, _], but got $e", x)
       }
     }

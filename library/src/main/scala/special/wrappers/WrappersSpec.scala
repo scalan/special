@@ -6,9 +6,9 @@ package special.wrappers {
     import WArray._;
     import WOption._;
     import WEither._;
-    import WRType._
-    import WSpecialPredef._
-    
+    import WRType._  // manual fix
+    import WSpecialPredef._  // manual fix
+
     trait WrapSpecBase extends Def[WrapSpecBase] with WrapSpec;
     abstract class ArrayWrapSpec extends WrapSpecBase {
       def zip[A, B](xs: Rep[WArray[A]], ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[A, B]]] = xs.zip(ys);
@@ -16,6 +16,7 @@ package special.wrappers {
       def length[A](xs: Rep[WArray[A]]): Rep[Int] = xs.length;
       def fill[A](n: Rep[Int], elem: Rep[A]): Rep[WArray[A]] = RWArray.fill[A](n, Thunk(elem));
       def slice[A](xs: Rep[WArray[A]], from: Rep[Int], until: Rep[Int]): Rep[WArray[A]] = xs.slice(from, until);
+      // manual fix
       def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = xs.foldLeft(zero, op);
       def filter[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[WArray[A]] = xs.filter(p);
       def forall[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = xs.forall(p);
@@ -31,6 +32,7 @@ package special.wrappers {
       def filter[A](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = xs.filter(f);
       def isDefined[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isDefined;
       def isEmpty[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isEmpty;
+      // manual fix
       def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = xs.fold[B](ifEmpty, f)
     };
     abstract class EitherWrapSpec extends WrapSpecBase {

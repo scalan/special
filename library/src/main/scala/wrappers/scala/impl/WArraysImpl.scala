@@ -7,6 +7,7 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
+// manual fix
   import special.wrappers.ArrayWrapSpec
 
   // Abs -----------------------------------
@@ -169,6 +170,7 @@ object WArray extends EntityObject("WArray") {
         ))
     }
 
+    // manual fix
     override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
       case WArrayMethods.map(xs, f) =>
         val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
@@ -190,7 +192,7 @@ object WArray extends EntityObject("WArray") {
 
     def convertWArray(x: Rep[WArray[T]]): Rep[To] = {
       x.elem match {
-        case _: WArrayElem[_, _] => x.asRep[To]
+        case _: WArrayElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have WArrayElem[_, _], but got $e", x)
       }
     }
@@ -397,7 +399,7 @@ object WArray extends EntityObject("WArray") {
       Some((view.source, view.iso))
     case UserTypeWArray(iso: Iso[a, b]) =>
       val newIso = wArrayIso(iso)
-      val repr = reifyObject(UnpackView(s.asRep[WArray[b]], newIso))
+      val repr = reifyObject(UnpackView(asRep[WArray[b]](s), newIso))
       Some((repr, newIso))
     case _ =>
       super.unapplyViews(s)
@@ -415,16 +417,16 @@ object WArray extends EntityObject("WArray") {
       case (_, Def(IdentityLambda())) =>
         xs
       case (xs: RepWArray[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
-        val f1 = f.asRep[a => c]
+        val f1 = asRep[a => c](f)
         implicit val eB = iso.eFrom
         val s = xs.map(f1 >> iso.fromFun)
         val res = ViewWArray(s, iso)
         res
       case (HasViews(source, Def(contIso: WArrayIso[a, b])), f: RFunc[_, c]@unchecked) =>
-        val f1 = f.asRep[b => c]
+        val f1 = asRep[b => c](f)
         val iso = contIso.innerIso
         implicit val eC = f1.elem.eRange
-        source.asRep[WArray[a]].map(iso.toFun >> f1)
+        asRep[WArray[a]](source).map(iso.toFun >> f1)
       case _ =>
         super.rewriteDef(d)
     }
