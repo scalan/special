@@ -29,38 +29,39 @@ object WArray extends EntityObject("WArray") {
     implicit def eT: Elem[T] = lT.eW
     val liftable: Liftable[Array[ST], WArray[T]] = liftableArray(lT)
     val selfType: Elem[WArray[T]] = liftable.eW
+    private val thisClass = classOf[WArray[T]]
 
     def apply(i: Rep[Int]): Rep[T] = {
       asRep[T](mkMethodCall(self,
-        this.getClass.getMethod("apply", classOf[Sym]),
+        thisClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, element[T]))
     }
 
     def foreach(f: Rep[T => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
-        this.getClass.getMethod("foreach", classOf[Sym]),
+        thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
         true, element[Unit]))
     }
 
     def exists(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        this.getClass.getMethod("exists", classOf[Sym]),
+        thisClass.getMethod("exists", classOf[Sym]),
         List(p),
         true, element[Boolean]))
     }
 
     def forall(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        this.getClass.getMethod("forall", classOf[Sym]),
+        thisClass.getMethod("forall", classOf[Sym]),
         List(p),
         true, element[Boolean]))
     }
 
     def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(self,
-        this.getClass.getMethod("filter", classOf[Sym]),
+        thisClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, element[WArray[T]]))
     }
@@ -68,21 +69,21 @@ object WArray extends EntityObject("WArray") {
     def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        this.getClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, element[B]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(self,
-        this.getClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
         true, element[WArray[T]]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("length"),
+        thisClass.getMethod("length"),
         List(),
         true, element[Int]))
     }
@@ -90,7 +91,7 @@ object WArray extends EntityObject("WArray") {
     def map[B](f: Rep[T => B]): Rep[WArray[B]] = {
       implicit val eB = f.elem.eRange
       asRep[WArray[B]](mkMethodCall(self,
-        this.getClass.getMethod("map", classOf[Sym]),
+        thisClass.getMethod("map", classOf[Sym]),
         List(f),
         true, element[WArray[B]]))
     }
@@ -98,7 +99,7 @@ object WArray extends EntityObject("WArray") {
     def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = {
       implicit val eB = ys.eT
       asRep[WArray[(T, B)]](mkMethodCall(self,
-        this.getClass.getMethod("zip", classOf[Sym]),
+        thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, element[WArray[(T, B)]]))
     }
@@ -215,10 +216,12 @@ object WArray extends EntityObject("WArray") {
     proxyOps[WArrayCompanionCtor](p)
 
   lazy val RWArray: Rep[WArrayCompanionCtor] = new WArrayCompanionCtor {
+    private val thisClass = classOf[WArrayCompanion]
+
     def fill[T](n: Rep[Int], elem: Rep[Thunk[T]]): Rep[WArray[T]] = {
       implicit val eT = elem.elem.eItem
       asRep[WArray[T]](mkMethodCall(self,
-        this.getClass.getMethod("fill", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fill", classOf[Sym], classOf[Sym]),
         List(n, elem),
         true, element[WArray[T]]))
     }

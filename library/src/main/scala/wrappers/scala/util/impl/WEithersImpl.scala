@@ -30,11 +30,12 @@ object WEither extends EntityObject("WEither") {
     implicit def eB: Elem[B] = lB.eW
     val liftable: Liftable[Either[SA, SB], WEither[A, B]] = liftableEither(lA,lB)
     val selfType: Elem[WEither[A, B]] = liftable.eW
+    private val thisClass = classOf[WEither[A, B]]
 
     def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
       implicit val eC = fa.elem.eRange
       asRep[C](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
         true, element[C]))
     }
@@ -118,11 +119,13 @@ object WEither extends EntityObject("WEither") {
     proxyOps[WEitherCompanionCtor](p)
 
   lazy val RWEither: Rep[WEitherCompanionCtor] = new WEitherCompanionCtor {
+    private val thisClass = classOf[WEitherCompanion]
+
     def cond[A, B](test: Rep[Boolean], right: Rep[Thunk[B]], left: Rep[Thunk[A]]): Rep[WEither[A, B]] = {
       implicit val eA = left.elem.eItem
 implicit val eB = right.elem.eItem
       asRep[WEither[A, B]](mkMethodCall(self,
-        this.getClass.getMethod("cond", classOf[Sym], classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("cond", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(test, right, left),
         true, element[WEither[A, B]]))
     }

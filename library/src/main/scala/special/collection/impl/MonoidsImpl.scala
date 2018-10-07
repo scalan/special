@@ -62,6 +62,7 @@ object Monoid extends EntityObject("Monoid") {
     proxyOps[MonoidCompanionCtor](p)
 
   lazy val RMonoid: Rep[MonoidCompanionCtor] = new MonoidCompanionCtor {
+    private val thisClass = classOf[MonoidCompanion]
   }
 
   object MonoidMethods {
@@ -156,6 +157,7 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
     proxyOps[MonoidBuilderCompanionCtor](p)
 
   lazy val RMonoidBuilder: Rep[MonoidBuilderCompanionCtor] = new MonoidBuilderCompanionCtor {
+    private val thisClass = classOf[MonoidBuilderCompanion]
   }
 
   object MonoidBuilderMethods {

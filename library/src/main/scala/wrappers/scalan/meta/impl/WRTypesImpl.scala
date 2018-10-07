@@ -31,10 +31,11 @@ object WRType extends EntityObject("WRType") {
     implicit def eA: Elem[A] = lA.eW
     val liftable: Liftable[RType[SA], WRType[A]] = liftableRType(lA)
     val selfType: Elem[WRType[A]] = liftable.eW
+    private val thisClass = classOf[WRType[A]]
 
     def name: Rep[String] = {
       asRep[String](mkMethodCall(self,
-        this.getClass.getMethod("name"),
+        thisClass.getMethod("name"),
         List(),
         true, element[String]))
     }
@@ -115,6 +116,7 @@ object WRType extends EntityObject("WRType") {
     proxyOps[WRTypeCompanionCtor](p)
 
   lazy val RWRType: Rep[WRTypeCompanionCtor] = new WRTypeCompanionCtor {
+    private val thisClass = classOf[WRTypeCompanion]
   }
 
   object WRTypeMethods {

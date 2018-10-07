@@ -67,6 +67,7 @@ object CostedOption extends EntityObject("CostedOption") {
     proxyOps[CostedOptionCompanionCtor](p)
 
   lazy val RCostedOption: Rep[CostedOptionCompanionCtor] = new CostedOptionCompanionCtor {
+    private val thisClass = classOf[CostedOptionCompanion]
   }
 
   object CostedOptionMethods {
@@ -187,18 +188,19 @@ object CostedSome extends EntityObject("CostedSome") {
     implicit lazy val eT = costedValue.eVal
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     lazy val selfType = element[CostedSome[T]]
+    private val thisClass = classOf[CostedSome[T]]
 
     override def fold[B](ifEmpty: Rep[Costed[Function0[B]]], f: Rep[Costed[T => B]]): Rep[Costed[B]] = {
       implicit val eB = f.eVal.eRange
       asRep[Costed[B]](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
         true, element[Costed[B]]))
     }
 
     override def filter(p: Rep[Costed[T => Boolean]]): Rep[Costed[WOption[T]]] = {
       asRep[Costed[WOption[T]]](mkMethodCall(self,
-        this.getClass.getMethod("filter", classOf[Sym]),
+        thisClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, element[Costed[WOption[T]]]))
     }
@@ -206,7 +208,7 @@ object CostedSome extends EntityObject("CostedSome") {
     override def flatMap[B](f: Rep[Costed[T => WOption[B]]]): Rep[Costed[WOption[B]]] = {
       implicit val eB = f.eVal.eRange.typeArgs("A")._1.asElem[B]
       asRep[Costed[WOption[B]]](mkMethodCall(self,
-        this.getClass.getMethod("flatMap", classOf[Sym]),
+        thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
         true, element[Costed[WOption[B]]]))
     }
@@ -214,7 +216,7 @@ object CostedSome extends EntityObject("CostedSome") {
     override def map[B](f: Rep[Costed[T => B]]): Rep[Costed[WOption[B]]] = {
       implicit val eB = f.eVal.eRange
       asRep[Costed[WOption[B]]](mkMethodCall(self,
-        this.getClass.getMethod("map", classOf[Sym]),
+        thisClass.getMethod("map", classOf[Sym]),
         List(f),
         true, element[Costed[WOption[B]]]))
     }
@@ -306,7 +308,7 @@ object CostedSome extends EntityObject("CostedSome") {
   }
   def unmkCostedSome[T](p: Rep[CostedOption[T]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedSomeElem[T] @unchecked =>
-      Some((p.asRep[CostedSome[T]].costedValue))
+      Some((asRep[CostedSome[T]](p).costedValue))
     case _ =>
       None
   }
@@ -467,10 +469,11 @@ object CostedNone extends EntityObject("CostedNone") {
     extends CostedNone[T](cost) with Def[CostedNone[T]] {
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     lazy val selfType = element[CostedNone[T]]
+    private val thisClass = classOf[CostedNone[T]]
 
     override def getOrElse(default: Rep[Costed[Function0[T]]]): Rep[Costed[T]] = {
       asRep[Costed[T]](mkMethodCall(self,
-        this.getClass.getMethod("getOrElse", classOf[Sym]),
+        thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
         true, element[Costed[T]]))
     }
@@ -478,14 +481,14 @@ object CostedNone extends EntityObject("CostedNone") {
     override def fold[B](ifEmpty: Rep[Costed[Function0[B]]], f: Rep[Costed[T => B]]): Rep[Costed[B]] = {
       implicit val eB = f.eVal.eRange
       asRep[Costed[B]](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
         true, element[Costed[B]]))
     }
 
     override def filter(p: Rep[Costed[T => Boolean]]): Rep[Costed[WOption[T]]] = {
       asRep[Costed[WOption[T]]](mkMethodCall(self,
-        this.getClass.getMethod("filter", classOf[Sym]),
+        thisClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, element[Costed[WOption[T]]]))
     }
@@ -493,7 +496,7 @@ object CostedNone extends EntityObject("CostedNone") {
     override def flatMap[B](f: Rep[Costed[T => WOption[B]]]): Rep[Costed[WOption[B]]] = {
       implicit val eB = f.eVal.eRange.typeArgs("A")._1.asElem[B]
       asRep[Costed[WOption[B]]](mkMethodCall(self,
-        this.getClass.getMethod("flatMap", classOf[Sym]),
+        thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
         true, element[Costed[WOption[B]]]))
     }
@@ -501,7 +504,7 @@ object CostedNone extends EntityObject("CostedNone") {
     override def map[B](f: Rep[Costed[T => B]]): Rep[Costed[WOption[B]]] = {
       implicit val eB = f.eVal.eRange
       asRep[Costed[WOption[B]]](mkMethodCall(self,
-        this.getClass.getMethod("map", classOf[Sym]),
+        thisClass.getMethod("map", classOf[Sym]),
         List(f),
         true, element[Costed[WOption[B]]]))
     }
@@ -591,7 +594,7 @@ object CostedNone extends EntityObject("CostedNone") {
   }
   def unmkCostedNone[T](p: Rep[CostedOption[T]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedNoneElem[T] @unchecked =>
-      Some((p.asRep[CostedNone[T]].cost))
+      Some((asRep[CostedNone[T]](p).cost))
     case _ =>
       None
   }

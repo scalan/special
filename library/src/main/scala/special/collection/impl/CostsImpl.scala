@@ -62,6 +62,7 @@ object Costed extends EntityObject("Costed") {
     proxyOps[CostedCompanionCtor](p)
 
   lazy val RCosted: Rep[CostedCompanionCtor] = new CostedCompanionCtor {
+    private val thisClass = classOf[CostedCompanion]
   }
 
   object CostedMethods {
@@ -169,6 +170,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
     proxyOps[CostedBuilderCompanionCtor](p)
 
   lazy val RCostedBuilder: Rep[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
+    private val thisClass = classOf[CostedBuilderCompanion]
   }
 
   object CostedBuilderMethods {

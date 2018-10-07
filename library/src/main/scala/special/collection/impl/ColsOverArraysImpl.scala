@@ -67,6 +67,7 @@ object BaseColBuilder extends EntityObject("BaseColBuilder") {
     proxyOps[BaseColBuilderCompanionCtor](p)
 
   lazy val RBaseColBuilder: Rep[BaseColBuilderCompanionCtor] = new BaseColBuilderCompanionCtor {
+    private val thisClass = classOf[BaseColBuilderCompanion]
   }
 
   object BaseColBuilderMethods {
@@ -148,10 +149,11 @@ object ColOverArray extends EntityObject("ColOverArray") {
     implicit lazy val eA = arr.eT
 
     lazy val selfType = element[ColOverArray[A]]
+    private val thisClass = classOf[ColOverArray[A]]
 
     override def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
         true, element[A]))
     }
@@ -159,14 +161,14 @@ object ColOverArray extends EntityObject("ColOverArray") {
     override def fold[B](zero: Rep[B])(op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, element[B]))
     }
 
     override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        this.getClass.getMethod("append", classOf[Sym]),
+        thisClass.getMethod("append", classOf[Sym]),
         List(other),
         true, element[Col[A]]))
     }
@@ -257,7 +259,7 @@ object ColOverArray extends EntityObject("ColOverArray") {
   }
   def unmkColOverArray[A](p: Rep[Col[A]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ColOverArrayElem[A] @unchecked =>
-      Some((p.asRep[ColOverArray[A]].arr))
+      Some((asRep[ColOverArray[A]](p).arr))
     case _ =>
       None
   }
@@ -456,11 +458,12 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       ()
     extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
     lazy val selfType = element[ColOverArrayBuilder]
+    private val thisClass = classOf[ColOverArrayBuilder]
 
     override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
       implicit val eT = arr.eT
       asRep[Col[T]](mkMethodCall(self,
-        this.getClass.getMethod("fromArray", classOf[Sym]),
+        thisClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
         true, element[Col[T]]))
     }
@@ -585,10 +588,11 @@ object PairOfCols extends EntityObject("PairOfCols") {
 implicit lazy val eR = rs.eA
     override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     lazy val selfType = element[PairOfCols[L, R]]
+    private val thisClass = classOf[PairOfCols[L, R]]
 
     override def getOrElse(i: Rep[Int], default: Rep[Thunk[(L, R)]]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(self,
-        this.getClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
         true, element[(L, R)]))
     }
@@ -596,14 +600,14 @@ implicit lazy val eR = rs.eA
     override def fold[B](zero: Rep[B])(op: Rep[((B, (L, R))) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, element[B]))
     }
 
     override def sum(m: Rep[Monoid[(L, R)]]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(self,
-        this.getClass.getMethod("sum", classOf[Sym]),
+        thisClass.getMethod("sum", classOf[Sym]),
         List(m),
         true, element[(L, R)]))
     }
@@ -706,7 +710,7 @@ implicit val eR = p.rs.eA
   }
   def unmkPairOfCols[L, R](p: Rep[PairCol[L, R]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: PairOfColsElem[L, R] @unchecked =>
-      Some((p.asRep[PairOfCols[L, R]].ls, p.asRep[PairOfCols[L, R]].rs))
+      Some((asRep[PairOfCols[L, R]](p).ls, asRep[PairOfCols[L, R]](p).rs))
     case _ =>
       None
   }
@@ -920,17 +924,18 @@ object ReplCol extends EntityObject("ReplCol") {
     implicit lazy val eA = value.elem
 
     lazy val selfType = element[ReplCol[A]]
+    private val thisClass = classOf[ReplCol[A]]
 
     override def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
         true, element[A]))
     }
 
     override def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
-        this.getClass.getMethod("foreach", classOf[Sym]),
+        thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
         true, element[Unit]))
     }
@@ -938,14 +943,14 @@ object ReplCol extends EntityObject("ReplCol") {
     override def fold[B](zero: Rep[B])(op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, element[B]))
     }
 
     override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        this.getClass.getMethod("append", classOf[Sym]),
+        thisClass.getMethod("append", classOf[Sym]),
         List(other),
         true, element[Col[A]]))
     }
@@ -1042,7 +1047,7 @@ object ReplCol extends EntityObject("ReplCol") {
   }
   def unmkReplCol[A](p: Rep[Col[A]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ReplColElem[A] @unchecked =>
-      Some((p.asRep[ReplCol[A]].value, p.asRep[ReplCol[A]].length))
+      Some((asRep[ReplCol[A]](p).value, asRep[ReplCol[A]](p).length))
     case _ =>
       None
   }

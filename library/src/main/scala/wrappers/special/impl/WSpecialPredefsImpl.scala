@@ -62,10 +62,12 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     proxyOps[WSpecialPredefCompanionCtor](p)
 
   lazy val RWSpecialPredef: Rep[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
+    private val thisClass = classOf[WSpecialPredefCompanion]
+
     def optionGetOrElse[A](opt: Rep[WOption[A]], default: Rep[A]): Rep[A] = {
       implicit val eA = opt.eA
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("optionGetOrElse", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("optionGetOrElse", classOf[Sym], classOf[Sym]),
         List(opt, default),
         true, element[A]))
     }
@@ -73,7 +75,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     def right[A, B](b: Rep[B])(implicit emA: Elem[A]): Rep[WEither[A, B]] = {
       implicit val eB = b.elem
       asRep[WEither[A, B]](mkMethodCall(self,
-        this.getClass.getMethod("right", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("right", classOf[Sym], classOf[Sym]),
         List(b, emA),
         true, element[WEither[A, B]]))
     }
@@ -81,14 +83,14 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     def left[A, B](a: Rep[A])(implicit emB: Elem[B]): Rep[WEither[A, B]] = {
       implicit val eA = a.elem
       asRep[WEither[A, B]](mkMethodCall(self,
-        this.getClass.getMethod("left", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("left", classOf[Sym], classOf[Sym]),
         List(a, emB),
         true, element[WEither[A, B]]))
     }
 
     def none[A](implicit emA: Elem[A]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
-        this.getClass.getMethod("none", classOf[Sym]),
+        thisClass.getMethod("none", classOf[Sym]),
         List(emA),
         true, element[WOption[A]]))
     }
@@ -96,7 +98,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     def some[A](x: Rep[A]): Rep[WOption[A]] = {
       implicit val eA = x.elem
       asRep[WOption[A]](mkMethodCall(self,
-        this.getClass.getMethod("some", classOf[Sym]),
+        thisClass.getMethod("some", classOf[Sym]),
         List(x),
         true, element[WOption[A]]))
     }
@@ -107,14 +109,14 @@ implicit val eB = e.eB
 implicit val eC = fa.elem.eRange
 implicit val eD = fb.elem.eRange
       asRep[WEither[C, D]](mkMethodCall(self,
-        this.getClass.getMethod("eitherMap", classOf[Sym], classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("eitherMap", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(e, fa, fb),
         true, element[WEither[C, D]]))
     }
 
     def cast[T](v: Rep[Any])(implicit emT: Elem[T]): Rep[WOption[T]] = {
       asRep[WOption[T]](mkMethodCall(self,
-        this.getClass.getMethod("cast", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("cast", classOf[Sym], classOf[Sym]),
         List(v, emT),
         true, element[WOption[T]]))
     }
@@ -122,7 +124,7 @@ implicit val eD = fb.elem.eRange
     def loopUntil[A](s1: Rep[A], isMatch: Rep[A => Boolean], step: Rep[A => A]): Rep[A] = {
       implicit val eA = s1.elem
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("loopUntil", classOf[Sym], classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("loopUntil", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(s1, isMatch, step),
         true, element[A]))
     }

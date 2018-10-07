@@ -28,38 +28,39 @@ object Col extends EntityObject("Col") {
     implicit def eA: Elem[A] = lA.eW
     val liftable: Liftable[SCol[SA], Col[A]] = liftableCol(lA)
     val selfType: Elem[Col[A]] = liftable.eW
+    private val thisClass = classOf[Col[A]]
 
     def builder: Rep[ColBuilder] = {
       asRep[ColBuilder](mkMethodCall(self,
-        this.getClass.getMethod("builder"),
+        thisClass.getMethod("builder"),
         List(),
         true, element[ColBuilder]))
     }
 
     def arr: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(self,
-        this.getClass.getMethod("arr"),
+        thisClass.getMethod("arr"),
         List(),
         true, element[WArray[A]]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("length"),
+        thisClass.getMethod("length"),
         List(),
         true, element[Int]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("apply", classOf[Sym]),
+        thisClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, element[A]))
     }
 
     def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
         true, element[A]))
     }
@@ -67,7 +68,7 @@ object Col extends EntityObject("Col") {
     def map[B](f: Rep[A => B]): Rep[Col[B]] = {
       implicit val eB = f.elem.eRange
       asRep[Col[B]](mkMethodCall(self,
-        this.getClass.getMethod("map", classOf[Sym]),
+        thisClass.getMethod("map", classOf[Sym]),
         List(f),
         true, element[Col[B]]))
     }
@@ -75,35 +76,35 @@ object Col extends EntityObject("Col") {
     def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
       implicit val eB = ys.eA
       asRep[PairCol[A, B]](mkMethodCall(self,
-        this.getClass.getMethod("zip", classOf[Sym]),
+        thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, element[PairCol[A, B]]))
     }
 
     def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
-        this.getClass.getMethod("foreach", classOf[Sym]),
+        thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
         true, element[Unit]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        this.getClass.getMethod("exists", classOf[Sym]),
+        thisClass.getMethod("exists", classOf[Sym]),
         List(p),
         true, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        this.getClass.getMethod("forall", classOf[Sym]),
+        thisClass.getMethod("forall", classOf[Sym]),
         List(p),
         true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        this.getClass.getMethod("filter", classOf[Sym]),
+        thisClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, element[Col[A]]))
     }
@@ -111,28 +112,28 @@ object Col extends EntityObject("Col") {
     def fold[B](zero: Rep[B])(op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, element[B]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("sum", classOf[Sym]),
+        thisClass.getMethod("sum", classOf[Sym]),
         List(m),
         true, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        this.getClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
         true, element[Col[A]]))
     }
 
     def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        this.getClass.getMethod("append", classOf[Sym]),
+        thisClass.getMethod("append", classOf[Sym]),
         List(other),
         true, element[Col[A]]))
     }
@@ -248,6 +249,7 @@ object Col extends EntityObject("Col") {
     proxyOps[ColCompanionCtor](p)
 
   lazy val RCol: Rep[ColCompanionCtor] = new ColCompanionCtor {
+    private val thisClass = classOf[ColCompanion]
   }
 
   case class ViewCol[A, B](source: Rep[Col[A]], override val innerIso: Iso[A, B])
@@ -576,6 +578,7 @@ object PairCol extends EntityObject("PairCol") {
     proxyOps[PairColCompanionCtor](p)
 
   lazy val RPairCol: Rep[PairColCompanionCtor] = new PairColCompanionCtor {
+    private val thisClass = classOf[PairColCompanion]
   }
 
   object PairColMethods {
@@ -621,12 +624,13 @@ object ColBuilder extends EntityObject("ColBuilder") {
       ) extends ColBuilder with LiftedConst[SColBuilder, ColBuilder] {
     val liftable: Liftable[SColBuilder, ColBuilder] = LiftableColBuilder
     val selfType: Elem[ColBuilder] = liftable.eW
+    private val thisClass = classOf[ColBuilder]
 
     def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = {
       implicit val eA = as.eA
 implicit val eB = bs.eA
       asRep[PairCol[A, B]](mkMethodCall(self,
-        this.getClass.getMethod("apply", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("apply", classOf[Sym], classOf[Sym]),
         List(as, bs),
         true, element[PairCol[A, B]]))
     }
@@ -635,14 +639,14 @@ implicit val eB = bs.eA
     def apply[T](items: Rep[T]*): Rep[Col[T]] = {
       implicit val eA = items(0).elem
       asRep[Col[T]](mkMethodCall(self,
-        this.getClass.getMethod("apply", classOf[Sym]),
+        thisClass.getMethod("apply", classOf[Seq[_]]),
         List(items),
         true, element[Col[T]]))
     }
 
     def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(self,
-        this.getClass.getMethod("xor", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
         true, element[Col[Byte]]))
     }
@@ -650,7 +654,7 @@ implicit val eB = bs.eA
     def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
       implicit val eT = arr.eT
       asRep[Col[T]](mkMethodCall(self,
-        this.getClass.getMethod("fromArray", classOf[Sym]),
+        thisClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
         true, element[Col[T]]))
     }
@@ -658,7 +662,7 @@ implicit val eB = bs.eA
     def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
       implicit val eT = v.elem
       asRep[Col[T]](mkMethodCall(self,
-        this.getClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
         true, element[Col[T]]))
     }
@@ -732,6 +736,7 @@ implicit val eB = bs.eA
     proxyOps[ColBuilderCompanionCtor](p)
 
   lazy val RColBuilder: Rep[ColBuilderCompanionCtor] = new ColBuilderCompanionCtor {
+    private val thisClass = classOf[ColBuilderCompanion]
   }
 
   object ColBuilderMethods {
@@ -879,6 +884,7 @@ object Enum extends EntityObject("Enum") {
     proxyOps[EnumCompanionCtor](p)
 
   lazy val REnum: Rep[EnumCompanionCtor] = new EnumCompanionCtor {
+    private val thisClass = classOf[EnumCompanion]
   }
 
   object EnumMethods {

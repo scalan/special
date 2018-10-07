@@ -79,6 +79,7 @@ object ConcreteCosted extends EntityObject("ConcreteCosted") {
     proxyOps[ConcreteCostedCompanionCtor](p)
 
   lazy val RConcreteCosted: Rep[ConcreteCostedCompanionCtor] = new ConcreteCostedCompanionCtor {
+    private val thisClass = classOf[ConcreteCostedCompanion]
   }
 
   object ConcreteCostedMethods {
@@ -200,7 +201,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
   }
   def unmkCostedPrim[Val](p: Rep[ConcreteCosted[Val]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedPrimElem[Val] @unchecked =>
-      Some((p.asRep[CostedPrim[Val]].value, p.asRep[CostedPrim[Val]].cost, p.asRep[CostedPrim[Val]].dataSize))
+      Some((asRep[CostedPrim[Val]](p).value, asRep[CostedPrim[Val]](p).cost, asRep[CostedPrim[Val]](p).dataSize))
     case _ =>
       None
   }
@@ -321,7 +322,7 @@ implicit val eR = p.r.eVal
   }
   def unmkCostedPair[L, R](p: Rep[ConcreteCosted[(L, R)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedPairElem[L, R] @unchecked =>
-      Some((p.asRep[CostedPair[L, R]].l, p.asRep[CostedPair[L, R]].r))
+      Some((asRep[CostedPair[L, R]](p).l, asRep[CostedPair[L, R]](p).r))
     case _ =>
       None
   }
@@ -380,17 +381,18 @@ object CostedSum extends EntityObject("CostedSum") {
 implicit lazy val eR = value.eB
     override lazy val eVal: Elem[WEither[L, R]] = implicitly[Elem[WEither[L, R]]]
     lazy val selfType = element[CostedSum[L, R]]
+    private val thisClass = classOf[CostedSum[L, R]]
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("cost"),
+        thisClass.getMethod("cost"),
         List(),
         true, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
-        this.getClass.getMethod("dataSize"),
+        thisClass.getMethod("dataSize"),
         List(),
         true, element[Long]))
     }
@@ -494,7 +496,7 @@ implicit val eR = p.value.eB
   }
   def unmkCostedSum[L, R](p: Rep[ConcreteCosted[WEither[L, R]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedSumElem[L, R] @unchecked =>
-      Some((p.asRep[CostedSum[L, R]].value, p.asRep[CostedSum[L, R]].left, p.asRep[CostedSum[L, R]].right))
+      Some((asRep[CostedSum[L, R]](p).value, asRep[CostedSum[L, R]](p).left, asRep[CostedSum[L, R]](p).right))
     case _ =>
       None
   }
@@ -541,10 +543,11 @@ implicit lazy val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg];
 implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     lazy val selfType = element[CostedFunc[Env, Arg, Res]]
+    private val thisClass = classOf[CostedFunc[Env, Arg, Res]]
 
     override def value: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(self,
-        this.getClass.getMethod("value"),
+        thisClass.getMethod("value"),
         List(),
         true, element[Arg => Res]))
     }
@@ -653,7 +656,7 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   }
   def unmkCostedFunc[Env, Arg, Res](p: Rep[ConcreteCosted[Arg => Res]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedFuncElem[Env, Arg, Res] @unchecked =>
-      Some((p.asRep[CostedFunc[Env, Arg, Res]].envCosted, p.asRep[CostedFunc[Env, Arg, Res]].func, p.asRep[CostedFunc[Env, Arg, Res]].cost, p.asRep[CostedFunc[Env, Arg, Res]].dataSize))
+      Some((asRep[CostedFunc[Env, Arg, Res]](p).envCosted, asRep[CostedFunc[Env, Arg, Res]](p).func, asRep[CostedFunc[Env, Arg, Res]](p).cost, asRep[CostedFunc[Env, Arg, Res]](p).dataSize))
     case _ =>
       None
   }
@@ -778,7 +781,7 @@ object CostedArray extends EntityObject("CostedArray") {
   }
   def unmkCostedArray[Item](p: Rep[ConcreteCosted[WArray[Item]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedArrayElem[Item] @unchecked =>
-      Some((p.asRep[CostedArray[Item]].values, p.asRep[CostedArray[Item]].costs, p.asRep[CostedArray[Item]].sizes))
+      Some((asRep[CostedArray[Item]](p).values, asRep[CostedArray[Item]](p).costs, asRep[CostedArray[Item]](p).sizes))
     case _ =>
       None
   }
@@ -836,18 +839,19 @@ object CostedCol extends EntityObject("CostedCol") {
     implicit lazy val eItem = values.eA
     override lazy val eVal: Elem[Col[Item]] = implicitly[Elem[Col[Item]]]
     lazy val selfType = element[CostedCol[Item]]
+    private val thisClass = classOf[CostedCol[Item]]
 
     override def mapCosted[Res](f: Rep[Costed[Item] => Costed[Res]]): Rep[CostedCol[Res]] = {
       implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
       asRep[CostedCol[Res]](mkMethodCall(self,
-        this.getClass.getMethod("mapCosted", classOf[Sym]),
+        thisClass.getMethod("mapCosted", classOf[Sym]),
         List(f),
         true, element[CostedCol[Res]]))
     }
 
     override def filterCosted(f: Rep[Costed[Item] => Costed[Boolean]]): Rep[CostedCol[Item]] = {
       asRep[CostedCol[Item]](mkMethodCall(self,
-        this.getClass.getMethod("filterCosted", classOf[Sym]),
+        thisClass.getMethod("filterCosted", classOf[Sym]),
         List(f),
         true, element[CostedCol[Item]]))
     }
@@ -944,7 +948,7 @@ object CostedCol extends EntityObject("CostedCol") {
   }
   def unmkCostedCol[Item](p: Rep[ConcreteCosted[Col[Item]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedColElem[Item] @unchecked =>
-      Some((p.asRep[CostedCol[Item]].values, p.asRep[CostedCol[Item]].costs, p.asRep[CostedCol[Item]].sizes, p.asRep[CostedCol[Item]].valuesCost))
+      Some((asRep[CostedCol[Item]](p).values, asRep[CostedCol[Item]](p).costs, asRep[CostedCol[Item]](p).sizes, asRep[CostedCol[Item]](p).valuesCost))
     case _ =>
       None
   }
@@ -1129,7 +1133,7 @@ implicit val eR = p.rs.eVal.typeArgs("T")._1.asElem[R]
   }
   def unmkCostedPairArray[L, R](p: Rep[ConcreteCosted[WArray[(L, R)]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedPairArrayElem[L, R] @unchecked =>
-      Some((p.asRep[CostedPairArray[L, R]].ls, p.asRep[CostedPairArray[L, R]].rs))
+      Some((asRep[CostedPairArray[L, R]](p).ls, asRep[CostedPairArray[L, R]](p).rs))
     case _ =>
       None
   }
@@ -1288,7 +1292,7 @@ implicit val eR = p.rs.eVal.typeArgs("A")._1.asElem[R]
   }
   def unmkCostedPairCol[L, R](p: Rep[ConcreteCosted[Col[(L, R)]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedPairColElem[L, R] @unchecked =>
-      Some((p.asRep[CostedPairCol[L, R]].ls, p.asRep[CostedPairCol[L, R]].rs))
+      Some((asRep[CostedPairCol[L, R]](p).ls, asRep[CostedPairCol[L, R]](p).rs))
     case _ =>
       None
   }
@@ -1346,17 +1350,18 @@ object CostedNestedArray extends EntityObject("CostedNestedArray") {
     implicit lazy val eItem = rows.eA.typeArgs("Val")._1.asElem[WArray[Item]].typeArgs("T")._1.asElem[Item]
     override lazy val eVal: Elem[WArray[WArray[Item]]] = implicitly[Elem[WArray[WArray[Item]]]]
     lazy val selfType = element[CostedNestedArray[Item]]
+    private val thisClass = classOf[CostedNestedArray[Item]]
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("cost"),
+        thisClass.getMethod("cost"),
         List(),
         true, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
-        this.getClass.getMethod("dataSize"),
+        thisClass.getMethod("dataSize"),
         List(),
         true, element[Long]))
     }
@@ -1448,7 +1453,7 @@ object CostedNestedArray extends EntityObject("CostedNestedArray") {
   }
   def unmkCostedNestedArray[Item](p: Rep[ConcreteCosted[WArray[WArray[Item]]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedNestedArrayElem[Item] @unchecked =>
-      Some((p.asRep[CostedNestedArray[Item]].rows))
+      Some((asRep[CostedNestedArray[Item]](p).rows))
     case _ =>
       None
   }
@@ -1506,17 +1511,18 @@ object CostedNestedCol extends EntityObject("CostedNestedCol") {
     implicit lazy val eItem = rows.eA.typeArgs("Val")._1.asElem[Col[Item]].typeArgs("A")._1.asElem[Item]
     override lazy val eVal: Elem[Col[Col[Item]]] = implicitly[Elem[Col[Col[Item]]]]
     lazy val selfType = element[CostedNestedCol[Item]]
+    private val thisClass = classOf[CostedNestedCol[Item]]
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("cost"),
+        thisClass.getMethod("cost"),
         List(),
         true, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
-        this.getClass.getMethod("dataSize"),
+        thisClass.getMethod("dataSize"),
         List(),
         true, element[Long]))
     }
@@ -1608,7 +1614,7 @@ object CostedNestedCol extends EntityObject("CostedNestedCol") {
   }
   def unmkCostedNestedCol[Item](p: Rep[ConcreteCosted[Col[Col[Item]]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CostedNestedColElem[Item] @unchecked =>
-      Some((p.asRep[CostedNestedCol[Item]].rows))
+      Some((asRep[CostedNestedCol[Item]](p).rows))
     case _ =>
       None
   }
@@ -1664,11 +1670,12 @@ object ConcreteCostedBuilder extends EntityObject("ConcreteCostedBuilder") {
       ()
     extends ConcreteCostedBuilder() with Def[ConcreteCostedBuilder] {
     lazy val selfType = element[ConcreteCostedBuilder]
+    private val thisClass = classOf[ConcreteCostedBuilder]
 
     override def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = {
       implicit val eT = x.elem
       asRep[Costed[T]](mkMethodCall(self,
-        this.getClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
         List(x, optCost),
         true, element[Costed[T]]))
     }
@@ -1676,7 +1683,7 @@ object ConcreteCostedBuilder extends EntityObject("ConcreteCostedBuilder") {
     override def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = {
       implicit val eT = valueType.eA
       asRep[T](mkMethodCall(self,
-        this.getClass.getMethod("defaultValue", classOf[Sym]),
+        thisClass.getMethod("defaultValue", classOf[Sym]),
         List(valueType),
         true, element[T]))
     }

@@ -66,6 +66,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     proxyOps[WrapSpecBaseCompanionCtor](p)
 
   lazy val RWrapSpecBase: Rep[WrapSpecBaseCompanionCtor] = new WrapSpecBaseCompanionCtor {
+    private val thisClass = classOf[WrapSpecBaseCompanion]
   }
 
   object WrapSpecBaseMethods {

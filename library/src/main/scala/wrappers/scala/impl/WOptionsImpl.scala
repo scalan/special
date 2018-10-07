@@ -29,32 +29,33 @@ object WOption extends EntityObject("WOption") {
     implicit def eA: Elem[A] = lA.eW
     val liftable: Liftable[Option[SA], WOption[A]] = liftableOption(lA)
     val selfType: Elem[WOption[A]] = liftable.eW
+    private val thisClass = classOf[WOption[A]]
 
     def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
       implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(self,
-        this.getClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
         true, element[B]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        this.getClass.getMethod("isEmpty"),
+        thisClass.getMethod("isEmpty"),
         List(),
         true, element[Boolean]))
     }
 
     def isDefined: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        this.getClass.getMethod("isDefined"),
+        thisClass.getMethod("isDefined"),
         List(),
         true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
-        this.getClass.getMethod("filter", classOf[Sym]),
+        thisClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, element[WOption[A]]))
     }
@@ -62,7 +63,7 @@ object WOption extends EntityObject("WOption") {
     def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[WOption[B]](mkMethodCall(self,
-        this.getClass.getMethod("flatMap", classOf[Sym]),
+        thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
         true, element[WOption[B]]))
     }
@@ -70,7 +71,7 @@ object WOption extends EntityObject("WOption") {
     def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
       implicit val eB = f.elem.eRange
       asRep[WOption[B]](mkMethodCall(self,
-        this.getClass.getMethod("map", classOf[Sym]),
+        thisClass.getMethod("map", classOf[Sym]),
         List(f),
         true, element[WOption[B]]))
     }
@@ -78,14 +79,14 @@ object WOption extends EntityObject("WOption") {
     def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
       implicit val eB = default.elem.eItem
       asRep[B](mkMethodCall(self,
-        this.getClass.getMethod("getOrElse", classOf[Sym]),
+        thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
         true, element[B]))
     }
 
     def get: Rep[A] = {
       asRep[A](mkMethodCall(self,
-        this.getClass.getMethod("get"),
+        thisClass.getMethod("get"),
         List(),
         true, element[A]))
     }
@@ -193,6 +194,7 @@ object WOption extends EntityObject("WOption") {
     proxyOps[WOptionCompanionCtor](p)
 
   lazy val RWOption: Rep[WOptionCompanionCtor] = new WOptionCompanionCtor {
+    private val thisClass = classOf[WOptionCompanion]
   }
 
   case class ViewWOption[A, B](source: Rep[WOption[A]], override val innerIso: Iso[A, B])

@@ -237,7 +237,7 @@ object IntPlusMonoid extends EntityObject("IntPlusMonoid") {
   }
   def unmkIntPlusMonoid(p: Rep[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IntPlusMonoidElem @unchecked =>
-      Some((p.asRep[IntPlusMonoid].zero))
+      Some((asRep[IntPlusMonoid](p).zero))
     case _ =>
       None
   }
@@ -365,7 +365,7 @@ object LongPlusMonoid extends EntityObject("LongPlusMonoid") {
   }
   def unmkLongPlusMonoid(p: Rep[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: LongPlusMonoidElem @unchecked =>
-      Some((p.asRep[LongPlusMonoid].zero))
+      Some((asRep[LongPlusMonoid](p).zero))
     case _ =>
       None
   }
