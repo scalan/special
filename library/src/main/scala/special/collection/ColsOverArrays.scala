@@ -44,7 +44,11 @@ package special.collection {
       @NeverInline def append(other: Rep[Col[A]]): Rep[Col[A]] = delayInvoke
     };
     abstract class ColOverArrayBuilder extends BaseColBuilder {
-      @NeverInline override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke
+      @NeverInline override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke;
+      @NeverInline @OverloadId(value = "apply") override def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = delayInvoke;
+      @NeverInline @OverloadId(value = "apply_items") override def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke;
+      @NeverInline override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = delayInvoke;
+      @NeverInline override def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = delayInvoke
     };
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {
       override def builder: Rep[ColBuilder] = RColOverArrayBuilder();

@@ -84,14 +84,15 @@ object BaseColBuilder extends EntityObject("BaseColBuilder") {
       }
     }
 
+    // manual fix (remove unnecessary elems)
     object apply_apply_items {
-      def unapply(d: Def[_]): Nullable[(Rep[BaseColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[BaseColBuilder], Seq[Rep[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[BaseColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[BaseColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}]]
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[BaseColBuilder], Seq[Rep[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[BaseColBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[BaseColBuilder], Seq[Rep[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -458,7 +459,7 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       ()
     extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
     lazy val selfType = element[ColOverArrayBuilder]
-    private val thisClass = classOf[ColOverArrayBuilder]
+    private val thisClass = classOf[ColBuilder] // manual fix
 
     override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
       implicit val eT = arr.eT
@@ -466,6 +467,39 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
         thisClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
         true, element[Col[T]]))
+    }
+
+    override def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = {
+      implicit val eA = as.eA
+implicit val eB = bs.eA
+      asRep[PairCol[A, B]](mkMethodCall(self,
+        thisClass.getMethod("apply", classOf[Sym], classOf[Sym]),
+        List(as, bs),
+        true, element[PairCol[A, B]]))
+    }
+
+    // manual fix
+    override def apply[T](items: Rep[T]*): Rep[Col[T]] = {
+      implicit val eA = items(0).elem
+      asRep[Col[T]](mkMethodCall(self,
+        thisClass.getMethod("apply", classOf[Seq[_]]),
+        List(items),
+        true, element[Col[T]]))
+    }
+
+    override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
+      implicit val eT = v.elem
+      asRep[Col[T]](mkMethodCall(self,
+        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
+        List(n, v),
+        true, element[Col[T]]))
+    }
+
+    override def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
+      asRep[Col[Byte]](mkMethodCall(self,
+        thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
+        List(left, right),
+        true, element[Col[Byte]]))
     }
   }
   // elem for concrete class
@@ -569,6 +603,59 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object apply_apply {
+      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply" } =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[Col[A]], Rep[Col[B]]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+      // manual fix (remove unnecessary elems)
+    object apply_apply_items {
+      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Seq[Rep[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Seq[Rep[T]]) forSome {type T}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Seq[Rep[T]]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object replicate {
+      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "replicate" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object xor {
+      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Rep[Col[Byte]], Rep[Col[Byte]])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "xor" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Rep[Col[Byte]], Rep[Col[Byte]])]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[Col[Byte]], Rep[Col[Byte]])] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

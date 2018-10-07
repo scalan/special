@@ -66,6 +66,21 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
 class ColOverArrayBuilder extends BaseColBuilder {
   @NeverInline
   override def fromArray[T](arr: Array[T]): Col[T] = super.fromArray(arr)
+
+  @NeverInline
+  @OverloadId("apply")
+  override def apply[A, B](as: Col[A], bs: Col[B]) = super.apply(as, bs)
+
+  @NeverInline
+  @OverloadId("apply_items")
+  override def apply[T](items: T*) = super.apply(items:_*)
+
+  @NeverInline
+  override def replicate[T: ClassTag](n: Int, v: T) = super.replicate(n, v)
+
+  @NeverInline
+  override def xor(left: Col[Byte], right: Col[Byte]) = super.xor(left, right)
+
 }
 
 class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
