@@ -52,7 +52,7 @@ object IsoUR extends EntityObject("IsoUR") {
 
     def convertIsoUR(x: Rep[IsoUR[From, To]]): Rep[To0] = {
       x.elem match {
-        case _: IsoURElem[_, _, _] => x.asRep[To0]
+        case _: IsoURElem[_, _, _] => asRep[To0](x)
         case e => !!!(s"Expected $x to have IsoURElem[_, _, _], but got $e", x)
       }
     }
@@ -142,7 +142,7 @@ object Iso1UR extends EntityObject("Iso1UR") {
 
     def convertIso1UR(x: Rep[Iso1UR[A, B, C]]): Rep[To] = {
       x.elem.asInstanceOf[Elem[_]] match {
-        case _: Iso1URElem[_, _, _, _] => x.asRep[To]
+        case _: Iso1URElem[_, _, _, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have Iso1URElem[_, _, _, _], but got $e", x)
       }
     }
@@ -465,7 +465,7 @@ implicit val eB2 = p.iso2.eTo
   }
   def unmkPairIso[A1, A2, B1, B2](p: Rep[IsoUR[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: PairIsoElem[A1, A2, B1, B2] @unchecked =>
-      Some((p.asRep[PairIso[A1, A2, B1, B2]].iso1, p.asRep[PairIso[A1, A2, B1, B2]].iso2))
+      Some((asRep[PairIso[A1, A2, B1, B2]](p).iso1, asRep[PairIso[A1, A2, B1, B2]](p).iso2))
     case _ =>
       None
   }
@@ -621,7 +621,7 @@ implicit val eB2 = p.iso2.eTo
   }
   def unmkAbsorbFirstUnitIso[A2, B2](p: Rep[IsoUR[A2, (Unit, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: AbsorbFirstUnitIsoElem[A2, B2] @unchecked =>
-      Some((p.asRep[AbsorbFirstUnitIso[A2, B2]].iso2))
+      Some((asRep[AbsorbFirstUnitIso[A2, B2]](p).iso2))
     case _ =>
       None
   }
@@ -774,7 +774,7 @@ implicit val eB1 = p.iso1.eTo
   }
   def unmkAbsorbSecondUnitIso[A1, B1](p: Rep[IsoUR[A1, (B1, Unit)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: AbsorbSecondUnitIsoElem[A1, B1] @unchecked =>
-      Some((p.asRep[AbsorbSecondUnitIso[A1, B1]].iso1))
+      Some((asRep[AbsorbSecondUnitIso[A1, B1]](p).iso1))
     case _ =>
       None
   }
@@ -945,7 +945,7 @@ implicit val eB2 = p.iso2.eTo
   }
   def unmkSumIso[A1, A2, B1, B2](p: Rep[IsoUR[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: SumIsoElem[A1, A2, B1, B2] @unchecked =>
-      Some((p.asRep[SumIso[A1, A2, B1, B2]].iso1, p.asRep[SumIso[A1, A2, B1, B2]].iso2))
+      Some((asRep[SumIso[A1, A2, B1, B2]](p).iso1, asRep[SumIso[A1, A2, B1, B2]](p).iso2))
     case _ =>
       None
   }
@@ -1109,7 +1109,7 @@ implicit val eC = p.iso2.eTo
   }
   def unmkComposeIso[A, B, C](p: Rep[IsoUR[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ComposeIsoElem[A, B, C] @unchecked =>
-      Some((p.asRep[ComposeIso[A, B, C]].iso2, p.asRep[ComposeIso[A, B, C]].iso1))
+      Some((asRep[ComposeIso[A, B, C]](p).iso2, asRep[ComposeIso[A, B, C]](p).iso1))
     case _ =>
       None
   }
@@ -1280,7 +1280,7 @@ implicit val eD = p.iso2.eTo
   }
   def unmkFuncIso[A, B, C, D](p: Rep[IsoUR[A => C, B => D]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: FuncIsoElem[A, B, C, D] @unchecked =>
-      Some((p.asRep[FuncIso[A, B, C, D]].iso1, p.asRep[FuncIso[A, B, C, D]].iso2))
+      Some((asRep[FuncIso[A, B, C, D]](p).iso1, asRep[FuncIso[A, B, C, D]](p).iso2))
     case _ =>
       None
   }
@@ -1438,7 +1438,7 @@ implicit val eB = p.convTo.eR
   }
   def unmkConverterIso[A, B](p: Rep[IsoUR[A, B]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ConverterIsoElem[A, B] @unchecked =>
-      Some((p.asRep[ConverterIso[A, B]].convTo, p.asRep[ConverterIso[A, B]].convFrom))
+      Some((asRep[ConverterIso[A, B]](p).convTo, asRep[ConverterIso[A, B]](p).convFrom))
     case _ =>
       None
   }
@@ -1589,7 +1589,7 @@ implicit val eB = p.innerIso.eTo
   }
   def unmkThunkIso[A, B](p: Rep[Iso1UR[A, B, Thunk]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ThunkIsoElem[A, B] @unchecked =>
-      Some((p.asRep[ThunkIso[A, B]].innerIso))
+      Some((asRep[ThunkIso[A, B]](p).innerIso))
     case _ =>
       None
   }

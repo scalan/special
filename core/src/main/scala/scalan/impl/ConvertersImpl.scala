@@ -46,7 +46,7 @@ object Converter extends EntityObject("Converter") {
 
     def convertConverter(x: Rep[Converter[T, R]]): Rep[To] = {
       x.elem match {
-        case _: ConverterElem[_, _, _] => x.asRep[To]
+        case _: ConverterElem[_, _, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have ConverterElem[_, _, _], but got $e", x)
       }
     }
@@ -69,6 +69,7 @@ object Converter extends EntityObject("Converter") {
     proxyOps[ConverterCompanionCtor](p)
 
   lazy val RConverter: Rep[ConverterCompanionCtor] = new ConverterCompanionCtor {
+    private val thisClass = classOf[ConverterCompanion]
   }
 
   object ConverterMethods {
@@ -341,7 +342,7 @@ implicit val eR = p.convFun.elem.eRange
   }
   def unmkBaseConverter[T, R](p: Rep[Converter[T, R]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: BaseConverterElem[T, R] @unchecked =>
-      Some((p.asRep[BaseConverter[T, R]].convFun))
+      Some((asRep[BaseConverter[T, R]](p).convFun))
     case _ =>
       None
   }
@@ -489,7 +490,7 @@ implicit val eB2 = p.conv2.eR
   }
   def unmkPairConverter[A1, A2, B1, B2](p: Rep[Converter[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: PairConverterElem[A1, A2, B1, B2] @unchecked =>
-      Some((p.asRep[PairConverter[A1, A2, B1, B2]].conv1, p.asRep[PairConverter[A1, A2, B1, B2]].conv2))
+      Some((asRep[PairConverter[A1, A2, B1, B2]](p).conv1, asRep[PairConverter[A1, A2, B1, B2]](p).conv2))
     case _ =>
       None
   }
@@ -648,7 +649,7 @@ implicit val eB2 = p.conv2.eR
   }
   def unmkSumConverter[A1, A2, B1, B2](p: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: SumConverterElem[A1, A2, B1, B2] @unchecked =>
-      Some((p.asRep[SumConverter[A1, A2, B1, B2]].conv1, p.asRep[SumConverter[A1, A2, B1, B2]].conv2))
+      Some((asRep[SumConverter[A1, A2, B1, B2]](p).conv1, asRep[SumConverter[A1, A2, B1, B2]](p).conv2))
     case _ =>
       None
   }
@@ -800,7 +801,7 @@ implicit val eC = p.conv2.eR
   }
   def unmkComposeConverter[A, B, C](p: Rep[Converter[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ComposeConverterElem[A, B, C] @unchecked =>
-      Some((p.asRep[ComposeConverter[A, B, C]].conv2, p.asRep[ComposeConverter[A, B, C]].conv1))
+      Some((asRep[ComposeConverter[A, B, C]](p).conv2, asRep[ComposeConverter[A, B, C]](p).conv1))
     case _ =>
       None
   }
@@ -940,7 +941,7 @@ implicit val eB = p.itemConv.eR
   }
   def unmkFunctorConverter[A, B, F[_]](p: Rep[Converter[F[A], F[B]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: FunctorConverterElem[A, B, F] @unchecked =>
-      Some((p.asRep[FunctorConverter[A, B, F]].itemConv))
+      Some((asRep[FunctorConverter[A, B, F]](p).itemConv))
     case _ =>
       None
   }
@@ -1075,7 +1076,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   }
   def unmkNaturalConverter[A, F[_], G[_]](p: Rep[Converter[F[A], G[A]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: NaturalConverterElem[A, F, G] @unchecked =>
-      Some((p.asRep[NaturalConverter[A, F, G]].convFun))
+      Some((asRep[NaturalConverter[A, F, G]](p).convFun))
     case _ =>
       None
   }

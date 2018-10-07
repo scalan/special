@@ -27,24 +27,25 @@ object MetaTest extends EntityObject("MetaTest") {
     implicit def eT: Elem[T] = lT.eW
     val liftable: Liftable[SMetaTest[ST], MetaTest[T]] = liftableMetaTest(lT)
     val selfType: Elem[MetaTest[T]] = liftable.eW
+    private val thisClass = classOf[MetaTest[T]]
 
     def test: RMetaTest[T] = {
       asRep[MetaTest[T]](mkMethodCall(self,
-        this.getClass.getMethod("test"),
+        thisClass.getMethod("test"),
         List(),
         true, element[MetaTest[T]]))
     }
 
     def give: Rep[T] = {
       asRep[T](mkMethodCall(self,
-        this.getClass.getMethod("give"),
+        thisClass.getMethod("give"),
         List(),
         true, element[T]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("size"),
+        thisClass.getMethod("size"),
         List(),
         true, element[Int]))
     }
@@ -101,7 +102,7 @@ object MetaTest extends EntityObject("MetaTest") {
 
     def convertMetaTest(x: Rep[MetaTest[T]]): Rep[To] = {
       x.elem match {
-        case _: MetaTestElem[_, _] => x.asRep[To]
+        case _: MetaTestElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have MetaTestElem[_, _], but got $e", x)
       }
     }
@@ -124,6 +125,7 @@ object MetaTest extends EntityObject("MetaTest") {
     proxyOps[MetaTestCompanionCtor](p)
 
   lazy val RMetaTest: Rep[MetaTestCompanionCtor] = new MetaTestCompanionCtor {
+    private val thisClass = classOf[MetaTestCompanion]
   }
 
   object MetaTestMethods {
@@ -261,7 +263,7 @@ object MT0 extends EntityObject("MT0") {
   }
   def unmkMT0(p: Rep[MetaTest[Unit]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: MT0Elem @unchecked =>
-      Some((p.asRep[MT0].size))
+      Some((asRep[MT0](p).size))
     case _ =>
       None
   }
@@ -412,7 +414,7 @@ object MT1 extends EntityObject("MT1") {
   }
   def unmkMT1[T](p: Rep[MetaTest[T]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: MT1Elem[T] @unchecked =>
-      Some((p.asRep[MT1[T]].data, p.asRep[MT1[T]].size))
+      Some((asRep[MT1[T]](p).data, asRep[MT1[T]](p).size))
     case _ =>
       None
   }
@@ -555,7 +557,7 @@ implicit val eB = p.values.elem
   }
   def unmkMT2[A, B](p: Rep[MetaTest[(A, B)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: MT2Elem[A, B] @unchecked =>
-      Some((p.asRep[MT2[A, B]].indices, p.asRep[MT2[A, B]].values, p.asRep[MT2[A, B]].size))
+      Some((asRep[MT2[A, B]](p).indices, asRep[MT2[A, B]](p).values, asRep[MT2[A, B]](p).size))
     case _ =>
       None
   }

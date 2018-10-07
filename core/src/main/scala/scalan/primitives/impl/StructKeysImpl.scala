@@ -40,7 +40,7 @@ object StructKey extends EntityObject("StructKey") {
 
     def convertStructKey(x: Rep[StructKey[Schema]]): Rep[To] = {
       x.elem match {
-        case _: StructKeyElem[_, _] => x.asRep[To]
+        case _: StructKeyElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have StructKeyElem[_, _], but got $e", x)
       }
     }
@@ -186,7 +186,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   }
   def unmkIndexStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IndexStructKeyElem[Schema] @unchecked =>
-      Some((p.asRep[IndexStructKey[Schema]].index))
+      Some((asRep[IndexStructKey[Schema]](p).index))
     case _ =>
       None
   }
@@ -301,7 +301,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
   }
   def unmkNameStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: NameStructKeyElem[Schema] @unchecked =>
-      Some((p.asRep[NameStructKey[Schema]].name))
+      Some((asRep[NameStructKey[Schema]](p).name))
     case _ =>
       None
   }

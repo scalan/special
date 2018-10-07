@@ -41,7 +41,7 @@ object Kind extends EntityObject("Kind") {
 
     def convertKind(x: Rep[Kind[F, A]]): Rep[To] = {
       x.elem.asInstanceOf[Elem[_]] match {
-        case _: KindElem[_, _, _] => x.asRep[To]
+        case _: KindElem[_, _, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have KindElem[_, _, _], but got $e", x)
       }
     }
@@ -64,6 +64,7 @@ object Kind extends EntityObject("Kind") {
     proxyOps[KindCompanionCtor](p)
 
   lazy val RKind: Rep[KindCompanionCtor] = new KindCompanionCtor {
+    private val thisClass = classOf[KindCompanion]
   }
 
   object KindMethods {
@@ -186,7 +187,7 @@ object Return extends EntityObject("Return") {
   }
   def unmkReturn[F[_], A](p: Rep[Kind[F, A]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ReturnElem[F, A] @unchecked =>
-      Some((p.asRep[Return[F, A]].a))
+      Some((asRep[Return[F, A]](p).a))
     case _ =>
       None
   }
@@ -312,7 +313,7 @@ implicit val eB = p.f.elem.eRange.typeArgs("A")._1.asElem[B]
   }
   def unmkBind[F[_], S, B](p: Rep[Kind[F, B]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: BindElem[F, S, B] @unchecked =>
-      Some((p.asRep[Bind[F, S, B]].a, p.asRep[Bind[F, S, B]].f))
+      Some((asRep[Bind[F, S, B]](p).a, asRep[Bind[F, S, B]](p).f))
     case _ =>
       None
   }

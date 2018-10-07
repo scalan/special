@@ -45,7 +45,7 @@ object StructItem extends EntityObject("StructItem") {
 
     def convertStructItem(x: Rep[StructItem[Val, Schema]]): Rep[To] = {
       x.elem match {
-        case _: StructItemElem[_, _, _] => x.asRep[To]
+        case _: StructItemElem[_, _, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have StructItemElem[_, _, _], but got $e", x)
       }
     }
@@ -207,7 +207,7 @@ implicit val eSchema = p.key.eSchema
   }
   def unmkStructItemBase[Val, Schema <: Struct](p: Rep[StructItem[Val, Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: StructItemBaseElem[Val, Schema] @unchecked =>
-      Some((p.asRep[StructItemBase[Val, Schema]].key, p.asRep[StructItemBase[Val, Schema]].value))
+      Some((asRep[StructItemBase[Val, Schema]](p).key, asRep[StructItemBase[Val, Schema]](p).value))
     case _ =>
       None
   }

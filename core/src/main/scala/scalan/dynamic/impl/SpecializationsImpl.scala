@@ -48,7 +48,7 @@ object IsoFunc extends EntityObject("IsoFunc") {
 
     def convertIsoFunc(x: Rep[IsoFunc[T, R, M]]): Rep[To] = {
       x.elem match {
-        case _: IsoFuncElem[_, _, _, _] => x.asRep[To]
+        case _: IsoFuncElem[_, _, _, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have IsoFuncElem[_, _, _, _], but got $e", x)
       }
     }
@@ -229,7 +229,7 @@ implicit val eM = p.metric.elem.eRange
   }
   def unmkIsoFuncBase[T, R, M](p: Rep[IsoFunc[T, R, M]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IsoFuncBaseElem[T, R, M] @unchecked =>
-      Some((p.asRep[IsoFuncBase[T, R, M]].func, p.asRep[IsoFuncBase[T, R, M]].metric))
+      Some((asRep[IsoFuncBase[T, R, M]](p).func, asRep[IsoFuncBase[T, R, M]](p).metric))
     case _ =>
       None
   }

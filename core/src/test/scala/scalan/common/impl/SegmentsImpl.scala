@@ -26,38 +26,39 @@ object Segment extends EntityObject("Segment") {
       ) extends Segment with LiftedConst[SSegment, Segment] {
     val liftable: Liftable[SSegment, Segment] = LiftableSegment
     val selfType: Elem[Segment] = liftable.eW
+    private val thisClass = classOf[Segment]
 
     def start: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("start"),
+        thisClass.getMethod("start"),
         List(),
         true, element[Int]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("length"),
+        thisClass.getMethod("length"),
         List(),
         true, element[Int]))
     }
 
     def end: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        this.getClass.getMethod("end"),
+        thisClass.getMethod("end"),
         List(),
         true, element[Int]))
     }
 
     def shift(ofs: Rep[Int]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
-        this.getClass.getMethod("shift", classOf[Sym]),
+        thisClass.getMethod("shift", classOf[Sym]),
         List(ofs),
         true, element[Segment]))
     }
 
     def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
-        this.getClass.getMethod("attach", classOf[Sym]),
+        thisClass.getMethod("attach", classOf[Sym]),
         List(seg),
         true, element[Segment]))
     }
@@ -108,7 +109,7 @@ object Segment extends EntityObject("Segment") {
 
     def convertSegment(x: Rep[Segment]): Rep[To] = {
       x.elem match {
-        case _: SegmentElem[_] => x.asRep[To]
+        case _: SegmentElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have SegmentElem[_], but got $e", x)
       }
     }
@@ -131,6 +132,7 @@ object Segment extends EntityObject("Segment") {
     proxyOps[SegmentCompanionCtor](p)
 
   lazy val RSegment: Rep[SegmentCompanionCtor] = new SegmentCompanionCtor {
+    private val thisClass = classOf[SegmentCompanion]
   }
 
   object SegmentMethods {
@@ -210,10 +212,11 @@ object Interval extends EntityObject("Interval") {
       (override val start: Rep[Int], override val end: Rep[Int])
     extends Interval(start, end) with Def[Interval] {
     lazy val selfType = element[Interval]
+    private val thisClass = classOf[Interval]
 
     override def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
-        this.getClass.getMethod("attach", classOf[Sym]),
+        thisClass.getMethod("attach", classOf[Sym]),
         List(seg),
         true, element[Segment]))
     }
@@ -305,7 +308,7 @@ object Interval extends EntityObject("Interval") {
   }
   def unmkInterval(p: Rep[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IntervalElem @unchecked =>
-      Some((p.asRep[Interval].start, p.asRep[Interval].end))
+      Some((asRep[Interval](p).start, asRep[Interval](p).end))
     case _ =>
       None
   }
@@ -449,7 +452,7 @@ object Slice extends EntityObject("Slice") {
   }
   def unmkSlice(p: Rep[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: SliceElem @unchecked =>
-      Some((p.asRep[Slice].start, p.asRep[Slice].length))
+      Some((asRep[Slice](p).start, asRep[Slice](p).length))
     case _ =>
       None
   }
@@ -594,7 +597,7 @@ object Centered extends EntityObject("Centered") {
   }
   def unmkCentered(p: Rep[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CenteredElem @unchecked =>
-      Some((p.asRep[Centered].center, p.asRep[Centered].radius))
+      Some((asRep[Centered](p).center, asRep[Centered](p).radius))
     case _ =>
       None
   }
