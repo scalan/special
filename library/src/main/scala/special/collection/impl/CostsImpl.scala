@@ -39,7 +39,7 @@ object Costed extends EntityObject("Costed") {
 
     def convertCosted(x: Rep[Costed[Val]]): Rep[To] = {
       x.elem match {
-        case _: CostedElem[_, _] => x.asRep[To]
+        case _: CostedElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have CostedElem[_, _], but got $e", x)
       }
     }
@@ -146,7 +146,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
 
     def convertCostedBuilder(x: Rep[CostedBuilder]): Rep[To] = {
       x.elem match {
-        case _: CostedBuilderElem[_] => x.asRep[To]
+        case _: CostedBuilderElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have CostedBuilderElem[_], but got $e", x)
       }
     }

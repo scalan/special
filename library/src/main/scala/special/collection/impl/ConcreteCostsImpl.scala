@@ -15,7 +15,7 @@ import Costed._
 import ConcreteCosted._
 import WEither._
 import WArray._
-import WRType._
+import WRType._ // manual fix
 import Col._
 import CostedCol._
 import MonoidBuilderInst._
@@ -56,7 +56,7 @@ object ConcreteCosted extends EntityObject("ConcreteCosted") {
 
     def convertConcreteCosted(x: Rep[ConcreteCosted[Val]]): Rep[To] = {
       x.elem match {
-        case _: ConcreteCostedElem[_, _] => x.asRep[To]
+        case _: ConcreteCostedElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have ConcreteCostedElem[_, _], but got $e", x)
       }
     }

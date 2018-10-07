@@ -44,7 +44,7 @@ object BaseColBuilder extends EntityObject("BaseColBuilder") {
 
     def convertBaseColBuilder(x: Rep[BaseColBuilder]): Rep[To] = {
       x.elem match {
-        case _: BaseColBuilderElem[_] => x.asRep[To]
+        case _: BaseColBuilderElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have BaseColBuilderElem[_], but got $e", x)
       }
     }

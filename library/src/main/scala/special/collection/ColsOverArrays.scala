@@ -1,5 +1,5 @@
 package special.collection {
-  import java.lang.reflect.Method
+  import java.lang.reflect.Method  // manual fix
 
   import scalan._
 
@@ -14,8 +14,8 @@ package special.collection {
     import WArray._;
     import ReplColBuilder._;
     import ReplCol._;
-    import Monoid._;
-    import WSpecialPredef._;
+    import Monoid._; // manual fix
+    import WSpecialPredef._; // manual fix
     trait BaseColBuilder extends ColBuilder {
       @OverloadId(value = "apply") def apply[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = RPairOfCols(as, bs);
       @OverloadId(value = "apply_items") @NeverInline def apply[T](items: Rep[T]*): Rep[Col[T]] = delayInvoke;

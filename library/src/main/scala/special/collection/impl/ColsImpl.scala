@@ -203,6 +203,7 @@ object Col extends EntityObject("Col") {
         ))
     }
 
+    // manual fix
     override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
       case ColMethods.map(xs, f) =>
         val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
@@ -224,7 +225,7 @@ object Col extends EntityObject("Col") {
 
     def convertCol(x: Rep[Col[A]]): Rep[To] = {
       x.elem match {
-        case _: ColElem[_, _] => x.asRep[To]
+        case _: ColElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have ColElem[_, _], but got $e", x)
       }
     }
@@ -517,7 +518,7 @@ object Col extends EntityObject("Col") {
         val f1 = asRep[b => c](f)
         val iso = contIso.innerIso
         implicit val eC = f1.elem.eRange
-        source.asRep[Col[a]].map(iso.toFun >> f1)
+        asRep[Col[a]](source).map(iso.toFun >> f1)
       case _ =>
         super.rewriteDef(d)
     }
@@ -630,6 +631,7 @@ implicit val eB = bs.eA
         true, element[PairCol[A, B]]))
     }
 
+    // manual fix
     def apply[T](items: Rep[T]*): Rep[Col[T]] = {
       implicit val eA = items(0).elem
       asRep[Col[T]](mkMethodCall(self,
@@ -746,6 +748,7 @@ implicit val eB = bs.eA
       }
     }
 
+    // manual fix (remove unnecessary elems)
     object apply_apply_items {
       def unapply(d: Def[_]): Nullable[(Rep[ColBuilder], Seq[Rep[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColBuilderElem[_]] && method.getName == "apply" && { val ann = method.getAnnotation(classOf[scalan.OverloadId]); ann != null && ann.value == "apply_items" } =>
@@ -853,7 +856,7 @@ object Enum extends EntityObject("Enum") {
 
     def convertEnum(x: Rep[Enum]): Rep[To] = {
       x.elem match {
-        case _: EnumElem[_] => x.asRep[To]
+        case _: EnumElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have EnumElem[_], but got $e", x)
       }
     }

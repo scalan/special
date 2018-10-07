@@ -26,7 +26,7 @@ package special.collection {
       @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
     abstract class CostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], val cost: Rep[Int], val dataSize: Rep[Long]) extends ConcreteCosted[scala.Function1[Arg, Res]] {
-      implicit def eArg: Elem[Arg]
+      implicit def eArg: Elem[Arg] // manual fix
       @NeverInline def value: Rep[scala.Function1[Arg, Res]] = delayInvoke
     };
     abstract class CostedArray[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Int]], val sizes: Rep[Col[Long]]) extends ConcreteCosted[WArray[Item]] {
@@ -52,13 +52,13 @@ package special.collection {
       def dataSize: Rep[Long] = CostedPairCol.this.ls.dataSize.+(CostedPairCol.this.rs.dataSize)
     };
     abstract class CostedNestedArray[Item](val rows: Rep[Col[Costed[WArray[Item]]]]) extends ConcreteCosted[WArray[WArray[Item]]] {
-      implicit def eItem: Elem[Item]
+      implicit def eItem: Elem[Item] // manual fix
       def value: Rep[WArray[WArray[Item]]] = CostedNestedArray.this.rows.map[WArray[Item]](fun(((r: Rep[Costed[WArray[Item]]]) => r.value))).arr;
       @NeverInline def cost: Rep[Int] = delayInvoke;
       @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
     abstract class CostedNestedCol[Item](val rows: Rep[Col[Costed[Col[Item]]]]) extends ConcreteCosted[Col[Col[Item]]] {
-      implicit def eItem: Elem[Item]
+      implicit def eItem: Elem[Item] // manual fix
       def value: Rep[Col[Col[Item]]] = CostedNestedCol.this.rows.map[Col[Item]](fun(((r: Rep[Costed[Col[Item]]]) => r.value)));
       @NeverInline def cost: Rep[Int] = delayInvoke;
       @NeverInline def dataSize: Rep[Long] = delayInvoke

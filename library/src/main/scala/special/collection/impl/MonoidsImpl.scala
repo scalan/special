@@ -39,7 +39,7 @@ object Monoid extends EntityObject("Monoid") {
 
     def convertMonoid(x: Rep[Monoid[T]]): Rep[To] = {
       x.elem match {
-        case _: MonoidElem[_, _] => x.asRep[To]
+        case _: MonoidElem[_, _] => asRep[To](x)
         case e => !!!(s"Expected $x to have MonoidElem[_, _], but got $e", x)
       }
     }
@@ -133,7 +133,7 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
 
     def convertMonoidBuilder(x: Rep[MonoidBuilder]): Rep[To] = {
       x.elem match {
-        case _: MonoidBuilderElem[_] => x.asRep[To]
+        case _: MonoidBuilderElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have MonoidBuilderElem[_], but got $e", x)
       }
     }

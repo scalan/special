@@ -43,7 +43,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
 
     def convertWrapSpecBase(x: Rep[WrapSpecBase]): Rep[To] = {
       x.elem match {
-        case _: WrapSpecBaseElem[_] => x.asRep[To]
+        case _: WrapSpecBaseElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have WrapSpecBaseElem[_], but got $e", x)
       }
     }
