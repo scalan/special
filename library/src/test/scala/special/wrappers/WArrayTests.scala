@@ -85,12 +85,12 @@ class WArrayTests extends WrappersTests {
     val inc = (x: Int) => x + 1
     check(col, { env: EnvRep[Col[Int]] => for { xs <- env; incL <- lifted(inc) } yield xs.map(incL) }, col.map(inc))
 
-    check(Cols, { env: EnvRep[ColBuilder] => for { Cols <- env; arrL <- lifted(arr) } yield Cols.fromArray(arrL) }, Cols.fromArray(arr))
+    check(Cols, { env: EnvRep[ColBuilder] => for { b <- env; arrL <- lifted(arr) } yield b.fromArray(arrL) }, Cols.fromArray(arr))
 
     check(Cols,
       {env: EnvRep[ColBuilder] => for {
-          Cols <- env; x1 <- lifted(1); x2 <- lifted(2); x3 <- lifted(3)
-        } yield Cols.apply(x1, x2, x3) },
+          b <- env; x1 <- lifted(1); x2 <- lifted(2); x3 <- lifted(3)
+        } yield b.apply(x1, x2, x3) },
       Cols.apply(1, 2, 3))
   }
 }
