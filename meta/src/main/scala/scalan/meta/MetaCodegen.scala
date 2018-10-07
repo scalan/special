@@ -411,7 +411,7 @@ class MetaCodegen {
     }
 
     def companionName = name + "Companion"
-    def companionAbsName = name + "CompanionCtor"
+    def companionCtorName = name + "CompanionCtor"
 
     def extractionBuilder(prefix: String): ElemExtractionBuilder = {
       val s = entity.args.args.map { a => a.name -> (prefix + a.name) }.toMap

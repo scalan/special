@@ -50,7 +50,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    ${md.declaration(config, md.body.isDefined)} = {
       |      ${elemDecls.rep({ case (ta, expr) => s"implicit val e${ta.name} = $expr" }, "\n")}
       |      asRep[$unreppedReturnType](mkMethodCall(self,
-      |        this.getClass.getMethod("${md.name}"$finalArgClasses),
+      |        thisClass.getMethod("${md.name}"$finalArgClasses),
       |        List($finalArgs),
       |        true, element[$unreppedReturnType]))
       |    }
@@ -108,6 +108,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
 
   def entityConst(e: EntityTemplateData) = {
     val info = new LiftableInfo(e); import info._
+    val methods = e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }
     s"""
       |  // entityConst: single const for each entity
       |  import Liftables._
@@ -123,7 +124,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    val liftable: Liftable[$SName$tyUseS, $EName$tyUse] = $liftableMethod${
                                                                 optArgs(zipped)("(", (_,a) => s"l$a", ",", ")")}
       |    val selfType: Elem[$EName$tyUse] = liftable.eW
-      |${e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }.rep({ m =>
+      |    ${methods.opt(_ => s"private val thisClass = classOf[$EName$tyUse]")}
+      |${methods.rep({ m =>
          s"""|    ${externalMethod(m)}""".stripAndTrim
        },"\n")}
       |  }
@@ -393,12 +395,12 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val entityCompOpt = e.entity.companion
     val hasCompanion = e.entity.companion.isDefined
     s"""
-      |  implicit case object ${e.companionName}Elem extends CompanionElem[${e.companionAbsName}] {
-      |    lazy val tag = weakTypeTag[${e.companionAbsName}]
+      |  implicit case object ${e.companionName}Elem extends CompanionElem[${e.companionCtorName}] {
+      |    lazy val tag = weakTypeTag[${e.companionCtorName}]
       |    protected def getDefaultRep = R${e.name}
       |  }
       |
-         |  abstract class ${e.companionAbsName} extends CompanionDef[${e.companionAbsName}]${hasCompanion.opt(s" with ${e.companionName}")} {
+         |  abstract class ${e.companionCtorName} extends CompanionDef[${e.companionCtorName}]${hasCompanion.opt(s" with ${e.companionName}")} {
       |    def selfType = ${e.companionName}Elem
       |    override def toString = "${e.name}"
       |    ${entityCompOpt.opt(_ => "")}
@@ -406,8 +408,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${
       hasCompanion.opt
       s"""
-        |  implicit def proxy${e.companionAbsName}(p: Rep[${e.companionAbsName}]): ${e.companionAbsName} =
-        |    proxyOps[${e.companionAbsName}](p)
+        |  implicit def proxy${e.companionCtorName}(p: Rep[${e.companionCtorName}]): ${e.companionCtorName} =
+        |    proxyOps[${e.companionCtorName}](p)
         |""".stripAndTrim
     }
       |""".stripAndTrim
@@ -423,7 +425,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val entityName = e.name
     val companionExpString =
       s"""
-        |  lazy val R$entityName: Rep[${e.companionAbsName}] = new ${e.companionAbsName} {
+        |  lazy val R$entityName: Rep[${e.companionCtorName}] = new ${e.companionCtorName} {
+        |    ${entityCompOpt.opt(comp => s"private val thisClass = classOf[${comp.name}]")}
         |    $companionMethods
         |  }
        """.stripMargin
@@ -550,7 +553,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
           val STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
           s"override lazy val ${m.item.name}: $descName[$tyStr] = $extractedName"
       }, "\n|").stripMargin
-
+      val methods = c.c.body.collect { case m: SMethodDef if m.hasAnnotation("NeverInline") && !m.isTypeDesc => m }
       s"""
         |object $className extends EntityObject("$className") {
         |  case class ${c.typeDecl("Ctor") }
@@ -559,11 +562,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    ${b.extractableImplicits(inClassBody = true) }
         |    ${elemDefs}
         |    lazy val selfType = element[${c.typeUse }]
-        |    ${
-          c.c.body.collect { case m: SMethodDef if m.hasAnnotation("NeverInline") && !m.isTypeDesc => m }.rep({ m =>
-            externalMethod(m)
-          }, "\n")
-        }
+        |    ${methods.opt(_ => s"private val thisClass = classOf[${c.typeUse }]")}
+        |    ${ methods.rep({ m => externalMethod(m) }, "\n") }
         |  }
         |  // elem for concrete class
         |  class $elemTypeDecl(val iso: Iso[$dataTpe, ${c.typeUse}])${c.implicitArgsDeclConcreteElem}
@@ -607,7 +607,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})
         |  }
         |  // 4) constructor and deconstructor
-        |  class ${c.companionAbsName} extends CompanionDef[${c.companionAbsName}]${hasCompanion.opt(s" with ${c.companionName}")} {
+        |  class ${c.companionCtorName} extends CompanionDef[${c.companionCtorName}]${hasCompanion.opt(s" with ${c.companionName}")} {
         |    def selfType = ${className}CompanionElem
         |    override def toString = "${className}Companion"
         |${
@@ -629,17 +629,17 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |
         |    def unapply${tpeArgsDecl}(p: Rep[$parent]) = unmk$className(p)
         |  }
-        |  lazy val ${c.name}Rep: Rep[${c.companionAbsName}] = new ${c.companionAbsName}
-        |  lazy val R${c.name}: ${c.companionAbsName} = proxy${className}Companion(${c.name}Rep)
-        |  implicit def proxy${className}Companion(p: Rep[${c.companionAbsName}]): ${c.companionAbsName} = {
-        |    if (p.rhs.isInstanceOf[${c.companionAbsName}])
-        |      p.rhs.asInstanceOf[${c.companionAbsName}]
+        |  lazy val ${c.name}Rep: Rep[${c.companionCtorName}] = new ${c.companionCtorName}
+        |  lazy val R${c.name}: ${c.companionCtorName} = proxy${className}Companion(${c.name}Rep)
+        |  implicit def proxy${className}Companion(p: Rep[${c.companionCtorName}]): ${c.companionCtorName} = {
+        |    if (p.rhs.isInstanceOf[${c.companionCtorName}])
+        |      p.rhs.asInstanceOf[${c.companionCtorName}]
         |    else
-        |      proxyOps[${c.companionAbsName}](p)
+        |      proxyOps[${c.companionCtorName}](p)
         |  }
         |
-        |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionAbsName}] {
-        |    lazy val tag = weakTypeTag[${c.companionAbsName}]
+        |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}] {
+        |    lazy val tag = weakTypeTag[${c.companionCtorName}]
         |    protected def getDefaultRep = ${className}Rep
         |  }
         |
@@ -663,7 +663,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  }
         |  def unmk${c.typeDecl }(p: Rep[$parent]) = p.elem.asInstanceOf[Elem[_]] match {
         |    case _: ${c.elemTypeUse } @unchecked =>
-        |      Some((${fields.rep(f => s"p.asRep[${c.typeUse }].$f") }))
+        |      Some((${fields.rep(f => s"asRep[${c.typeUse }](p).$f") }))
         |    case _ =>
         |      None
         |  }
