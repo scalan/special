@@ -156,11 +156,126 @@ object Col extends EntityObject("Col") {
   implicit def liftableCol[SA, A](implicit lA: Liftable[SA,A]): Liftable[SCol[SA], Col[A]] =
     LiftableCol(lA)
 
+  case class ColAdapter[A](source: Rep[Col[A]]) extends Col[A] {
+    implicit def eA: Elem[A] = source.elem.eA
+    val selfType: Elem[Col[A]] = colElement(eA)
+    private val thisClass = classOf[Col[A]]
+
+    def builder: Rep[ColBuilder] = {
+      asRep[ColBuilder](mkMethodCall(source,
+        thisClass.getMethod("builder"),
+        List(),
+        true, element[ColBuilder]))
+    }
+
+    def arr: Rep[WArray[A]] = {
+      asRep[WArray[A]](mkMethodCall(source,
+        thisClass.getMethod("arr"),
+        List(),
+        true, element[WArray[A]]))
+    }
+
+    def length: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("length"),
+        List(),
+        true, element[Int]))
+    }
+
+    def apply(i: Rep[Int]): Rep[A] = {
+      asRep[A](mkMethodCall(source,
+        thisClass.getMethod("apply", classOf[Sym]),
+        List(i),
+        true, element[A]))
+    }
+
+    def getOrElse(i: Rep[Int], default: Rep[Thunk[A]]): Rep[A] = {
+      asRep[A](mkMethodCall(source,
+        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        List(i, default),
+        true, element[A]))
+    }
+
+    def map[B](f: Rep[A => B]): Rep[Col[B]] = {
+      implicit val eB = f.elem.eRange
+      asRep[Col[B]](mkMethodCall(source,
+        thisClass.getMethod("map", classOf[Sym]),
+        List(f),
+        true, element[Col[B]]))
+    }
+
+    def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
+      implicit val eB = ys.eA
+      asRep[PairCol[A, B]](mkMethodCall(source,
+        thisClass.getMethod("zip", classOf[Sym]),
+        List(ys),
+        true, element[PairCol[A, B]]))
+    }
+
+    def foreach(f: Rep[A => Unit]): Rep[Unit] = {
+      asRep[Unit](mkMethodCall(source,
+        thisClass.getMethod("foreach", classOf[Sym]),
+        List(f),
+        true, element[Unit]))
+    }
+
+    def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("exists", classOf[Sym]),
+        List(p),
+        true, element[Boolean]))
+    }
+
+    def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("forall", classOf[Sym]),
+        List(p),
+        true, element[Boolean]))
+    }
+
+    def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
+      asRep[Col[A]](mkMethodCall(source,
+        thisClass.getMethod("filter", classOf[Sym]),
+        List(p),
+        true, element[Col[A]]))
+    }
+
+    def fold[B](zero: Rep[B])(op: Rep[((B, A)) => B]): Rep[B] = {
+      implicit val eB = zero.elem
+      asRep[B](mkMethodCall(source,
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        List(zero, op),
+        true, element[B]))
+    }
+
+    def sum(m: Rep[Monoid[A]]): Rep[A] = {
+      asRep[A](mkMethodCall(source,
+        thisClass.getMethod("sum", classOf[Sym]),
+        List(m),
+        true, element[A]))
+    }
+
+    def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
+      asRep[Col[A]](mkMethodCall(source,
+        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        List(from, until),
+        true, element[Col[A]]))
+    }
+
+    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+      asRep[Col[A]](mkMethodCall(source,
+        thisClass.getMethod("append", classOf[Sym]),
+        List(other),
+        true, element[Col[A]]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyCol[A](p: Rep[Col[A]]): Col[A] = {
     if (p.rhs.isInstanceOf[Col[A]@unchecked]) p.rhs.asInstanceOf[Col[A]]
     else
-      proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
+      ColAdapter(p)
+//      proxyOps[Col[A]](p)(scala.reflect.classTag[Col[A]])
   }
 
   implicit def castColElement[A](elem: Elem[Col[A]]): ColElem[A, Col[A]] =
