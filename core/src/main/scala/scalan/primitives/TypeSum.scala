@@ -33,20 +33,20 @@ trait TypeSum extends Base { self: Scalan =>
     }
   }
 
-  implicit class OptionOps[A](opt: ROption[A]) {
+  implicit class OptionOps[A](opt: ROptional[A]) {
     implicit def eA: Elem[A] = opt.elem.eRight
-    def map[B](f: Rep[A] => Rep[B]): ROption[B] =
+    def map[B](f: Rep[A] => Rep[B]): ROptional[B] =
       mapBy(fun(f))
 
-    def mapBy[B](f: Rep[A => B]): ROption[B] =
+    def mapBy[B](f: Rep[A => B]): ROptional[B] =
       opt.mapSumBy(identityFun, f)
 
-    def flatMap[B](f: Rep[A] => ROption[B]): ROption[B] =
+    def flatMap[B](f: Rep[A] => ROptional[B]): ROptional[B] =
       flatMapBy(fun(f))
 
-    def flatMapBy[B](f: Rep[A => SOption[B]]): ROption[B] = {
+    def flatMapBy[B](f: Rep[A => SOptional[B]]): ROptional[B] = {
       implicit val eB = f.elem.eRange.eRight
-      opt.foldBy(constFun(SOption.none[B]), f)
+      opt.foldBy(constFun(SOptional.none[B]), f)
     }
 
     def getOrElse[B >: A](default: Rep[B]): Rep[B] =
@@ -57,17 +57,17 @@ trait TypeSum extends Base { self: Scalan =>
     def isDefined = opt.isRight
   }
 
-  type SOption[A] = Unit | A
-  type ROption[A] = Rep[SOption[A]]
+  type SOptional[A] = Unit | A
+  type ROptional[A] = Rep[SOptional[A]]
 
-  object SOption {
+  object SOptional {
     def none[A: Elem] = mkLeft[Unit, A](())
 
     def some[A](x: Rep[A]) = mkRight[Unit, A](x)
   }
 
   // TODO used by generated code; ideally should be unnecessary
-  def sOptionElement[A: Elem] = element[SOption[A]]
+  def sOptionElement[A: Elem] = element[SOptional[A]]
 
   case class SLeft[A, B](left: Exp[A])(implicit val eRight: Elem[B]) extends BaseDef[A | B]()(sumElement(left.elem, eRight))
 

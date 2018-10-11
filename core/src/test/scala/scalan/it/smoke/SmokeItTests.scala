@@ -63,8 +63,8 @@ trait SmokeProg extends Scalan {
 
   lazy val optionOps = fun { x: Rep[Int] =>
     val d = 19
-    val l = SOption.none[Int].map(_ + 3)
-    val r = SOption.some(x).map(_ + 7).flatMap(x => SOption.some(x * 2))
+    val l = SOptional.none[Int].map(_ + 3)
+    val r = SOptional.some(x).map(_ + 7).flatMap(x => SOptional.some(x * 2))
     (l.getOrElse(d), r.getOrElse(d))
   }
 
@@ -74,7 +74,7 @@ trait SmokeProg extends Scalan {
 
   lazy val lambdaConst = fun { x: Rep[Int] =>
     val f = fun { x: Rep[Int] => true }
-    SOption.some(f)
+    SOptional.some(f)
   }
 
   lazy val logicalOps = fun2 { (x: Rep[Boolean], y: Rep[Boolean]) =>
