@@ -63,6 +63,7 @@ Design decisions
 What is removed from scalan-core
 --------------------------------
 - MethodMappingDSL
++ LMS style effects (Reify/Reflect)
 + JNI
 + Array, List, ArrayBuffer, Map from basis
 + AbstractStrings
