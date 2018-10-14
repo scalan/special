@@ -21,6 +21,9 @@ object Costed extends EntityObject("Costed") {
       proxyOps[Costed[Val]](p)(scala.reflect.classTag[Costed[Val]])
   }
 
+  implicit def castCostedElement[A](elem: Elem[Costed[A]]): CostedElem[A, Costed[A]] =
+    elem.asInstanceOf[CostedElem[A, Costed[A]]]
+
   // familyElem
   class CostedElem[Val, To <: Costed[Val]](implicit _eVal: Elem[Val])
     extends EntityElem[To] {

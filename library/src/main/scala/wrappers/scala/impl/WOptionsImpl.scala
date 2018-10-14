@@ -110,11 +110,79 @@ object WOption extends EntityObject("WOption") {
     LiftableOption(lA)
 
   private val _OptionWrapSpec = new OptionWrapSpec
+
+  case class WOptionAdapter[A](source: Rep[WOption[A]]) extends WOption[A] {
+    implicit def eA: Elem[A] = source.elem.eA
+    val selfType: Elem[WOption[A]] = wOptionElement(eA)
+    private val thisClass = classOf[WOption[A]]
+
+    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
+      implicit val eB = ifEmpty.elem.eItem
+      asRep[B](mkMethodCall(source,
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        List(ifEmpty, f),
+        true, element[B]))
+    }
+
+    def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, element[Boolean]))
+    }
+
+    def isDefined: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isDefined"),
+        List(),
+        true, element[Boolean]))
+    }
+
+    def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
+      asRep[WOption[A]](mkMethodCall(source,
+        thisClass.getMethod("filter", classOf[Sym]),
+        List(p),
+        true, element[WOption[A]]))
+    }
+
+    def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      asRep[WOption[B]](mkMethodCall(source,
+        thisClass.getMethod("flatMap", classOf[Sym]),
+        List(f),
+        true, element[WOption[B]]))
+    }
+
+    def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
+      implicit val eB = f.elem.eRange
+      asRep[WOption[B]](mkMethodCall(source,
+        thisClass.getMethod("map", classOf[Sym]),
+        List(f),
+        true, element[WOption[B]]))
+    }
+
+    def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
+      implicit val eB = default.elem.eItem
+      asRep[B](mkMethodCall(source,
+        thisClass.getMethod("getOrElse", classOf[Sym]),
+        List(default),
+        true, element[B]))
+    }
+
+    def get: Rep[A] = {
+      asRep[A](mkMethodCall(source,
+        thisClass.getMethod("get"),
+        List(),
+        true, element[A]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyWOption[A](p: Rep[WOption[A]]): WOption[A] = {
     if (p.rhs.isInstanceOf[WOption[A]@unchecked]) p.rhs.asInstanceOf[WOption[A]]
     else
-      proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
+      WOptionAdapter(p)
+//      proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
   }
 
   implicit def castWOptionElement[A](elem: Elem[WOption[A]]): WOptionElem[A, WOption[A]] =

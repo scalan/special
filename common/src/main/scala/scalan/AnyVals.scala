@@ -2,7 +2,11 @@ package scalan
 
 import java.util.HashMap
 
-/** Allocation free alternative to scala.Option with similar interface */
+/** Allocation free alternative to scala.Option with similar interface.
+  * Using this in recognizers allows:
+  * 1) to avoid allocation of Some(x)
+  * 2) reading random memory location (where Some is stored) to access x
+  **/
 class Nullable[+T](val x: T) extends AnyVal {
   @inline def isEmpty = x == null
   @inline def get: T = x
@@ -15,7 +19,8 @@ object Nullable {
   def unapply[T](opt: Nullable[T]): Nullable[T] = opt
 }
 
-/** Allocation free alternative to scala.collection.mutable.Map with similar interface. */
+/** Allocation free alternative to scala.collection.mutable.Map with similar interface.
+  * This simplifies optimization of performance critical code. */
 class AVHashMap[K,V](val hashMap: HashMap[K,V]) extends AnyVal {
   @inline def get(key: K): Nullable[V] = Nullable(hashMap.get(key))
   @inline def apply(key: K): V = hashMap.get(key)

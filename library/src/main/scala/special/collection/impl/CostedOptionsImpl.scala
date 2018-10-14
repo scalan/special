@@ -19,12 +19,106 @@ import CostedSome._
 import CostedNone._
 
 object CostedOption extends EntityObject("CostedOption") {
+
+  case class CostedOptionAdapter[A](source: Rep[CostedOption[A]])
+    extends CostedOption[A] with Def[CostedOption[A]] {
+    implicit val eT: Elem[A] = source.elem.eT
+    val selfType: Elem[CostedOption[A]] = costedOptionElement(eT)
+    private val thisClass = classOf[CostedOption[A]]
+    implicit val eVal: Elem[WOption[A]] = wOptionElement(eT)
+
+    def get: Rep[Costed[A]] = {
+      asRep[Costed[A]](mkMethodCall(source,
+        thisClass.getMethod("get"),
+        List(),
+        true, element[Costed[A]]))
+    }
+
+    def getOrElse(default: Rep[Costed[() => A]]): Rep[Costed[A]] = {
+      asRep[Costed[A]](mkMethodCall(source,
+        thisClass.getMethod("getOrElse", classOf[Sym]),
+        List(default),
+        true, element[Costed[A]]))
+    }
+
+    def fold[B](ifEmpty: Rep[Costed[() => B]], f: Rep[Costed[A => B]]): Rep[Costed[B]] = {
+      implicit val eB = f.elem.eVal.eRange
+      asRep[Costed[B]](mkMethodCall(source,
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        List(ifEmpty, f),
+        true, element[Costed[B]]))
+    }
+
+    def isEmpty: Rep[Costed[Boolean]] = {
+      asRep[Costed[Boolean]](mkMethodCall(source,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, element[Costed[Boolean]]))
+    }
+
+    def isDefined: Rep[Costed[Boolean]] = {
+      asRep[Costed[Boolean]](mkMethodCall(source,
+        thisClass.getMethod("isDefined"),
+        List(),
+        true, element[Costed[Boolean]]))
+    }
+
+    def filter(p: Rep[Costed[A => Boolean]]): Rep[Costed[WOption[A]]] = {
+      asRep[Costed[WOption[A]]](mkMethodCall(source,
+        thisClass.getMethod("filter", classOf[Sym]),
+        List(p),
+        true, element[Costed[WOption[A]]]))
+    }
+
+    def flatMap[B](f: Rep[Costed[A => WOption[B]]]): Rep[Costed[WOption[B]]] = {
+      implicit val eB = f.elem.eVal.eRange.eItem
+      asRep[Costed[WOption[B]]](mkMethodCall(source,
+        thisClass.getMethod("flatMap", classOf[Sym]),
+        List(f),
+        true, element[Costed[WOption[B]]]))
+    }
+
+    def map[B](f: Rep[Costed[A => B]]): Rep[Costed[WOption[B]]] = {
+      implicit val eB = f.elem.eVal.eRange
+      asRep[Costed[WOption[B]]](mkMethodCall(source,
+        thisClass.getMethod("map", classOf[Sym]),
+        List(f),
+        true, element[Costed[WOption[B]]]))
+    }
+
+    def value: Rep[WOption[A]] = {
+      asRep[WOption[A]](mkMethodCall(source,
+        thisClass.getMethod("value"),
+        List(),
+        true, element[WOption[A]]))
+    }
+
+
+    def cost: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("cost"),
+        List(),
+        true, element[Int]))
+    }
+
+    def dataSize: Rep[Long] = {
+      asRep[Long](mkMethodCall(source,
+        thisClass.getMethod("dataSize"),
+        List(),
+        true, element[Long]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyCostedOption[T](p: Rep[CostedOption[T]]): CostedOption[T] = {
     if (p.rhs.isInstanceOf[CostedOption[T]@unchecked]) p.rhs.asInstanceOf[CostedOption[T]]
     else
-      proxyOps[CostedOption[T]](p)(scala.reflect.classTag[CostedOption[T]])
+      CostedOptionAdapter(p)
+//      proxyOps[CostedOption[T]](p)(scala.reflect.classTag[CostedOption[T]])
   }
+
+  implicit def castCostedOptionElement[A](elem: Elem[CostedOption[A]]): CostedOptionElem[A, CostedOption[A]] =
+    elem.asInstanceOf[CostedOptionElem[A, CostedOption[A]]]
 
   // familyElem
   class CostedOptionElem[T, To <: CostedOption[T]](implicit _eT: Elem[T])
