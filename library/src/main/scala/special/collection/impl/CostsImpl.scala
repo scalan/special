@@ -14,11 +14,48 @@ import CostedBuilder._
 import Costed._
 
 object Costed extends EntityObject("Costed") {
+
+  case class CostedAdapter[A](source: Rep[Costed[A]])
+      extends Costed[A] with Def[Costed[A]] {
+    implicit val eVal: Elem[A] = source.elem.eVal
+    val selfType: Elem[Costed[A]] = costedElement(eVal)
+    private val thisClass = classOf[Costed[A]]
+
+    def builder: Rep[CostedBuilder] = {
+      asRep[CostedBuilder](mkMethodCall(source,
+        thisClass.getMethod("builder"),
+        List(),
+        true, element[CostedBuilder]))
+    }
+
+    def value: Rep[A] = {
+      asRep[A](mkMethodCall(source,
+        thisClass.getMethod("value"),
+        List(),
+        true, element[A]))
+    }
+
+    def cost: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("cost"),
+        List(),
+        true, element[Int]))
+    }
+
+    def dataSize: Rep[Long] = {
+      asRep[Long](mkMethodCall(source,
+        thisClass.getMethod("dataSize"),
+        List(),
+        true, element[Long]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyCosted[Val](p: Rep[Costed[Val]]): Costed[Val] = {
     if (p.rhs.isInstanceOf[Costed[Val]@unchecked]) p.rhs.asInstanceOf[Costed[Val]]
     else
-      proxyOps[Costed[Val]](p)(scala.reflect.classTag[Costed[Val]])
+      CostedAdapter(p)
+//      proxyOps[Costed[Val]](p)(scala.reflect.classTag[Costed[Val]])
   }
 
   implicit def castCostedElement[A](elem: Elem[Costed[A]]): CostedElem[A, Costed[A]] =
