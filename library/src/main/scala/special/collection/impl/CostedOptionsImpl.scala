@@ -34,7 +34,7 @@ object CostedOption extends EntityObject("CostedOption") {
         true, element[Costed[A]]))
     }
 
-    def getOrElse(default: Rep[Costed[() => A]]): Rep[Costed[A]] = {
+    def getOrElse(default: Rep[Costed[A]]): Rep[Costed[A]] = {
       asRep[Costed[A]](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
@@ -179,13 +179,13 @@ object CostedOption extends EntityObject("CostedOption") {
     }
 
     object getOrElse {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedOption[T]], Rep[Costed[Function0[T]]]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedOption[T]], Rep[Costed[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedOptionElem[_, _]] && method.getName == "getOrElse" =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedOption[T]], Rep[Costed[Function0[T]]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedOption[T]], Rep[Costed[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedOption[T]], Rep[Costed[Function0[T]]]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedOption[T]], Rep[Costed[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -461,13 +461,13 @@ object CostedSome extends EntityObject("CostedSome") {
     }
 
     object getOrElse {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedSome[T]], Rep[Costed[Function0[T]]]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedSome[T]], Rep[Costed[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedSomeElem[_]] && method.getName == "getOrElse" =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedSome[T]], Rep[Costed[Function0[T]]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedSome[T]], Rep[Costed[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedSome[T]], Rep[Costed[Function0[T]]]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedSome[T]], Rep[Costed[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -565,7 +565,7 @@ object CostedNone extends EntityObject("CostedNone") {
     lazy val selfType = element[CostedNone[T]]
     private val thisClass = classOf[CostedNone[T]]
 
-    override def getOrElse(default: Rep[Costed[Function0[T]]]): Rep[Costed[T]] = {
+    override def getOrElse(default: Rep[Costed[T]]): Rep[Costed[T]] = {
       asRep[Costed[T]](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
@@ -734,13 +734,13 @@ object CostedNone extends EntityObject("CostedNone") {
     }
 
     object getOrElse {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedNone[T]], Rep[Costed[Function0[T]]]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedNone[T]], Rep[Costed[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedNoneElem[_]] && method.getName == "getOrElse" =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedNone[T]], Rep[Costed[Function0[T]]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedNone[T]], Rep[Costed[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedNone[T]], Rep[Costed[Function0[T]]]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedNone[T]], Rep[Costed[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
