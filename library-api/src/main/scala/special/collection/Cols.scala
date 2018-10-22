@@ -33,7 +33,9 @@ trait Col[A] {
   def append(other: Col[A]): Col[A]
 
   @Internal
-  override def toString = s"Col(${arr.mkString(",")})"
+  private def trim[A](arr: Array[A]) = arr.take(arr.length min 100)
+  @Internal
+  override def toString = s"Col(${trim(arr).mkString(",")})"
 }
 
 trait PairCol[L,R] extends Col[(L,R)] {
