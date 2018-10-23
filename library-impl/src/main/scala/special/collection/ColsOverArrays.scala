@@ -15,7 +15,7 @@ trait BaseColBuilder extends ColBuilder {
 
   @OverloadId("apply_items")
   @NeverInline
-  def apply[T](items: T*): Col[T] = {
+  def apply[T:ClassTag](items: T*): Col[T] = {
     new ColOverArray(unboxedArray(items))
   }
 
@@ -31,14 +31,14 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def length = arr.length
   def apply(i: Int) = arr(i)
   @NeverInline
-  def getOrElse(i: Int, default: => A): A = if (i >= 0 && i < arr.length) arr(i) else default
+  def getOrElse(i: Int, default: A): A = if (i >= 0 && i < arr.length) arr(i) else default
   def map[B: ClassTag](f: A => B): Col[B] = builder.fromArray(arr.map(f))
   def foreach(f: A => Unit): Unit = arr.foreach(f)
   def exists(p: A => Boolean): Boolean = arr.exists(p)
   def forall(p: A => Boolean): Boolean = arr.forall(p)
   def filter(p: A => Boolean): Col[A] = builder.fromArray(arr.filter(p))
   @NeverInline
-  def fold[B](zero: B)(op: ((B, A)) => B): B = arr.foldLeft(zero)((b, a) => op((b, a)))
+  def fold[B](zero: B, op: ((B, A)) => B): B = arr.foldLeft(zero)((b, a) => op((b, a)))
   def slice(from: Int, until: Int): Col[A] = builder.fromArray(arr.slice(from, until))
   def sum(m: Monoid[A]): A = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
   def zip[B](ys: Col[B]): PairCol[A, B] = builder(this, ys)
@@ -69,7 +69,7 @@ class ColOverArrayBuilder extends BaseColBuilder {
 
   @NeverInline
   @OverloadId("apply_items")
-  override def apply[T](items: T*) = super.apply(items:_*)
+  override def apply[T:ClassTag](items: T*) = super.apply(items:_*)
 
   @NeverInline
   override def replicate[T: ClassTag](n: Int, v: T) = super.replicate(n, v)
@@ -85,7 +85,7 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def length: Int = ls.length
   override def apply(i: Int): (L, R) = (ls(i), rs(i))
   @NeverInline
-  override def getOrElse(i: Int, default: => (L, R)): (L, R) =
+  override def getOrElse(i: Int, default: (L, R)): (L, R) =
     if (i >= 0 && i < this.length)
       this.apply(i)
     else {
@@ -109,20 +109,20 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   def zip[B](ys: Col[B]): PairCol[(L,R), B] = builder(this, ys)
 }
 
-class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends Col[A] {
+class CReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplCol[A] {
   def builder: ColBuilder = new ReplColBuilder
   def arr: Array[A] = builder.replicate(length, value).arr
   def apply(i: Int): A = value
   @NeverInline
-  def getOrElse(i: Int, default: => A): A = if (i >= 0 && i < this.length) value else default
-  def map[B: ClassTag](f: A => B): Col[B] = new ReplCol(f(value), length)
+  def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default
+  def map[B: ClassTag](f: A => B): Col[B] = new CReplCol(f(value), length)
   @NeverInline
   def foreach(f: A => Unit): Unit = (0 until length).foreach(_ => f(value))
   def exists(p: A => Boolean): Boolean = p(value)
   def forall(p: A => Boolean): Boolean = p(value)
-  def filter(p: A => Boolean): Col[A] = if (p(value)) this else new ReplCol(value, 0)
+  def filter(p: A => Boolean): Col[A] = if (p(value)) this else new CReplCol(value, 0)
   @NeverInline
-  def fold[B](zero: B)(op: ((B, A)) => B): B =
+  def fold[B](zero: B, op: ((B, A)) => B): B =
     SpecialPredef.loopUntil[(B, Int)]((zero,0),
       p => p._2 < length,
       p => (op((p._1, value)), p._2 + 1)
@@ -130,7 +130,7 @@ class ReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extend
 
   def zip[B](ys: Col[B]): PairCol[A, B] = builder(this, ys)
 
-  def slice(from: Int, until: Int): Col[A] = new ReplCol(value, until - from)
+  def slice(from: Int, until: Int): Col[A] = new CReplCol(value, until - from)
 
   @NeverInline
   def append(other: Col[A]): Col[A] = builder.fromArray(arr).append(builder.fromArray(other.arr))
