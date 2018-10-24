@@ -11,6 +11,38 @@ import scala.reflect.ClassTag
 
 object CollectionUtil {
 
+  def concatArrays[T](xs: Array[T], ys: Array[T]): Array[T] = {
+    val len = xs.length + ys.length
+    val result = (xs match {
+      case arr: Array[AnyRef] => new Array[AnyRef](len)
+      case arr: Array[Byte] => new Array[Byte](len)
+      case arr: Array[Short] => new Array[Short](len)
+      case arr: Array[Int] => new Array[Int](len)
+      case arr: Array[Long] => new Array[Long](len)
+      case arr: Array[Char] => new Array[Char](len)
+      case arr: Array[Float] => new Array[Float](len)
+      case arr: Array[Double] => new Array[Double](len)
+      case arr: Array[Boolean] => new Array[Boolean](len)
+    }).asInstanceOf[Array[T]]
+    Array.copy(xs, 0, result, 0, xs.length)
+    Array.copy(ys, 0, result, xs.length, ys.length)
+    result
+  }
+
+//  def newUnboxedArray[T](len: Int)(implicit cT: Class[T]): Array[T] = (cT match {
+//    case ClassTag.Byte => new Array[Int](len)
+//    case ClassTag.Short => new Array[Short](len)
+//    case ClassTag.Char => new Array[Char](len)
+//    case ClassTag.Int => new Array[Int](len)
+//    case ClassTag.Long => new Array[Long](len)
+//    case ClassTag.Float => new Array[Float](len)
+//    case ClassTag.Double => new Array[Double](len)
+//    case ClassTag.Boolean => new Array[Boolean](len)
+//    case ClassTag.Any => new Array[Any](len)
+//    case ClassTag.AnyVal => new Array[AnyVal](len)
+//    case ClassTag.AnyRef => new Array[AnyRef](len)
+//  }).asInstanceOf[Array[T]]
+
   def deepHashCode[T](arr: Array[T]): Int = arr match {
     case arr: Array[AnyRef] => util.Arrays.deepHashCode(arr)
     case arr: Array[Byte] => util.Arrays.hashCode(arr)

@@ -5,6 +5,18 @@ import scala.collection.{Seq, mutable}
 
 class CollectionUtilTests extends BaseTests {
   import scalan.util.CollectionUtil._
+  import java.lang.{Byte => JByte, Integer}
+  test("concatArrays") {
+    val xs = Array[Byte](1,2,3)
+    val ys = Array[Byte](4,5,6)
+    val zs = concatArrays(xs, ys)
+    assertResult(Array[Byte](1, 2, 3, 4, 5, 6))(zs)
+
+//    val jxs = Array[JByte](new JByte(1), new JByte(2), new JByte(3))
+//    val jys = Array[JByte](new JByte(4), new JByte(5), new JByte(6))
+//    val jzs = concatArrays(jxs, jys)
+//    assertResult(Array[Byte](1, 2, 3, 4, 5, 6))(jzs)
+  }
 
   def join(l: Map[Int,Int], r: Map[Int,Int]) =
     outerJoin(l, r)((_,l) => l, (_,r) => r, (k,l,r) => l + r)
@@ -187,6 +199,9 @@ class CollectionUtilTests extends BaseTests {
 
     // primitive types
     unboxedArray(Seq[Any](new java.lang.Byte(1.toByte))).isInstanceOf[Array[Byte]] shouldBe true
+    Seq[Any](new java.lang.Byte(1.toByte)).toArray.isInstanceOf[Array[Byte]] shouldBe false
+    Seq[Byte](1.toByte).toArray[Byte].isInstanceOf[Array[Byte]] shouldBe true
+
     unboxedArray(Seq[Any](new java.lang.Short(1.toShort))).isInstanceOf[Array[Short]] shouldBe true
     unboxedArray(Seq[Any](new java.lang.Integer(1))).isInstanceOf[Array[Int]] shouldBe true
     unboxedArray(Seq[Any](new java.lang.Long(1))).isInstanceOf[Array[Long]] shouldBe true

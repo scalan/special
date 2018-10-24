@@ -45,11 +45,7 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   @NeverInline
   def append(other: Col[A]): Col[A] = {
     if (arr.length <= 0) return other
-    val clsA = arr(0).getClass
-    implicit val cT = ClassTag[A](clsA)
-    val result = new Array[A](this.length + other.length)
-    Array.copy(arr, 0, result, 0, arr.length)
-    Array.copy(other.arr, 0, result, arr.length, other.arr.length)
+    val result = CollectionUtil.concatArrays(arr, other.arr)
     builder.fromArray(result)
   }
 
