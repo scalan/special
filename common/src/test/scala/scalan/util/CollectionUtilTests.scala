@@ -180,4 +180,23 @@ class CollectionUtilTests extends BaseTests {
     Seq(new mutable.WrappedArray.ofInt(Array(1, 2, 3)), 3).sameElements2(Array(Vector(1, 2), 3)) shouldBe false
 
   }
+
+  test("unboxedArray") {
+    // empty list
+    unboxedArray(Seq[Any]()).isInstanceOf[Array[Any]] shouldBe true
+
+    // primitive types
+    unboxedArray(Seq[Any](new java.lang.Byte(1.toByte))).isInstanceOf[Array[Byte]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.Short(1.toShort))).isInstanceOf[Array[Short]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.Integer(1))).isInstanceOf[Array[Int]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.Long(1))).isInstanceOf[Array[Long]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.Double(1.0))).isInstanceOf[Array[Double]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.Float(1.0))).isInstanceOf[Array[Float]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.Boolean(true))).isInstanceOf[Array[Boolean]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.Character('a'))).isInstanceOf[Array[Char]] shouldBe true
+    unboxedArray(Seq[Any](new java.lang.String("str"))).isInstanceOf[Array[String]] shouldBe true
+
+    // non-primitive type
+    unboxedArray(Seq[Any](Option.empty[Boolean])).isInstanceOf[Array[Any]] shouldBe true
+  }
 }
