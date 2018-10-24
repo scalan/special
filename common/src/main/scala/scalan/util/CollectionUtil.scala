@@ -100,6 +100,26 @@ object CollectionUtil {
     (ks zip vs).map(f.tupled)
   }
 
+  def unboxedArray[T](in: Seq[T]): Array[T] = {
+    //TODO optimize intermediate allocation
+    implicit val tagT = ClassTag.Any.asInstanceOf[ClassTag[T]]
+    if (in.isEmpty)
+      in.toArray
+    else
+      (in.head match {
+        case _: java.lang.Byte => in.map(_.asInstanceOf[Byte]).toArray
+        case _: java.lang.Short => in.map(_.asInstanceOf[Short]).toArray
+        case _: java.lang.Integer => in.map(_.asInstanceOf[Int]).toArray
+        case _: java.lang.Long => in.map(_.asInstanceOf[Long]).toArray
+        case _: java.lang.Double => in.map(_.asInstanceOf[Double]).toArray
+        case _: java.lang.Float => in.map(_.asInstanceOf[Float]).toArray
+        case _: java.lang.Boolean => in.map(_.asInstanceOf[Boolean]).toArray
+        case _: java.lang.Character => in.map(_.asInstanceOf[Char]).toArray
+        case _: java.lang.String => in.map(_.asInstanceOf[String]).toArray
+        case _ => in.toArray
+      }).asInstanceOf[Array[T]]
+  }
+
   implicit class AnyOps[A](x: A) {
     def zipWithExpandedBy[B](f: A => List[B]): List[(A,B)] = {
       val ys = f(x)

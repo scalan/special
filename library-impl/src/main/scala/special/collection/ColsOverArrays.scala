@@ -6,6 +6,7 @@ import special.SpecialPredef
 
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
+import scalan.util.CollectionUtil.unboxedArray
 import scalan.{Internal, NeverInline, OverloadId}
 
 trait BaseColBuilder extends ColBuilder {
@@ -15,8 +16,7 @@ trait BaseColBuilder extends ColBuilder {
   @OverloadId("apply_items")
   @NeverInline
   def apply[T](items: T*): Col[T] = {
-    implicit val tagT = ClassTag.Any.asInstanceOf[ClassTag[T]]
-    new ColOverArray[T](items.toArray)
+    new ColOverArray(unboxedArray(items))
   }
 
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
