@@ -240,15 +240,23 @@ trait TypeDescs extends Base { self: Scalan =>
 
     def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = {
       val res = methods.get(mc.method) match {
-        case Some(md: WMethodDesc) =>
+        case Some(WMethodDesc(wrapSpec, method)) =>
           val srcArgs = getSourceValues(dataEnv, true, mc.receiver +: mc.args:_*)
-          val res = md.method.invoke(md.wrapSpec, srcArgs:_*)
+          val res =
+            try method.invoke(wrapSpec, srcArgs:_*)
+            catch {
+              case t: Throwable => !!!(s"Cannot invoke method $method on object $wrapSpec with arguments $srcArgs", t)
+            }
           res
-        case Some(md: RMethodDesc) =>
-          val hasClassTag = md.method.getParameterTypes.exists(p => p.getSimpleName == "ClassTag")
+        case Some(RMethodDesc(method)) =>
+          val hasClassTag = method.getParameterTypes.exists(p => p.getSimpleName == "ClassTag")
           val srcObj = getSourceValues(dataEnv, hasClassTag, mc.receiver).head
           val srcArgs = getSourceValues(dataEnv, hasClassTag, mc.args:_*)
-          val res = md.method.invoke(srcObj, srcArgs:_*)
+          val res =
+            try method.invoke(srcObj, srcArgs:_*)
+            catch {
+              case t: Throwable => !!!(s"Cannot invoke method $method on object $srcObj with arguments $srcArgs", t)
+            }
           res
         case None =>
           !!!(s"Cannot perform unliftedInvoke of $mc")
