@@ -27,13 +27,13 @@ class ArrayWrapSpec extends WrapSpecBase {
 /** Wrappers spec for Option */
 class OptionWrapSpec extends WrapSpecBase {
   def get[A](xs: Option[A]): A = xs.get
-  def getOrElse[A](xs: Option[A], default: =>A): A = xs.getOrElse(default)
+  def getOrElse[A](xs: Option[A], default: A): A = xs.getOrElse(default)
   def map[A,B](xs: Option[A], f: A => B): Option[B] = xs.map(f)
   def flatMap[A,B](xs: Option[A], f: A => Option[B]): Option[B] = xs.flatMap(f)
   def filter[A](xs: Option[A], f: A => Boolean): Option[A] = xs.filter(f)
   def isDefined[A](xs: Option[A]): Boolean  = xs.isDefined
   def isEmpty[A](xs: Option[A]): Boolean  = xs.isEmpty
-  def fold[A,B](xs: Option[A], ifEmpty: =>B, f: A => B): B = xs.fold(ifEmpty)(f)
+  def fold[A,B](xs: Option[A], ifEmpty: B, f: A => B): B = xs.fold(ifEmpty)(f)
 };
 
 /** Wrappers spec for Either */

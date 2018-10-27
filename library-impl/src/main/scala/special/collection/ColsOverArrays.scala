@@ -9,23 +9,6 @@ import scalan.util.CollectionUtil
 import scalan.util.CollectionUtil.unboxedArray
 import scalan.{Internal, NeverInline, OverloadId}
 
-trait BaseColBuilder extends ColBuilder {
-  @OverloadId("apply")
-  def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
-
-  @OverloadId("apply_items")
-  @NeverInline
-  def apply[T:ClassTag](items: T*): Col[T] = {
-    new ColOverArray(unboxedArray(items))
-  }
-
-  def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
-  def replicate[T:ClassTag](n: Int, v: T): Col[T] = this.fromArray(Array.fill(n)(v))
-
-  @NeverInline
-  def xor(left: Col[Byte], right: Col[Byte]): Col[Byte] = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
-}
-
 class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def builder = new ColOverArrayBuilder
   def length = arr.length
@@ -59,24 +42,21 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   override def hashCode() = CollectionUtil.deepHashCode(arr)
 }
 
-class ColOverArrayBuilder extends BaseColBuilder {
-  @NeverInline
-  override def fromArray[T](arr: Array[T]): Col[T] = super.fromArray(arr)
-
-  @NeverInline
+class ColOverArrayBuilder extends ColBuilder {
   @OverloadId("apply")
-  override def apply[A, B](as: Col[A], bs: Col[B]) = super.apply(as, bs)
+  def apply[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
 
-  @NeverInline
   @OverloadId("apply_items")
-  override def apply[T:ClassTag](items: T*) = super.apply(items:_*)
+  @NeverInline
+  def apply[T:ClassTag](items: T*): Col[T] = {
+    new ColOverArray(unboxedArray(items))
+  }
+
+  def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
+  def replicate[T:ClassTag](n: Int, v: T): Col[T] = this.fromArray(Array.fill(n)(v))
 
   @NeverInline
-  override def replicate[T: ClassTag](n: Int, v: T) = super.replicate(n, v)
-
-  @NeverInline
-  override def xor(left: Col[Byte], right: Col[Byte]) = super.xor(left, right)
-
+  def xor(left: Col[Byte], right: Col[Byte]): Col[Byte] = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
 }
 
 class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
@@ -98,7 +78,7 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
   override def forall(p: ((L, R)) => Boolean): Boolean = arr.forall(p)
   override def filter(p: ((L, R)) => Boolean): Col[(L,R)] = new ColOverArray(arr.filter(p))
   @NeverInline
-  override def fold[B](zero: B)(op: ((B, (L, R))) => B): B = arr.foldLeft(zero)((b, a) => op((b,a)))
+  override def fold[B](zero: B, op: ((B, (L, R))) => B): B = arr.foldLeft(zero)((b, a) => op((b,a)))
   override def slice(from: Int, until: Int): PairCol[L,R] = builder(ls.slice(from, until), rs.slice(from, until))
   def append(other: Col[(L, R)]): Col[(L,R)] = {
     val arrs = builder.unzip(other)
@@ -110,7 +90,7 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
 }
 
 class CReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplCol[A] {
-  def builder: ColBuilder = new ReplColBuilder
+  def builder: ColBuilder = new ColOverArrayBuilder
   def arr: Array[A] = builder.replicate(length, value).arr
   def apply(i: Int): A = value
   @NeverInline
@@ -138,5 +118,3 @@ class CReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exten
   def sum(m: Monoid[A]): A = m.power(value, length)
 }
 
-class ReplColBuilder extends BaseColBuilder {
-}
