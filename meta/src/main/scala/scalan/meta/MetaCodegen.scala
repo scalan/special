@@ -145,9 +145,11 @@ class MetaCodegen {
     * @return a list, where for each type argument either Some(element extraction expression) or None is returned
     */
   def extractImplicitElems(
-                            m: SUnitDef, dataArgs: List[SMethodOrClassArg],
-                            tpeArgs: List[STpeArg],
-                            argSubst: Map[String, String] = Map()): List[(STpeArg, Option[String])] = {
+        m: SUnitDef, dataArgs: List[SMethodOrClassArg],
+        tpeArgs: List[STpeArg],
+        argSubst: Map[String, String] = Map(),
+        extractFromEntity: Boolean = true): List[(STpeArg, Option[String])] =
+  {
     def subst(arg: String) = argSubst.getOrElse(arg, arg)
 
     tpeArgs.map { ta =>
@@ -157,7 +159,7 @@ class MetaCodegen {
           path <- STpePath.find(argTpe, ta.name)(m.context)
         } yield (da, path)
       val expr = paths.find(_ => true).map {
-        case (da, SEntityPath(_, e, tyArg, tail)) =>
+        case (da, SEntityPath(_, e, tyArg, tail)) if extractFromEntity =>
           val prefix = s"${subst(da.name) }.${tyArg.classOrMethodArgName() }"
           emitImplicitElemDeclByTpePath(prefix, tail)
         case (da, path) =>
@@ -331,9 +333,11 @@ class MetaCodegen {
   }
 
   // methods to extract elements from data arguments
-  class ElemExtractionBuilder(module: SUnitDef, entity: SEntityDef, argSubst: Map[String, String])(implicit ctx: AstContext) {
+  class ElemExtractionBuilder(
+      module: SUnitDef, entity: SEntityDef,
+      argSubst: Map[String, String], extractFromEntity: Boolean = true)(implicit ctx: AstContext) {
     val extractionExprs: List[Option[String]] =
-       extractImplicitElems(module, entity.args.args, entity.tpeArgs, argSubst).map(_._2)
+       extractImplicitElems(module, entity.args.args, entity.tpeArgs, argSubst, extractFromEntity).map(_._2)
     val tyArgSubst = classArgsAsSeenFromAncestors(entity).map { case (_, (e,a)) => a }
     val extractableArgs: Map[String,(STpeArg, String)] =
       tyArgSubst.zip(extractionExprs)
@@ -418,8 +422,10 @@ class MetaCodegen {
       extractionBuilder(s)
     }
 
-    def extractionBuilder(argSubst: Map[String, String] = Map()): ElemExtractionBuilder =
-      new ElemExtractionBuilder(unit, entity, argSubst)
+    def extractionBuilder(
+          argSubst: Map[String, String] = Map(),
+          extractFromEntity: Boolean = true): ElemExtractionBuilder =
+      new ElemExtractionBuilder(unit, entity, argSubst, extractFromEntity)
   }
 
   case class EntityTemplateData(m: SUnitDef, t: SEntityDef) extends TemplateData(m, t) {

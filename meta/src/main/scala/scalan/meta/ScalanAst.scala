@@ -720,7 +720,7 @@ object ScalanAst {
       valFlag: Boolean,  /**                     has 'val'      declaration */
       name: String,
       tpe: STpeExpr,
-      default: Option[SExpr],
+      default: Option[SExpr] = None,
       annotations: List[SArgAnnotation] = Nil,
       isTypeDesc: Boolean = false
   ) extends SMethodOrClassArg with SEntityItem {
