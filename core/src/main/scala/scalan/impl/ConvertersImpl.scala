@@ -19,11 +19,27 @@ import FunctorConverter._
 import NaturalConverter._
 
 object Converter extends EntityObject("Converter") {
+  // entityAdapter for Converter trait
+  case class ConverterAdapter[T, R](source: Rep[Converter[T, R]])
+      extends Converter[T, R] with Def[Converter[T, R]] {
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
+implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
+    val selfType: Elem[Converter[T, R]] = element[Converter[T, R]]
+    private val thisClass = classOf[Converter[T, R]]
+
+    def apply(x: Rep[T]): Rep[R] = {
+      asRep[R](mkMethodCall(source,
+        thisClass.getMethod("apply", classOf[Sym]),
+        List(x),
+        true, element[R]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyConverter[T, R](p: Rep[Converter[T, R]]): Converter[T, R] = {
     if (p.rhs.isInstanceOf[Converter[T, R]@unchecked]) p.rhs.asInstanceOf[Converter[T, R]]
     else
-      proxyOps[Converter[T, R]](p)(scala.reflect.classTag[Converter[T, R]])
+      ConverterAdapter(p)
   }
 
   // familyElem

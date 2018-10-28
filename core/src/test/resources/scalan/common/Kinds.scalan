@@ -6,7 +6,7 @@ trait Kinds extends Base { self: KindsModule =>
   import Kind._; import Bind._; import Return._;
   type RKind[F[_],A] = Rep[Kind[F,A]]
 
-  sealed trait Kind[F[_], A] extends Def[Kind[F,A]] {
+  trait Kind[F[_], A] extends Def[Kind[F,A]] {
     implicit def eA: Elem[A]
     implicit def cF: Cont[F]
 

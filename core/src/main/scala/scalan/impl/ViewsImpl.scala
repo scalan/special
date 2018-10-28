@@ -25,11 +25,34 @@ import ConverterIso._
 import ThunkIso._
 
 object IsoUR extends EntityObject("IsoUR") {
+  // entityAdapter for IsoUR trait
+  case class IsoURAdapter[From, To](source: Rep[IsoUR[From, To]])
+      extends IsoUR[From, To] with Def[IsoUR[From, To]] {
+    implicit lazy val eFrom = source.elem.typeArgs("From")._1.asElem[From];
+implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
+    val selfType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
+    private val thisClass = classOf[IsoUR[From, To]]
+
+    def from(p: Rep[To]): Rep[From] = {
+      asRep[From](mkMethodCall(source,
+        thisClass.getMethod("from", classOf[Sym]),
+        List(p),
+        true, element[From]))
+    }
+
+    def to(p: Rep[From]): Rep[To] = {
+      asRep[To](mkMethodCall(source,
+        thisClass.getMethod("to", classOf[Sym]),
+        List(p),
+        true, element[To]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyIsoUR[From, To](p: Rep[IsoUR[From, To]]): IsoUR[From, To] = {
     if (p.rhs.isInstanceOf[IsoUR[From, To]@unchecked]) p.rhs.asInstanceOf[IsoUR[From, To]]
     else
-      proxyOps[IsoUR[From, To]](p)(scala.reflect.classTag[IsoUR[From, To]])
+      IsoURAdapter(p)
   }
 
   // familyElem
@@ -114,11 +137,42 @@ object IsoUR extends EntityObject("IsoUR") {
   registerEntityObject("IsoUR", IsoUR)
 
 object Iso1UR extends EntityObject("Iso1UR") {
+  // entityAdapter for Iso1UR trait
+  case class Iso1URAdapter[A, B, C[_]](source: Rep[Iso1UR[A, B, C]])
+      extends Iso1UR[A, B, C] with Def[Iso1UR[A, B, C]] {
+    implicit override lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
+implicit override lazy val eB = source.elem.typeArgs("B")._1.asElem[B];
+implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
+    val selfType: Elem[Iso1UR[A, B, C]] = element[Iso1UR[A, B, C]]
+    private val thisClass = classOf[Iso1UR[A, B, C]]
+
+    def innerIso: Iso[A, B] = {
+      asRep[IsoUR[A, B]](mkMethodCall(source,
+        thisClass.getMethod("innerIso"),
+        List(),
+        true, element[IsoUR[A, B]]))
+    }
+
+    def from(p: Rep[C[B]]): Rep[C[A]] = {
+      asRep[C[A]](mkMethodCall(source,
+        thisClass.getMethod("from", classOf[Sym]),
+        List(p),
+        true, element[C[A]]))
+    }
+
+    def to(p: Rep[C[A]]): Rep[C[B]] = {
+      asRep[C[B]](mkMethodCall(source,
+        thisClass.getMethod("to", classOf[Sym]),
+        List(p),
+        true, element[C[B]]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyIso1UR[A, B, C[_]](p: Rep[Iso1UR[A, B, C]]): Iso1UR[A, B, C] = {
     if (p.rhs.isInstanceOf[Iso1UR[A, B, C]@unchecked]) p.rhs.asInstanceOf[Iso1UR[A, B, C]]
     else
-      proxyOps[Iso1UR[A, B, C]](p)(scala.reflect.classTag[Iso1UR[A, B, C]])
+      Iso1URAdapter(p)
   }
 
   // familyElem

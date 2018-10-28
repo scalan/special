@@ -15,11 +15,33 @@ import IndexStructKey._
 import NameStructKey._
 
 object StructKey extends EntityObject("StructKey") {
+  // entityAdapter for StructKey trait
+  case class StructKeyAdapter[Schema <: Struct](source: Rep[StructKey[Schema]])
+      extends StructKey[Schema] with Def[StructKey[Schema]] {
+    implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
+    val selfType: Elem[StructKey[Schema]] = element[StructKey[Schema]]
+    private val thisClass = classOf[StructKey[Schema]]
+
+    def index: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("index"),
+        List(),
+        true, element[Int]))
+    }
+
+    def name: Rep[String] = {
+      asRep[String](mkMethodCall(source,
+        thisClass.getMethod("name"),
+        List(),
+        true, element[String]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyStructKey[Schema <: Struct](p: Rep[StructKey[Schema]]): StructKey[Schema] = {
     if (p.rhs.isInstanceOf[StructKey[Schema]@unchecked]) p.rhs.asInstanceOf[StructKey[Schema]]
     else
-      proxyOps[StructKey[Schema]](p)(scala.reflect.classTag[StructKey[Schema]])
+      StructKeyAdapter(p)
   }
 
   // familyElem

@@ -15,11 +15,19 @@ import Bind._
 import Return._
 
 object Kind extends EntityObject("Kind") {
+  // entityAdapter for Kind trait
+  case class KindAdapter[F[_], A](source: Rep[Kind[F, A]])
+      extends Kind[F, A] with Def[Kind[F, A]] {
+    implicit lazy val cF = source.elem.typeArgs("F")._1.asCont[F];
+implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+    val selfType: Elem[Kind[F, A]] = element[Kind[F, A]]
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyKind[F[_], A](p: Rep[Kind[F, A]]): Kind[F, A] = {
     if (p.rhs.isInstanceOf[Kind[F, A]@unchecked]) p.rhs.asInstanceOf[Kind[F, A]]
     else
-      proxyOps[Kind[F, A]](p)(scala.reflect.classTag[Kind[F, A]])
+      KindAdapter(p)
   }
 
   // familyElem

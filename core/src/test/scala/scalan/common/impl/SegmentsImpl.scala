@@ -78,11 +78,53 @@ object Segment extends EntityObject("Segment") {
     }
   }
 
+  // entityAdapter for Segment trait
+  case class SegmentAdapter(source: Rep[Segment])
+      extends Segment with Def[Segment] {
+    val selfType: Elem[Segment] = element[Segment]
+    private val thisClass = classOf[Segment]
+
+    def start: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("start"),
+        List(),
+        true, element[Int]))
+    }
+
+    def length: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("length"),
+        List(),
+        true, element[Int]))
+    }
+
+    def end: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("end"),
+        List(),
+        true, element[Int]))
+    }
+
+    def shift(ofs: Rep[Int]): Rep[Segment] = {
+      asRep[Segment](mkMethodCall(source,
+        thisClass.getMethod("shift", classOf[Sym]),
+        List(ofs),
+        true, element[Segment]))
+    }
+
+    def attach(seg: Rep[Segment]): Rep[Segment] = {
+      asRep[Segment](mkMethodCall(source,
+        thisClass.getMethod("attach", classOf[Sym]),
+        List(seg),
+        true, element[Segment]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxySegment(p: Rep[Segment]): Segment = {
     if (p.rhs.isInstanceOf[Segment@unchecked]) p.rhs.asInstanceOf[Segment]
     else
-      proxyOps[Segment](p)(scala.reflect.classTag[Segment])
+      SegmentAdapter(p)
   }
 
   // familyElem

@@ -68,11 +68,40 @@ object MetaTest extends EntityObject("MetaTest") {
   implicit def liftableMetaTest[ST, T](implicit lT: Liftable[ST,T]): Liftable[SMetaTest[ST], MetaTest[T]] =
     LiftableMetaTest(lT)
 
+  // entityAdapter for MetaTest trait
+  case class MetaTestAdapter[T](source: Rep[MetaTest[T]])
+      extends MetaTest[T] with Def[MetaTest[T]] {
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+    val selfType: Elem[MetaTest[T]] = element[MetaTest[T]]
+    private val thisClass = classOf[MetaTest[T]]
+
+    def test: RMetaTest[T] = {
+      asRep[MetaTest[T]](mkMethodCall(source,
+        thisClass.getMethod("test"),
+        List(),
+        true, element[MetaTest[T]]))
+    }
+
+    def give: Rep[T] = {
+      asRep[T](mkMethodCall(source,
+        thisClass.getMethod("give"),
+        List(),
+        true, element[T]))
+    }
+
+    def size: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("size"),
+        List(),
+        true, element[Int]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyMetaTest[T](p: Rep[MetaTest[T]]): MetaTest[T] = {
     if (p.rhs.isInstanceOf[MetaTest[T]@unchecked]) p.rhs.asInstanceOf[MetaTest[T]]
     else
-      proxyOps[MetaTest[T]](p)(scala.reflect.classTag[MetaTest[T]])
+      MetaTestAdapter(p)
   }
 
   // familyElem

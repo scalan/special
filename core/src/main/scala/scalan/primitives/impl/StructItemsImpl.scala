@@ -18,11 +18,34 @@ import StructItem._
 import StructItemBase._
 
 object StructItem extends EntityObject("StructItem") {
+  // entityAdapter for StructItem trait
+  case class StructItemAdapter[Val, Schema <: Struct](source: Rep[StructItem[Val, Schema]])
+      extends StructItem[Val, Schema] with Def[StructItem[Val, Schema]] {
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val];
+implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
+    val selfType: Elem[StructItem[Val, Schema]] = element[StructItem[Val, Schema]]
+    private val thisClass = classOf[StructItem[Val, Schema]]
+
+    def key: Rep[StructKey[Schema]] = {
+      asRep[StructKey[Schema]](mkMethodCall(source,
+        thisClass.getMethod("key"),
+        List(),
+        true, element[StructKey[Schema]]))
+    }
+
+    def value: Rep[Val] = {
+      asRep[Val](mkMethodCall(source,
+        thisClass.getMethod("value"),
+        List(),
+        true, element[Val]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyStructItem[Val, Schema <: Struct](p: Rep[StructItem[Val, Schema]]): StructItem[Val, Schema] = {
     if (p.rhs.isInstanceOf[StructItem[Val, Schema]@unchecked]) p.rhs.asInstanceOf[StructItem[Val, Schema]]
     else
-      proxyOps[StructItem[Val, Schema]](p)(scala.reflect.classTag[StructItem[Val, Schema]])
+      StructItemAdapter(p)
   }
 
   // familyElem

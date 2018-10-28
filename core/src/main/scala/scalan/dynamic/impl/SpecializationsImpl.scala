@@ -19,11 +19,42 @@ import IsoFunc._
 import IsoFuncBase._
 
 object IsoFunc extends EntityObject("IsoFunc") {
+  // entityAdapter for IsoFunc trait
+  case class IsoFuncAdapter[T, R, M](source: Rep[IsoFunc[T, R, M]])
+      extends IsoFunc[T, R, M] with Def[IsoFunc[T, R, M]] {
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
+implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R];
+implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
+    val selfType: Elem[IsoFunc[T, R, M]] = element[IsoFunc[T, R, M]]
+    private val thisClass = classOf[IsoFunc[T, R, M]]
+
+    def func: Rep[T => R] = {
+      asRep[T => R](mkMethodCall(source,
+        thisClass.getMethod("func"),
+        List(),
+        true, element[T => R]))
+    }
+
+    def metric: Rep[T => M] = {
+      asRep[T => M](mkMethodCall(source,
+        thisClass.getMethod("metric"),
+        List(),
+        true, element[T => M]))
+    }
+
+    def apply(x: Rep[T]): Rep[R] = {
+      asRep[R](mkMethodCall(source,
+        thisClass.getMethod("apply", classOf[Sym]),
+        List(x),
+        true, element[R]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyIsoFunc[T, R, M](p: Rep[IsoFunc[T, R, M]]): IsoFunc[T, R, M] = {
     if (p.rhs.isInstanceOf[IsoFunc[T, R, M]@unchecked]) p.rhs.asInstanceOf[IsoFunc[T, R, M]]
     else
-      proxyOps[IsoFunc[T, R, M]](p)(scala.reflect.classTag[IsoFunc[T, R, M]])
+      IsoFuncAdapter(p)
   }
 
   // familyElem
