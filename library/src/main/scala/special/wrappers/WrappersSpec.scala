@@ -26,13 +26,13 @@ package special.wrappers {
     };
     abstract class OptionWrapSpec extends WrapSpecBase {
       def get[A](xs: Rep[WOption[A]]): Rep[A] = xs.get;
-      @NeverInline def getOrElse[A](xs: Rep[WOption[A]], default: Rep[A]): Rep[A] = delayInvoke;
+      @NeverInline def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = delayInvoke;
       def map[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, B]]): Rep[WOption[B]] = xs.map[B](f);
       def flatMap[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]] = xs.flatMap[B](f);
       def filter[A](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = xs.filter(f);
       def isDefined[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isDefined;
       def isEmpty[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isEmpty;
-      @NeverInline def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[B], f: Rep[scala.Function1[A, B]]): Rep[B] = delayInvoke
+      @NeverInline def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = delayInvoke
     };
     abstract class EitherWrapSpec extends WrapSpecBase {
       def fold[A, B, C](xs: Rep[WEither[A, B]], fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C] = xs.fold[C](fa, fb);
