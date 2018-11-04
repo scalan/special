@@ -17,11 +17,17 @@ import WOption._
 import WSpecialPredef._
 
 object WSpecialPredef extends EntityObject("WSpecialPredef") {
+  // entityAdapter for WSpecialPredef trait
+  case class WSpecialPredefAdapter(source: Rep[WSpecialPredef])
+      extends WSpecialPredef with Def[WSpecialPredef] {
+    val selfType: Elem[WSpecialPredef] = element[WSpecialPredef]
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyWSpecialPredef(p: Rep[WSpecialPredef]): WSpecialPredef = {
     if (p.rhs.isInstanceOf[WSpecialPredef@unchecked]) p.rhs.asInstanceOf[WSpecialPredef]
     else
-      proxyOps[WSpecialPredef](p)(scala.reflect.classTag[WSpecialPredef])
+      WSpecialPredefAdapter(p)
   }
 
   // familyElem

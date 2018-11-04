@@ -60,11 +60,28 @@ object WEither extends EntityObject("WEither") {
     LiftableEither(lA,lB)
 
   private val _EitherWrapSpec = new EitherWrapSpec
+  // entityAdapter for WEither trait
+  case class WEitherAdapter[A, B](source: Rep[WEither[A, B]])
+      extends WEither[A, B] with Def[WEither[A, B]] {
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
+implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
+    val selfType: Elem[WEither[A, B]] = element[WEither[A, B]]
+    private val thisClass = classOf[WEither[A, B]]
+
+    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
+      implicit val eC = fa.elem.eRange
+      asRep[C](mkMethodCall(source,
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        List(fa, fb),
+        true, element[C]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyWEither[A, B](p: Rep[WEither[A, B]]): WEither[A, B] = {
     if (p.rhs.isInstanceOf[WEither[A, B]@unchecked]) p.rhs.asInstanceOf[WEither[A, B]]
     else
-      proxyOps[WEither[A, B]](p)(scala.reflect.classTag[WEither[A, B]])
+      WEitherAdapter(p)
   }
 
   // familyElem

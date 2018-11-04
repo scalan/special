@@ -59,11 +59,26 @@ object WRType extends EntityObject("WRType") {
     LiftableRType(lA)
 
   private val _RTypeWrapSpec = new RTypeWrapSpec
+  // entityAdapter for WRType trait
+  case class WRTypeAdapter[A](source: Rep[WRType[A]])
+      extends WRType[A] with Def[WRType[A]] {
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+    val selfType: Elem[WRType[A]] = element[WRType[A]]
+    private val thisClass = classOf[WRType[A]]
+
+    def name: Rep[String] = {
+      asRep[String](mkMethodCall(source,
+        thisClass.getMethod("name"),
+        List(),
+        true, element[String]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyWRType[A](p: Rep[WRType[A]]): WRType[A] = {
     if (p.rhs.isInstanceOf[WRType[A]@unchecked]) p.rhs.asInstanceOf[WRType[A]]
     else
-      proxyOps[WRType[A]](p)(scala.reflect.classTag[WRType[A]])
+      WRTypeAdapter(p)
   }
 
   // familyElem

@@ -110,10 +110,11 @@ object WOption extends EntityObject("WOption") {
     LiftableOption(lA)
 
   private val _OptionWrapSpec = new OptionWrapSpec
-
-  case class WOptionAdapter[A](source: Rep[WOption[A]]) extends WOption[A] {
-    implicit def eA: Elem[A] = source.elem.eA
-    val selfType: Elem[WOption[A]] = wOptionElement(eA)
+  // entityAdapter for WOption trait
+  case class WOptionAdapter[A](source: Rep[WOption[A]])
+      extends WOption[A] with Def[WOption[A]] {
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+    val selfType: Elem[WOption[A]] = element[WOption[A]]
     private val thisClass = classOf[WOption[A]]
 
     def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
@@ -182,7 +183,6 @@ object WOption extends EntityObject("WOption") {
     if (p.rhs.isInstanceOf[WOption[A]@unchecked]) p.rhs.asInstanceOf[WOption[A]]
     else
       WOptionAdapter(p)
-//      proxyOps[WOption[A]](p)(scala.reflect.classTag[WOption[A]])
   }
 
   implicit def castWOptionElement[A](elem: Elem[WOption[A]]): WOptionElem[A, WOption[A]] =
