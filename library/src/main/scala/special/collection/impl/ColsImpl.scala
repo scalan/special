@@ -652,7 +652,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     // manual fix
     lazy val eA: Elem[(L, R)] = element[(L,R)]
-    
+
     val selfType: Elem[PairCol[L, R]] = element[PairCol[L, R]]
     private val thisClass = classOf[PairCol[L, R]]
 
@@ -1094,7 +1094,6 @@ implicit val eB = bs.eA
         true, element[PairCol[A, B]]))
     }
 
-    // manual fix
     def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("fromItems", classOf[Sym], classOf[Elem[_]]),
@@ -1155,9 +1154,8 @@ implicit val eB = bs.eA
         true, element[PairCol[A, B]]))
     }
 
-    // manual fix
     def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
-      asRep[Col[T]](mkMethodCall(self,
+      asRep[Col[T]](mkMethodCall(source,
         thisClass.getMethod("fromItems", classOf[Sym], classOf[Elem[_]]),
         List(items, cT),
         true, element[Col[T]]))

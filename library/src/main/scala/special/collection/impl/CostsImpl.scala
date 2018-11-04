@@ -19,6 +19,7 @@ import WArray._
 import WEither._
 import WOption._
 import WRType._
+import WRType._  // manual fix
 import CostedArray._
 import CostedFunc._
 import CostedNestedArray._

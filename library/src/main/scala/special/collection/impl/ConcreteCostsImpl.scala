@@ -686,7 +686,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
 
     override def foldCosted[B](zero: Rep[Costed[B]], op: Rep[Costed[(B, Item)] => Costed[B]]): Rep[Costed[B]] = {
       implicit val eB = zero.eVal
-      asRep[Nothing](mkMethodCall(self,
+      asRep[Costed[B]](mkMethodCall(self,
         thisClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, element[Costed[B]]))
@@ -1064,6 +1064,28 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
     implicit lazy val eItem = rows.eA.typeArgs("Val")._1.asElem[Col[Item]].typeArgs("A")._1.asElem[Item]
     override lazy val eVal: Elem[Col[Col[Item]]] = implicitly[Elem[Col[Col[Item]]]]
     lazy val selfType = element[CCostedNestedCol[Item]]
+    private val thisClass = classOf[CostedNestedCol[Item]] // manual fix
+
+    override def value: Rep[Col[Col[Item]]] = {
+      asRep[Col[Col[Item]]](mkMethodCall(self,
+        thisClass.getMethod("value"),
+        List(),
+        true, element[Col[Col[Item]]]))
+    }
+
+    override def cost: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        thisClass.getMethod("cost"),
+        List(),
+        true, element[Int]))
+    }
+
+    override def dataSize: Rep[Long] = {
+      asRep[Long](mkMethodCall(self,
+        thisClass.getMethod("dataSize"),
+        List(),
+        true, element[Long]))
+    }
   }
   // elem for concrete class
   class CCostedNestedColElem[Item](val iso: Iso[CCostedNestedColData[Item], CCostedNestedCol[Item]])(implicit override val eItem: Elem[Item])

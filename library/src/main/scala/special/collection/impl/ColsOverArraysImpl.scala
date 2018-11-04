@@ -345,6 +345,22 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
         true, element[Col[T]]))
     }
 
+    override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
+      implicit val eT = arr.eT
+      asRep[Col[T]](mkMethodCall(self,
+        thisClass.getMethod("fromArray", classOf[Sym]),
+        List(arr),
+        true, element[Col[T]]))
+    }
+
+    override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
+      implicit val eT = v.elem
+      asRep[Col[T]](mkMethodCall(self,
+        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
+        List(n, v),
+        true, element[Col[T]]))
+    }
+
     override def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(self,
         thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
@@ -458,7 +474,6 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       }
     }
 
-    // manual fix (remove unnecessary elems)
     object fromItems {
       def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "fromItems" =>
@@ -860,9 +875,8 @@ object CReplCol extends EntityObject("CReplCol") {
     extends CReplCol[A](value, length) with Def[CReplCol[A]] {
     implicit lazy val eA = value.elem
 
-    // manual fix
     lazy val selfType = element[CReplCol[A]]
-    private val thisClass = classOf[ReplCol[A]]
+    private val thisClass = classOf[ReplCol[A]] // manual fix
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,

@@ -812,13 +812,13 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     }
 
     object cast {
-      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "cast" =>
-          val res = (receiver, args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}]]
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A], Elem[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -851,39 +851,39 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     }
 
     object none {
-      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "none" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}]]
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Elem[A], Elem[A]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object left {
-      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "left" =>
-          val res = (receiver, args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}]]
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B], Elem[B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Elem[B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object right {
-      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem] && method.getName == "right" =>
-          val res = (receiver, args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}]]
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A], Elem[A]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[SpecialPredefWrapSpec], Rep[B], Elem[A]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
