@@ -51,7 +51,10 @@ class ColOverArrayBuilder extends ColBuilder {
     new ColOverArray(unboxedArray(items))
   }
 
+  @NeverInline
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
+
+  @NeverInline
   def replicate[T:ClassTag](n: Int, v: T): Col[T] = this.fromArray(Array.fill(n)(v))
 
   @NeverInline
