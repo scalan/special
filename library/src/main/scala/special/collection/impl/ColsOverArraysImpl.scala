@@ -340,7 +340,7 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
 
     override def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("fromItems", classOf[Sym], classOf[Elem[_]]),
+        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
         true, element[Col[T]]))
     }
