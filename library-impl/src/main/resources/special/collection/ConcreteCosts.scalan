@@ -49,7 +49,7 @@ package special.collection {
     };
     abstract class CCostedNestedCol[Item](val rows: Rep[Col[Costed[Col[Item]]]]) extends CostedNestedCol[Item] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      def value: Rep[Col[Col[Item]]] = CCostedNestedCol.this.rows.map[Col[Item]](fun(((r: Rep[Costed[Col[Item]]]) => r.value)));
+      @NeverInline def value: Rep[Col[Col[Item]]] = delayInvoke;
       @NeverInline def cost: Rep[Int] = delayInvoke;
       @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
