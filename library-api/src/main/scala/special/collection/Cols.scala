@@ -33,7 +33,7 @@ trait Col[A] {
   def append(other: Col[A]): Col[A]
 
   @Internal
-  private def trim[A](arr: Array[A]) = arr.take(arr.length min 100)
+  private def trim[T](arr: Array[T]) = arr.take(arr.length min 100)
   @Internal
   override def toString = s"Col(${trim(arr).mkString(",")})"
 }
@@ -50,11 +50,9 @@ trait ReplCol[A] extends Col[A] {
 
 @scalan.Liftable
 trait ColBuilder {
-  @OverloadId("apply")
-  def apply[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
+  def pairCol[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
 
-  @OverloadId("apply_items")
-  def apply[T:ClassTag](items: T*): Col[T]
+  def fromItems[T:ClassTag](items: T*): Col[T]
 
   @NeverInline
   def unzip[A,B](xs: Col[(A,B)]): (Col[A], Col[B]) = xs match {
@@ -64,11 +62,7 @@ trait ColBuilder {
 
   def xor(left: Col[Byte], right: Col[Byte]): Col[Byte]
 
-  def fromItemsTest: Col[Int] = this.apply(1, 2, 3)
   def fromArray[T](arr: Array[T]): Col[T]
   def replicate[T:ClassTag](n: Int, v: T): Col[T]
 }
 
-trait Enum {
-  def value: Int
-}
