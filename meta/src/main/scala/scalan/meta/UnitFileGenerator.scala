@@ -719,8 +719,9 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       val used = unit.getUsedEntities
       val ts = unit.traits.map(t => context.newEntitySymbol(unit.symbol, t.name))
       val cs = unit.classes.map(c => context.newEntitySymbol(unit.symbol, c.name))
-      val entityObjects = (used ++ ts ++ cs).map(s => s"import ${s.name}._")
-      val res = predef ++ declaredImports.distinct.map(i => s"import ${i.name}") ++ entityObjects
+      val entityObjects = used ++ ts ++ cs
+      val entityObjectImports = entityObjects.sortBy(_.name).map(s => s"import ${s.name}._")
+      val res = predef ++ declaredImports.distinct.map(i => s"import ${i.name}") ++ entityObjectImports
       res.distinct
     }
 
