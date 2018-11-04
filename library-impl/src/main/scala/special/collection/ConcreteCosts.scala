@@ -72,7 +72,9 @@ class CCostedNestedCol[Item]
 {
   def builder: CostedBuilder = new CCostedBuilder
   def value: Col[Col[Item]] = rows.map(r => r.value)
+  @NeverInline
   def cost: Int = rows.map(r => r.cost).sum(builder.monoidBuilder.intPlusMonoid)
+  @NeverInline
   def dataSize: Long = rows.map(r => r.dataSize).sum(builder.monoidBuilder.longPlusMonoid)
 }
 

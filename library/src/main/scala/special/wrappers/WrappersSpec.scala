@@ -2,10 +2,11 @@ package special.wrappers {
   import scalan._
 
   trait WrappersSpec extends Base { self: Library =>
-    import WrapSpecBase._;
     import WArray._;
-    import WOption._;
     import WEither._;
+    import WOption._;
+    import WrapSpecBase._;
+
     import WRType._  // manual fix
     import WSpecialPredef._  // manual fix
 
@@ -16,8 +17,7 @@ package special.wrappers {
       def length[A](xs: Rep[WArray[A]]): Rep[Int] = xs.length;
       def fill[A](n: Rep[Int], elem: Rep[A]): Rep[WArray[A]] = RWArray.fill[A](n, Thunk(elem));
       def slice[A](xs: Rep[WArray[A]], from: Rep[Int], until: Rep[Int]): Rep[WArray[A]] = xs.slice(from, until);
-      // manual fix
-      def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = xs.foldLeft(zero, op);
+      @NeverInline def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke;
       def filter[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[WArray[A]] = xs.filter(p);
       def forall[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = xs.forall(p);
       def exists[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = xs.exists(p);
@@ -26,14 +26,13 @@ package special.wrappers {
     };
     abstract class OptionWrapSpec extends WrapSpecBase {
       def get[A](xs: Rep[WOption[A]]): Rep[A] = xs.get;
-      def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = xs.getOrElse[A](default);
+      @NeverInline def getOrElse[A](xs: Rep[WOption[A]], default: Rep[A]): Rep[A] = delayInvoke;
       def map[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, B]]): Rep[WOption[B]] = xs.map[B](f);
       def flatMap[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]] = xs.flatMap[B](f);
       def filter[A](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = xs.filter(f);
       def isDefined[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isDefined;
       def isEmpty[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isEmpty;
-      // manual fix
-      def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = xs.fold[B](ifEmpty, f)
+      @NeverInline def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[B], f: Rep[scala.Function1[A, B]]): Rep[B] = delayInvoke
     };
     abstract class EitherWrapSpec extends WrapSpecBase {
       def fold[A, B, C](xs: Rep[WEither[A, B]], fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C] = xs.fold[C](fa, fb);

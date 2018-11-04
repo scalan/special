@@ -10,22 +10,28 @@ trait WrappersSpecDefs extends scalan.Scalan with WrappersSpec {
   self: Library =>
 import IsoUR._
 import Converter._
-import WrapSpecBase._
 import WArray._
-import WOption._
 import WEither._
+import WOption._
+import WrapSpecBase._
 import ArrayWrapSpec._
-import OptionWrapSpec._
 import EitherWrapSpec._
-import SpecialPredefWrapSpec._
+import OptionWrapSpec._
 import RTypeWrapSpec._
+import SpecialPredefWrapSpec._
 
 object WrapSpecBase extends EntityObject("WrapSpecBase") {
+  // entityAdapter for WrapSpecBase trait
+  case class WrapSpecBaseAdapter(source: Rep[WrapSpecBase])
+      extends WrapSpecBase with Def[WrapSpecBase] {
+    val selfType: Elem[WrapSpecBase] = element[WrapSpecBase]
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyWrapSpecBase(p: Rep[WrapSpecBase]): WrapSpecBase = {
     if (p.rhs.isInstanceOf[WrapSpecBase@unchecked]) p.rhs.asInstanceOf[WrapSpecBase]
     else
-      proxyOps[WrapSpecBase](p)(scala.reflect.classTag[WrapSpecBase])
+      WrapSpecBaseAdapter(p)
   }
 
   // familyElem
@@ -82,6 +88,16 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
       ()
     extends ArrayWrapSpec() with Def[ArrayWrapSpec] {
     lazy val selfType = element[ArrayWrapSpec]
+    private val thisClass = classOf[ArrayWrapSpec]
+
+    override def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+      implicit val eA = xs.eT
+implicit val eB = zero.elem
+      asRep[B](mkMethodCall(self,
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(xs, zero, op),
+        true, element[B]))
+    }
   }
   // elem for concrete class
   class ArrayWrapSpecElem(val iso: Iso[ArrayWrapSpecData, ArrayWrapSpec])
@@ -330,6 +346,24 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
       ()
     extends OptionWrapSpec() with Def[OptionWrapSpec] {
     lazy val selfType = element[OptionWrapSpec]
+    private val thisClass = classOf[OptionWrapSpec]
+
+    override def getOrElse[A](xs: Rep[WOption[A]], default: Rep[A]): Rep[A] = {
+      implicit val eA = xs.eA
+      asRep[A](mkMethodCall(self,
+        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        List(xs, default),
+        true, element[A]))
+    }
+
+    override def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[B], f: Rep[A => B]): Rep[B] = {
+      implicit val eA = xs.eA
+implicit val eB = ifEmpty.elem
+      asRep[B](mkMethodCall(self,
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(xs, ifEmpty, f),
+        true, element[B]))
+    }
   }
   // elem for concrete class
   class OptionWrapSpecElem(val iso: Iso[OptionWrapSpecData, OptionWrapSpec])
@@ -438,13 +472,13 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
     }
 
     object getOrElse {
-      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "getOrElse" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -516,13 +550,13 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
     }
 
     object fold {
-      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem] && method.getName == "fold" =>
           val res = (receiver, args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[B], Rep[A => B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
