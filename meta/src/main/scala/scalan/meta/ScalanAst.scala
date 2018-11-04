@@ -1241,6 +1241,13 @@ object ScalanAst {
     }
   }
 
+  object RepeatedArg {
+    def unapply(arg: SMethodOrClassArg): Option[STpeExpr] = arg.tpe match {
+      case RepeatedArgType(tpe) => Some(tpe)
+      case _ => None
+    }
+  }
+
   case class WrapperConf(baseDir: String, packageName: String, name: String, annotations: List[String] = Nil) extends Conf
 
   case class NonWrapper(name: String)

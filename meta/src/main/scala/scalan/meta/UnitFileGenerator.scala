@@ -35,6 +35,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         case _ => None
       }
     val argClassesStr = allArgs.rep(a => a match {
+      case RepeatedArg(tpe) => s", classOf[Seq[_]]"
       case TypeDescArg(desc, tpe) => s", classOf[$desc[_]]"
       case _ => s", classOf[Sym]"
     }, "")
