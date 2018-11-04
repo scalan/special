@@ -56,7 +56,7 @@ class CCostedCol[Item](
   @NeverInline
   def filterCosted(f: Costed[Item] => Costed[Boolean]): CostedCol[Item] = rewritableMethod
   @NeverInline
-  def foldCosted[B](zero: Costed[B], op: Costed[(B, Item)] => Costed[B]) = rewritableMethod
+  def foldCosted[B](zero: Costed[B], op: Costed[(B, Item)] => Costed[B]): Costed[B] = rewritableMethod
 }
 
 class CCostedPairCol[L,R](val ls: Costed[Col[L]], val rs: Costed[Col[R]]) extends CostedPairCol[L,R] {
@@ -71,6 +71,7 @@ class CCostedNestedCol[Item]
       (implicit val cItem: ClassTag[Item]) extends CostedNestedCol[Item]
 {
   def builder: CostedBuilder = new CCostedBuilder
+  @NeverInline
   def value: Col[Col[Item]] = rows.map(r => r.value)
   @NeverInline
   def cost: Int = rows.map(r => r.cost).sum(builder.monoidBuilder.intPlusMonoid)

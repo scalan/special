@@ -90,7 +90,7 @@ class WArrayTests extends WrappersTests {
     check(Cols,
       {env: EnvRep[ColBuilder] => for {
           b <- env; x1 <- lifted(1); x2 <- lifted(2); x3 <- lifted(3)
-        } yield b.apply(x1, x2, x3) },
+        } yield b.fromItems(x1, x2, x3) },
       Cols.fromItems(1, 2, 3))
   }
 }

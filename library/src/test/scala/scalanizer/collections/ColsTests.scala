@@ -18,7 +18,7 @@ class ColsTests extends BaseCtxTests {
     }
     lazy val t3 = fun { (x: Rep[Int]) =>
       val b = RColOverArrayBuilder()
-      b.apply(x, x + 1, x + 2)
+      b.fromItems(x, x + 1, x + 2)
     }
   }
 

@@ -34,8 +34,8 @@ package special.collection {
     abstract class ColOverArrayBuilder extends ColBuilder {
       def pairCol[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = RPairOfCols(as, bs);
       @NeverInline @Reified(value = "T") def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = delayInvoke;
-      def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = RColOverArray(arr);
-      def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = this.fromArray[T](RWArray.fill[T](n, Thunk(v)));
+      @NeverInline def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = delayInvoke;
+      @NeverInline def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = delayInvoke;
       @NeverInline def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = delayInvoke
     };
     abstract class PairOfCols[L, R](val ls: Rep[Col[L]], val rs: Rep[Col[R]]) extends PairCol[L, R] {

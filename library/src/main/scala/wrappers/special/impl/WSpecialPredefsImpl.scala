@@ -81,7 +81,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     def right[A, B](b: Rep[B])(implicit emA: Elem[A]): Rep[WEither[A, B]] = {
       implicit val eB = b.elem
       asRep[WEither[A, B]](mkMethodCall(self,
-        thisClass.getMethod("right", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("right", classOf[Sym], classOf[Elem[_]]),
         List(b, emA),
         true, element[WEither[A, B]]))
     }
@@ -89,14 +89,14 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     def left[A, B](a: Rep[A])(implicit emB: Elem[B]): Rep[WEither[A, B]] = {
       implicit val eA = a.elem
       asRep[WEither[A, B]](mkMethodCall(self,
-        thisClass.getMethod("left", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("left", classOf[Sym], classOf[Elem[_]]),
         List(a, emB),
         true, element[WEither[A, B]]))
     }
 
     def none[A](implicit emA: Elem[A]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
-        thisClass.getMethod("none", classOf[Sym]),
+        thisClass.getMethod("none", classOf[Elem[_]]),
         List(emA),
         true, element[WOption[A]]))
     }
@@ -122,7 +122,7 @@ implicit val eD = fb.elem.eRange
 
     def cast[T](v: Rep[Any])(implicit emT: Elem[T]): Rep[WOption[T]] = {
       asRep[WOption[T]](mkMethodCall(self,
-        thisClass.getMethod("cast", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("cast", classOf[Sym], classOf[Elem[_]]),
         List(v, emT),
         true, element[WOption[T]]))
     }

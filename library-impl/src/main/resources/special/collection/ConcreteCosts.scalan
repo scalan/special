@@ -39,7 +39,7 @@ package special.collection {
       def dataSize: Rep[Long] = CCostedCol.this.sizes.sum(CCostedCol.this.builder.monoidBuilder.longPlusMonoid);
       @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedCol[Res]] = delayInvoke;
       @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedCol[Item]] = delayInvoke;
-      @NeverInline def foldCosted[B](zero: Rep[Costed[B]], op: Rep[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Rep[Nothing] = delayInvoke
+      @NeverInline def foldCosted[B](zero: Rep[Costed[B]], op: Rep[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Rep[Costed[B]] = delayInvoke
     };
     abstract class CCostedPairCol[L, R](val ls: Rep[Costed[Col[L]]], val rs: Rep[Costed[Col[R]]]) extends CostedPairCol[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
@@ -50,8 +50,8 @@ package special.collection {
     abstract class CCostedNestedCol[Item](val rows: Rep[Col[Costed[Col[Item]]]]) extends CostedNestedCol[Item] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[Col[Col[Item]]] = CCostedNestedCol.this.rows.map[Col[Item]](fun(((r: Rep[Costed[Col[Item]]]) => r.value)));
-      def cost: Rep[Int] = CCostedNestedCol.this.rows.map[Int](fun(((r: Rep[Costed[Col[Item]]]) => r.cost)))(((ClassTag.Int): ClassTag[Int])).sum(CCostedNestedCol.this.builder.monoidBuilder.intPlusMonoid);
-      def dataSize: Rep[Long] = CCostedNestedCol.this.rows.map[Long](fun(((r: Rep[Costed[Col[Item]]]) => r.dataSize)))(((ClassTag.Long): ClassTag[Long])).sum(CCostedNestedCol.this.builder.monoidBuilder.longPlusMonoid)
+      @NeverInline def cost: Rep[Int] = delayInvoke;
+      @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
     abstract class CCostedBuilder extends CostedBuilder {
       def monoidBuilder: Rep[MonoidBuilderInst] = RMonoidBuilderInst();

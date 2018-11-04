@@ -14,11 +14,40 @@ import Monoid._
 import MonoidBuilder._
 
 object Monoid extends EntityObject("Monoid") {
+  // entityAdapter for Monoid trait
+  case class MonoidAdapter[T](source: Rep[Monoid[T]])
+      extends Monoid[T] with Def[Monoid[T]] {
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+    val selfType: Elem[Monoid[T]] = element[Monoid[T]]
+    private val thisClass = classOf[Monoid[T]]
+
+    def zero: Rep[T] = {
+      asRep[T](mkMethodCall(source,
+        thisClass.getMethod("zero"),
+        List(),
+        true, element[T]))
+    }
+
+    def plus(x: Rep[T], y: Rep[T]): Rep[T] = {
+      asRep[T](mkMethodCall(source,
+        thisClass.getMethod("plus", classOf[Sym], classOf[Sym]),
+        List(x, y),
+        true, element[T]))
+    }
+
+    def power(x: Rep[T], n: Rep[Int]): Rep[T] = {
+      asRep[T](mkMethodCall(source,
+        thisClass.getMethod("power", classOf[Sym], classOf[Sym]),
+        List(x, n),
+        true, element[T]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyMonoid[T](p: Rep[Monoid[T]]): Monoid[T] = {
     if (p.rhs.isInstanceOf[Monoid[T]@unchecked]) p.rhs.asInstanceOf[Monoid[T]]
     else
-      proxyOps[Monoid[T]](p)(scala.reflect.classTag[Monoid[T]])
+      MonoidAdapter(p)
   }
 
   // familyElem
@@ -112,11 +141,32 @@ object Monoid extends EntityObject("Monoid") {
   registerEntityObject("Monoid", Monoid)
 
 object MonoidBuilder extends EntityObject("MonoidBuilder") {
+  // entityAdapter for MonoidBuilder trait
+  case class MonoidBuilderAdapter(source: Rep[MonoidBuilder])
+      extends MonoidBuilder with Def[MonoidBuilder] {
+    val selfType: Elem[MonoidBuilder] = element[MonoidBuilder]
+    private val thisClass = classOf[MonoidBuilder]
+
+    def intPlusMonoid: Rep[Monoid[Int]] = {
+      asRep[Monoid[Int]](mkMethodCall(source,
+        thisClass.getMethod("intPlusMonoid"),
+        List(),
+        true, element[Monoid[Int]]))
+    }
+
+    def longPlusMonoid: Rep[Monoid[Long]] = {
+      asRep[Monoid[Long]](mkMethodCall(source,
+        thisClass.getMethod("longPlusMonoid"),
+        List(),
+        true, element[Monoid[Long]]))
+    }
+  }
+
   // entityProxy: single proxy for each type family
   implicit def proxyMonoidBuilder(p: Rep[MonoidBuilder]): MonoidBuilder = {
     if (p.rhs.isInstanceOf[MonoidBuilder@unchecked]) p.rhs.asInstanceOf[MonoidBuilder]
     else
-      proxyOps[MonoidBuilder](p)(scala.reflect.classTag[MonoidBuilder])
+      MonoidBuilderAdapter(p)
   }
 
   // familyElem

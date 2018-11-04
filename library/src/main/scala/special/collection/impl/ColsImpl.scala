@@ -649,6 +649,10 @@ object PairCol extends EntityObject("PairCol") {
       extends PairCol[L, R] with Def[PairCol[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
+
+    // manual fix
+    lazy val eA: Elem[(L, R)] = element[(L,R)]
+    
     val selfType: Elem[PairCol[L, R]] = element[PairCol[L, R]]
     private val thisClass = classOf[PairCol[L, R]]
 

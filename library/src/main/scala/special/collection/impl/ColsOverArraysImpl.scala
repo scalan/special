@@ -861,7 +861,7 @@ object CReplCol extends EntityObject("CReplCol") {
     implicit lazy val eA = value.elem
 
     // manual fix
-    lazy val selfType = element[ReplCol[A]]
+    lazy val selfType = element[CReplCol[A]]
     private val thisClass = classOf[ReplCol[A]]
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {

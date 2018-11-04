@@ -22,7 +22,9 @@ trait Library extends Scalan
   with CostedOptionsModule {
   import WArray._; import WOption._
   import WRType._
-  import Col._; import ColBuilder._; import ReplCol._
+  import Col._; import ColBuilder._;
+  import ReplCol._
+  import CReplCol._
   import Costed._
   import CostedFunc._;
   import Liftables._
@@ -110,7 +112,7 @@ trait Library extends Scalan
       xs.map(fun { x: Rep[a] => g(f(x)) })
 
     case CM.map(xs, Def(IdentityLambda())) => xs
-    case CM.map(xs, Def(ConstantLambda(res))) => RReplCol(res, xs.length)
+    case CM.map(xs, Def(ConstantLambda(res))) => RCReplCol(res, xs.length)
     case CM.sum(CBM.replicate(_, n, x: Rep[Int] @unchecked), Def(_: IntPlusMonoid)) =>
       x * n
     case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>

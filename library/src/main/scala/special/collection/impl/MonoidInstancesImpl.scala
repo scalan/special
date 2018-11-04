@@ -12,8 +12,8 @@ import IsoUR._
 import Converter._
 import IntPlusMonoid._
 import LongPlusMonoid._
-import MonoidBuilder._
 import Monoid._
+import MonoidBuilder._
 import MonoidBuilderInst._
 
 object MonoidBuilderInst extends EntityObject("MonoidBuilderInst") {
