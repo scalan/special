@@ -23,10 +23,15 @@ object ScalanAstExtensions {
 
     def argNamesAndTypes(config: UnitConfig) = {
       as.args.map { arg =>
-        if (config.isVirtualized || arg.isTypeDesc)
-          s"${arg.name}: ${arg.tpe}"
-        else
-          s"${arg.name}: Rep[${arg.tpe}]"
+        arg.tpe match {
+          case RepeatedArgType(tpe) =>
+            s"${arg.name}: $tpe*"
+          case _ =>
+            if (config.isVirtualized || arg.isTypeDesc)
+              s"${arg.name}: ${arg.tpe}"
+            else
+              s"${arg.name}: Rep[${arg.tpe}]"
+        }
       }
     }
 

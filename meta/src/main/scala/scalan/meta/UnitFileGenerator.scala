@@ -34,7 +34,10 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         case (ta, Some(expr)) => Some((ta, expr))
         case _ => None
       }
-    val argClassesStr = allArgs.rep(_ => s", classOf[Sym]", "")
+    val argClassesStr = allArgs.rep(a => a match {
+      case TypeDescArg(desc, tpe) => s", classOf[$desc[_]]"
+      case _ => s", classOf[Sym]"
+    }, "")
     val elemClassesStr = (for {
       a <- md.tpeArgs
       cb <- a.contextBound

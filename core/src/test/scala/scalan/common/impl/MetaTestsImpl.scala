@@ -10,10 +10,10 @@ trait MetaTestsDefs extends scalan.Scalan with MetaTests {
   self: MetaTestsModule =>
 import IsoUR._
 import Converter._
-import MetaTest._
 import MT0._
 import MT1._
 import MT2._
+import MetaTest._
 
 object MetaTest extends EntityObject("MetaTest") {
   // entityConst: single const for each entity
@@ -48,6 +48,13 @@ object MetaTest extends EntityObject("MetaTest") {
         thisClass.getMethod("size"),
         List(),
         true, element[Int]))
+    }
+
+    def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
+      asRep[MetaTest[B]](mkMethodCall(self,
+        thisClass.getMethod("fromItems", classOf[Sym], classOf[Elem[_]]),
+        List(items, cB),
+        true, element[MetaTest[B]]))
     }
   }
 
@@ -95,6 +102,13 @@ object MetaTest extends EntityObject("MetaTest") {
         List(),
         true, element[Int]))
     }
+
+    def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
+      asRep[MetaTest[B]](mkMethodCall(source,
+        thisClass.getMethod("fromItems", classOf[Sym], classOf[Elem[_]]),
+        List(items, cB),
+        true, element[MetaTest[B]]))
+    }
   }
 
   // entityProxy: single proxy for each type family
@@ -114,7 +128,7 @@ object MetaTest extends EntityObject("MetaTest") {
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[MetaTest[T]], classOf[SMetaTest[_]], Set(
-        "test", "give", "size"
+        "test", "give", "size", "fromItems"
         ))
     }
 
@@ -192,6 +206,19 @@ object MetaTest extends EntityObject("MetaTest") {
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object fromItems {
+      def unapply(d: Def[_]): Nullable[(Rep[MetaTest[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MetaTestElem[_, _]] && method.getName == "fromItems" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[MetaTest[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[MetaTest[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -336,6 +363,19 @@ object MT0 extends EntityObject("MT0") {
         case _ => Nullable.None
       }
     }
+
+    object fromItems {
+      def unapply(d: Def[_]): Nullable[(Rep[MT0], Seq[Rep[B]], Elem[B]) forSome {type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MT0Elem] && method.getName == "fromItems" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[MT0], Seq[Rep[B]], Elem[B]) forSome {type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[MT0], Seq[Rep[B]], Elem[B]) forSome {type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
   }
 
   object MT0CompanionMethods {
@@ -470,6 +510,19 @@ object MT1 extends EntityObject("MT1") {
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[Rep[MT1[T]] forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object fromItems {
+      def unapply(d: Def[_]): Nullable[(Rep[MT1[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MT1Elem[_]] && method.getName == "fromItems" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[MT1[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[MT1[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -613,6 +666,19 @@ implicit val eB = p.values.elem
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object fromItems {
+      def unapply(d: Def[_]): Nullable[(Rep[MT2[A, B]], Seq[Rep[B]], Elem[B]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MT2Elem[_, _]] && method.getName == "fromItems" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[MT2[A, B]], Seq[Rep[B]], Elem[B]) forSome {type A; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[MT2[A, B]], Seq[Rep[B]], Elem[B]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
