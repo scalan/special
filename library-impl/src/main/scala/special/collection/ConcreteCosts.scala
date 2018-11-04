@@ -87,5 +87,38 @@ class CCostedBuilder extends CostedBuilder {
 
   @NeverInline
   def defaultValue[T](valueType: RType[T]): T = rewritableMethod
+
+  def mkCostedPrim[T](value: T, cost: Int, size: Long): CostedPrim[T] =
+    new CCostedPrim[T](value, cost, size)
+
+  def mkCostedPair[L,R](first: Costed[L], second: Costed[R]): CostedPair[L,R] =
+    new CCostedPair(first, second)
+
+  def mkCostedSum[L,R](value: Either[L, R], left: Costed[Unit], right: Costed[Unit]): CostedSum[L, R] =
+    new CCostedSum(value, left, right)
+
+  def mkCostedFunc[Env,Arg,Res](
+        envCosted: Costed[Env],
+        func: Costed[Arg] => Costed[Res],
+        cost: Int, dataSize: Long): CostedFunc[Env, Arg, Res] = new CCostedFunc(envCosted, func, cost, dataSize)
+
+  def mkCostedCol[T](values: Col[T], costs: Col[Int], sizes: Col[Long], valuesCost: Int): CostedCol[T] =
+    new CCostedCol[T](values, costs, sizes, valuesCost)
+
+  def mkCostedPairCol[L,R](ls: Costed[Col[L]], rs: Costed[Col[R]]): CostedPairCol[L,R] =
+    new CCostedPairCol(ls, rs)
+
+  def mkCostedNestedCol[Item](rows: Col[Costed[Col[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedCol[Item] =
+    new CCostedNestedCol[Item](rows)
+
+  def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T] =
+    new CostedSome[T](costedValue)
+
+  def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T] =
+    new CostedNone[T](cost)
+
+  def mkCostedOption[T](value: Option[T], none: Costed[Unit], some: Costed[Unit]): CostedOption[T] =
+    new CCostedOption[T](value, none, some)
 }
+
 

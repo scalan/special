@@ -1,5 +1,6 @@
 package special.collection
 
+import scala.reflect.ClassTag
 import scalan.meta.RType
 
 trait Costed[Val] {
@@ -33,12 +34,6 @@ trait CostedFunc[Env,Arg,Res] extends Costed[Arg => Res]  {
   def dataSize: Long
 }
 
-trait CostedArray[Item] extends Costed[Array[Item]] {
-  def values: Col[Item]
-  def costs: Col[Int]
-  def sizes: Col[Long]
-}
-
 trait CostedCol[Item] extends Costed[Col[Item]] {
   def values: Col[Item]
   def costs: Col[Int]
@@ -49,18 +44,9 @@ trait CostedCol[Item] extends Costed[Col[Item]] {
   def foldCosted[B](zero: Costed[B], op: Costed[(B, Item)] => Costed[B]): Costed[B]
 }
 
-trait CostedPairArray[L,R] extends Costed[Array[(L,R)]] {
-  def ls: Costed[Array[L]]
-  def rs: Costed[Array[R]]
-}
-
 trait CostedPairCol[L,R] extends Costed[Col[(L,R)]] {
   def ls: Costed[Col[L]]
   def rs: Costed[Col[R]]
-}
-
-trait CostedNestedArray[Item] extends Costed[Array[Array[Item]]] {
-  def rows: Col[Costed[Array[Item]]]
 }
 
 trait CostedNestedCol[Item] extends Costed[Col[Col[Item]]] {
@@ -88,6 +74,16 @@ trait CostedBuilder {
   def costedValue[T](x: T, optCost: Option[Int])(implicit cT: RType[T]): Costed[T]
   def defaultValue[T](valueType: RType[T]): T
   def monoidBuilder: MonoidBuilder
+  def mkCostedPrim[T](value: T, cost: Int, size: Long): CostedPrim[T]
+  def mkCostedPair[L,R](first: Costed[L], second: Costed[R]): CostedPair[L,R]
+  def mkCostedSum[L,R](value: Either[L, R], left: Costed[Unit], right: Costed[Unit]): CostedSum[L, R]
+  def mkCostedFunc[Env,Arg,Res](envCosted: Costed[Env], func: Costed[Arg] => Costed[Res], cost: Int, dataSize: Long): CostedFunc[Env, Arg, Res]
+  def mkCostedCol[T](values: Col[T], costs: Col[Int], sizes: Col[Long], valuesCost: Int): CostedCol[T]
+  def mkCostedPairCol[L,R](ls: Costed[Col[L]], rs: Costed[Col[R]]): CostedPairCol[L,R]
+  def mkCostedNestedCol[Item](rows: Col[Costed[Col[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedCol[Item]
+  def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T]
+  def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T]
+  def mkCostedOption[T](value: Option[T], none: Costed[Unit], some: Costed[Unit]): CostedOption[T]
 }
 
 
