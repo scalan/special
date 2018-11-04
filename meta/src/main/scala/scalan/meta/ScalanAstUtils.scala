@@ -135,11 +135,16 @@ object ScalanAstUtils {
       default = None, annotations = Nil, isTypeDesc = true)
   def genElemMethodArg(tpeArg: STpeArg) = genImplicitMethodArg(tpeArg, "em", "Elem")
   def genContMethodArg(tpeArg: STpeArg) = genImplicitMethodArg(tpeArg, "cm", "Cont")
-  def genImplicitVals(tpeArgs: List[STpeArg]): List[SMethodArg] = {
-    tpeArgs.map { arg =>
+
+  /** Based on type arguments, returns implicit descriptor args which don't yet declared. */
+  def genImplicitVals(method: SMethodDef): List[SMethodArg] = {
+    val allArgs = method.tpeArgs.map { arg =>
       if (!arg.isHighKind) genElemMethodArg(arg)
       else genContMethodArg(arg)
     }
+    val implicitArgs = method.implicitArgs
+    // filter out already existing
+    allArgs.filterNot(a => implicitArgs.exists(ia => ia.tpe == a.tpe))
   }
 
   /** According to scala docs, a method or constructor can have only one implicit parameter list,
@@ -160,7 +165,7 @@ object ScalanAstUtils {
   /** Takes type arguments of the method and either add new section with implicits descriptor vals
     * or add them to existing implicit section */
   def genImplicitMethodArgs(module: SUnitDef, method: SMethodDef): SMethodDef = {
-    val newSections = genImplicitVals(method.tpeArgs) match {
+    val newSections = genImplicitVals(method) match {
       case Nil => method.argSections
       case as => method.argSections ++ List(SMethodArgs(as))
     }
