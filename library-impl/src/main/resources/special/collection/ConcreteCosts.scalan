@@ -3,15 +3,26 @@ package special.collection {
 
   trait ConcreteCosts extends Base { self: ConcreteCostsModule =>
     import CCostedBuilder._;
+    import CCostedCol._;
+    import CCostedFunc._;
+    import CCostedNestedCol._;
+    import CCostedOption._;
+    import CCostedPair._;
+    import CCostedPairCol._;
+    import CCostedPrim._;
+    import CCostedSum._;
     import Col._;
     import Costed._;
     import CostedBuilder._;
     import CostedCol._;
     import CostedFunc._;
     import CostedNestedCol._;
+    import CostedNone._;
+    import CostedOption._;
     import CostedPair._;
     import CostedPairCol._;
     import CostedPrim._;
+    import CostedSome._;
     import CostedSum._;
     import MonoidBuilderInst._;
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val dataSize: Rep[Long]) extends CostedPrim[Val] {
@@ -56,7 +67,17 @@ package special.collection {
     abstract class CCostedBuilder extends CostedBuilder {
       def monoidBuilder: Rep[MonoidBuilderInst] = RMonoidBuilderInst();
       @NeverInline def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = delayInvoke;
-      @NeverInline def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = delayInvoke
+      @NeverInline def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = delayInvoke;
+      def mkCostedPrim[T](value: Rep[T], cost: Rep[Int], size: Rep[Long]): Rep[CostedPrim[T]] = RCCostedPrim(value, cost, size);
+      def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]] = RCCostedPair(first, second);
+      def mkCostedSum[L, R](value: Rep[WEither[L, R]], left: Rep[Costed[Unit]], right: Rep[Costed[Unit]]): Rep[CostedSum[L, R]] = RCCostedSum(value, left, right);
+      def mkCostedFunc[Env, Arg, Res](envCosted: Rep[Costed[Env]], func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], cost: Rep[Int], dataSize: Rep[Long]): Rep[CostedFunc[Env, Arg, Res]] = RCCostedFunc(envCosted, func, cost, dataSize);
+      def mkCostedCol[T](values: Rep[Col[T]], costs: Rep[Col[Int]], sizes: Rep[Col[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]] = RCCostedCol(values, costs, sizes, valuesCost);
+      def mkCostedPairCol[L, R](ls: Rep[Costed[Col[L]]], rs: Rep[Costed[Col[R]]]): Rep[CostedPairCol[L, R]] = RCCostedPairCol(ls, rs);
+      def mkCostedNestedCol[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CostedNestedCol[Item]] = RCCostedNestedCol(rows);
+      def mkCostedSome[T](costedValue: Rep[Costed[T]]): Rep[CostedOption[T]] = RCostedSome(costedValue);
+      def mkCostedNone[T](cost: Rep[Int])(implicit eT: Elem[T]): Rep[CostedOption[T]] = RCostedNone(cost);
+      def mkCostedOption[T](value: Rep[WOption[T]], none: Rep[Costed[Unit]], some: Rep[Costed[Unit]]): Rep[CostedOption[T]] = RCCostedOption(value, none, some)
     };
     trait CCostedPrimCompanion;
     trait CCostedPairCompanion;

@@ -6,7 +6,6 @@ class BaseCostedTests extends BaseCtxTests {
   class Ctx extends TestContext with Library {
     import ColOverArrayBuilder._; import Col._; import ReplCol._; import WArray._;
     import Costed._; import CostedPrim._; import CostedPair._
-    import CostedArray._; import CostedPairArray._; import CostedNestedArray._
 
 //    def plus(x: Rep[Int], n: Int) = {
 //      Range(0, n).foldLeft(x)((y, i) => y + i)
