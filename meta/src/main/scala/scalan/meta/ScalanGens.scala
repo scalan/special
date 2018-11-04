@@ -49,8 +49,9 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
 
   def genModuleTrait(unit: SUnitDef)(implicit ctx: GenCtx): Tree = {
     val methods = unit.methods.map(m => genMethod(m)(ctx.copy(toRep = !m.isTypeDesc)))
+    val imports = unit.imports.filter(_.inCake).sortBy(i => i.name)
     val newstats =
-      unit.imports.filter(_.inCake).map(genImport) :::
+      imports.map(genImport) :::
       unit.typeDefs.map(genTypeDef) :::
       unit.traits.map(genTrait) :::
       (genConcreteClasses(unit.classes) ++ genCompanions(unit) ++ methods)
