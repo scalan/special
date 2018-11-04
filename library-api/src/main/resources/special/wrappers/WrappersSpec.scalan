@@ -2,10 +2,10 @@ package special.wrappers {
   import scalan._
 
   trait WrappersSpec extends Base { self: WrappersSpecModule =>
-    import WrapSpecBase._;
     import WArray._;
-    import WOption._;
     import WEither._;
+    import WOption._;
+    import WrapSpecBase._;
     trait WrapSpecBase extends Def[WrapSpecBase] with WrapSpec;
     abstract class ArrayWrapSpec extends WrapSpecBase {
       def zip[A, B](xs: Rep[WArray[A]], ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[A, B]]] = xs.zip(ys);
@@ -26,13 +26,13 @@ package special.wrappers {
     };
     abstract class OptionWrapSpec extends WrapSpecBase {
       def get[A](xs: Rep[WOption[A]]): Rep[A] = xs.get;
-      def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = xs.getOrElse[A](default);
+      def getOrElse[A](xs: Rep[WOption[A]], default: Rep[A]): Rep[A] = xs.getOrElse[A](default);
       def map[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, B]]): Rep[WOption[B]] = xs.map[B](f);
       def flatMap[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]] = xs.flatMap[B](f);
       def filter[A](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = xs.filter(f);
       def isDefined[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isDefined;
       def isEmpty[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isEmpty;
-      def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = xs.fold[B](ifEmpty)(f)
+      def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[B], f: Rep[scala.Function1[A, B]]): Rep[B] = xs.fold[B](ifEmpty)(f)
     };
     abstract class EitherWrapSpec extends WrapSpecBase {
       def fold[A, B, C](xs: Rep[WEither[A, B]], fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C] = xs.fold[C](fa, fb);

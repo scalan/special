@@ -7,7 +7,7 @@ import special.SpecialPredef
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
 import scalan.util.CollectionUtil.unboxedArray
-import scalan.{Internal, NeverInline, OverloadId}
+import scalan.{Internal, NeverInline, OverloadId, Reified}
 
 class ColOverArray[A](val arr: Array[A]) extends Col[A] {
   def builder: ColBuilder = new ColOverArrayBuilder
@@ -46,7 +46,8 @@ class ColOverArrayBuilder extends ColBuilder {
   def pairCol[A, B](as: Col[A], bs: Col[B]): PairCol[A, B] = new PairOfCols(as, bs)
 
   @NeverInline
-  def fromItems[T:ClassTag](items: T*): Col[T] = {
+  @Reified("T")
+  def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Col[T] = {
     new ColOverArray(unboxedArray(items))
   }
 

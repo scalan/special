@@ -52,7 +52,7 @@ trait ReplCol[A] extends Col[A] {
 trait ColBuilder {
   def pairCol[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
 
-  def fromItems[T:ClassTag](items: T*): Col[T]
+  @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Col[T]
 
   @NeverInline
   def unzip[A,B](xs: Col[(A,B)]): (Col[A], Col[B]) = xs match {

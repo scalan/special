@@ -4,8 +4,8 @@ package special.collection {
   trait MonoidInstances extends Base { self: MonoidInstancesModule =>
     import IntPlusMonoid._;
     import LongPlusMonoid._;
-    import MonoidBuilder._;
     import Monoid._;
+    import MonoidBuilder._;
     abstract class MonoidBuilderInst extends MonoidBuilder {
       val `intPlusMonoid `: Rep[IntPlusMonoid] = RIntPlusMonoid(toRep(0.asInstanceOf[Int]));
       def intPlusMonoid: Rep[IntPlusMonoid] = MonoidBuilderInst.this.`intPlusMonoid `;

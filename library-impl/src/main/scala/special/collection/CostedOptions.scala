@@ -65,9 +65,8 @@ class CCostedOption[T](
     val some: Costed[Unit]) extends CostedOption[T]
 {
   def builder: CostedBuilder = new CCostedBuilder
-
-  @NeverInline def cost: Int = none.cost max some.cost + builder.ConstructSumCost
-  @NeverInline def dataSize: Long = some.dataSize + builder.SumTagSize
+  @NeverInline def cost: Int = rewritableMethod
+  @NeverInline def dataSize: Long = rewritableMethod
 
   @NeverInline def get: Costed[T] = rewritableMethod
   @NeverInline def getOrElse(default: Costed[T]): Costed[T] = rewritableMethod
