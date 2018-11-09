@@ -608,7 +608,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     implicit lazy val eT = value.eA
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     lazy val selfType = element[CCostedOption[T]]
-    private val thisClass = classOf[CCostedOption[T]]
+    private val thisClass = classOf[CostedOption[T]]  // manual fix
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,

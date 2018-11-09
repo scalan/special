@@ -340,7 +340,7 @@ object CCostedSum extends EntityObject("CCostedSum") {
 implicit lazy val eR = value.eB
     override lazy val eVal: Elem[WEither[L, R]] = implicitly[Elem[WEither[L, R]]]
     lazy val selfType = element[CCostedSum[L, R]]
-    private val thisClass = classOf[CCostedSum[L, R]]
+    private val thisClass = classOf[CostedSum[L, R]] // manual fix
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
@@ -514,7 +514,7 @@ implicit lazy val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg];
 implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     lazy val selfType = element[CCostedFunc[Env, Arg, Res]]
-    private val thisClass = classOf[CCostedFunc[Env, Arg, Res]]
+    private val thisClass = classOf[CostedFunc[Env, Arg, Res]] // manual fix
 
     override def value: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(self,
@@ -671,7 +671,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
     implicit lazy val eItem = values.eA
     override lazy val eVal: Elem[Col[Item]] = implicitly[Elem[Col[Item]]]
     lazy val selfType = element[CCostedCol[Item]]
-    private val thisClass = classOf[CCostedCol[Item]]
+    private val thisClass = classOf[CostedCol[Item]] // manual fix
 
     override def mapCosted[Res](f: Rep[Costed[Item] => Costed[Res]]): Rep[CostedCol[Res]] = {
       implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
@@ -1246,7 +1246,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       ()
     extends CCostedBuilder() with Def[CCostedBuilder] {
     lazy val selfType = element[CCostedBuilder]
-    private val thisClass = classOf[CCostedBuilder]
+    private val thisClass = classOf[CostedBuilder] // manual fix
 
     override def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = {
       implicit val eT = x.elem
