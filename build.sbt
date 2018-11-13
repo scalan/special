@@ -4,7 +4,7 @@ resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repos
 
 lazy val buildSettings = Seq(
   scalaVersion := "2.12.6",
-  organization := "special",
+  organization := "io.github.scalan",
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",
