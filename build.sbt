@@ -197,7 +197,7 @@ version in ThisBuild := {
 
 git.gitUncommittedChanges in ThisBuild := true
 
-credentials += Credentials(Path.userHome / ".sbt" / ".sigma-sonatype-credentials")
+credentials += Credentials(Path.userHome / ".sbt" / ".special-sonatype-credentials")
 
 credentials ++= (for {
   username <- Option(System.getenv().get("SONATYPE_USERNAME"))
