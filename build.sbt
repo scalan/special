@@ -1,9 +1,10 @@
+import scala.util.Try
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 lazy val buildSettings = Seq(
   scalaVersion := "2.12.6",
-  organization := "special",
+  organization := "io.github.scalan",
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",
@@ -19,7 +20,8 @@ lazy val buildSettings = Seq(
     "-language:existentials",
     "-language:experimental.macros"),
   publishTo := {
-    val nexus = "http://10.122.85.37:9081/nexus/"
+//    val nexus = "http://10.122.85.37:9081/nexus/"
+    val nexus = "https://oss.sonatype.org/"
     if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at (nexus + "content/repositories/snapshots"))
     else
@@ -140,7 +142,7 @@ lazy val scalanizer = Project("scalanizer", file("scalanizer"))
       assemblyOption in assembly ~= { _.copy(includeScala = false, includeDependency = true) },
       artifact in(Compile, assembly) := {
         val art = (artifact in(Compile, assembly)).value
-        art.copy(classifier = Some("assembly"))
+        art.withClassifier(Some("assembly"))
       },
       addArtifact(artifact in(Compile, assembly), assembly)
     )
@@ -164,4 +166,41 @@ lazy val root = Project("special", file("."))
 
 lazy val extraClassPathTask = TaskKey[String]("extraClassPath") // scalan.plugins.extraClassPath
 
+enablePlugins(GitVersioning)
+
+version in ThisBuild := {
+  if (git.gitCurrentTags.value.nonEmpty) {
+    git.gitDescribedVersion.value.get
+  } else {
+    if (git.gitHeadCommit.value.contains(git.gitCurrentBranch.value)) {
+      // see https://docs.travis-ci.com/user/environment-variables/#default-environment-variables
+      if (Try(sys.env("TRAVIS")).getOrElse("false") == "true") {
+        // pull request number, "false" if not a pull request
+        if (Try(sys.env("TRAVIS_PULL_REQUEST")).getOrElse("false") != "false") {
+          // build is triggered by a pull request
+          val prBranchName = Try(sys.env("TRAVIS_PULL_REQUEST_BRANCH")).get
+          val prHeadCommitSha = Try(sys.env("TRAVIS_PULL_REQUEST_SHA")).get
+          prBranchName + "-" + prHeadCommitSha.take(8) + "-SNAPSHOT"
+        } else {
+          // build is triggered by a push
+          val branchName = Try(sys.env("TRAVIS_BRANCH")).get
+          branchName + "-" + git.gitHeadCommit.value.get.take(8) + "-SNAPSHOT"
+        }
+      } else {
+        git.gitHeadCommit.value.get.take(8) + "-SNAPSHOT"
+      }
+    } else {
+      git.gitCurrentBranch.value + "-" + git.gitHeadCommit.value.get.take(8) + "-SNAPSHOT"
+    }
+  }
+}
+
+git.gitUncommittedChanges in ThisBuild := true
+
+credentials += Credentials(Path.userHome / ".sbt" / ".special-sonatype-credentials")
+
+credentials ++= (for {
+  username <- Option(System.getenv().get("SONATYPE_USERNAME"))
+  password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
+} yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
 
