@@ -193,7 +193,7 @@ trait Transforming { self: Scalan =>
     // require: should be called after oldlam.schedule is mirrored
     private def getMirroredLambdaDef(t: Ctx, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
       val newVar = t(oldLam.x)
-      val newLambdaDef = new Lambda(Nullable.None, newVar, newRoot, oldLam.mayInline)
+      val newLambdaDef = new Lambda(Nullable.None, newVar, newRoot, oldLam.mayInline, oldLam.alphaEquality)
       newLambdaDef
     }
 

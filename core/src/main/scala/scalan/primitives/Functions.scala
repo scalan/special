@@ -13,9 +13,15 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def >>[C](g: Rep[B => C]) = compose(g, f)
     def <<[C](g: Rep[C => A]) = compose(f, g)
   }
-  implicit def fun[A,B](f: Rep[A] => Rep[B])(implicit eA: LElem[A]): Rep[A => B] = mkLambda(f, true)
+
+  /** Global default lambda equality mode. It is use in `fun` and `fun2` lambda builders.
+    * If this flag is `true` then Lambda nodes are equal if they are the same up to renaming of symbols. (see Lambda.equals()).
+    * Each Lambda node has independent equality mode flag which is setup in the constructor. */
+  val useAlphaEquality: Boolean = true
+
+  implicit def fun[A,B](f: Rep[A] => Rep[B])(implicit eA: LElem[A]): Rep[A => B] = mkLambda(f, true, useAlphaEquality)
   implicit def fun2[A,B,C](f: (Rep[A], Rep[B])=>Rep[C])(implicit eA: LElem[A], eB: LElem[B]): Rep[((A,B))=>C] = mkLambda(f)
-  def funGlob[A,B](f: Rep[A] => Rep[B])(implicit eA: LElem[A]): Rep[A => B] = mkLambda(f, false)
+  def funGlob[A,B](f: Rep[A] => Rep[B])(implicit eA: LElem[A]): Rep[A => B] = mkLambda(f, false, true)
 
   // more convenient to call with explicit eA
   def typedfun[A, B](eA: Elem[A])(f: Rep[A] => Rep[B]): Rep[A => B] =
@@ -98,7 +104,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   override def transformDef[A](d: Def[A], t: Transformer) = d match {
     case l: Lambda[a, b] =>
-      val newLam = new Lambda(Nullable.None, t(l.x), t(l.y), l.mayInline)
+      val newLam = new Lambda(Nullable.None, t(l.x), t(l.y), l.mayInline, l.alphaEquality)
       val newSym = newLam.self
       toExp(newLam, newSym).asRep[A]
     case _ => super.transformDef(d, t)
@@ -287,15 +293,18 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   //=====================================================================================
   //   Function reification
 
-  def mkLambda[A,B](f: Exp[A] => Exp[B], mayInline: Boolean)(implicit eA: LElem[A]): Exp[A=>B] = {
+  def mkLambda[A,B](f: Exp[A] => Exp[B], mayInline: Boolean, alphaEquality: Boolean)(implicit eA: LElem[A]): Exp[A=>B] = {
     val x = variable[A]
-    lambda(x)(f, mayInline)
+    lambda(x)(f, mayInline, alphaEquality)
   }
 
   def mkLambda[A,B,C](f: Rep[A]=>Rep[B]=>Rep[C])
                      (implicit eA: LElem[A], eB: Elem[B]): Rep[A=>B=>C] = {
     val y = variable[B]
-    mkLambda((a: Rep[A]) => lambda(y)((b:Rep[B]) => f(a)(b), true), true)
+    mkLambda(
+      (a: Rep[A]) => lambda(y)((b:Rep[B]) => f(a)(b), mayInline = true, alphaEquality = useAlphaEquality),
+      mayInline = true,
+      alphaEquality = useAlphaEquality)
   }
 
   def mkLambda[A,B,C](f: (Rep[A], Rep[B])=>Rep[C])(implicit eA: LElem[A], eB: LElem[B]): Rep[((A,B))=>C] = {
@@ -303,16 +312,16 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     mkLambda({ (p: Rep[(A, B)]) =>
       val (x, y) = unzipPair(p)
       f(x, y)
-    }, true)
+    }, true, useAlphaEquality)
   }
 
-  private def lambda[A,B](x: Rep[A])(f: Exp[A] => Exp[B], mayInline: Boolean)(implicit leA: LElem[A]): Exp[A=>B] = {
+  private def lambda[A,B](x: Rep[A])(f: Exp[A] => Exp[B], mayInline: Boolean, alphaEquality: Boolean)(implicit leA: LElem[A]): Exp[A=>B] = {
 //    implicit val eA = leA.value
 
     // ySym will be assigned after f is executed
     val ySym = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[B]]
 
-    val lam = new Lambda(Nullable(f), x, ySym, mayInline)
+    val lam = new Lambda(Nullable(f), x, ySym, mayInline, alphaEquality)
     val lamSym = lam.self
 
     val y = reifyEffects(executeFunction(f, x, lamSym))
