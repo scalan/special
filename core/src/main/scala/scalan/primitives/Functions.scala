@@ -49,16 +49,23 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       }
     // ensure all lambdas of the same type have the same hashcode,
     // so they are tested for alpha-equivalence
-    override lazy val hashCode: Int = 41 * (41 + x.elem.hashCode) + y.elem.hashCode
-    override def equals(other: Any) =
-      other match {
+    override lazy val hashCode: Int = {
+      if (alphaEquality)
+        41 * (41 + x.elem.hashCode) + y.elem.hashCode
+      else
+        41 * (41 + x.hashCode) + y.hashCode
+    }
+
+    override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) ||
+      (other match {
         case other: Lambda[_,_] =>
           if (alphaEquality)
             matchLambdas(this, other, false, emptyMatchSubst).isDefined
           else
             other.x == this.x && other.y == this.y
         case _ => false
-      }
+      })
+
     override def toString = s"Lambda(${if (f.isDefined) "f is Some" else "f is None"}, $x => $y})"
     def canEqual(other: Any) = other.isInstanceOf[Lambda[_,_]]
 

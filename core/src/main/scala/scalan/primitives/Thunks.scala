@@ -81,12 +81,6 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   class ThunkDef[A](val root: Exp[A], _schedule: =>Schedule)
     extends Def[Thunk[A]] with AstGraph with Product {
-    // every Thunk instance have unique id (this is different from other nodes)
-    assignId()
-
-    override private[scalan] def assignId(): Unit = {
-      if (nodeId == 0) super.assignId()
-    }
 
     implicit def eA: Elem[A] = root.elem
     private var _selfType: Elem[Thunk[A]] = _

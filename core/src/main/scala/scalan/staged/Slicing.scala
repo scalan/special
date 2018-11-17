@@ -362,11 +362,11 @@ trait Slicing extends Scalan {
     }
 
     def canEqual(other: Any) = other.isInstanceOf[StructMarking[_]]
-    override def equals(other: Any) = other match {
+    override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || (other match {
       case other: StructMarking[_] =>
-        (this eq other) || (other.canEqual(this) && fields.toList == other.fields.toList && elem == other.elem)
+        fields.toList == other.fields.toList && elem == other.elem
       case _ => false
-    }
+    })
     override def hashCode = fields.hashCode * 21 + elem.hashCode
 
     def productArity = 2

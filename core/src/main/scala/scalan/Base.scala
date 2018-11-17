@@ -58,7 +58,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     /** Unique id of the node. Initially undefined, should be defined after Def is added to the graph.
       * Doesn't participate in equality of this Def.
       * Use only to provide global Def numbering. */
-    private[scalan] var nodeId: Int = 0
+    private[scalan] var nodeId: Int = SingleSym.freshId
     @inline private [scalan] def assignId(): Unit = {
       assert(nodeId == 0, s"Definition $this has already been assigned with nodeId=$nodeId")
       nodeId = SingleSym.freshId
@@ -74,11 +74,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def selfType: Elem[T @uncheckedVariance]
     val self: Rep[T] = symbolOf(this)
 
-    override def equals(other: Any) = other match {
+    override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || (other match {
       // check that nodes correspond to same operation, have the same type, and the same arguments
       // alternative would be to include Elem fields into case class
       case other: Base#Def[_] =>
-        (this eq other) || ({
+        ({
           val cls1 = getClass
           val cls2 = other.getClass
           cls1 == cls2 || {
@@ -103,7 +103,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
           result
         } && selfType.name == other.selfType.name)
       case _ => false
-    }
+    })
 
     override lazy val hashCode = {
       val len = productArity
@@ -674,12 +674,12 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def toString = varName
     def toStringWithDefinition = toStringWithType + s" = ${_rhs}"
 
-    override def equals(obj: scala.Any): Boolean = obj != null && (obj match {
+    override def equals(obj: scala.Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj != null && (obj match {
       case other: SingleSym[_] => _rhs eq other.rhs
       case _ => false
-    })
+    }))
 
-    override def hashCode(): Int = _rhs.hashCode
+    override def hashCode(): Int = _rhs.nodeId
   }
 
   @inline def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
@@ -695,7 +695,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   //TODO replace with Variable once symbols are merged with Defs
   protected lazy val globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
-  private[this] val defToGlobalDefs = AVHashMap[(Rep[_], Def[_]), TableEntry[_]](1000)
+  private[this] val defToGlobalDefs = AVHashMap[(Rep[_], Def[_]), TableEntry[_]](10000)
 
   def findDefinition[T](s: Rep[T]): Nullable[TableEntry[T]] =
     Nullable(s.rhs.tableEntry)
@@ -726,12 +726,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
     val te = TableEntry(s, d)
     optScope match {
       case Nullable(scope) =>
-        te.rhs.assignId()
         te.rhs.tableEntry = te
         defToGlobalDefs.put((scope.thunkSym, te.rhs), te)
         scope += te
       case _ =>
-        te.rhs.assignId()
         te.rhs.tableEntry = te
         defToGlobalDefs.put((globalThunkSym, te.rhs), te)
     }

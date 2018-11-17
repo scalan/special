@@ -40,6 +40,7 @@ class ColsTests extends BaseCtxTests {
   test("measure: create proxy") {
     val ctx = new Ctx {
       override val performViewsLifting = false
+      override val useAlphaEquality = false
     }
     import ctx._
     import Col._
