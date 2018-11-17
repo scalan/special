@@ -12,6 +12,7 @@ class Nullable[+T](val x: T) extends AnyVal {
   @inline def get: T = x
   @inline def isDefined = x != null
   @inline def getOrElse[B >: T](default: =>B): B = if (x != null) x else default
+  @inline def toList: List[T] = if (x == null) Nil else x :: Nil
 }
 object Nullable {
   val None: Nullable[Null] = new Nullable(null)
@@ -28,6 +29,14 @@ class AVHashMap[K,V](val hashMap: HashMap[K,V]) extends AnyVal {
   @inline def put(key: K, value: V): V = hashMap.put(key, value)
   @inline def clear(): Unit = {
     hashMap.clear()
+  }
+  def getOrElseUpdate(key: K, op: => V): V = {
+    var v = hashMap.get(key)
+    if (v == null) {
+      v = op
+      hashMap.put(key, v)
+    }
+    v
   }
 }
 object AVHashMap {

@@ -332,6 +332,10 @@ object ColOverArray extends EntityObject("ColOverArray") {
   registerEntityObject("ColOverArray", ColOverArray)
 
 object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
+  // manual fix
+  private val classColBuilder = classOf[ColBuilder]
+  private val replicateMethod = classColBuilder.getMethod("replicate", classOf[Sym], classOf[Sym])
+
   case class ColOverArrayBuilderCtor
       ()
     extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
@@ -356,7 +360,7 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
     override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
       implicit val eT = v.elem
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
+        replicateMethod,
         List(n, v),
         true, element[Col[T]]))
     }

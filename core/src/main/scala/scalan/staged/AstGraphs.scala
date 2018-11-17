@@ -2,7 +2,7 @@ package scalan.staged
 
 import scala.collection._
 import scala.collection.mutable.ArrayBuffer
-import scalan.Scalan
+import scalan.{Scalan, Nullable}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
 
@@ -20,7 +20,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
   case class GraphNode(
           override val graph: AstGraph,
           sym: Sym, // this symbol
-          definition: Option[Def[_]], // definition
+          definition: Nullable[Def[_]], // definition
           usages: List[Sym]) extends AstNode(graph) {
     def inputSyms: List[Sym] = definition.toList.flatMap(_.getDeps)
     def outSyms = usages
@@ -75,7 +75,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     lazy val scheduleAll: Schedule =
       schedule.flatMap {
-        case tp @ TableEntry(_, subgraph: AstGraph) => subgraph.scheduleAll :+ tp
+        case tp: TableEntry[_] if tp.rhs.isInstanceOf[AstGraph] =>
+          tp.rhs.asInstanceOf[AstGraph].scheduleAll :+ tp
         case tp => List(tp)
       }
 
@@ -89,35 +90,35 @@ trait AstGraphs extends Transforming { self: Scalan =>
      * also contains lambda vars with definition = None
      */
     lazy val nodes: Map[Sym, GraphNode] = {
-      var defMap: Map[Sym, GraphNode] = (schedule.map {
-        case TableEntry(s, d) => (s, GraphNode(this, s, Some(d), List.empty[Sym]))
+      var defMap: Map[Sym, GraphNode] = (schedule.map { te =>
+        (te.sym, GraphNode(this, te.sym, Nullable(te.rhs), Nil))
       }).toMap
 
       def addUsage(usedSym: Sym, referencingSym: Sym) = {
-        val newNode = defMap.getOrElse(usedSym, GraphNode(this, usedSym, None, List.empty)).addUsage(referencingSym)
+        val newNode = defMap.getOrElse(usedSym, GraphNode(this, usedSym, Nullable.None, Nil)).addUsage(referencingSym)
         defMap += usedSym -> newNode
       }
 
-      for (TableEntry(s, d) <- schedule) {
-        val usedSymbols = d.getDeps
-        usedSymbols.foreach(us => addUsage(us, s))
+      for (te <- schedule) {
+        val usedSymbols = te.rhs.getDeps
+        usedSymbols.foreach(us => addUsage(us, te.sym))
       }
       defMap
     }
 
     lazy val allNodes: Map[Sym, GraphNode] = {
-      var defMap: Map[Sym, GraphNode] = (scheduleAll.map {
-        case TableEntry(s, d) => (s, GraphNode(this, s, Some(d), List.empty[Sym]))
+      var defMap: Map[Sym, GraphNode] = (scheduleAll.map { te =>
+        (te.sym, GraphNode(this, te.sym, Nullable(te.rhs), List.empty[Sym]))
       }).toMap
 
       def addUsage(usedSym: Sym, referencingSym: Sym) = {
-        val newNode = defMap.getOrElse(usedSym, GraphNode(this, usedSym, None, List.empty)).addUsage(referencingSym)
+        val newNode = defMap.getOrElse(usedSym, GraphNode(this, usedSym, Nullable.None, List.empty)).addUsage(referencingSym)
         defMap += usedSym -> newNode
       }
 
-      for (TableEntry(s, d) <- scheduleAll) {
-        val usedSymbols = syms(d)
-        usedSymbols.foreach(us => addUsage(us, s))
+      for (te <- scheduleAll) {
+        val usedSymbols = syms(te.rhs)
+        usedSymbols.foreach(us => addUsage(us, te.sym))
       }
       defMap
     }
@@ -202,7 +203,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
       def getTransitiveUsageInRevSchedule(revSchedule: List[TableEntry[_]]): mutable.Set[Sym] = {
         val used = mutable.Set.empty[Sym]
-        for (TableEntry(s, _) <- revSchedule) {
+        for (te <- revSchedule) {
+          val s = te.sym
           if (isUsed(s))
             used += s
 
@@ -245,7 +247,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
       // traverse the lambda body from the results to the arguments
       var reversed = schedule.reverse.toList
       while (reversed.nonEmpty) {
-        val TableEntry(s, d) = reversed.head
+        val te = reversed.head
+        val s = te.sym; val d = te.rhs
         if (!isAssigned(s)) {
           // process current definition
           d match {

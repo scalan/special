@@ -420,7 +420,7 @@ trait TypeDescs extends Base { self: Scalan =>
     cachedElem0(clazz, Some(constructor), args)
   }
 
-  protected val elemCache = collection.mutable.Map.empty[(Class[_], Seq[AnyRef]), AnyRef]
+  protected val elemCache = AVHashMap[(Class[_], Seq[AnyRef]), AnyRef](1000)
 
   private def cachedElem0(clazz: Class[_], optConstructor: Option[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
     elemCache.getOrElseUpdate(

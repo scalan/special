@@ -539,7 +539,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   trait TableEntryCompanion {
     def apply[T](sym: Rep[T], rhs: Def[T]): TableEntry[T]
     def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]): TableEntry[T]
-    def unapply[T](tp: TableEntry[T]): Option[(Rep[T], Def[T])]
+//    def unapply[T](tp: TableEntry[T]): Option[(Rep[T], Def[T])]
   }
 
   object DefTableEntry {
@@ -664,7 +664,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def rhs: Def[T] = _rhs
 
     private[scalan] def assignDef[B >: T](d: Def[B]): Unit = {
-      assert(d.selfType <:< elem, s"violated pre-condition ${d.selfType} <:< $elem")
+//      assert(d.selfType <:< elem, s"violated pre-condition ${d.selfType} <:< $elem")
       _rhs = d.asInstanceOf[Def[T]]
     }
     private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit = {
@@ -690,15 +690,15 @@ trait Base extends LazyLogging { scalan: Scalan =>
   val TableEntry: TableEntryCompanion = new TableEntryCompanion {
     def apply[T](sym: Rep[T], rhs: Def[T]) = new TableEntrySingle(sym, rhs, None)
     def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]) = new TableEntrySingle(sym, rhs, Some(lam))
-    def unapply[T](tp: TableEntry[T]): Option[(Rep[T], Def[T])] = Some((tp.sym, tp.rhs))
   }
 
   //TODO replace with Variable once symbols are merged with Defs
   protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
-  private[this] val defToGlobalDefs = AVHashMap[(Rep[_], Def[_]), TableEntry[_]](10000)
+  private[this] val defToGlobalDefs = AVHashMap[Def[_], TableEntry[_]](10000)
 
   def defCount = defToGlobalDefs.hashMap.size()
+
   def resetContext() = {
     defToGlobalDefs.clear()
     SingleSym.resetIdCounter()
@@ -708,8 +708,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
   def findDefinition[T](s: Rep[T]): Nullable[TableEntry[T]] =
     Nullable(s.rhs.tableEntry)
 
-  def findDefinition[T](thunk: Rep[_], d: Def[T]): TableEntry[T] =
-    defToGlobalDefs((thunk,d)).asInstanceOf[TableEntry[T]]
+  def findGlobalDefinition[T](d: Def[T]): TableEntry[T] =
+    defToGlobalDefs(d).asInstanceOf[TableEntry[T]]
 
   /** @hotspot */
   def findOrCreateDefinition[T](d: Def[T], newSym: => Rep[T]): Rep[T] = {
@@ -718,7 +718,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
       case Nullable(scope) =>
         scope.findDef(d)
       case _ =>
-        findDefinition(globalThunkSym, d)
+        findGlobalDefinition(d)
     }
     if (te == null) {
       te = createDefinition(optScope, newSym, d)
@@ -735,11 +735,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
     optScope match {
       case Nullable(scope) =>
         te.rhs.tableEntry = te
-        defToGlobalDefs.put((scope.thunkSym, te.rhs), te)
+//        defToGlobalDefs.put((scope.thunkSym, te.rhs), te)
         scope += te
       case _ =>
         te.rhs.tableEntry = te
-        defToGlobalDefs.put((globalThunkSym, te.rhs), te)
+        defToGlobalDefs.put(te.rhs, te)
     }
     te
   }

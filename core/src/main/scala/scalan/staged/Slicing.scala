@@ -733,7 +733,7 @@ trait Slicing extends Scalan {
   }
 
   def getAllSliced[A,B](g: AstGraph): Seq[TableEntry[_]] = {
-    g.scheduleAll.collect { case te @ TableEntry(s, _: Sliced[_,_]) => te }
+    g.scheduleAll.collect { case te: TableEntry[_] if te.rhs.isInstanceOf[Sliced[_,_]] => te }
   }
 
   type SliceInfo[A,B] = (Exp[B], SliceMarking[A])

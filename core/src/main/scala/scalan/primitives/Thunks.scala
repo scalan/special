@@ -129,7 +129,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
       val newSchedule = for {
         tp <- thunk.schedule
         res <- t(tp.sym) match {
-          case te@TableEntry(_, _) => List(te)
+          case te: TableEntry[_] => List(te)
           case _ => Nil
         }
       } yield res
@@ -166,7 +166,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
         if (te.rhs == d) return te.asInstanceOf[TableEntry[T]]
       }
       if (parent == null)
-        findDefinition(globalThunkSym, d)
+        findGlobalDefinition(d)
       else
         parent.findDef(d)
     }
