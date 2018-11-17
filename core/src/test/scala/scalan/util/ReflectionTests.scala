@@ -41,7 +41,7 @@ class ReflectionTests extends BaseCtxTests {
     val f @ Def(lambda) = fun { x: Rep[Int] => x + 1 }
     check(f)(canGetAll, namesAre("_rhs"))
 
-    check(lambda)(canGetAll, namesAre("f", "x", "y", "mayInline"))
+    check(lambda)(canGetAll, namesAre("f", "x", "y", "mayInline", "alphaEquality"))
 
     // `implicit eItem` without `val` with `extends ArrayDef`
 //    val sort = ArraySort(arr, implicitly[Ordering[Int]])

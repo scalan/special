@@ -29,7 +29,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     sameArgFun(f) { x => h(f(x), g(x)) }
   }
 
-  class Lambda[A, B](val f: Nullable[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean)
+  class Lambda[A, B](val f: Nullable[Exp[A] => Exp[B]], val x: Exp[A], val y: Exp[B], val mayInline: Boolean, val alphaEquality: Boolean = true)
     extends Def[A => B] with AstGraph with Product { thisLambda =>
     def eA = x.elem
     def eB = y.elem
@@ -46,8 +46,11 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     override lazy val hashCode: Int = 41 * (41 + x.elem.hashCode) + y.elem.hashCode
     override def equals(other: Any) =
       other match {
-        case that: Lambda[_,_] =>
-          (that canEqual this) && matchLambdas(this, that, false, emptyMatchSubst).isDefined
+        case other: Lambda[_,_] =>
+          if (alphaEquality)
+            matchLambdas(this, other, false, emptyMatchSubst).isDefined
+          else
+            other.x == this.x && other.y == this.y
         case _ => false
       }
     override def toString = s"Lambda(${if (f.isDefined) "f is Some" else "f is None"}, $x => $y})"
