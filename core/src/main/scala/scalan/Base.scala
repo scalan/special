@@ -653,6 +653,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     @inline def freshSym[T](d: Def[T]): Rep[T] = {
       new SingleSym(d)
     }
+    def resetIdCounter() = { currId = 0 }
   }
 
   /** Light weight stateless immutable reference to a graph node.
@@ -693,9 +694,16 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   //TODO replace with Variable once symbols are merged with Defs
-  protected lazy val globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
+  protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
   private[this] val defToGlobalDefs = AVHashMap[(Rep[_], Def[_]), TableEntry[_]](10000)
+
+  def defCount = defToGlobalDefs.hashMap.size()
+  def resetContext() = {
+    defToGlobalDefs.clear()
+    SingleSym.resetIdCounter()
+    globalThunkSym = placeholder[Int]
+  }
 
   def findDefinition[T](s: Rep[T]): Nullable[TableEntry[T]] =
     Nullable(s.rhs.tableEntry)

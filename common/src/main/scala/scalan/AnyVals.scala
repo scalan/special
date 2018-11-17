@@ -26,6 +26,9 @@ class AVHashMap[K,V](val hashMap: HashMap[K,V]) extends AnyVal {
   @inline def apply(key: K): V = hashMap.get(key)
   @inline def containsKey(key: K): Boolean = hashMap.containsKey(key)
   @inline def put(key: K, value: V): V = hashMap.put(key, value)
+  @inline def clear(): Unit = {
+    hashMap.clear()
+  }
 }
 object AVHashMap {
   def apply[K,V](initialCapacity: Int) = new AVHashMap[K,V](new HashMap[K,V](initialCapacity))

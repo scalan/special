@@ -47,13 +47,15 @@ class ColsTests extends BaseCtxTests {
     import ColBuilder._
     import ColOverArrayBuilder._
 
-    val colBuilder: Rep[ColBuilder] = RColOverArrayBuilder()
     var res: Sym = null
     measure(10) { i =>
-      for (j <- 0 until 3000) {
+      val colBuilder: Rep[ColBuilder] = RColOverArrayBuilder()
+      for (j <- 0 until 30000) {
         val col = colBuilder.replicate(i*j, 0)
         res = col.map(fun {x => x + 1})
       }
+      println(s"Defs: ${ctx.defCount}")
+      ctx.resetContext()
     }
     emit("res", res)
   }
