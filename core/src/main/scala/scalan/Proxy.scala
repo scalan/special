@@ -29,7 +29,8 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   def delayInvoke = throw new DelayInvokeException
 
   // call mkMethodCall instead of constructor
-  case class MethodCall private[Proxy](receiver: Sym, method: Method, args: List[AnyRef], neverInvoke: Boolean)(val selfType: Elem[Any]) extends Def[Any] {
+  case class MethodCall private[Proxy](receiver: Sym, method: Method, args: List[AnyRef], neverInvoke: Boolean)
+                                      (val selfType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
 
     override def toString = {
       val methodStr = method.toString.replace("java.lang.", "").
@@ -83,12 +84,12 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       case e: Exception =>
         throwInvocationException("getResultElem for", e, receiver, method, args)
     }
-    mkMethodCall(receiver, method, args, neverInvoke, resultElem)
+    mkMethodCall(receiver, method, args, neverInvoke, false, resultElem)
   }
 
-  // prefer calling the above overload
-  def mkMethodCall(receiver: Sym, method: Method, args: List[AnyRef], neverInvoke: Boolean, resultElem: Elem[_]): Sym = {
-    reifyObject(MethodCall(receiver, method, args, neverInvoke)(resultElem.asElem[Any]))
+  def mkMethodCall(receiver: Sym, method: Method, args: List[AnyRef],
+                   neverInvoke: Boolean, isAdapterCall: Boolean, resultElem: Elem[_]): Sym = {
+    reifyObject(MethodCall(receiver, method, args, neverInvoke)(resultElem.asElem[Any], isAdapterCall))
   }
 
   @tailrec
@@ -202,29 +203,30 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         case e: Exception => onInvokeException(baseCause(e))
       }
     val d = receiver.rhs
-    @tailrec
+//    @tailrec
     def findMethodLoop(m: Method): Option[Method] =
       if (shouldInvoke(d, m, args))
         Some(m)
       else
-        getSuperMethod(m) match {
-          case None =>
-            None
-          case Some(superMethod) =>
-            findMethodLoop(superMethod)
-        }
+        None
+//        getSuperMethod(m) match {
+//          case None =>
+//            None
+//          case Some(superMethod) =>
+//            findMethodLoop(superMethod)
+//        }
 
     findMethodLoop(m) match {
       case Some(m1) =>
         tryInvoke(d, m1)
       case None =>
-        if (isDescMethod(m)) {
-          // when receiver is Lambda variable (there is no Def) it still has Elem,
-          // so when we are accessing one of the descriptior properties
-          // we can find a method in the elem with the same name and use it to return requested desciptor
-          // TODO check invariant that all the nodes and their elems have equal descriptors
-          tryInvokeElem(d.selfType)
-        } else
+//        if (isDescMethod(m)) {
+//          // when receiver is Lambda variable (there is no Def) it still has Elem,
+//          // so when we are accessing one of the descriptior properties
+//          // we can find a method in the elem with the same name and use it to return requested desciptor
+//          // TODO check invariant that all the nodes and their elems have equal descriptors
+//          tryInvokeElem(d.selfType)
+//        } else
           onNoMethodFound
     }
   }
@@ -299,7 +301,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   protected val initialInvokeTesters = Set(isCompanionApply, isFieldGetter)
   private var invokeTesters: Set[InvokeTester] = initialInvokeTesters
 
-  protected def invokeAll = false
+  protected def invokeAll = true
 
   def isInvokeEnabled(d: Def[_], m: Method) = invokeAll || {
     if (_currentPass != null) {

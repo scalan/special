@@ -10,13 +10,13 @@ trait ConvertersDefs extends Converters {
   self: Scalan =>
 import IsoUR._
 import Converter._
-import IdentityConv._
 import BaseConverter._
-import PairConverter._
-import SumConverter._
 import ComposeConverter._
 import FunctorConverter._
+import IdentityConv._
 import NaturalConverter._
+import PairConverter._
+import SumConverter._
 
 object Converter extends EntityObject("Converter") {
   // entityAdapter for Converter trait
@@ -31,7 +31,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[R](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(x),
-        true, element[R]))
+        true, true, element[R]))
     }
   }
 

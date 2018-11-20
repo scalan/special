@@ -34,14 +34,14 @@ object CostedSome extends EntityObject("CostedSome") {
       asRep[Costed[B]](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, element[Costed[B]]))
+        true, isAdapterCall = false, element[Costed[B]]))
     }
 
     override def filter(p: Rep[Costed[T => Boolean]]): Rep[Costed[WOption[T]]] = {
       asRep[Costed[WOption[T]]](mkMethodCall(self,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Costed[WOption[T]]]))
+        true, isAdapterCall = false, element[Costed[WOption[T]]]))
     }
 
     override def flatMap[B](f: Rep[Costed[T => WOption[B]]]): Rep[Costed[WOption[B]]] = {
@@ -49,7 +49,7 @@ object CostedSome extends EntityObject("CostedSome") {
       asRep[Costed[WOption[B]]](mkMethodCall(self,
         thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, isAdapterCall = false, element[Costed[WOption[B]]]))
     }
 
     override def map[B](f: Rep[Costed[T => B]]): Rep[Costed[WOption[B]]] = {
@@ -57,7 +57,7 @@ object CostedSome extends EntityObject("CostedSome") {
       asRep[Costed[WOption[B]]](mkMethodCall(self,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, isAdapterCall = false, element[Costed[WOption[B]]]))
     }
   }
   // elem for concrete class
@@ -327,7 +327,7 @@ object CostedNone extends EntityObject("CostedNone") {
       asRep[Costed[T]](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
-        true, element[Costed[T]]))
+        true, isAdapterCall = false, element[Costed[T]]))
     }
 
     override def fold[B](ifEmpty: Rep[Costed[B]], f: Rep[Costed[T => B]]): Rep[Costed[B]] = {
@@ -335,14 +335,14 @@ object CostedNone extends EntityObject("CostedNone") {
       asRep[Costed[B]](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, element[Costed[B]]))
+        true, isAdapterCall = false, element[Costed[B]]))
     }
 
     override def filter(p: Rep[Costed[T => Boolean]]): Rep[Costed[WOption[T]]] = {
       asRep[Costed[WOption[T]]](mkMethodCall(self,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Costed[WOption[T]]]))
+        true, isAdapterCall = false, element[Costed[WOption[T]]]))
     }
 
     override def flatMap[B](f: Rep[Costed[T => WOption[B]]]): Rep[Costed[WOption[B]]] = {
@@ -350,7 +350,7 @@ object CostedNone extends EntityObject("CostedNone") {
       asRep[Costed[WOption[B]]](mkMethodCall(self,
         thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, isAdapterCall = false, element[Costed[WOption[B]]]))
     }
 
     override def map[B](f: Rep[Costed[T => B]]): Rep[Costed[WOption[B]]] = {
@@ -358,7 +358,7 @@ object CostedNone extends EntityObject("CostedNone") {
       asRep[Costed[WOption[B]]](mkMethodCall(self,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, isAdapterCall = false, element[Costed[WOption[B]]]))
     }
   }
   // elem for concrete class
@@ -614,28 +614,28 @@ object CCostedOption extends EntityObject("CCostedOption") {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, isAdapterCall = false, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, isAdapterCall = false, element[Long]))
     }
 
     override def get: Rep[Costed[T]] = {
       asRep[Costed[T]](mkMethodCall(self,
         thisClass.getMethod("get"),
         List(),
-        true, element[Costed[T]]))
+        true, isAdapterCall = false, element[Costed[T]]))
     }
 
     override def getOrElse(default: Rep[Costed[T]]): Rep[Costed[T]] = {
       asRep[Costed[T]](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
-        true, element[Costed[T]]))
+        true, isAdapterCall = false, element[Costed[T]]))
     }
 
     override def fold[B](ifEmpty: Rep[Costed[B]], f: Rep[Costed[T => B]]): Rep[Costed[B]] = {
@@ -643,28 +643,28 @@ object CCostedOption extends EntityObject("CCostedOption") {
       asRep[Costed[B]](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, element[Costed[B]]))
+        true, isAdapterCall = false, element[Costed[B]]))
     }
 
     override def isEmpty: Rep[Costed[Boolean]] = {
       asRep[Costed[Boolean]](mkMethodCall(self,
         thisClass.getMethod("isEmpty"),
         List(),
-        true, element[Costed[Boolean]]))
+        true, isAdapterCall = false, element[Costed[Boolean]]))
     }
 
     override def isDefined: Rep[Costed[Boolean]] = {
       asRep[Costed[Boolean]](mkMethodCall(self,
         thisClass.getMethod("isDefined"),
         List(),
-        true, element[Costed[Boolean]]))
+        true, isAdapterCall = false, element[Costed[Boolean]]))
     }
 
     override def filter(p: Rep[Costed[T => Boolean]]): Rep[Costed[WOption[T]]] = {
       asRep[Costed[WOption[T]]](mkMethodCall(self,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Costed[WOption[T]]]))
+        true, isAdapterCall = false, element[Costed[WOption[T]]]))
     }
 
     override def flatMap[B](f: Rep[Costed[T => WOption[B]]]): Rep[Costed[WOption[B]]] = {
@@ -672,7 +672,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
       asRep[Costed[WOption[B]]](mkMethodCall(self,
         thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, isAdapterCall = false, element[Costed[WOption[B]]]))
     }
 
     override def map[B](f: Rep[Costed[T => B]]): Rep[Costed[WOption[B]]] = {
@@ -680,7 +680,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
       asRep[Costed[WOption[B]]](mkMethodCall(self,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, isAdapterCall = false, element[Costed[WOption[B]]]))
     }
   }
   // elem for concrete class

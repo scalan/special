@@ -35,7 +35,7 @@ trait MetaTests { self: MetaTestsModule =>
     implicit def eA: Elem[A]; implicit def eB: Elem[B]
     def test: RMetaTest[(A, B)] = ???
     def give: Rep[(A, B)] = ???
-    def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = ???
+    def fromItems[C](items: Rep[C]*)(implicit cB: Elem[C]): Rep[MetaTest[C]] = ???
   }
 }
 

@@ -33,28 +33,28 @@ object MetaTest extends EntityObject("MetaTest") {
       asRep[MetaTest[T]](mkMethodCall(self,
         thisClass.getMethod("test"),
         List(),
-        true, element[MetaTest[T]]))
+        true, false, element[MetaTest[T]]))
     }
 
     def give: Rep[T] = {
       asRep[T](mkMethodCall(self,
         thisClass.getMethod("give"),
         List(),
-        true, element[T]))
+        true, false, element[T]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("size"),
         List(),
-        true, element[Int]))
+        true, false, element[Int]))
     }
 
     def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
       asRep[MetaTest[B]](mkMethodCall(self,
-        thisClass.getMethod("fromItems", classOf[Sym], classOf[Elem[_]]),
+        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cB),
-        true, element[MetaTest[B]]))
+        true, false, element[MetaTest[B]]))
     }
   }
 
@@ -86,28 +86,28 @@ object MetaTest extends EntityObject("MetaTest") {
       asRep[MetaTest[T]](mkMethodCall(source,
         thisClass.getMethod("test"),
         List(),
-        true, element[MetaTest[T]]))
+        true, true, element[MetaTest[T]]))
     }
 
     def give: Rep[T] = {
       asRep[T](mkMethodCall(source,
         thisClass.getMethod("give"),
         List(),
-        true, element[T]))
+        true, true, element[T]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("size"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
       asRep[MetaTest[B]](mkMethodCall(source,
-        thisClass.getMethod("fromItems", classOf[Sym], classOf[Elem[_]]),
+        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cB),
-        true, element[MetaTest[B]]))
+        true, true, element[MetaTest[B]]))
     }
   }
 
@@ -672,13 +672,13 @@ implicit val eB = p.values.elem
     }
 
     object fromItems {
-      def unapply(d: Def[_]): Nullable[(Rep[MT2[A, B]], Seq[Rep[B]], Elem[B]) forSome {type A; type B}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[MT2[A, B]], Seq[Rep[C]], Elem[C]) forSome {type A; type B; type C}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MT2Elem[_, _]] && method.getName == "fromItems" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[MT2[A, B]], Seq[Rep[B]], Elem[B]) forSome {type A; type B}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[MT2[A, B]], Seq[Rep[C]], Elem[C]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[MT2[A, B]], Seq[Rep[B]], Elem[B]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[MT2[A, B]], Seq[Rep[C]], Elem[C]) forSome {type A; type B; type C}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

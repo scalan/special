@@ -93,14 +93,15 @@ class FunctionTests extends BaseCtxTests {
   }
 
   test("Alpha-equivalence can be turned off") {
-    class Ctx(override val useAlphaEquality: Boolean) extends TestContext(s"alphaEquivalence=$useAlphaEquality") {
+    class Ctx(alphaEquality: Boolean) extends TestContext(s"alphaEquivalence=$alphaEquality") {
+      this.useAlphaEquality = alphaEquality
       lazy val idInt1 = fun[Int, Int] { x => x }
       lazy val idInt2 = fun[Int, Int] { y => y }
       lazy val f3_1 = fun { x: Rep[Int] => x + 1 }
       lazy val f3_2 = fun { y: Rep[Int] => y + 1 }
     }
 
-    val ctx = new Ctx(useAlphaEquality = false)
+    val ctx = new Ctx(alphaEquality = false)
     import ctx._
     idInt1 shouldBe idInt1
     (idInt1 == idInt2) shouldBe false

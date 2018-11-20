@@ -33,7 +33,7 @@ object ColOverArray extends EntityObject("ColOverArray") {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
 
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -41,14 +41,14 @@ object ColOverArray extends EntityObject("ColOverArray") {
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
 
     override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, element[Col[A]]))
+        true, isAdapterCall = false, element[Col[A]]))
     }
   }
   // elem for concrete class
@@ -346,7 +346,7 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
-        true, element[Col[T]]))
+        true, isAdapterCall = false, element[Col[T]]))
     }
 
     override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
@@ -354,7 +354,7 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
-        true, element[Col[T]]))
+        true, isAdapterCall = false, element[Col[T]]))
     }
 
     override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
@@ -362,14 +362,14 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       asRep[Col[T]](mkMethodCall(self,
         replicateMethod,
         List(n, v),
-        true, element[Col[T]]))
+        true, isAdapterCall = false, element[Col[T]]))
     }
 
     override def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(self,
         thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
-        true, element[Col[Byte]]))
+        true, isAdapterCall = false, element[Col[Byte]]))
     }
   }
   // elem for concrete class
@@ -550,7 +550,7 @@ implicit lazy val eR = rs.eA
       asRep[(L, R)](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, element[(L, R)]))
+        true, isAdapterCall = false, element[(L, R)]))
     }
 
     override def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
@@ -558,14 +558,14 @@ implicit lazy val eR = rs.eA
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
 
     override def sum(m: Rep[Monoid[(L, R)]]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(self,
         thisClass.getMethod("sum", classOf[Sym]),
         List(m),
-        true, element[(L, R)]))
+        true, isAdapterCall = false, element[(L, R)]))
     }
   }
   // elem for concrete class
@@ -886,14 +886,14 @@ object CReplCol extends EntityObject("CReplCol") {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
 
     override def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, element[Unit]))
+        true, isAdapterCall = false, element[Unit]))
     }
 
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -901,14 +901,14 @@ object CReplCol extends EntityObject("CReplCol") {
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
 
     override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, element[Col[A]]))
+        true, isAdapterCall = false, element[Col[A]]))
     }
   }
   // elem for concrete class

@@ -32,35 +32,35 @@ object Segment extends EntityObject("Segment") {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("start"),
         List(),
-        true, element[Int]))
+        true, false, element[Int]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("length"),
         List(),
-        true, element[Int]))
+        true, false, element[Int]))
     }
 
     def end: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("end"),
         List(),
-        true, element[Int]))
+        true, false, element[Int]))
     }
 
     def shift(ofs: Rep[Int]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
         thisClass.getMethod("shift", classOf[Sym]),
         List(ofs),
-        true, element[Segment]))
+        true, false, element[Segment]))
     }
 
     def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
         thisClass.getMethod("attach", classOf[Sym]),
         List(seg),
-        true, element[Segment]))
+        true, false, element[Segment]))
     }
   }
 
@@ -88,35 +88,35 @@ object Segment extends EntityObject("Segment") {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("start"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("length"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def end: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("end"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def shift(ofs: Rep[Int]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(source,
         thisClass.getMethod("shift", classOf[Sym]),
         List(ofs),
-        true, element[Segment]))
+        true, true, element[Segment]))
     }
 
     def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(source,
         thisClass.getMethod("attach", classOf[Sym]),
         List(seg),
-        true, element[Segment]))
+        true, true, element[Segment]))
     }
   }
 
@@ -260,7 +260,7 @@ object Interval extends EntityObject("Interval") {
       asRep[Segment](mkMethodCall(self,
         thisClass.getMethod("attach", classOf[Sym]),
         List(seg),
-        true, element[Segment]))
+        true, false, element[Segment]))
     }
   }
   // elem for concrete class

@@ -39,28 +39,28 @@ object Costed extends EntityObject("Costed") {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Val] = {
       asRep[Val](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[Val]))
+        true, true, element[Val]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
   }
 
@@ -186,28 +186,28 @@ object CostedPrim extends EntityObject("CostedPrim") {
       asRep[Val](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[Val]))
+        true, true, element[Val]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
   }
 
@@ -325,42 +325,42 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[Costed[L]](mkMethodCall(source,
         thisClass.getMethod("l"),
         List(),
-        true, element[Costed[L]]))
+        true, true, element[Costed[L]]))
     }
 
     def r: Rep[Costed[R]] = {
       asRep[Costed[R]](mkMethodCall(source,
         thisClass.getMethod("r"),
         List(),
-        true, element[Costed[R]]))
+        true, true, element[Costed[R]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def value: Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[(L, R)]))
+        true, true, element[(L, R)]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
   }
 
@@ -467,42 +467,42 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[WEither[L, R]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[WEither[L, R]]))
+        true, true, element[WEither[L, R]]))
     }
 
     def left: Rep[Costed[Unit]] = {
       asRep[Costed[Unit]](mkMethodCall(source,
         thisClass.getMethod("left"),
         List(),
-        true, element[Costed[Unit]]))
+        true, true, element[Costed[Unit]]))
     }
 
     def right: Rep[Costed[Unit]] = {
       asRep[Costed[Unit]](mkMethodCall(source,
         thisClass.getMethod("right"),
         List(),
-        true, element[Costed[Unit]]))
+        true, true, element[Costed[Unit]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
   }
 
@@ -623,42 +623,42 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
       asRep[Costed[Env]](mkMethodCall(source,
         thisClass.getMethod("envCosted"),
         List(),
-        true, element[Costed[Env]]))
+        true, true, element[Costed[Env]]))
     }
 
     def func: Rep[Costed[Arg] => Costed[Res]] = {
       asRep[Costed[Arg] => Costed[Res]](mkMethodCall(source,
         thisClass.getMethod("func"),
         List(),
-        true, element[Costed[Arg] => Costed[Res]]))
+        true, true, element[Costed[Arg] => Costed[Res]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[Arg => Res]))
+        true, true, element[Arg => Res]))
     }
   }
 
@@ -792,28 +792,28 @@ object CostedCol extends EntityObject("CostedCol") {
       asRep[Col[Item]](mkMethodCall(source,
         thisClass.getMethod("values"),
         List(),
-        true, element[Col[Item]]))
+        true, true, element[Col[Item]]))
     }
 
     def costs: Rep[Col[Int]] = {
       asRep[Col[Int]](mkMethodCall(source,
         thisClass.getMethod("costs"),
         List(),
-        true, element[Col[Int]]))
+        true, true, element[Col[Int]]))
     }
 
     def sizes: Rep[Col[Long]] = {
       asRep[Col[Long]](mkMethodCall(source,
         thisClass.getMethod("sizes"),
         List(),
-        true, element[Col[Long]]))
+        true, true, element[Col[Long]]))
     }
 
     def valuesCost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("valuesCost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def mapCosted[Res](f: Rep[Costed[Item] => Costed[Res]]): Rep[CostedCol[Res]] = {
@@ -821,14 +821,14 @@ object CostedCol extends EntityObject("CostedCol") {
       asRep[CostedCol[Res]](mkMethodCall(source,
         thisClass.getMethod("mapCosted", classOf[Sym]),
         List(f),
-        true, element[CostedCol[Res]]))
+        true, true, element[CostedCol[Res]]))
     }
 
     def filterCosted(f: Rep[Costed[Item] => Costed[Boolean]]): Rep[CostedCol[Item]] = {
       asRep[CostedCol[Item]](mkMethodCall(source,
         thisClass.getMethod("filterCosted", classOf[Sym]),
         List(f),
-        true, element[CostedCol[Item]]))
+        true, true, element[CostedCol[Item]]))
     }
 
     def foldCosted[B](zero: Rep[Costed[B]], op: Rep[Costed[(B, Item)] => Costed[B]]): Rep[Costed[B]] = {
@@ -836,35 +836,35 @@ object CostedCol extends EntityObject("CostedCol") {
       asRep[Costed[B]](mkMethodCall(source,
         thisClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[Costed[B]]))
+        true, true, element[Costed[B]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Col[Item]] = {
       asRep[Col[Item]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[Col[Item]]))
+        true, true, element[Col[Item]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
   }
 
@@ -1034,42 +1034,42 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[Costed[Col[L]]](mkMethodCall(source,
         thisClass.getMethod("ls"),
         List(),
-        true, element[Costed[Col[L]]]))
+        true, true, element[Costed[Col[L]]]))
     }
 
     def rs: Rep[Costed[Col[R]]] = {
       asRep[Costed[Col[R]]](mkMethodCall(source,
         thisClass.getMethod("rs"),
         List(),
-        true, element[Costed[Col[R]]]))
+        true, true, element[Costed[Col[R]]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Col[(L, R)]] = {
       asRep[Col[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[Col[(L, R)]]))
+        true, true, element[Col[(L, R)]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
   }
 
@@ -1175,35 +1175,35 @@ object CostedNestedCol extends EntityObject("CostedNestedCol") {
       asRep[Col[Costed[Col[Item]]]](mkMethodCall(source,
         thisClass.getMethod("rows"),
         List(),
-        true, element[Col[Costed[Col[Item]]]]))
+        true, true, element[Col[Costed[Col[Item]]]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Col[Col[Item]]] = {
       asRep[Col[Col[Item]]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[Col[Col[Item]]]))
+        true, true, element[Col[Col[Item]]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
   }
 
@@ -1294,14 +1294,14 @@ object CostedOption extends EntityObject("CostedOption") {
       asRep[Costed[T]](mkMethodCall(source,
         thisClass.getMethod("get"),
         List(),
-        true, element[Costed[T]]))
+        true, true, element[Costed[T]]))
     }
 
     def getOrElse(default: Rep[Costed[T]]): Rep[Costed[T]] = {
       asRep[Costed[T]](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
-        true, element[Costed[T]]))
+        true, true, element[Costed[T]]))
     }
 
     def fold[B](ifEmpty: Rep[Costed[B]], f: Rep[Costed[T => B]]): Rep[Costed[B]] = {
@@ -1309,28 +1309,28 @@ object CostedOption extends EntityObject("CostedOption") {
       asRep[Costed[B]](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, element[Costed[B]]))
+        true, true, element[Costed[B]]))
     }
 
     def isEmpty: Rep[Costed[Boolean]] = {
       asRep[Costed[Boolean]](mkMethodCall(source,
         thisClass.getMethod("isEmpty"),
         List(),
-        true, element[Costed[Boolean]]))
+        true, true, element[Costed[Boolean]]))
     }
 
     def isDefined: Rep[Costed[Boolean]] = {
       asRep[Costed[Boolean]](mkMethodCall(source,
         thisClass.getMethod("isDefined"),
         List(),
-        true, element[Costed[Boolean]]))
+        true, true, element[Costed[Boolean]]))
     }
 
     def filter(p: Rep[Costed[T => Boolean]]): Rep[Costed[WOption[T]]] = {
       asRep[Costed[WOption[T]]](mkMethodCall(source,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Costed[WOption[T]]]))
+        true, true, element[Costed[WOption[T]]]))
     }
 
     def flatMap[B](f: Rep[Costed[T => WOption[B]]]): Rep[Costed[WOption[B]]] = {
@@ -1338,7 +1338,7 @@ object CostedOption extends EntityObject("CostedOption") {
       asRep[Costed[WOption[B]]](mkMethodCall(source,
         thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, true, element[Costed[WOption[B]]]))
     }
 
     def map[B](f: Rep[Costed[T => B]]): Rep[Costed[WOption[B]]] = {
@@ -1346,35 +1346,35 @@ object CostedOption extends EntityObject("CostedOption") {
       asRep[Costed[WOption[B]]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Costed[WOption[B]]]))
+        true, true, element[Costed[WOption[B]]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[CostedBuilder]))
+        true, true, element[CostedBuilder]))
     }
 
     def value: Rep[WOption[T]] = {
       asRep[WOption[T]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[WOption[T]]))
+        true, true, element[WOption[T]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, true, element[Long]))
     }
   }
 
@@ -1552,7 +1552,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
       asRep[Costed[T]](mkMethodCall(source,
         thisClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
         List(x, optCost),
-        true, element[Costed[T]]))
+        true, true, element[Costed[T]]))
     }
 
     def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = {
@@ -1560,14 +1560,14 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
       asRep[T](mkMethodCall(source,
         thisClass.getMethod("defaultValue", classOf[Sym]),
         List(valueType),
-        true, element[T]))
+        true, true, element[T]))
     }
 
     def monoidBuilder: Rep[MonoidBuilder] = {
       asRep[MonoidBuilder](mkMethodCall(source,
         thisClass.getMethod("monoidBuilder"),
         List(),
-        true, element[MonoidBuilder]))
+        true, true, element[MonoidBuilder]))
     }
 
     def mkCostedPrim[T](value: Rep[T], cost: Rep[Int], size: Rep[Long]): Rep[CostedPrim[T]] = {
@@ -1575,7 +1575,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
       asRep[CostedPrim[T]](mkMethodCall(source,
         thisClass.getMethod("mkCostedPrim", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(value, cost, size),
-        true, element[CostedPrim[T]]))
+        true, true, element[CostedPrim[T]]))
     }
 
     def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]] = {
@@ -1584,7 +1584,7 @@ implicit val eR = second.eVal
       asRep[CostedPair[L, R]](mkMethodCall(source,
         thisClass.getMethod("mkCostedPair", classOf[Sym], classOf[Sym]),
         List(first, second),
-        true, element[CostedPair[L, R]]))
+        true, true, element[CostedPair[L, R]]))
     }
 
     def mkCostedSum[L, R](value: Rep[WEither[L, R]], left: Rep[Costed[Unit]], right: Rep[Costed[Unit]]): Rep[CostedSum[L, R]] = {
@@ -1593,7 +1593,7 @@ implicit val eR = value.eB
       asRep[CostedSum[L, R]](mkMethodCall(source,
         thisClass.getMethod("mkCostedSum", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(value, left, right),
-        true, element[CostedSum[L, R]]))
+        true, true, element[CostedSum[L, R]]))
     }
 
     def mkCostedFunc[Env, Arg, Res](envCosted: Rep[Costed[Env]], func: Rep[Costed[Arg] => Costed[Res]], cost: Rep[Int], dataSize: Rep[Long]): Rep[CostedFunc[Env, Arg, Res]] = {
@@ -1603,7 +1603,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
       asRep[CostedFunc[Env, Arg, Res]](mkMethodCall(source,
         thisClass.getMethod("mkCostedFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
         List(envCosted, func, cost, dataSize),
-        true, element[CostedFunc[Env, Arg, Res]]))
+        true, true, element[CostedFunc[Env, Arg, Res]]))
     }
 
     def mkCostedCol[T](values: Rep[Col[T]], costs: Rep[Col[Int]], sizes: Rep[Col[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]] = {
@@ -1611,7 +1611,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
       asRep[CostedCol[T]](mkMethodCall(source,
         thisClass.getMethod("mkCostedCol", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
         List(values, costs, sizes, valuesCost),
-        true, element[CostedCol[T]]))
+        true, true, element[CostedCol[T]]))
     }
 
     def mkCostedPairCol[L, R](ls: Rep[Costed[Col[L]]], rs: Rep[Costed[Col[R]]]): Rep[CostedPairCol[L, R]] = {
@@ -1620,7 +1620,7 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
       asRep[CostedPairCol[L, R]](mkMethodCall(source,
         thisClass.getMethod("mkCostedPairCol", classOf[Sym], classOf[Sym]),
         List(ls, rs),
-        true, element[CostedPairCol[L, R]]))
+        true, true, element[CostedPairCol[L, R]]))
     }
 
     def mkCostedNestedCol[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CostedNestedCol[Item]] = {
@@ -1628,7 +1628,7 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
       asRep[CostedNestedCol[Item]](mkMethodCall(source,
         thisClass.getMethod("mkCostedNestedCol", classOf[Sym]),
         List(rows),
-        true, element[CostedNestedCol[Item]]))
+        true, true, element[CostedNestedCol[Item]]))
     }
 
     def mkCostedSome[T](costedValue: Rep[Costed[T]]): Rep[CostedOption[T]] = {
@@ -1636,14 +1636,14 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
       asRep[CostedOption[T]](mkMethodCall(source,
         thisClass.getMethod("mkCostedSome", classOf[Sym]),
         List(costedValue),
-        true, element[CostedOption[T]]))
+        true, true, element[CostedOption[T]]))
     }
 
     def mkCostedNone[T](cost: Rep[Int])(implicit eT: Elem[T]): Rep[CostedOption[T]] = {
       asRep[CostedOption[T]](mkMethodCall(source,
         thisClass.getMethod("mkCostedNone", classOf[Sym], classOf[Elem[_]]),
         List(cost, eT),
-        true, element[CostedOption[T]]))
+        true, true, element[CostedOption[T]]))
     }
 
     def mkCostedOption[T](value: Rep[WOption[T]], none: Rep[Costed[Unit]], some: Rep[Costed[Unit]]): Rep[CostedOption[T]] = {
@@ -1651,7 +1651,7 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
       asRep[CostedOption[T]](mkMethodCall(source,
         thisClass.getMethod("mkCostedOption", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(value, none, some),
-        true, element[CostedOption[T]]))
+        true, true, element[CostedOption[T]]))
     }
   }
 

@@ -13,15 +13,15 @@ trait ViewsDefs extends Views {
   self: ViewsModule with Scalan =>
 import IsoUR._
 import Converter._
-import Iso1UR._
-import IdentityIso._
-import PairIso._
 import AbsorbFirstUnitIso._
 import AbsorbSecondUnitIso._
-import SumIso._
 import ComposeIso._
-import FuncIso._
 import ConverterIso._
+import FuncIso._
+import IdentityIso._
+import Iso1UR._
+import PairIso._
+import SumIso._
 import ThunkIso._
 
 object IsoUR extends EntityObject("IsoUR") {
@@ -37,14 +37,14 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
       asRep[From](mkMethodCall(source,
         thisClass.getMethod("from", classOf[Sym]),
         List(p),
-        true, element[From]))
+        true, true, element[From]))
     }
 
     def to(p: Rep[From]): Rep[To] = {
       asRep[To](mkMethodCall(source,
         thisClass.getMethod("to", classOf[Sym]),
         List(p),
-        true, element[To]))
+        true, true, element[To]))
     }
   }
 
@@ -150,21 +150,21 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
       asRep[IsoUR[A, B]](mkMethodCall(source,
         thisClass.getMethod("innerIso"),
         List(),
-        true, element[IsoUR[A, B]]))
+        true, true, element[IsoUR[A, B]]))
     }
 
     def from(p: Rep[C[B]]): Rep[C[A]] = {
       asRep[C[A]](mkMethodCall(source,
         thisClass.getMethod("from", classOf[Sym]),
         List(p),
-        true, element[C[A]]))
+        true, true, element[C[A]]))
     }
 
     def to(p: Rep[C[A]]): Rep[C[B]] = {
       asRep[C[B]](mkMethodCall(source,
         thisClass.getMethod("to", classOf[Sym]),
         List(p),
-        true, element[C[B]]))
+        true, true, element[C[B]]))
     }
   }
 

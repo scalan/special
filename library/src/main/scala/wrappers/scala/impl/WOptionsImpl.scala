@@ -36,28 +36,28 @@ object WOption extends EntityObject("WOption") {
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         thisClass.getMethod("isEmpty"),
         List(),
-        true, element[Boolean]))
+        true, isAdapterCall = false, element[Boolean]))
     }
 
     def isDefined: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         thisClass.getMethod("isDefined"),
         List(),
-        true, element[Boolean]))
+        true, isAdapterCall = false, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[WOption[A]]))
+        true, isAdapterCall = false, element[WOption[A]]))
     }
 
     def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
@@ -65,7 +65,7 @@ object WOption extends EntityObject("WOption") {
       asRep[WOption[B]](mkMethodCall(self,
         thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, element[WOption[B]]))
+        true, isAdapterCall = false, element[WOption[B]]))
     }
 
     def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
@@ -73,7 +73,7 @@ object WOption extends EntityObject("WOption") {
       asRep[WOption[B]](mkMethodCall(self,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[WOption[B]]))
+        true, isAdapterCall = false, element[WOption[B]]))
     }
 
     def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
@@ -81,14 +81,14 @@ object WOption extends EntityObject("WOption") {
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
 
     def get: Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("get"),
         List(),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
   }
 
@@ -122,28 +122,28 @@ object WOption extends EntityObject("WOption") {
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, element[B]))
+        true, isAdapterCall = true, element[B]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("isEmpty"),
         List(),
-        true, element[Boolean]))
+        true, isAdapterCall = true, element[Boolean]))
     }
 
     def isDefined: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("isDefined"),
         List(),
-        true, element[Boolean]))
+        true, isAdapterCall = true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(source,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[WOption[A]]))
+        true, isAdapterCall = true, element[WOption[A]]))
     }
 
     def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
@@ -151,7 +151,7 @@ object WOption extends EntityObject("WOption") {
       asRep[WOption[B]](mkMethodCall(source,
         thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, element[WOption[B]]))
+        true, isAdapterCall = true, element[WOption[B]]))
     }
 
     def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
@@ -159,7 +159,7 @@ object WOption extends EntityObject("WOption") {
       asRep[WOption[B]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[WOption[B]]))
+        true, isAdapterCall = true, element[WOption[B]]))
     }
 
     def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
@@ -167,14 +167,14 @@ object WOption extends EntityObject("WOption") {
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
-        true, element[B]))
+        true, isAdapterCall = true, element[B]))
     }
 
     def get: Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("get"),
         List(),
-        true, element[A]))
+        true, isAdapterCall = true, element[A]))
     }
   }
 

@@ -32,21 +32,21 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
       asRep[T => R](mkMethodCall(source,
         thisClass.getMethod("func"),
         List(),
-        true, element[T => R]))
+        true, true, element[T => R]))
     }
 
     def metric: Rep[T => M] = {
       asRep[T => M](mkMethodCall(source,
         thisClass.getMethod("metric"),
         List(),
-        true, element[T => M]))
+        true, true, element[T => M]))
     }
 
     def apply(x: Rep[T]): Rep[R] = {
       asRep[R](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(x),
-        true, element[R]))
+        true, true, element[R]))
     }
   }
 

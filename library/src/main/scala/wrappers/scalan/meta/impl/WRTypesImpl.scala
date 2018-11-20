@@ -37,7 +37,7 @@ object WRType extends EntityObject("WRType") {
       asRep[String](mkMethodCall(self,
         thisClass.getMethod("name"),
         List(),
-        true, element[String]))
+        true, isAdapterCall = false, element[String]))
     }
   }
 
@@ -70,7 +70,7 @@ object WRType extends EntityObject("WRType") {
       asRep[String](mkMethodCall(source,
         thisClass.getMethod("name"),
         List(),
-        true, element[String]))
+        true, isAdapterCall = true, element[String]))
     }
   }
 

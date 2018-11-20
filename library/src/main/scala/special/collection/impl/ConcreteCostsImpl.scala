@@ -346,14 +346,14 @@ implicit lazy val eR = value.eB
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, isAdapterCall = false, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, isAdapterCall = false, element[Long]))
     }
   }
   // elem for concrete class
@@ -520,7 +520,7 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
       asRep[Arg => Res](mkMethodCall(self,
         thisClass.getMethod("value"),
         List(),
-        true, element[Arg => Res]))
+        true, isAdapterCall = false, element[Arg => Res]))
     }
   }
   // elem for concrete class
@@ -678,14 +678,14 @@ object CCostedCol extends EntityObject("CCostedCol") {
       asRep[CostedCol[Res]](mkMethodCall(self,
         thisClass.getMethod("mapCosted", classOf[Sym]),
         List(f),
-        true, element[CostedCol[Res]]))
+        true, isAdapterCall = false, element[CostedCol[Res]]))
     }
 
     override def filterCosted(f: Rep[Costed[Item] => Costed[Boolean]]): Rep[CostedCol[Item]] = {
       asRep[CostedCol[Item]](mkMethodCall(self,
         thisClass.getMethod("filterCosted", classOf[Sym]),
         List(f),
-        true, element[CostedCol[Item]]))
+        true, isAdapterCall = false, element[CostedCol[Item]]))
     }
 
     override def foldCosted[B](zero: Rep[Costed[B]], op: Rep[Costed[(B, Item)] => Costed[B]]): Rep[Costed[B]] = {
@@ -693,7 +693,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
       asRep[Costed[B]](mkMethodCall(self,
         thisClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[Costed[B]]))
+        true, isAdapterCall = false, element[Costed[B]]))
     }
   }
   // elem for concrete class
@@ -1074,21 +1074,21 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
       asRep[Col[Col[Item]]](mkMethodCall(self,
         thisClass.getMethod("value"),
         List(),
-        true, element[Col[Col[Item]]]))
+        true, isAdapterCall = false, element[Col[Col[Item]]]))
     }
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
         List(),
-        true, element[Int]))
+        true, isAdapterCall = false, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         List(),
-        true, element[Long]))
+        true, isAdapterCall = false, element[Long]))
     }
   }
   // elem for concrete class
@@ -1253,7 +1253,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       asRep[Costed[T]](mkMethodCall(self,
         thisClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
         List(x, optCost),
-        true, element[Costed[T]]))
+        true, isAdapterCall = false, element[Costed[T]]))
     }
 
     override def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = {
@@ -1261,7 +1261,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       asRep[T](mkMethodCall(self,
         thisClass.getMethod("defaultValue", classOf[Sym]),
         List(valueType),
-        true, element[T]))
+        true, isAdapterCall = false, element[T]))
     }
   }
   // elem for concrete class

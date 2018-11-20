@@ -22,7 +22,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     (externalConstrs, externalMethods)
   }
 
-  def externalMethod(receiverName: String, method: SMethodDef) = {
+  def externalMethod(receiverName: String, method: SMethodDef, isAdapter: Boolean) = {
     val md = optimizeMethodImplicits(method)
     def msgExplicitRetType = s"Method ${method.name} should be declared with explicit type of returning value (result type): $method"
     def msgRepRetType = s"Invalid method $md. External methods should have return type of type Rep[T] for some T."
@@ -56,7 +56,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |      asRep[$unreppedReturnType](mkMethodCall($receiverName,
       |        thisClass.getMethod("${md.name}"$finalArgClasses),
       |        List($finalArgs),
-      |        true, element[$unreppedReturnType]))
+      |        true, $isAdapter, element[$unreppedReturnType]))
       |    }
       |""".stripMargin
   }
@@ -130,7 +130,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    val selfType: Elem[$EName$tyUse] = liftable.eW
       |    ${methods.opt(_ => s"private val thisClass = classOf[$EName$tyUse]")}
       |${methods.rep({ m =>
-         s"""|    ${externalMethod("self", m)}""".stripAndTrim
+         s"""|    ${externalMethod("self", m, isAdapter = false)}""".stripAndTrim
        },"\n")}
       |  }
       |
@@ -184,7 +184,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    ${b.extractableImplicits(inClassBody = true) }
       |    val selfType: Elem[${e.typeUse}] = element[${e.typeUse}]
       |    ${methods.opt(_ => s"private val thisClass = classOf[${e.typeUse}]")}
-      |    ${methods.rep({ m => s"""|    ${externalMethod("source", m)}""".stripAndTrim },"\n")}
+      |    ${methods.rep({ m => s"""|    ${externalMethod("source", m, isAdapter = true)}""".stripAndTrim },"\n")}
       |  }
       |""".stripAndTrim
   }
@@ -453,7 +453,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val hasCompanion = entityCompOpt.isDefined
     val companionMethods = getCompanionMethods(e).opt { case (constrs, methods) =>
       constrs.rep(md => externalConstructor(e, md), "\n    ") +
-        methods.rep(md => externalMethod("self", md), "\n    ")
+        methods.rep(md => externalMethod("self", md, isAdapter = false), "\n    ")
     }
     val entityName = e.name
     val companionExpString =
@@ -598,7 +598,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    ${elemDefs}
         |    lazy val selfType = element[${c.typeUse }]
         |    ${methods.opt(_ => s"private val thisClass = classOf[${c.typeUse }]")}
-        |    ${ methods.rep({ m => externalMethod("self", m) }, "\n") }
+        |    ${ methods.rep({ m => externalMethod("self", m, isAdapter = false) }, "\n") }
         |  }
         |  // elem for concrete class
         |  class $elemTypeDecl(val iso: Iso[$dataTpe, ${c.typeUse}])${c.implicitArgsDeclConcreteElem}

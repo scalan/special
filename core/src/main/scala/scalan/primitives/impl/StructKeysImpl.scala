@@ -10,9 +10,9 @@ trait StructKeysDefs extends StructKeys {
   self: Structs with Scalan =>
 import IsoUR._
 import Converter._
-import StructKey._
 import IndexStructKey._
 import NameStructKey._
+import StructKey._
 
 object StructKey extends EntityObject("StructKey") {
   // entityAdapter for StructKey trait
@@ -26,14 +26,14 @@ object StructKey extends EntityObject("StructKey") {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("index"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def name: Rep[String] = {
       asRep[String](mkMethodCall(source,
         thisClass.getMethod("name"),
         List(),
-        true, element[String]))
+        true, true, element[String]))
     }
   }
 

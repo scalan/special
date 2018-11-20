@@ -75,7 +75,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("optionGetOrElse", classOf[Sym], classOf[Sym]),
         List(opt, default),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
 
     def right[A, B](b: Rep[B])(implicit emA: Elem[A]): Rep[WEither[A, B]] = {
@@ -83,7 +83,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       asRep[WEither[A, B]](mkMethodCall(self,
         thisClass.getMethod("right", classOf[Sym], classOf[Elem[_]]),
         List(b, emA),
-        true, element[WEither[A, B]]))
+        true, isAdapterCall = false, element[WEither[A, B]]))
     }
 
     def left[A, B](a: Rep[A])(implicit emB: Elem[B]): Rep[WEither[A, B]] = {
@@ -91,14 +91,14 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       asRep[WEither[A, B]](mkMethodCall(self,
         thisClass.getMethod("left", classOf[Sym], classOf[Elem[_]]),
         List(a, emB),
-        true, element[WEither[A, B]]))
+        true, isAdapterCall = false, element[WEither[A, B]]))
     }
 
     def none[A](implicit emA: Elem[A]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
         thisClass.getMethod("none", classOf[Elem[_]]),
         List(emA),
-        true, element[WOption[A]]))
+        true, isAdapterCall = false, element[WOption[A]]))
     }
 
     def some[A](x: Rep[A]): Rep[WOption[A]] = {
@@ -106,7 +106,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       asRep[WOption[A]](mkMethodCall(self,
         thisClass.getMethod("some", classOf[Sym]),
         List(x),
-        true, element[WOption[A]]))
+        true, isAdapterCall = false, element[WOption[A]]))
     }
 
     def eitherMap[A, B, C, D](e: Rep[WEither[A, B]], fa: Rep[A => C], fb: Rep[B => D]): Rep[WEither[C, D]] = {
@@ -117,14 +117,14 @@ implicit val eD = fb.elem.eRange
       asRep[WEither[C, D]](mkMethodCall(self,
         thisClass.getMethod("eitherMap", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(e, fa, fb),
-        true, element[WEither[C, D]]))
+        true, isAdapterCall = false, element[WEither[C, D]]))
     }
 
     def cast[T](v: Rep[Any])(implicit emT: Elem[T]): Rep[WOption[T]] = {
       asRep[WOption[T]](mkMethodCall(self,
         thisClass.getMethod("cast", classOf[Sym], classOf[Elem[_]]),
         List(v, emT),
-        true, element[WOption[T]]))
+        true, isAdapterCall = false, element[WOption[T]]))
     }
 
     def loopUntil[A](s1: Rep[A], isMatch: Rep[A => Boolean], step: Rep[A => A]): Rep[A] = {
@@ -132,7 +132,7 @@ implicit val eD = fb.elem.eRange
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("loopUntil", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(s1, isMatch, step),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
   }
 

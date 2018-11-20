@@ -216,7 +216,7 @@ trait TypeSum extends Base { self: Scalan =>
     case call@MethodCall(Def(foldD@SumFold(sum, left, right)), m, args, neverInvoke) => {
       implicit val resultElem: Elem[T] = d.selfType
       def copyMethodCall(newReceiver: Sym) =
-        mkMethodCall(newReceiver, m, args, neverInvoke, resultElem).asRep[T]
+        mkMethodCall(newReceiver, m, args, neverInvoke, isAdapterCall = false, resultElem).asRep[T]
 
       sum.fold(
         a => copyMethodCall(left(a)),
@@ -256,7 +256,7 @@ trait TypeSum extends Base { self: Scalan =>
           LambdaResultHasViews(left, iso1: Iso[a, c]),
           LambdaResultHasViews(right, iso2: Iso[_, _]))), m, args, neverInvoke) if iso1 == iso2 =>
       val newFold = liftFromSumFold(foldD.sum, foldD.left, foldD.right, iso1.asIso[a,Any])
-      mkMethodCall(newFold, m, args, neverInvoke, call.selfType)
+      mkMethodCall(newFold, m, args, neverInvoke, isAdapterCall = false, call.selfType)
 
     case _ => super.rewriteViews(d)
   }

@@ -37,7 +37,7 @@ object WEither extends EntityObject("WEither") {
       asRep[C](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
-        true, element[C]))
+        true, isAdapterCall = false, element[C]))
     }
   }
 
@@ -73,7 +73,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
       asRep[C](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
-        true, element[C]))
+        true, isAdapterCall = false, element[C]))
     }
   }
 
@@ -144,7 +144,7 @@ implicit val eB = right.elem.eItem
       asRep[WEither[A, B]](mkMethodCall(self,
         thisClass.getMethod("cond", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(test, right, left),
-        true, element[WEither[A, B]]))
+        true, isAdapterCall = false, element[WEither[A, B]]))
     }
   }
 

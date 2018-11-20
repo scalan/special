@@ -96,7 +96,7 @@ implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(xs, zero, op),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
   }
   // elem for concrete class
@@ -353,7 +353,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(xs, default),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
 
     override def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
@@ -362,7 +362,7 @@ implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(xs, ifEmpty, f),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
   }
   // elem for concrete class

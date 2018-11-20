@@ -13,9 +13,9 @@ trait StructItemsDefs extends StructItems {
   self: Structs with Scalan =>
 import IsoUR._
 import Converter._
-import StructKey._
 import StructItem._
 import StructItemBase._
+import StructKey._
 
 object StructItem extends EntityObject("StructItem") {
   // entityAdapter for StructItem trait
@@ -30,14 +30,14 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
       asRep[StructKey[Schema]](mkMethodCall(source,
         thisClass.getMethod("key"),
         List(),
-        true, element[StructKey[Schema]]))
+        true, true, element[StructKey[Schema]]))
     }
 
     def value: Rep[Val] = {
       asRep[Val](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[Val]))
+        true, true, element[Val]))
     }
   }
 

@@ -25,21 +25,21 @@ object Monoid extends EntityObject("Monoid") {
       asRep[T](mkMethodCall(source,
         thisClass.getMethod("zero"),
         List(),
-        true, element[T]))
+        true, true, element[T]))
     }
 
     def plus(x: Rep[T], y: Rep[T]): Rep[T] = {
       asRep[T](mkMethodCall(source,
         thisClass.getMethod("plus", classOf[Sym], classOf[Sym]),
         List(x, y),
-        true, element[T]))
+        true, true, element[T]))
     }
 
     def power(x: Rep[T], n: Rep[Int]): Rep[T] = {
       asRep[T](mkMethodCall(source,
         thisClass.getMethod("power", classOf[Sym], classOf[Sym]),
         List(x, n),
-        true, element[T]))
+        true, true, element[T]))
     }
   }
 
@@ -151,14 +151,14 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
       asRep[Monoid[Int]](mkMethodCall(source,
         thisClass.getMethod("intPlusMonoid"),
         List(),
-        true, element[Monoid[Int]]))
+        true, true, element[Monoid[Int]]))
     }
 
     def longPlusMonoid: Rep[Monoid[Long]] = {
       asRep[Monoid[Long]](mkMethodCall(source,
         thisClass.getMethod("longPlusMonoid"),
         List(),
-        true, element[Monoid[Long]]))
+        true, true, element[Monoid[Long]]))
     }
   }
 

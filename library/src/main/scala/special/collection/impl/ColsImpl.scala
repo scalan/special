@@ -34,35 +34,35 @@ object Col extends EntityObject("Col") {
       asRep[ColBuilder](mkMethodCall(self,
         thisClass.getMethod("builder"),
         List(),
-        true, element[ColBuilder]))
+        true, isAdapterCall = false, element[ColBuilder]))
     }
 
     def arr: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(self,
         thisClass.getMethod("arr"),
         List(),
-        true, element[WArray[A]]))
+        true, isAdapterCall = false, element[WArray[A]]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("length"),
         List(),
-        true, element[Int]))
+        true, isAdapterCall = false, element[Int]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
 
     def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
 
     def map[B](f: Rep[A => B]): Rep[Col[B]] = {
@@ -70,7 +70,7 @@ object Col extends EntityObject("Col") {
       asRep[Col[B]](mkMethodCall(self,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Col[B]]))
+        true, isAdapterCall = false, element[Col[B]]))
     }
 
     def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
@@ -78,35 +78,35 @@ object Col extends EntityObject("Col") {
       asRep[PairCol[A, B]](mkMethodCall(self,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, element[PairCol[A, B]]))
+        true, isAdapterCall = false, element[PairCol[A, B]]))
     }
 
     def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, element[Unit]))
+        true, isAdapterCall = false, element[Unit]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         thisClass.getMethod("exists", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, isAdapterCall = false, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         thisClass.getMethod("forall", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, isAdapterCall = false, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Col[A]]))
+        true, isAdapterCall = false, element[Col[A]]))
     }
 
     def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -114,28 +114,28 @@ object Col extends EntityObject("Col") {
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[B]))
+        true, isAdapterCall = false, element[B]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("sum", classOf[Sym]),
         List(m),
-        true, element[A]))
+        true, isAdapterCall = false, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
-        true, element[Col[A]]))
+        true, isAdapterCall = false, element[Col[A]]))
     }
 
     def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, element[Col[A]]))
+        true, isAdapterCall = false, element[Col[A]]))
     }
   }
 
@@ -167,35 +167,35 @@ object Col extends EntityObject("Col") {
       asRep[ColBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[ColBuilder]))
+        true, true, element[ColBuilder]))
     }
 
     def arr: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(source,
         thisClass.getMethod("arr"),
         List(),
-        true, element[WArray[A]]))
+        true, true, element[WArray[A]]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("length"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
-        true, element[A]))
+        true, true, element[A]))
     }
 
     def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, element[A]))
+        true, true, element[A]))
     }
 
     def map[B](f: Rep[A => B]): Rep[Col[B]] = {
@@ -203,7 +203,7 @@ object Col extends EntityObject("Col") {
       asRep[Col[B]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Col[B]]))
+        true, true, element[Col[B]]))
     }
 
     def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
@@ -211,35 +211,35 @@ object Col extends EntityObject("Col") {
       asRep[PairCol[A, B]](mkMethodCall(source,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, element[PairCol[A, B]]))
+        true, true, element[PairCol[A, B]]))
     }
 
     def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(source,
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, element[Unit]))
+        true, true, element[Unit]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("exists", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("forall", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(source,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Col[A]]))
+        true, true, element[Col[A]]))
     }
 
     def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -247,28 +247,28 @@ object Col extends EntityObject("Col") {
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[B]))
+        true, true, element[B]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("sum", classOf[Sym]),
         List(m),
-        true, element[A]))
+        true, true, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(source,
         thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
-        true, element[Col[A]]))
+        true, true, element[Col[A]]))
     }
 
     def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(source,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, element[Col[A]]))
+        true, true, element[Col[A]]))
     }
   }
 
@@ -323,7 +323,7 @@ object Col extends EntityObject("Col") {
     // manual fix
     override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
       case ColMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType)
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
         super.invokeUnlifted(newMC, dataEnv)
       case _ =>
         super.invokeUnlifted(mc, dataEnv)
@@ -660,49 +660,49 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[Col[L]](mkMethodCall(source,
         thisClass.getMethod("ls"),
         List(),
-        true, element[Col[L]]))
+        true, true, element[Col[L]]))
     }
 
     def rs: Rep[Col[R]] = {
       asRep[Col[R]](mkMethodCall(source,
         thisClass.getMethod("rs"),
         List(),
-        true, element[Col[R]]))
+        true, true, element[Col[R]]))
     }
 
     def builder: Rep[ColBuilder] = {
       asRep[ColBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[ColBuilder]))
+        true, true, element[ColBuilder]))
     }
 
     def arr: Rep[WArray[(L, R)]] = {
       asRep[WArray[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("arr"),
         List(),
-        true, element[WArray[(L, R)]]))
+        true, true, element[WArray[(L, R)]]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("length"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def apply(i: Rep[Int]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
-        true, element[(L, R)]))
+        true, true, element[(L, R)]))
     }
 
     def getOrElse(i: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, element[(L, R)]))
+        true, true, element[(L, R)]))
     }
 
     def map[B](f: Rep[((L, R)) => B]): Rep[Col[B]] = {
@@ -710,7 +710,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[Col[B]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Col[B]]))
+        true, true, element[Col[B]]))
     }
 
     def zip[B](ys: Rep[Col[B]]): Rep[PairCol[(L, R), B]] = {
@@ -718,35 +718,35 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[PairCol[(L, R), B]](mkMethodCall(source,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, element[PairCol[(L, R), B]]))
+        true, true, element[PairCol[(L, R), B]]))
     }
 
     def foreach(f: Rep[((L, R)) => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(source,
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, element[Unit]))
+        true, true, element[Unit]))
     }
 
     def exists(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("exists", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def forall(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("forall", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def filter(p: Rep[((L, R)) => Boolean]): Rep[Col[(L, R)]] = {
       asRep[Col[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Col[(L, R)]]))
+        true, true, element[Col[(L, R)]]))
     }
 
     def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
@@ -754,28 +754,28 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[B]))
+        true, true, element[B]))
     }
 
     def sum(m: Rep[Monoid[(L, R)]]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("sum", classOf[Sym]),
         List(m),
-        true, element[(L, R)]))
+        true, true, element[(L, R)]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[(L, R)]] = {
       asRep[Col[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
-        true, element[Col[(L, R)]]))
+        true, true, element[Col[(L, R)]]))
     }
 
     def append(other: Rep[Col[(L, R)]]): Rep[Col[(L, R)]] = {
       asRep[Col[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, element[Col[(L, R)]]))
+        true, true, element[Col[(L, R)]]))
     }
   }
 
@@ -877,42 +877,42 @@ object ReplCol extends EntityObject("ReplCol") {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, element[A]))
+        true, true, element[A]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("length"),
         List(),
-        true, element[Int]))
+        true, true, element[Int]))
     }
 
     def builder: Rep[ColBuilder] = {
       asRep[ColBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
         List(),
-        true, element[ColBuilder]))
+        true, true, element[ColBuilder]))
     }
 
     def arr: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(source,
         thisClass.getMethod("arr"),
         List(),
-        true, element[WArray[A]]))
+        true, true, element[WArray[A]]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
-        true, element[A]))
+        true, true, element[A]))
     }
 
     def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, element[A]))
+        true, true, element[A]))
     }
 
     def map[B](f: Rep[A => B]): Rep[Col[B]] = {
@@ -920,7 +920,7 @@ object ReplCol extends EntityObject("ReplCol") {
       asRep[Col[B]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, element[Col[B]]))
+        true, true, element[Col[B]]))
     }
 
     def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
@@ -928,35 +928,35 @@ object ReplCol extends EntityObject("ReplCol") {
       asRep[PairCol[A, B]](mkMethodCall(source,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, element[PairCol[A, B]]))
+        true, true, element[PairCol[A, B]]))
     }
 
     def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(source,
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, element[Unit]))
+        true, true, element[Unit]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("exists", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("forall", classOf[Sym]),
         List(p),
-        true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(source,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, element[Col[A]]))
+        true, true, element[Col[A]]))
     }
 
     def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -964,28 +964,28 @@ object ReplCol extends EntityObject("ReplCol") {
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, element[B]))
+        true, true, element[B]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("sum", classOf[Sym]),
         List(m),
-        true, element[A]))
+        true, true, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(source,
         thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
-        true, element[Col[A]]))
+        true, true, element[Col[A]]))
     }
 
     def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(source,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, element[Col[A]]))
+        true, true, element[Col[A]]))
     }
   }
 
@@ -1091,21 +1091,21 @@ implicit val eB = bs.eA
       asRep[PairCol[A, B]](mkMethodCall(self,
         thisClass.getMethod("pairCol", classOf[Sym], classOf[Sym]),
         List(as, bs),
-        true, element[PairCol[A, B]]))
+        true, isAdapterCall = false, element[PairCol[A, B]]))
     }
 
     def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
-        true, element[Col[T]]))
+        true, isAdapterCall = false, element[Col[T]]))
     }
 
     def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(self,
         thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
-        true, element[Col[Byte]]))
+        true, isAdapterCall = false, element[Col[Byte]]))
     }
 
     def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
@@ -1113,7 +1113,7 @@ implicit val eB = bs.eA
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
-        true, element[Col[T]]))
+        true, isAdapterCall = false, element[Col[T]]))
     }
 
     def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
@@ -1121,7 +1121,7 @@ implicit val eB = bs.eA
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
-        true, element[Col[T]]))
+        true, isAdapterCall = false, element[Col[T]]))
     }
   }
 
@@ -1151,21 +1151,21 @@ implicit val eB = bs.eA
       asRep[PairCol[A, B]](mkMethodCall(source,
         thisClass.getMethod("pairCol", classOf[Sym], classOf[Sym]),
         List(as, bs),
-        true, element[PairCol[A, B]]))
+        true, isAdapterCall = true, element[PairCol[A, B]]))
     }
 
     def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(source,
         thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
-        true, element[Col[T]]))
+        true, true, element[Col[T]]))
     }
 
     def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(source,
         thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
-        true, element[Col[Byte]]))
+        true, true, element[Col[Byte]]))
     }
 
     def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
@@ -1173,7 +1173,7 @@ implicit val eB = bs.eA
       asRep[Col[T]](mkMethodCall(source,
         thisClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
-        true, element[Col[T]]))
+        true, true, element[Col[T]]))
     }
 
     def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
@@ -1181,7 +1181,7 @@ implicit val eB = bs.eA
       asRep[Col[T]](mkMethodCall(source,
         thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
-        true, element[Col[T]]))
+        true, true, element[Col[T]]))
     }
   }
 
