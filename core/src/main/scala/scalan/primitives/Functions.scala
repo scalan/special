@@ -262,29 +262,11 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def mkApply[A,B](f: Exp[A => B], x: Exp[A]): Exp[B] = {
     implicit val leB = Lazy(f.elem.eRange)
-    if (recursion.valuesIterator.contains(f)) {
-      // f is not in Defs table at this time, thus a special case here
-      f.isRecursive = true
-      // hit recursion call ! so just make an application
-      Apply(f, x)
-    } else {
-      // not in recursion, so lookup definition
-      f match {
-        case Def(lam: Lambda[A, B] @unchecked) if lam.mayInline => // unfold initial non-recursive function
-          try {
-            unfoldLambda(lam, x)
-          } catch {
-            case e: StackOverflowError =>
-              if (f.isRecursive)
-                Apply(f, x)
-              else
-                !!!(s"Stack overflow in applying non-recursive $f($x)", e, f, x)
-          }
-        case Def(Apply(_, _, _)) => // function that is a result of Apply (curried application)
-          Apply(f, x)
-        case _ => // unknown function
-          Apply(f, x)
-      }
+    f match {
+      case Def(lam: Lambda[A, B] @unchecked) if lam.mayInline => // unfold initial non-recursive function
+        unfoldLambda(lam, x)
+      case _ => // unknown function
+        Apply(f, x, mayInline = false)
     }
   }
 
@@ -348,7 +330,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     val lam = new Lambda(orig, x, ySym, mayInline, alphaEquality)
     val lamSym = lam.self
 
-    val y = reifyEffects(executeFunction(f, x, lamSym))
+    val y = reifyEffects(f(x))
     ySym.assignDefFrom(y)
 
     findOrCreateDefinition(lam, lamSym)
@@ -364,28 +346,10 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       res
     }
   }
-  protected var recursion = Map.empty[_ => _, Sym]
-
-  protected val lambdaStack = new LambdaStack
-  private def executeFunction[A, B](f: Exp[A]=>Exp[B], x: Exp[A], fSym: Exp[A => B]): Exp[B] = {
-    recursion.get(f) match {
-      case None =>
-        val saveRecursion = recursion
-        recursion += (f -> fSym)
-        lambdaStack.push(fSym)
-        val res = f(x) // execute looking for recursive call back to this exec
-        lambdaStack.pop
-        recursion = saveRecursion
-        res
-      case Some(fs) => // hit recursion call !
-        fs.isRecursive = true
-        Apply(fs.asInstanceOf[Exp[A=>B]], x)
-    }
-  }
 
   def identityFun[A](implicit e: Elem[A]) = fun[A, A](x => x)
 
-  def upcustFun[A: Elem, B >: A]: Rep[A => B] = fun[A,B](x => x)
+  def upcastFun[A: Elem, B >: A]: Rep[A => B] = fun[A,B](x => x)
 
   def constFun[A, B](x: Rep[B])(implicit e: Elem[A]) = {
     implicit val eB = x.elem

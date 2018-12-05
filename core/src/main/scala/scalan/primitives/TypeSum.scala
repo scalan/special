@@ -50,7 +50,7 @@ trait TypeSum extends Base { self: Scalan =>
     }
 
     def getOrElse[B >: A](default: Rep[B]): Rep[B] =
-      opt.foldBy(constFun(default), upcustFun[A,B])
+      opt.foldBy(constFun(default), upcastFun[A,B])
 
     def isEmpty = opt.isLeft
 

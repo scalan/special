@@ -201,7 +201,6 @@ trait Transforming { self: Scalan =>
       var tRes: Ctx = t
       val (t1, newVar) = mirrorNode(t, rewriter, lam, lam.x)
       val newLambdaSym = getMirroredLambdaSym(node)
-      lambdaStack.push(newLambdaSym)
 
       // original root
       val originalRoot = lam.y
@@ -215,7 +214,6 @@ trait Transforming { self: Scalan =>
         tRes(originalRoot) // this will be a new root (wrapped in Reify if needed)
       })
 
-      lambdaStack.pop
       val newLambda = getMirroredLambdaDef(tRes, lam, newRoot)
       newLambdaSym.assignDef(newLambda)
       createDefinition(newLambdaSym, newLambda)
