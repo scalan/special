@@ -246,7 +246,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     }
   }
 
-  private final val skipInterfaces = {
+  private final lazy val skipInterfaces = {
     val mirror = scala.reflect.runtime.currentMirror
     Symbols.SuperTypesOfDef.flatMap { sym =>
       Try[Class[_]](mirror.runtimeClass(sym.asClass)).toOption

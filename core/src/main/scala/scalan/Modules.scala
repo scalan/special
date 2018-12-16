@@ -21,13 +21,17 @@ trait Modules extends Base { self: Scalan =>
 
   def allEntities = getModules.values.flatMap(_.allEntities)
 
+  def okRegisterModules: Boolean = false
+
   def registerModule(moduleInfo: ModuleInfo) = {
-    val pack = moduleInfo.packageName
-    val name = moduleInfo.moduleName
-    if (!parsers.context.hasUnit(pack, name)) {
-      val m = parsers.loadUnitDefFromResource(moduleInfo.sourceFileName)(new parsers.ParseCtx(true)(parsers.context))
-      parsers.context.addUnit(m)
-//      println(s"WARNING: module $pack.$name added by registerModule")
+    if (okRegisterModules) {
+      val pack = moduleInfo.packageName
+      val name = moduleInfo.moduleName
+      if (!parsers.context.hasUnit(pack, name)) {
+        val m = parsers.loadUnitDefFromResource(moduleInfo.sourceFileName)(new parsers.ParseCtx(true)(parsers.context))
+        parsers.context.addUnit(m)
+  //      println(s"WARNING: module $pack.$name added by registerModule")
+      }
     }
   }
 

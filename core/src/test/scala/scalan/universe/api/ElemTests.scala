@@ -12,6 +12,7 @@ class ElemTests extends BaseCtxTests { suite =>
     import Slice._
     import Interval._
     import Centered._
+    override def okRegisterModules: Boolean = true
     val eInt      = element[Int]
     val eDouble   = element[Double]
     val eSegment  = element[Segment]
