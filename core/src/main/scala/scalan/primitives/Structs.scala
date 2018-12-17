@@ -36,7 +36,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   object SimpleTag {
     def apply[T <: Struct](implicit tag: TypeTag[T]): SimpleTag[T] = SimpleTag[T](tag.tpe.typeSymbol.name.toString)
   }
-  val defaultStructTag = SimpleTag[Struct]
+  lazy val defaultStructTag = SimpleTag[Struct]
 
   protected def baseStructName(tag: StructTag[_]) = tag match {
     case `defaultStructTag` => ""

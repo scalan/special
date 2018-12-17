@@ -345,7 +345,7 @@ trait TypeDescs extends Base { self: Scalan =>
     def <:<(e: Elem[_]) = tag.tpe <:< e.tag.tpe
     def >:>(e: Elem[_]) = e <:< this
 
-    if (isDebug) {
+    if (Base.isDebug) {
       debug$ElementCounter(this) += 1
     }
   }
@@ -398,7 +398,7 @@ trait TypeDescs extends Base { self: Scalan =>
 
   }
 
-  private val debug$ElementCounter = counter[Elem[_]]
+  private lazy val debug$ElementCounter = counter[Elem[_]]
 
   private[scalan] def getConstructor(clazz: Class[_]) = {
     val constructors = clazz.getDeclaredConstructors()

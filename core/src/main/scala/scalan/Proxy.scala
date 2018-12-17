@@ -12,10 +12,11 @@ import scala.reflect.runtime.universe._
 import scala.util.{Success, Try}
 import org.objenesis.ObjenesisStd
 import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
-
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.meta.TypeDesc
 import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
+
+import scala.collection.mutable.ArrayBuffer
 
 trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   import IsoUR._
@@ -154,8 +155,8 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     reifyObject(NewObject[A](eA, args.toList, true))
   }
 
-  private val proxies = scala.collection.mutable.Map.empty[(Rep[_], ClassTag[_]), AnyRef]
-  private val objenesis = new ObjenesisStd
+  private lazy val proxies = scala.collection.mutable.Map.empty[(Rep[_], ClassTag[_]), AnyRef]
+  private lazy val objenesis = new ObjenesisStd
 
   def proxyOps[Ops <: AnyRef](x: Rep[Ops])(implicit ct: ClassTag[Ops]): Ops =
     x match {
@@ -290,7 +291,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     (_, m) => m.getName == "apply" && m.getDeclaringClass.getName.endsWith("CompanionCtor")
   )
 
-  private val isFieldGetterCache = collection.mutable.Map.empty[(Type, Method), Boolean]
+  private lazy val isFieldGetterCache = collection.mutable.Map.empty[(Type, Method), Boolean]
 
   private val isFieldGetter: InvokeTester = NamedInvokeTester("isFieldGetter", { (d, m) =>
     val tpe = d.selfType.tag.tpe
@@ -298,8 +299,13 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       findScalaMethod(tpe, m).isParamAccessor)
   })
 
-  protected val initialInvokeTesters = Set(isCompanionApply, isFieldGetter)
-  private var invokeTesters: Set[InvokeTester] = initialInvokeTesters
+  protected def initialInvokeTesters: ArrayBuffer[InvokeTester] = {
+    val res = new ArrayBuffer[InvokeTester](16)
+    res += isCompanionApply
+    res += isFieldGetter
+    res
+  }
+  private lazy val invokeTesters: ArrayBuffer[InvokeTester] = initialInvokeTesters
 
   protected def invokeAll = true
 
@@ -338,7 +344,8 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   }
 
   def resetTesters() = {
-    invokeTesters = initialInvokeTesters
+    invokeTesters.clear()
+    invokeTesters ++= initialInvokeTesters
     unpackTesters = initialUnpackTesters
   }
 
@@ -351,7 +358,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     }
 
   // stack of receivers for which MethodCall nodes should be created by InvocationHandler
-  protected var methodCallReceivers = Set.empty[Sym]
+  protected var methodCallReceivers: List[Sym] = Nil
 
   import Symbols._
 
@@ -753,8 +760,8 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   private def isSupertypeOfDef(clazz: Symbol) =
     Symbols.SuperTypesOfDef.contains(clazz)
 
-  val externalClassNameMetaKey = MetaKey[String]("externalClassName")
-  val externalMethodNameMetaKey = MetaKey[String]("externalMethodName")
+  lazy val externalClassNameMetaKey = MetaKey[String]("externalClassName")
+  lazy val externalMethodNameMetaKey = MetaKey[String]("externalMethodName")
 
   sealed trait InvokeResult
 

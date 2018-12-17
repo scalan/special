@@ -2,12 +2,12 @@ package scalan
 
 import scalan.util.BenchmarkUtil._
 
-class Benchmark {
+class Benchmark[T <: Scalan](createContext: => T) {
   def run() = {
     val (ctx, total) = measureTime {
-      var ctx: Library = new Library {}
-      measure(1000, false) { i =>
-        ctx = new Library {}
+      var ctx = createContext
+      measure(100000, false) { i =>
+        ctx = createContext
       }
       ctx
     }
@@ -17,10 +17,10 @@ class Benchmark {
 
 class LibraryTests extends BaseCtxTests {
   test("Benchmark Library creation time") {
-    new Benchmark().run()
+    new Benchmark(new Library {}).run()
   }
 }
 
 object MeasureLibraryCreate extends App {
-  new Benchmark().run()
+  new Benchmark(new Library {}).run()
 }

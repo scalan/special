@@ -37,7 +37,7 @@ class ColsTests extends BaseCtxTests {
     ctx.emit("t3", ctx.t3)
   }
 
-  test("measure: create proxy") {
+  test("measure: build graph and resetContext") {
     val ctx = new Ctx {
       override val performViewsLifting = false
       useAlphaEquality = false
@@ -49,8 +49,8 @@ class ColsTests extends BaseCtxTests {
 
     var res: Sym = null
     measure(10) { i =>
-      val colBuilder: Rep[ColBuilder] = RColOverArrayBuilder()
-      for (j <- 0 until 30000) {
+      for (j <- 0 until 3000) {
+        val colBuilder: Rep[ColBuilder] = RColOverArrayBuilder()
         val col = colBuilder.replicate(i*j, 0)
         res = col.map(fun {x => x + 1})
       }
@@ -58,6 +58,28 @@ class ColsTests extends BaseCtxTests {
       ctx.resetContext()
     }
     emit("res", res)
+  }
+
+  test("measure: build graph with new context") {
+
+    measure(10) { i =>
+      var sum: Int = 0
+      for (j <- 0 until 3000) {
+        val ctx = new Ctx {
+          override val performViewsLifting = false
+          useAlphaEquality = false
+        }
+        import ctx._
+        import Col._
+        import ColBuilder._
+        import ColOverArrayBuilder._
+        val colBuilder: Rep[ColBuilder] = RColOverArrayBuilder()
+        val col = colBuilder.replicate(i*j, 0)
+        val res = col.map(fun {x => x + 1})
+        sum += ctx.defCount
+      }
+      println(s"Defs: ${sum}")
+    }
   }
 
 }

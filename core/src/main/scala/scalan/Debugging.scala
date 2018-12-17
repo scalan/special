@@ -12,7 +12,7 @@ import scala.util.control.NonFatal
  * stored in fields whose names start with (or contain) "debug$".
  */
 trait Debugging { self: Scalan =>
-  var isDebug: Boolean = config.getBoolean("debug")
+
 
   private lazy val fields = {
     val buffer = scala.collection.mutable.ArrayBuffer.empty[Field]
@@ -32,7 +32,7 @@ trait Debugging { self: Scalan =>
    * Print all collected debug data.
    */
   def printDebugData(cond: String => Boolean): Unit = {
-    if (isDebug) {
+    if (Base.isDebug) {
       println("Debug data:")
       fields.foreach { f =>
         val name = f.getName.substring(f.getName.indexOf("debug$") + "debug$".length)

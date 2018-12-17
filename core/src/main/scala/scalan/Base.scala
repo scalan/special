@@ -264,7 +264,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   class EntityObject(val entityName: String)
 
-  private[this] val entityObjects = AVHashMap[String, EntityObject](100)
+  private[this] val entityObjects = AVHashMap[String, EntityObject](300)
 
   def getEntityObject(name: String): Nullable[EntityObject] = {
     entityObjects.get(name)
@@ -277,7 +277,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   // Allows using ConfigOps without importing com.github.kxbmap.configs.syntax._
   implicit def ConfigOps(x: Config) = new ConfigOps(x)
-  def config = Base.config
+//  def config = Base.config
 
   val cacheElems = true
   val cachePairs = true
@@ -377,8 +377,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   private[this] case class ReflectedProductClass(constructor: Constr[_], paramMirrors: List[ParamMirror], hasScalanParameter: OwnerParameter)
 
-  private[this] val baseType = typeOf[Base]
-  private[this] val entityObjectType = typeOf[EntityObject]
+  private[this] lazy val baseType = typeOf[Base]
 
   protected def getOwnerParameterType(constructor: Constr[_]): OwnerParameter = {
     val paramTypes = constructor.getParameterTypes
@@ -794,5 +793,6 @@ object Base {
   // Plugins to here.
   private[scalan] val config0 = ConfigFactory.load().getConfig("scalan")
   val config = Plugins.configWithPlugins
+  var isDebug: Boolean = config.getBoolean("debug")
 }
 
