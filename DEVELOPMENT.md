@@ -4,7 +4,7 @@
 
 ## Build
 
-Current `scalaVersion` is set to 2.11. 
+Current `scalaVersion` is set to 2.12.8. 
 
 Important to mention that cross-compilation modifies `scalaVersion` globally to
 the version of the target project. You need to `reload` sbt to reset
