@@ -74,6 +74,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def selfType: Elem[T @uncheckedVariance]
     val self: Rep[T] = symbolOf(this)
 
+    def transform(t: Transformer): Def[T] =
+      !!!(s"Cannot transfrom definition using transform($this)", self)
+//      transformProduct(this, t).asInstanceOf[Def[T]]
+
     override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || (other match {
       // check that nodes correspond to same operation, have the same type, and the same arguments
       // alternative would be to include Elem fields into case class
@@ -416,9 +420,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case c: Const[_] => c.self
+    case v: Variable[_] => v.self
     case comp: CompanionDef[_] => comp.self
     case _ =>
-      val newD = transformProduct(d, t).asInstanceOf[Def[A]]
+      val newD = d.transform(t)
       reifyObject(newD)
   }
 

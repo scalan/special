@@ -223,14 +223,17 @@ trait Tuples extends Base { self: Scalan =>
     implicit val eB: Elem[B] = b.elem
     assert(null != eA && null != eB)
     lazy val selfType = element[(A,B)]
+    override def transform(t: Transformer): Def[(A, B)] = Tup(t(a), t(b))
   }
 
   case class First[A, B](pair: Exp[(A, B)]) extends Def[A] {
     val selfType: Elem[A] = pair.elem.eFst
+    override def transform(t: Transformer): Def[A] = First(t(pair))
   }
 
   case class Second[A, B](pair: Exp[(A, B)]) extends Def[B] {
     val selfType: Elem[B] = pair.elem.eSnd
+    override def transform(t: Transformer): Def[B] = Second(t(pair))
   }
 
   object TupleProjection {

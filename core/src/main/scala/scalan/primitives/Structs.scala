@@ -504,9 +504,13 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     }
   }
 
-  case class SimpleStruct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]) extends AbstractStruct[T]
+  case class SimpleStruct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]) extends AbstractStruct[T] {
+    override def transform(t: Transformer): Def[T] = SimpleStruct(tag, fields.map { case (n, s) => (n, t(s)) })
+  }
   case class FieldApply[T](struct: Rep[Struct], fieldName: String)
-    extends BaseDef[T]()(struct.elem(fieldName).asElem[T])
+    extends BaseDef[T]()(struct.elem(fieldName).asElem[T]) {
+    override def transform(t: Transformer): Def[T] = FieldApply(t(struct), fieldName)
+  }
 
   case class FieldUpdate[S <: Struct, T](struct: Rep[S], fieldName: String, value: Rep[T]) extends AbstractStruct[S] {
     val tag = struct.elem.structTag
@@ -516,11 +520,13 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
       else
         (fn, field(struct, fn))
     }
+    override def transform(t: Transformer): Def[S] = FieldUpdate(t(struct), fieldName, t(value))
   }
 
   case class ProjectionStruct(struct: Rep[Struct], outFields: Seq[String]) extends AbstractStruct[Struct] {
     def tag = defaultStructTag
     val fields = outFields.map(fn => (fn, field(struct, fn)))
+    override def transform(t: Transformer): Def[Struct] = ProjectionStruct(t(struct), outFields)
   }
 
   def struct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]): Rep[T] = {
