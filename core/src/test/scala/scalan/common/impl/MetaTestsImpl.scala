@@ -80,6 +80,7 @@ object MetaTest extends EntityObject("MetaTest") {
       extends MetaTest[T] with Def[MetaTest[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
     val selfType: Elem[MetaTest[T]] = element[MetaTest[T]]
+    override def transform(t: Transformer) = MetaTestAdapter[T](t(source))
     private val thisClass = classOf[MetaTest[T]]
 
     def test: RMetaTest[T] = {
@@ -235,6 +236,7 @@ object MT0 extends EntityObject("MT0") {
       (override val size: Rep[Int])
     extends MT0(size) with Def[MT0] {
     lazy val selfType = element[MT0]
+    override def transform(t: Transformer) = MT0Ctor(t(size))
   }
   // elem for concrete class
   class MT0Elem(val iso: Iso[MT0Data, MT0])
@@ -255,6 +257,7 @@ object MT0 extends EntityObject("MT0") {
   // 3) Iso for concrete class
   class MT0Iso
     extends EntityIso[MT0Data, MT0] with Def[MT0Iso] {
+    override def transform(t: Transformer) = new MT0Iso()
     private lazy val _safeFrom = fun { p: Rep[MT0] => p.size }
     override def from(p: Rep[MT0]) =
       tryConvert[MT0, Int](eTo, eFrom, p, _safeFrom)
@@ -390,6 +393,7 @@ object MT1 extends EntityObject("MT1") {
     implicit lazy val eT = data.elem
 
     lazy val selfType = element[MT1[T]]
+    override def transform(t: Transformer) = MT1Ctor[T](t(data), t(size))
   }
   // elem for concrete class
   class MT1Elem[T](val iso: Iso[MT1Data[T], MT1[T]])(implicit override val eT: Elem[T])
@@ -412,6 +416,7 @@ object MT1 extends EntityObject("MT1") {
   // 3) Iso for concrete class
   class MT1Iso[T](implicit eT: Elem[T])
     extends EntityIso[MT1Data[T], MT1[T]] with Def[MT1Iso[T]] {
+    override def transform(t: Transformer) = new MT1Iso[T]()(eT)
     private lazy val _safeFrom = fun { p: Rep[MT1[T]] => (p.data, p.size) }
     override def from(p: Rep[MT1[T]]) =
       tryConvert[MT1[T], (T, Int)](eTo, eFrom, p, _safeFrom)
@@ -539,6 +544,7 @@ object MT2 extends EntityObject("MT2") {
 implicit lazy val eB = values.elem
     override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
     lazy val selfType = element[MT2[A, B]]
+    override def transform(t: Transformer) = MT2Ctor[A, B](t(indices), t(values), t(size))
   }
   // elem for concrete class
   class MT2Elem[A, B](val iso: Iso[MT2Data[A, B], MT2[A, B]])(implicit val eA: Elem[A], val eB: Elem[B])
@@ -562,6 +568,7 @@ implicit lazy val eB = values.elem
   // 3) Iso for concrete class
   class MT2Iso[A, B](implicit eA: Elem[A], eB: Elem[B])
     extends EntityIso[MT2Data[A, B], MT2[A, B]] with Def[MT2Iso[A, B]] {
+    override def transform(t: Transformer) = new MT2Iso[A, B]()(eA, eB)
     private lazy val _safeFrom = fun { p: Rep[MT2[A, B]] => (p.indices, p.values, p.size) }
     override def from(p: Rep[MT2[A, B]]) =
       tryConvert[MT2[A, B], (A, (B, Int))](eTo, eFrom, p, _safeFrom)

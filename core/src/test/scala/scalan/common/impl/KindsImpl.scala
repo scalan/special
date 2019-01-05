@@ -21,6 +21,7 @@ object Kind extends EntityObject("Kind") {
     implicit lazy val cF = source.elem.typeArgs("F")._1.asCont[F];
 implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
     val selfType: Elem[Kind[F, A]] = element[Kind[F, A]]
+    override def transform(t: Transformer) = KindAdapter[F, A](t(source))
   }
 
   // entityProxy: single proxy for each type family
@@ -104,6 +105,7 @@ object Return extends EntityObject("Return") {
     implicit lazy val eA = a.elem
 
     lazy val selfType = element[Return[F, A]]
+    override def transform(t: Transformer) = ReturnCtor[F, A](t(a))(cF)
   }
   // elem for concrete class
   class ReturnElem[F[_], A](val iso: Iso[ReturnData[F, A], Return[F, A]])(implicit override val cF: Cont[F], override val eA: Elem[A])
@@ -126,6 +128,7 @@ object Return extends EntityObject("Return") {
   // 3) Iso for concrete class
   class ReturnIso[F[_], A](implicit cF: Cont[F], eA: Elem[A])
     extends EntityIso[ReturnData[F, A], Return[F, A]] with Def[ReturnIso[F, A]] {
+    override def transform(t: Transformer) = new ReturnIso[F, A]()(cF, eA)
     private lazy val _safeFrom = fun { p: Rep[Return[F, A]] => p.a }
     override def from(p: Rep[Return[F, A]]) =
       tryConvert[Return[F, A], A](eTo, eFrom, p, _safeFrom)
@@ -218,6 +221,7 @@ implicit lazy val eS = a.eA;
 implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
     override lazy val eA: Elem[B] = eB
     lazy val selfType = element[Bind[F, S, B]]
+    override def transform(t: Transformer) = BindCtor[F, S, B](t(a), t(f))
   }
   // elem for concrete class
   class BindElem[F[_], S, B](val iso: Iso[BindData[F, S, B], Bind[F, S, B]])(implicit override val cF: Cont[F], val eS: Elem[S], val eB: Elem[B])
@@ -241,6 +245,7 @@ implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
   // 3) Iso for concrete class
   class BindIso[F[_], S, B](implicit cF: Cont[F], eS: Elem[S], eB: Elem[B])
     extends EntityIso[BindData[F, S, B], Bind[F, S, B]] with Def[BindIso[F, S, B]] {
+    override def transform(t: Transformer) = new BindIso[F, S, B]()(cF, eS, eB)
     private lazy val _safeFrom = fun { p: Rep[Bind[F, S, B]] => (p.a, p.f) }
     override def from(p: Rep[Bind[F, S, B]]) =
       tryConvert[Bind[F, S, B], (Kind[F, S], S => Kind[F, B])](eTo, eFrom, p, _safeFrom)

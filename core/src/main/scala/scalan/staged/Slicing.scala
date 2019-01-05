@@ -706,30 +706,38 @@ trait Slicing extends Scalan {
 
   case class SlicedFunc[AFrom, BFrom, ATo, BTo](source: Rep[ATo => BTo], mark: FuncMarking[AFrom, BFrom])
     extends Sliced[AFrom => BFrom, ATo => BTo] {
+    override def transform(t: Transformer): Def[AFrom => BFrom] = SlicedFunc(t(source), mark)
   }
 
   case class SlicedThunk[AFrom, ATo](source: Rep[Thunk[ATo]], mark: ThunkMarking[AFrom]) extends
-    Sliced[Thunk[AFrom], Thunk[ATo]]
+    Sliced[Thunk[AFrom], Thunk[ATo]] {
+    override def transform(t: Transformer): Def[Thunk[AFrom]] = SlicedThunk(t(source), mark)
+  }
 
   case class UnpackSliced[From, To](sliced: Rep[From], mark: SliceMarking[From]) extends Def[To] {
     implicit def selfType = mark.projectedElem.asElem[To]
+    override def transform(t: Transformer): Def[To] = UnpackSliced(t(sliced), mark)
   }
 
   case class SlicedTraversable[A, B, F[_]](source: Rep[F[B]], innerMark: SliceMarking[A], cF: Cont[F]) extends Sliced[F[A], F[B]] {
     val mark = TraversableMarking(KeyPath.All, innerMark, cF)
+    override def transform(t: Transformer): Def[F[A]] = SlicedTraversable(t(source), innerMark, cF)
     override def toString = s"SlicedTraversable[${cF.name}][${innerMark.elem.name}]($source)"
   }
 
   case class SlicedStruct[From <: Struct, To <: Struct](source: Rep[To], mark: StructMarking[From])
     extends Sliced[From, To] {
+    override def transform(t: Transformer): Def[From] = SlicedStruct(t(source), mark)
   }
 
   case class SlicedBase[A](source: Rep[Unit], mark: EmptyBaseMarking[A])
     extends Sliced[A, Unit] {
+    override def transform(t: Transformer): Def[A] = SlicedBase(t(source), mark)
   }
 
   case class SlicedPair[A,B,A1,B1](source: Rep[(A1,B1)], mark: PairMarking[A,B])
     extends Sliced[(A,B), (A1,B1)] {
+    override def transform(t: Transformer): Def[(A, B)] = SlicedPair(t(source), mark)
   }
 
   def getAllSliced[A,B](g: AstGraph): Seq[TableEntry[_]] = {

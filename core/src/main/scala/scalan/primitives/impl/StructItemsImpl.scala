@@ -24,6 +24,7 @@ object StructItem extends EntityObject("StructItem") {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val];
 implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     val selfType: Elem[StructItem[Val, Schema]] = element[StructItem[Val, Schema]]
+    override def transform(t: Transformer) = StructItemAdapter[Val, Schema](t(source))
     private val thisClass = classOf[StructItem[Val, Schema]]
 
     def key: Rep[StructKey[Schema]] = {
@@ -131,6 +132,7 @@ object StructItemBase extends EntityObject("StructItemBase") {
 implicit lazy val eSchema = key.eSchema
 
     lazy val selfType = element[StructItemBase[Val, Schema]]
+    override def transform(t: Transformer) = StructItemBaseCtor[Val, Schema](t(key), t(value))
   }
   // elem for concrete class
   class StructItemBaseElem[Val, Schema <: Struct](val iso: Iso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]])(implicit override val eVal: Elem[Val], override val eSchema: Elem[Schema])
@@ -153,6 +155,7 @@ implicit lazy val eSchema = key.eSchema
   // 3) Iso for concrete class
   class StructItemBaseIso[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema])
     extends EntityIso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] with Def[StructItemBaseIso[Val, Schema]] {
+    override def transform(t: Transformer) = new StructItemBaseIso[Val, Schema]()(eVal, eSchema)
     private lazy val _safeFrom = fun { p: Rep[StructItemBase[Val, Schema]] => (p.key, p.value) }
     override def from(p: Rep[StructItemBase[Val, Schema]]) =
       tryConvert[StructItemBase[Val, Schema], (StructKey[Schema], Val)](eTo, eFrom, p, _safeFrom)

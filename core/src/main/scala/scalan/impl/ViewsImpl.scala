@@ -31,6 +31,7 @@ object IsoUR extends EntityObject("IsoUR") {
     implicit lazy val eFrom = source.elem.typeArgs("From")._1.asElem[From];
 implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
     val selfType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
+    override def transform(t: Transformer) = IsoURAdapter[From, To](t(source))
     private val thisClass = classOf[IsoUR[From, To]]
 
     def from(p: Rep[To]): Rep[From] = {
@@ -144,6 +145,7 @@ object Iso1UR extends EntityObject("Iso1UR") {
 implicit override lazy val eB = source.elem.typeArgs("B")._1.asElem[B];
 implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
     val selfType: Elem[Iso1UR[A, B, C]] = element[Iso1UR[A, B, C]]
+    override def transform(t: Transformer) = Iso1URAdapter[A, B, C](t(source))
     private val thisClass = classOf[Iso1UR[A, B, C]]
 
     def innerIso: Iso[A, B] = {
@@ -258,6 +260,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
       ()(implicit eA: Elem[A])
     extends IdentityIso[A]() with Def[IdentityIso[A]] {
     lazy val selfType = element[IdentityIso[A]]
+    override def transform(t: Transformer) = IdentityIsoCtor[A]()(eA)
   }
   // elem for concrete class
   class IdentityIsoElem[A](val iso: Iso[IdentityIsoData[A], IdentityIso[A]])(implicit val eA: Elem[A])
@@ -279,6 +282,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
   // 3) Iso for concrete class
   class IdentityIsoIso[A](implicit eA: Elem[A])
     extends EntityIso[IdentityIsoData[A], IdentityIso[A]] with Def[IdentityIsoIso[A]] {
+    override def transform(t: Transformer) = new IdentityIsoIso[A]()(eA)
     private lazy val _safeFrom = fun { p: Rep[IdentityIso[A]] => () }
     override def from(p: Rep[IdentityIso[A]]) =
       tryConvert[IdentityIso[A], Unit](eTo, eFrom, p, _safeFrom)
@@ -409,6 +413,7 @@ implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[(A1, A2)] = implicitly[Elem[(A1, A2)]]
 override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     lazy val selfType = element[PairIso[A1, A2, B1, B2]]
+    override def transform(t: Transformer) = PairIsoCtor[A1, A2, B1, B2](t(iso1), t(iso2))
   }
   // elem for concrete class
   class PairIsoElem[A1, A2, B1, B2](val iso: Iso[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
@@ -434,6 +439,7 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   // 3) Iso for concrete class
   class PairIsoIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]] with Def[PairIsoIso[A1, A2, B1, B2]] {
+    override def transform(t: Transformer) = new PairIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
     private lazy val _safeFrom = fun { p: Rep[PairIso[A1, A2, B1, B2]] => (p.iso1, p.iso2) }
     override def from(p: Rep[PairIso[A1, A2, B1, B2]]) =
       tryConvert[PairIso[A1, A2, B1, B2], (IsoUR[A1, B1], IsoUR[A2, B2])](eTo, eFrom, p, _safeFrom)
@@ -581,6 +587,7 @@ implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[A2] = eA2
 override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     lazy val selfType = element[AbsorbFirstUnitIso[A2, B2]]
+    override def transform(t: Transformer) = AbsorbFirstUnitIsoCtor[A2, B2](t(iso2))
   }
   // elem for concrete class
   class AbsorbFirstUnitIsoElem[A2, B2](val iso: Iso[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]])(implicit val eA2: Elem[A2], val eB2: Elem[B2])
@@ -604,6 +611,7 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
   // 3) Iso for concrete class
   class AbsorbFirstUnitIsoIso[A2, B2](implicit eA2: Elem[A2], eB2: Elem[B2])
     extends EntityIso[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]] with Def[AbsorbFirstUnitIsoIso[A2, B2]] {
+    override def transform(t: Transformer) = new AbsorbFirstUnitIsoIso[A2, B2]()(eA2, eB2)
     private lazy val _safeFrom = fun { p: Rep[AbsorbFirstUnitIso[A2, B2]] => p.iso2 }
     override def from(p: Rep[AbsorbFirstUnitIso[A2, B2]]) =
       tryConvert[AbsorbFirstUnitIso[A2, B2], IsoUR[A2, B2]](eTo, eFrom, p, _safeFrom)
@@ -734,6 +742,7 @@ implicit lazy val eB1 = iso1.eTo
     override lazy val eFrom: Elem[A1] = eA1
 override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     lazy val selfType = element[AbsorbSecondUnitIso[A1, B1]]
+    override def transform(t: Transformer) = AbsorbSecondUnitIsoCtor[A1, B1](t(iso1))
   }
   // elem for concrete class
   class AbsorbSecondUnitIsoElem[A1, B1](val iso: Iso[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]])(implicit val eA1: Elem[A1], val eB1: Elem[B1])
@@ -757,6 +766,7 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
   // 3) Iso for concrete class
   class AbsorbSecondUnitIsoIso[A1, B1](implicit eA1: Elem[A1], eB1: Elem[B1])
     extends EntityIso[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]] with Def[AbsorbSecondUnitIsoIso[A1, B1]] {
+    override def transform(t: Transformer) = new AbsorbSecondUnitIsoIso[A1, B1]()(eA1, eB1)
     private lazy val _safeFrom = fun { p: Rep[AbsorbSecondUnitIso[A1, B1]] => p.iso1 }
     override def from(p: Rep[AbsorbSecondUnitIso[A1, B1]]) =
       tryConvert[AbsorbSecondUnitIso[A1, B1], IsoUR[A1, B1]](eTo, eFrom, p, _safeFrom)
@@ -889,6 +899,7 @@ implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[$bar[A1, A2]] = implicitly[Elem[$bar[A1, A2]]]
 override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     lazy val selfType = element[SumIso[A1, A2, B1, B2]]
+    override def transform(t: Transformer) = SumIsoCtor[A1, A2, B1, B2](t(iso1), t(iso2))
   }
   // elem for concrete class
   class SumIsoElem[A1, A2, B1, B2](val iso: Iso[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
@@ -914,6 +925,7 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   // 3) Iso for concrete class
   class SumIsoIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]] with Def[SumIsoIso[A1, A2, B1, B2]] {
+    override def transform(t: Transformer) = new SumIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
     private lazy val _safeFrom = fun { p: Rep[SumIso[A1, A2, B1, B2]] => (p.iso1, p.iso2) }
     override def from(p: Rep[SumIso[A1, A2, B1, B2]]) =
       tryConvert[SumIso[A1, A2, B1, B2], (IsoUR[A1, B1], IsoUR[A2, B2])](eTo, eFrom, p, _safeFrom)
@@ -1058,6 +1070,7 @@ implicit lazy val eB = iso2.eFrom;
 implicit lazy val eC = iso2.eTo
 
     lazy val selfType = element[ComposeIso[A, B, C]]
+    override def transform(t: Transformer) = ComposeIsoCtor[A, B, C](t(iso2), t(iso1))
   }
   // elem for concrete class
   class ComposeIsoElem[A, B, C](val iso: Iso[ComposeIsoData[A, B, C], ComposeIso[A, B, C]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])
@@ -1082,6 +1095,7 @@ implicit lazy val eC = iso2.eTo
   // 3) Iso for concrete class
   class ComposeIsoIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C])
     extends EntityIso[ComposeIsoData[A, B, C], ComposeIso[A, B, C]] with Def[ComposeIsoIso[A, B, C]] {
+    override def transform(t: Transformer) = new ComposeIsoIso[A, B, C]()(eA, eB, eC)
     private lazy val _safeFrom = fun { p: Rep[ComposeIso[A, B, C]] => (p.iso2, p.iso1) }
     override def from(p: Rep[ComposeIso[A, B, C]]) =
       tryConvert[ComposeIso[A, B, C], (IsoUR[B, C], IsoUR[A, B])](eTo, eFrom, p, _safeFrom)
@@ -1224,6 +1238,7 @@ implicit lazy val eD = iso2.eTo
     override lazy val eFrom: Elem[A => C] = implicitly[Elem[A => C]]
 override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     lazy val selfType = element[FuncIso[A, B, C, D]]
+    override def transform(t: Transformer) = FuncIsoCtor[A, B, C, D](t(iso1), t(iso2))
   }
   // elem for concrete class
   class FuncIsoElem[A, B, C, D](val iso: Iso[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C], val eD: Elem[D])
@@ -1249,6 +1264,7 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
   // 3) Iso for concrete class
   class FuncIsoIso[A, B, C, D](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D])
     extends EntityIso[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]] with Def[FuncIsoIso[A, B, C, D]] {
+    override def transform(t: Transformer) = new FuncIsoIso[A, B, C, D]()(eA, eB, eC, eD)
     private lazy val _safeFrom = fun { p: Rep[FuncIso[A, B, C, D]] => (p.iso1, p.iso2) }
     override def from(p: Rep[FuncIso[A, B, C, D]]) =
       tryConvert[FuncIso[A, B, C, D], (IsoUR[A, B], IsoUR[C, D])](eTo, eFrom, p, _safeFrom)
@@ -1392,6 +1408,7 @@ object ConverterIso extends EntityObject("ConverterIso") {
 implicit lazy val eB = convTo.eR
 
     lazy val selfType = element[ConverterIso[A, B]]
+    override def transform(t: Transformer) = ConverterIsoCtor[A, B](t(convTo), t(convFrom))
   }
   // elem for concrete class
   class ConverterIsoElem[A, B](val iso: Iso[ConverterIsoData[A, B], ConverterIso[A, B]])(implicit val eA: Elem[A], val eB: Elem[B])
@@ -1415,6 +1432,7 @@ implicit lazy val eB = convTo.eR
   // 3) Iso for concrete class
   class ConverterIsoIso[A, B](implicit eA: Elem[A], eB: Elem[B])
     extends EntityIso[ConverterIsoData[A, B], ConverterIso[A, B]] with Def[ConverterIsoIso[A, B]] {
+    override def transform(t: Transformer) = new ConverterIsoIso[A, B]()(eA, eB)
     private lazy val _safeFrom = fun { p: Rep[ConverterIso[A, B]] => (p.convTo, p.convFrom) }
     override def from(p: Rep[ConverterIso[A, B]]) =
       tryConvert[ConverterIso[A, B], (Converter[A, B], Converter[B, A])](eTo, eFrom, p, _safeFrom)
@@ -1550,6 +1568,7 @@ object ThunkIso extends EntityObject("ThunkIso") {
 implicit override lazy val eB = innerIso.eTo
 
     lazy val selfType = element[ThunkIso[A, B]]
+    override def transform(t: Transformer) = ThunkIsoCtor[A, B](t(innerIso))
   }
   // elem for concrete class
   class ThunkIsoElem[A, B](val iso: Iso[ThunkIsoData[A, B], ThunkIso[A, B]])(implicit override val eA: Elem[A], override val eB: Elem[B])
@@ -1572,6 +1591,7 @@ implicit override lazy val eB = innerIso.eTo
   // 3) Iso for concrete class
   class ThunkIsoIso[A, B](implicit eA: Elem[A], eB: Elem[B])
     extends EntityIso[ThunkIsoData[A, B], ThunkIso[A, B]] with Def[ThunkIsoIso[A, B]] {
+    override def transform(t: Transformer) = new ThunkIsoIso[A, B]()(eA, eB)
     private lazy val _safeFrom = fun { p: Rep[ThunkIso[A, B]] => p.innerIso }
     override def from(p: Rep[ThunkIso[A, B]]) =
       tryConvert[ThunkIso[A, B], IsoUR[A, B]](eTo, eFrom, p, _safeFrom)

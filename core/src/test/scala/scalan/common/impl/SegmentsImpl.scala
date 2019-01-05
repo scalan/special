@@ -82,6 +82,7 @@ object Segment extends EntityObject("Segment") {
   case class SegmentAdapter(source: Rep[Segment])
       extends Segment with Def[Segment] {
     val selfType: Elem[Segment] = element[Segment]
+    override def transform(t: Transformer) = SegmentAdapter(t(source))
     private val thisClass = classOf[Segment]
 
     def start: Rep[Int] = {
@@ -158,8 +159,8 @@ object Segment extends EntityObject("Segment") {
     override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def segmentElement: Elem[Segment] =
-    cachedElem[SegmentElem[Segment]]()
+  implicit lazy val segmentElement: Elem[Segment] =
+    new SegmentElem[Segment]
 
   implicit case object SegmentCompanionElem extends CompanionElem[SegmentCompanionCtor] {
     lazy val tag = weakTypeTag[SegmentCompanionCtor]
@@ -254,6 +255,7 @@ object Interval extends EntityObject("Interval") {
       (override val start: Rep[Int], override val end: Rep[Int])
     extends Interval(start, end) with Def[Interval] {
     lazy val selfType = element[Interval]
+    override def transform(t: Transformer) = IntervalCtor(t(start), t(end))
     private val thisClass = classOf[Interval]
 
     override def attach(seg: Rep[Segment]): Rep[Segment] = {
@@ -282,6 +284,7 @@ object Interval extends EntityObject("Interval") {
   // 3) Iso for concrete class
   class IntervalIso
     extends EntityIso[IntervalData, Interval] with Def[IntervalIso] {
+    override def transform(t: Transformer) = new IntervalIso()
     private lazy val _safeFrom = fun { p: Rep[Interval] => (p.start, p.end) }
     override def from(p: Rep[Interval]) =
       tryConvert[Interval, (Int, Int)](eTo, eFrom, p, _safeFrom)
@@ -406,6 +409,7 @@ object Slice extends EntityObject("Slice") {
       (override val start: Rep[Int], override val length: Rep[Int])
     extends Slice(start, length) with Def[Slice] {
     lazy val selfType = element[Slice]
+    override def transform(t: Transformer) = SliceCtor(t(start), t(length))
   }
   // elem for concrete class
   class SliceElem(val iso: Iso[SliceData, Slice])
@@ -426,6 +430,7 @@ object Slice extends EntityObject("Slice") {
   // 3) Iso for concrete class
   class SliceIso
     extends EntityIso[SliceData, Slice] with Def[SliceIso] {
+    override def transform(t: Transformer) = new SliceIso()
     private lazy val _safeFrom = fun { p: Rep[Slice] => (p.start, p.length) }
     override def from(p: Rep[Slice]) =
       tryConvert[Slice, (Int, Int)](eTo, eFrom, p, _safeFrom)
@@ -550,6 +555,7 @@ object Centered extends EntityObject("Centered") {
       (override val center: Rep[Int], override val radius: Rep[Int])
     extends Centered(center, radius) with Def[Centered] {
     lazy val selfType = element[Centered]
+    override def transform(t: Transformer) = CenteredCtor(t(center), t(radius))
   }
   // elem for concrete class
   class CenteredElem(val iso: Iso[CenteredData, Centered])
@@ -571,6 +577,7 @@ object Centered extends EntityObject("Centered") {
   // 3) Iso for concrete class
   class CenteredIso
     extends EntityIso[CenteredData, Centered] with Def[CenteredIso] {
+    override def transform(t: Transformer) = new CenteredIso()
     private lazy val _safeFrom = fun { p: Rep[Centered] => (p.center, p.radius) }
     override def from(p: Rep[Centered]) =
       tryConvert[Centered, (Int, Int)](eTo, eFrom, p, _safeFrom)

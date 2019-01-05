@@ -36,6 +36,8 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
     }
 
     def withoutContext = ProgramGraph(roots, implicitly[TransformerOps[Ctx]].empty, filterNode)
+
+    override def toString: String = s"ProgramGraph($roots, $mapping, ${if(filterNode.isDefined) filterNode.toString else "None"})"
   }
 
   object ProgramGraph {

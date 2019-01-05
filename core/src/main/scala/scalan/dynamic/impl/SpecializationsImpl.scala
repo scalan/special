@@ -26,6 +26,7 @@ object IsoFunc extends EntityObject("IsoFunc") {
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R];
 implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     val selfType: Elem[IsoFunc[T, R, M]] = element[IsoFunc[T, R, M]]
+    override def transform(t: Transformer) = IsoFuncAdapter[T, R, M](t(source))
     private val thisClass = classOf[IsoFunc[T, R, M]]
 
     def func: Rep[T => R] = {
@@ -156,6 +157,7 @@ implicit lazy val eR = func.elem.eRange;
 implicit lazy val eM = metric.elem.eRange
 
     lazy val selfType = element[IsoFuncBase[T, R, M]]
+    override def transform(t: Transformer) = IsoFuncBaseCtor[T, R, M](t(func), t(metric))
   }
   // elem for concrete class
   class IsoFuncBaseElem[T, R, M](val iso: Iso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]])(implicit override val eT: Elem[T], override val eR: Elem[R], override val eM: Elem[M])
@@ -179,6 +181,7 @@ implicit lazy val eM = metric.elem.eRange
   // 3) Iso for concrete class
   class IsoFuncBaseIso[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M])
     extends EntityIso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] with Def[IsoFuncBaseIso[T, R, M]] {
+    override def transform(t: Transformer) = new IsoFuncBaseIso[T, R, M]()(eT, eR, eM)
     private lazy val _safeFrom = fun { p: Rep[IsoFuncBase[T, R, M]] => (p.func, p.metric) }
     override def from(p: Rep[IsoFuncBase[T, R, M]]) =
       tryConvert[IsoFuncBase[T, R, M], (T => R, T => M)](eTo, eFrom, p, _safeFrom)
