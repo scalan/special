@@ -1,6 +1,4 @@
 package special.collection {
-  import java.lang.reflect.Method  // manual fix
-
   import scalan._
 
   trait ColsOverArrays extends Base { self: Library =>
