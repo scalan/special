@@ -79,6 +79,7 @@ object MetaTest extends EntityObject("MetaTest") {
   case class MetaTestAdapter[T](source: Rep[MetaTest[T]])
       extends MetaTest[T] with Def[MetaTest[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+
     val selfType: Elem[MetaTest[T]] = element[MetaTest[T]]
     override def transform(t: Transformer) = MetaTestAdapter[T](t(source))
     private val thisClass = classOf[MetaTest[T]]

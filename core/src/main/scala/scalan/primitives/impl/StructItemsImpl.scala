@@ -23,6 +23,7 @@ object StructItem extends EntityObject("StructItem") {
       extends StructItem[Val, Schema] with Def[StructItem[Val, Schema]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val];
 implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
+
     val selfType: Elem[StructItem[Val, Schema]] = element[StructItem[Val, Schema]]
     override def transform(t: Transformer) = StructItemAdapter[Val, Schema](t(source))
     private val thisClass = classOf[StructItem[Val, Schema]]

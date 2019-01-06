@@ -19,6 +19,7 @@ object StructKey extends EntityObject("StructKey") {
   case class StructKeyAdapter[Schema <: Struct](source: Rep[StructKey[Schema]])
       extends StructKey[Schema] with Def[StructKey[Schema]] {
     implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
+
     val selfType: Elem[StructKey[Schema]] = element[StructKey[Schema]]
     override def transform(t: Transformer) = StructKeyAdapter[Schema](t(source))
     private val thisClass = classOf[StructKey[Schema]]

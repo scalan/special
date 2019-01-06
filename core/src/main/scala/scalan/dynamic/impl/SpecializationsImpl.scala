@@ -25,6 +25,7 @@ object IsoFunc extends EntityObject("IsoFunc") {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R];
 implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
+
     val selfType: Elem[IsoFunc[T, R, M]] = element[IsoFunc[T, R, M]]
     override def transform(t: Transformer) = IsoFuncAdapter[T, R, M](t(source))
     private val thisClass = classOf[IsoFunc[T, R, M]]

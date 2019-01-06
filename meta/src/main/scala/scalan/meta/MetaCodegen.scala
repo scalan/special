@@ -2,7 +2,8 @@ package scalan.meta
 
 import scalan.meta.PrintExtensions._
 import scala.collection.mutable.ArrayBuffer
-import scalan.util.{StringUtil, ScalaNameUtil}
+import scalan.util.{StringUtil, ScalaNameUtil, CollectionUtil}
+import CollectionUtil._
 import StringUtil.StringUtilExtensions
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
@@ -342,7 +343,7 @@ class MetaCodegen {
     val extractableArgs: Map[String,(STpeArg, String)] =
       tyArgSubst.zip(extractionExprs)
         .collect { case (arg, Some(expr)) => (arg.name, (arg, expr)) }.toMap
-    def extractableImplicits(inClassBody: Boolean): String = {
+    def emitExtractableImplicits(inClassBody: Boolean): String = {
       extractableArgs.map { case (tyArgName, (arg, expr)) =>
         val name = arg.classOrMethodArgName(tyArgName)
         val isInheritedDefinition = entity.isConcreteInAncestors(name)(module.context)
@@ -429,7 +430,7 @@ class MetaCodegen {
   }
 
   case class EntityTemplateData(m: SUnitDef, t: SEntityDef) extends TemplateData(m, t) {
-    def elemTypeUse(toType: String = typeUse) = s"${name}Elem[${join(tpeArgNames, toType)}]"
+    def elemTypeUse(toType: String = typeUse) = s"${name}Elem[${PrintExtensions.join(tpeArgNames, toType)}]"
     val typesWithElems = boundedTpeArgString(false)
     def optimizeImplicits(): EntityTemplateData = t match {
       case t: STraitDef =>
@@ -444,6 +445,38 @@ class MetaCodegen {
     def optimizeImplicits(): ConcreteClassTemplateData = {
       this.copy(c = optimizeClassImplicits(c))
     }
+    val abstractDescriptors: List[SEntityMember] = c.collectVisibleMembers.filter { m => m.item.isAbstract && m.item.isTypeDesc }
+    val nonExtractableDescriptors: List[(SEntityMember, Option[String])] = {
+      val b = extractionBuilder()
+      val res = abstractDescriptors.filterMap { m =>
+        def isSameResultType(tyArg: STpeArg) = m.item.tpeRes.get match {
+          case TypeDescTpe(_, targ) => targ == tyArg.toTraitCall
+          case _ => false
+        }
+        val optExtractionExpr = b.extractableArgs.collectFirst {
+          case (n, (tyArg, s)) if isSameResultType(tyArg) =>
+            tyArg.classOrMethodArgName(n)
+        }
+        optExtractionExpr match {
+          case Some(itemName) =>
+            if (itemName == m.item.name)
+              None  // means filter out this m
+            else
+              Some((m, Some(itemName))) // this entity member CAN be computed from extractable arg
+          case None =>
+            Some((m, None)) // this entity member SHOULD be defined elsewhere
+        }
+      }
+      res
+    }
+    val elemDefs: String = nonExtractableDescriptors.rep({
+      case (m, None) =>
+        val tc @ STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
+        s"override lazy val ${m.item.name}: $descName[$tyStr] = implicitly[$descName[$tyStr]]"
+      case (m, Some(extractedName)) =>
+        val STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
+        s"override lazy val ${m.item.name}: $descName[$tyStr] = $extractedName"
+    }, "\n|").stripMargin
   }
 
 }

@@ -24,6 +24,7 @@ object Converter extends EntityObject("Converter") {
       extends Converter[T, R] with Def[Converter[T, R]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
+
     val selfType: Elem[Converter[T, R]] = element[Converter[T, R]]
     override def transform(t: Transformer) = ConverterAdapter[T, R](t(source))
     private val thisClass = classOf[Converter[T, R]]

@@ -20,6 +20,7 @@ object Kind extends EntityObject("Kind") {
       extends Kind[F, A] with Def[Kind[F, A]] {
     implicit lazy val cF = source.elem.typeArgs("F")._1.asCont[F];
 implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+
     val selfType: Elem[Kind[F, A]] = element[Kind[F, A]]
     override def transform(t: Transformer) = KindAdapter[F, A](t(source))
   }

@@ -172,16 +172,17 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       args = SClassArgs(List(adapterArg)),
       implicitArgs = SClassArgs(Nil),
       ancestors = List(STypeApply(sourceType)), body = Nil, selfType = None, companion = None, isAbstract = false)
-    val c = ConcreteClassTemplateData(unit, clazz)
-    val b = c.extractionBuilder(extractFromEntity = false)
-    val methods = c.c.collectVisibleMembers.collect {
+    val adapC = ConcreteClassTemplateData(unit, clazz)
+    val b = adapC.extractionBuilder(extractFromEntity = false)
+    val methods = adapC.c.collectVisibleMembers.collect {
       case SEntityMember(_, md: SMethodDef) if md.isAbstract && !md.isTypeDesc => md
     }
     s"""
       |  // entityAdapter for $entityName trait
       |  case class ${entityName}Adapter$typesDecl(source: Rep[${e.typeUse}])
       |      extends ${e.typeUse} with Def[${e.typeUse}] {
-      |    ${b.extractableImplicits(inClassBody = true) }
+      |    ${b.emitExtractableImplicits(inClassBody = true) }
+      |    ${adapC.elemDefs}
       |    val selfType: Elem[${e.typeUse}] = element[${e.typeUse}]
       |    override def transform(t: Transformer) = ${entityName}Adapter$typesUse(t(source))
       |    ${methods.opt(_ => s"private val thisClass = classOf[${e.typeUse}]")}
@@ -577,24 +578,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
           s"n match {\n$cases\n    }"
       }
       val b = c.extractionBuilder()
-      val abstractDescriptors = c.c.collectVisibleMembers.filter { m => m.item.isAbstract && m.item.isTypeDesc }
-      val nonExtractableDescriptors = abstractDescriptors.map { m =>
-        val extracted = b.extractableArgs.collectFirst {
-          case (n, (tyArg, s))
-              if STraitCall("Elem", List(tyArg.toTraitCall)) == m.item.tpeRes.get ||
-                  STraitCall("Cont", List(tyArg.toTraitCall)) == m.item.tpeRes.get =>
-            tyArg.classOrMethodArgName(n)
-        }
-        (m, extracted)
-      }
-      val elemDefs = nonExtractableDescriptors.rep({
-        case (m, None) =>
-          val tc @ STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
-          s"override lazy val ${m.item.name}: $descName[$tyStr] = implicitly[$descName[$tyStr]]"
-        case (m, Some(extractedName)) =>
-          val STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
-          s"override lazy val ${m.item.name}: $descName[$tyStr] = $extractedName"
-      }, "\n|").stripMargin
       val methods = c.c.body.collect { case m: SMethodDef if m.hasAnnotation("NeverInline") && !m.isTypeDesc => m }
       val optC = c.optimizeImplicits()
       s"""
@@ -602,8 +585,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  case class ${c.typeDecl("Ctor") }
         |      (${fieldsWithType.rep(f => s"override val $f") })${optC.implicitArgsDecl() }
         |    extends ${c.typeUse }(${fields.rep() })${clazz.selfType.opt(t => s" with ${t.tpe }") } with Def[${c.typeUse }] {
-        |    ${b.extractableImplicits(inClassBody = true) }
-        |    ${elemDefs}
+        |    ${b.emitExtractableImplicits(inClassBody = true) }
+        |    ${c.elemDefs}
         |    lazy val selfType = element[${c.typeUse }]
         |    override def transform(t: Transformer) = ${c.typeUse("Ctor") }(${fields.rep(a => s"t($a)")})${optC.implicitArgsUse}
         |    ${methods.opt(_ => s"private val thisClass = classOf[${c.typeUse }]")}
@@ -662,7 +645,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
             s"""
               |    @scalan.OverloadId("fromData")
               |    def apply${tpeArgsDecl}(p: Rep[$dataTpe])${c.optimizeImplicits().implicitArgsDecl()}: Rep[${c.typeUse}] = {
-              |      ${sb.extractableImplicits(false)}
+              |      ${sb.emitExtractableImplicits(false)}
               |      iso$className${c.tpeArgNames.opt(ns => s"[${ns.rep()}]")}.to(p)
               |    }
               """.stripAndTrim
@@ -693,7 +676,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |
         |  implicit class Extended${c.typeDecl}(p: Rep[${c.typeUse}])${c.optimizeImplicits().implicitArgsDecl()} {
         |    def toData: Rep[$dataTpe] = {
-        |      ${c.extractionBuilder(prefix = "p.").extractableImplicits(false)}
+        |      ${c.extractionBuilder(prefix = "p.").emitExtractableImplicits(false)}
         |      iso$className${c.implicitArgsUse}.from(p)
         |    }
         |  }

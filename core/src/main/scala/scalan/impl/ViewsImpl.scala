@@ -30,6 +30,7 @@ object IsoUR extends EntityObject("IsoUR") {
       extends IsoUR[From, To] with Def[IsoUR[From, To]] {
     implicit lazy val eFrom = source.elem.typeArgs("From")._1.asElem[From];
 implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
+
     val selfType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
     override def transform(t: Transformer) = IsoURAdapter[From, To](t(source))
     private val thisClass = classOf[IsoUR[From, To]]
@@ -144,6 +145,7 @@ object Iso1UR extends EntityObject("Iso1UR") {
     implicit override lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
 implicit override lazy val eB = source.elem.typeArgs("B")._1.asElem[B];
 implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
+
     val selfType: Elem[Iso1UR[A, B, C]] = element[Iso1UR[A, B, C]]
     override def transform(t: Transformer) = Iso1URAdapter[A, B, C](t(source))
     private val thisClass = classOf[Iso1UR[A, B, C]]
