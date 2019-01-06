@@ -25,6 +25,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   case class WrapSpecBaseAdapter(source: Rep[WrapSpecBase])
       extends WrapSpecBase with Def[WrapSpecBase] {
     val selfType: Elem[WrapSpecBase] = element[WrapSpecBase]
+    override def transform(t: Transformer) = WrapSpecBaseAdapter(t(source))
   }
 
   // entityProxy: single proxy for each type family
@@ -56,8 +57,8 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def wrapSpecBaseElement: Elem[WrapSpecBase] =
-    cachedElem[WrapSpecBaseElem[WrapSpecBase]]()
+  implicit lazy val wrapSpecBaseElement: Elem[WrapSpecBase] =
+    new WrapSpecBaseElem[WrapSpecBase]
 
   implicit case object WrapSpecBaseCompanionElem extends CompanionElem[WrapSpecBaseCompanionCtor] {
     lazy val tag = weakTypeTag[WrapSpecBaseCompanionCtor]
@@ -88,6 +89,7 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
       ()
     extends ArrayWrapSpec() with Def[ArrayWrapSpec] {
     lazy val selfType = element[ArrayWrapSpec]
+    override def transform(t: Transformer) = ArrayWrapSpecCtor()
     private val thisClass = classOf[ArrayWrapSpec]
 
     override def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -96,7 +98,7 @@ implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(xs, zero, op),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
   }
   // elem for concrete class
@@ -118,6 +120,7 @@ implicit val eB = zero.elem
   // 3) Iso for concrete class
   class ArrayWrapSpecIso
     extends EntityIso[ArrayWrapSpecData, ArrayWrapSpec] with Def[ArrayWrapSpecIso] {
+    override def transform(t: Transformer) = new ArrayWrapSpecIso()
     private lazy val _safeFrom = fun { p: Rep[ArrayWrapSpec] => () }
     override def from(p: Rep[ArrayWrapSpec]) =
       tryConvert[ArrayWrapSpec, Unit](eTo, eFrom, p, _safeFrom)
@@ -346,6 +349,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
       ()
     extends OptionWrapSpec() with Def[OptionWrapSpec] {
     lazy val selfType = element[OptionWrapSpec]
+    override def transform(t: Transformer) = OptionWrapSpecCtor()
     private val thisClass = classOf[OptionWrapSpec]
 
     override def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = {
@@ -353,7 +357,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(xs, default),
-        true, isAdapterCall = false, element[A]))
+        true, false, element[A]))
     }
 
     override def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
@@ -362,7 +366,7 @@ implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(xs, ifEmpty, f),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
   }
   // elem for concrete class
@@ -384,6 +388,7 @@ implicit val eB = ifEmpty.elem.eItem
   // 3) Iso for concrete class
   class OptionWrapSpecIso
     extends EntityIso[OptionWrapSpecData, OptionWrapSpec] with Def[OptionWrapSpecIso] {
+    override def transform(t: Transformer) = new OptionWrapSpecIso()
     private lazy val _safeFrom = fun { p: Rep[OptionWrapSpec] => () }
     override def from(p: Rep[OptionWrapSpec]) =
       tryConvert[OptionWrapSpec, Unit](eTo, eFrom, p, _safeFrom)
@@ -573,6 +578,7 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
       ()
     extends EitherWrapSpec() with Def[EitherWrapSpec] {
     lazy val selfType = element[EitherWrapSpec]
+    override def transform(t: Transformer) = EitherWrapSpecCtor()
   }
   // elem for concrete class
   class EitherWrapSpecElem(val iso: Iso[EitherWrapSpecData, EitherWrapSpec])
@@ -593,6 +599,7 @@ object EitherWrapSpec extends EntityObject("EitherWrapSpec") {
   // 3) Iso for concrete class
   class EitherWrapSpecIso
     extends EntityIso[EitherWrapSpecData, EitherWrapSpec] with Def[EitherWrapSpecIso] {
+    override def transform(t: Transformer) = new EitherWrapSpecIso()
     private lazy val _safeFrom = fun { p: Rep[EitherWrapSpec] => () }
     override def from(p: Rep[EitherWrapSpec]) =
       tryConvert[EitherWrapSpec, Unit](eTo, eFrom, p, _safeFrom)
@@ -704,6 +711,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
       ()
     extends SpecialPredefWrapSpec() with Def[SpecialPredefWrapSpec] {
     lazy val selfType = element[SpecialPredefWrapSpec]
+    override def transform(t: Transformer) = SpecialPredefWrapSpecCtor()
   }
   // elem for concrete class
   class SpecialPredefWrapSpecElem(val iso: Iso[SpecialPredefWrapSpecData, SpecialPredefWrapSpec])
@@ -724,6 +732,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   // 3) Iso for concrete class
   class SpecialPredefWrapSpecIso
     extends EntityIso[SpecialPredefWrapSpecData, SpecialPredefWrapSpec] with Def[SpecialPredefWrapSpecIso] {
+    override def transform(t: Transformer) = new SpecialPredefWrapSpecIso()
     private lazy val _safeFrom = fun { p: Rep[SpecialPredefWrapSpec] => () }
     override def from(p: Rep[SpecialPredefWrapSpec]) =
       tryConvert[SpecialPredefWrapSpec, Unit](eTo, eFrom, p, _safeFrom)
@@ -913,6 +922,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
       ()
     extends RTypeWrapSpec() with Def[RTypeWrapSpec] {
     lazy val selfType = element[RTypeWrapSpec]
+    override def transform(t: Transformer) = RTypeWrapSpecCtor()
   }
   // elem for concrete class
   class RTypeWrapSpecElem(val iso: Iso[RTypeWrapSpecData, RTypeWrapSpec])
@@ -933,6 +943,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   // 3) Iso for concrete class
   class RTypeWrapSpecIso
     extends EntityIso[RTypeWrapSpecData, RTypeWrapSpec] with Def[RTypeWrapSpecIso] {
+    override def transform(t: Transformer) = new RTypeWrapSpecIso()
     private lazy val _safeFrom = fun { p: Rep[RTypeWrapSpec] => () }
     override def from(p: Rep[RTypeWrapSpec]) =
       tryConvert[RTypeWrapSpec, Unit](eTo, eFrom, p, _safeFrom)

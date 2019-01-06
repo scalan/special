@@ -5,6 +5,8 @@ package wrappers.scalan.meta {
 
   import special.wrappers.WrappersModule
 
+  import special.wrappers.RTypeWrapSpec
+
   trait WRTypes extends Base { self: WrappersModule =>
     import WRType._;
     @External("RType") @Liftable trait WRType[A] extends Def[WRType[A]] {

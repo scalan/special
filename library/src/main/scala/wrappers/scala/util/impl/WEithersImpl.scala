@@ -3,14 +3,12 @@ package wrappers.scala.util
 import scalan._
 import impl._
 import special.wrappers.WrappersModule
+import special.wrappers.EitherWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  // manual fix
-  import special.wrappers.EitherWrapSpec
-
-  // Abs -----------------------------------
+// Abs -----------------------------------
 trait WEithersDefs extends scalan.Scalan with WEithers {
   self: WrappersModule =>
 import IsoUR._
@@ -37,7 +35,7 @@ object WEither extends EntityObject("WEither") {
       asRep[C](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
-        true, isAdapterCall = false, element[C]))
+        true, false, element[C]))
     }
   }
 
@@ -65,7 +63,9 @@ object WEither extends EntityObject("WEither") {
       extends WEither[A, B] with Def[WEither[A, B]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
 implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
+
     val selfType: Elem[WEither[A, B]] = element[WEither[A, B]]
+    override def transform(t: Transformer) = WEitherAdapter[A, B](t(source))
     private val thisClass = classOf[WEither[A, B]]
 
     def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
@@ -73,7 +73,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
       asRep[C](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
-        true, isAdapterCall = false, element[C]))
+        true, true, element[C]))
     }
   }
 
@@ -144,7 +144,7 @@ implicit val eB = right.elem.eItem
       asRep[WEither[A, B]](mkMethodCall(self,
         thisClass.getMethod("cond", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(test, right, left),
-        true, isAdapterCall = false, element[WEither[A, B]]))
+        true, false, element[WEither[A, B]]))
     }
   }
 

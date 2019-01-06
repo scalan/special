@@ -44,6 +44,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     implicit lazy val eVal = value.elem
 
     lazy val selfType = element[CCostedPrim[Val]]
+    override def transform(t: Transformer) = CCostedPrimCtor[Val](t(value), t(cost), t(dataSize))
   }
   // elem for concrete class
   class CCostedPrimElem[Val](val iso: Iso[CCostedPrimData[Val], CCostedPrim[Val]])(implicit override val eVal: Elem[Val])
@@ -65,6 +66,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
   // 3) Iso for concrete class
   class CCostedPrimIso[Val](implicit eVal: Elem[Val])
     extends EntityIso[CCostedPrimData[Val], CCostedPrim[Val]] with Def[CCostedPrimIso[Val]] {
+    override def transform(t: Transformer) = new CCostedPrimIso[Val]()(eVal)
     private lazy val _safeFrom = fun { p: Rep[CCostedPrim[Val]] => (p.value, p.cost, p.dataSize) }
     override def from(p: Rep[CCostedPrim[Val]]) =
       tryConvert[CCostedPrim[Val], (Val, (Int, Long))](eTo, eFrom, p, _safeFrom)
@@ -169,6 +171,7 @@ object CCostedPair extends EntityObject("CCostedPair") {
 implicit lazy val eR = r.eVal
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     lazy val selfType = element[CCostedPair[L, R]]
+    override def transform(t: Transformer) = CCostedPairCtor[L, R](t(l), t(r))
   }
   // elem for concrete class
   class CCostedPairElem[L, R](val iso: Iso[CCostedPairData[L, R], CCostedPair[L, R]])(implicit override val eL: Elem[L], override val eR: Elem[R])
@@ -191,6 +194,7 @@ implicit lazy val eR = r.eVal
   // 3) Iso for concrete class
   class CCostedPairIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[CCostedPairData[L, R], CCostedPair[L, R]] with Def[CCostedPairIso[L, R]] {
+    override def transform(t: Transformer) = new CCostedPairIso[L, R]()(eL, eR)
     private lazy val _safeFrom = fun { p: Rep[CCostedPair[L, R]] => (p.l, p.r) }
     override def from(p: Rep[CCostedPair[L, R]]) =
       tryConvert[CCostedPair[L, R], (Costed[L], Costed[R])](eTo, eFrom, p, _safeFrom)
@@ -340,20 +344,21 @@ object CCostedSum extends EntityObject("CCostedSum") {
 implicit lazy val eR = value.eB
     override lazy val eVal: Elem[WEither[L, R]] = implicitly[Elem[WEither[L, R]]]
     lazy val selfType = element[CCostedSum[L, R]]
+    override def transform(t: Transformer) = CCostedSumCtor[L, R](t(value), t(left), t(right))
     private val thisClass = classOf[CostedSum[L, R]] // manual fix
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
         List(),
-        true, isAdapterCall = false, element[Int]))
+        true, false, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         List(),
-        true, isAdapterCall = false, element[Long]))
+        true, false, element[Long]))
     }
   }
   // elem for concrete class
@@ -377,6 +382,7 @@ implicit lazy val eR = value.eB
   // 3) Iso for concrete class
   class CCostedSumIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[CCostedSumData[L, R], CCostedSum[L, R]] with Def[CCostedSumIso[L, R]] {
+    override def transform(t: Transformer) = new CCostedSumIso[L, R]()(eL, eR)
     private lazy val _safeFrom = fun { p: Rep[CCostedSum[L, R]] => (p.value, p.left, p.right) }
     override def from(p: Rep[CCostedSum[L, R]]) =
       tryConvert[CCostedSum[L, R], (WEither[L, R], (Costed[Unit], Costed[Unit]))](eTo, eFrom, p, _safeFrom)
@@ -514,13 +520,14 @@ implicit lazy val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg];
 implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     lazy val selfType = element[CCostedFunc[Env, Arg, Res]]
+    override def transform(t: Transformer) = CCostedFuncCtor[Env, Arg, Res](t(envCosted), t(func), t(cost), t(dataSize))
     private val thisClass = classOf[CostedFunc[Env, Arg, Res]] // manual fix
 
     override def value: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(self,
         thisClass.getMethod("value"),
         List(),
-        true, isAdapterCall = false, element[Arg => Res]))
+        true, false, element[Arg => Res]))
     }
   }
   // elem for concrete class
@@ -545,6 +552,7 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   // 3) Iso for concrete class
   class CCostedFuncIso[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res])
     extends EntityIso[CCostedFuncData[Env, Arg, Res], CCostedFunc[Env, Arg, Res]] with Def[CCostedFuncIso[Env, Arg, Res]] {
+    override def transform(t: Transformer) = new CCostedFuncIso[Env, Arg, Res]()(eEnv, eArg, eRes)
     private lazy val _safeFrom = fun { p: Rep[CCostedFunc[Env, Arg, Res]] => (p.envCosted, p.func, p.cost, p.dataSize) }
     override def from(p: Rep[CCostedFunc[Env, Arg, Res]]) =
       tryConvert[CCostedFunc[Env, Arg, Res], (Costed[Env], (Costed[Arg] => Costed[Res], (Int, Long)))](eTo, eFrom, p, _safeFrom)
@@ -671,6 +679,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
     implicit lazy val eItem = values.eA
     override lazy val eVal: Elem[Col[Item]] = implicitly[Elem[Col[Item]]]
     lazy val selfType = element[CCostedCol[Item]]
+    override def transform(t: Transformer) = CCostedColCtor[Item](t(values), t(costs), t(sizes), t(valuesCost))
     private val thisClass = classOf[CostedCol[Item]] // manual fix
 
     override def mapCosted[Res](f: Rep[Costed[Item] => Costed[Res]]): Rep[CostedCol[Res]] = {
@@ -678,14 +687,14 @@ object CCostedCol extends EntityObject("CCostedCol") {
       asRep[CostedCol[Res]](mkMethodCall(self,
         thisClass.getMethod("mapCosted", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[CostedCol[Res]]))
+        true, false, element[CostedCol[Res]]))
     }
 
     override def filterCosted(f: Rep[Costed[Item] => Costed[Boolean]]): Rep[CostedCol[Item]] = {
       asRep[CostedCol[Item]](mkMethodCall(self,
         thisClass.getMethod("filterCosted", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[CostedCol[Item]]))
+        true, false, element[CostedCol[Item]]))
     }
 
     override def foldCosted[B](zero: Rep[Costed[B]], op: Rep[Costed[(B, Item)] => Costed[B]]): Rep[Costed[B]] = {
@@ -693,7 +702,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
       asRep[Costed[B]](mkMethodCall(self,
         thisClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, isAdapterCall = false, element[Costed[B]]))
+        true, false, element[Costed[B]]))
     }
   }
   // elem for concrete class
@@ -716,6 +725,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
   // 3) Iso for concrete class
   class CCostedColIso[Item](implicit eItem: Elem[Item])
     extends EntityIso[CCostedColData[Item], CCostedCol[Item]] with Def[CCostedColIso[Item]] {
+    override def transform(t: Transformer) = new CCostedColIso[Item]()(eItem)
     private lazy val _safeFrom = fun { p: Rep[CCostedCol[Item]] => (p.values, p.costs, p.sizes, p.valuesCost) }
     override def from(p: Rep[CCostedCol[Item]]) =
       tryConvert[CCostedCol[Item], (Col[Item], (Col[Int], (Col[Long], Int)))](eTo, eFrom, p, _safeFrom)
@@ -898,6 +908,7 @@ object CCostedPairCol extends EntityObject("CCostedPairCol") {
 implicit lazy val eR = rs.eVal.typeArgs("A")._1.asElem[R]
     override lazy val eVal: Elem[Col[(L, R)]] = implicitly[Elem[Col[(L, R)]]]
     lazy val selfType = element[CCostedPairCol[L, R]]
+    override def transform(t: Transformer) = CCostedPairColCtor[L, R](t(ls), t(rs))
   }
   // elem for concrete class
   class CCostedPairColElem[L, R](val iso: Iso[CCostedPairColData[L, R], CCostedPairCol[L, R]])(implicit override val eL: Elem[L], override val eR: Elem[R])
@@ -920,6 +931,7 @@ implicit lazy val eR = rs.eVal.typeArgs("A")._1.asElem[R]
   // 3) Iso for concrete class
   class CCostedPairColIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[CCostedPairColData[L, R], CCostedPairCol[L, R]] with Def[CCostedPairColIso[L, R]] {
+    override def transform(t: Transformer) = new CCostedPairColIso[L, R]()(eL, eR)
     private lazy val _safeFrom = fun { p: Rep[CCostedPairCol[L, R]] => (p.ls, p.rs) }
     override def from(p: Rep[CCostedPairCol[L, R]]) =
       tryConvert[CCostedPairCol[L, R], (Costed[Col[L]], Costed[Col[R]])](eTo, eFrom, p, _safeFrom)
@@ -1068,27 +1080,28 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
     implicit lazy val eItem = rows.eA.typeArgs("Val")._1.asElem[Col[Item]].typeArgs("A")._1.asElem[Item]
     override lazy val eVal: Elem[Col[Col[Item]]] = implicitly[Elem[Col[Col[Item]]]]
     lazy val selfType = element[CCostedNestedCol[Item]]
+    override def transform(t: Transformer) = CCostedNestedColCtor[Item](t(rows))
     private val thisClass = classOf[CostedNestedCol[Item]] // manual fix
 
     override def value: Rep[Col[Col[Item]]] = {
       asRep[Col[Col[Item]]](mkMethodCall(self,
         thisClass.getMethod("value"),
         List(),
-        true, isAdapterCall = false, element[Col[Col[Item]]]))
+        true, false, element[Col[Col[Item]]]))
     }
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
         List(),
-        true, isAdapterCall = false, element[Int]))
+        true, false, element[Int]))
     }
 
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         List(),
-        true, isAdapterCall = false, element[Long]))
+        true, false, element[Long]))
     }
   }
   // elem for concrete class
@@ -1111,6 +1124,7 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
   // 3) Iso for concrete class
   class CCostedNestedColIso[Item](implicit eItem: Elem[Item])
     extends EntityIso[CCostedNestedColData[Item], CCostedNestedCol[Item]] with Def[CCostedNestedColIso[Item]] {
+    override def transform(t: Transformer) = new CCostedNestedColIso[Item]()(eItem)
     private lazy val _safeFrom = fun { p: Rep[CCostedNestedCol[Item]] => p.rows }
     override def from(p: Rep[CCostedNestedCol[Item]]) =
       tryConvert[CCostedNestedCol[Item], Col[Costed[Col[Item]]]](eTo, eFrom, p, _safeFrom)
@@ -1246,6 +1260,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       ()
     extends CCostedBuilder() with Def[CCostedBuilder] {
     lazy val selfType = element[CCostedBuilder]
+    override def transform(t: Transformer) = CCostedBuilderCtor()
     private val thisClass = classOf[CostedBuilder] // manual fix
 
     override def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = {
@@ -1253,7 +1268,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       asRep[Costed[T]](mkMethodCall(self,
         thisClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
         List(x, optCost),
-        true, isAdapterCall = false, element[Costed[T]]))
+        true, false, element[Costed[T]]))
     }
 
     override def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = {
@@ -1261,7 +1276,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       asRep[T](mkMethodCall(self,
         thisClass.getMethod("defaultValue", classOf[Sym]),
         List(valueType),
-        true, isAdapterCall = false, element[T]))
+        true, false, element[T]))
     }
   }
   // elem for concrete class
@@ -1283,6 +1298,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   // 3) Iso for concrete class
   class CCostedBuilderIso
     extends EntityIso[CCostedBuilderData, CCostedBuilder] with Def[CCostedBuilderIso] {
+    override def transform(t: Transformer) = new CCostedBuilderIso()
     private lazy val _safeFrom = fun { p: Rep[CCostedBuilder] => () }
     override def from(p: Rep[CCostedBuilder]) =
       tryConvert[CCostedBuilder, Unit](eTo, eFrom, p, _safeFrom)

@@ -5,6 +5,8 @@ package wrappers.scala.util {
 
   import special.wrappers.WrappersModule
 
+  import special.wrappers.EitherWrapSpec
+
   trait WEithers extends Base { self: WrappersModule =>
     import WEither._;
     @External("Either") @Liftable trait WEither[A, B] extends Def[WEither[A, B]] {

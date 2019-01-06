@@ -3,16 +3,14 @@ package wrappers.scalan.meta
 import scalan._
 import impl._
 import special.wrappers.WrappersModule
+import special.wrappers.RTypeWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  // manual fix
-  import special.wrappers.RTypeWrapSpec
-
   import scalan.meta.RType
 
-  // Abs -----------------------------------
+// Abs -----------------------------------
 trait WRTypesDefs extends scalan.Scalan with WRTypes {
   self: WrappersModule =>
 import IsoUR._
@@ -37,7 +35,7 @@ object WRType extends EntityObject("WRType") {
       asRep[String](mkMethodCall(self,
         thisClass.getMethod("name"),
         List(),
-        true, isAdapterCall = false, element[String]))
+        true, false, element[String]))
     }
   }
 
@@ -63,14 +61,16 @@ object WRType extends EntityObject("WRType") {
   case class WRTypeAdapter[A](source: Rep[WRType[A]])
       extends WRType[A] with Def[WRType[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+
     val selfType: Elem[WRType[A]] = element[WRType[A]]
+    override def transform(t: Transformer) = WRTypeAdapter[A](t(source))
     private val thisClass = classOf[WRType[A]]
 
     def name: Rep[String] = {
       asRep[String](mkMethodCall(source,
         thisClass.getMethod("name"),
         List(),
-        true, isAdapterCall = true, element[String]))
+        true, true, element[String]))
     }
   }
 

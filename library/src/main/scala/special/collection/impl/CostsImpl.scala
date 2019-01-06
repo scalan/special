@@ -32,7 +32,9 @@ object Costed extends EntityObject("Costed") {
   case class CostedAdapter[Val](source: Rep[Costed[Val]])
       extends Costed[Val] with Def[Costed[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+
     val selfType: Elem[Costed[Val]] = element[Costed[Val]]
+    override def transform(t: Transformer) = CostedAdapter[Val](t(source))
     private val thisClass = classOf[Costed[Val]]
 
     def builder: Rep[CostedBuilder] = {
@@ -179,7 +181,9 @@ object CostedPrim extends EntityObject("CostedPrim") {
   case class CostedPrimAdapter[Val](source: Rep[CostedPrim[Val]])
       extends CostedPrim[Val] with Def[CostedPrim[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+
     val selfType: Elem[CostedPrim[Val]] = element[CostedPrim[Val]]
+    override def transform(t: Transformer) = CostedPrimAdapter[Val](t(source))
     private val thisClass = classOf[CostedPrim[Val]]
 
     def value: Rep[Val] = {
@@ -314,11 +318,9 @@ object CostedPair extends EntityObject("CostedPair") {
       extends CostedPair[L, R] with Def[CostedPair[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
-
-    // manual fix
-    lazy val eVal: Elem[(L, R)] = element[(L,R)]
-
+    override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     val selfType: Elem[CostedPair[L, R]] = element[CostedPair[L, R]]
+    override def transform(t: Transformer) = CostedPairAdapter[L, R](t(source))
     private val thisClass = classOf[CostedPair[L, R]]
 
     def l: Rep[Costed[L]] = {
@@ -456,11 +458,9 @@ object CostedSum extends EntityObject("CostedSum") {
       extends CostedSum[L, R] with Def[CostedSum[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
-
-    // manual fix
-    lazy val eVal: Elem[WEither[L, R]] = element[WEither[L,R]]
-
+    override lazy val eVal: Elem[WEither[L, R]] = implicitly[Elem[WEither[L, R]]]
     val selfType: Elem[CostedSum[L, R]] = element[CostedSum[L, R]]
+    override def transform(t: Transformer) = CostedSumAdapter[L, R](t(source))
     private val thisClass = classOf[CostedSum[L, R]]
 
     def value: Rep[WEither[L, R]] = {
@@ -612,11 +612,9 @@ object CostedFunc extends EntityObject("CostedFunc") {
     implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asElem[Env];
 implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asElem[Arg];
 implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
-
-    // manual fix
-    lazy val eVal: Elem[Arg => Res] = element[Arg => Res]
-
+    override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     val selfType: Elem[CostedFunc[Env, Arg, Res]] = element[CostedFunc[Env, Arg, Res]]
+    override def transform(t: Transformer) = CostedFuncAdapter[Env, Arg, Res](t(source))
     private val thisClass = classOf[CostedFunc[Env, Arg, Res]]
 
     def envCosted: Rep[Costed[Env]] = {
@@ -781,11 +779,9 @@ object CostedCol extends EntityObject("CostedCol") {
   case class CostedColAdapter[Item](source: Rep[CostedCol[Item]])
       extends CostedCol[Item] with Def[CostedCol[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
-
-    // manual fix
-    lazy val eVal: Elem[Col[Item]] = element[Col[Item]]
-
+    override lazy val eVal: Elem[Col[Item]] = implicitly[Elem[Col[Item]]]
     val selfType: Elem[CostedCol[Item]] = element[CostedCol[Item]]
+    override def transform(t: Transformer) = CostedColAdapter[Item](t(source))
     private val thisClass = classOf[CostedCol[Item]]
 
     def values: Rep[Col[Item]] = {
@@ -1023,11 +1019,9 @@ object CostedPairCol extends EntityObject("CostedPairCol") {
       extends CostedPairCol[L, R] with Def[CostedPairCol[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
-
-    // manual fix
-    lazy val eVal: Elem[Col[(L, R)]] = element[Col[(L,R)]]
-
+    override lazy val eVal: Elem[Col[(L, R)]] = implicitly[Elem[Col[(L, R)]]]
     val selfType: Elem[CostedPairCol[L, R]] = element[CostedPairCol[L, R]]
+    override def transform(t: Transformer) = CostedPairColAdapter[L, R](t(source))
     private val thisClass = classOf[CostedPairCol[L, R]]
 
     def ls: Rep[Costed[Col[L]]] = {
@@ -1164,11 +1158,9 @@ object CostedNestedCol extends EntityObject("CostedNestedCol") {
   case class CostedNestedColAdapter[Item](source: Rep[CostedNestedCol[Item]])
       extends CostedNestedCol[Item] with Def[CostedNestedCol[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
-
-    // manual fix
-    lazy val eVal: Elem[Col[Col[Item]]] = element[Col[Col[Item]]]
-
+    override lazy val eVal: Elem[Col[Col[Item]]] = implicitly[Elem[Col[Col[Item]]]]
     val selfType: Elem[CostedNestedCol[Item]] = element[CostedNestedCol[Item]]
+    override def transform(t: Transformer) = CostedNestedColAdapter[Item](t(source))
     private val thisClass = classOf[CostedNestedCol[Item]]
 
     def rows: Rep[Col[Costed[Col[Item]]]] = {
@@ -1283,11 +1275,9 @@ object CostedOption extends EntityObject("CostedOption") {
   case class CostedOptionAdapter[T](source: Rep[CostedOption[T]])
       extends CostedOption[T] with Def[CostedOption[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
-
-    // manual fix
-    lazy val eVal: Elem[WOption[T]] = element[WOption[T]]
-
+    override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     val selfType: Elem[CostedOption[T]] = element[CostedOption[T]]
+    override def transform(t: Transformer) = CostedOptionAdapter[T](t(source))
     private val thisClass = classOf[CostedOption[T]]
 
     def get: Rep[Costed[T]] = {
@@ -1545,6 +1535,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
   case class CostedBuilderAdapter(source: Rep[CostedBuilder])
       extends CostedBuilder with Def[CostedBuilder] {
     val selfType: Elem[CostedBuilder] = element[CostedBuilder]
+    override def transform(t: Transformer) = CostedBuilderAdapter(t(source))
     private val thisClass = classOf[CostedBuilder]
 
     def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = {
@@ -1684,8 +1675,8 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
     override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedBuilderElement: Elem[CostedBuilder] =
-    cachedElem[CostedBuilderElem[CostedBuilder]]()
+  implicit lazy val costedBuilderElement: Elem[CostedBuilder] =
+    new CostedBuilderElem[CostedBuilder]
 
   implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[CostedBuilderCompanionCtor]
