@@ -142,14 +142,14 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     },
     RunStep("wrapbackend") { _ =>
       context.forEachWrapper {
-        case (_, WrapperDescr(u, config, false)) =>
+        case (_, WrapperDescr(u, wconfig, false)) =>
           implicit val context = scalanizer.context
           val moduleConf = getSourceModule
-          val wSpecPackageName = moduleConf
-              .wrapperSpecUnit(config.name)
-              .map(_.packageName)
-              .getOrElse("wrappers")
-          val wUnit = u.copy(imports = u.imports :+ SImportStat(s"$wSpecPackageName.WrappersModule"))
+          val wrapspecUnit = moduleConf.wrapperSpecUnit(wconfig.name)
+          val wSpecPackageName = wrapspecUnit.map(_.packageName).getOrElse("wrappers")
+          val wUnit = u.copy(imports = u.imports ++
+            List(SImportStat(s"$wSpecPackageName.WrappersModule"),
+                 SImportStat(s"$wSpecPackageName.${wconfig.name}WrapSpec")))
 
           /** Build source code of the wrapper unit and store it in a file */
           val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)

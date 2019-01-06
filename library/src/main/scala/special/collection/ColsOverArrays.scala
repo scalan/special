@@ -13,7 +13,6 @@ package special.collection {
     import WArray._;
 
     import Monoid._; // manual fix
-    import WSpecialPredef._; // manual fix
 
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColBuilder] = RColOverArrayBuilder();
