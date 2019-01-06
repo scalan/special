@@ -120,6 +120,25 @@ trait Library extends Scalan
     case _ => super.rewriteDef(d)
   }
 
+  override protected def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef = e match {
+    case _: ColElem[_,_] => mc match {
+      case ColMethods.map(xs, f) =>
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
+        super.invokeUnlifted(e, newMC, dataEnv)
+      case _ =>
+        super.invokeUnlifted(e, mc, dataEnv)
+    }
+    case _: WArrayElem[_,_] => mc match {
+      case WArrayMethods.map(xs, f) =>
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
+        super.invokeUnlifted(e, newMC, dataEnv)
+      case _ =>
+        super.invokeUnlifted(e, mc, dataEnv)
+    }
+    case _ =>
+      super.invokeUnlifted(e, mc, dataEnv)
+  }
+
   implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
     def applyCosted(x: Rep[Costed[A]]): Rep[Costed[B]] = {
       val fC_elem = fC.elem.asInstanceOf[CostedElem[A => B,_]].eVal

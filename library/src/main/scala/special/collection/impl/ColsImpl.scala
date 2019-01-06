@@ -320,15 +320,6 @@ object Col extends EntityObject("Col") {
         ))
     }
 
-    // manual fix
-    override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
-      case ColMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(mc, dataEnv)
-    }
-
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
     override lazy val tag = {
