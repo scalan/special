@@ -14,6 +14,7 @@ import WArray._
 import WEither._
 import WOption._
 import WRType._
+import WSpecialPredef._
 import WrapSpecBase._
 import ArrayWrapSpec._
 import EitherWrapSpec._

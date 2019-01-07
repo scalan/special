@@ -10,8 +10,7 @@ package special.collection {
     import CostedOption._;
     import CostedSome._;
     import WOption._;
-
-    import WSpecialPredef._  // manual fix
+    import WSpecialPredef._;
     import ColBuilder._  // manual fix
     import CCostedBuilder._  // manual fix
     import Liftables._  // manual fix

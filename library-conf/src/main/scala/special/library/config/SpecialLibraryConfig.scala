@@ -31,7 +31,8 @@ class SpecialLibraryConfig extends LibraryConfig {
     WrapperConf(baseDir,
       packageName = "scalan.meta",
       name = "RType",
-      annotations = List(classOf[Liftable]).map(_.getSimpleName)
+      annotations = List(classOf[Liftable]).map(_.getSimpleName),
+      imports = List("scalan.meta.RType")
     ),
   ).map(w => (w.name, w)).toMap
 

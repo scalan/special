@@ -6,10 +6,8 @@ package special.wrappers {
     import WEither._;
     import WOption._;
     import WRType._;
+    import WSpecialPredef._;
     import WrapSpecBase._;
-
-    import WSpecialPredef._  // manual fix
-
     trait WrapSpecBase extends Def[WrapSpecBase] with WrapSpec;
     abstract class ArrayWrapSpec extends WrapSpecBase {
       def zip[A, B](xs: Rep[WArray[A]], ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[A, B]]] = xs.zip(ys);

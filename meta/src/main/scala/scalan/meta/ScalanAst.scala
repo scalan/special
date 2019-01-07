@@ -1248,7 +1248,7 @@ object ScalanAst {
     }
   }
 
-  case class WrapperConf(baseDir: String, packageName: String, name: String, annotations: List[String] = Nil) extends Conf
+  case class WrapperConf(baseDir: String, packageName: String, name: String, annotations: List[String] = Nil, imports: List[String] = Nil) extends Conf
 
   case class NonWrapper(name: String)
 

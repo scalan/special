@@ -18,6 +18,7 @@ import CostedNone._
 import CostedOption._
 import CostedSome._
 import WOption._
+import WSpecialPredef._
 import CCostedOption._
 
 object CostedSome extends EntityObject("CostedSome") {

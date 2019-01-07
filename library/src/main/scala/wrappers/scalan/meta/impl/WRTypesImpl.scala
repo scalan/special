@@ -9,8 +9,6 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-
-
 // Abs -----------------------------------
 trait WRTypesDefs extends scalan.Scalan with WRTypes {
   self: WrappersModule =>

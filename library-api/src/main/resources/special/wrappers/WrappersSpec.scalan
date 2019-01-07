@@ -6,6 +6,7 @@ package special.wrappers {
     import WEither._;
     import WOption._;
     import WRType._;
+    import WSpecialPredef._;
     import WrapSpecBase._;
     trait WrapSpecBase extends Def[WrapSpecBase] with WrapSpec;
     abstract class ArrayWrapSpec extends WrapSpecBase {

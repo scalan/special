@@ -147,7 +147,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           val moduleConf = getSourceModule
           val wrapspecUnit = moduleConf.wrapperSpecUnit(wconfig.name)
           val wSpecPackageName = wrapspecUnit.map(_.packageName).getOrElse("wrappers")
-          val wUnit = u.copy(imports = u.imports ++
+          val wUnit = u.copy(imports = u.imports ++ wconfig.imports.map(SImportStat(_)) ++
             List(SImportStat(s"$wSpecPackageName.WrappersModule"),
                  SImportStat(s"$wSpecPackageName.${wconfig.name}WrapSpec")))
 
