@@ -5,9 +5,9 @@ package special.wrappers {
     import WArray._;
     import WEither._;
     import WOption._;
+    import WRType._;
     import WrapSpecBase._;
 
-    import WRType._  // manual fix
     import WSpecialPredef._  // manual fix
 
     trait WrapSpecBase extends Def[WrapSpecBase] with WrapSpec;

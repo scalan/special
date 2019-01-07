@@ -4,6 +4,7 @@ package special.collection {
   trait Cols extends Base { self: Library =>
     import Col._;
     import ColBuilder._;
+    import Monoid._;
     import PairCol._;
     import WArray._;
     @ContainerType @FunctorType @Liftable trait Col[A] extends Def[Col[A]] {

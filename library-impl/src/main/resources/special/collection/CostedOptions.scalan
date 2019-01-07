@@ -6,7 +6,9 @@ package special.collection {
     import CCostedPrim._;
     import Costed._;
     import CostedBuilder._;
+    import CostedNone._;
     import CostedOption._;
+    import CostedSome._;
     import WOption._;
     abstract class CostedSome[T](val costedValue: Rep[Costed[T]]) extends CostedOption[T] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();

@@ -7,13 +7,11 @@ package special.collection {
     import ColBuilder._;
     import ColOverArray._;
     import ColOverArrayBuilder._;
+    import Monoid._;
     import PairCol._;
     import PairOfCols._;
     import ReplCol._;
     import WArray._;
-
-    import Monoid._; // manual fix
-
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColBuilder] = RColOverArrayBuilder();
       def length: Rep[Int] = ColOverArray.this.arr.length;

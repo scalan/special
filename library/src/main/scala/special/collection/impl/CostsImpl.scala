@@ -22,10 +22,9 @@ import CostedPairCol._
 import CostedPrim._
 import CostedSum._
 import MonoidBuilder._
-import WArray._
 import WEither._
 import WOption._
-import WRType._  // manual fix
+import WRType._
 
 object Costed extends EntityObject("Costed") {
   // entityAdapter for Costed trait

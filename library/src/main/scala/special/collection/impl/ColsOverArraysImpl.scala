@@ -15,6 +15,7 @@ import Col._
 import ColBuilder._
 import ColOverArray._
 import ColOverArrayBuilder._
+import Monoid._
 import PairCol._
 import PairOfCols._
 import ReplCol._

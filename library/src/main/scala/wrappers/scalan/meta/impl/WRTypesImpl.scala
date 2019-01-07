@@ -2,13 +2,14 @@ package wrappers.scalan.meta
 
 import scalan._
 import impl._
+import scalan.meta.RType
 import special.wrappers.WrappersModule
 import special.wrappers.RTypeWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  import scalan.meta.RType
+
 
 // Abs -----------------------------------
 trait WRTypesDefs extends scalan.Scalan with WRTypes {

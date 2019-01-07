@@ -12,6 +12,7 @@ import IsoUR._
 import Converter._
 import Col._
 import ColBuilder._
+import Monoid._
 import PairCol._
 import WArray._
 import ReplCol._

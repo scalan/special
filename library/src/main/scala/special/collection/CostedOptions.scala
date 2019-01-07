@@ -6,7 +6,9 @@ package special.collection {
     import CCostedPrim._;
     import Costed._;
     import CostedBuilder._;
+    import CostedNone._;
     import CostedOption._;
+    import CostedSome._;
     import WOption._;
 
     import WSpecialPredef._  // manual fix

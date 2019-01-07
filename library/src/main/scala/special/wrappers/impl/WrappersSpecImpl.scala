@@ -13,6 +13,7 @@ import Converter._
 import WArray._
 import WEither._
 import WOption._
+import WRType._
 import WrapSpecBase._
 import ArrayWrapSpec._
 import EitherWrapSpec._

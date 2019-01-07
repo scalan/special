@@ -32,10 +32,13 @@ import CostedPairCol._
 import CostedPrim._
 import CostedSome._
 import CostedSum._
+import Monoid._
+import MonoidBuilder._
 import MonoidBuilderInst._
-
-import WRType._ // manual fix
-import WEither._ // manual fix
+import PairCol._
+import WEither._
+import WOption._
+import WRType._
 
 object CCostedPrim extends EntityObject("CCostedPrim") {
   case class CCostedPrimCtor[Val]

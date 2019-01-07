@@ -14,11 +14,11 @@ import CCostedBuilder._
 import CCostedPrim._
 import Costed._
 import CostedBuilder._
+import CostedNone._
 import CostedOption._
+import CostedSome._
 import WOption._
 import CCostedOption._
-import CostedNone._
-import CostedSome._
 
 object CostedSome extends EntityObject("CostedSome") {
   case class CostedSomeCtor[T]
