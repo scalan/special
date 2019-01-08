@@ -398,7 +398,7 @@ trait TypeDescs extends Base { self: Scalan =>
 
   }
 
-  protected def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef =
+  def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef =
     e.invokeUnlifted(mc, dataEnv)
 
   private lazy val debug$ElementCounter = counter[Elem[_]]

@@ -32,10 +32,11 @@ package special.collection {
       def ls: Rep[Col[L]];
       def rs: Rep[Col[R]]
     };
-    trait ReplCol[A] extends Col[A] {
+    @Liftable trait ReplCol[A] extends Col[A] {
       implicit def eA: Elem[A];
       def value: Rep[A];
       def length: Rep[Int]
+      def append(other: Rep[Col[A]]): Rep[Col[A]]
     };
     @Liftable trait ColBuilder extends Def[ColBuilder] {
       def pairCol[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]];

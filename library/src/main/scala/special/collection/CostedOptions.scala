@@ -11,10 +11,6 @@ package special.collection {
     import CostedSome._;
     import WOption._;
     import WSpecialPredef._;
-    import ColBuilder._  // manual fix
-    import CCostedBuilder._  // manual fix
-    import Liftables._  // manual fix
-
     abstract class CostedSome[T](val costedValue: Rep[Costed[T]]) extends CostedOption[T] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[WOption[T]] = RWSpecialPredef.some[T](CostedSome.this.costedValue.value);

@@ -93,4 +93,29 @@ class WArrayTests extends WrappersTests {
         } yield b.fromItems(x1, x2, x3) },
       Cols.fromItems(1, 2, 3))
   }
+
+  test("invokeUnlifted for method of Ctor") {
+    val ctx = new WrappersCtx with Library
+    import ctx._
+    import Liftables._
+    import WArray._
+    import Col._
+    import ColBuilder._
+    import CReplCol._
+    import EnvRep._
+
+    val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
+    val colData = Cols.replicate(10, 10)
+    val colSym = RCReplCol(10, 10)
+    val resSym = colSym.append(colSym)
+    val resData = colData.append(colData)
+    val env = Map[Sym, AnyRef]()
+    val resEnvSym = EnvRep.add(colSym -> colData.asInstanceOf[AnyRef])
+    val (resEnv, _) = resEnvSym.run(env)
+    resSym match {
+      case Def(mc: MethodCall) =>
+        val res = invokeUnlifted(colSym.elem, mc, resEnv)
+        res shouldBe resData
+    }
+  }
 }

@@ -55,7 +55,7 @@ class ColOverArrayBuilder extends ColBuilder {
   def fromArray[T](arr: Array[T]): Col[T] = new ColOverArray[T](arr)
 
   @NeverInline
-  def replicate[T:ClassTag](n: Int, v: T): Col[T] = this.fromArray(Array.fill(n)(v))
+  def replicate[T:ClassTag](n: Int, v: T): Col[T] = new CReplCol(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
   def xor(left: Col[Byte], right: Col[Byte]): Col[Byte] = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
@@ -93,7 +93,7 @@ class PairOfCols[L,R](val ls: Col[L], val rs: Col[R]) extends PairCol[L,R] {
 
 class CReplCol[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplCol[A] {
   def builder: ColBuilder = new ColOverArrayBuilder
-  def arr: Array[A] = builder.replicate(length, value).arr
+  def arr: Array[A] = Array.fill(length)(value)
   def apply(i: Int): A = value
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default

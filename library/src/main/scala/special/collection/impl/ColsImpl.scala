@@ -25,12 +25,17 @@ object Col extends EntityObject("Col") {
   case class ColConst[SA, A](
         constValue: SCol[SA],
         lA: Liftable[SA, A]
-      ) extends Col[A] with LiftedConst[SCol[SA], Col[A]] {
+      ) extends Col[A] with LiftedConst[SCol[SA], Col[A]]
+        with ColConstMethods[A] { // manual fix
     implicit def eA: Elem[A] = lA.eW
     val liftable: Liftable[SCol[SA], Col[A]] = liftableCol(lA)
     val selfType: Elem[Col[A]] = liftable.eW
-    private val thisClass = classOf[Col[A]]
+  }
 
+  // manual fix
+  trait ColConstMethods[A] { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    private val thisClass = classOf[Col[A]]
     def builder: Rep[ColBuilder] = {
       asRep[ColBuilder](mkMethodCall(self,
         thisClass.getMethod("builder"),
@@ -314,7 +319,7 @@ object Col extends EntityObject("Col") {
     extends EntityElem1[A, To, Col](_eA, container[Col]) {
     def eA = _eA
 
-    override val liftable = liftableCol(_eA.liftable).asLiftable[SCol[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableCol(_eA.liftable).asLiftable[SCol[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -858,6 +863,52 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   registerEntityObject("PairCol", PairCol)
 
 object ReplCol extends EntityObject("ReplCol") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SReplCol[A] = special.collection.ReplCol[A]
+  case class ReplColConst[SA, A](
+        constValue: SReplCol[SA],
+        lA: Liftable[SA, A]
+      ) extends ReplCol[A] with LiftedConst[SReplCol[SA], ReplCol[A]]
+        with Def[ReplCol[A]] with ColConstMethods[A] { // manual fix
+    implicit def eA: Elem[A] = lA.eW
+    val liftable: Liftable[SReplCol[SA], ReplCol[A]] = liftableReplCol(lA)
+    val selfType: Elem[ReplCol[A]] = liftable.eW
+    private val thisClass = classOf[ReplCol[A]]
+
+    def value: Rep[A] = {
+      asRep[A](mkMethodCall(self,
+        thisClass.getMethod("value"),
+        List(),
+        true, false, element[A]))
+    }
+
+    override def length: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        thisClass.getMethod("length"),
+        List(),
+        true, false, element[Int]))
+    }
+  }
+
+  case class LiftableReplCol[SA, A](lA: Liftable[SA, A])
+    extends Liftable[SReplCol[SA], ReplCol[A]] {
+    lazy val eW: Elem[ReplCol[A]] = replColElement(lA.eW)
+    lazy val sourceClassTag: ClassTag[SReplCol[SA]] = {
+            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+      classTag[SReplCol[SA]]
+    }
+    def lift(x: SReplCol[SA]): Rep[ReplCol[A]] = ReplColConst(x, lA)
+    def unlift(w: Rep[ReplCol[A]]): SReplCol[SA] = w match {
+      case Def(ReplColConst(x: SReplCol[_], _lA))
+            if _lA == lA => x.asInstanceOf[SReplCol[SA]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableReplCol[SA, A](implicit lA: Liftable[SA,A]): Liftable[SReplCol[SA], ReplCol[A]] =
+    LiftableReplCol(lA)
+
   // entityAdapter for ReplCol trait
   case class ReplColAdapter[A](source: Rep[ReplCol[A]])
       extends ReplCol[A] with Def[ReplCol[A]] {
@@ -994,6 +1045,15 @@ object ReplCol extends EntityObject("ReplCol") {
   class ReplColElem[A, To <: ReplCol[A]](implicit _eA: Elem[A])
     extends ColElem[A, To] {
     override def eA = _eA
+
+    override val liftable: Liftables.Liftable[_, To] = liftableReplCol(_eA.liftable).asLiftable[SReplCol[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[ReplCol[A]], classOf[SReplCol[_]], Set(
+        "value", "length", "append"
+        ))
+    }
 
     override lazy val parent: Option[Elem[_]] = Some(colElement(element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))

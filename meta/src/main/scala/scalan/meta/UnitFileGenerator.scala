@@ -392,7 +392,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       val info = new LiftableInfo(e); import info._
       val SNameForSome = SName + optArgs(zipped)("[",(_,_) => "_", ",", "]")
       s"""
-        |    override val liftable = $liftableMethod${
+        |    override val liftable: Liftables.Liftable[_, To] = $liftableMethod${
            e.implicitArgs.opt(args => "(" + args.rep(a => s"_${a.name}.liftable") + ")")}.asLiftable[$SNameForSome, To]
         |
         |    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
