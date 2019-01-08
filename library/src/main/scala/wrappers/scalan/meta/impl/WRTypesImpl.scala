@@ -85,7 +85,7 @@ object WRType extends EntityObject("WRType") {
     extends EntityElem[To] {
     def eA = _eA
 
-    override val liftable = liftableRType(_eA.liftable).asLiftable[RType[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableRType(_eA.liftable).asLiftable[RType[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

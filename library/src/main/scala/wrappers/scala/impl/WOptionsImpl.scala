@@ -217,7 +217,7 @@ object WOption extends EntityObject("WOption") {
     extends EntityElem1[A, To, WOption](_eA, container[WOption]) {
     def eA = _eA
 
-    override val liftable = liftableOption(_eA.liftable).asLiftable[Option[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableOption(_eA.liftable).asLiftable[Option[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

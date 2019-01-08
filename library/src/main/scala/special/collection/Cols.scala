@@ -35,7 +35,7 @@ package special.collection {
     @Liftable trait ReplCol[A] extends Col[A] {
       implicit def eA: Elem[A];
       def value: Rep[A];
-      def length: Rep[Int]
+      def length: Rep[Int];
       def append(other: Rep[Col[A]]): Rep[Col[A]]
     };
     @Liftable trait ColBuilder extends Def[ColBuilder] {

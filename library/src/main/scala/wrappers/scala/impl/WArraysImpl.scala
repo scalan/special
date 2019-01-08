@@ -243,7 +243,7 @@ object WArray extends EntityObject("WArray") {
     extends EntityElem1[T, To, WArray](_eT, container[WArray]) {
     def eT = _eT
 
-    override val liftable = liftableArray(_eT.liftable).asLiftable[Array[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableArray(_eT.liftable).asLiftable[Array[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

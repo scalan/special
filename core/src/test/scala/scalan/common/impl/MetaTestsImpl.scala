@@ -125,7 +125,7 @@ object MetaTest extends EntityObject("MetaTest") {
     extends EntityElem[To] {
     def eT = _eT
 
-    override val liftable = liftableMetaTest(_eT.liftable).asLiftable[SMetaTest[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableMetaTest(_eT.liftable).asLiftable[SMetaTest[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

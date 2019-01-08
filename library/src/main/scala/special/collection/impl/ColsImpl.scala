@@ -36,6 +36,7 @@ object Col extends EntityObject("Col") {
   trait ColConstMethods[A] { thisConst: Def[_] =>
     implicit def eA: Elem[A]
     private val thisClass = classOf[Col[A]]
+
     def builder: Rep[ColBuilder] = {
       asRep[ColBuilder](mkMethodCall(self,
         thisClass.getMethod("builder"),
@@ -890,6 +891,13 @@ object ReplCol extends EntityObject("ReplCol") {
         List(),
         true, false, element[Int]))
     }
+
+    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+      asRep[Col[A]](mkMethodCall(self,
+        thisClass.getMethod("append", classOf[Sym]),
+        List(other),
+        true, false, element[Col[A]]))
+    }
   }
 
   case class LiftableReplCol[SA, A](lA: Liftable[SA, A])
@@ -930,6 +938,13 @@ object ReplCol extends EntityObject("ReplCol") {
         thisClass.getMethod("length"),
         List(),
         true, true, element[Int]))
+    }
+
+    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+      asRep[Col[A]](mkMethodCall(source,
+        thisClass.getMethod("append", classOf[Sym]),
+        List(other),
+        true, true, element[Col[A]]))
     }
 
     def builder: Rep[ColBuilder] = {
@@ -1025,13 +1040,6 @@ object ReplCol extends EntityObject("ReplCol") {
         List(from, until),
         true, true, element[Col[A]]))
     }
-
-    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
-      asRep[Col[A]](mkMethodCall(source,
-        thisClass.getMethod("append", classOf[Sym]),
-        List(other),
-        true, true, element[Col[A]]))
-    }
   }
 
   // entityProxy: single proxy for each type family
@@ -1116,6 +1124,19 @@ object ReplCol extends EntityObject("ReplCol") {
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[Rep[ReplCol[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object append {
+      def unapply(d: Def[_]): Nullable[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ReplColElem[_, _]] && method.getName == "append" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1250,7 +1271,7 @@ implicit val eB = bs.eA
   // familyElem
   class ColBuilderElem[To <: ColBuilder]
     extends EntityElem[To] {
-    override val liftable = LiftableColBuilder.asLiftable[SColBuilder, To]
+    override val liftable: Liftables.Liftable[_, To] = LiftableColBuilder.asLiftable[SColBuilder, To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
