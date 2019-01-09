@@ -27,36 +27,37 @@ object MetaTest extends EntityObject("MetaTest") {
       ) extends MetaTest[T] with LiftedConst[SMetaTest[ST], MetaTest[T]]
         with Def[MetaTest[T]] with MetaTestConstMethods[T] {
     implicit def eT: Elem[T] = lT.eW
+
     val liftable: Liftable[SMetaTest[ST], MetaTest[T]] = liftableMetaTest(lT)
     val selfType: Elem[MetaTest[T]] = liftable.eW
   }
 
-  trait MetaTestConstMethods[T]  { thisConst: Def[_] =>
+  trait MetaTestConstMethods[T] extends MetaTest[T]  { thisConst: Def[_] =>
     implicit def eT: Elem[T]
     private val MetaTestClass = classOf[MetaTest[T]]
 
-    def test: RMetaTest[T] = {
+    override def test: RMetaTest[T] = {
       asRep[MetaTest[T]](mkMethodCall(self,
         MetaTestClass.getMethod("test"),
         List(),
         true, false, element[MetaTest[T]]))
     }
 
-    def give: Rep[T] = {
+    override def give: Rep[T] = {
       asRep[T](mkMethodCall(self,
         MetaTestClass.getMethod("give"),
         List(),
         true, false, element[T]))
     }
 
-    def size: Rep[Int] = {
+    override def size: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         MetaTestClass.getMethod("size"),
         List(),
         true, false, element[Int]))
     }
 
-    def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
+    override def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
       asRep[MetaTest[B]](mkMethodCall(self,
         MetaTestClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cB),
@@ -250,26 +251,25 @@ object MetaPair extends EntityObject("MetaPair") {
         with Def[MetaPair[A, B]] with MetaPairConstMethods[A, B] {
     implicit def eA: Elem[A] = lA.eW
     implicit def eB: Elem[B] = lB.eW
-
-    override implicit def eT: Elem[(A, B)] = element[(A,B)]
+    implicit def eT: Elem[(A, B)] = element[(A, B)]
 
     val liftable: Liftable[SMetaPair[SA, SB], MetaPair[A, B]] = liftableMetaPair(lA,lB)
     val selfType: Elem[MetaPair[A, B]] = liftable.eW
   }
 
-  trait MetaPairConstMethods[A, B] extends MetaTestConstMethods[(A, B)] { thisConst: Def[_] =>
+  trait MetaPairConstMethods[A, B] extends MetaPair[A, B] with MetaTestConstMethods[(A, B)] { thisConst: Def[_] =>
     implicit def eA: Elem[A]
     implicit def eB: Elem[B]
     private val MetaPairClass = classOf[MetaPair[A, B]]
 
-    def indices: Rep[A] = {
+    override def indices: Rep[A] = {
       asRep[A](mkMethodCall(self,
         MetaPairClass.getMethod("indices"),
         List(),
         true, false, element[A]))
     }
 
-    def values: Rep[B] = {
+    override def values: Rep[B] = {
       asRep[B](mkMethodCall(self,
         MetaPairClass.getMethod("values"),
         List(),

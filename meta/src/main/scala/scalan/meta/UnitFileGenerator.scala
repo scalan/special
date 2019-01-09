@@ -22,7 +22,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     (externalConstrs, externalMethods)
   }
 
-  def externalMethod(receiverName: String, method: SMethodDef, isAdapter: Boolean, thisClassField: String = "thisClass") = {
+  def externalMethod(receiverName: String, method: SMethodDef, isAdapter: Boolean, thisClassField: String = "thisClass", isOverride: Boolean = false) = {
     val md = optimizeMethodImplicits(method)
     def msgExplicitRetType = s"Method ${method.name} should be declared with explicit type of returning value (result type): $method"
     def msgRepRetType = s"Invalid method $md. External methods should have return type of type Rep[T] for some T."
@@ -51,7 +51,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val finalArgs =
       join(allArgs.rep(a => s"${a.name}"), elemArgs)
     s"""
-      |    ${md.declaration(config, md.body.isDefined)} = {
+      |    ${md.declaration(config, md.body.isDefined || isOverride)} = {
       |      ${elemDecls.rep({ case (ta, expr) => s"implicit val e${ta.name} = $expr" }, "\n")}
       |      asRep[$unreppedReturnType](mkMethodCall($receiverName,
       |        $thisClassField.getMethod("${md.name}"$finalArgClasses),
@@ -128,21 +128,27 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${e.tpeArgs.rep(a =>
          s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
        )}
+       ${liftableAncestors.opt { ancs =>
+         val (e, args) = ancs.head;
+         e.tpeArgs.zip(args).rep { case (ta, tpe) =>
+           s"|    implicit def e${ta.name}: Elem[$tpe] = element[$tpe]\n"
+         }
+       }}
       |    val liftable: Liftable[$SName$tyUseS, $EName$tyUse] = $liftableMethod${
                                                                 optArgs(zipped)("(", (_,a) => s"l$a", ",", ")")}
       |    val selfType: Elem[$EName$tyUse] = liftable.eW
       |  }
       |
-      |  trait ${EName}ConstMethods$typesDecl ${liftableAncestors.opt { as =>
+      |  trait ${EName}ConstMethods$typesDecl extends $EName$tyUse ${liftableAncestors.opt { as =>
              val (e, args) = as.head;
-             s"extends ${e.name}ConstMethods${args.opt(as => s"[${as.rep()}]")}"
+             s"with ${e.name}ConstMethods${args.opt(as => s"[${as.rep()}]")}"
             }} { thisConst: Def[_] =>
       |${e.tpeArgs.rep(a =>
          s"""|    implicit def e${a.name}: Elem[${a.name}]""".stripAndTrim, "\n"
        )}
       |    ${methods.opt(_ => s"private val $thisClassFieldName = classOf[$EName$tyUse]")}
       |${methods.rep({ m =>
-         s"""|    ${externalMethod("self", m, isAdapter = false, thisClassFieldName)}""".stripAndTrim
+         s"""|    ${externalMethod("self", m, isAdapter = false, thisClassFieldName, isOverride = true)}""".stripAndTrim
        },"\n")}
       |  }
       |
