@@ -30,8 +30,17 @@ trait MetaTests { self: MetaTestsModule =>
     def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = ???
   }
 
+  @scalan.Liftable
+  trait MetaPair[A,B] extends MetaTest[(A,B)] {
+    implicit def eA: Elem[A]
+    implicit def eB: Elem[B]
+    def indices: Rep[A]
+    def values: Rep[B]
+    def give: Rep[(A, B)]
+  }
+
   abstract class MT2[A, B](val indices: Rep[A], val values: Rep[B], val size: Rep[Int])
-    extends MetaTest[(A, B)] {
+    extends MetaPair[A, B] {
     implicit def eA: Elem[A]; implicit def eB: Elem[B]
     def test: RMetaTest[(A, B)] = ???
     def give: Rep[(A, B)] = ???

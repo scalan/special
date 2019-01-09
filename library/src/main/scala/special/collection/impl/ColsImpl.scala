@@ -892,7 +892,7 @@ object ReplCol extends EntityObject("ReplCol") {
         true, false, element[Int]))
     }
 
-    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+    override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),

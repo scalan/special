@@ -13,6 +13,7 @@ import Converter._
 import MT0._
 import MT1._
 import MT2._
+import MetaPair._
 import MetaTest._
 
 object MetaTest extends EntityObject("MetaTest") {
@@ -23,36 +24,41 @@ object MetaTest extends EntityObject("MetaTest") {
   case class MetaTestConst[ST, T](
         constValue: SMetaTest[ST],
         lT: Liftable[ST, T]
-      ) extends MetaTest[T] with LiftedConst[SMetaTest[ST], MetaTest[T]] {
+      ) extends MetaTest[T] with LiftedConst[SMetaTest[ST], MetaTest[T]]
+        with Def[MetaTest[T]] with MetaTestConstMethods[T] {
     implicit def eT: Elem[T] = lT.eW
     val liftable: Liftable[SMetaTest[ST], MetaTest[T]] = liftableMetaTest(lT)
     val selfType: Elem[MetaTest[T]] = liftable.eW
-    private val thisClass = classOf[MetaTest[T]]
+  }
+
+  trait MetaTestConstMethods[T]  { thisConst: Def[_] =>
+    implicit def eT: Elem[T]
+    private val MetaTestClass = classOf[MetaTest[T]]
 
     def test: RMetaTest[T] = {
       asRep[MetaTest[T]](mkMethodCall(self,
-        thisClass.getMethod("test"),
+        MetaTestClass.getMethod("test"),
         List(),
         true, false, element[MetaTest[T]]))
     }
 
     def give: Rep[T] = {
       asRep[T](mkMethodCall(self,
-        thisClass.getMethod("give"),
+        MetaTestClass.getMethod("give"),
         List(),
         true, false, element[T]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("size"),
+        MetaTestClass.getMethod("size"),
         List(),
         true, false, element[Int]))
     }
 
     def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
       asRep[MetaTest[B]](mkMethodCall(self,
-        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
+        MetaTestClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cB),
         true, false, element[MetaTest[B]]))
     }
@@ -231,6 +237,227 @@ object MetaTest extends EntityObject("MetaTest") {
   }
 } // of object MetaTest
   registerEntityObject("MetaTest", MetaTest)
+
+object MetaPair extends EntityObject("MetaPair") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SMetaPair[A, B] = scalan.common.MetaPair[A, B]
+  case class MetaPairConst[SA, SB, A, B](
+        constValue: SMetaPair[SA, SB],
+        lA: Liftable[SA, A], lB: Liftable[SB, B]
+      ) extends MetaPair[A, B] with LiftedConst[SMetaPair[SA, SB], MetaPair[A, B]]
+        with Def[MetaPair[A, B]] with MetaPairConstMethods[A, B] {
+    implicit def eA: Elem[A] = lA.eW
+    implicit def eB: Elem[B] = lB.eW
+
+    override implicit def eT: Elem[(A, B)] = element[(A,B)]
+
+    val liftable: Liftable[SMetaPair[SA, SB], MetaPair[A, B]] = liftableMetaPair(lA,lB)
+    val selfType: Elem[MetaPair[A, B]] = liftable.eW
+  }
+
+  trait MetaPairConstMethods[A, B] extends MetaTestConstMethods[(A, B)] { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    implicit def eB: Elem[B]
+    private val MetaPairClass = classOf[MetaPair[A, B]]
+
+    def indices: Rep[A] = {
+      asRep[A](mkMethodCall(self,
+        MetaPairClass.getMethod("indices"),
+        List(),
+        true, false, element[A]))
+    }
+
+    def values: Rep[B] = {
+      asRep[B](mkMethodCall(self,
+        MetaPairClass.getMethod("values"),
+        List(),
+        true, false, element[B]))
+    }
+
+    override def give: Rep[(A, B)] = {
+      asRep[(A, B)](mkMethodCall(self,
+        MetaPairClass.getMethod("give"),
+        List(),
+        true, false, element[(A, B)]))
+    }
+  }
+
+  case class LiftableMetaPair[SA, SB, A, B](lA: Liftable[SA, A],lB: Liftable[SB, B])
+    extends Liftable[SMetaPair[SA, SB], MetaPair[A, B]] {
+    lazy val eW: Elem[MetaPair[A, B]] = metaPairElement(lA.eW,lB.eW)
+    lazy val sourceClassTag: ClassTag[SMetaPair[SA, SB]] = {
+            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+      implicit val tagSB = lB.eW.sourceClassTag.asInstanceOf[ClassTag[SB]]
+      classTag[SMetaPair[SA, SB]]
+    }
+    def lift(x: SMetaPair[SA, SB]): Rep[MetaPair[A, B]] = MetaPairConst(x, lA,lB)
+    def unlift(w: Rep[MetaPair[A, B]]): SMetaPair[SA, SB] = w match {
+      case Def(MetaPairConst(x: SMetaPair[_,_], _lA,_lB))
+            if _lA == lA && _lB == lB => x.asInstanceOf[SMetaPair[SA, SB]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableMetaPair[SA, SB, A, B](implicit lA: Liftable[SA,A],lB: Liftable[SB,B]): Liftable[SMetaPair[SA, SB], MetaPair[A, B]] =
+    LiftableMetaPair(lA,lB)
+
+  // entityAdapter for MetaPair trait
+  case class MetaPairAdapter[A, B](source: Rep[MetaPair[A, B]])
+      extends MetaPair[A, B] with Def[MetaPair[A, B]] {
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
+implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
+    override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
+    val selfType: Elem[MetaPair[A, B]] = element[MetaPair[A, B]]
+    override def transform(t: Transformer) = MetaPairAdapter[A, B](t(source))
+    private val thisClass = classOf[MetaPair[A, B]]
+
+    def indices: Rep[A] = {
+      asRep[A](mkMethodCall(source,
+        thisClass.getMethod("indices"),
+        List(),
+        true, true, element[A]))
+    }
+
+    def values: Rep[B] = {
+      asRep[B](mkMethodCall(source,
+        thisClass.getMethod("values"),
+        List(),
+        true, true, element[B]))
+    }
+
+    def give: Rep[(A, B)] = {
+      asRep[(A, B)](mkMethodCall(source,
+        thisClass.getMethod("give"),
+        List(),
+        true, true, element[(A, B)]))
+    }
+
+    def test: RMetaTest[(A, B)] = {
+      asRep[MetaTest[(A, B)]](mkMethodCall(source,
+        thisClass.getMethod("test"),
+        List(),
+        true, true, element[MetaTest[(A, B)]]))
+    }
+
+    def size: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("size"),
+        List(),
+        true, true, element[Int]))
+    }
+
+    def fromItems[B1](items: Rep[B1]*)(implicit cB: Elem[B1]): Rep[MetaTest[B1]] = {
+      asRep[MetaTest[B1]](mkMethodCall(source,
+        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
+        List(items, cB),
+        true, true, element[MetaTest[B1]]))
+    }
+  }
+
+  // entityProxy: single proxy for each type family
+  implicit def proxyMetaPair[A, B](p: Rep[MetaPair[A, B]]): MetaPair[A, B] = {
+    if (p.rhs.isInstanceOf[MetaPair[A, B]@unchecked]) p.rhs.asInstanceOf[MetaPair[A, B]]
+    else
+      MetaPairAdapter(p)
+  }
+
+  // familyElem
+  class MetaPairElem[A, B, To <: MetaPair[A, B]](implicit _eA: Elem[A], _eB: Elem[B])
+    extends MetaTestElem[(A, B), To] {
+    def eA = _eA
+    def eB = _eB
+
+    override val liftable: Liftables.Liftable[_, To] = liftableMetaPair(_eA.liftable, _eB.liftable).asLiftable[SMetaPair[_,_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[MetaPair[A, B]], classOf[SMetaPair[_,_]], Set(
+        "indices", "values", "give"
+        ))
+    }
+
+    override lazy val parent: Option[Elem[_]] = Some(metaTestElement(pairElement(element[A],element[B])))
+    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
+    override lazy val tag = {
+      implicit val tagA = eA.tag
+      implicit val tagB = eB.tag
+      weakTypeTag[MetaPair[A, B]].asInstanceOf[WeakTypeTag[To]]
+    }
+    override def convert(x: Rep[Def[_]]) = {
+      val conv = fun {x: Rep[MetaPair[A, B]] => convertMetaPair(x) }
+      tryConvert(element[MetaPair[A, B]], this, x, conv)
+    }
+
+    def convertMetaPair(x: Rep[MetaPair[A, B]]): Rep[To] = {
+      x.elem match {
+        case _: MetaPairElem[_, _, _] => asRep[To](x)
+        case e => !!!(s"Expected $x to have MetaPairElem[_, _, _], but got $e", x)
+      }
+    }
+    override def getDefaultRep: Rep[To] = ???
+  }
+
+  implicit def metaPairElement[A, B](implicit eA: Elem[A], eB: Elem[B]): Elem[MetaPair[A, B]] =
+    cachedElem[MetaPairElem[A, B, MetaPair[A, B]]](eA, eB)
+
+  implicit case object MetaPairCompanionElem extends CompanionElem[MetaPairCompanionCtor] {
+    lazy val tag = weakTypeTag[MetaPairCompanionCtor]
+    protected def getDefaultRep = RMetaPair
+  }
+
+  abstract class MetaPairCompanionCtor extends CompanionDef[MetaPairCompanionCtor] {
+    def selfType = MetaPairCompanionElem
+    override def toString = "MetaPair"
+  }
+  implicit def proxyMetaPairCompanionCtor(p: Rep[MetaPairCompanionCtor]): MetaPairCompanionCtor =
+    proxyOps[MetaPairCompanionCtor](p)
+
+  lazy val RMetaPair: Rep[MetaPairCompanionCtor] = new MetaPairCompanionCtor {
+  }
+
+  object MetaPairMethods {
+    object indices {
+      def unapply(d: Def[_]): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MetaPairElem[_, _, _]] && method.getName == "indices" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object values {
+      def unapply(d: Def[_]): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MetaPairElem[_, _, _]] && method.getName == "values" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object give {
+      def unapply(d: Def[_]): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MetaPairElem[_, _, _]] && method.getName == "give" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+  }
+} // of object MetaPair
+  registerEntityObject("MetaPair", MetaPair)
 
 object MT0 extends EntityObject("MT0") {
   case class MT0Ctor
@@ -548,13 +775,12 @@ implicit lazy val eB = values.elem
     override def transform(t: Transformer) = MT2Ctor[A, B](t(indices), t(values), t(size))
   }
   // elem for concrete class
-  class MT2Elem[A, B](val iso: Iso[MT2Data[A, B], MT2[A, B]])(implicit val eA: Elem[A], val eB: Elem[B])
-    extends MetaTestElem[(A, B), MT2[A, B]]
+  class MT2Elem[A, B](val iso: Iso[MT2Data[A, B], MT2[A, B]])(implicit override val eA: Elem[A], override val eB: Elem[B])
+    extends MetaPairElem[A, B, MT2[A, B]]
     with ConcreteElem[MT2Data[A, B], MT2[A, B]] {
-    override lazy val parent: Option[Elem[_]] = Some(metaTestElement(pairElement(element[A],element[B])))
+    override lazy val parent: Option[Elem[_]] = Some(metaPairElement(element[A], element[B]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
-    override def convertMetaTest(x: Rep[MetaTest[(A, B)]]) = // Converter is not generated by meta
-!!!("Cannot convert from MetaTest to MT2: missing fields List(indices, values)")
+    override def convertMetaPair(x: Rep[MetaPair[A, B]]) = RMT2(x.indices, x.values, x.size)
     override def getDefaultRep = RMT2(element[A].defaultRepValue, element[B].defaultRepValue, 0)
     override lazy val tag = {
       implicit val tagA = eA.tag
@@ -610,7 +836,7 @@ implicit val eB = p._2.elem
     def apply[A, B](indices: Rep[A], values: Rep[B], size: Rep[Int]): Rep[MT2[A, B]] =
       mkMT2(indices, values, size)
 
-    def unapply[A, B](p: Rep[MetaTest[(A, B)]]) = unmkMT2(p)
+    def unapply[A, B](p: Rep[MetaPair[A, B]]) = unmkMT2(p)
   }
   lazy val MT2Rep: Rep[MT2CompanionCtor] = new MT2CompanionCtor
   lazy val RMT2: MT2CompanionCtor = proxyMT2Companion(MT2Rep)
@@ -645,7 +871,7 @@ implicit val eB = p.values.elem
     (indices: Rep[A], values: Rep[B], size: Rep[Int]): Rep[MT2[A, B]] = {
     new MT2Ctor[A, B](indices, values, size)
   }
-  def unmkMT2[A, B](p: Rep[MetaTest[(A, B)]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkMT2[A, B](p: Rep[MetaPair[A, B]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: MT2Elem[A, B] @unchecked =>
       Some((asRep[MT2[A, B]](p).indices, asRep[MT2[A, B]](p).values, asRep[MT2[A, B]](p).size))
     case _ =>

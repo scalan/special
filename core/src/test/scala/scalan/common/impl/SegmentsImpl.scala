@@ -23,9 +23,14 @@ object Segment extends EntityObject("Segment") {
   type SSegment = scalan.common.Segment
   case class SegmentConst(
         constValue: SSegment
-      ) extends Segment with LiftedConst[SSegment, Segment] {
+      ) extends Segment with LiftedConst[SSegment, Segment]
+        with SegmentConstMethods {
     val liftable: Liftable[SSegment, Segment] = LiftableSegment
     val selfType: Elem[Segment] = liftable.eW
+  }
+
+  trait SegmentConstMethods { thisConst: Def[_] =>
+
     private val thisClass = classOf[Segment]
 
     def start: Rep[Int] = {

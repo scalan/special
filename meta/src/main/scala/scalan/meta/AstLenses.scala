@@ -70,5 +70,18 @@ object AstLenses {
     def body: Lens[U, List[SBodyItem]] = field(_.body)((c, f) => c.copy(body = f))
   }
 
+  implicit class SMethodDefLens[U](_l: Lens[U, SMethodDef]) extends ObjectLens[U, SMethodDef](_l) {
+    def owner: Lens[U, SSymbol] = field(_.owner)((c, f) => c.copy(owner = f))
+    def name: Lens[U, String] = field(_.name)((c, f) => c.copy(name = f))
+    def tpeArgs: Lens[U, List[STpeArg]] = field(_.tpeArgs)((c, f) => c.copy(tpeArgs = f))
+    def argSections: Lens[U, List[SMethodArgs]] = field(_.argSections)((c, f) => c.copy(argSections = f))
+    def tpeRes: Lens[U, Option[STpeExpr]] = field(_.tpeRes)((c, f) => c.copy(tpeRes = f))
+    def isImplicit: Lens[U, Boolean] = field(_.isImplicit)((c, f) => c.copy(isImplicit = f))
+    def isOverride: Lens[U, Boolean] = field(_.isOverride)((c, f) => c.copy(isOverride = f))
+    def overloadId: Lens[U, Option[String]] = field(_.overloadId)((c, f) => c.copy(overloadId = f))
+    def annotations: Lens[U, List[SMethodAnnotation]] = field(_.annotations)((c, f) => c.copy(annotations = f))
+    def body: Lens[U, Option[SExpr]] = field(_.body)((c, f) => c.copy(body = f))
+    def isTypeDesc: Lens[U, Boolean] = field(_.isTypeDesc)((c, f) => c.copy(isTypeDesc = f))
+  }
 
 }

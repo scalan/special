@@ -22,7 +22,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     (externalConstrs, externalMethods)
   }
 
-  def externalMethod(receiverName: String, method: SMethodDef, isAdapter: Boolean) = {
+  def externalMethod(receiverName: String, method: SMethodDef, isAdapter: Boolean, thisClassField: String = "thisClass") = {
     val md = optimizeMethodImplicits(method)
     def msgExplicitRetType = s"Method ${method.name} should be declared with explicit type of returning value (result type): $method"
     def msgRepRetType = s"Invalid method $md. External methods should have return type of type Rep[T] for some T."
@@ -54,7 +54,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    ${md.declaration(config, md.body.isDefined)} = {
       |      ${elemDecls.rep({ case (ta, expr) => s"implicit val e${ta.name} = $expr" }, "\n")}
       |      asRep[$unreppedReturnType](mkMethodCall($receiverName,
-      |        thisClass.getMethod("${md.name}"$finalArgClasses),
+      |        $thisClassField.getMethod("${md.name}"$finalArgClasses),
       |        List($finalArgs),
       |        true, $isAdapter, element[$unreppedReturnType]))
       |    }
@@ -108,11 +108,13 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val elemMethodName = entityElemMethodName(e.name)
     val isGeneric = e.tpeArgs.nonEmpty
     val liftableMethod = (if (!isGeneric) "Liftable" else "liftable") + sName
+    val liftableAncestors = e.entity.linearizationWithSubst(Map()).tail.filter { case (e, _) => e.isLiftable }
   }
 
   def entityConst(e: EntityTemplateData) = {
     val info = new LiftableInfo(e); import info._
     val methods = e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }
+    val thisClassFieldName = EName + "Class"
     s"""
       |  // entityConst: single const for each entity
       |  import Liftables._
@@ -121,16 +123,26 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  case class ${EName}Const$typesDeclAll(
       |        constValue: $SName$tyUseS${zipped.opt(z => s""",
       |        ${repArgs(z)({(sa,a) => s"l$a: Liftable[$sa, $a]"},", ")}""".stripAndTrim)}
-      |      ) extends $EName$tyUse with LiftedConst[$SName$tyUseS, $EName$tyUse] {
+      |      ) extends $EName$tyUse with LiftedConst[$SName$tyUseS, $EName$tyUse]
+      |        with Def[$EName$tyUse] with ${EName}ConstMethods$tyUse {
       |${e.tpeArgs.rep(a =>
          s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
        )}
       |    val liftable: Liftable[$SName$tyUseS, $EName$tyUse] = $liftableMethod${
                                                                 optArgs(zipped)("(", (_,a) => s"l$a", ",", ")")}
       |    val selfType: Elem[$EName$tyUse] = liftable.eW
-      |    ${methods.opt(_ => s"private val thisClass = classOf[$EName$tyUse]")}
+      |  }
+      |
+      |  trait ${EName}ConstMethods$typesDecl ${liftableAncestors.opt { as =>
+             val (e, args) = as.head;
+             s"extends ${e.name}ConstMethods${args.opt(as => s"[${as.rep()}]")}"
+            }} { thisConst: Def[_] =>
+      |${e.tpeArgs.rep(a =>
+         s"""|    implicit def e${a.name}: Elem[${a.name}]""".stripAndTrim, "\n"
+       )}
+      |    ${methods.opt(_ => s"private val $thisClassFieldName = classOf[$EName$tyUse]")}
       |${methods.rep({ m =>
-         s"""|    ${externalMethod("self", m, isAdapter = false)}""".stripAndTrim
+         s"""|    ${externalMethod("self", m, isAdapter = false, thisClassFieldName)}""".stripAndTrim
        },"\n")}
       |  }
       |
