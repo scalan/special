@@ -29,7 +29,7 @@ object CostedSome extends EntityObject("CostedSome") {
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     lazy val selfType = element[CostedSome[T]]
     override def transform(t: Transformer) = CostedSomeCtor[T](t(costedValue))
-    private val thisClass = classOf[CostedSome[T]]
+    private val thisClass = classOf[CostedOption[_]]
 
     override def fold[B](ifEmpty: Rep[Costed[B]], f: Rep[Costed[T => B]]): Rep[Costed[B]] = {
       implicit val eB = ifEmpty.eVal
@@ -325,7 +325,7 @@ object CostedNone extends EntityObject("CostedNone") {
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     lazy val selfType = element[CostedNone[T]]
     override def transform(t: Transformer) = CostedNoneCtor[T](t(cost))(eT)
-    private val thisClass = classOf[CostedNone[T]]
+    private val thisClass = classOf[CostedOption[_]]
 
     override def getOrElse(default: Rep[Costed[T]]): Rep[Costed[T]] = {
       asRep[Costed[T]](mkMethodCall(self,
@@ -614,7 +614,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     lazy val selfType = element[CCostedOption[T]]
     override def transform(t: Transformer) = CCostedOptionCtor[T](t(value), t(none), t(some))
-    private val thisClass = classOf[CostedOption[T]] // manual fix
+    private val thisClass = classOf[CostedOption[_]]
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,

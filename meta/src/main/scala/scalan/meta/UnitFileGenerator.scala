@@ -598,6 +598,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       val b = c.extractionBuilder()
       val methods = c.c.body.collect { case m: SMethodDef if m.hasAnnotation("NeverInline") && !m.isTypeDesc => m }
       val optC = c.optimizeImplicits()
+      val lin = clazz.linearizationWithSubst(Map())
+      val liftableAnc = lin.tail.find { case (e, _) => e.isLiftable }
       s"""
         |object $className extends EntityObject("$className") {
         |  case class ${c.typeDecl("Ctor") }
@@ -607,7 +609,21 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    ${c.elemDefs}
         |    lazy val selfType = element[${c.typeUse }]
         |    override def transform(t: Transformer) = ${c.typeUse("Ctor") }(${fields.rep(a => s"t($a)")})${optC.implicitArgsUse}
-        |    ${methods.opt(_ => s"private val thisClass = classOf[${c.typeUse }]")}
+        |    ${
+          if (methods.nonEmpty) liftableAnc match {
+            case Some((liftableEnt, entArgs)) =>
+              s"private val thisClass = classOf[${liftableEnt.name + entArgs.opt(as => s"[${as.rep(_ => "_")}]")}]"
+            case None =>
+              val ancTrait = lin.tail.collectFirst { case (e, _) if e.isTrait => e}
+              ancTrait match {
+                case Some(t) =>
+                  s"private val thisClass = classOf[${t.name + t.tpeArgs.opt(as => s"[${as.rep(_ => "_")}]")}]"
+                case None =>
+                  s"private val thisClass = classOf[${c.typeUse }]"
+              }
+          }
+          else ""
+        }
         |    ${ methods.rep({ m => externalMethod("self", m, isAdapter = false) }, "\n") }
         |  }
         |  // elem for concrete class

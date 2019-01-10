@@ -29,7 +29,7 @@ object ColOverArray extends EntityObject("ColOverArray") {
 
     lazy val selfType = element[ColOverArray[A]]
     override def transform(t: Transformer) = ColOverArrayCtor[A](t(arr))
-    private val thisClass = classOf[ColOverArray[A]]
+    private val thisClass = classOf[Col[_]]
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
@@ -335,16 +335,12 @@ object ColOverArray extends EntityObject("ColOverArray") {
   registerEntityObject("ColOverArray", ColOverArray)
 
 object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
-  // manual fix
-  private val classColBuilder = classOf[ColBuilder]
-  private val replicateMethod = classColBuilder.getMethod("replicate", classOf[Sym], classOf[Sym])
-
   case class ColOverArrayBuilderCtor
       ()
     extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
     lazy val selfType = element[ColOverArrayBuilder]
     override def transform(t: Transformer) = ColOverArrayBuilderCtor()
-    private val thisClass = classOf[ColBuilder] // manual fix
+    private val thisClass = classOf[ColBuilder]
 
     override def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(self,
@@ -364,7 +360,7 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
     override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
       implicit val eT = v.elem
       asRep[Col[T]](mkMethodCall(self,
-        replicateMethod,  // manual fix
+        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
         true, false, element[Col[T]]))
     }
@@ -550,7 +546,7 @@ implicit lazy val eR = rs.eA
     override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     lazy val selfType = element[PairOfCols[L, R]]
     override def transform(t: Transformer) = PairOfColsCtor[L, R](t(ls), t(rs))
-    private val thisClass = classOf[PairOfCols[L, R]]
+    private val thisClass = classOf[Col[_]]
 
     override def getOrElse(i: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(self,
@@ -888,7 +884,7 @@ object CReplCol extends EntityObject("CReplCol") {
 
     lazy val selfType = element[CReplCol[A]]
     override def transform(t: Transformer) = CReplColCtor[A](t(value), t(length))
-    private val thisClass = classOf[ReplCol[A]] // manual fix
+    private val thisClass = classOf[ReplCol[_]]
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,

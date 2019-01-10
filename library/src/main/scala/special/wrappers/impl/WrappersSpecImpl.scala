@@ -92,7 +92,7 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
     extends ArrayWrapSpec() with Def[ArrayWrapSpec] {
     lazy val selfType = element[ArrayWrapSpec]
     override def transform(t: Transformer) = ArrayWrapSpecCtor()
-    private val thisClass = classOf[ArrayWrapSpec]
+    private val thisClass = classOf[ArrayWrapSpec] // manual fix
 
     override def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eA = xs.eT
@@ -352,7 +352,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
     extends OptionWrapSpec() with Def[OptionWrapSpec] {
     lazy val selfType = element[OptionWrapSpec]
     override def transform(t: Transformer) = OptionWrapSpecCtor()
-    private val thisClass = classOf[OptionWrapSpec]
+    private val thisClass = classOf[WrapSpecBase]
 
     override def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = {
       implicit val eA = xs.eA

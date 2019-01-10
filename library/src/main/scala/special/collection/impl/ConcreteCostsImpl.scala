@@ -348,7 +348,7 @@ implicit lazy val eR = value.eB
     override lazy val eVal: Elem[WEither[L, R]] = implicitly[Elem[WEither[L, R]]]
     lazy val selfType = element[CCostedSum[L, R]]
     override def transform(t: Transformer) = CCostedSumCtor[L, R](t(value), t(left), t(right))
-    private val thisClass = classOf[CostedSum[L, R]] // manual fix
+    private val thisClass = classOf[CostedSum[_, _]]
 
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
@@ -524,7 +524,7 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     lazy val selfType = element[CCostedFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = CCostedFuncCtor[Env, Arg, Res](t(envCosted), t(func), t(cost), t(dataSize))
-    private val thisClass = classOf[CostedFunc[Env, Arg, Res]] // manual fix
+    private val thisClass = classOf[CostedFunc[_, _, _]]
 
     override def value: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(self,
@@ -683,7 +683,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
     override lazy val eVal: Elem[Col[Item]] = implicitly[Elem[Col[Item]]]
     lazy val selfType = element[CCostedCol[Item]]
     override def transform(t: Transformer) = CCostedColCtor[Item](t(values), t(costs), t(sizes), t(valuesCost))
-    private val thisClass = classOf[CostedCol[Item]] // manual fix
+    private val thisClass = classOf[CostedCol[_]]
 
     override def mapCosted[Res](f: Rep[Costed[Item] => Costed[Res]]): Rep[CostedCol[Res]] = {
       implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
@@ -1084,7 +1084,7 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
     override lazy val eVal: Elem[Col[Col[Item]]] = implicitly[Elem[Col[Col[Item]]]]
     lazy val selfType = element[CCostedNestedCol[Item]]
     override def transform(t: Transformer) = CCostedNestedColCtor[Item](t(rows))
-    private val thisClass = classOf[CostedNestedCol[Item]] // manual fix
+    private val thisClass = classOf[CostedNestedCol[_]]
 
     override def value: Rep[Col[Col[Item]]] = {
       asRep[Col[Col[Item]]](mkMethodCall(self,
@@ -1264,7 +1264,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     extends CCostedBuilder() with Def[CCostedBuilder] {
     lazy val selfType = element[CCostedBuilder]
     override def transform(t: Transformer) = CCostedBuilderCtor()
-    private val thisClass = classOf[CostedBuilder] // manual fix
+    private val thisClass = classOf[CostedBuilder]
 
     override def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = {
       implicit val eT = x.elem

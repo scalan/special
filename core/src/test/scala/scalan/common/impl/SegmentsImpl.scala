@@ -24,46 +24,46 @@ object Segment extends EntityObject("Segment") {
   case class SegmentConst(
         constValue: SSegment
       ) extends Segment with LiftedConst[SSegment, Segment]
-        with SegmentConstMethods {
+        with Def[Segment] with SegmentConstMethods {
     val liftable: Liftable[SSegment, Segment] = LiftableSegment
     val selfType: Elem[Segment] = liftable.eW
   }
 
-  trait SegmentConstMethods { thisConst: Def[_] =>
+  trait SegmentConstMethods extends Segment  { thisConst: Def[_] =>
 
-    private val thisClass = classOf[Segment]
+    private val SegmentClass = classOf[Segment]
 
-    def start: Rep[Int] = {
+    override def start: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("start"),
+        SegmentClass.getMethod("start"),
         List(),
         true, false, element[Int]))
     }
 
-    def length: Rep[Int] = {
+    override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("length"),
+        SegmentClass.getMethod("length"),
         List(),
         true, false, element[Int]))
     }
 
-    def end: Rep[Int] = {
+    override def end: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("end"),
+        SegmentClass.getMethod("end"),
         List(),
         true, false, element[Int]))
     }
 
-    def shift(ofs: Rep[Int]): Rep[Segment] = {
+    override def shift(ofs: Rep[Int]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
-        thisClass.getMethod("shift", classOf[Sym]),
+        SegmentClass.getMethod("shift", classOf[Sym]),
         List(ofs),
         true, false, element[Segment]))
     }
 
-    def attach(seg: Rep[Segment]): Rep[Segment] = {
+    override def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
-        thisClass.getMethod("attach", classOf[Sym]),
+        SegmentClass.getMethod("attach", classOf[Sym]),
         List(seg),
         true, false, element[Segment]))
     }
@@ -261,7 +261,7 @@ object Interval extends EntityObject("Interval") {
     extends Interval(start, end) with Def[Interval] {
     lazy val selfType = element[Interval]
     override def transform(t: Transformer) = IntervalCtor(t(start), t(end))
-    private val thisClass = classOf[Interval]
+    private val thisClass = classOf[Segment]
 
     override def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
