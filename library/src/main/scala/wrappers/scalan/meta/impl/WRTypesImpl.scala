@@ -24,15 +24,21 @@ object WRType extends EntityObject("WRType") {
   case class WRTypeConst[SA, A](
         constValue: RType[SA],
         lA: Liftable[SA, A]
-      ) extends WRType[A] with LiftedConst[RType[SA], WRType[A]] {
+      ) extends WRType[A] with LiftedConst[RType[SA], WRType[A]]
+        with Def[WRType[A]] with WRTypeConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
+
     val liftable: Liftable[RType[SA], WRType[A]] = liftableRType(lA)
     val selfType: Elem[WRType[A]] = liftable.eW
-    private val thisClass = classOf[WRType[A]]
+  }
 
-    def name: Rep[String] = {
+  trait WRTypeConstMethods[A] extends WRType[A]  { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    private val WRTypeClass = classOf[WRType[A]]
+
+    override def name: Rep[String] = {
       asRep[String](mkMethodCall(self,
-        thisClass.getMethod("name"),
+        WRTypeClass.getMethod("name"),
         List(),
         true, false, element[String]))
     }

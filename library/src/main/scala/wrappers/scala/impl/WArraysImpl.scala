@@ -23,81 +23,87 @@ object WArray extends EntityObject("WArray") {
   case class WArrayConst[ST, T](
         constValue: Array[ST],
         lT: Liftable[ST, T]
-      ) extends WArray[T] with LiftedConst[Array[ST], WArray[T]] {
+      ) extends WArray[T] with LiftedConst[Array[ST], WArray[T]]
+        with Def[WArray[T]] with WArrayConstMethods[T] {
     implicit def eT: Elem[T] = lT.eW
+
     val liftable: Liftable[Array[ST], WArray[T]] = liftableArray(lT)
     val selfType: Elem[WArray[T]] = liftable.eW
-    private val thisClass = classOf[WArray[T]]
+  }
 
-    def apply(i: Rep[Int]): Rep[T] = {
+  trait WArrayConstMethods[T] extends WArray[T]  { thisConst: Def[_] =>
+    implicit def eT: Elem[T]
+    private val WArrayClass = classOf[WArray[T]]
+
+    override def apply(i: Rep[Int]): Rep[T] = {
       asRep[T](mkMethodCall(self,
-        thisClass.getMethod("apply", classOf[Sym]),
+        WArrayClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, false, element[T]))
     }
 
-    def foreach(f: Rep[T => Unit]): Rep[Unit] = {
+    override def foreach(f: Rep[T => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
-        thisClass.getMethod("foreach", classOf[Sym]),
+        WArrayClass.getMethod("foreach", classOf[Sym]),
         List(f),
         true, false, element[Unit]))
     }
 
-    def exists(p: Rep[T => Boolean]): Rep[Boolean] = {
+    override def exists(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("exists", classOf[Sym]),
+        WArrayClass.getMethod("exists", classOf[Sym]),
         List(p),
         true, false, element[Boolean]))
     }
 
-    def forall(p: Rep[T => Boolean]): Rep[Boolean] = {
+    override def forall(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("forall", classOf[Sym]),
+        WArrayClass.getMethod("forall", classOf[Sym]),
         List(p),
         true, false, element[Boolean]))
     }
 
-    def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = {
+    override def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(self,
-        thisClass.getMethod("filter", classOf[Sym]),
+        WArrayClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, false, element[WArray[T]]))
     }
 
-    def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = {
+    override def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
+        WArrayClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, false, element[B]))
     }
 
-    def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = {
+    override def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(self,
-        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        WArrayClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
         true, false, element[WArray[T]]))
     }
 
-    def length: Rep[Int] = {
+    override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("length"),
+        WArrayClass.getMethod("length"),
         List(),
         true, false, element[Int]))
     }
 
-    def map[B](f: Rep[T => B]): Rep[WArray[B]] = {
+    override def map[B](f: Rep[T => B]): Rep[WArray[B]] = {
       implicit val eB = f.elem.eRange
       asRep[WArray[B]](mkMethodCall(self,
-        thisClass.getMethod("map", classOf[Sym]),
+        WArrayClass.getMethod("map", classOf[Sym]),
         List(f),
         true, false, element[WArray[B]]))
     }
 
-    def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = {
+    override def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = {
       implicit val eB = ys.eT
       asRep[WArray[(T, B)]](mkMethodCall(self,
-        thisClass.getMethod("zip", classOf[Sym]),
+        WArrayClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, false, element[WArray[(T, B)]]))
     }

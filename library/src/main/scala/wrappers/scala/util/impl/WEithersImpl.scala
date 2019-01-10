@@ -23,17 +23,24 @@ object WEither extends EntityObject("WEither") {
   case class WEitherConst[SA, SB, A, B](
         constValue: Either[SA, SB],
         lA: Liftable[SA, A], lB: Liftable[SB, B]
-      ) extends WEither[A, B] with LiftedConst[Either[SA, SB], WEither[A, B]] {
+      ) extends WEither[A, B] with LiftedConst[Either[SA, SB], WEither[A, B]]
+        with Def[WEither[A, B]] with WEitherConstMethods[A, B] {
     implicit def eA: Elem[A] = lA.eW
     implicit def eB: Elem[B] = lB.eW
+
     val liftable: Liftable[Either[SA, SB], WEither[A, B]] = liftableEither(lA,lB)
     val selfType: Elem[WEither[A, B]] = liftable.eW
-    private val thisClass = classOf[WEither[A, B]]
+  }
 
-    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
+  trait WEitherConstMethods[A, B] extends WEither[A, B]  { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    implicit def eB: Elem[B]
+    private val WEitherClass = classOf[WEither[A, B]]
+
+    override def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
       implicit val eC = fa.elem.eRange
       asRep[C](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        WEitherClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
         true, false, element[C]))
     }

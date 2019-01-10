@@ -26,121 +26,121 @@ object Col extends EntityObject("Col") {
         constValue: SCol[SA],
         lA: Liftable[SA, A]
       ) extends Col[A] with LiftedConst[SCol[SA], Col[A]]
-        with ColConstMethods[A] { // manual fix
+        with Def[Col[A]] with ColConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
+
     val liftable: Liftable[SCol[SA], Col[A]] = liftableCol(lA)
     val selfType: Elem[Col[A]] = liftable.eW
   }
 
-  // manual fix
-  trait ColConstMethods[A] { thisConst: Def[_] =>
+  trait ColConstMethods[A] extends Col[A]  { thisConst: Def[_] =>
     implicit def eA: Elem[A]
-    private val thisClass = classOf[Col[A]]
+    private val ColClass = classOf[Col[A]]
 
-    def builder: Rep[ColBuilder] = {
+    override def builder: Rep[ColBuilder] = {
       asRep[ColBuilder](mkMethodCall(self,
-        thisClass.getMethod("builder"),
+        ColClass.getMethod("builder"),
         List(),
         true, false, element[ColBuilder]))
     }
 
-    def arr: Rep[WArray[A]] = {
+    override def arr: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(self,
-        thisClass.getMethod("arr"),
+        ColClass.getMethod("arr"),
         List(),
         true, false, element[WArray[A]]))
     }
 
-    def length: Rep[Int] = {
+    override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("length"),
+        ColClass.getMethod("length"),
         List(),
         true, false, element[Int]))
     }
 
-    def apply(i: Rep[Int]): Rep[A] = {
+    override def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("apply", classOf[Sym]),
+        ColClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, false, element[A]))
     }
 
-    def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
+    override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        ColClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
         true, false, element[A]))
     }
 
-    def map[B](f: Rep[A => B]): Rep[Col[B]] = {
+    override def map[B](f: Rep[A => B]): Rep[Col[B]] = {
       implicit val eB = f.elem.eRange
       asRep[Col[B]](mkMethodCall(self,
-        thisClass.getMethod("map", classOf[Sym]),
+        ColClass.getMethod("map", classOf[Sym]),
         List(f),
         true, false, element[Col[B]]))
     }
 
-    def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
+    override def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
       implicit val eB = ys.eA
       asRep[PairCol[A, B]](mkMethodCall(self,
-        thisClass.getMethod("zip", classOf[Sym]),
+        ColClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, false, element[PairCol[A, B]]))
     }
 
-    def foreach(f: Rep[A => Unit]): Rep[Unit] = {
+    override def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
-        thisClass.getMethod("foreach", classOf[Sym]),
+        ColClass.getMethod("foreach", classOf[Sym]),
         List(f),
         true, false, element[Unit]))
     }
 
-    def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
+    override def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("exists", classOf[Sym]),
+        ColClass.getMethod("exists", classOf[Sym]),
         List(p),
         true, false, element[Boolean]))
     }
 
-    def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
+    override def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("forall", classOf[Sym]),
+        ColClass.getMethod("forall", classOf[Sym]),
         List(p),
         true, false, element[Boolean]))
     }
 
-    def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
+    override def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        thisClass.getMethod("filter", classOf[Sym]),
+        ColClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, false, element[Col[A]]))
     }
 
-    def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+    override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        ColClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, false, element[B]))
     }
 
-    def sum(m: Rep[Monoid[A]]): Rep[A] = {
+    override def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("sum", classOf[Sym]),
+        ColClass.getMethod("sum", classOf[Sym]),
         List(m),
         true, false, element[A]))
     }
 
-    def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
+    override def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        ColClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
         true, false, element[Col[A]]))
     }
 
-    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+    override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        thisClass.getMethod("append", classOf[Sym]),
+        ColClass.getMethod("append", classOf[Sym]),
         List(other),
         true, false, element[Col[A]]))
     }
@@ -872,29 +872,34 @@ object ReplCol extends EntityObject("ReplCol") {
         constValue: SReplCol[SA],
         lA: Liftable[SA, A]
       ) extends ReplCol[A] with LiftedConst[SReplCol[SA], ReplCol[A]]
-        with Def[ReplCol[A]] with ColConstMethods[A] { // manual fix
+        with Def[ReplCol[A]] with ReplColConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
+
     val liftable: Liftable[SReplCol[SA], ReplCol[A]] = liftableReplCol(lA)
     val selfType: Elem[ReplCol[A]] = liftable.eW
-    private val thisClass = classOf[ReplCol[A]]
+  }
 
-    def value: Rep[A] = {
+  trait ReplColConstMethods[A] extends ReplCol[A] with ColConstMethods[A] { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    private val ReplColClass = classOf[ReplCol[A]]
+
+    override def value: Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("value"),
+        ReplColClass.getMethod("value"),
         List(),
         true, false, element[A]))
     }
 
     override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("length"),
+        ReplColClass.getMethod("length"),
         List(),
         true, false, element[Int]))
     }
 
     override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        thisClass.getMethod("append", classOf[Sym]),
+        ReplColClass.getMethod("append", classOf[Sym]),
         List(other),
         true, false, element[Col[A]]))
     }
@@ -1155,46 +1160,51 @@ object ColBuilder extends EntityObject("ColBuilder") {
   type SColBuilder = special.collection.ColBuilder
   case class ColBuilderConst(
         constValue: SColBuilder
-      ) extends ColBuilder with LiftedConst[SColBuilder, ColBuilder] {
+      ) extends ColBuilder with LiftedConst[SColBuilder, ColBuilder]
+        with Def[ColBuilder] with ColBuilderConstMethods {
     val liftable: Liftable[SColBuilder, ColBuilder] = LiftableColBuilder
     val selfType: Elem[ColBuilder] = liftable.eW
-    private val thisClass = classOf[ColBuilder]
+  }
 
-    def pairCol[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = {
+  trait ColBuilderConstMethods extends ColBuilder  { thisConst: Def[_] =>
+
+    private val ColBuilderClass = classOf[ColBuilder]
+
+    override def pairCol[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = {
       implicit val eA = as.eA
 implicit val eB = bs.eA
       asRep[PairCol[A, B]](mkMethodCall(self,
-        thisClass.getMethod("pairCol", classOf[Sym], classOf[Sym]),
+        ColBuilderClass.getMethod("pairCol", classOf[Sym], classOf[Sym]),
         List(as, bs),
         true, false, element[PairCol[A, B]]))
     }
 
-    def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
+    override def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
+        ColBuilderClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
         true, false, element[Col[T]]))
     }
 
-    def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
+    override def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(self,
-        thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
+        ColBuilderClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
         true, false, element[Col[Byte]]))
     }
 
-    def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
+    override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
       implicit val eT = arr.eT
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("fromArray", classOf[Sym]),
+        ColBuilderClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
         true, false, element[Col[T]]))
     }
 
-    def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
+    override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
       implicit val eT = v.elem
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
+        ColBuilderClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
         true, false, element[Col[T]]))
     }

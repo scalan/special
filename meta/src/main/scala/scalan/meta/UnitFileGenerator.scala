@@ -129,8 +129,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
          s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
        )}
        ${liftableAncestors.opt { ancs =>
-         val (e, args) = ancs.head;
-         e.tpeArgs.zip(args).rep { case (ta, tpe) =>
+         val (ancEnt, args) = ancs.head;
+         ancEnt.tpeArgs.zip(args).filterNot(p => e.tpeArgNames.contains(p._1.name)).rep { case (ta, tpe) =>
            s"|    implicit def e${ta.name}: Elem[$tpe] = element[$tpe]\n"
          }
        }}
