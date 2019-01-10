@@ -310,6 +310,7 @@ object Col extends EntityObject("Col") {
     def cC = container[Col]
     def from(x: Rep[Col[B]]) = x.map(innerIso.fromFun)
     def to(x: Rep[Col[A]]) = x.map(innerIso.toFun)
+    override def transform(t: Transformer) = ColIso(t(innerIso))
   }
 
   def colIso[A, B](innerIso: Iso[A, B]) =

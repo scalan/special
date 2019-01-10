@@ -207,7 +207,9 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
   }
 
   case class Convert[From,To](eFrom: Elem[From], eTo: Elem[To], x: Rep[Def[_]], conv: Rep[From => To])
-    extends BaseDef[To]()(eTo)
+    extends BaseDef[To]()(eTo) {
+    override def transform(t: Transformer) = Convert(eFrom, eTo, t(x), t(conv))
+  }
 
   def tryConvert[From, To](eFrom: Elem[From], eTo: Elem[To], x: Rep[Def[_]], conv: Rep[From => To]): Rep[To] = {
     if (x.elem <:< eFrom)

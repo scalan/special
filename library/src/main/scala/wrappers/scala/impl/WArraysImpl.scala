@@ -239,6 +239,7 @@ object WArray extends EntityObject("WArray") {
     def cC = container[WArray]
     def from(x: Rep[WArray[B]]) = x.map(innerIso.fromFun)
     def to(x: Rep[WArray[A]]) = x.map(innerIso.toFun)
+    override def transform(t: Transformer) = WArrayIso(t(innerIso))
   }
 
   def wArrayIso[A, B](innerIso: Iso[A, B]) =
@@ -307,6 +308,7 @@ object WArray extends EntityObject("WArray") {
 
   case class ViewWArray[A, B](source: Rep[WArray[A]], override val innerIso: Iso[A, B])
     extends View1[A, B, WArray](wArrayIso(innerIso)) {
+    override def transform(t: Transformer) = ViewWArray(t(source), t(innerIso))
     override def toString = s"ViewWArray[${innerIso.eTo.name}]($source)"
     override def equals(other: Any) = other match {
       case v: ViewWArray[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
