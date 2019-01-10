@@ -64,7 +64,7 @@ object WEither extends EntityObject("WEither") {
   implicit def liftableEither[SA, SB, A, B](implicit lA: Liftable[SA,A],lB: Liftable[SB,B]): Liftable[Either[SA, SB], WEither[A, B]] =
     LiftableEither(lA,lB)
 
-  private val _EitherWrapSpec = new EitherWrapSpec
+  private val _EitherWrapSpec = new EitherWrapSpec {}
   // entityAdapter for WEither trait
   case class WEitherAdapter[A, B](source: Rep[WEither[A, B]])
       extends WEither[A, B] with Def[WEither[A, B]] {

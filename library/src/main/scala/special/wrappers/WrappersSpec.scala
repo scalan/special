@@ -9,7 +9,7 @@ package special.wrappers {
     import WSpecialPredef._;
     import WrapSpecBase._;
     trait WrapSpecBase extends Def[WrapSpecBase] with WrapSpec;
-    abstract class ArrayWrapSpec extends WrapSpecBase {
+    trait ArrayWrapSpec extends WrapSpecBase {
       def zip[A, B](xs: Rep[WArray[A]], ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[A, B]]] = xs.zip(ys);
       def map[A, B](xs: Rep[WArray[A]], f: Rep[scala.Function1[A, B]]): Rep[WArray[B]] = xs.map(f);
       def length[A](xs: Rep[WArray[A]]): Rep[Int] = xs.length;
@@ -22,7 +22,7 @@ package special.wrappers {
       def foreach[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Unit]]): Rep[Unit] = xs.foreach(p);
       def apply[A](xs: Rep[WArray[A]], i: Rep[Int]): Rep[A] = xs.apply(i)
     };
-    abstract class OptionWrapSpec extends WrapSpecBase {
+    trait OptionWrapSpec extends WrapSpecBase {
       def get[A](xs: Rep[WOption[A]]): Rep[A] = xs.get;
       @NeverInline def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = delayInvoke;
       def map[A, B](xs: Rep[WOption[A]], f: Rep[scala.Function1[A, B]]): Rep[WOption[B]] = xs.map[B](f);
@@ -32,11 +32,11 @@ package special.wrappers {
       def isEmpty[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isEmpty;
       @NeverInline def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = delayInvoke
     };
-    abstract class EitherWrapSpec extends WrapSpecBase {
+    trait EitherWrapSpec extends WrapSpecBase {
       def fold[A, B, C](xs: Rep[WEither[A, B]], fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C] = xs.fold[C](fa, fb);
       def cond[A, B](c: Rep[Boolean], a: Rep[Thunk[A]], b: Rep[Thunk[B]]): Rep[WEither[A, B]] = RWEither.cond[A, B](c, b, a)
     };
-    abstract class SpecialPredefWrapSpec extends WrapSpecBase {
+    trait SpecialPredefWrapSpec extends WrapSpecBase {
       def loopUntil[A](s1: Rep[A], isMatch: Rep[scala.Function1[A, Boolean]], step: Rep[scala.Function1[A, A]]): Rep[A] = RWSpecialPredef.loopUntil[A](s1, isMatch, step);
       def cast[A](v: Rep[Any])(implicit cA: Elem[A]): Rep[WOption[A]] = RWSpecialPredef.cast[A](v);
       def mapSum[A, B, C, D](e: Rep[WEither[A, B]], fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, D]]): Rep[WEither[C, D]] = RWSpecialPredef.eitherMap[A, B, C, D](e, fa, fb);
@@ -46,7 +46,7 @@ package special.wrappers {
       def right[A, B](b: Rep[B])(implicit cA: Elem[A]): Rep[WEither[A, B]] = RWSpecialPredef.right[A, B](b);
       def optionGetOrElse[A](opt: Rep[WOption[A]], default: Rep[A]): Rep[A] = RWSpecialPredef.optionGetOrElse[A](opt, default)
     };
-    abstract class RTypeWrapSpec extends WrapSpecBase {
+    trait RTypeWrapSpec extends WrapSpecBase {
       def name[T](d: Rep[WRType[T]]): Rep[String] = d.name
     };
     trait WrapSpecBaseCompanion;

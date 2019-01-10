@@ -174,7 +174,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    Liftable$sName${optArgs(zipped)("(", (sa,a) => s"l$a", ",", ")")}
          """.stripAndTrim)}
 
-      |  ${isWrapper.opt(s"private val _${SName}WrapSpec = new ${SName}WrapSpec")}
+      |  ${isWrapper.opt(s"private val _${SName}WrapSpec = new ${SName}WrapSpec {}")}
       |""".stripAndTrim
   }
 

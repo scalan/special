@@ -126,7 +126,7 @@ object WArray extends EntityObject("WArray") {
   implicit def liftableArray[ST, T](implicit lT: Liftable[ST,T]): Liftable[Array[ST], WArray[T]] =
     LiftableArray(lT)
 
-  private val _ArrayWrapSpec = new ArrayWrapSpec
+  private val _ArrayWrapSpec = new ArrayWrapSpec {}
   // entityAdapter for WArray trait
   case class WArrayAdapter[T](source: Rep[WArray[T]])
       extends WArray[T] with Def[WArray[T]] {

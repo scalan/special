@@ -113,7 +113,7 @@ object WOption extends EntityObject("WOption") {
   implicit def liftableOption[SA, A](implicit lA: Liftable[SA,A]): Liftable[Option[SA], WOption[A]] =
     LiftableOption(lA)
 
-  private val _OptionWrapSpec = new OptionWrapSpec
+  private val _OptionWrapSpec = new OptionWrapSpec {}
   // entityAdapter for WOption trait
   case class WOptionAdapter[A](source: Rep[WOption[A]])
       extends WOption[A] with Def[WOption[A]] {
