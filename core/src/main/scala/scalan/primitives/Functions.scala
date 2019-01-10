@@ -162,6 +162,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   case class Apply[A,B](f: Exp[A => B], arg: Exp[A], mayInline: Boolean = true) extends Def[B] {
     def selfType = f.elem.eRange
+    override def transform(t: Transformer) = Apply(t(f), t(arg), mayInline)
   }
 
   implicit class LambdaExtensions[A, B](lam: Lambda[A,B]) {

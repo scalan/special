@@ -6,6 +6,7 @@ import java.util.{HashMap, Objects, Arrays, function}
 import configs.syntax._
 import com.typesafe.config.{ConfigFactory, Config}
 import com.typesafe.scalalogging.LazyLogging
+import scalan.OverloadHack.Overloaded1
 
 import scala.annotation.implicitNotFound
 import scala.annotation.unchecked.uncheckedVariance
@@ -14,6 +15,7 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil}
+
 import scala.reflect.runtime.universe._
 
 
@@ -184,12 +186,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def productArity = 0
     override def productElement(n: Int) = !!!(s"productElement($n) called, but productArity = 0", self)
     override def canEqual(other: Any) = other.isInstanceOf[CompanionDef[_]]
+    override def transform(t: Transformer) = this
   }
 
   object Liftables {
-    trait LiftedConst[ST, T] {
+    trait LiftedConst[ST, T] extends Def[T] {
       def constValue: ST
       def liftable: Liftable[ST, T]
+      override def transform(t: Transformer) = this
     }
 
     /** Describes lifting constant values of type ST (Source Type) to IR nodes of the correspoding staged type T.
@@ -315,10 +319,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   abstract class BaseDef[+T](implicit val selfType: Elem[T @uncheckedVariance]) extends Def[T]
 
-  case class Const[T](x: T)(implicit val eT: Elem[T]) extends BaseDef[T]
+  case class Const[T](x: T)(implicit val eT: Elem[T]) extends BaseDef[T] {
+    override def transform(t: Transformer) = this
+  }
 
   case class Variable[T](varId: Int)(implicit eT: LElem[T]) extends Def[T] {
     def selfType: Elem[T] = eT.value
+    override def transform(t: Transformer): Def[T] =
+      !!!(s"Method transfrom should not be called on $this", self)
   }
   def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](SingleSym.freshId)
 
@@ -334,6 +342,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def isDefinedAt(x: Rep[_]): Boolean
     def domain: Set[Rep[_]]
     def apply[A](xs: Seq[Rep[A]]): Seq[Rep[A]] = xs map (e => apply(e))
+    def apply(xs: Seq[Any])(implicit o: Overloaded1): Seq[Any] =
+      xs map (e => e match { case s: Rep[_] => apply(s); case _ => e })
     def apply[X,A](f: X=>Rep[A]): X=>Rep[A] = (z:X) => apply(f(z))
     def apply[X,Y,A](f: (X,Y)=>Rep[A]): (X,Y)=>Rep[A] = (z1:X,z2:Y) => apply(f(z1,z2))
     def onlySyms[A](xs: List[Rep[A]]): List[Rep[A]] = xs map (e => apply(e)) collect { case e: Rep[A] => e }

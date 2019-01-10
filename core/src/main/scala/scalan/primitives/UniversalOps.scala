@@ -10,12 +10,18 @@ trait UniversalOps extends Base { self: Scalan =>
   /** Represents calculation of size in bytes of the given value.
     * The descriptor value.elem can be used to decompose value into components.
     */
-  case class SizeOf[T](value: Rep[T]) extends BaseDef[Long]
+  case class SizeOf[T](value: Rep[T]) extends BaseDef[Long] {
+    override def transform(t: Transformer) = SizeOf(t(value))
+  }
 
   def sizeOf[T](value: Rep[T]): Rep[Long] = SizeOf(value)
 
-  case class Downcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo)
-  case class Upcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo)
+  case class Downcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo) {
+    override def transform(t: Transformer) = Downcast(t(input), eTo)
+  }
+  case class Upcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo) {
+    override def transform(t: Transformer) = Upcast(t(input), eTo)
+  }
 
   def downcast[To:Elem](value: Rep[_]): Rep[To] = Downcast(value, element[To])
   def upcast[To:Elem](value: Rep[_]): Rep[To] = Upcast(value, element[To])

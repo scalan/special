@@ -234,6 +234,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |  case class View${e.name}[A, B](source: Rep[${e.name}[A]], override val innerIso: Iso[A, B])
       |    extends View1[A, B, ${e.name}](${StringUtil.lowerCaseFirst(e.name)}Iso(innerIso)) {
+      |    override def transform(t: Transformer) = View${e.name}(t(source), t(innerIso))
       |    override def toString = s"View${e.name}[$${innerIso.eTo.name}]($$source)"
       |    override def equals(other: Any) = other match {
       |      case v: View${e.name}[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
@@ -351,6 +352,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    def cC = container[${e.name}]
       |    def from(x: Rep[${e.name}[B]]) = x.map(innerIso.fromFun)
       |    def to(x: Rep[${e.name}[A]]) = x.map(innerIso.toFun)
+      |    override def transform(t: Transformer) = ${e.name}Iso(t(innerIso))
       |  }
       |
         |  def ${StringUtil.lowerCaseFirst(e.name)}Iso[A, B](innerIso: Iso[A, B]) =

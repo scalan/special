@@ -154,6 +154,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   case class StructToPairIso[A1, A2, B1, B2](iso1: Iso[A1, B1], iso2: Iso[A2, B2])
     extends IsoUR[Struct, (B1, B2)] {
+    override def transform(t: Transformer) = StructToPairIso(t(iso1), t(iso2))
     override def equals(other: Any) = other match {
       case iso: Structs#StructToPairIso[_, _, _, _] =>
         (this eq iso) || (iso1 == iso.iso1 && iso2 == iso.iso2)
@@ -187,7 +188,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     extends IsoUR[S, T] {
     assert(eFrom.isEqualType(itemIsos.map(_.eFrom)))
     assert(eTo.isEqualType(itemIsos.map(_.eTo)))
-
+    override def transform(t: Transformer) = StructIso[S, T](eFrom, eTo, itemIsos.map(t(_)))
     override def equals(other: Any) = other match {
       case iso: Structs#StructIso[_, _] =>
         (this eq iso) || (eFrom == iso.eFrom && eTo == iso.eTo)
@@ -254,6 +255,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   case class FlatteningIso[T <: Struct](eTo: StructElem[T], flatIsos: Map[String, Iso[_,_]], links: Seq[Link])
       extends IsoUR[Struct,T] {
+    override def transform(t: Transformer) = FlatteningIso(eTo, flatIsos.mapValues(t(_)), links)
     override def equals(other: Any) = other match {
       case iso: Structs#FlatteningIso[_] =>
         (this eq iso) || (eFrom == iso.eFrom && eTo == iso.eTo)
@@ -386,6 +388,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   }
 
   case class MergeIso[T <: Struct](eTo: StructElem[T]) extends IsoUR[Struct,T] {
+    override def transform(t: Transformer) = MergeIso(eTo)
     override def equals(other: Any) = other match {
       case iso: MergeIso[_] =>
         (this eq iso) || (eFrom == iso.eFrom && eTo == iso.eTo)
@@ -444,6 +447,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   case class PairifyIso[A, AS <: Struct](eTo: Elem[AS]) extends IsoUR[A, AS] {
     val eFrom: Elem[A] = pairifyStruct(eTo).asElem[A]
+    override def transform(t: Transformer) = PairifyIso(eTo)
 
     def from(y: Rep[AS]) =  {
       val res = CollectionUtil.foldRight[String, Rep[_]](eTo.fieldNames)(y.getUntyped(_)) {
@@ -614,6 +618,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   case class ViewStruct[A, B](source: Exp[A])(val iso: Iso[A, B])
     extends View[A, B] {
+    override def transform(t: Transformer) = ViewStruct(t(source))(t(iso))
     override def toString = s"ViewStruct[${iso.eTo.name}]($source)"
     override def equals(other: Any) = other match {
       case v: ViewStruct[_, _] => source == v.source && iso.eTo == v.iso.eTo

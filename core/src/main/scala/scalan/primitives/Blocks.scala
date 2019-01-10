@@ -10,8 +10,12 @@ trait Blocks extends Base { self: Scalan =>
     def |[B](right: Rep[B]) = semicolon(left, right)
   }
 
-  case class Semicolon[A,B](left: Rep[A], right: Rep[B]) extends BaseDef[B]()(right.elem)
-  case class SemicolonMulti[B](left: Seq[Rep[_]], right: Rep[B]) extends BaseDef[B]()(right.elem)
+  case class Semicolon[A,B](left: Rep[A], right: Rep[B]) extends BaseDef[B]()(right.elem) {
+    override def transform(t: Transformer) = Semicolon(t(left), t(right))
+  }
+  case class SemicolonMulti[B](left: Seq[Rep[_]], right: Rep[B]) extends BaseDef[B]()(right.elem) {
+    override def transform(t: Transformer) = SemicolonMulti[B](t(left).asInstanceOf[Seq[Rep[_]]], t(right))
+  }
 
   def semicolon[A,B](left: Rep[A], right: Rep[B]): Rep[B] = {
     Semicolon(left, right)

@@ -370,6 +370,7 @@ object Col extends EntityObject("Col") {
 
   case class ViewCol[A, B](source: Rep[Col[A]], override val innerIso: Iso[A, B])
     extends View1[A, B, Col](colIso(innerIso)) {
+    override def transform(t: Transformer) = ViewCol(t(source), t(innerIso))
     override def toString = s"ViewCol[${innerIso.eTo.name}]($source)"
     override def equals(other: Any) = other match {
       case v: ViewCol[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo

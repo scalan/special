@@ -571,6 +571,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
 
   case class UnpackView[A, B](view: Rep[B], iso: Iso[A, B]) extends Def[A] {
     implicit def selfType = iso.eFrom
+    override def transform(t: Transformer) = UnpackView(t(view), t(iso))
   }
 
   abstract class View1[A, B, C[_]](val iso: Iso1[A,B,C]) extends View[C[A], C[B]] {
@@ -582,10 +583,12 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   case class PairView[A1, A2, B1, B2](source: Rep[(A1, A2)], override val iso1: Iso[A1, B1], override val iso2: Iso[A2, B2])
       extends View2[A1, A2, B1, B2, Tuple2]()(iso1, iso2) {
     lazy val iso = pairIso(iso1, iso2)
+    override def transform(t: Transformer) = PairView(t(source), t(iso1), t(iso2))
   }
 
   case class SumView[A1, A2, B1, B2](source: Rep[A1|A2])(implicit iso1: Iso[A1, B1], iso2: Iso[A2, B2]) extends View2[A1, A2, B1, B2, | ] {
     lazy val iso = sumIso(iso1, iso2)
+    override def transform(t: Transformer) = SumView(t(source))(t(iso1), t(iso2))
   }
 
   override def rewriteViews[T](d: Def[T]) = d match {

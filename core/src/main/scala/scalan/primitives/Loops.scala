@@ -101,5 +101,6 @@ trait Loops extends Base { self: Scalan =>
   case class LoopUntil[A](s1: Rep[A], step: Rep[A => A], isMatch: Rep[A => Boolean]) extends Def[A] {
     lazy val selfType = s1.elem.leastUpperBound(step.elem.eRange).asElem[A]
     override def productIterator = List(step, isMatch, s1).toIterator
+    override def transform(t: Transformer) = LoopUntil(t(s1), t(step), t(isMatch))
   }
 }

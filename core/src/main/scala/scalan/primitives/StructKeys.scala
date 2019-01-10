@@ -52,6 +52,7 @@ trait StructKeysModule extends impl.StructKeysDefs {self: Structs with Scalan =>
   implicit lazy val KeySetElement: Elem[KeySet] = new KeySetElem
   def keyset_create(keys: Seq[String]): Rep[KeySet] = KeySetDef(keys)
   case class KeySetDef(keys: Seq[String]) extends BaseDef[KeySet] {
+    override def transform(t: Transformer) = KeySetDef(keys)
     override def toString = s"KeySet(${keys.mkString(",")})"
   }
 }

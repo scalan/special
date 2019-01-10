@@ -30,8 +30,12 @@ trait StringOps extends Base { self: Scalan =>
   val StringEndsWith = new BinOp[String, Boolean]("endsWith", _.endsWith(_))
   val StringMatches = new BinOp[String, Boolean]("matches", _.matches(_))
 
-  case class StringSubstring(str: Rep[String], start: Rep[Int], end: Rep[Int]) extends BaseDef[String]
-  case class StringCharAt(str: Rep[String], index: Rep[Int]) extends BaseDef[Char]
+  case class StringSubstring(str: Rep[String], start: Rep[Int], end: Rep[Int]) extends BaseDef[String] {
+    override def transform(t: Transformer) = StringSubstring(t(str), t(start), t(end))
+  }
+  case class StringCharAt(str: Rep[String], index: Rep[Int]) extends BaseDef[Char] {
+    override def transform(t: Transformer) = StringCharAt(t(str), t(index))
+  }
 
   def string_substring(str: Rep[String], start: Rep[Int], end: Rep[Int]): Rep[String] = StringSubstring(str, start, end)
   def string_apply(str: Rep[String], index: Rep[Int]): Rep[Char] = StringCharAt(str, index)

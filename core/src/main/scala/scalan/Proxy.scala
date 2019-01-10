@@ -66,7 +66,9 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       Objects.hash(receiver, method, selfType.name, neverInvoke.asInstanceOf[AnyRef], args.deepHashCode.asInstanceOf[AnyRef])
   }
 
-  case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA)
+  case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA) {
+    override def transform(t: Transformer) = NewObject(eA, t(args).toList, neverInvoke)
+  }
 
   override def transformDef[A](d: Def[A], t: Transformer) = d match {
     // not the same as super because mkMethodCall can produce a more precise return type
