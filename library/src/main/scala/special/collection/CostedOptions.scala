@@ -29,8 +29,7 @@ package special.collection {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[WOption[T]] = RWSpecialPredef.none[T];
       def dataSize: Rep[Long] = CostedNone.this.builder.SumTagSize;
-      // manual fix (liftElem)
-      def get: Rep[Costed[T]] = CostedNone.this.builder.costedValue[T](CostedNone.this.builder.defaultValue[T](liftElem(CostedNone.this.eT)), RWSpecialPredef.some[Int](CostedNone.this.cost));
+      def get: Rep[Costed[T]] = CostedNone.this.builder.costedValue[T](CostedNone.this.builder.defaultValue[T](CostedNone.this.eT), RWSpecialPredef.some[Int](CostedNone.this.cost));
       @NeverInline def getOrElse(default: Rep[Costed[T]]): Rep[Costed[T]] = delayInvoke;
       @NeverInline def fold[B](ifEmpty: Rep[Costed[B]], f: Rep[Costed[scala.Function1[T, B]]]): Rep[Costed[B]] = delayInvoke;
       def isEmpty: Rep[Costed[Boolean]] = RCCostedPrim(toRep(true.asInstanceOf[Boolean]), CostedNone.this.cost.+(CostedNone.this.builder.SelectFieldCost), toRep(1L.asInstanceOf[Long]));

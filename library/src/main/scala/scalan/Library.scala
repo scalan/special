@@ -35,7 +35,7 @@ trait Library extends Scalan
     }
   }
 
-  def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
+  implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
     val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
     liftableRType(lT).lift(eT.asInstanceOf[RType[Any]])
   }
