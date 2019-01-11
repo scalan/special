@@ -5,6 +5,8 @@ package wrappers.special {
 
   import special.wrappers.WrappersModule
 
+  import special.wrappers.SpecialPredefWrapSpec
+
   trait WSpecialPredefs extends Base { self: WrappersModule =>
     import WEither._;
     import WOption._;

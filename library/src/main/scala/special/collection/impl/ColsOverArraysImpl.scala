@@ -15,6 +15,7 @@ import Col._
 import ColBuilder._
 import ColOverArray._
 import ColOverArrayBuilder._
+import Monoid._
 import PairCol._
 import PairOfCols._
 import ReplCol._
@@ -27,13 +28,14 @@ object ColOverArray extends EntityObject("ColOverArray") {
     implicit lazy val eA = arr.eT
 
     lazy val selfType = element[ColOverArray[A]]
-    private val thisClass = classOf[ColOverArray[A]]
+    override def transform(t: Transformer) = ColOverArrayCtor[A](t(arr))
+    private val thisClass = classOf[Col[_]]
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, isAdapterCall = false, element[A]))
+        true, false, element[A]))
     }
 
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -41,14 +43,14 @@ object ColOverArray extends EntityObject("ColOverArray") {
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
 
     override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, isAdapterCall = false, element[Col[A]]))
+        true, false, element[Col[A]]))
     }
   }
   // elem for concrete class
@@ -71,6 +73,7 @@ object ColOverArray extends EntityObject("ColOverArray") {
   // 3) Iso for concrete class
   class ColOverArrayIso[A](implicit eA: Elem[A])
     extends EntityIso[ColOverArrayData[A], ColOverArray[A]] with Def[ColOverArrayIso[A]] {
+    override def transform(t: Transformer) = new ColOverArrayIso[A]()(eA)
     private lazy val _safeFrom = fun { p: Rep[ColOverArray[A]] => p.arr }
     override def from(p: Rep[ColOverArray[A]]) =
       tryConvert[ColOverArray[A], WArray[A]](eTo, eFrom, p, _safeFrom)
@@ -332,21 +335,18 @@ object ColOverArray extends EntityObject("ColOverArray") {
   registerEntityObject("ColOverArray", ColOverArray)
 
 object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
-  // manual fix
-  private val classColBuilder = classOf[ColBuilder]
-  private val replicateMethod = classColBuilder.getMethod("replicate", classOf[Sym], classOf[Sym])
-
   case class ColOverArrayBuilderCtor
       ()
     extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
     lazy val selfType = element[ColOverArrayBuilder]
-    private val thisClass = classOf[ColBuilder] // manual fix
+    override def transform(t: Transformer) = ColOverArrayBuilderCtor()
+    private val thisClass = classOf[ColBuilder]
 
     override def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
-        true, isAdapterCall = false, element[Col[T]]))
+        true, false, element[Col[T]]))
     }
 
     override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
@@ -354,22 +354,22 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
       asRep[Col[T]](mkMethodCall(self,
         thisClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
-        true, isAdapterCall = false, element[Col[T]]))
+        true, false, element[Col[T]]))
     }
 
     override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
       implicit val eT = v.elem
       asRep[Col[T]](mkMethodCall(self,
-        replicateMethod,
+        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
-        true, isAdapterCall = false, element[Col[T]]))
+        true, false, element[Col[T]]))
     }
 
     override def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(self,
         thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
-        true, isAdapterCall = false, element[Col[Byte]]))
+        true, false, element[Col[Byte]]))
     }
   }
   // elem for concrete class
@@ -391,6 +391,7 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
   // 3) Iso for concrete class
   class ColOverArrayBuilderIso
     extends EntityIso[ColOverArrayBuilderData, ColOverArrayBuilder] with Def[ColOverArrayBuilderIso] {
+    override def transform(t: Transformer) = new ColOverArrayBuilderIso()
     private lazy val _safeFrom = fun { p: Rep[ColOverArrayBuilder] => () }
     override def from(p: Rep[ColOverArrayBuilder]) =
       tryConvert[ColOverArrayBuilder, Unit](eTo, eFrom, p, _safeFrom)
@@ -544,13 +545,14 @@ object PairOfCols extends EntityObject("PairOfCols") {
 implicit lazy val eR = rs.eA
     override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     lazy val selfType = element[PairOfCols[L, R]]
-    private val thisClass = classOf[PairOfCols[L, R]]
+    override def transform(t: Transformer) = PairOfColsCtor[L, R](t(ls), t(rs))
+    private val thisClass = classOf[Col[_]]
 
     override def getOrElse(i: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, isAdapterCall = false, element[(L, R)]))
+        true, false, element[(L, R)]))
     }
 
     override def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
@@ -558,14 +560,14 @@ implicit lazy val eR = rs.eA
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
 
     override def sum(m: Rep[Monoid[(L, R)]]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(self,
         thisClass.getMethod("sum", classOf[Sym]),
         List(m),
-        true, isAdapterCall = false, element[(L, R)]))
+        true, false, element[(L, R)]))
     }
   }
   // elem for concrete class
@@ -589,6 +591,7 @@ implicit lazy val eR = rs.eA
   // 3) Iso for concrete class
   class PairOfColsIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[PairOfColsData[L, R], PairOfCols[L, R]] with Def[PairOfColsIso[L, R]] {
+    override def transform(t: Transformer) = new PairOfColsIso[L, R]()(eL, eR)
     private lazy val _safeFrom = fun { p: Rep[PairOfCols[L, R]] => (p.ls, p.rs) }
     override def from(p: Rep[PairOfCols[L, R]]) =
       tryConvert[PairOfCols[L, R], (Col[L], Col[R])](eTo, eFrom, p, _safeFrom)
@@ -880,20 +883,21 @@ object CReplCol extends EntityObject("CReplCol") {
     implicit lazy val eA = value.elem
 
     lazy val selfType = element[CReplCol[A]]
-    private val thisClass = classOf[ReplCol[A]] // manual fix
+    override def transform(t: Transformer) = CReplColCtor[A](t(value), t(length))
+    private val thisClass = classOf[ReplCol[_]]
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, isAdapterCall = false, element[A]))
+        true, false, element[A]))
     }
 
     override def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[Unit]))
+        true, false, element[Unit]))
     }
 
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
@@ -901,14 +905,14 @@ object CReplCol extends EntityObject("CReplCol") {
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
 
     override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, isAdapterCall = false, element[Col[A]]))
+        true, false, element[Col[A]]))
     }
   }
   // elem for concrete class
@@ -931,6 +935,7 @@ object CReplCol extends EntityObject("CReplCol") {
   // 3) Iso for concrete class
   class CReplColIso[A](implicit eA: Elem[A])
     extends EntityIso[CReplColData[A], CReplCol[A]] with Def[CReplColIso[A]] {
+    override def transform(t: Transformer) = new CReplColIso[A]()(eA)
     private lazy val _safeFrom = fun { p: Rep[CReplCol[A]] => (p.value, p.length) }
     override def from(p: Rep[CReplCol[A]]) =
       tryConvert[CReplCol[A], (A, Int)](eTo, eFrom, p, _safeFrom)

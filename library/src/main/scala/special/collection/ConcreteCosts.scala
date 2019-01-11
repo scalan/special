@@ -24,8 +24,13 @@ package special.collection {
     import CostedPrim._;
     import CostedSome._;
     import CostedSum._;
-    import MonoidBuilder._; // manual fix
+    import Monoid._;
+    import MonoidBuilder._;
     import MonoidBuilderInst._;
+    import PairCol._;
+    import WEither._;
+    import WOption._;
+    import WRType._;
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val dataSize: Rep[Long]) extends CostedPrim[Val] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
     };

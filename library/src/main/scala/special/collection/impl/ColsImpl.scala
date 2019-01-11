@@ -12,6 +12,7 @@ import IsoUR._
 import Converter._
 import Col._
 import ColBuilder._
+import Monoid._
 import PairCol._
 import WArray._
 import ReplCol._
@@ -24,118 +25,124 @@ object Col extends EntityObject("Col") {
   case class ColConst[SA, A](
         constValue: SCol[SA],
         lA: Liftable[SA, A]
-      ) extends Col[A] with LiftedConst[SCol[SA], Col[A]] {
+      ) extends Col[A] with LiftedConst[SCol[SA], Col[A]]
+        with Def[Col[A]] with ColConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
+
     val liftable: Liftable[SCol[SA], Col[A]] = liftableCol(lA)
     val selfType: Elem[Col[A]] = liftable.eW
-    private val thisClass = classOf[Col[A]]
+  }
 
-    def builder: Rep[ColBuilder] = {
+  trait ColConstMethods[A] extends Col[A]  { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    private val ColClass = classOf[Col[A]]
+
+    override def builder: Rep[ColBuilder] = {
       asRep[ColBuilder](mkMethodCall(self,
-        thisClass.getMethod("builder"),
+        ColClass.getMethod("builder"),
         List(),
-        true, isAdapterCall = false, element[ColBuilder]))
+        true, false, element[ColBuilder]))
     }
 
-    def arr: Rep[WArray[A]] = {
+    override def arr: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(self,
-        thisClass.getMethod("arr"),
+        ColClass.getMethod("arr"),
         List(),
-        true, isAdapterCall = false, element[WArray[A]]))
+        true, false, element[WArray[A]]))
     }
 
-    def length: Rep[Int] = {
+    override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("length"),
+        ColClass.getMethod("length"),
         List(),
-        true, isAdapterCall = false, element[Int]))
+        true, false, element[Int]))
     }
 
-    def apply(i: Rep[Int]): Rep[A] = {
+    override def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("apply", classOf[Sym]),
+        ColClass.getMethod("apply", classOf[Sym]),
         List(i),
-        true, isAdapterCall = false, element[A]))
+        true, false, element[A]))
     }
 
-    def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
+    override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        ColClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(i, default),
-        true, isAdapterCall = false, element[A]))
+        true, false, element[A]))
     }
 
-    def map[B](f: Rep[A => B]): Rep[Col[B]] = {
+    override def map[B](f: Rep[A => B]): Rep[Col[B]] = {
       implicit val eB = f.elem.eRange
       asRep[Col[B]](mkMethodCall(self,
-        thisClass.getMethod("map", classOf[Sym]),
+        ColClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[Col[B]]))
+        true, false, element[Col[B]]))
     }
 
-    def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
+    override def zip[B](ys: Rep[Col[B]]): Rep[PairCol[A, B]] = {
       implicit val eB = ys.eA
       asRep[PairCol[A, B]](mkMethodCall(self,
-        thisClass.getMethod("zip", classOf[Sym]),
+        ColClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, isAdapterCall = false, element[PairCol[A, B]]))
+        true, false, element[PairCol[A, B]]))
     }
 
-    def foreach(f: Rep[A => Unit]): Rep[Unit] = {
+    override def foreach(f: Rep[A => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
-        thisClass.getMethod("foreach", classOf[Sym]),
+        ColClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[Unit]))
+        true, false, element[Unit]))
     }
 
-    def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
+    override def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("exists", classOf[Sym]),
+        ColClass.getMethod("exists", classOf[Sym]),
         List(p),
-        true, isAdapterCall = false, element[Boolean]))
+        true, false, element[Boolean]))
     }
 
-    def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
+    override def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("forall", classOf[Sym]),
+        ColClass.getMethod("forall", classOf[Sym]),
         List(p),
-        true, isAdapterCall = false, element[Boolean]))
+        true, false, element[Boolean]))
     }
 
-    def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
+    override def filter(p: Rep[A => Boolean]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        thisClass.getMethod("filter", classOf[Sym]),
+        ColClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, isAdapterCall = false, element[Col[A]]))
+        true, false, element[Col[A]]))
     }
 
-    def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+    override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        ColClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
 
-    def sum(m: Rep[Monoid[A]]): Rep[A] = {
+    override def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("sum", classOf[Sym]),
+        ColClass.getMethod("sum", classOf[Sym]),
         List(m),
-        true, isAdapterCall = false, element[A]))
+        true, false, element[A]))
     }
 
-    def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
+    override def slice(from: Rep[Int], until: Rep[Int]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        ColClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
-        true, isAdapterCall = false, element[Col[A]]))
+        true, false, element[Col[A]]))
     }
 
-    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+    override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
       asRep[Col[A]](mkMethodCall(self,
-        thisClass.getMethod("append", classOf[Sym]),
+        ColClass.getMethod("append", classOf[Sym]),
         List(other),
-        true, isAdapterCall = false, element[Col[A]]))
+        true, false, element[Col[A]]))
     }
   }
 
@@ -160,7 +167,9 @@ object Col extends EntityObject("Col") {
   case class ColAdapter[A](source: Rep[Col[A]])
       extends Col[A] with Def[Col[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+
     val selfType: Elem[Col[A]] = element[Col[A]]
+    override def transform(t: Transformer) = ColAdapter[A](t(source))
     private val thisClass = classOf[Col[A]]
 
     def builder: Rep[ColBuilder] = {
@@ -301,6 +310,7 @@ object Col extends EntityObject("Col") {
     def cC = container[Col]
     def from(x: Rep[Col[B]]) = x.map(innerIso.fromFun)
     def to(x: Rep[Col[A]]) = x.map(innerIso.toFun)
+    override def transform(t: Transformer) = ColIso(t(innerIso))
   }
 
   def colIso[A, B](innerIso: Iso[A, B]) =
@@ -311,22 +321,13 @@ object Col extends EntityObject("Col") {
     extends EntityElem1[A, To, Col](_eA, container[Col]) {
     def eA = _eA
 
-    override val liftable = liftableCol(_eA.liftable).asLiftable[SCol[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableCol(_eA.liftable).asLiftable[SCol[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Col[A]], classOf[SCol[_]], Set(
         "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "sum", "slice", "append"
         ))
-    }
-
-    // manual fix
-    override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
-      case ColMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(mc, dataEnv)
     }
 
     lazy val parent: Option[Elem[_]] = None
@@ -370,6 +371,7 @@ object Col extends EntityObject("Col") {
 
   case class ViewCol[A, B](source: Rep[Col[A]], override val innerIso: Iso[A, B])
     extends View1[A, B, Col](colIso(innerIso)) {
+    override def transform(t: Transformer) = ViewCol(t(source), t(innerIso))
     override def toString = s"ViewCol[${innerIso.eTo.name}]($source)"
     override def equals(other: Any) = other match {
       case v: ViewCol[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
@@ -649,11 +651,9 @@ object PairCol extends EntityObject("PairCol") {
       extends PairCol[L, R] with Def[PairCol[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
-
-    // manual fix
-    lazy val eA: Elem[(L, R)] = element[(L,R)]
-
+    override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     val selfType: Elem[PairCol[L, R]] = element[PairCol[L, R]]
+    override def transform(t: Transformer) = PairColAdapter[L, R](t(source))
     private val thisClass = classOf[PairCol[L, R]]
 
     def ls: Rep[Col[L]] = {
@@ -866,11 +866,71 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   registerEntityObject("PairCol", PairCol)
 
 object ReplCol extends EntityObject("ReplCol") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SReplCol[A] = special.collection.ReplCol[A]
+  case class ReplColConst[SA, A](
+        constValue: SReplCol[SA],
+        lA: Liftable[SA, A]
+      ) extends ReplCol[A] with LiftedConst[SReplCol[SA], ReplCol[A]]
+        with Def[ReplCol[A]] with ReplColConstMethods[A] {
+    implicit def eA: Elem[A] = lA.eW
+
+    val liftable: Liftable[SReplCol[SA], ReplCol[A]] = liftableReplCol(lA)
+    val selfType: Elem[ReplCol[A]] = liftable.eW
+  }
+
+  trait ReplColConstMethods[A] extends ReplCol[A] with ColConstMethods[A] { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    private val ReplColClass = classOf[ReplCol[A]]
+
+    override def value: Rep[A] = {
+      asRep[A](mkMethodCall(self,
+        ReplColClass.getMethod("value"),
+        List(),
+        true, false, element[A]))
+    }
+
+    override def length: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        ReplColClass.getMethod("length"),
+        List(),
+        true, false, element[Int]))
+    }
+
+    override def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+      asRep[Col[A]](mkMethodCall(self,
+        ReplColClass.getMethod("append", classOf[Sym]),
+        List(other),
+        true, false, element[Col[A]]))
+    }
+  }
+
+  case class LiftableReplCol[SA, A](lA: Liftable[SA, A])
+    extends Liftable[SReplCol[SA], ReplCol[A]] {
+    lazy val eW: Elem[ReplCol[A]] = replColElement(lA.eW)
+    lazy val sourceClassTag: ClassTag[SReplCol[SA]] = {
+            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
+      classTag[SReplCol[SA]]
+    }
+    def lift(x: SReplCol[SA]): Rep[ReplCol[A]] = ReplColConst(x, lA)
+    def unlift(w: Rep[ReplCol[A]]): SReplCol[SA] = w match {
+      case Def(ReplColConst(x: SReplCol[_], _lA))
+            if _lA == lA => x.asInstanceOf[SReplCol[SA]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableReplCol[SA, A](implicit lA: Liftable[SA,A]): Liftable[SReplCol[SA], ReplCol[A]] =
+    LiftableReplCol(lA)
+
   // entityAdapter for ReplCol trait
   case class ReplColAdapter[A](source: Rep[ReplCol[A]])
       extends ReplCol[A] with Def[ReplCol[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+
     val selfType: Elem[ReplCol[A]] = element[ReplCol[A]]
+    override def transform(t: Transformer) = ReplColAdapter[A](t(source))
     private val thisClass = classOf[ReplCol[A]]
 
     def value: Rep[A] = {
@@ -885,6 +945,13 @@ object ReplCol extends EntityObject("ReplCol") {
         thisClass.getMethod("length"),
         List(),
         true, true, element[Int]))
+    }
+
+    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
+      asRep[Col[A]](mkMethodCall(source,
+        thisClass.getMethod("append", classOf[Sym]),
+        List(other),
+        true, true, element[Col[A]]))
     }
 
     def builder: Rep[ColBuilder] = {
@@ -980,13 +1047,6 @@ object ReplCol extends EntityObject("ReplCol") {
         List(from, until),
         true, true, element[Col[A]]))
     }
-
-    def append(other: Rep[Col[A]]): Rep[Col[A]] = {
-      asRep[Col[A]](mkMethodCall(source,
-        thisClass.getMethod("append", classOf[Sym]),
-        List(other),
-        true, true, element[Col[A]]))
-    }
   }
 
   // entityProxy: single proxy for each type family
@@ -1000,6 +1060,15 @@ object ReplCol extends EntityObject("ReplCol") {
   class ReplColElem[A, To <: ReplCol[A]](implicit _eA: Elem[A])
     extends ColElem[A, To] {
     override def eA = _eA
+
+    override val liftable: Liftables.Liftable[_, To] = liftableReplCol(_eA.liftable).asLiftable[SReplCol[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[ReplCol[A]], classOf[SReplCol[_]], Set(
+        "value", "length", "append"
+        ))
+    }
 
     override lazy val parent: Option[Elem[_]] = Some(colElement(element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
@@ -1066,6 +1135,19 @@ object ReplCol extends EntityObject("ReplCol") {
         case _ => Nullable.None
       }
     }
+
+    object append {
+      def unapply(d: Def[_]): Nullable[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ReplColElem[_, _]] && method.getName == "append" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[ReplCol[A]], Rep[Col[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
   }
 
   object ReplColCompanionMethods {
@@ -1080,48 +1162,53 @@ object ColBuilder extends EntityObject("ColBuilder") {
   type SColBuilder = special.collection.ColBuilder
   case class ColBuilderConst(
         constValue: SColBuilder
-      ) extends ColBuilder with LiftedConst[SColBuilder, ColBuilder] {
+      ) extends ColBuilder with LiftedConst[SColBuilder, ColBuilder]
+        with Def[ColBuilder] with ColBuilderConstMethods {
     val liftable: Liftable[SColBuilder, ColBuilder] = LiftableColBuilder
     val selfType: Elem[ColBuilder] = liftable.eW
-    private val thisClass = classOf[ColBuilder]
+  }
 
-    def pairCol[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = {
+  trait ColBuilderConstMethods extends ColBuilder  { thisConst: Def[_] =>
+
+    private val ColBuilderClass = classOf[ColBuilder]
+
+    override def pairCol[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = {
       implicit val eA = as.eA
 implicit val eB = bs.eA
       asRep[PairCol[A, B]](mkMethodCall(self,
-        thisClass.getMethod("pairCol", classOf[Sym], classOf[Sym]),
+        ColBuilderClass.getMethod("pairCol", classOf[Sym], classOf[Sym]),
         List(as, bs),
-        true, isAdapterCall = false, element[PairCol[A, B]]))
+        true, false, element[PairCol[A, B]]))
     }
 
-    def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
+    override def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
+        ColBuilderClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
-        true, isAdapterCall = false, element[Col[T]]))
+        true, false, element[Col[T]]))
     }
 
-    def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
+    override def xor(left: Rep[Col[Byte]], right: Rep[Col[Byte]]): Rep[Col[Byte]] = {
       asRep[Col[Byte]](mkMethodCall(self,
-        thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
+        ColBuilderClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
-        true, isAdapterCall = false, element[Col[Byte]]))
+        true, false, element[Col[Byte]]))
     }
 
-    def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
+    override def fromArray[T](arr: Rep[WArray[T]]): Rep[Col[T]] = {
       implicit val eT = arr.eT
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("fromArray", classOf[Sym]),
+        ColBuilderClass.getMethod("fromArray", classOf[Sym]),
         List(arr),
-        true, isAdapterCall = false, element[Col[T]]))
+        true, false, element[Col[T]]))
     }
 
-    def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
+    override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Col[T]] = {
       implicit val eT = v.elem
       asRep[Col[T]](mkMethodCall(self,
-        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
+        ColBuilderClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
-        true, isAdapterCall = false, element[Col[T]]))
+        true, false, element[Col[T]]))
     }
   }
 
@@ -1143,6 +1230,7 @@ implicit val eB = bs.eA
   case class ColBuilderAdapter(source: Rep[ColBuilder])
       extends ColBuilder with Def[ColBuilder] {
     val selfType: Elem[ColBuilder] = element[ColBuilder]
+    override def transform(t: Transformer) = ColBuilderAdapter(t(source))
     private val thisClass = classOf[ColBuilder]
 
     def pairCol[A, B](as: Rep[Col[A]], bs: Rep[Col[B]]): Rep[PairCol[A, B]] = {
@@ -1151,7 +1239,7 @@ implicit val eB = bs.eA
       asRep[PairCol[A, B]](mkMethodCall(source,
         thisClass.getMethod("pairCol", classOf[Sym], classOf[Sym]),
         List(as, bs),
-        true, isAdapterCall = true, element[PairCol[A, B]]))
+        true, true, element[PairCol[A, B]]))
     }
 
     def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Col[T]] = {
@@ -1195,7 +1283,7 @@ implicit val eB = bs.eA
   // familyElem
   class ColBuilderElem[To <: ColBuilder]
     extends EntityElem[To] {
-    override val liftable = LiftableColBuilder.asLiftable[SColBuilder, To]
+    override val liftable: Liftables.Liftable[_, To] = LiftableColBuilder.asLiftable[SColBuilder, To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -1223,8 +1311,8 @@ implicit val eB = bs.eA
     override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def colBuilderElement: Elem[ColBuilder] =
-    cachedElem[ColBuilderElem[ColBuilder]]()
+  implicit lazy val colBuilderElement: Elem[ColBuilder] =
+    new ColBuilderElem[ColBuilder]
 
   implicit case object ColBuilderCompanionElem extends CompanionElem[ColBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[ColBuilderCompanionCtor]

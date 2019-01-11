@@ -249,6 +249,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   case class ThunkForce[A](thunk: Exp[Thunk[A]]) extends Def[A] {
     implicit def selfType = thunk.elem.eItem
+    override def transform(t: Transformer) = ThunkForce(t(thunk))
   }
 
 //  override def effectSyms(x: Any): List[Exp[Any]] = x match {

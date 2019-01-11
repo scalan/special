@@ -66,15 +66,17 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       Objects.hash(receiver, method, selfType.name, neverInvoke.asInstanceOf[AnyRef], args.deepHashCode.asInstanceOf[AnyRef])
   }
 
-  case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA)
+  case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA) {
+    override def transform(t: Transformer) = NewObject(eA, t(args).toList, neverInvoke)
+  }
 
   override def transformDef[A](d: Def[A], t: Transformer) = d match {
     // not the same as super because mkMethodCall can produce a more precise return type
-    case MethodCall(receiver, method, args, neverInvoke) =>
+    case mc @ MethodCall(receiver, method, args, neverInvoke) =>
       val args1 = args.map(transformProductParam(_, t).asInstanceOf[AnyRef])
       val receiver1 = t(receiver)
       // in the case neverInvoke is false, the method is invoked in rewriteDef
-      mkMethodCall(receiver1, method, args1, neverInvoke).asInstanceOf[Rep[A]]
+      mkMethodCall(receiver1, method, args1, neverInvoke, mc.isAdapterCall, mc.selfType).asInstanceOf[Rep[A]]
     case _ => super.transformDef(d, t)
   }
 

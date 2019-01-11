@@ -16,6 +16,7 @@ import scalan.util.CollectionUtil._
 import scalan.meta.ScalanAstExtensions._
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
 import scalan.meta.Symbols._
+import scalan.meta.AstLenses._
 
 object ScalanAst {
 
@@ -457,7 +458,7 @@ object ScalanAst {
       overloadId: Option[String],
       annotations: List[SMethodAnnotation] = Nil,
       body: Option[SExpr] = None,
-      isTypeDesc: Boolean = false) extends SBodyItem with SEntityItem {
+      isTypeDesc: Boolean = false) extends SBodyItem with SEntityItem with Updatable[SMethodDef] {
     val symbol = SEntityItemSymbol(owner, name, DefType.Def)
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
@@ -837,7 +838,7 @@ object ScalanAst {
       * trait <e>[a1..aN] { }
       * trait|class <this> extends <e>[t1,...,tN], ...
       */
-    def argsSubstOfAncestorEntities(implicit ctx: AstContext): List[(SEntityDef, List[(STpeArg, STpeExpr)])] = {
+    def collectAncestorEntitiesWithSubst(implicit ctx: AstContext): List[(SEntityDef, List[(STpeArg, STpeExpr)])] = {
       val res = collectAncestorEntities.map { case (e, args) => (e, e.tpeArgs zip args) }
       res
     }
@@ -845,7 +846,7 @@ object ScalanAst {
     def linearizationWithSubst
         (subst: STpeSubst)(implicit context: AstContext): List[(SEntityDef, List[STpeExpr])] = {
       val merged = mutable.LinkedHashMap.empty[String, (SEntityDef, List[STpeExpr])]
-      for ( (anc, args) <- argsSubstOfAncestorEntities ) {
+      for ( (anc, args) <- collectAncestorEntitiesWithSubst ) {
         val ancSubst = args.map { case (a, t) => (a.name, t.applySubst(subst)) }.toMap
         val ancLins = anc.linearizationWithSubst(ancSubst)
         for ( (ancL, ancLArgs) <- ancLins ) {
@@ -860,10 +861,26 @@ object ScalanAst {
     def collectVisibleMembers(implicit context: AstContext): List[SEntityMember] = {
       val lin = linearizationWithSubst(Map())
       val members = mutable.LinkedHashMap.empty[String, SEntityMember]
+      def substTpeArgs(item: SEntityItem, argSubst: STpeSubst): SEntityItem =
+        if (argSubst.isEmpty) item
+        else {
+          item match {
+            case md: SMethodDef =>
+              val newArgs = md.tpeArgs.map { a =>
+                argSubst.get(a.name) match {
+                  case Some(t) => a.copy(name = t.name)
+                  case None => a
+                }
+              }
+              md.copy(tpeArgs = newArgs)
+            case _ => item
+          }
+        }
       def addMember(e: SEntityDef, args: List[STpeExpr], m: SEntityMember) = {
         val entSubst = e.createTpeSubst(args)
         val itemSubst = disambiguateNames(m.item.tpeArgs.map(_.name), entSubst)
-        members += (m.item.name -> SEntityMember(e, m.item.applySubst(entSubst ++ itemSubst)))
+        val item = substTpeArgs(m.item, itemSubst)
+        members += (item.name -> SEntityMember(e, item.applySubst(entSubst ++ itemSubst)))
       }
       for ((e, args) <- lin) {
         val ms = e.collectItemsInBody(_ => true)
@@ -1248,7 +1265,7 @@ object ScalanAst {
     }
   }
 
-  case class WrapperConf(baseDir: String, packageName: String, name: String, annotations: List[String] = Nil) extends Conf
+  case class WrapperConf(baseDir: String, packageName: String, name: String, annotations: List[String] = Nil, imports: List[String] = Nil) extends Conf
 
   case class NonWrapper(name: String)
 

@@ -398,6 +398,9 @@ trait TypeDescs extends Base { self: Scalan =>
 
   }
 
+  def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef =
+    e.invokeUnlifted(mc, dataEnv)
+
   private lazy val debug$ElementCounter = counter[Elem[_]]
 
   private[scalan] def getConstructor(clazz: Class[_]) = {

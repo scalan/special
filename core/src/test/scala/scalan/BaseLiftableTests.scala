@@ -15,7 +15,7 @@ trait BaseLiftableTests { self: BaseCtxTests =>
       val (resEnv, resSym) = resEnvSym.run(env)
       resSym match {
         case Def(mc: MethodCall) =>
-          val res = objSym.elem.invokeUnlifted(mc, resEnv)
+          val res = invokeUnlifted(objSym.elem, mc, resEnv)
           res shouldBe expected
       }
     }

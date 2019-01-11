@@ -60,6 +60,7 @@ trait IfThenElse extends Base { self: Scalan =>
 
   case class IfThenElse[T](cond: Exp[Boolean], thenp: Exp[T], elsep: Exp[T]) extends Def[T] {
     lazy val selfType = thenp.elem.leastUpperBound(elsep.elem).asElem[T]
+    override def transform(t: Transformer) = IfThenElse(t(cond), t(thenp), t(elsep))
   }
 
   case class IfThenElseLazy[T](cond: Exp[Boolean], thenp: Rep[Thunk[T]], elsep: Exp[Thunk[T]]) extends Def[T] {
@@ -68,6 +69,7 @@ trait IfThenElse extends Base { self: Scalan =>
       val eElse = elsep.elem.eItem
       eThen.leastUpperBound(eElse).asElem[T]
     }
+    override def transform(t: Transformer) = IfThenElseLazy(t(cond), t(thenp), t(elsep))
   }
 
   def reifyBranch[T](b: => Exp[T]): Exp[T] = {

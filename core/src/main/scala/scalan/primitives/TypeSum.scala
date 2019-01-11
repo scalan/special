@@ -69,9 +69,13 @@ trait TypeSum extends Base { self: Scalan =>
   // TODO used by generated code; ideally should be unnecessary
   def sOptionElement[A: Elem] = element[SOptional[A]]
 
-  case class SLeft[A, B](left: Exp[A])(implicit val eRight: Elem[B]) extends BaseDef[A | B]()(sumElement(left.elem, eRight))
+  case class SLeft[A, B](left: Exp[A])(implicit val eRight: Elem[B]) extends BaseDef[A | B]()(sumElement(left.elem, eRight)) {
+    override def transform(t: Transformer): Def[A | B] = SLeft(t(left))(eRight)
+  }
 
-  case class SRight[A, B](right: Exp[B])(implicit val eLeft: Elem[A]) extends BaseDef[A | B]()(sumElement(eLeft, right.elem))
+  case class SRight[A, B](right: Exp[B])(implicit val eLeft: Elem[A]) extends BaseDef[A | B]()(sumElement(eLeft, right.elem)) {
+    override def transform(t: Transformer): Def[A | B] = SRight(t(right))(eLeft)
+  }
 
   def mkLeft[A, B: Elem](a: Rep[A]): Rep[A | B] = SLeft[A, B](a)(element[B])
 
@@ -79,10 +83,13 @@ trait TypeSum extends Base { self: Scalan =>
 
   case class SumFold[A, B, R](sum: Exp[A | B], left: Exp[A => R], right: Exp[B => R])
     extends BaseDef[R]()(left.elem.eRange) {
+    override def transform(t: Transformer): Def[R] = SumFold(t(sum), t(left), t(right))
   }
 
   case class SumMap[A, B, C, D](sum: Exp[A | B], left: Exp[A => C], right: Exp[B => D])
-    extends BaseDef[C | D]()(sumElement(left.elem.eRange, right.elem.eRange))
+    extends BaseDef[C | D]()(sumElement(left.elem.eRange, right.elem.eRange)) {
+    override def transform(t: Transformer): Def[C | D] = SumMap(t(sum), t(left), t(right))
+  }
 
   class SumOpsExp[A, B](s: Rep[A | B]) extends SumOps[A, B] {
     implicit def eLeft: Elem[A] = s.elem.eLeft

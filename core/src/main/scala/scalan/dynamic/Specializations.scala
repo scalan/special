@@ -48,7 +48,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 
   case class NoFuse[A:Elem](arg: Rep[A]) extends Def[A] {
     def selfType = element[A]
-//    override def mirror(t: Transformer) = NoFuse(t(arg))
+    override def transform(t: Transformer) = NoFuse(t(arg))
   }
   def no_fuse[A:Elem](arg: Rep[A]) = NoFuse(arg)
 
@@ -259,6 +259,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         (implicit val eA: Elem[A] = func.elem.eDom, val eB: Elem[B] = func.elem.eRange)
         extends BaseDef[A=>B]
   {
+    override def transform(t: Transformer) = DynKernel(t(func), inTypes, outTypes)
     val isConcreteOutType = eB.isConcrete
     def isDefaultOutType(el: Elem[_]): Boolean = isConcreteOutType && (el == eB)
 
@@ -427,7 +428,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
   {
     // TODO assert(A1 isSpecialOf A && B1 isSpecialOf B)
     def selfType = isoRange.eFrom
-//    override def mirror(t: Transformer) = ApplyKernel(t(kernel), t(arg), isoDom, isoRange, t(specNum))
+    override def transform(t: Transformer) = ApplyKernel(t(kernel), t(arg), t(isoDom), t(isoRange), t(specNum))
   }
 
   def isoFun[A:Elem, B: Elem](

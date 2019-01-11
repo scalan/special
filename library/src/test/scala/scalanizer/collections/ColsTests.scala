@@ -61,7 +61,6 @@ class ColsTests extends BaseCtxTests {
   }
 
   test("measure: build graph with new context") {
-
     measure(10) { i =>
       var sum: Int = 0
       for (j <- 0 until 3000) {
@@ -80,6 +79,69 @@ class ColsTests extends BaseCtxTests {
       }
       println(s"Defs: ${sum}")
     }
+  }
+
+  def runMeasure(name: String, alphaEq: Boolean, keepOrig: Boolean, unfoldWithOrig: Boolean) = {
+    println(s"runMeasure($name, alphaEq = $alphaEq, keepOrig = $keepOrig, unfoldWithOrig = $unfoldWithOrig)")
+    val nIters = 10
+    val nRepeats = 1000
+    def warmUp(i: Int) = {
+      val ctx = new Ctx {
+        override val performViewsLifting = false
+        useAlphaEquality = alphaEq
+        keepOriginalFunc = keepOrig
+        unfoldWithOriginalFunc = unfoldWithOrig
+      }
+      import ctx._
+      import Col._
+      import ColBuilder._
+      import ColOverArrayBuilder._
+      var outGraph: Sym = null
+      for (j <- 0 until nRepeats) {
+        val f = fun { in: Rep[(ColBuilder, Int)] =>
+          val Pair(colBuilder, delta) = in
+          val col = colBuilder.replicate(i*j, 0)
+          val res = col.map(fun {x => x + delta})
+          res
+        }
+        outGraph = Pair(f, f(Pair(RColOverArrayBuilder(), 1)))
+      }
+    }
+    def measureUp(i: Int) = {
+      val ctx = new Ctx {
+        override val performViewsLifting = false
+        useAlphaEquality = alphaEq
+        keepOriginalFunc = keepOrig
+        unfoldWithOriginalFunc = unfoldWithOrig
+      }
+      import ctx._
+      import Col._
+      import ColBuilder._
+      import ColOverArrayBuilder._
+      var outGraph: Sym = null
+      for (j <- 0 until nRepeats) {
+        val f = fun { in: Rep[(ColBuilder, Int)] =>
+          val Pair(colBuilder, delta) = in
+          val col = colBuilder.replicate(i*j, 0)
+          val res = col.map(fun {x => x + delta})
+          res
+        }
+        outGraph = Pair(f, f(Pair(RColOverArrayBuilder(), 1)))
+      }
+      println(s"Defs: ${ctx.defCount}")
+
+      if (i == nIters - 1)
+        emit(name, outGraph)
+    }
+    measure(nIters)(warmUp)
+    measure(nIters)(measureUp)
+  }
+
+  test("measure: unfoldLambda") {
+    val dummyCtx = new Ctx
+//    runMeasure("default", true, true, true)
+//    runMeasure("noAlpha", false, true, true)
+    runMeasure("noAlpha_noKeepOrig", false, false, true)
   }
 
 }

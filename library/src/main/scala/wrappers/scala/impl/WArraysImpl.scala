@@ -3,14 +3,12 @@ package wrappers.scala
 import scalan._
 import impl._
 import special.wrappers.WrappersModule
+import special.wrappers.ArrayWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-// manual fix
-  import special.wrappers.ArrayWrapSpec
-
-  // Abs -----------------------------------
+// Abs -----------------------------------
 trait WArraysDefs extends scalan.Scalan with WArrays {
   self: WrappersModule =>
 import IsoUR._
@@ -25,83 +23,89 @@ object WArray extends EntityObject("WArray") {
   case class WArrayConst[ST, T](
         constValue: Array[ST],
         lT: Liftable[ST, T]
-      ) extends WArray[T] with LiftedConst[Array[ST], WArray[T]] {
+      ) extends WArray[T] with LiftedConst[Array[ST], WArray[T]]
+        with Def[WArray[T]] with WArrayConstMethods[T] {
     implicit def eT: Elem[T] = lT.eW
+
     val liftable: Liftable[Array[ST], WArray[T]] = liftableArray(lT)
     val selfType: Elem[WArray[T]] = liftable.eW
-    private val thisClass = classOf[WArray[T]]
+  }
 
-    def apply(i: Rep[Int]): Rep[T] = {
+  trait WArrayConstMethods[T] extends WArray[T]  { thisConst: Def[_] =>
+    implicit def eT: Elem[T]
+    private val WArrayClass = classOf[WArray[T]]
+
+    override def apply(i: Rep[Int]): Rep[T] = {
       asRep[T](mkMethodCall(self,
-        thisClass.getMethod("apply", classOf[Sym]),
+        WArrayClass.getMethod("apply", classOf[Sym]),
         List(i),
-        true, isAdapterCall = false, element[T]))
+        true, false, element[T]))
     }
 
-    def foreach(f: Rep[T => Unit]): Rep[Unit] = {
+    override def foreach(f: Rep[T => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(self,
-        thisClass.getMethod("foreach", classOf[Sym]),
+        WArrayClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[Unit]))
+        true, false, element[Unit]))
     }
 
-    def exists(p: Rep[T => Boolean]): Rep[Boolean] = {
+    override def exists(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("exists", classOf[Sym]),
+        WArrayClass.getMethod("exists", classOf[Sym]),
         List(p),
-        true, isAdapterCall = false, element[Boolean]))
+        true, false, element[Boolean]))
     }
 
-    def forall(p: Rep[T => Boolean]): Rep[Boolean] = {
+    override def forall(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("forall", classOf[Sym]),
+        WArrayClass.getMethod("forall", classOf[Sym]),
         List(p),
-        true, isAdapterCall = false, element[Boolean]))
+        true, false, element[Boolean]))
     }
 
-    def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = {
+    override def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(self,
-        thisClass.getMethod("filter", classOf[Sym]),
+        WArrayClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, isAdapterCall = false, element[WArray[T]]))
+        true, false, element[WArray[T]]))
     }
 
-    def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = {
+    override def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
+        WArrayClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
 
-    def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = {
+    override def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(self,
-        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        WArrayClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
-        true, isAdapterCall = false, element[WArray[T]]))
+        true, false, element[WArray[T]]))
     }
 
-    def length: Rep[Int] = {
+    override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
-        thisClass.getMethod("length"),
+        WArrayClass.getMethod("length"),
         List(),
-        true, isAdapterCall = false, element[Int]))
+        true, false, element[Int]))
     }
 
-    def map[B](f: Rep[T => B]): Rep[WArray[B]] = {
+    override def map[B](f: Rep[T => B]): Rep[WArray[B]] = {
       implicit val eB = f.elem.eRange
       asRep[WArray[B]](mkMethodCall(self,
-        thisClass.getMethod("map", classOf[Sym]),
+        WArrayClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[WArray[B]]))
+        true, false, element[WArray[B]]))
     }
 
-    def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = {
+    override def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = {
       implicit val eB = ys.eT
       asRep[WArray[(T, B)]](mkMethodCall(self,
-        thisClass.getMethod("zip", classOf[Sym]),
+        WArrayClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, isAdapterCall = false, element[WArray[(T, B)]]))
+        true, false, element[WArray[(T, B)]]))
     }
   }
 
@@ -122,47 +126,49 @@ object WArray extends EntityObject("WArray") {
   implicit def liftableArray[ST, T](implicit lT: Liftable[ST,T]): Liftable[Array[ST], WArray[T]] =
     LiftableArray(lT)
 
-  private val _ArrayWrapSpec = new ArrayWrapSpec
+  private val _ArrayWrapSpec = new ArrayWrapSpec {}
   // entityAdapter for WArray trait
   case class WArrayAdapter[T](source: Rep[WArray[T]])
       extends WArray[T] with Def[WArray[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+
     val selfType: Elem[WArray[T]] = element[WArray[T]]
+    override def transform(t: Transformer) = WArrayAdapter[T](t(source))
     private val thisClass = classOf[WArray[T]]
 
     def apply(i: Rep[Int]): Rep[T] = {
       asRep[T](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
-        true, isAdapterCall = true, element[T]))
+        true, true, element[T]))
     }
 
     def foreach(f: Rep[T => Unit]): Rep[Unit] = {
       asRep[Unit](mkMethodCall(source,
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
-        true, isAdapterCall = true, element[Unit]))
+        true, true, element[Unit]))
     }
 
     def exists(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("exists", classOf[Sym]),
         List(p),
-        true, isAdapterCall = true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def forall(p: Rep[T => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("forall", classOf[Sym]),
         List(p),
-        true, isAdapterCall = true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def filter(p: Rep[T => Boolean]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(source,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, isAdapterCall = true, element[WArray[T]]))
+        true, true, element[WArray[T]]))
     }
 
     def foldLeft[B](zero: Rep[B], op: Rep[((B, T)) => B]): Rep[B] = {
@@ -170,21 +176,21 @@ object WArray extends EntityObject("WArray") {
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
-        true, isAdapterCall = true, element[B]))
+        true, true, element[B]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[WArray[T]] = {
       asRep[WArray[T]](mkMethodCall(source,
         thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
-        true, isAdapterCall = true, element[WArray[T]]))
+        true, true, element[WArray[T]]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("length"),
         List(),
-        true, isAdapterCall = true, element[Int]))
+        true, true, element[Int]))
     }
 
     def map[B](f: Rep[T => B]): Rep[WArray[B]] = {
@@ -192,7 +198,7 @@ object WArray extends EntityObject("WArray") {
       asRep[WArray[B]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, isAdapterCall = true, element[WArray[B]]))
+        true, true, element[WArray[B]]))
     }
 
     def zip[B](ys: Rep[WArray[B]]): Rep[WArray[(T, B)]] = {
@@ -200,7 +206,7 @@ object WArray extends EntityObject("WArray") {
       asRep[WArray[(T, B)]](mkMethodCall(source,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, isAdapterCall = true, element[WArray[(T, B)]]))
+        true, true, element[WArray[(T, B)]]))
     }
   }
 
@@ -233,6 +239,7 @@ object WArray extends EntityObject("WArray") {
     def cC = container[WArray]
     def from(x: Rep[WArray[B]]) = x.map(innerIso.fromFun)
     def to(x: Rep[WArray[A]]) = x.map(innerIso.toFun)
+    override def transform(t: Transformer) = WArrayIso(t(innerIso))
   }
 
   def wArrayIso[A, B](innerIso: Iso[A, B]) =
@@ -243,22 +250,13 @@ object WArray extends EntityObject("WArray") {
     extends EntityElem1[T, To, WArray](_eT, container[WArray]) {
     def eT = _eT
 
-    override val liftable = liftableArray(_eT.liftable).asLiftable[Array[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableArray(_eT.liftable).asLiftable[Array[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredWrapperMethods(_ArrayWrapSpec, classOf[WArray[T]], Set(
         "apply", "foreach", "exists", "forall", "filter", "foldLeft", "slice", "length", "map", "zip"
         ))
-    }
-
-    // manual fix
-    override def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = mc match {
-      case WArrayMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(mc, dataEnv)
     }
 
     lazy val parent: Option[Elem[_]] = None
@@ -304,12 +302,13 @@ object WArray extends EntityObject("WArray") {
       asRep[WArray[T]](mkMethodCall(self,
         thisClass.getMethod("fill", classOf[Sym], classOf[Sym]),
         List(n, elem),
-        true, isAdapterCall = false, element[WArray[T]]))
+        true, false, element[WArray[T]]))
     }
   }
 
   case class ViewWArray[A, B](source: Rep[WArray[A]], override val innerIso: Iso[A, B])
     extends View1[A, B, WArray](wArrayIso(innerIso)) {
+    override def transform(t: Transformer) = ViewWArray(t(source), t(innerIso))
     override def toString = s"ViewWArray[${innerIso.eTo.name}]($source)"
     override def equals(other: Any) = other match {
       case v: ViewWArray[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo

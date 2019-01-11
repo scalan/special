@@ -3,14 +3,12 @@ package wrappers.scala.util
 import scalan._
 import impl._
 import special.wrappers.WrappersModule
+import special.wrappers.EitherWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  // manual fix
-  import special.wrappers.EitherWrapSpec
-
-  // Abs -----------------------------------
+// Abs -----------------------------------
 trait WEithersDefs extends scalan.Scalan with WEithers {
   self: WrappersModule =>
 import IsoUR._
@@ -25,19 +23,26 @@ object WEither extends EntityObject("WEither") {
   case class WEitherConst[SA, SB, A, B](
         constValue: Either[SA, SB],
         lA: Liftable[SA, A], lB: Liftable[SB, B]
-      ) extends WEither[A, B] with LiftedConst[Either[SA, SB], WEither[A, B]] {
+      ) extends WEither[A, B] with LiftedConst[Either[SA, SB], WEither[A, B]]
+        with Def[WEither[A, B]] with WEitherConstMethods[A, B] {
     implicit def eA: Elem[A] = lA.eW
     implicit def eB: Elem[B] = lB.eW
+
     val liftable: Liftable[Either[SA, SB], WEither[A, B]] = liftableEither(lA,lB)
     val selfType: Elem[WEither[A, B]] = liftable.eW
-    private val thisClass = classOf[WEither[A, B]]
+  }
 
-    def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
+  trait WEitherConstMethods[A, B] extends WEither[A, B]  { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    implicit def eB: Elem[B]
+    private val WEitherClass = classOf[WEither[A, B]]
+
+    override def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
       implicit val eC = fa.elem.eRange
       asRep[C](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        WEitherClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
-        true, isAdapterCall = false, element[C]))
+        true, false, element[C]))
     }
   }
 
@@ -59,13 +64,15 @@ object WEither extends EntityObject("WEither") {
   implicit def liftableEither[SA, SB, A, B](implicit lA: Liftable[SA,A],lB: Liftable[SB,B]): Liftable[Either[SA, SB], WEither[A, B]] =
     LiftableEither(lA,lB)
 
-  private val _EitherWrapSpec = new EitherWrapSpec
+  private val _EitherWrapSpec = new EitherWrapSpec {}
   // entityAdapter for WEither trait
   case class WEitherAdapter[A, B](source: Rep[WEither[A, B]])
       extends WEither[A, B] with Def[WEither[A, B]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
 implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
+
     val selfType: Elem[WEither[A, B]] = element[WEither[A, B]]
+    override def transform(t: Transformer) = WEitherAdapter[A, B](t(source))
     private val thisClass = classOf[WEither[A, B]]
 
     def fold[C](fa: Rep[A => C], fb: Rep[B => C]): Rep[C] = {
@@ -73,7 +80,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
       asRep[C](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(fa, fb),
-        true, isAdapterCall = false, element[C]))
+        true, true, element[C]))
     }
   }
 
@@ -90,7 +97,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     def eA = _eA
     def eB = _eB
 
-    override val liftable = liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_,_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_,_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -144,7 +151,7 @@ implicit val eB = right.elem.eItem
       asRep[WEither[A, B]](mkMethodCall(self,
         thisClass.getMethod("cond", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(test, right, left),
-        true, isAdapterCall = false, element[WEither[A, B]]))
+        true, false, element[WEither[A, B]]))
     }
   }
 

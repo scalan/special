@@ -2,17 +2,14 @@ package wrappers.scalan.meta
 
 import scalan._
 import impl._
+import scalan.meta.RType
 import special.wrappers.WrappersModule
+import special.wrappers.RTypeWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  // manual fix
-  import special.wrappers.RTypeWrapSpec
-
-  import scalan.meta.RType
-
-  // Abs -----------------------------------
+// Abs -----------------------------------
 trait WRTypesDefs extends scalan.Scalan with WRTypes {
   self: WrappersModule =>
 import IsoUR._
@@ -27,17 +24,23 @@ object WRType extends EntityObject("WRType") {
   case class WRTypeConst[SA, A](
         constValue: RType[SA],
         lA: Liftable[SA, A]
-      ) extends WRType[A] with LiftedConst[RType[SA], WRType[A]] {
+      ) extends WRType[A] with LiftedConst[RType[SA], WRType[A]]
+        with Def[WRType[A]] with WRTypeConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
+
     val liftable: Liftable[RType[SA], WRType[A]] = liftableRType(lA)
     val selfType: Elem[WRType[A]] = liftable.eW
-    private val thisClass = classOf[WRType[A]]
+  }
 
-    def name: Rep[String] = {
+  trait WRTypeConstMethods[A] extends WRType[A]  { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    private val WRTypeClass = classOf[WRType[A]]
+
+    override def name: Rep[String] = {
       asRep[String](mkMethodCall(self,
-        thisClass.getMethod("name"),
+        WRTypeClass.getMethod("name"),
         List(),
-        true, isAdapterCall = false, element[String]))
+        true, false, element[String]))
     }
   }
 
@@ -58,19 +61,21 @@ object WRType extends EntityObject("WRType") {
   implicit def liftableRType[SA, A](implicit lA: Liftable[SA,A]): Liftable[RType[SA], WRType[A]] =
     LiftableRType(lA)
 
-  private val _RTypeWrapSpec = new RTypeWrapSpec
+  private val _RTypeWrapSpec = new RTypeWrapSpec {}
   // entityAdapter for WRType trait
   case class WRTypeAdapter[A](source: Rep[WRType[A]])
       extends WRType[A] with Def[WRType[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+
     val selfType: Elem[WRType[A]] = element[WRType[A]]
+    override def transform(t: Transformer) = WRTypeAdapter[A](t(source))
     private val thisClass = classOf[WRType[A]]
 
     def name: Rep[String] = {
       asRep[String](mkMethodCall(source,
         thisClass.getMethod("name"),
         List(),
-        true, isAdapterCall = true, element[String]))
+        true, true, element[String]))
     }
   }
 
@@ -86,7 +91,7 @@ object WRType extends EntityObject("WRType") {
     extends EntityElem[To] {
     def eA = _eA
 
-    override val liftable = liftableRType(_eA.liftable).asLiftable[RType[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableRType(_eA.liftable).asLiftable[RType[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

@@ -1,15 +1,20 @@
 package scalan.meta
 
-import scalan.meta.ScalanAst.{STraitCall, SClassArg, SLiteralPattern, STpeDef, SWildcardPattern, SUnitDef, SValDef, STypedPattern, STpeArgs, STpeExpr, STpeFunc, SSelPattern, SExpr, STpeArg, STpeEmpty, STuple, SClassDef, SCase, SIf, SIdent, SStableIdPattern, SBindPattern, STpeTuple, SMethodArg, SApplyPattern, SObjectDef, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STypeArgAnnotation, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, SMatch, SPattern, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SSuper, STpeExistential, SSelect, SAltPattern}
+import scalan.meta.ScalanAst.{STpeSingle, STraitCall, SClassArg, SLiteralPattern, STpeDef, SWildcardPattern, SUnitDef, SValDef, STypedPattern, STpeArgs, STpeExpr, STpeFunc, SSelPattern, SExpr, STpeMethod, STpeArg, STpeEmpty, STpeConst, STuple, SClassDef, SCase, SIf, STpeThis, SIdent, SStableIdPattern, SBindPattern, STpeTuple, SMethodArg, SApplyPattern, SObjectDef, STraitDef, SMethodDef, SAssign, SApply, SFunc, SConst, SEmpty, STypeApply, SBlock, STypeArgAnnotation, SExprApply, SClassArgs, SAscr, SThis, SMethodArgs, SMatch, SPattern, STpePrimitive, SAnnotated, SBodyItem, STpeAnnotated, SEntityDef, SConstr, SSuper, STpeExistential, SSelect, SAltPattern}
 
 object ScalanAstTraversers {
 
   /** The class implements a default Meta AST transformation strategy: breadth-first search */
   class AstTraverser(implicit val ctx: AstContext) {
-    def constTraverse(c: SConst): Unit = {}
-    def identTraverse(ident: SIdent): Unit = {}
+    def constTraverse(c: SConst): Unit = {
+      c.exprType foreach tpeExprTraverse
+    }
+    def identTraverse(ident: SIdent): Unit = {
+      ident.exprType foreach tpeExprTraverse
+    }
     def selectTraverse(select: SSelect): Unit = {
       exprTraverse(select.expr)
+      select.exprType foreach tpeExprTraverse
     }
     def applyTraverse(apply: SApply): Unit = {
       exprTraverse(apply.fun)
@@ -70,10 +75,29 @@ object ScalanAstTraversers {
       case prim: STpePrimitive => primitiveTraverse(prim)
       case existType: STpeExistential => tpeExistentialTraverse(existType)
       case ann: STpeAnnotated => tpeAnnotatedTraverse(ann)
+      case t: STpeMethod => tpeMethodTraverse(t)
+      case t: STpeSingle => tpeSingleTraverse(t)
+      case t: STpeThis => tpeThisTraverse(t)
+      case t: STpeConst => tpeConstTraverse(t)
       case _ =>
         sys.error(s"Don't know how to tpeExprTraverse($tpe)")
     }
 
+    def tpeConstTraverse(t: STpeConst): Unit = {
+      constTraverse(t.const)
+      tpeExprTraverse(t.underlying)
+    }
+    def tpeThisTraverse(t: STpeThis): Unit = {
+      tpeExprTraverse(t.underlying)
+    }
+    def tpeSingleTraverse(t: STpeSingle): Unit = {
+      tpeExprTraverse(t.pre)
+      tpeExprTraverse(t.underlying)
+    }
+    def tpeMethodTraverse(tm: STpeMethod): Unit = {
+      tm.paramSections foreach { ts => ts foreach tpeExprTraverse }
+      tpeExprTraverse(tm.resultType)
+    }
     def tpeAnnotatedTraverse(ann: STpeAnnotated): Unit = tpeExprTraverse(ann.tpt)
     def tupleTraverse(tup: STpeTuple): Unit = tup.args.foreach(tpeExprTraverse)
     def funcTraverse(func: STpeFunc): Unit = {
@@ -153,7 +177,10 @@ object ScalanAstTraversers {
     def bindPatternTraverse(arg: SBindPattern) = {}
     def applyPatternTraverse(arg: SApplyPattern) = {}
 
-    def methodArgTraverse(arg: SMethodArg): Unit = {}
+    def methodArgTraverse(arg: SMethodArg): Unit = {
+      tpeExprTraverse(arg.tpe)
+      arg.default foreach exprTraverse
+    }
     def methodArgsTraverse(args: SMethodArgs): Unit = {
       args.args foreach methodArgTraverse
     }

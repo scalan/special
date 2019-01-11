@@ -340,6 +340,7 @@ abstract class ScalanizerPipeline[+G <: Global](val scalanizer: Scalanizer[G]) {
     )
     val imports = List(
       SImportStat("scalan._"),
+//      SImportStat("scalan.meta._"),
       SImportStat("impl._")
     )
     val wrapUnit = SUnitDef(

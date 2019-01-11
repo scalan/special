@@ -5,6 +5,8 @@ package wrappers.scala {
 
   import special.wrappers.WrappersModule
 
+  import special.wrappers.ArrayWrapSpec
+
   trait WArrays extends Base { self: WrappersModule =>
     import WArray._;
     @External("Array") @ContainerType @FunctorType @Liftable trait WArray[T] extends Def[WArray[T]] {

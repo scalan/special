@@ -242,10 +242,19 @@ class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], 
     }
   }
 
+  object R {
+    def unapply(s: String): Option[String] =
+      if (s.startsWith("R")) Some(s.substring(1)) else None
+  }
+
   object IsGlobalObject {
     def unapply(expr: SExpr): Option[String] = expr match {
       case SSelect(SEmpty(None), Entity(_,e), None) => Some(e.name)
+      case SSelect(SEmpty(None), WrapperEntity(_,e,_), None) => Some(e.name)
       case SSelect(SEmpty(None), ExternalType(_,e), None) => Some(e.name)
+      case SSelect(SEmpty(None), R(Entity(_,e)), None) => Some(e.name)
+      case SSelect(SEmpty(None), R(WrapperEntity(_,e,_)), None) => Some(e.name)
+      case SSelect(SEmpty(None), R(ExternalType(_,e)), None) => Some(e.name)
       case _ => None
     }
   }

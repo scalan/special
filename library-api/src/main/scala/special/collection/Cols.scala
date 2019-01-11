@@ -43,9 +43,11 @@ trait PairCol[L,R] extends Col[(L,R)] {
   def rs: Col[R]
 }
 
+@Liftable
 trait ReplCol[A] extends Col[A] {
   def value: A
   def length: Int
+  def append(other: Col[A]): Col[A]
 }
 
 @scalan.Liftable

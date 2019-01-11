@@ -1,6 +1,4 @@
 package special.collection {
-  import java.lang.reflect.Method  // manual fix
-
   import scalan._
 
   trait ColsOverArrays extends Base { self: Library =>
@@ -9,14 +7,11 @@ package special.collection {
     import ColBuilder._;
     import ColOverArray._;
     import ColOverArrayBuilder._;
+    import Monoid._;
     import PairCol._;
     import PairOfCols._;
     import ReplCol._;
     import WArray._;
-
-    import Monoid._; // manual fix
-    import WSpecialPredef._; // manual fix
-
     abstract class ColOverArray[A](val arr: Rep[WArray[A]]) extends Col[A] {
       def builder: Rep[ColBuilder] = RColOverArrayBuilder();
       def length: Rep[Int] = ColOverArray.this.arr.length;
@@ -66,7 +61,7 @@ package special.collection {
     };
     abstract class CReplCol[A](val value: Rep[A], val length: Rep[Int]) extends ReplCol[A] {
       def builder: Rep[ColBuilder] = RColOverArrayBuilder();
-      def arr: Rep[WArray[A]] = CReplCol.this.builder.replicate[A](CReplCol.this.length, CReplCol.this.value).arr;
+      def arr: Rep[WArray[A]] = RWArray.fill[A](CReplCol.this.length, Thunk(CReplCol.this.value));
       def apply(i: Rep[Int]): Rep[A] = CReplCol.this.value;
       @NeverInline def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = delayInvoke;
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Col[B]] = RCReplCol(f.apply(CReplCol.this.value), CReplCol.this.length);

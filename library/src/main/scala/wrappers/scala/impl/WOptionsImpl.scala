@@ -3,14 +3,12 @@ package wrappers.scala
 import scalan._
 import impl._
 import special.wrappers.WrappersModule
+import special.wrappers.OptionWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-  // manual fix
-  import special.wrappers.OptionWrapSpec
-
-  // Abs -----------------------------------
+// Abs -----------------------------------
 trait WOptionsDefs extends scalan.Scalan with WOptions {
   self: WrappersModule =>
 import IsoUR._
@@ -25,70 +23,76 @@ object WOption extends EntityObject("WOption") {
   case class WOptionConst[SA, A](
         constValue: Option[SA],
         lA: Liftable[SA, A]
-      ) extends WOption[A] with LiftedConst[Option[SA], WOption[A]] {
+      ) extends WOption[A] with LiftedConst[Option[SA], WOption[A]]
+        with Def[WOption[A]] with WOptionConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
+
     val liftable: Liftable[Option[SA], WOption[A]] = liftableOption(lA)
     val selfType: Elem[WOption[A]] = liftable.eW
-    private val thisClass = classOf[WOption[A]]
+  }
 
-    def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
+  trait WOptionConstMethods[A] extends WOption[A]  { thisConst: Def[_] =>
+    implicit def eA: Elem[A]
+    private val WOptionClass = classOf[WOption[A]]
+
+    override def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
       implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        WOptionClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
 
-    def isEmpty: Rep[Boolean] = {
+    override def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("isEmpty"),
+        WOptionClass.getMethod("isEmpty"),
         List(),
-        true, isAdapterCall = false, element[Boolean]))
+        true, false, element[Boolean]))
     }
 
-    def isDefined: Rep[Boolean] = {
+    override def isDefined: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
-        thisClass.getMethod("isDefined"),
+        WOptionClass.getMethod("isDefined"),
         List(),
-        true, isAdapterCall = false, element[Boolean]))
+        true, false, element[Boolean]))
     }
 
-    def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
+    override def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
-        thisClass.getMethod("filter", classOf[Sym]),
+        WOptionClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, isAdapterCall = false, element[WOption[A]]))
+        true, false, element[WOption[A]]))
     }
 
-    def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
+    override def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[WOption[B]](mkMethodCall(self,
-        thisClass.getMethod("flatMap", classOf[Sym]),
+        WOptionClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[WOption[B]]))
+        true, false, element[WOption[B]]))
     }
 
-    def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
+    override def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
       implicit val eB = f.elem.eRange
       asRep[WOption[B]](mkMethodCall(self,
-        thisClass.getMethod("map", classOf[Sym]),
+        WOptionClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, isAdapterCall = false, element[WOption[B]]))
+        true, false, element[WOption[B]]))
     }
 
-    def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
+    override def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
       implicit val eB = default.elem.eItem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("getOrElse", classOf[Sym]),
+        WOptionClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
-        true, isAdapterCall = false, element[B]))
+        true, false, element[B]))
     }
 
-    def get: Rep[A] = {
+    override def get: Rep[A] = {
       asRep[A](mkMethodCall(self,
-        thisClass.getMethod("get"),
+        WOptionClass.getMethod("get"),
         List(),
-        true, isAdapterCall = false, element[A]))
+        true, false, element[A]))
     }
   }
 
@@ -109,12 +113,14 @@ object WOption extends EntityObject("WOption") {
   implicit def liftableOption[SA, A](implicit lA: Liftable[SA,A]): Liftable[Option[SA], WOption[A]] =
     LiftableOption(lA)
 
-  private val _OptionWrapSpec = new OptionWrapSpec
+  private val _OptionWrapSpec = new OptionWrapSpec {}
   // entityAdapter for WOption trait
   case class WOptionAdapter[A](source: Rep[WOption[A]])
       extends WOption[A] with Def[WOption[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+
     val selfType: Elem[WOption[A]] = element[WOption[A]]
+    override def transform(t: Transformer) = WOptionAdapter[A](t(source))
     private val thisClass = classOf[WOption[A]]
 
     def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
@@ -122,28 +128,28 @@ object WOption extends EntityObject("WOption") {
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
         List(ifEmpty, f),
-        true, isAdapterCall = true, element[B]))
+        true, true, element[B]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("isEmpty"),
         List(),
-        true, isAdapterCall = true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def isDefined: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("isDefined"),
         List(),
-        true, isAdapterCall = true, element[Boolean]))
+        true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(source,
         thisClass.getMethod("filter", classOf[Sym]),
         List(p),
-        true, isAdapterCall = true, element[WOption[A]]))
+        true, true, element[WOption[A]]))
     }
 
     def flatMap[B](f: Rep[A => WOption[B]]): Rep[WOption[B]] = {
@@ -151,7 +157,7 @@ object WOption extends EntityObject("WOption") {
       asRep[WOption[B]](mkMethodCall(source,
         thisClass.getMethod("flatMap", classOf[Sym]),
         List(f),
-        true, isAdapterCall = true, element[WOption[B]]))
+        true, true, element[WOption[B]]))
     }
 
     def map[B](f: Rep[A => B]): Rep[WOption[B]] = {
@@ -159,7 +165,7 @@ object WOption extends EntityObject("WOption") {
       asRep[WOption[B]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
         List(f),
-        true, isAdapterCall = true, element[WOption[B]]))
+        true, true, element[WOption[B]]))
     }
 
     def getOrElse[B](default: Rep[Thunk[B]]): Rep[B] = {
@@ -167,14 +173,14 @@ object WOption extends EntityObject("WOption") {
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym]),
         List(default),
-        true, isAdapterCall = true, element[B]))
+        true, true, element[B]))
     }
 
     def get: Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("get"),
         List(),
-        true, isAdapterCall = true, element[A]))
+        true, true, element[A]))
     }
   }
 
@@ -207,6 +213,7 @@ object WOption extends EntityObject("WOption") {
     def cC = container[WOption]
     def from(x: Rep[WOption[B]]) = x.map(innerIso.fromFun)
     def to(x: Rep[WOption[A]]) = x.map(innerIso.toFun)
+    override def transform(t: Transformer) = WOptionIso(t(innerIso))
   }
 
   def wOptionIso[A, B](innerIso: Iso[A, B]) =
@@ -217,7 +224,7 @@ object WOption extends EntityObject("WOption") {
     extends EntityElem1[A, To, WOption](_eA, container[WOption]) {
     def eA = _eA
 
-    override val liftable = liftableOption(_eA.liftable).asLiftable[Option[_], To]
+    override val liftable: Liftables.Liftable[_, To] = liftableOption(_eA.liftable).asLiftable[Option[_], To]
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -267,6 +274,7 @@ object WOption extends EntityObject("WOption") {
 
   case class ViewWOption[A, B](source: Rep[WOption[A]], override val innerIso: Iso[A, B])
     extends View1[A, B, WOption](wOptionIso(innerIso)) {
+    override def transform(t: Transformer) = ViewWOption(t(source), t(innerIso))
     override def toString = s"ViewWOption[${innerIso.eTo.name}]($source)"
     override def equals(other: Any) = other match {
       case v: ViewWOption[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo

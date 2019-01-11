@@ -14,9 +14,9 @@ package special.collection {
     import CostedPrim._;
     import CostedSum._;
     import MonoidBuilder._;
-    import WArray._;
     import WEither._;
     import WOption._;
+    import WRType._;
     trait Costed[Val] extends Def[Costed[Val]] {
       implicit def eVal: Elem[Val];
       def builder: Rep[CostedBuilder];

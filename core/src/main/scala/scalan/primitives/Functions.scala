@@ -3,7 +3,9 @@ package scalan.primitives
 import java.util
 
 import scalan.staged.ProgramGraphs
-import scalan.{Nullable, Lazy, Base, Scalan}
+import scalan.util.GraphUtil
+import scalan.{Lazy, Base, Nullable, Scalan}
+
 import scala.language.implicitConversions
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
@@ -93,9 +95,11 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     override lazy val  schedule: Schedule = {
       if (isIdentity) Nil
       else {
-        val g = new PGraph(roots)
-        val scope = getScope(g, boundVars)
-        scope
+        val g = new PGraph(roots, Nullable(s => s.rhs.nodeId >= x.rhs.nodeId))
+        val locals = GraphUtil.depthFirstSetFrom[Sym](boundVars.toSet)(sym => g.usagesOf(sym).filter(g.domain.contains))
+        val sch = g.schedule.filter(te => locals.contains(te.sym) && !te.sym.isVar)
+        val currSch = g.getRootsIfEmpty(sch)
+        currSch
       }
     }
 
@@ -158,6 +162,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   case class Apply[A,B](f: Exp[A => B], arg: Exp[A], mayInline: Boolean = true) extends Def[B] {
     def selfType = f.elem.eRange
+    override def transform(t: Transformer) = Apply(t(f), t(arg), mayInline)
   }
 
   implicit class LambdaExtensions[A, B](lam: Lambda[A,B]) {

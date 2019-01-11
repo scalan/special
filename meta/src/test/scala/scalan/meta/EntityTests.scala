@@ -31,7 +31,7 @@ class EntityTests extends BaseMetaTests with Examples {
       ePairOfCols.collectMethodsFromAncestors(!_.isAbstract).map(_.item.name) shouldBe(List())
     }
     it("argsSubstOfAncestorEntities") {
-      val subst = ePairOfCols.argsSubstOfAncestorEntities.map { case (e, args) =>
+      val subst = ePairOfCols.collectAncestorEntitiesWithSubst.map { case (e, args) =>
         (e.name, args.map { case (a, t) => (a.name, t.toString) })
       }
       subst shouldBe List(

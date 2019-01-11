@@ -22,7 +22,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     (externalConstrs, externalMethods)
   }
 
-  def externalMethod(receiverName: String, method: SMethodDef, isAdapter: Boolean) = {
+  def externalMethod(receiverName: String, method: SMethodDef, isAdapter: Boolean, thisClassField: String = "thisClass", isOverride: Boolean = false) = {
     val md = optimizeMethodImplicits(method)
     def msgExplicitRetType = s"Method ${method.name} should be declared with explicit type of returning value (result type): $method"
     def msgRepRetType = s"Invalid method $md. External methods should have return type of type Rep[T] for some T."
@@ -51,10 +51,10 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val finalArgs =
       join(allArgs.rep(a => s"${a.name}"), elemArgs)
     s"""
-      |    ${md.declaration(config, md.body.isDefined)} = {
+      |    ${md.declaration(config, md.body.isDefined || isOverride)} = {
       |      ${elemDecls.rep({ case (ta, expr) => s"implicit val e${ta.name} = $expr" }, "\n")}
       |      asRep[$unreppedReturnType](mkMethodCall($receiverName,
-      |        thisClass.getMethod("${md.name}"$finalArgClasses),
+      |        $thisClassField.getMethod("${md.name}"$finalArgClasses),
       |        List($finalArgs),
       |        true, $isAdapter, element[$unreppedReturnType]))
       |    }
@@ -108,11 +108,13 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val elemMethodName = entityElemMethodName(e.name)
     val isGeneric = e.tpeArgs.nonEmpty
     val liftableMethod = (if (!isGeneric) "Liftable" else "liftable") + sName
+    val liftableAncestors = e.entity.linearizationWithSubst(Map()).tail.filter { case (e, _) => e.isLiftable }
   }
 
   def entityConst(e: EntityTemplateData) = {
     val info = new LiftableInfo(e); import info._
     val methods = e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }
+    val thisClassFieldName = EName + "Class"
     s"""
       |  // entityConst: single const for each entity
       |  import Liftables._
@@ -121,16 +123,32 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  case class ${EName}Const$typesDeclAll(
       |        constValue: $SName$tyUseS${zipped.opt(z => s""",
       |        ${repArgs(z)({(sa,a) => s"l$a: Liftable[$sa, $a]"},", ")}""".stripAndTrim)}
-      |      ) extends $EName$tyUse with LiftedConst[$SName$tyUseS, $EName$tyUse] {
+      |      ) extends $EName$tyUse with LiftedConst[$SName$tyUseS, $EName$tyUse]
+      |        with Def[$EName$tyUse] with ${EName}ConstMethods$tyUse {
       |${e.tpeArgs.rep(a =>
          s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
        )}
+       ${liftableAncestors.opt { ancs =>
+         val (ancEnt, args) = ancs.head;
+         ancEnt.tpeArgs.zip(args).filterNot(p => e.tpeArgNames.contains(p._1.name)).rep { case (ta, tpe) =>
+           s"|    implicit def e${ta.name}: Elem[$tpe] = element[$tpe]\n"
+         }
+       }}
       |    val liftable: Liftable[$SName$tyUseS, $EName$tyUse] = $liftableMethod${
                                                                 optArgs(zipped)("(", (_,a) => s"l$a", ",", ")")}
       |    val selfType: Elem[$EName$tyUse] = liftable.eW
-      |    ${methods.opt(_ => s"private val thisClass = classOf[$EName$tyUse]")}
+      |  }
+      |
+      |  trait ${EName}ConstMethods$typesDecl extends $EName$tyUse ${liftableAncestors.opt { as =>
+             val (e, args) = as.head;
+             s"with ${e.name}ConstMethods${args.opt(as => s"[${as.rep()}]")}"
+            }} { thisConst: Def[_] =>
+      |${e.tpeArgs.rep(a =>
+         s"""|    implicit def e${a.name}: Elem[${a.name}]""".stripAndTrim, "\n"
+       )}
+      |    ${methods.opt(_ => s"private val $thisClassFieldName = classOf[$EName$tyUse]")}
       |${methods.rep({ m =>
-         s"""|    ${externalMethod("self", m, isAdapter = false)}""".stripAndTrim
+         s"""|    ${externalMethod("self", m, isAdapter = false, thisClassFieldName, isOverride = true)}""".stripAndTrim
        },"\n")}
       |  }
       |
@@ -156,7 +174,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    Liftable$sName${optArgs(zipped)("(", (sa,a) => s"l$a", ",", ")")}
          """.stripAndTrim)}
 
-      |  ${isWrapper.opt(s"private val _${SName}WrapSpec = new ${SName}WrapSpec")}
+      |  ${isWrapper.opt(s"private val _${SName}WrapSpec = new ${SName}WrapSpec {}")}
       |""".stripAndTrim
   }
 
@@ -172,17 +190,19 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       args = SClassArgs(List(adapterArg)),
       implicitArgs = SClassArgs(Nil),
       ancestors = List(STypeApply(sourceType)), body = Nil, selfType = None, companion = None, isAbstract = false)
-    val c = ConcreteClassTemplateData(unit, clazz)
-    val b = c.extractionBuilder(extractFromEntity = false)
-    val methods = c.c.collectVisibleMembers.collect {
+    val adapC = ConcreteClassTemplateData(unit, clazz)
+    val b = adapC.extractionBuilder(extractFromEntity = false)
+    val methods = adapC.c.collectVisibleMembers.collect {
       case SEntityMember(_, md: SMethodDef) if md.isAbstract && !md.isTypeDesc => md
     }
     s"""
       |  // entityAdapter for $entityName trait
       |  case class ${entityName}Adapter$typesDecl(source: Rep[${e.typeUse}])
       |      extends ${e.typeUse} with Def[${e.typeUse}] {
-      |    ${b.extractableImplicits(inClassBody = true) }
+      |    ${b.emitExtractableImplicits(inClassBody = true) }
+      |    ${adapC.elemDefs}
       |    val selfType: Elem[${e.typeUse}] = element[${e.typeUse}]
+      |    override def transform(t: Transformer) = ${entityName}Adapter$typesUse(t(source))
       |    ${methods.opt(_ => s"private val thisClass = classOf[${e.typeUse}]")}
       |    ${methods.rep({ m => s"""|    ${externalMethod("source", m, isAdapter = true)}""".stripAndTrim },"\n")}
       |  }
@@ -214,6 +234,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |  case class View${e.name}[A, B](source: Rep[${e.name}[A]], override val innerIso: Iso[A, B])
       |    extends View1[A, B, ${e.name}](${StringUtil.lowerCaseFirst(e.name)}Iso(innerIso)) {
+      |    override def transform(t: Transformer) = View${e.name}(t(source), t(innerIso))
       |    override def toString = s"View${e.name}[$${innerIso.eTo.name}]($$source)"
       |    override def equals(other: Any) = other match {
       |      case v: View${e.name}[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
@@ -331,6 +352,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    def cC = container[${e.name}]
       |    def from(x: Rep[${e.name}[B]]) = x.map(innerIso.fromFun)
       |    def to(x: Rep[${e.name}[A]]) = x.map(innerIso.toFun)
+      |    override def transform(t: Transformer) = ${e.name}Iso(t(innerIso))
       |  }
       |
         |  def ${StringUtil.lowerCaseFirst(e.name)}Iso[A, B](innerIso: Iso[A, B]) =
@@ -374,17 +396,23 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val elemMethodDefinition = {
       if (!unit.methods.exists(_.name == elemMethodName)) {
         val elemType = e.elemTypeUse()
-        s"""
-          |  implicit def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
-          |    cachedElem[$elemType]${e.implicitArgsOrParens}
-          |""".stripMargin
+        if (e.tpeArgs.isEmpty)
+          s"""
+            |  implicit lazy val $elemMethodName${e.tpeArgsDecl}: Elem[${e.typeUse}] =
+            |    new $elemType
+            |""".stripMargin
+        else
+          s"""
+            |  implicit def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
+            |    cachedElem[$elemType]${e.implicitArgsOrParens}
+            |""".stripMargin
       } else ""
     }
     def liftableSupport() = {
       val info = new LiftableInfo(e); import info._
       val SNameForSome = SName + optArgs(zipped)("[",(_,_) => "_", ",", "]")
       s"""
-        |    override val liftable = $liftableMethod${
+        |    override val liftable: Liftables.Liftable[_, To] = $liftableMethod${
            e.implicitArgs.opt(args => "(" + args.rep(a => s"_${a.name}.liftable") + ")")}.asLiftable[$SNameForSome, To]
         |
         |    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
@@ -570,34 +598,34 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
           s"n match {\n$cases\n    }"
       }
       val b = c.extractionBuilder()
-      val abstractDescriptors = c.c.collectVisibleMembers.filter { m => m.item.isAbstract && m.item.isTypeDesc }
-      val nonExtractableDescriptors = abstractDescriptors.map { m =>
-        val extracted = b.extractableArgs.collectFirst {
-          case (n, (tyArg, s))
-              if STraitCall("Elem", List(tyArg.toTraitCall)) == m.item.tpeRes.get ||
-                  STraitCall("Cont", List(tyArg.toTraitCall)) == m.item.tpeRes.get =>
-            tyArg.classOrMethodArgName(n)
-        }
-        (m, extracted)
-      }
-      val elemDefs = nonExtractableDescriptors.rep({
-        case (m, None) =>
-          val tc @ STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
-          s"override lazy val ${m.item.name}: $descName[$tyStr] = implicitly[$descName[$tyStr]]"
-        case (m, Some(extractedName)) =>
-          val STraitCall(descName, List(tyStr)) = m.item.tpeRes.get
-          s"override lazy val ${m.item.name}: $descName[$tyStr] = $extractedName"
-      }, "\n|").stripMargin
       val methods = c.c.body.collect { case m: SMethodDef if m.hasAnnotation("NeverInline") && !m.isTypeDesc => m }
+      val optC = c.optimizeImplicits()
+      val lin = clazz.linearizationWithSubst(Map())
+      val liftableAnc = lin.tail.find { case (e, _) => e.isLiftable }
       s"""
         |object $className extends EntityObject("$className") {
         |  case class ${c.typeDecl("Ctor") }
-        |      (${fieldsWithType.rep(f => s"override val $f") })${c.optimizeImplicits().implicitArgsDecl() }
+        |      (${fieldsWithType.rep(f => s"override val $f") })${optC.implicitArgsDecl() }
         |    extends ${c.typeUse }(${fields.rep() })${clazz.selfType.opt(t => s" with ${t.tpe }") } with Def[${c.typeUse }] {
-        |    ${b.extractableImplicits(inClassBody = true) }
-        |    ${elemDefs}
+        |    ${b.emitExtractableImplicits(inClassBody = true) }
+        |    ${c.elemDefs}
         |    lazy val selfType = element[${c.typeUse }]
-        |    ${methods.opt(_ => s"private val thisClass = classOf[${c.typeUse }]")}
+        |    override def transform(t: Transformer) = ${c.typeUse("Ctor") }(${fields.rep(a => s"t($a)")})${optC.implicitArgsUse}
+        |    ${
+          if (methods.nonEmpty) liftableAnc match {
+            case Some((liftableEnt, entArgs)) =>
+              s"private val thisClass = classOf[${liftableEnt.name + entArgs.opt(as => s"[${as.rep(_ => "_")}]")}]"
+            case None =>
+              val ancTrait = lin.tail.collectFirst { case (e, _) if e.isTrait => e}
+              ancTrait match {
+                case Some(t) =>
+                  s"private val thisClass = classOf[${t.name + t.tpeArgs.opt(as => s"[${as.rep(_ => "_")}]")}]"
+                case None =>
+                  s"private val thisClass = classOf[${c.typeUse }]"
+              }
+          }
+          else ""
+        }
         |    ${ methods.rep({ m => externalMethod("self", m, isAdapter = false) }, "\n") }
         |  }
         |  // elem for concrete class
@@ -620,6 +648,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  // 3) Iso for concrete class
         |  class ${className}Iso${tpeArgsDecl}${implicitArgsDecl}
         |    extends EntityIso[$dataTpe, ${c.typeUse}] with Def[${className}Iso$tpeArgsUse] {
+        |    override def transform(t: Transformer) = new ${className}Iso$tpeArgsUse()${implicitArgsUse}
         |    private lazy val _safeFrom = fun { p: Rep[${c.typeUse }] => ${fields.map(fields => "p." + fields).opt(s => if (s.toList.length > 1) s"(${s.rep() })" else s.rep(), "()") } }
         |    override def from(p: Rep[${c.typeUse}]) =
         |      tryConvert[${c.typeUse}, ${dataType(fieldTypes)}](eTo, eFrom, p, _safeFrom)
@@ -652,7 +681,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
             s"""
               |    @scalan.OverloadId("fromData")
               |    def apply${tpeArgsDecl}(p: Rep[$dataTpe])${c.optimizeImplicits().implicitArgsDecl()}: Rep[${c.typeUse}] = {
-              |      ${sb.extractableImplicits(false)}
+              |      ${sb.emitExtractableImplicits(false)}
               |      iso$className${c.tpeArgNames.opt(ns => s"[${ns.rep()}]")}.to(p)
               |    }
               """.stripAndTrim
@@ -683,7 +712,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |
         |  implicit class Extended${c.typeDecl}(p: Rep[${c.typeUse}])${c.optimizeImplicits().implicitArgsDecl()} {
         |    def toData: Rep[$dataTpe] = {
-        |      ${c.extractionBuilder(prefix = "p.").extractableImplicits(false)}
+        |      ${c.extractionBuilder(prefix = "p.").emitExtractableImplicits(false)}
         |      iso$className${c.implicitArgsUse}.from(p)
         |    }
         |  }

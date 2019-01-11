@@ -24,7 +24,9 @@ object Converter extends EntityObject("Converter") {
       extends Converter[T, R] with Def[Converter[T, R]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
+
     val selfType: Elem[Converter[T, R]] = element[Converter[T, R]]
+    override def transform(t: Transformer) = ConverterAdapter[T, R](t(source))
     private val thisClass = classOf[Converter[T, R]]
 
     def apply(x: Rep[T]): Rep[R] = {
@@ -130,6 +132,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
       ()(implicit eT: Elem[A])
     extends IdentityConv[A]() with Def[IdentityConv[A]] {
     lazy val selfType = element[IdentityConv[A]]
+    override def transform(t: Transformer) = IdentityConvCtor[A]()(eT)
   }
   // elem for concrete class
   class IdentityConvElem[A](val iso: Iso[IdentityConvData[A], IdentityConv[A]])(implicit override val eT: Elem[A])
@@ -151,6 +154,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
   // 3) Iso for concrete class
   class IdentityConvIso[A](implicit eT: Elem[A])
     extends EntityIso[IdentityConvData[A], IdentityConv[A]] with Def[IdentityConvIso[A]] {
+    override def transform(t: Transformer) = new IdentityConvIso[A]()(eT)
     private lazy val _safeFrom = fun { p: Rep[IdentityConv[A]] => () }
     override def from(p: Rep[IdentityConv[A]]) =
       tryConvert[IdentityConv[A], Unit](eTo, eFrom, p, _safeFrom)
@@ -265,6 +269,7 @@ object BaseConverter extends EntityObject("BaseConverter") {
 implicit lazy val eR = convFun.elem.eRange
 
     lazy val selfType = element[BaseConverter[T, R]]
+    override def transform(t: Transformer) = BaseConverterCtor[T, R](t(convFun))
   }
   // elem for concrete class
   class BaseConverterElem[T, R](val iso: Iso[BaseConverterData[T, R], BaseConverter[T, R]])(implicit override val eT: Elem[T], override val eR: Elem[R])
@@ -287,6 +292,7 @@ implicit lazy val eR = convFun.elem.eRange
   // 3) Iso for concrete class
   class BaseConverterIso[T, R](implicit eT: Elem[T], eR: Elem[R])
     extends EntityIso[BaseConverterData[T, R], BaseConverter[T, R]] with Def[BaseConverterIso[T, R]] {
+    override def transform(t: Transformer) = new BaseConverterIso[T, R]()(eT, eR)
     private lazy val _safeFrom = fun { p: Rep[BaseConverter[T, R]] => p.convFun }
     override def from(p: Rep[BaseConverter[T, R]]) =
       tryConvert[BaseConverter[T, R], T => R](eTo, eFrom, p, _safeFrom)
@@ -396,6 +402,7 @@ implicit lazy val eB2 = conv2.eR
     override lazy val eT: Elem[(A1, A2)] = implicitly[Elem[(A1, A2)]]
 override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     lazy val selfType = element[PairConverter[A1, A2, B1, B2]]
+    override def transform(t: Transformer) = PairConverterCtor[A1, A2, B1, B2](t(conv1), t(conv2))
   }
   // elem for concrete class
   class PairConverterElem[A1, A2, B1, B2](val iso: Iso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
@@ -421,6 +428,7 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   // 3) Iso for concrete class
   class PairConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] with Def[PairConverterIso[A1, A2, B1, B2]] {
+    override def transform(t: Transformer) = new PairConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
     private lazy val _safeFrom = fun { p: Rep[PairConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
     override def from(p: Rep[PairConverter[A1, A2, B1, B2]]) =
       tryConvert[PairConverter[A1, A2, B1, B2], (Converter[A1, B1], Converter[A2, B2])](eTo, eFrom, p, _safeFrom)
@@ -555,6 +563,7 @@ implicit lazy val eB2 = conv2.eR
     override lazy val eT: Elem[$bar[A1, A2]] = implicitly[Elem[$bar[A1, A2]]]
 override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     lazy val selfType = element[SumConverter[A1, A2, B1, B2]]
+    override def transform(t: Transformer) = SumConverterCtor[A1, A2, B1, B2](t(conv1), t(conv2))
   }
   // elem for concrete class
   class SumConverterElem[A1, A2, B1, B2](val iso: Iso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
@@ -580,6 +589,7 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   // 3) Iso for concrete class
   class SumConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] with Def[SumConverterIso[A1, A2, B1, B2]] {
+    override def transform(t: Transformer) = new SumConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
     private lazy val _safeFrom = fun { p: Rep[SumConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
     override def from(p: Rep[SumConverter[A1, A2, B1, B2]]) =
       tryConvert[SumConverter[A1, A2, B1, B2], (Converter[A1, B1], Converter[A2, B2])](eTo, eFrom, p, _safeFrom)
@@ -712,6 +722,7 @@ implicit lazy val eB = conv2.eT;
 implicit lazy val eC = conv2.eR
 
     lazy val selfType = element[ComposeConverter[A, B, C]]
+    override def transform(t: Transformer) = ComposeConverterCtor[A, B, C](t(conv2), t(conv1))
   }
   // elem for concrete class
   class ComposeConverterElem[A, B, C](val iso: Iso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])
@@ -736,6 +747,7 @@ implicit lazy val eC = conv2.eR
   // 3) Iso for concrete class
   class ComposeConverterIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C])
     extends EntityIso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] with Def[ComposeConverterIso[A, B, C]] {
+    override def transform(t: Transformer) = new ComposeConverterIso[A, B, C]()(eA, eB, eC)
     private lazy val _safeFrom = fun { p: Rep[ComposeConverter[A, B, C]] => (p.conv2, p.conv1) }
     override def from(p: Rep[ComposeConverter[A, B, C]]) =
       tryConvert[ComposeConverter[A, B, C], (Converter[B, C], Converter[A, B])](eTo, eFrom, p, _safeFrom)
@@ -862,6 +874,7 @@ object FunctorConverter extends EntityObject("FunctorConverter") {
 implicit lazy val eB = itemConv.eR
 
     lazy val selfType = element[FunctorConverter[A, B, F]]
+    override def transform(t: Transformer) = FunctorConverterCtor[A, B, F](t(itemConv))(F)
   }
   // elem for concrete class
   class FunctorConverterElem[A, B, F[_]](val iso: Iso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]])(implicit val F: Functor[F], val eA: Elem[A], val eB: Elem[B])
@@ -885,6 +898,7 @@ implicit lazy val eB = itemConv.eR
   // 3) Iso for concrete class
   class FunctorConverterIso[A, B, F[_]](implicit F: Functor[F], eA: Elem[A], eB: Elem[B])
     extends EntityIso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] with Def[FunctorConverterIso[A, B, F]] {
+    override def transform(t: Transformer) = new FunctorConverterIso[A, B, F]()(F, eA, eB)
     private lazy val _safeFrom = fun { p: Rep[FunctorConverter[A, B, F]] => p.itemConv }
     override def from(p: Rep[FunctorConverter[A, B, F]]) =
       tryConvert[FunctorConverter[A, B, F], Converter[A, B]](eTo, eFrom, p, _safeFrom)
@@ -1002,6 +1016,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
       (override val convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends NaturalConverter[A, F, G](convFun) with Def[NaturalConverter[A, F, G]] {
     lazy val selfType = element[NaturalConverter[A, F, G]]
+    override def transform(t: Transformer) = NaturalConverterCtor[A, F, G](t(convFun))(eA, cF, cG)
   }
   // elem for concrete class
   class NaturalConverterElem[A, F[_], G[_]](val iso: Iso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]])(implicit val eA: Elem[A], val cF: Cont[F], val cG: Cont[G])
@@ -1023,6 +1038,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   // 3) Iso for concrete class
   class NaturalConverterIso[A, F[_], G[_]](implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends EntityIso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] with Def[NaturalConverterIso[A, F, G]] {
+    override def transform(t: Transformer) = new NaturalConverterIso[A, F, G]()(eA, cF, cG)
     private lazy val _safeFrom = fun { p: Rep[NaturalConverter[A, F, G]] => p.convFun }
     override def from(p: Rep[NaturalConverter[A, F, G]]) =
       tryConvert[NaturalConverter[A, F, G], F[A] => G[A]](eTo, eFrom, p, _safeFrom)

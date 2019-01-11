@@ -21,6 +21,7 @@ object MonoidBuilderInst extends EntityObject("MonoidBuilderInst") {
       ()
     extends MonoidBuilderInst() with Def[MonoidBuilderInst] {
     lazy val selfType = element[MonoidBuilderInst]
+    override def transform(t: Transformer) = MonoidBuilderInstCtor()
   }
   // elem for concrete class
   class MonoidBuilderInstElem(val iso: Iso[MonoidBuilderInstData, MonoidBuilderInst])
@@ -41,6 +42,7 @@ object MonoidBuilderInst extends EntityObject("MonoidBuilderInst") {
   // 3) Iso for concrete class
   class MonoidBuilderInstIso
     extends EntityIso[MonoidBuilderInstData, MonoidBuilderInst] with Def[MonoidBuilderInstIso] {
+    override def transform(t: Transformer) = new MonoidBuilderInstIso()
     private lazy val _safeFrom = fun { p: Rep[MonoidBuilderInst] => () }
     override def from(p: Rep[MonoidBuilderInst]) =
       tryConvert[MonoidBuilderInst, Unit](eTo, eFrom, p, _safeFrom)
@@ -153,6 +155,7 @@ object IntPlusMonoid extends EntityObject("IntPlusMonoid") {
     extends IntPlusMonoid(zero) with Def[IntPlusMonoid] {
     override lazy val eT: Elem[Int] = implicitly[Elem[Int]]
     lazy val selfType = element[IntPlusMonoid]
+    override def transform(t: Transformer) = IntPlusMonoidCtor(t(zero))
   }
   // elem for concrete class
   class IntPlusMonoidElem(val iso: Iso[IntPlusMonoidData, IntPlusMonoid])
@@ -173,6 +176,7 @@ object IntPlusMonoid extends EntityObject("IntPlusMonoid") {
   // 3) Iso for concrete class
   class IntPlusMonoidIso
     extends EntityIso[IntPlusMonoidData, IntPlusMonoid] with Def[IntPlusMonoidIso] {
+    override def transform(t: Transformer) = new IntPlusMonoidIso()
     private lazy val _safeFrom = fun { p: Rep[IntPlusMonoid] => p.zero }
     override def from(p: Rep[IntPlusMonoid]) =
       tryConvert[IntPlusMonoid, Int](eTo, eFrom, p, _safeFrom)
@@ -281,6 +285,7 @@ object LongPlusMonoid extends EntityObject("LongPlusMonoid") {
     extends LongPlusMonoid(zero) with Def[LongPlusMonoid] {
     override lazy val eT: Elem[Long] = implicitly[Elem[Long]]
     lazy val selfType = element[LongPlusMonoid]
+    override def transform(t: Transformer) = LongPlusMonoidCtor(t(zero))
   }
   // elem for concrete class
   class LongPlusMonoidElem(val iso: Iso[LongPlusMonoidData, LongPlusMonoid])
@@ -301,6 +306,7 @@ object LongPlusMonoid extends EntityObject("LongPlusMonoid") {
   // 3) Iso for concrete class
   class LongPlusMonoidIso
     extends EntityIso[LongPlusMonoidData, LongPlusMonoid] with Def[LongPlusMonoidIso] {
+    override def transform(t: Transformer) = new LongPlusMonoidIso()
     private lazy val _safeFrom = fun { p: Rep[LongPlusMonoid] => p.zero }
     override def from(p: Rep[LongPlusMonoid]) =
       tryConvert[LongPlusMonoid, Long](eTo, eFrom, p, _safeFrom)

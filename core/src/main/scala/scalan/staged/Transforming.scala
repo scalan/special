@@ -291,6 +291,8 @@ trait Transforming { self: Scalan =>
 //          (
           node match {
             case Def(d) => d match {
+              case v: Variable[_] =>
+                mirrorVar(t, rewriter, node)
               case lam: Lambda[a, b] =>
                 val (t1, mirrored) = mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
                 setMirroredMetadata(t1, node, mirrored)
@@ -303,9 +305,9 @@ trait Transforming { self: Scalan =>
               case _ =>
                 mirrorDef(t, rewriter, node, d)
             }
-            case _ =>
-              val (t1, mirrored) = mirrorVar(t, rewriter, node)
-              setMirroredMetadata(t1, node, mirrored)
+//            case _ =>
+//              val (t1, mirrored) =
+//              setMirroredMetadata(t1, node, mirrored)
           }
 //          ) match {
 //            case (t1, mirrored: Exp[b]) =>

@@ -18,7 +18,9 @@ object Monoid extends EntityObject("Monoid") {
   case class MonoidAdapter[T](source: Rep[Monoid[T]])
       extends Monoid[T] with Def[Monoid[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+
     val selfType: Elem[Monoid[T]] = element[Monoid[T]]
+    override def transform(t: Transformer) = MonoidAdapter[T](t(source))
     private val thisClass = classOf[Monoid[T]]
 
     def zero: Rep[T] = {
@@ -145,6 +147,7 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
   case class MonoidBuilderAdapter(source: Rep[MonoidBuilder])
       extends MonoidBuilder with Def[MonoidBuilder] {
     val selfType: Elem[MonoidBuilder] = element[MonoidBuilder]
+    override def transform(t: Transformer) = MonoidBuilderAdapter(t(source))
     private val thisClass = classOf[MonoidBuilder]
 
     def intPlusMonoid: Rep[Monoid[Int]] = {
@@ -191,8 +194,8 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
     override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def monoidBuilderElement: Elem[MonoidBuilder] =
-    cachedElem[MonoidBuilderElem[MonoidBuilder]]()
+  implicit lazy val monoidBuilderElement: Elem[MonoidBuilder] =
+    new MonoidBuilderElem[MonoidBuilder]
 
   implicit case object MonoidBuilderCompanionElem extends CompanionElem[MonoidBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[MonoidBuilderCompanionCtor]

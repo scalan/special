@@ -35,7 +35,7 @@ trait Library extends Scalan
     }
   }
 
-  def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
+  implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
     val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
     liftableRType(lT).lift(eT.asInstanceOf[RType[Any]])
   }
@@ -118,6 +118,25 @@ trait Library extends Scalan
     case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>
       x * n.toLong
     case _ => super.rewriteDef(d)
+  }
+
+  override def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef = e match {
+    case _: ColElem[_,_] => mc match {
+      case ColMethods.map(xs, f) =>
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
+        super.invokeUnlifted(e, newMC, dataEnv)
+      case _ =>
+        super.invokeUnlifted(e, mc, dataEnv)
+    }
+    case _: WArrayElem[_,_] => mc match {
+      case WArrayMethods.map(xs, f) =>
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
+        super.invokeUnlifted(e, newMC, dataEnv)
+      case _ =>
+        super.invokeUnlifted(e, mc, dataEnv)
+    }
+    case _ =>
+      super.invokeUnlifted(e, mc, dataEnv)
   }
 
   implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {

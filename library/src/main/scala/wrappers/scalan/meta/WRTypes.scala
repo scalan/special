@@ -3,7 +3,11 @@ package wrappers.scalan.meta {
 
   import impl._
 
+  import scalan.meta.RType
+
   import special.wrappers.WrappersModule
+
+  import special.wrappers.RTypeWrapSpec
 
   trait WRTypes extends Base { self: WrappersModule =>
     import WRType._;

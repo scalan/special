@@ -19,7 +19,9 @@ object StructKey extends EntityObject("StructKey") {
   case class StructKeyAdapter[Schema <: Struct](source: Rep[StructKey[Schema]])
       extends StructKey[Schema] with Def[StructKey[Schema]] {
     implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
+
     val selfType: Elem[StructKey[Schema]] = element[StructKey[Schema]]
+    override def transform(t: Transformer) = StructKeyAdapter[Schema](t(source))
     private val thisClass = classOf[StructKey[Schema]]
 
     def index: Rep[Int] = {
@@ -122,6 +124,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
       (override val index: Rep[Int])(implicit eSchema: Elem[Schema])
     extends IndexStructKey[Schema](index) with Def[IndexStructKey[Schema]] {
     lazy val selfType = element[IndexStructKey[Schema]]
+    override def transform(t: Transformer) = IndexStructKeyCtor[Schema](t(index))(eSchema)
   }
   // elem for concrete class
   class IndexStructKeyElem[Schema <: Struct](val iso: Iso[IndexStructKeyData[Schema], IndexStructKey[Schema]])(implicit override val eSchema: Elem[Schema])
@@ -143,6 +146,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   // 3) Iso for concrete class
   class IndexStructKeyIso[Schema <: Struct](implicit eSchema: Elem[Schema])
     extends EntityIso[IndexStructKeyData[Schema], IndexStructKey[Schema]] with Def[IndexStructKeyIso[Schema]] {
+    override def transform(t: Transformer) = new IndexStructKeyIso[Schema]()(eSchema)
     private lazy val _safeFrom = fun { p: Rep[IndexStructKey[Schema]] => p.index }
     override def from(p: Rep[IndexStructKey[Schema]]) =
       tryConvert[IndexStructKey[Schema], Int](eTo, eFrom, p, _safeFrom)
@@ -237,6 +241,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
       (override val name: Rep[String])(implicit eSchema: Elem[Schema])
     extends NameStructKey[Schema](name) with Def[NameStructKey[Schema]] {
     lazy val selfType = element[NameStructKey[Schema]]
+    override def transform(t: Transformer) = NameStructKeyCtor[Schema](t(name))(eSchema)
   }
   // elem for concrete class
   class NameStructKeyElem[Schema <: Struct](val iso: Iso[NameStructKeyData[Schema], NameStructKey[Schema]])(implicit override val eSchema: Elem[Schema])
@@ -258,6 +263,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
   // 3) Iso for concrete class
   class NameStructKeyIso[Schema <: Struct](implicit eSchema: Elem[Schema])
     extends EntityIso[NameStructKeyData[Schema], NameStructKey[Schema]] with Def[NameStructKeyIso[Schema]] {
+    override def transform(t: Transformer) = new NameStructKeyIso[Schema]()(eSchema)
     private lazy val _safeFrom = fun { p: Rep[NameStructKey[Schema]] => p.name }
     override def from(p: Rep[NameStructKey[Schema]]) =
       tryConvert[NameStructKey[Schema], String](eTo, eFrom, p, _safeFrom)
