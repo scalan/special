@@ -32,41 +32,41 @@ class ColOverArray[A](val arr: Array[A]) extends Col[A] {
     builder.fromArray(result)
   }
 
-  @NeverInline
-  override def indices: Col[Int] = builder.fromArray(arr.indices.toArray)
+//  @NeverInline
+//  override def indices: Col[Int] = builder.fromArray(arr.indices.toArray)
+//
+//  @NeverInline
+//  override def flatMap[B: ClassTag](f: A => Col[B]): Col[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
 
-  @NeverInline
-  override def flatMap[B: ClassTag](f: A => Col[B]): Col[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
-
-  @NeverInline
-  override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
-
-  @NeverInline
-  override def indexWhere(p: A => Boolean, from: Int): Int = arr.indexWhere(p, from)
-
-  @NeverInline
-  override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
-
-  @NeverInline
-  override def partition(pred: A => Boolean): (Col[A], Col[A]) = ???
-
-  override def patch(from: Int,
-      patch: Col[A],
-      replaced: Int): Col[A] = ???
-
-  override def updated(index: Int, elem: A): Col[A] = ???
-
-  override def updateMany(indexes: Col[Int],
-      values: Col[A]): Col[A] = ???
-
-  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V),
-      r: (V, V) => V): Col[(K, V)] = ???
-
-  override def unionSets(that: Col[A]): Col[A] = ???
-
-  override def diff(that: Col[A]): Col[A] = ???
-
-  override def intersect(that: Col[A]): Col[A] = ???
+//  @NeverInline
+//  override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
+//
+//  @NeverInline
+//  override def indexWhere(p: A => Boolean, from: Int): Int = arr.indexWhere(p, from)
+//
+//  @NeverInline
+//  override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
+//
+//  @NeverInline
+//  override def partition(pred: A => Boolean): (Col[A], Col[A]) = ???
+//
+//  override def patch(from: Int,
+//      patch: Col[A],
+//      replaced: Int): Col[A] = ???
+//
+//  override def updated(index: Int, elem: A): Col[A] = ???
+//
+//  override def updateMany(indexes: Col[Int],
+//      values: Col[A]): Col[A] = ???
+//
+//  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V),
+//      r: (V, V) => V): Col[(K, V)] = ???
+//
+//  override def unionSets(that: Col[A]): Col[A] = ???
+//
+//  override def diff(that: Col[A]): Col[A] = ???
+//
+//  override def intersect(that: Col[A]): Col[A] = ???
 
   @Internal
   override def equals(obj: scala.Any) = obj match {

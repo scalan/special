@@ -138,10 +138,26 @@ class ColsTests extends BaseCtxTests {
   }
 
   test("measure: unfoldLambda") {
-    val dummyCtx = new Ctx
-//    runMeasure("default", true, true, true)
-//    runMeasure("noAlpha", false, true, true)
+    val dummyCtx = new Ctx  // to force class loading
+    runMeasure("default", true, true, true)
+    runMeasure("noAlpha", false, true, true)
     runMeasure("noAlpha_noKeepOrig", false, false, true)
+  }
+
+  test("invokeTransformedAdapterMethodCall") {
+    val ctx = new Ctx {
+      useAlphaEquality = true
+      keepOriginalFunc = false
+    }
+    import ctx._
+    import Col._
+    import WArray._
+    import ColOverArray._
+    val f = fun { col: Rep[Col[Int]] =>  col.length }
+    val g = fun { arr: Rep[WArray[Int]] => f(RColOverArray(arr)) }
+    val exp = fun { arr: Rep[WArray[Int]] => arr.length }
+    emit("graphs", f, g, exp)
+    g shouldBe exp
   }
 
 }
