@@ -196,6 +196,8 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     case _ => globalThunkSym
   }
 
+  implicit def repToThunk[A](block: Rep[A]): Rep[Thunk[A]] = thunk_create(block)
+
   def thunk_create[A](block: => Rep[A]): Rep[Thunk[A]] = {
     var schedule: Schedule = null
     val resPH = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[A]] // will be known after block is evaluated

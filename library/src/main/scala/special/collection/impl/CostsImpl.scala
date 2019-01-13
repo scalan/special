@@ -1636,11 +1636,11 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
         true, true, element[CostedOption[T]]))
     }
 
-    def mkCostedOption[T](value: Rep[WOption[T]], none: Rep[Costed[Unit]], some: Rep[Costed[Unit]]): Rep[CostedOption[T]] = {
+    def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Long]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]] = {
       implicit val eT = value.eA
       asRep[CostedOption[T]](mkMethodCall(source,
-        thisClass.getMethod("mkCostedOption", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(value, none, some),
+        thisClass.getMethod("mkCostedOption", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(value, costOpt, sizeOpt, accumulatedCost),
         true, true, element[CostedOption[T]]))
     }
   }
@@ -1903,13 +1903,13 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
     }
 
     object mkCostedOption {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[Costed[Unit]], Rep[Costed[Unit]]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Long]], Rep[Int]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedOption" =>
-          val res = (receiver, args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[Costed[Unit]], Rep[Costed[Unit]]) forSome {type T}]]
+          val res = (receiver, args(0), args(1), args(2), args(3))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Long]], Rep[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[Costed[Unit]], Rep[Costed[Unit]]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Long]], Rep[Int]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

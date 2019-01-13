@@ -117,8 +117,8 @@ class CCostedBuilder extends CostedBuilder {
   def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T] =
     new CostedNone[T](cost)
 
-  def mkCostedOption[T](value: Option[T], none: Costed[Unit], some: Costed[Unit]): CostedOption[T] =
-    new CCostedOption[T](value, none, some)
+  def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Long], accumulatedCost: Int): CostedOption[T] =
+    new CCostedOption[T](value, costOpt, sizeOpt, accumulatedCost)
 }
 
 

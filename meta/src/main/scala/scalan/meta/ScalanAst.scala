@@ -372,7 +372,10 @@ object ScalanAst {
   case class SAssign(left: SExpr, right: SExpr,
                      override val exprType: Option[STpeExpr] = None) extends SExpr
 
-  case class SArgSection(args: List[SExpr])
+  case class SArgSection(args: List[SExpr]) {
+//    def hasThunkArg: Boolean = args.exists {}
+  }
+
   implicit def toArgSection(args: List[SExpr]): SArgSection = SArgSection(args)
   implicit def fromArgSection(section: SArgSection): List[SExpr] = section.args
 
@@ -1228,18 +1231,23 @@ object ScalanAst {
     }
   }
 
-  object SourceDescriptorTpe {
+  class PredefTpe1(name: String) {
+    def apply(tpe: STpeExpr) = STraitCall(name, List(tpe))
     def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
-      case STraitCall("ClassTag", List(arg)) => Some(arg)
-      case STraitCall("RType", List(arg)) => Some(arg)
+      case STraitCall(`name`, List(arg)) => Some(arg)
       case _ => None
     }
   }
 
-  object ElemTpe {
-    def apply(tpe: STpeExpr) = STraitCall("Elem", List(tpe))
+  val ClassTagTpe = new PredefTpe1("ClassTag")
+  val RTypeTpe = new PredefTpe1("RType")
+  val ElemTpe = new PredefTpe1("Elem")
+  val ThunkTpe = new PredefTpe1("Thunk")
+
+  object SourceDescriptorTpe {
     def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
-      case STraitCall("Elem", List(arg)) => Some(arg)
+      case ClassTagTpe(arg) => Some(arg)
+      case RTypeTpe(arg) => Some(arg)
       case _ => None
     }
   }
