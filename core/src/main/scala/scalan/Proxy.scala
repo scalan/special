@@ -77,7 +77,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     override def transform(t: Transformer) = NewObject(eA, t(args).toList, neverInvoke)
   }
 
-  override def transformDef[A](d: Def[A], t: Transformer) = d match {
+  override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     // not the same as super because mkMethodCall can produce a more precise return type
     case mc @ MethodCall(receiver, method, args, neverInvoke) =>
       val args1 = args.map(transformProductParam(_, t).asInstanceOf[AnyRef])

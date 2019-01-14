@@ -193,7 +193,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     trait LiftedConst[ST, T] extends Def[T] {
       def constValue: ST
       def liftable: Liftable[ST, T]
-      override def transform(t: Transformer) = this
     }
 
     /** Describes lifting constant values of type ST (Source Type) to IR nodes of the correspoding staged type T.
@@ -432,6 +431,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case c: Const[_] => c.self
     case v: Variable[_] => v.self
     case comp: CompanionDef[_] => comp.self
+    case lc: Liftables.LiftedConst[_,_] => lc.self
     case _ =>
       val newD = d.transform(t)
       reifyObject(newD)
