@@ -1,7 +1,9 @@
 package scalan
 
+import scalan.common.{Segments, Segment, Interval, SegmentsModule}
+
 class BasicStaginTests extends BaseCtxTests {
-  lazy val ctx = new TestContext() {
+  lazy val ctx = new TestContext() with SegmentsModule {
     beginPass(new DefaultPass("mypass", Pass.defaultPassConfig.copy(constantPropagation = false)))
     var defCounter = 0
     var defTime: Long = 0
@@ -52,4 +54,17 @@ class BasicStaginTests extends BaseCtxTests {
     printCounters()
   }
 
+  test("transform() for LiftedConst") {
+    import Liftables._
+    import Segment._
+    val seg1: scalan.common.Segment = new scalan.common.Interval(0, 10)
+    val segSym1 = liftConst(seg1)
+    val seg2: scalan.common.Segment = new scalan.common.Interval(0, 20)
+    val segSym2 = liftConst(seg2)
+    segSym1 shouldNot be(segSym2) // different constants
+
+    // transform should preserve liftable constants
+    transformDef(segSym1.rhs, MapTransformer.Empty) shouldBe segSym1
+    transformDef(segSym1.rhs, new MapTransformer((segSym1 -> segSym2))) shouldBe segSym1
+  }
 }

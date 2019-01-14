@@ -68,6 +68,28 @@ class SModuleBuilder(implicit val context: AstContext) {
         case SConstr(ctx.ExternalType(_, e), args, tpe) => SConstr("R" + e.name, args, tpe)
         case _ => constr
       }
+//      override def applyTransform(apply: SApply): SApply = {
+//        apply.fun.exprType match {
+//          case Some(STpeMethod(_,sections,_))
+//               if sections.exists(_.exists { case ThunkTpe(_) => true; case _ => false }) =>
+//            assertSameLength(apply.argss, sections)
+//            val newArgss = apply.argss.zip(sections).map { case (argSec, tpeSec) =>
+//              assertSameLength(argSec.args, tpeSec)
+//              val args = argSec.args.zip(tpeSec).map { case (arg, tpe) =>
+//                (tpe, arg.exprType) match {
+////                  case (ThunkTpe(_), Some(ThunkTpe(_))) => arg
+////                  case (ThunkTpe(_), None | Some(_)) =>
+////                    SApply(SIdent("Thunk", None), Nil, List(SArgSection(List(exprTransform(arg)))), Some(tpe))
+//                  case _ => arg
+//                }
+//              }
+//              SArgSection(args)
+//            }
+//            super.applyTransform(apply.copy(argss = newArgss))
+//          case _ =>
+//            super.applyTransform(apply)
+//        }
+//      }
     }.moduleTransform(module)
   }
 

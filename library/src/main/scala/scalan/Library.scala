@@ -5,7 +5,6 @@ import java.util.Objects
 
 import special.collection._
 import special.wrappers.{WrappersSpecModule, WrappersModule}
-import special.wrappers.impl.WrappersSpecModule
 
 import scalan.meta.RType
 import scalan.util.ReflectionUtil
@@ -23,11 +22,10 @@ trait Library extends Scalan
   import WArray._; import WOption._
   import WRType._
   import Col._; import ColBuilder._;
-  import ReplCol._
   import CReplCol._
   import Costed._
   import CostedFunc._;
-  import Liftables._
+  import WSpecialPredef._
 
   trait Sized[Val] { node: Costed[Val] =>
     lazy val dataSize: Rep[Long] = {
@@ -80,6 +78,8 @@ trait Library extends Scalan
   private val WA = WArrayMethods
   private val CM = ColMethods
   private val CBM = ColBuilderMethods
+  private val WOptionM = WOptionMethods
+  private val SPCM = WSpecialPredefCompanionMethods
 
   object IsProjectFirst {
     def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
@@ -93,10 +93,38 @@ trait Library extends Scalan
       case _ => None
     }
   }
+  object IsNumericToInt {
+    def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
+      case ApplyUnOp(_: NumericToInt[_], x) => Nullable(x.asInstanceOf[Rep[A] forSome {type A}])
+      case _ => Nullable.None
+    }
+  }
+  object IsNumericToLong {
+    def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
+      case ApplyUnOp(_: NumericToLong[_], x) => Nullable(x.asInstanceOf[Rep[A] forSome {type A}])
+      case _ => Nullable.None
+    }
+  }
+
   override def rewriteDef[T](d: Def[T]) = d match {
     case WA.length(WA.map(xs, _)) => xs.length
     case CM.length(CM.map(xs, _)) => xs.length
 
+    case CM.length(CBM.replicate(_, len, _)) => len
+    case CM.length(CBM.fromArray(_, arr)) => arr.length
+    case CM.length(CBM.fromItems(_, items, _)) => items.length
+    case IsNumericToLong(Def(IsNumericToInt(x))) if x.elem == LongElement => x
+
+    // Rule: replicate(l, x).zip(replicate(l, y)) ==> replicate(l, (x,y))
+    case CM.zip(CBM.replicate(b1, l1, v1), CBM.replicate(b2, l2, v2)) if b1 == b2 && l1 == l2 =>
+      b1.replicate(l1, Pair(v1, v2))
+
+    // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
+    case CM.map(CBM.replicate(b, l, v: Rep[a]), _f) =>
+      val f = asRep[a => Any](_f)
+      b.replicate(l, f(v))
+
+    // Rule: xs.map(_._1).zip(xs.map(_._2)) ==> xs
     case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
     case CM.zip(CM.map(xs, IsProjectFirst(_)), CM.map(ys, IsProjectSecond(_))) if xs == ys => xs
 
@@ -112,11 +140,16 @@ trait Library extends Scalan
       xs.map(fun { x: Rep[a] => g(f(x)) })
 
     case CM.map(xs, Def(IdentityLambda())) => xs
-    case CM.map(xs, Def(ConstantLambda(res))) => RCReplCol(res, xs.length)
+    case CM.map(xs, Def(ConstantLambda(res))) =>
+      RCReplCol(res, xs.length)
     case CM.sum(CBM.replicate(_, n, x: Rep[Int] @unchecked), Def(_: IntPlusMonoid)) =>
       x * n
     case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>
       x * n.toLong
+      
+    // Rule: opt.fold(None, x => Some(x)) ==> opt
+    case WOptionM.fold(opt, Def(ThunkDef(SPCM.none(_), _)), Def(Lambda(_, _, x, SPCM.some(y)))) if x == y => opt
+
     case _ => super.rewriteDef(d)
   }
 

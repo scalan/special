@@ -100,7 +100,7 @@ package special.collection {
       def mkCostedNestedCol[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CostedNestedCol[Item]];
       def mkCostedSome[T](costedValue: Rep[Costed[T]]): Rep[CostedOption[T]];
       def mkCostedNone[T](cost: Rep[Int])(implicit eT: Elem[T]): Rep[CostedOption[T]];
-      def mkCostedOption[T](value: Rep[WOption[T]], none: Rep[Costed[Unit]], some: Rep[Costed[Unit]]): Rep[CostedOption[T]]
+      def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Long]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]]
     };
     trait CostedCompanion;
     trait CostedPrimCompanion;

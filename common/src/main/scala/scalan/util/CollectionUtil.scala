@@ -288,6 +288,8 @@ object CollectionUtil {
       b.result()
     }
 
+    /** Apply m for each element of this collection, group by key and reduce each group using r.
+      * @returns one item for each group in a new collection of (K,V) pairs. */
     def mapReduce[K, V](map: A => (K, V))(reduce: (V, V) => V)
                        (implicit cbf: CanBuildFrom[Source[A], (K,V), Source[(K,V)]]): Source[(K, V)] = {
       val result = scala.collection.mutable.LinkedHashMap.empty[K, V]
@@ -347,6 +349,10 @@ object CollectionUtil {
       }
       result
     }
+  }
+
+  def assertSameLength[A,B](xs: Seq[A], ys: Seq[B]) = {
+    assert(xs.length == ys.length, s"Collections should have same length but was ${xs.length} and ${ys.length}:\n xs=$xs;\n ys=$ys")
   }
 }
 

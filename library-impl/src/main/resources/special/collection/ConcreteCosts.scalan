@@ -83,7 +83,7 @@ package special.collection {
       def mkCostedNestedCol[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CostedNestedCol[Item]] = RCCostedNestedCol(rows);
       def mkCostedSome[T](costedValue: Rep[Costed[T]]): Rep[CostedOption[T]] = RCostedSome(costedValue);
       def mkCostedNone[T](cost: Rep[Int])(implicit eT: Elem[T]): Rep[CostedOption[T]] = RCostedNone(cost);
-      def mkCostedOption[T](value: Rep[WOption[T]], none: Rep[Costed[Unit]], some: Rep[Costed[Unit]]): Rep[CostedOption[T]] = RCCostedOption(value, none, some)
+      def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Long]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]] = RCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
     };
     trait CCostedPrimCompanion;
     trait CCostedPairCompanion;

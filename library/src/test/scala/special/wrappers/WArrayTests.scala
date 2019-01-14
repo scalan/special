@@ -67,55 +67,5 @@ class WArrayTests extends WrappersTests {
     check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arr2L <- lifted(arr2) } yield xs.zip(arr2L) }, arr.zip(arr2))
   }
 
-  test("invokeUnlifted for Col") {
-    val ctx = new WrappersCtx with Library
-    import ctx._
-    import Liftables._
-    import WArray._
-    import Col._
-    import ColBuilder._
-    import EnvRep._
 
-    val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
-    val arr = Array(1, 2, 3)
-    val col = Cols.fromArray(arr)
-
-    check(col, { env: EnvRep[Col[Int]] => for {xs <- env; arg <- lifted(2) } yield xs.apply(arg) }, col.apply(2))
-
-    val inc = (x: Int) => x + 1
-    check(col, { env: EnvRep[Col[Int]] => for { xs <- env; incL <- lifted(inc) } yield xs.map(incL) }, col.map(inc))
-
-    check(Cols, { env: EnvRep[ColBuilder] => for { b <- env; arrL <- lifted(arr) } yield b.fromArray(arrL) }, Cols.fromArray(arr))
-
-    check(Cols,
-      {env: EnvRep[ColBuilder] => for {
-          b <- env; x1 <- lifted(1); x2 <- lifted(2); x3 <- lifted(3)
-        } yield b.fromItems(x1, x2, x3) },
-      Cols.fromItems(1, 2, 3))
-  }
-
-  test("invokeUnlifted for method of Ctor") {
-    val ctx = new WrappersCtx with Library
-    import ctx._
-    import Liftables._
-    import WArray._
-    import Col._
-    import ColBuilder._
-    import CReplCol._
-    import EnvRep._
-
-    val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
-    val colData = Cols.replicate(10, 10)
-    val colSym = RCReplCol(10, 10)
-    val resSym = colSym.append(colSym)
-    val resData = colData.append(colData)
-    val env = Map[Sym, AnyRef]()
-    val resEnvSym = EnvRep.add(colSym -> colData.asInstanceOf[AnyRef])
-    val (resEnv, _) = resEnvSym.run(env)
-    resSym match {
-      case Def(mc: MethodCall) =>
-        val res = invokeUnlifted(colSym.elem, mc, resEnv)
-        res shouldBe resData
-    }
-  }
 }

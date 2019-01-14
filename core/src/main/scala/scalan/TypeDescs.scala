@@ -210,6 +210,7 @@ trait TypeDescs extends Base { self: Scalan =>
   case class RMethodDesc(method: Method) extends MethodDesc
   case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method) extends MethodDesc
 
+  // TODO optimize performance hot spot (45% of invokeUnlifted time)
   def getSourceValues(dataEnv: DataEnv, transformElems: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
     import OverloadHack._
     val vs = stagedValues.flatMap {

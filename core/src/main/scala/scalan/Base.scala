@@ -193,7 +193,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     trait LiftedConst[ST, T] extends Def[T] {
       def constValue: ST
       def liftable: Liftable[ST, T]
-      override def transform(t: Transformer) = this
     }
 
     /** Describes lifting constant values of type ST (Source Type) to IR nodes of the correspoding staged type T.
@@ -432,6 +431,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case c: Const[_] => c.self
     case v: Variable[_] => v.self
     case comp: CompanionDef[_] => comp.self
+    case lc: Liftables.LiftedConst[_,_] => lc.self
     case _ =>
       val newD = d.transform(t)
       reifyObject(newD)
@@ -442,7 +442,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case seq: Seq[_] => seq.map(transformProductParam(_, t))
     case arr: Array[_] => arr.map(transformProductParam(_, t))
     case opt: Option[_] => opt.map(transformProductParam(_, t))
-    case p: Product if p.productArity != 0 => transformProduct(p, t)
+    case d: Def[_] => transformDef(d, t).rhs
+//    case p: Product if p.productArity != 0 => transformProduct(p, t)
     case x => x
   }
 
@@ -456,36 +457,36 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   /** @hotspot */
-  def transformProduct(p: Product, t: Transformer): Product = {
-    val clazz = p.getClass
-    val ReflectedProductClass(constructor, paramMirrors, owner) = {
-      var opt = defClasses.get(clazz)
-      opt match {
-        case Nullable(rpc) => rpc
-        case _ =>
-          val rpc = reflectProductClass(clazz, p)
-          defClasses.put(clazz, rpc)
-          rpc
-      }
-    }
-
-    val pParams = paramMirrors.map(_.bind(p).get)
-    val transformedParams = pParams.map(transformProductParam(_, t))
-    val finalParams = addOwnerParameter(owner, transformedParams)
-    try {
-      val transformedP = constructor.newInstance(finalParams: _*).asInstanceOf[Product]
-      transformedP
-    } catch {
-      case e: Exception =>
-        !!!(
-          s"""
-            |Failed to invoke constructor $clazz(${constructor.getParameterTypes.map(_.getSimpleName).mkString(", ")}) with parameters ${finalParams.mkString(", ")}
-            |
-             |Graph nodes have scalan cake as the first parameter ($$owner).
-            |Check that the trait where class $clazz is defined extends Base.
-            |""".stripMargin, e)
-    }
-  }
+//  def transformProduct(p: Product, t: Transformer): Product = {
+//    val clazz = p.getClass
+//    val ReflectedProductClass(constructor, paramMirrors, owner) = {
+//      var opt = defClasses.get(clazz)
+//      opt match {
+//        case Nullable(rpc) => rpc
+//        case _ =>
+//          val rpc = reflectProductClass(clazz, p)
+//          defClasses.put(clazz, rpc)
+//          rpc
+//      }
+//    }
+//
+//    val pParams = paramMirrors.map(_.bind(p).get)
+//    val transformedParams = pParams.map(transformProductParam(_, t))
+//    val finalParams = addOwnerParameter(owner, transformedParams)
+//    try {
+//      val transformedP = constructor.newInstance(finalParams: _*).asInstanceOf[Product]
+//      transformedP
+//    } catch {
+//      case e: Exception =>
+//        !!!(
+//          s"""
+//            |Failed to invoke constructor $clazz(${constructor.getParameterTypes.map(_.getSimpleName).mkString(", ")}) with parameters ${finalParams.mkString(", ")}
+//            |
+//             |Graph nodes have scalan cake as the first parameter ($$owner).
+//            |Check that the trait where class $clazz is defined extends Base.
+//            |""".stripMargin, e)
+//    }
+//  }
 
   implicit def reifyObject[A](obj: Def[A]): Rep[A] = {
     toExp(obj, obj.self)

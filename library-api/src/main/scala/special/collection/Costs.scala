@@ -83,7 +83,7 @@ trait CostedBuilder {
   def mkCostedNestedCol[Item](rows: Col[Costed[Col[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedCol[Item]
   def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T]
   def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T]
-  def mkCostedOption[T](value: Option[T], none: Costed[Unit], some: Costed[Unit]): CostedOption[T]
+  def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Long], accumulatedCost: Int): CostedOption[T]
 }
 
 

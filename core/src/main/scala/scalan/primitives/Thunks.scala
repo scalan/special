@@ -123,7 +123,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     }
   }
 
-  override def transformDef[A](d: Def[A], t: Transformer) = d match {
+  override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case thunk: ThunkDef[a] =>
       implicit lazy val eA = thunk.eA
       val newSchedule = for {
@@ -195,6 +195,8 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     case Nullable(scope) => scope.thunkSym
     case _ => globalThunkSym
   }
+
+  implicit def repToThunk[A](block: Rep[A]): Rep[Thunk[A]] = thunk_create(block)
 
   def thunk_create[A](block: => Rep[A]): Rep[Thunk[A]] = {
     var schedule: Schedule = null

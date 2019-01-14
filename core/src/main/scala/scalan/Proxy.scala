@@ -40,7 +40,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     }
 
     def tryInvoke: InvokeResult =
-      if (neverInvoke)
+      if (neverInvoke && !isAdapterCall)
         InvokeImpossible
       else
         findInvokableMethod[InvokeResult](receiver, method, args.toArray) {
@@ -56,21 +56,28 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
           method == other.method &&
           selfType.name == other.selfType.name &&
           neverInvoke == other.neverInvoke &&
+          isAdapterCall == other.isAdapterCall &&
           args.length == other.args.length &&
           args.sameElements2(other.args) // this is required in case method have T* arguments
         case _ => false
       }
     }
 
-    override lazy val hashCode: Int =
-      Objects.hash(receiver, method, selfType.name, neverInvoke.asInstanceOf[AnyRef], args.deepHashCode.asInstanceOf[AnyRef])
+    override lazy val hashCode: Int = {
+      var h = receiver.hashCode() * 31 + method.hashCode()
+      h = h * 31 + selfType.name.hashCode
+      h = h * 31 + (if(neverInvoke) 1 else 0)
+      h = h * 31 + (if(isAdapterCall) 1 else 0)
+      h = h * 31 + args.hashCode()
+      h
+    }
   }
 
   case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA) {
     override def transform(t: Transformer) = NewObject(eA, t(args).toList, neverInvoke)
   }
 
-  override def transformDef[A](d: Def[A], t: Transformer) = d match {
+  override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     // not the same as super because mkMethodCall can produce a more precise return type
     case mc @ MethodCall(receiver, method, args, neverInvoke) =>
       val args1 = args.map(transformProductParam(_, t).asInstanceOf[AnyRef])
