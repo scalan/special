@@ -1,4 +1,4 @@
-package scalanizer.collections
+package special.collections
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls

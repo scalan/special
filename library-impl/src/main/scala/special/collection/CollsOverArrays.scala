@@ -32,11 +32,11 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
     builder.fromArray(result)
   }
 
-//  @NeverInline
-//  override def indices: Coll[Int] = builder.fromArray(arr.indices.toArray)
-//
-//  @NeverInline
-//  override def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
+  @NeverInline
+  def indices: Coll[Int] = builder.fromArray(arr.indices.toArray)
+
+  @NeverInline
+  override def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
 
 //  @NeverInline
 //  override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
@@ -125,6 +125,12 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   @NeverInline
   override def sum(m: Monoid[(L, R)]): (L, R) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
   def zip[B](ys: Coll[B]): PairColl[(L,R), B] = builder.pairColl(this, ys)
+
+  override def indices: Coll[Int] = ls.indices
+
+  @NeverInline
+  override def flatMap[B: ClassTag](f: ((L, R)) => Coll[B]): Coll[B] =
+    builder.fromArray(arr.flatMap(p => f(p).arr))
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
@@ -154,5 +160,15 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
   def append(other: Coll[A]): Coll[A] = builder.fromArray(arr).append(builder.fromArray(other.arr))
 
   def sum(m: Monoid[A]): A = m.power(value, length)
+
+  @NeverInline
+  override def indices: Coll[Int] = builder.fromArray((0 until length).toArray)
+
+  @NeverInline
+  override def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B] = {
+    val seg = f(value).arr
+    val xs = Range(0, length).flatMap(_ => seg).toArray
+    builder.fromArray(xs)
+  }
 }
 

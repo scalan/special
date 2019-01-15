@@ -1,4 +1,4 @@
-package scalanizer.collections
+package special.collections
 
 import scalan.{Lazy, BaseCtxTests, Library}
 

@@ -1,11 +1,11 @@
-package scalanizer.collections
+package special.collections
 
 import scala.language.reflectiveCalls
 import special.wrappers.WrappersTests
 import scalan._
 import scalan.util.BenchmarkUtil._
 
-class ColsTests extends WrappersTests {
+class CollsStagingTests extends WrappersTests {
   class Ctx extends TestContext with Library {
     import WArray._
     import CollOverArray._
@@ -20,7 +20,7 @@ class ColsTests extends WrappersTests {
     }
   }
 
-  test("Col methods") {
+  test("Coll methods") {
     val ctx = new Ctx {
       import WArray._
       import CollOverArray._

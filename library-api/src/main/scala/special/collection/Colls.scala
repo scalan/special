@@ -33,19 +33,23 @@ trait Coll[A] {
   def where(p: A => Boolean): Coll[A] = this.filter(p)
   def fold[B](zero: B, op: ((B, A)) => B): B
 
-//  /** Produces the range of all indices of this collection [0 .. size-1] */
-//  def indices: Coll[Int]
-//
-//  /**
-//    * Builds a new collection by applying a function to all elements of this $coll
-//    * and using the elements of the resulting collections.
-//    *
-//    * @param f the function to apply to each element.
-//    * @tparam B the element type of the returned collection.
-//    * @return a new collection of type `Coll[B]` resulting from applying the given collection-valued function
-//    *         `f` to each element of this $coll and concatenating the results.
-//    */
-//  def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B]
+  /** Produces the range of all indices of this collection as a new collection
+    * containing [0 .. length-1] values. */
+  def indices: Coll[Int]
+
+  /**
+    * Builds a new collection by applying a function to all elements of this $coll
+    * and using the elements of the resulting collections.
+    *
+    * Function `f` is constrained to be of the form `x => x.someProperty`, otherwise
+    * it is illegal.
+    *
+    * @param f the function to apply to each element.
+    * @tparam B the element type of the returned collection.
+    * @return a new collection of type `Coll[B]` resulting from applying the given collection-valued function
+    *         `f` to each element of this $coll and concatenating the results.
+    */
+  def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B]
 
 //  /** Computes length of longest segment whose elements all satisfy some predicate.
 //    *
