@@ -47,11 +47,25 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       def p2(ab: (Int, Int)) = p(ab._1) && p(ab._2)
       col.zip(col).indexWhere(p2, from) shouldBe xs.zip(xs).indexWhere(p2, from)
     }
-    forAll { (l: Int, v: Int, from: Int) =>
-      whenever(l < 100) {
+    forAll { (l: Int, v: Int, from: Int) => whenever(0 <= l && l < 100) {
       val col = builder.replicate(l, v)
       def p(x: Int) = x == 0
       col.indexWhere(p, from) shouldBe col.arr.indexWhere(p, from)
+    }}
+  }
+
+  property("Coll.lastIndexWhere") {
+    forAll { (xs: Array[Int], from: Int) =>
+      val col = builder.fromArray(xs)
+      def p(x: Int) = x == 0
+      col.lastIndexWhere(p, from) shouldBe xs.lastIndexWhere(p, from)
+      def p2(ab: (Int, Int)) = p(ab._1) && p(ab._2)
+      col.zip(col).lastIndexWhere(p2, from) shouldBe xs.zip(xs).lastIndexWhere(p2, from)
+    }
+    forAll { (l: Int, v: Int, from: Int) => whenever(0 <= l && l < 100) {
+      val col = builder.replicate(l, v)
+      def p(x: Int) = x == 0
+      col.lastIndexWhere(p, from) shouldBe col.arr.lastIndexWhere(p, from)
     }}
   }
 

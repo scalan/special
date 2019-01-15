@@ -69,15 +69,15 @@ trait Coll[A] {
     */
   def indexWhere(p: A => Boolean, from: Int): Int
 
-//  /** Finds index of last element satisfying some predicate before or at given end index.
-//    *
-//    *  @param   p     the predicate used to test elements.
-//    *  @return  the index `<= end` of the last element of this $coll that satisfies the predicate `p`,
-//    *           or `-1`, if none exists.
-//    */
-//  def lastIndexWhere(p: A => Boolean, end: Int): Int
-//
-//
+  /** Finds index of last element satisfying some predicate before or at given end index.
+    *
+    *  @param   p     the predicate used to test elements.
+    *  @return  the index `<= end` of the last element of this $coll that satisfies the predicate `p`,
+    *           or `-1`, if none exists.
+    */
+  def lastIndexWhere(p: A => Boolean, end: Int): Int
+
+
 //  /** Partitions this $coll in two ${coll}s according to a predicate.
 //    *
 //    *  @param pred the predicate on which to partition.

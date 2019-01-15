@@ -44,8 +44,8 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
   @NeverInline
   override def indexWhere(p: A => Boolean, from: Int): Int = arr.indexWhere(p, from)
 
-//  @NeverInline
-//  override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
+  @NeverInline
+  override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
 //
 //  @NeverInline
 //  override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = ???
@@ -139,6 +139,9 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
 
   @NeverInline
   override def indexWhere(p: ((L, R)) => Boolean, from: Int): Int = arr.indexWhere(p, from)
+
+  @NeverInline
+  override def lastIndexWhere(p: ((L, R)) => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
@@ -191,7 +194,15 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
   override def indexWhere(p: A => Boolean, from: Int): Int = {
     if (from >= length) -1
     else
-    if (p(value)) from
+    if (p(value)) math.max(from, 0)
+    else -1
+  }
+
+  @NeverInline
+  override def lastIndexWhere(p: A => Boolean, end: Int): Int = {
+    var i = math.min(end, length - 1)
+    if (i < 0) i
+    else if (p(value)) i
     else -1
   }
 }
