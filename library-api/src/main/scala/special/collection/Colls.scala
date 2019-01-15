@@ -78,26 +78,26 @@ trait Coll[A] {
   def lastIndexWhere(p: A => Boolean, end: Int): Int
 
 
-//  /** Partitions this $coll in two ${coll}s according to a predicate.
-//    *
-//    *  @param pred the predicate on which to partition.
-//    *  @return     a pair of ${coll}s: the first $coll consists of all elements that
-//    *              satisfy the predicate `p` and the second $coll consists of all elements
-//    *              that don't. The relative order of the elements in the resulting ${coll}s
-//    *              will BE preserved (this is different from Scala's version of this method).
-//    */
-//  def partition(pred: A => Boolean): (Coll[A], Coll[A])
-//
-//  /** Produces a new $coll where a slice of elements in this $coll is replaced by another sequence.
-//    *
-//    *  @param  from     the index of the first replaced element
-//    *  @param  patch    the replacement sequence
-//    *  @param  replaced the number of elements to drop in the original $coll
-//    *  @return          a new $coll consisting of all elements of this $coll
-//    *                   except that `replaced` elements starting from `from` are replaced by `patch`.
-//    */
-//  def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A]
-//
+  /** Partitions this $coll in two ${coll}s according to a predicate.
+    *
+    *  @param pred the predicate on which to partition.
+    *  @return     a pair of ${coll}s: the first $coll consists of all elements that
+    *              satisfy the predicate `p` and the second $coll consists of all elements
+    *              that don't. The relative order of the elements in the resulting ${coll}s
+    *              will BE preserved (this is different from Scala's version of this method).
+    */
+  def partition(pred: A => Boolean): (Coll[A], Coll[A])
+
+  /** Produces a new $coll where a slice of elements in this $coll is replaced by another sequence.
+    *
+    *  @param  from     the index of the first replaced element
+    *  @param  patch    the replacement sequence
+    *  @param  replaced the number of elements to drop in the original $coll
+    *  @return          a new $coll consisting of all elements of this $coll
+    *                   except that `replaced` elements starting from `from` are replaced by `patch`.
+    */
+  def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A]
+
 //  /** A copy of this $coll with one single replaced element.
 //    *  @param  index  the position of the replacement
 //    *  @param  elem   the replacing element
@@ -194,7 +194,8 @@ trait CollBuilder {
 
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
-  def fromArray[T](arr: Array[T]): Coll[T]
+  def fromArray[T:ClassTag](arr: Array[T]): Coll[T]
   def replicate[T:ClassTag](n: Int, v: T): Coll[T]
+  def emptyColl[T](implicit cT: ClassTag[T]): Coll[T]
 }
 

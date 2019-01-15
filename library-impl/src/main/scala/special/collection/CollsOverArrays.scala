@@ -9,7 +9,7 @@ import scalan.util.CollectionUtil
 import scalan.util.CollectionUtil.unboxedArray
 import scalan.{Internal, NeverInline, OverloadId, Reified}
 
-class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
+class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
   def builder: CollBuilder = new CollOverArrayBuilder
   def length: Int = arr.length
   def apply(i: Int): A = arr.apply(i)
@@ -46,14 +46,16 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
 
   @NeverInline
   override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
-//
-//  @NeverInline
-//  override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = ???
-//
-//  override def patch(from: Int,
-//      patch: Coll[A],
-//      replaced: Int): Coll[A] = ???
-//
+
+  @NeverInline
+  override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = {
+    val (ls, rs) = arr.partition(pred)
+    (builder.fromArray(ls), builder.fromArray(rs))
+  }
+
+  override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] =
+    builder.fromArray(arr.patch(from, patch.arr, replaced).toArray)
+
 //  override def updated(index: Int, elem: A): Coll[A] = ???
 //
 //  override def updateMany(indexes: Coll[Int],
@@ -88,13 +90,16 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 
   @NeverInline
-  def fromArray[T](arr: Array[T]): Coll[T] = new CollOverArray[T](arr)
+  def fromArray[T:ClassTag](arr: Array[T]): Coll[T] = new CollOverArray[T](arr)
 
   @NeverInline
   def replicate[T:ClassTag](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
+
+  @NeverInline
+  override def emptyColl[T](implicit cT: ClassTag[T]): Coll[T] = new CollOverArray[T](Array[T]())
 }
 
 class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
@@ -142,6 +147,19 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
 
   @NeverInline
   override def lastIndexWhere(p: ((L, R)) => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
+
+  @NeverInline
+  override def partition(pred: ((L, R)) => Boolean): (Coll[(L, R)], Coll[(L, R)]) = {
+    val (ls, rs) = arr.partition(pred)
+    (builder.fromArray(ls), builder.fromArray(rs))
+  }
+
+  override def patch(from: Int, patch: Coll[(L, R)], replaced: Int): Coll[(L, R)] = {
+    val (lsPatch, rsPatch) = builder.unzip(patch)
+    val lp = ls.patch(from, lsPatch, replaced)
+    val rp = rs.patch(from, rsPatch, replaced)
+    builder.pairColl(lp, rp)
+  }
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
@@ -204,6 +222,17 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
     if (i < 0) i
     else if (p(value)) i
     else -1
+  }
+
+  @NeverInline
+  override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = {
+    if (pred(value)) (this, builder.emptyColl)
+    else (builder.emptyColl, this)
+  }
+
+  @NeverInline
+  override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] = {
+    builder.fromArray(arr.patch(from, patch.arr, replaced))
   }
 }
 

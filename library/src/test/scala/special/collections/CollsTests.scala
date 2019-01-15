@@ -69,4 +69,33 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }}
   }
 
+  property("Coll.partition") {
+    forAll { (xs: Array[Int]) =>
+      val col = builder.fromArray(xs)
+      def p(x: Int) = x > 0
+      val (lsC, rsC) = col.partition(p)
+      val (ls, rs) = xs.partition(p)
+      lsC.arr shouldBe ls
+      rsC.arr shouldBe rs
+    }
+    forAll { (l: Int, v: Int, from: Int) => whenever(0 <= l && l < 100) {
+      val col = builder.replicate(l, v)
+      def p(x: Int) = x > 0
+      val (lsC, rsC) = col.partition(p)
+      val (ls, rs) = col.arr.partition(p)
+      lsC.arr shouldBe ls
+      rsC.arr shouldBe rs
+    }}
+  }
+
+  property("Coll.patch") {
+    forAll { (xs: Array[Int], from: Int, patch: Array[Int], replaced: Int) =>
+      whenever(0 <= from && from < xs.length && 0 <= replaced) {
+        val col = builder.fromArray(xs)
+        val patchedC = col.patch(from, builder.fromArray(patch), replaced)
+        val patched = xs.patch(from, patch, replaced)
+        patchedC.arr shouldBe patched
+      }
+    }
+  }
 }
