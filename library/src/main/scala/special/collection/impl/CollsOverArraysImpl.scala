@@ -11,10 +11,10 @@ trait CollsOverArraysDefs extends scalan.Scalan with CollsOverArrays {
 import IsoUR._
 import Converter._
 import CReplColl._
-import ColBuilder._
-import ColOverArrayBuilder._
 import Coll._
+import CollBuilder._
 import CollOverArray._
+import CollOverArrayBuilder._
 import Monoid._
 import PairColl._
 import PairOfCols._
@@ -334,13 +334,13 @@ object CollOverArray extends EntityObject("CollOverArray") {
 } // of object CollOverArray
   registerEntityObject("CollOverArray", CollOverArray)
 
-object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
-  case class ColOverArrayBuilderCtor
+object CollOverArrayBuilder extends EntityObject("CollOverArrayBuilder") {
+  case class CollOverArrayBuilderCtor
       ()
-    extends ColOverArrayBuilder() with Def[ColOverArrayBuilder] {
-    lazy val selfType = element[ColOverArrayBuilder]
-    override def transform(t: Transformer) = ColOverArrayBuilderCtor()
-    private val thisClass = classOf[ColBuilder]
+    extends CollOverArrayBuilder() with Def[CollOverArrayBuilder] {
+    lazy val selfType = element[CollOverArrayBuilder]
+    override def transform(t: Transformer) = CollOverArrayBuilderCtor()
+    private val thisClass = classOf[CollBuilder]
 
     override def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(self,
@@ -373,169 +373,169 @@ object ColOverArrayBuilder extends EntityObject("ColOverArrayBuilder") {
     }
   }
   // elem for concrete class
-  class ColOverArrayBuilderElem(val iso: Iso[ColOverArrayBuilderData, ColOverArrayBuilder])
-    extends ColBuilderElem[ColOverArrayBuilder]
-    with ConcreteElem[ColOverArrayBuilderData, ColOverArrayBuilder] {
-    override lazy val parent: Option[Elem[_]] = Some(colBuilderElement)
+  class CollOverArrayBuilderElem(val iso: Iso[CollOverArrayBuilderData, CollOverArrayBuilder])
+    extends CollBuilderElem[CollOverArrayBuilder]
+    with ConcreteElem[CollOverArrayBuilderData, CollOverArrayBuilder] {
+    override lazy val parent: Option[Elem[_]] = Some(collBuilderElement)
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertColBuilder(x: Rep[ColBuilder]) = RColOverArrayBuilder()
-    override def getDefaultRep = RColOverArrayBuilder()
+    override def convertCollBuilder(x: Rep[CollBuilder]) = RCollOverArrayBuilder()
+    override def getDefaultRep = RCollOverArrayBuilder()
     override lazy val tag = {
-      weakTypeTag[ColOverArrayBuilder]
+      weakTypeTag[CollOverArrayBuilder]
     }
   }
 
   // state representation type
-  type ColOverArrayBuilderData = Unit
+  type CollOverArrayBuilderData = Unit
 
   // 3) Iso for concrete class
-  class ColOverArrayBuilderIso
-    extends EntityIso[ColOverArrayBuilderData, ColOverArrayBuilder] with Def[ColOverArrayBuilderIso] {
-    override def transform(t: Transformer) = new ColOverArrayBuilderIso()
-    private lazy val _safeFrom = fun { p: Rep[ColOverArrayBuilder] => () }
-    override def from(p: Rep[ColOverArrayBuilder]) =
-      tryConvert[ColOverArrayBuilder, Unit](eTo, eFrom, p, _safeFrom)
+  class CollOverArrayBuilderIso
+    extends EntityIso[CollOverArrayBuilderData, CollOverArrayBuilder] with Def[CollOverArrayBuilderIso] {
+    override def transform(t: Transformer) = new CollOverArrayBuilderIso()
+    private lazy val _safeFrom = fun { p: Rep[CollOverArrayBuilder] => () }
+    override def from(p: Rep[CollOverArrayBuilder]) =
+      tryConvert[CollOverArrayBuilder, Unit](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[Unit]) = {
       val unit = p
-      RColOverArrayBuilder()
+      RCollOverArrayBuilder()
     }
     lazy val eFrom = UnitElement
-    lazy val eTo = new ColOverArrayBuilderElem(self)
-    lazy val selfType = new ColOverArrayBuilderIsoElem
+    lazy val eTo = new CollOverArrayBuilderElem(self)
+    lazy val selfType = new CollOverArrayBuilderIsoElem
     def productArity = 0
     def productElement(n: Int) = ???
   }
-  case class ColOverArrayBuilderIsoElem() extends Elem[ColOverArrayBuilderIso] {
-    def getDefaultRep = reifyObject(new ColOverArrayBuilderIso())
+  case class CollOverArrayBuilderIsoElem() extends Elem[CollOverArrayBuilderIso] {
+    def getDefaultRep = reifyObject(new CollOverArrayBuilderIso())
     lazy val tag = {
-      weakTypeTag[ColOverArrayBuilderIso]
+      weakTypeTag[CollOverArrayBuilderIso]
     }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
   }
   // 4) constructor and deconstructor
-  class ColOverArrayBuilderCompanionCtor extends CompanionDef[ColOverArrayBuilderCompanionCtor] with ColOverArrayBuilderCompanion {
-    def selfType = ColOverArrayBuilderCompanionElem
-    override def toString = "ColOverArrayBuilderCompanion"
+  class CollOverArrayBuilderCompanionCtor extends CompanionDef[CollOverArrayBuilderCompanionCtor] with CollOverArrayBuilderCompanion {
+    def selfType = CollOverArrayBuilderCompanionElem
+    override def toString = "CollOverArrayBuilderCompanion"
     @scalan.OverloadId("fromData")
-    def apply(p: Rep[ColOverArrayBuilderData]): Rep[ColOverArrayBuilder] = {
-      isoColOverArrayBuilder.to(p)
+    def apply(p: Rep[CollOverArrayBuilderData]): Rep[CollOverArrayBuilder] = {
+      isoCollOverArrayBuilder.to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply(): Rep[ColOverArrayBuilder] =
-      mkColOverArrayBuilder()
+    def apply(): Rep[CollOverArrayBuilder] =
+      mkCollOverArrayBuilder()
 
-    def unapply(p: Rep[ColBuilder]) = unmkColOverArrayBuilder(p)
+    def unapply(p: Rep[CollBuilder]) = unmkCollOverArrayBuilder(p)
   }
-  lazy val ColOverArrayBuilderRep: Rep[ColOverArrayBuilderCompanionCtor] = new ColOverArrayBuilderCompanionCtor
-  lazy val RColOverArrayBuilder: ColOverArrayBuilderCompanionCtor = proxyColOverArrayBuilderCompanion(ColOverArrayBuilderRep)
-  implicit def proxyColOverArrayBuilderCompanion(p: Rep[ColOverArrayBuilderCompanionCtor]): ColOverArrayBuilderCompanionCtor = {
-    if (p.rhs.isInstanceOf[ColOverArrayBuilderCompanionCtor])
-      p.rhs.asInstanceOf[ColOverArrayBuilderCompanionCtor]
+  lazy val CollOverArrayBuilderRep: Rep[CollOverArrayBuilderCompanionCtor] = new CollOverArrayBuilderCompanionCtor
+  lazy val RCollOverArrayBuilder: CollOverArrayBuilderCompanionCtor = proxyCollOverArrayBuilderCompanion(CollOverArrayBuilderRep)
+  implicit def proxyCollOverArrayBuilderCompanion(p: Rep[CollOverArrayBuilderCompanionCtor]): CollOverArrayBuilderCompanionCtor = {
+    if (p.rhs.isInstanceOf[CollOverArrayBuilderCompanionCtor])
+      p.rhs.asInstanceOf[CollOverArrayBuilderCompanionCtor]
     else
-      proxyOps[ColOverArrayBuilderCompanionCtor](p)
+      proxyOps[CollOverArrayBuilderCompanionCtor](p)
   }
 
-  implicit case object ColOverArrayBuilderCompanionElem extends CompanionElem[ColOverArrayBuilderCompanionCtor] {
-    lazy val tag = weakTypeTag[ColOverArrayBuilderCompanionCtor]
-    protected def getDefaultRep = ColOverArrayBuilderRep
+  implicit case object CollOverArrayBuilderCompanionElem extends CompanionElem[CollOverArrayBuilderCompanionCtor] {
+    lazy val tag = weakTypeTag[CollOverArrayBuilderCompanionCtor]
+    protected def getDefaultRep = CollOverArrayBuilderRep
   }
 
-  implicit def proxyColOverArrayBuilder(p: Rep[ColOverArrayBuilder]): ColOverArrayBuilder =
-    proxyOps[ColOverArrayBuilder](p)
+  implicit def proxyCollOverArrayBuilder(p: Rep[CollOverArrayBuilder]): CollOverArrayBuilder =
+    proxyOps[CollOverArrayBuilder](p)
 
-  implicit class ExtendedColOverArrayBuilder(p: Rep[ColOverArrayBuilder]) {
-    def toData: Rep[ColOverArrayBuilderData] = {
-      isoColOverArrayBuilder.from(p)
+  implicit class ExtendedCollOverArrayBuilder(p: Rep[CollOverArrayBuilder]) {
+    def toData: Rep[CollOverArrayBuilderData] = {
+      isoCollOverArrayBuilder.from(p)
     }
   }
 
   // 5) implicit resolution of Iso
-  implicit def isoColOverArrayBuilder: Iso[ColOverArrayBuilderData, ColOverArrayBuilder] =
-    reifyObject(new ColOverArrayBuilderIso())
+  implicit def isoCollOverArrayBuilder: Iso[CollOverArrayBuilderData, CollOverArrayBuilder] =
+    reifyObject(new CollOverArrayBuilderIso())
 
-  def mkColOverArrayBuilder
-    (): Rep[ColOverArrayBuilder] = {
-    new ColOverArrayBuilderCtor()
+  def mkCollOverArrayBuilder
+    (): Rep[CollOverArrayBuilder] = {
+    new CollOverArrayBuilderCtor()
   }
-  def unmkColOverArrayBuilder(p: Rep[ColBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
-    case _: ColOverArrayBuilderElem @unchecked =>
+  def unmkCollOverArrayBuilder(p: Rep[CollBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
+    case _: CollOverArrayBuilderElem @unchecked =>
       Some(())
     case _ =>
       None
   }
 
-    object ColOverArrayBuilderMethods {
-    object pairCol {
-      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "pairCol" =>
+    object CollOverArrayBuilderMethods {
+    object pairColl {
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "pairColl" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object fromItems {
-      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "fromItems" =>
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "fromItems" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object fromArray {
-      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "fromArray" =>
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "fromArray" =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Rep[WArray[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[WArray[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object replicate {
-      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "replicate" =>
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "replicate" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[Int], Rep[T]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object xor {
-      def unapply(d: Def[_]): Nullable[(Rep[ColOverArrayBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ColOverArrayBuilderElem] && method.getName == "xor" =>
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "xor" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[ColOverArrayBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ColOverArrayBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
   }
 
-  object ColOverArrayBuilderCompanionMethods {
+  object CollOverArrayBuilderCompanionMethods {
   }
-} // of object ColOverArrayBuilder
-  registerEntityObject("ColOverArrayBuilder", ColOverArrayBuilder)
+} // of object CollOverArrayBuilder
+  registerEntityObject("CollOverArrayBuilder", CollOverArrayBuilder)
 
 object PairOfCols extends EntityObject("PairOfCols") {
   case class PairOfColsCtor[L, R]

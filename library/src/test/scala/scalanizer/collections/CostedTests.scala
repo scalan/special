@@ -10,7 +10,7 @@ class CostedTests extends BaseCostedTests {
   import ctx._
   import WArray._
   import CollOverArray._
-  import ColOverArrayBuilder._
+  import CollOverArrayBuilder._
 
   def buildGraph[T](nIters: Int, name: String)(action: Int => Rep[T]) = {
     val buf = mutable.ArrayBuilder.make[Rep[T]]()

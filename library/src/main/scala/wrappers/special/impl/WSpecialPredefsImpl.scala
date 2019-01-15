@@ -67,9 +67,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     override def toString = "WSpecialPredef"
   }
   implicit def proxyWSpecialPredefCompanionCtor(p: Rep[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
-    if (p.rhs.isInstanceOf[WSpecialPredefCompanionCtor@unchecked]) p.rhs.asInstanceOf[WSpecialPredefCompanionCtor]
-    else
-      proxyOps[WSpecialPredefCompanionCtor](p)
+    proxyOps[WSpecialPredefCompanionCtor](p)
 
   lazy val RWSpecialPredef: Rep[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
     private val thisClass = classOf[WSpecialPredefCompanion]

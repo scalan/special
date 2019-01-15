@@ -102,13 +102,13 @@ class CCostedBuilder extends CostedBuilder {
         func: Costed[Arg] => Costed[Res],
         cost: Int, dataSize: Long): CostedFunc[Env, Arg, Res] = new CCostedFunc(envCosted, func, cost, dataSize)
 
-  def mkCostedCol[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Long], valuesCost: Int): CostedColl[T] =
+  def mkCostedColl[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Long], valuesCost: Int): CostedColl[T] =
     new CCostedColl[T](values, costs, sizes, valuesCost)
 
-  def mkCostedPairCol[L,R](ls: Costed[Coll[L]], rs: Costed[Coll[R]]): CostedPairColl[L,R] =
+  def mkCostedPairColl[L,R](ls: Costed[Coll[L]], rs: Costed[Coll[R]]): CostedPairColl[L,R] =
     new CCostedPairColl(ls, rs)
 
-  def mkCostedNestedCol[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedColl[Item] =
+  def mkCostedNestedColl[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedColl[Item] =
     new CCostedNestedColl[Item](rows)
 
   def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T] =

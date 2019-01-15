@@ -24,7 +24,7 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
   def fold[B](zero: B, op: ((B, A)) => B): B = arr.foldLeft(zero)((b, a) => op((b, a)))
   def slice(from: Int, until: Int): Coll[A] = builder.fromArray(arr.slice(from, until))
   def sum(m: Monoid[A]): A = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
-  def zip[B](ys: Coll[B]): PairColl[A, B] = builder.pairCol(this, ys)
+  def zip[B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
   @NeverInline
   def append(other: Coll[A]): Coll[A] = {
     if (arr.length <= 0) return other
@@ -33,10 +33,10 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
   }
 
 //  @NeverInline
-//  override def indices: Col[Int] = builder.fromArray(arr.indices.toArray)
+//  override def indices: Coll[Int] = builder.fromArray(arr.indices.toArray)
 //
 //  @NeverInline
-//  override def flatMap[B: ClassTag](f: A => Col[B]): Col[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
+//  override def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
 
 //  @NeverInline
 //  override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
@@ -48,25 +48,25 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
 //  override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
 //
 //  @NeverInline
-//  override def partition(pred: A => Boolean): (Col[A], Col[A]) = ???
+//  override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = ???
 //
 //  override def patch(from: Int,
-//      patch: Col[A],
-//      replaced: Int): Col[A] = ???
+//      patch: Coll[A],
+//      replaced: Int): Coll[A] = ???
 //
-//  override def updated(index: Int, elem: A): Col[A] = ???
+//  override def updated(index: Int, elem: A): Coll[A] = ???
 //
-//  override def updateMany(indexes: Col[Int],
-//      values: Col[A]): Col[A] = ???
+//  override def updateMany(indexes: Coll[Int],
+//      values: Coll[A]): Coll[A] = ???
 //
 //  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V),
-//      r: (V, V) => V): Col[(K, V)] = ???
+//      r: (V, V) => V): Coll[(K, V)] = ???
 //
-//  override def unionSets(that: Col[A]): Col[A] = ???
+//  override def unionSets(that: Coll[A]): Coll[A] = ???
 //
-//  override def diff(that: Col[A]): Col[A] = ???
+//  override def diff(that: Coll[A]): Coll[A] = ???
 //
-//  override def intersect(that: Col[A]): Col[A] = ???
+//  override def intersect(that: Coll[A]): Coll[A] = ???
 
   @Internal
   override def equals(obj: scala.Any) = obj match {
@@ -79,7 +79,7 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
 }
 
 class CollOverArrayBuilder extends CollBuilder {
-  def pairCol[A, B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
+  def pairColl[A, B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
 
   @NeverInline
   @Reified("T")
@@ -117,14 +117,14 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   override def filter(p: ((L, R)) => Boolean): Coll[(L,R)] = new CollOverArray(arr.filter(p))
   @NeverInline
   override def fold[B](zero: B, op: ((B, (L, R))) => B): B = arr.foldLeft(zero)((b, a) => op((b,a)))
-  override def slice(from: Int, until: Int): PairColl[L,R] = builder.pairCol(ls.slice(from, until), rs.slice(from, until))
+  override def slice(from: Int, until: Int): PairColl[L,R] = builder.pairColl(ls.slice(from, until), rs.slice(from, until))
   def append(other: Coll[(L, R)]): Coll[(L,R)] = {
     val arrs = builder.unzip(other)
-    builder.pairCol(ls.append(arrs._1), rs.append(arrs._2))
+    builder.pairColl(ls.append(arrs._1), rs.append(arrs._2))
   }
   @NeverInline
   override def sum(m: Monoid[(L, R)]): (L, R) = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
-  def zip[B](ys: Coll[B]): PairColl[(L,R), B] = builder.pairCol(this, ys)
+  def zip[B](ys: Coll[B]): PairColl[(L,R), B] = builder.pairColl(this, ys)
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
@@ -146,7 +146,7 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
       p => (op((p._1, value)), p._2 + 1)
     )._1
 
-  def zip[B](ys: Coll[B]): PairColl[A, B] = builder.pairCol(this, ys)
+  def zip[B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
 
   def slice(from: Int, until: Int): Coll[A] = new CReplColl(value, until - from)
 

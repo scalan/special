@@ -4,7 +4,7 @@ import scala.reflect.ClassTag
 
 object Extentions {
 
-//  implicit class ColOps[A: ClassTag](xs: Col[A]) {
+//  implicit class ColOps[A: ClassTag](xs: Coll[A]) {
 //
 //    /** Returns the length of the longest prefix whose elements all satisfy some predicate.
 //      *
@@ -57,7 +57,7 @@ object Extentions {
 //      *
 //      *  @return  A new $coll which contains the first occurrence of every element of this $coll.
 //      */
-//    def distinct: Col[A] = {
+//    def distinct: Coll[A] = {
 //      xs.unionSets(xs.builder.fromItems())
 //    }
 //
@@ -66,7 +66,7 @@ object Extentions {
 //      * @param  that    the sequence to test
 //      * @return `true` if this collection has `that` as a prefix, `false` otherwise.
 //      */
-////    def startsWith[B](that: Col[B]): Boolean = startsWith(that, 0)
+////    def startsWith[B](that: Coll[B]): Boolean = startsWith(that, 0)
 //
 //    /** Tests whether this $coll contains the given sequence at a given index.
 //      *
@@ -78,13 +78,13 @@ object Extentions {
 //      * @return `true` if the sequence `that` is contained in this $coll at
 //      *         index `offset`, otherwise `false`.
 //      */
-////    def startsWith[B](that: Col[B], offset: Int): Boolean =
+////    def startsWith[B](that: Coll[B], offset: Int): Boolean =
 //
 //    /** Tests whether this $coll ends with the given collection.
 //      *  @param  that    the collection to test
 //      *  @return `true` if this $coll has `that` as a suffix, `false` otherwise.
 //      */
-////    def endsWith(that: Col[A]): Boolean
+////    def endsWith(that: Coll[A]): Boolean
 //
 //    /** A copy of this $coll with an element value appended until a given target length is reached.
 //      *
@@ -93,7 +93,7 @@ object Extentions {
 //      *  @return a new collection consisting of all elements of this $coll followed by the minimal
 //      *          number of occurrences of `elem` so that the resulting collection has a length of at least `len`.
 //      */
-//    def padTo(len: Int, elem: A): Col[A] = {
+//    def padTo(len: Int, elem: A): Coll[A] = {
 //      if (len <= xs.length) xs
 //      else
 //        xs.append(xs.builder.replicate(len - xs.length, elem))

@@ -21,7 +21,7 @@ trait Library extends Scalan
   with CostedOptionsModule {
   import WArray._; import WOption._
   import WRType._
-  import Coll._; import ColBuilder._;
+  import Coll._; import CollBuilder._;
   import CReplColl._
   import Costed._
   import CostedFunc._;
@@ -62,7 +62,7 @@ trait Library extends Scalan
         collElement(f.elem.eRange)
       case _ => super.getResultElem(receiver, m, args)
     }
-    case b: ColBuilderElem[_] => m.getName match {
+    case b: CollBuilderElem[_] => m.getName match {
       case "apply" =>
         ReflectionUtil.overloadId(m) match {
           case Some("apply_items") =>
@@ -77,7 +77,7 @@ trait Library extends Scalan
 
   private val WA = WArrayMethods
   private val CM = CollMethods
-  private val CBM = ColBuilderMethods
+  private val CBM = CollBuilderMethods
   private val WOptionM = WOptionMethods
   private val SPCM = WSpecialPredefCompanionMethods
 

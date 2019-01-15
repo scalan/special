@@ -34,7 +34,7 @@ trait Coll[A] {
   def fold[B](zero: B, op: ((B, A)) => B): B
 
 //  /** Produces the range of all indices of this collection [0 .. size-1] */
-//  def indices: Col[Int]
+//  def indices: Coll[Int]
 //
 //  /**
 //    * Builds a new collection by applying a function to all elements of this $coll
@@ -42,10 +42,10 @@ trait Coll[A] {
 //    *
 //    * @param f the function to apply to each element.
 //    * @tparam B the element type of the returned collection.
-//    * @return a new collection of type `Col[B]` resulting from applying the given collection-valued function
+//    * @return a new collection of type `Coll[B]` resulting from applying the given collection-valued function
 //    *         `f` to each element of this $coll and concatenating the results.
 //    */
-//  def flatMap[B: ClassTag](f: A => Col[B]): Col[B]
+//  def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B]
 
 //  /** Computes length of longest segment whose elements all satisfy some predicate.
 //    *
@@ -86,7 +86,7 @@ trait Coll[A] {
 //    *              that don't. The relative order of the elements in the resulting ${coll}s
 //    *              will BE preserved (this is different from Scala's version of this method).
 //    */
-//  def partition(pred: A => Boolean): (Col[A], Col[A])
+//  def partition(pred: A => Boolean): (Coll[A], Coll[A])
 //
 //  /** Produces a new $coll where a slice of elements in this $coll is replaced by another sequence.
 //    *
@@ -96,7 +96,7 @@ trait Coll[A] {
 //    *  @return          a new $coll consisting of all elements of this $coll
 //    *                   except that `replaced` elements starting from `from` are replaced by `patch`.
 //    */
-//  def patch(from: Int, patch: Col[A], replaced: Int): Col[A]
+//  def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A]
 //
 //  /** A copy of this $coll with one single replaced element.
 //    *  @param  index  the position of the replacement
@@ -104,14 +104,14 @@ trait Coll[A] {
 //    *  @return a new $coll which is a copy of this $coll with the element at position `index` replaced by `elem`.
 //    *  @throws IndexOutOfBoundsException if `index` does not satisfy `0 <= index < length`.
 //    */
-//  def updated(index: Int, elem: A): Col[A]
+//  def updated(index: Int, elem: A): Coll[A]
 //
 //  /** Returns a copy of this collection where elements at `indexes` are replaced with `values`. */
-//  def updateMany(indexes: Col[Int], values: Col[A]): Col[A]
+//  def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A]
 //
 //  /** Apply m for each element of this collection, group by key and reduce each group using r.
 //    * @returns one item for each group in a new collection of (K,V) pairs. */
-//  def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: (V,V) => V): Col[(K,V)]
+//  def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: (V,V) => V): Coll[(K,V)]
 //
 //  /** Produces a new collection which contains all distinct elements of this $coll and also all elements of
 //    *  a given collection that are not in this collection.
@@ -122,7 +122,7 @@ trait Coll[A] {
 //    *
 //    *  @param that   the collection to add.
 //    */
-//  def unionSets(that: Col[A]): Col[A]
+//  def unionSets(that: Coll[A]): Coll[A]
 //
 //  /** Computes the multiset difference between this $coll and another sequence.
 //    *
@@ -134,7 +134,7 @@ trait Coll[A] {
 //    *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will not form
 //    *                part of the result, but any following occurrences will.
 //    */
-//  def diff(that: Col[A]): Col[A]
+//  def diff(that: Coll[A]): Coll[A]
 //
 //  /** Computes the multiset intersection between this $coll and another sequence.
 //    *
@@ -145,7 +145,7 @@ trait Coll[A] {
 //    *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will be retained
 //    *                in the result, but any following occurrences will be omitted.
 //    */
-//  def intersect(that: Col[A]): Col[A]
+//  def intersect(that: Coll[A]): Coll[A]
 //
   def sum(m: Monoid[A]): A
 
@@ -182,7 +182,7 @@ trait ReplColl[A] extends Coll[A] {
 
 @scalan.Liftable
 trait CollBuilder {
-  def pairCol[A,B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
+  def pairColl[A,B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
 
   @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T]
 
