@@ -8,10 +8,10 @@ import scalan.util.BenchmarkUtil._
 class ColsTests extends WrappersTests {
   class Ctx extends TestContext with Library {
     import WArray._
-    import ColOverArray._
+    import CollOverArray._
     import ColOverArrayBuilder._
     lazy val t2 = fun { (xs: Rep[WArray[Double]]) =>
-      val c = RColOverArray(xs)
+      val c = RCollOverArray(xs)
       c.map(fun { x => x + 1.0 })
     }
     lazy val t3 = fun { (x: Rep[Int]) =>
@@ -23,7 +23,7 @@ class ColsTests extends WrappersTests {
   test("Col methods") {
     val ctx = new Ctx {
       import WArray._
-      import ColOverArray._
+      import CollOverArray._
       import ColOverArrayBuilder._
       val M = WArrayMethods; val C = WArrayCompanionMethods
       def test() = {
@@ -41,7 +41,7 @@ class ColsTests extends WrappersTests {
       useAlphaEquality = false
     }
     import ctx._
-    import Col._
+    import Coll._
     import ColBuilder._
     import ColOverArrayBuilder._
 
@@ -67,7 +67,7 @@ class ColsTests extends WrappersTests {
           useAlphaEquality = false
         }
         import ctx._
-        import Col._
+        import Coll._
         import ColBuilder._
         import ColOverArrayBuilder._
         val colBuilder: Rep[ColBuilder] = RColOverArrayBuilder()
@@ -91,7 +91,7 @@ class ColsTests extends WrappersTests {
         unfoldWithOriginalFunc = unfoldWithOrig
       }
       import ctx._
-      import Col._
+      import Coll._
       import ColBuilder._
       import ColOverArrayBuilder._
       var outGraph: Sym = null
@@ -113,7 +113,7 @@ class ColsTests extends WrappersTests {
         unfoldWithOriginalFunc = unfoldWithOrig
       }
       import ctx._
-      import Col._
+      import Coll._
       import ColBuilder._
       import ColOverArrayBuilder._
       var outGraph: Sym = null
@@ -148,11 +148,11 @@ class ColsTests extends WrappersTests {
       keepOriginalFunc = false
     }
     import ctx._
-    import Col._
+    import Coll._
     import WArray._
-    import ColOverArray._
-    val f = fun { col: Rep[Col[Int]] =>  col.length }
-    val g = fun { arr: Rep[WArray[Int]] => f(RColOverArray(arr)) }
+    import CollOverArray._
+    val f = fun { col: Rep[Coll[Int]] =>  col.length }
+    val g = fun { arr: Rep[WArray[Int]] => f(RCollOverArray(arr)) }
     val exp = fun { arr: Rep[WArray[Int]] => arr.length }
     emit("graphs", f, g, exp)
     g shouldBe exp
@@ -163,7 +163,7 @@ class ColsTests extends WrappersTests {
     import ctx._
     import Liftables._
     import WArray._
-    import Col._
+    import Coll._
     import ColBuilder._
     import EnvRep._
 
@@ -171,10 +171,10 @@ class ColsTests extends WrappersTests {
     val arr = Array(1, 2, 3)
     val col = Cols.fromArray(arr)
 
-    check(col, { env: EnvRep[Col[Int]] => for {xs <- env; arg <- lifted(2) } yield xs.apply(arg) }, col.apply(2))
+    check(col, { env: EnvRep[Coll[Int]] => for {xs <- env; arg <- lifted(2) } yield xs.apply(arg) }, col.apply(2))
 
     val inc = (x: Int) => x + 1
-    check(col, { env: EnvRep[Col[Int]] => for { xs <- env; incL <- lifted(inc) } yield xs.map(incL) }, col.map(inc))
+    check(col, { env: EnvRep[Coll[Int]] => for { xs <- env; incL <- lifted(inc) } yield xs.map(incL) }, col.map(inc))
 
     check(Cols, { env: EnvRep[ColBuilder] => for { b <- env; arrL <- lifted(arr) } yield b.fromArray(arrL) }, Cols.fromArray(arr))
 
@@ -190,14 +190,14 @@ class ColsTests extends WrappersTests {
     import ctx._
     import Liftables._
     import WArray._
-    import Col._
+    import Coll._
     import ColBuilder._
-    import CReplCol._
+    import CReplColl._
     import EnvRep._
 
     val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
     val colData = Cols.replicate(10, 10)
-    val colSym = RCReplCol(10, 10)
+    val colSym = RCReplColl(10, 10)
     val resSym = colSym.append(colSym)
     val resData = colData.append(colData)
     val env = Map[Sym, AnyRef]()

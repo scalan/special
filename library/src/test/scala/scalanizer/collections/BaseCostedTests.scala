@@ -4,7 +4,7 @@ import scalan.{Lazy, BaseCtxTests, Library}
 
 class BaseCostedTests extends BaseCtxTests {
   class Ctx extends TestContext with Library {
-    import ColOverArrayBuilder._; import Col._; import ReplCol._; import WArray._;
+    import ColOverArrayBuilder._; import Coll._; import ReplColl._; import WArray._;
     import Costed._; import CostedPrim._; import CostedPair._
 
 //    def plus(x: Rep[Int], n: Int) = {

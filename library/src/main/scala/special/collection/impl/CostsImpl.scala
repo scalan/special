@@ -10,7 +10,7 @@ trait CostsDefs extends scalan.Scalan with Costs {
   self: Library =>
 import IsoUR._
 import Converter._
-import Col._
+import Coll._
 import Costed._
 import CostedBuilder._
 import CostedCol._
@@ -778,30 +778,30 @@ object CostedCol extends EntityObject("CostedCol") {
   case class CostedColAdapter[Item](source: Rep[CostedCol[Item]])
       extends CostedCol[Item] with Def[CostedCol[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
-    override lazy val eVal: Elem[Col[Item]] = implicitly[Elem[Col[Item]]]
+    override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
     val selfType: Elem[CostedCol[Item]] = element[CostedCol[Item]]
     override def transform(t: Transformer) = CostedColAdapter[Item](t(source))
     private val thisClass = classOf[CostedCol[Item]]
 
-    def values: Rep[Col[Item]] = {
-      asRep[Col[Item]](mkMethodCall(source,
+    def values: Rep[Coll[Item]] = {
+      asRep[Coll[Item]](mkMethodCall(source,
         thisClass.getMethod("values"),
         List(),
-        true, true, element[Col[Item]]))
+        true, true, element[Coll[Item]]))
     }
 
-    def costs: Rep[Col[Int]] = {
-      asRep[Col[Int]](mkMethodCall(source,
+    def costs: Rep[Coll[Int]] = {
+      asRep[Coll[Int]](mkMethodCall(source,
         thisClass.getMethod("costs"),
         List(),
-        true, true, element[Col[Int]]))
+        true, true, element[Coll[Int]]))
     }
 
-    def sizes: Rep[Col[Long]] = {
-      asRep[Col[Long]](mkMethodCall(source,
+    def sizes: Rep[Coll[Long]] = {
+      asRep[Coll[Long]](mkMethodCall(source,
         thisClass.getMethod("sizes"),
         List(),
-        true, true, element[Col[Long]]))
+        true, true, element[Coll[Long]]))
     }
 
     def valuesCost: Rep[Int] = {
@@ -841,11 +841,11 @@ object CostedCol extends EntityObject("CostedCol") {
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[Col[Item]] = {
-      asRep[Col[Item]](mkMethodCall(source,
+    def value: Rep[Coll[Item]] = {
+      asRep[Coll[Item]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, true, element[Col[Item]]))
+        true, true, element[Coll[Item]]))
     }
 
     def cost: Rep[Int] = {
@@ -872,10 +872,10 @@ object CostedCol extends EntityObject("CostedCol") {
 
   // familyElem
   class CostedColElem[Item, To <: CostedCol[Item]](implicit _eItem: Elem[Item])
-    extends CostedElem[Col[Item], To] {
+    extends CostedElem[Coll[Item], To] {
     def eItem = _eItem
 
-    override lazy val parent: Option[Elem[_]] = Some(costedElement(colElement(element[Item])))
+    override lazy val parent: Option[Elem[_]] = Some(costedElement(collElement(element[Item])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagItem = eItem.tag
@@ -1018,23 +1018,23 @@ object CostedPairCol extends EntityObject("CostedPairCol") {
       extends CostedPairCol[L, R] with Def[CostedPairCol[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
-    override lazy val eVal: Elem[Col[(L, R)]] = implicitly[Elem[Col[(L, R)]]]
+    override lazy val eVal: Elem[Coll[(L, R)]] = implicitly[Elem[Coll[(L, R)]]]
     val selfType: Elem[CostedPairCol[L, R]] = element[CostedPairCol[L, R]]
     override def transform(t: Transformer) = CostedPairColAdapter[L, R](t(source))
     private val thisClass = classOf[CostedPairCol[L, R]]
 
-    def ls: Rep[Costed[Col[L]]] = {
-      asRep[Costed[Col[L]]](mkMethodCall(source,
+    def ls: Rep[Costed[Coll[L]]] = {
+      asRep[Costed[Coll[L]]](mkMethodCall(source,
         thisClass.getMethod("ls"),
         List(),
-        true, true, element[Costed[Col[L]]]))
+        true, true, element[Costed[Coll[L]]]))
     }
 
-    def rs: Rep[Costed[Col[R]]] = {
-      asRep[Costed[Col[R]]](mkMethodCall(source,
+    def rs: Rep[Costed[Coll[R]]] = {
+      asRep[Costed[Coll[R]]](mkMethodCall(source,
         thisClass.getMethod("rs"),
         List(),
-        true, true, element[Costed[Col[R]]]))
+        true, true, element[Costed[Coll[R]]]))
     }
 
     def builder: Rep[CostedBuilder] = {
@@ -1044,11 +1044,11 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[Col[(L, R)]] = {
-      asRep[Col[(L, R)]](mkMethodCall(source,
+    def value: Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, true, element[Col[(L, R)]]))
+        true, true, element[Coll[(L, R)]]))
     }
 
     def cost: Rep[Int] = {
@@ -1075,11 +1075,11 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
   // familyElem
   class CostedPairColElem[L, R, To <: CostedPairCol[L, R]](implicit _eL: Elem[L], _eR: Elem[R])
-    extends CostedElem[Col[(L, R)], To] {
+    extends CostedElem[Coll[(L, R)], To] {
     def eL = _eL
     def eR = _eR
 
-    override lazy val parent: Option[Elem[_]] = Some(costedElement(colElement(pairElement(element[L],element[R]))))
+    override lazy val parent: Option[Elem[_]] = Some(costedElement(collElement(pairElement(element[L],element[R]))))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagL = eL.tag
@@ -1157,16 +1157,16 @@ object CostedNestedCol extends EntityObject("CostedNestedCol") {
   case class CostedNestedColAdapter[Item](source: Rep[CostedNestedCol[Item]])
       extends CostedNestedCol[Item] with Def[CostedNestedCol[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
-    override lazy val eVal: Elem[Col[Col[Item]]] = implicitly[Elem[Col[Col[Item]]]]
+    override lazy val eVal: Elem[Coll[Coll[Item]]] = implicitly[Elem[Coll[Coll[Item]]]]
     val selfType: Elem[CostedNestedCol[Item]] = element[CostedNestedCol[Item]]
     override def transform(t: Transformer) = CostedNestedColAdapter[Item](t(source))
     private val thisClass = classOf[CostedNestedCol[Item]]
 
-    def rows: Rep[Col[Costed[Col[Item]]]] = {
-      asRep[Col[Costed[Col[Item]]]](mkMethodCall(source,
+    def rows: Rep[Coll[Costed[Coll[Item]]]] = {
+      asRep[Coll[Costed[Coll[Item]]]](mkMethodCall(source,
         thisClass.getMethod("rows"),
         List(),
-        true, true, element[Col[Costed[Col[Item]]]]))
+        true, true, element[Coll[Costed[Coll[Item]]]]))
     }
 
     def builder: Rep[CostedBuilder] = {
@@ -1176,11 +1176,11 @@ object CostedNestedCol extends EntityObject("CostedNestedCol") {
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[Col[Col[Item]]] = {
-      asRep[Col[Col[Item]]](mkMethodCall(source,
+    def value: Rep[Coll[Coll[Item]]] = {
+      asRep[Coll[Coll[Item]]](mkMethodCall(source,
         thisClass.getMethod("value"),
         List(),
-        true, true, element[Col[Col[Item]]]))
+        true, true, element[Coll[Coll[Item]]]))
     }
 
     def cost: Rep[Int] = {
@@ -1207,10 +1207,10 @@ object CostedNestedCol extends EntityObject("CostedNestedCol") {
 
   // familyElem
   class CostedNestedColElem[Item, To <: CostedNestedCol[Item]](implicit _eItem: Elem[Item])
-    extends CostedElem[Col[Col[Item]], To] {
+    extends CostedElem[Coll[Coll[Item]], To] {
     def eItem = _eItem
 
-    override lazy val parent: Option[Elem[_]] = Some(costedElement(colElement(colElement(element[Item]))))
+    override lazy val parent: Option[Elem[_]] = Some(costedElement(collElement(collElement(element[Item]))))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagItem = eItem.tag
@@ -1596,7 +1596,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
         true, true, element[CostedFunc[Env, Arg, Res]]))
     }
 
-    def mkCostedCol[T](values: Rep[Col[T]], costs: Rep[Col[Int]], sizes: Rep[Col[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]] = {
+    def mkCostedCol[T](values: Rep[Coll[T]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]] = {
       implicit val eT = values.eA
       asRep[CostedCol[T]](mkMethodCall(source,
         thisClass.getMethod("mkCostedCol", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
@@ -1604,7 +1604,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
         true, true, element[CostedCol[T]]))
     }
 
-    def mkCostedPairCol[L, R](ls: Rep[Costed[Col[L]]], rs: Rep[Costed[Col[R]]]): Rep[CostedPairCol[L, R]] = {
+    def mkCostedPairCol[L, R](ls: Rep[Costed[Coll[L]]], rs: Rep[Costed[Coll[R]]]): Rep[CostedPairCol[L, R]] = {
       implicit val eL = ls.eVal.typeArgs("A")._1.asElem[L]
 implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
       asRep[CostedPairCol[L, R]](mkMethodCall(source,
@@ -1613,8 +1613,8 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
         true, true, element[CostedPairCol[L, R]]))
     }
 
-    def mkCostedNestedCol[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CostedNestedCol[Item]] = {
-      implicit val eItem = rows.eA.typeArgs("Val")._1.asElem[Col[Item]].typeArgs("A")._1.asElem[Item]
+    def mkCostedNestedCol[Item](rows: Rep[Coll[Costed[Coll[Item]]]]): Rep[CostedNestedCol[Item]] = {
+      implicit val eItem = rows.eA.typeArgs("Val")._1.asElem[Coll[Item]].typeArgs("A")._1.asElem[Item]
       asRep[CostedNestedCol[Item]](mkMethodCall(source,
         thisClass.getMethod("mkCostedNestedCol", classOf[Sym]),
         List(rows),
@@ -1838,39 +1838,39 @@ implicit val eR = rs.eVal.typeArgs("A")._1.asElem[R]
     }
 
     object mkCostedCol {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Col[T]], Rep[Col[Int]], Rep[Col[Long]], Rep[Int]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Long]], Rep[Int]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedCol" =>
           val res = (receiver, args(0), args(1), args(2), args(3))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Col[T]], Rep[Col[Int]], Rep[Col[Long]], Rep[Int]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Long]], Rep[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Col[T]], Rep[Col[Int]], Rep[Col[Long]], Rep[Int]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Long]], Rep[Int]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object mkCostedPairCol {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Costed[Col[L]]], Rep[Costed[Col[R]]]) forSome {type L; type R}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Costed[Coll[L]]], Rep[Costed[Coll[R]]]) forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedPairCol" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Costed[Col[L]]], Rep[Costed[Col[R]]]) forSome {type L; type R}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Costed[Coll[L]]], Rep[Costed[Coll[R]]]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Costed[Col[L]]], Rep[Costed[Col[R]]]) forSome {type L; type R}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Costed[Coll[L]]], Rep[Costed[Coll[R]]]) forSome {type L; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object mkCostedNestedCol {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Col[Costed[Col[Item]]]]) forSome {type Item}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Coll[Costed[Coll[Item]]]]) forSome {type Item}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedNestedCol" =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Col[Costed[Col[Item]]]]) forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Coll[Costed[Coll[Item]]]]) forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Col[Costed[Col[Item]]]]) forSome {type Item}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Coll[Costed[Coll[Item]]]]) forSome {type Item}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

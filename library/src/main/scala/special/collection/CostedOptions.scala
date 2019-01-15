@@ -42,7 +42,9 @@ package special.collection {
     };
     abstract class CCostedOption[T](val value: Rep[WOption[T]], val costOpt: Rep[WOption[Int]], val sizeOpt: Rep[WOption[Long]], val accumulatedCost: Rep[Int]) extends CostedOption[T] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
+      // manual fix
       def cost: Rep[Int] = CCostedOption.this.accumulatedCost.+(CCostedOption.this.costOpt.getOrElse[Int](Thunk(toRep(0.asInstanceOf[Int]))));
+      // manual fix
       def dataSize: Rep[Long] = CCostedOption.this.sizeOpt.getOrElse[Long](Thunk(toRep(0L.asInstanceOf[Long])));
       def get: Rep[Costed[T]] = CCostedOption.this.builder.mkCostedPrim[T](CCostedOption.this.value.get, CCostedOption.this.cost, CCostedOption.this.dataSize);
       def getOrElse(default: Rep[Costed[T]]): Rep[Costed[T]] = {

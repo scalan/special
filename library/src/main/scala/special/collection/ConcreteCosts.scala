@@ -11,7 +11,7 @@ package special.collection {
     import CCostedPairCol._;
     import CCostedPrim._;
     import CCostedSum._;
-    import Col._;
+    import Coll._;
     import Costed._;
     import CostedBuilder._;
     import CostedCol._;
@@ -27,7 +27,7 @@ package special.collection {
     import Monoid._;
     import MonoidBuilder._;
     import MonoidBuilderInst._;
-    import PairCol._;
+    import PairColl._;
     import WEither._;
     import WOption._;
     import WRType._;
@@ -49,24 +49,24 @@ package special.collection {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       @NeverInline def value: Rep[scala.Function1[Arg, Res]] = delayInvoke
     };
-    abstract class CCostedCol[Item](val values: Rep[Col[Item]], val costs: Rep[Col[Int]], val sizes: Rep[Col[Long]], val valuesCost: Rep[Int]) extends CostedCol[Item] {
+    abstract class CCostedCol[Item](val values: Rep[Coll[Item]], val costs: Rep[Coll[Int]], val sizes: Rep[Coll[Long]], val valuesCost: Rep[Int]) extends CostedCol[Item] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      def value: Rep[Col[Item]] = CCostedCol.this.values;
+      def value: Rep[Coll[Item]] = CCostedCol.this.values;
       def cost: Rep[Int] = CCostedCol.this.valuesCost.+(CCostedCol.this.costs.sum(CCostedCol.this.builder.monoidBuilder.intPlusMonoid));
       def dataSize: Rep[Long] = CCostedCol.this.sizes.sum(CCostedCol.this.builder.monoidBuilder.longPlusMonoid);
       @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedCol[Res]] = delayInvoke;
       @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedCol[Item]] = delayInvoke;
       @NeverInline def foldCosted[B](zero: Rep[Costed[B]], op: Rep[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Rep[Costed[B]] = delayInvoke
     };
-    abstract class CCostedPairCol[L, R](val ls: Rep[Costed[Col[L]]], val rs: Rep[Costed[Col[R]]]) extends CostedPairCol[L, R] {
+    abstract class CCostedPairCol[L, R](val ls: Rep[Costed[Coll[L]]], val rs: Rep[Costed[Coll[R]]]) extends CostedPairCol[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      def value: Rep[Col[scala.Tuple2[L, R]]] = CCostedPairCol.this.ls.value.zip[R](CCostedPairCol.this.rs.value);
+      def value: Rep[Coll[scala.Tuple2[L, R]]] = CCostedPairCol.this.ls.value.zip[R](CCostedPairCol.this.rs.value);
       def cost: Rep[Int] = CCostedPairCol.this.ls.cost.+(CCostedPairCol.this.rs.cost).+(CCostedPairCol.this.builder.ConstructTupleCost);
       def dataSize: Rep[Long] = CCostedPairCol.this.ls.dataSize.+(CCostedPairCol.this.rs.dataSize)
     };
-    abstract class CCostedNestedCol[Item](val rows: Rep[Col[Costed[Col[Item]]]]) extends CostedNestedCol[Item] {
+    abstract class CCostedNestedCol[Item](val rows: Rep[Coll[Costed[Coll[Item]]]]) extends CostedNestedCol[Item] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      @NeverInline def value: Rep[Col[Col[Item]]] = delayInvoke;
+      @NeverInline def value: Rep[Coll[Coll[Item]]] = delayInvoke;
       @NeverInline def cost: Rep[Int] = delayInvoke;
       @NeverInline def dataSize: Rep[Long] = delayInvoke
     };
@@ -78,9 +78,9 @@ package special.collection {
       def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]] = RCCostedPair(first, second);
       def mkCostedSum[L, R](value: Rep[WEither[L, R]], left: Rep[Costed[Unit]], right: Rep[Costed[Unit]]): Rep[CostedSum[L, R]] = RCCostedSum(value, left, right);
       def mkCostedFunc[Env, Arg, Res](envCosted: Rep[Costed[Env]], func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], cost: Rep[Int], dataSize: Rep[Long]): Rep[CostedFunc[Env, Arg, Res]] = RCCostedFunc(envCosted, func, cost, dataSize);
-      def mkCostedCol[T](values: Rep[Col[T]], costs: Rep[Col[Int]], sizes: Rep[Col[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]] = RCCostedCol(values, costs, sizes, valuesCost);
-      def mkCostedPairCol[L, R](ls: Rep[Costed[Col[L]]], rs: Rep[Costed[Col[R]]]): Rep[CostedPairCol[L, R]] = RCCostedPairCol(ls, rs);
-      def mkCostedNestedCol[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CostedNestedCol[Item]] = RCCostedNestedCol(rows);
+      def mkCostedCol[T](values: Rep[Coll[T]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]] = RCCostedCol(values, costs, sizes, valuesCost);
+      def mkCostedPairCol[L, R](ls: Rep[Costed[Coll[L]]], rs: Rep[Costed[Coll[R]]]): Rep[CostedPairCol[L, R]] = RCCostedPairCol(ls, rs);
+      def mkCostedNestedCol[Item](rows: Rep[Coll[Costed[Coll[Item]]]]): Rep[CostedNestedCol[Item]] = RCCostedNestedCol(rows);
       def mkCostedSome[T](costedValue: Rep[Costed[T]]): Rep[CostedOption[T]] = RCostedSome(costedValue);
       def mkCostedNone[T](cost: Rep[Int])(implicit eT: Elem[T]): Rep[CostedOption[T]] = RCostedNone(cost);
       def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Long]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]] = RCCostedOption(value, costOpt, sizeOpt, accumulatedCost)

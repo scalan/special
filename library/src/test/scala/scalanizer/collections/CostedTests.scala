@@ -9,7 +9,7 @@ class CostedTests extends BaseCostedTests {
   lazy val ctx = new Ctx { }
   import ctx._
   import WArray._
-  import ColOverArray._
+  import CollOverArray._
   import ColOverArrayBuilder._
 
   def buildGraph[T](nIters: Int, name: String)(action: Int => Rep[T]) = {

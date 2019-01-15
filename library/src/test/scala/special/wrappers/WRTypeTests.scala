@@ -9,7 +9,7 @@ class WRTypeTests extends WrappersTests {
 
   lazy val ctx = new WrappersCtx
   import ctx._
-  import Col._
+  import Coll._
   import WRType._
   import EnvRep._
   import Liftables._
@@ -23,7 +23,7 @@ class WRTypeTests extends WrappersTests {
     val eInt: Elem[Int] = RType.IntType
     eInt shouldBe IntElement
 
-    val ePair: Elem[(Int, Col[Byte])] = RType[(Int, SCol[Byte])]
-    ePair shouldBe element[(Int, Col[Byte])]
+    val ePair: Elem[(Int, Coll[Byte])] = RType[(Int, SColl[Byte])]
+    ePair shouldBe element[(Int, Coll[Byte])]
   }
 }

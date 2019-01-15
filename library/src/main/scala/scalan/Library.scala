@@ -12,8 +12,8 @@ import scalan.util.ReflectionUtil
 trait Library extends Scalan
   with WrappersModule
   with WrappersSpecModule
-  with ColsModule
-  with ColsOverArraysModule
+  with CollsModule
+  with CollsOverArraysModule
   with CostsModule
   with ConcreteCostsModule
   with MonoidsModule
@@ -21,8 +21,8 @@ trait Library extends Scalan
   with CostedOptionsModule {
   import WArray._; import WOption._
   import WRType._
-  import Col._; import ColBuilder._;
-  import CReplCol._
+  import Coll._; import ColBuilder._;
+  import CReplColl._
   import Costed._
   import CostedFunc._;
   import WSpecialPredef._
@@ -56,10 +56,10 @@ trait Library extends Scalan
         wArrayElement(f.elem.eRange)
       case _ => super.getResultElem(receiver, m, args)
     }
-    case ce: ColElem[a, _] => m.getName match {
+    case ce: CollElem[a, _] => m.getName match {
       case "map" =>
         val f = args(0).asInstanceOf[Rep[a => Any]]
-        colElement(f.elem.eRange)
+        collElement(f.elem.eRange)
       case _ => super.getResultElem(receiver, m, args)
     }
     case b: ColBuilderElem[_] => m.getName match {
@@ -67,7 +67,7 @@ trait Library extends Scalan
         ReflectionUtil.overloadId(m) match {
           case Some("apply_items") =>
             val eItem = args(0).asInstanceOf[Seq[Sym]](0).elem
-            colElement(eItem)
+            collElement(eItem)
           case _ => super.getResultElem(receiver, m, args)
         }
       case _ => super.getResultElem(receiver, m, args)
@@ -76,7 +76,7 @@ trait Library extends Scalan
   }
 
   private val WA = WArrayMethods
-  private val CM = ColMethods
+  private val CM = CollMethods
   private val CBM = ColBuilderMethods
   private val WOptionM = WOptionMethods
   private val SPCM = WSpecialPredefCompanionMethods
@@ -135,13 +135,13 @@ trait Library extends Scalan
       xs.map(fun { x: Rep[a] => g(f(x)) })
     case CM.map(CM.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
       implicit val ea = f.elem.eDom
-      val xs = _xs.asRep[Col[a]]
+      val xs = _xs.asRep[Coll[a]]
       val g  = _g.asRep[b => c]
       xs.map(fun { x: Rep[a] => g(f(x)) })
 
     case CM.map(xs, Def(IdentityLambda())) => xs
     case CM.map(xs, Def(ConstantLambda(res))) =>
-      RCReplCol(res, xs.length)
+      RCReplColl(res, xs.length)
     case CM.sum(CBM.replicate(_, n, x: Rep[Int] @unchecked), Def(_: IntPlusMonoid)) =>
       x * n
     case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>
@@ -154,8 +154,8 @@ trait Library extends Scalan
   }
 
   override def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef = e match {
-    case _: ColElem[_,_] => mc match {
-      case ColMethods.map(xs, f) =>
+    case _: CollElem[_,_] => mc match {
+      case CollMethods.map(xs, f) =>
         val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
         super.invokeUnlifted(e, newMC, dataEnv)
       case _ =>

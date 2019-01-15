@@ -19,7 +19,7 @@ import CCostedPair._
 import CCostedPairCol._
 import CCostedPrim._
 import CCostedSum._
-import Col._
+import Coll._
 import Costed._
 import CostedBuilder._
 import CostedCol._
@@ -35,7 +35,7 @@ import CostedSum._
 import Monoid._
 import MonoidBuilder._
 import MonoidBuilderInst._
-import PairCol._
+import PairColl._
 import WEither._
 import WOption._
 import WRType._
@@ -677,10 +677,10 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
 
 object CCostedCol extends EntityObject("CCostedCol") {
   case class CCostedColCtor[Item]
-      (override val values: Rep[Col[Item]], override val costs: Rep[Col[Int]], override val sizes: Rep[Col[Long]], override val valuesCost: Rep[Int])
+      (override val values: Rep[Coll[Item]], override val costs: Rep[Coll[Int]], override val sizes: Rep[Coll[Long]], override val valuesCost: Rep[Int])
     extends CCostedCol[Item](values, costs, sizes, valuesCost) with Def[CCostedCol[Item]] {
     implicit lazy val eItem = values.eA
-    override lazy val eVal: Elem[Col[Item]] = implicitly[Elem[Col[Item]]]
+    override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
     lazy val selfType = element[CCostedCol[Item]]
     override def transform(t: Transformer) = CCostedColCtor[Item](t(values), t(costs), t(sizes), t(valuesCost))
     private val thisClass = classOf[CostedCol[_]]
@@ -715,7 +715,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
     override lazy val parent: Option[Elem[_]] = Some(costedColElement(element[Item]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override def convertCostedCol(x: Rep[CostedCol[Item]]) = RCCostedCol(x.values, x.costs, x.sizes, x.valuesCost)
-    override def getDefaultRep = RCCostedCol(element[Col[Item]].defaultRepValue, element[Col[Int]].defaultRepValue, element[Col[Long]].defaultRepValue, 0)
+    override def getDefaultRep = RCCostedCol(element[Coll[Item]].defaultRepValue, element[Coll[Int]].defaultRepValue, element[Coll[Long]].defaultRepValue, 0)
     override lazy val tag = {
       implicit val tagItem = eItem.tag
       weakTypeTag[CCostedCol[Item]]
@@ -723,7 +723,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
   }
 
   // state representation type
-  type CCostedColData[Item] = (Col[Item], (Col[Int], (Col[Long], Int)))
+  type CCostedColData[Item] = (Coll[Item], (Coll[Int], (Coll[Long], Int)))
 
   // 3) Iso for concrete class
   class CCostedColIso[Item](implicit eItem: Elem[Item])
@@ -731,12 +731,12 @@ object CCostedCol extends EntityObject("CCostedCol") {
     override def transform(t: Transformer) = new CCostedColIso[Item]()(eItem)
     private lazy val _safeFrom = fun { p: Rep[CCostedCol[Item]] => (p.values, p.costs, p.sizes, p.valuesCost) }
     override def from(p: Rep[CCostedCol[Item]]) =
-      tryConvert[CCostedCol[Item], (Col[Item], (Col[Int], (Col[Long], Int)))](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Col[Item], (Col[Int], (Col[Long], Int)))]) = {
+      tryConvert[CCostedCol[Item], (Coll[Item], (Coll[Int], (Coll[Long], Int)))](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[(Coll[Item], (Coll[Int], (Coll[Long], Int)))]) = {
       val Pair(values, Pair(costs, Pair(sizes, valuesCost))) = p
       RCCostedCol(values, costs, sizes, valuesCost)
     }
-    lazy val eFrom = pairElement(element[Col[Item]], pairElement(element[Col[Int]], pairElement(element[Col[Long]], element[Int])))
+    lazy val eFrom = pairElement(element[Coll[Item]], pairElement(element[Coll[Int]], pairElement(element[Coll[Long]], element[Int])))
     lazy val eTo = new CCostedColElem[Item](self)
     lazy val selfType = new CCostedColIsoElem[Item](eItem)
     def productArity = 1
@@ -761,7 +761,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[Item](values: Rep[Col[Item]], costs: Rep[Col[Int]], sizes: Rep[Col[Long]], valuesCost: Rep[Int]): Rep[CCostedCol[Item]] =
+    def apply[Item](values: Rep[Coll[Item]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Long]], valuesCost: Rep[Int]): Rep[CCostedCol[Item]] =
       mkCCostedCol(values, costs, sizes, valuesCost)
 
     def unapply[Item](p: Rep[CostedCol[Item]]) = unmkCCostedCol(p)
@@ -795,7 +795,7 @@ object CCostedCol extends EntityObject("CCostedCol") {
     reifyObject(new CCostedColIso[Item]()(eItem))
 
   def mkCCostedCol[Item]
-    (values: Rep[Col[Item]], costs: Rep[Col[Int]], sizes: Rep[Col[Long]], valuesCost: Rep[Int]): Rep[CCostedCol[Item]] = {
+    (values: Rep[Coll[Item]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Long]], valuesCost: Rep[Int]): Rep[CCostedCol[Item]] = {
     new CCostedColCtor[Item](values, costs, sizes, valuesCost)
   }
   def unmkCCostedCol[Item](p: Rep[CostedCol[Item]]) = p.elem.asInstanceOf[Elem[_]] match {
@@ -905,11 +905,11 @@ object CCostedCol extends EntityObject("CCostedCol") {
 
 object CCostedPairCol extends EntityObject("CCostedPairCol") {
   case class CCostedPairColCtor[L, R]
-      (override val ls: Rep[Costed[Col[L]]], override val rs: Rep[Costed[Col[R]]])
+      (override val ls: Rep[Costed[Coll[L]]], override val rs: Rep[Costed[Coll[R]]])
     extends CCostedPairCol[L, R](ls, rs) with Def[CCostedPairCol[L, R]] {
     implicit lazy val eL = ls.eVal.typeArgs("A")._1.asElem[L];
 implicit lazy val eR = rs.eVal.typeArgs("A")._1.asElem[R]
-    override lazy val eVal: Elem[Col[(L, R)]] = implicitly[Elem[Col[(L, R)]]]
+    override lazy val eVal: Elem[Coll[(L, R)]] = implicitly[Elem[Coll[(L, R)]]]
     lazy val selfType = element[CCostedPairCol[L, R]]
     override def transform(t: Transformer) = CCostedPairColCtor[L, R](t(ls), t(rs))
   }
@@ -920,7 +920,7 @@ implicit lazy val eR = rs.eVal.typeArgs("A")._1.asElem[R]
     override lazy val parent: Option[Elem[_]] = Some(costedPairColElement(element[L], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
     override def convertCostedPairCol(x: Rep[CostedPairCol[L, R]]) = RCCostedPairCol(x.ls, x.rs)
-    override def getDefaultRep = RCCostedPairCol(element[Costed[Col[L]]].defaultRepValue, element[Costed[Col[R]]].defaultRepValue)
+    override def getDefaultRep = RCCostedPairCol(element[Costed[Coll[L]]].defaultRepValue, element[Costed[Coll[R]]].defaultRepValue)
     override lazy val tag = {
       implicit val tagL = eL.tag
       implicit val tagR = eR.tag
@@ -929,7 +929,7 @@ implicit lazy val eR = rs.eVal.typeArgs("A")._1.asElem[R]
   }
 
   // state representation type
-  type CCostedPairColData[L, R] = (Costed[Col[L]], Costed[Col[R]])
+  type CCostedPairColData[L, R] = (Costed[Coll[L]], Costed[Coll[R]])
 
   // 3) Iso for concrete class
   class CCostedPairColIso[L, R](implicit eL: Elem[L], eR: Elem[R])
@@ -937,12 +937,12 @@ implicit lazy val eR = rs.eVal.typeArgs("A")._1.asElem[R]
     override def transform(t: Transformer) = new CCostedPairColIso[L, R]()(eL, eR)
     private lazy val _safeFrom = fun { p: Rep[CCostedPairCol[L, R]] => (p.ls, p.rs) }
     override def from(p: Rep[CCostedPairCol[L, R]]) =
-      tryConvert[CCostedPairCol[L, R], (Costed[Col[L]], Costed[Col[R]])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Costed[Col[L]], Costed[Col[R]])]) = {
+      tryConvert[CCostedPairCol[L, R], (Costed[Coll[L]], Costed[Coll[R]])](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[(Costed[Coll[L]], Costed[Coll[R]])]) = {
       val Pair(ls, rs) = p
       RCCostedPairCol(ls, rs)
     }
-    lazy val eFrom = pairElement(element[Costed[Col[L]]], element[Costed[Col[R]]])
+    lazy val eFrom = pairElement(element[Costed[Coll[L]]], element[Costed[Coll[R]]])
     lazy val eTo = new CCostedPairColElem[L, R](self)
     lazy val selfType = new CCostedPairColIsoElem[L, R](eL, eR)
     def productArity = 2
@@ -972,7 +972,7 @@ implicit val eR = p._2.eVal.typeArgs("A")._1.asElem[R]
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[L, R](ls: Rep[Costed[Col[L]]], rs: Rep[Costed[Col[R]]]): Rep[CCostedPairCol[L, R]] =
+    def apply[L, R](ls: Rep[Costed[Coll[L]]], rs: Rep[Costed[Coll[R]]]): Rep[CCostedPairCol[L, R]] =
       mkCCostedPairCol(ls, rs)
 
     def unapply[L, R](p: Rep[CostedPairCol[L, R]]) = unmkCCostedPairCol(p)
@@ -1007,7 +1007,7 @@ implicit val eR = p.rs.eVal.typeArgs("A")._1.asElem[R]
     reifyObject(new CCostedPairColIso[L, R]()(eL, eR))
 
   def mkCCostedPairCol[L, R]
-    (ls: Rep[Costed[Col[L]]], rs: Rep[Costed[Col[R]]]): Rep[CCostedPairCol[L, R]] = {
+    (ls: Rep[Costed[Coll[L]]], rs: Rep[Costed[Coll[R]]]): Rep[CCostedPairCol[L, R]] = {
     new CCostedPairColCtor[L, R](ls, rs)
   }
   def unmkCCostedPairCol[L, R](p: Rep[CostedPairCol[L, R]]) = p.elem.asInstanceOf[Elem[_]] match {
@@ -1078,19 +1078,19 @@ implicit val eR = p.rs.eVal.typeArgs("A")._1.asElem[R]
 
 object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
   case class CCostedNestedColCtor[Item]
-      (override val rows: Rep[Col[Costed[Col[Item]]]])
+      (override val rows: Rep[Coll[Costed[Coll[Item]]]])
     extends CCostedNestedCol[Item](rows) with Def[CCostedNestedCol[Item]] {
-    implicit lazy val eItem = rows.eA.typeArgs("Val")._1.asElem[Col[Item]].typeArgs("A")._1.asElem[Item]
-    override lazy val eVal: Elem[Col[Col[Item]]] = implicitly[Elem[Col[Col[Item]]]]
+    implicit lazy val eItem = rows.eA.typeArgs("Val")._1.asElem[Coll[Item]].typeArgs("A")._1.asElem[Item]
+    override lazy val eVal: Elem[Coll[Coll[Item]]] = implicitly[Elem[Coll[Coll[Item]]]]
     lazy val selfType = element[CCostedNestedCol[Item]]
     override def transform(t: Transformer) = CCostedNestedColCtor[Item](t(rows))
     private val thisClass = classOf[CostedNestedCol[_]]
 
-    override def value: Rep[Col[Col[Item]]] = {
-      asRep[Col[Col[Item]]](mkMethodCall(self,
+    override def value: Rep[Coll[Coll[Item]]] = {
+      asRep[Coll[Coll[Item]]](mkMethodCall(self,
         thisClass.getMethod("value"),
         List(),
-        true, false, element[Col[Col[Item]]]))
+        true, false, element[Coll[Coll[Item]]]))
     }
 
     override def cost: Rep[Int] = {
@@ -1114,7 +1114,7 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
     override lazy val parent: Option[Elem[_]] = Some(costedNestedColElement(element[Item]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override def convertCostedNestedCol(x: Rep[CostedNestedCol[Item]]) = RCCostedNestedCol(x.rows)
-    override def getDefaultRep = RCCostedNestedCol(element[Col[Costed[Col[Item]]]].defaultRepValue)
+    override def getDefaultRep = RCCostedNestedCol(element[Coll[Costed[Coll[Item]]]].defaultRepValue)
     override lazy val tag = {
       implicit val tagItem = eItem.tag
       weakTypeTag[CCostedNestedCol[Item]]
@@ -1122,7 +1122,7 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
   }
 
   // state representation type
-  type CCostedNestedColData[Item] = Col[Costed[Col[Item]]]
+  type CCostedNestedColData[Item] = Coll[Costed[Coll[Item]]]
 
   // 3) Iso for concrete class
   class CCostedNestedColIso[Item](implicit eItem: Elem[Item])
@@ -1130,12 +1130,12 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
     override def transform(t: Transformer) = new CCostedNestedColIso[Item]()(eItem)
     private lazy val _safeFrom = fun { p: Rep[CCostedNestedCol[Item]] => p.rows }
     override def from(p: Rep[CCostedNestedCol[Item]]) =
-      tryConvert[CCostedNestedCol[Item], Col[Costed[Col[Item]]]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Col[Costed[Col[Item]]]]) = {
+      tryConvert[CCostedNestedCol[Item], Coll[Costed[Coll[Item]]]](eTo, eFrom, p, _safeFrom)
+    override def to(p: Rep[Coll[Costed[Coll[Item]]]]) = {
       val rows = p
       RCCostedNestedCol(rows)
     }
-    lazy val eFrom = element[Col[Costed[Col[Item]]]]
+    lazy val eFrom = element[Coll[Costed[Coll[Item]]]]
     lazy val eTo = new CCostedNestedColElem[Item](self)
     lazy val selfType = new CCostedNestedColIsoElem[Item](eItem)
     def productArity = 1
@@ -1155,7 +1155,7 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
     override def toString = "CCostedNestedColCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CCostedNestedCol[Item]] =
+    def apply[Item](rows: Rep[Coll[Costed[Coll[Item]]]]): Rep[CCostedNestedCol[Item]] =
       mkCCostedNestedCol(rows)
 
     def unapply[Item](p: Rep[CostedNestedCol[Item]]) = unmkCCostedNestedCol(p)
@@ -1179,7 +1179,7 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
 
   implicit class ExtendedCCostedNestedCol[Item](p: Rep[CCostedNestedCol[Item]]) {
     def toData: Rep[CCostedNestedColData[Item]] = {
-      implicit val eItem = p.rows.eA.typeArgs("Val")._1.asElem[Col[Item]].typeArgs("A")._1.asElem[Item]
+      implicit val eItem = p.rows.eA.typeArgs("Val")._1.asElem[Coll[Item]].typeArgs("A")._1.asElem[Item]
       isoCCostedNestedCol(eItem).from(p)
     }
   }
@@ -1189,7 +1189,7 @@ object CCostedNestedCol extends EntityObject("CCostedNestedCol") {
     reifyObject(new CCostedNestedColIso[Item]()(eItem))
 
   def mkCCostedNestedCol[Item]
-    (rows: Rep[Col[Costed[Col[Item]]]]): Rep[CCostedNestedCol[Item]] = {
+    (rows: Rep[Coll[Costed[Coll[Item]]]]): Rep[CCostedNestedCol[Item]] = {
     new CCostedNestedColCtor[Item](rows)
   }
   def unmkCCostedNestedCol[Item](p: Rep[CostedNestedCol[Item]]) = p.elem.asInstanceOf[Elem[_]] match {
@@ -1468,39 +1468,39 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     }
 
     object mkCostedCol {
-      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Col[T]], Rep[Col[Int]], Rep[Col[Long]], Rep[Int]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Long]], Rep[Int]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CCostedBuilderElem] && method.getName == "mkCostedCol" =>
           val res = (receiver, args(0), args(1), args(2), args(3))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Col[T]], Rep[Col[Int]], Rep[Col[Long]], Rep[Int]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Long]], Rep[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Col[T]], Rep[Col[Int]], Rep[Col[Long]], Rep[Int]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Long]], Rep[Int]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object mkCostedPairCol {
-      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Costed[Col[L]]], Rep[Costed[Col[R]]]) forSome {type L; type R}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Costed[Coll[L]]], Rep[Costed[Coll[R]]]) forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CCostedBuilderElem] && method.getName == "mkCostedPairCol" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Costed[Col[L]]], Rep[Costed[Col[R]]]) forSome {type L; type R}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Costed[Coll[L]]], Rep[Costed[Coll[R]]]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Costed[Col[L]]], Rep[Costed[Col[R]]]) forSome {type L; type R}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Costed[Coll[L]]], Rep[Costed[Coll[R]]]) forSome {type L; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
 
     object mkCostedNestedCol {
-      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Col[Costed[Col[Item]]]]) forSome {type Item}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Coll[Costed[Coll[Item]]]]) forSome {type Item}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CCostedBuilderElem] && method.getName == "mkCostedNestedCol" =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Col[Costed[Col[Item]]]]) forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Coll[Costed[Coll[Item]]]]) forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Col[Costed[Col[Item]]]]) forSome {type Item}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Coll[Costed[Coll[Item]]]]) forSome {type Item}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

@@ -2,7 +2,7 @@ package special.collection {
   import scalan._
 
   trait Costs extends Base { self: CostsModule =>
-    import Col._;
+    import Coll._;
     import Costed._;
     import CostedBuilder._;
     import CostedCol._;
@@ -52,25 +52,25 @@ package special.collection {
       def cost: Rep[Int];
       def dataSize: Rep[Long]
     };
-    trait CostedCol[Item] extends Costed[Col[Item]] {
+    trait CostedCol[Item] extends Costed[Coll[Item]] {
       implicit def eItem: Elem[Item];
-      def values: Rep[Col[Item]];
-      def costs: Rep[Col[Int]];
-      def sizes: Rep[Col[Long]];
+      def values: Rep[Coll[Item]];
+      def costs: Rep[Coll[Int]];
+      def sizes: Rep[Coll[Long]];
       def valuesCost: Rep[Int];
       def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedCol[Res]];
       def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedCol[Item]];
       def foldCosted[B](zero: Rep[Costed[B]], op: Rep[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Rep[Costed[B]]
     };
-    trait CostedPairCol[L, R] extends Costed[Col[scala.Tuple2[L, R]]] {
+    trait CostedPairCol[L, R] extends Costed[Coll[scala.Tuple2[L, R]]] {
       implicit def eL: Elem[L];
       implicit def eR: Elem[R];
-      def ls: Rep[Costed[Col[L]]];
-      def rs: Rep[Costed[Col[R]]]
+      def ls: Rep[Costed[Coll[L]]];
+      def rs: Rep[Costed[Coll[R]]]
     };
-    trait CostedNestedCol[Item] extends Costed[Col[Col[Item]]] {
+    trait CostedNestedCol[Item] extends Costed[Coll[Coll[Item]]] {
       implicit def eItem: Elem[Item];
-      def rows: Rep[Col[Costed[Col[Item]]]]
+      def rows: Rep[Coll[Costed[Coll[Item]]]]
     };
     trait CostedOption[T] extends Costed[WOption[T]] {
       implicit def eT: Elem[T];
@@ -95,9 +95,9 @@ package special.collection {
       def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]];
       def mkCostedSum[L, R](value: Rep[WEither[L, R]], left: Rep[Costed[Unit]], right: Rep[Costed[Unit]]): Rep[CostedSum[L, R]];
       def mkCostedFunc[Env, Arg, Res](envCosted: Rep[Costed[Env]], func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], cost: Rep[Int], dataSize: Rep[Long]): Rep[CostedFunc[Env, Arg, Res]];
-      def mkCostedCol[T](values: Rep[Col[T]], costs: Rep[Col[Int]], sizes: Rep[Col[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]];
-      def mkCostedPairCol[L, R](ls: Rep[Costed[Col[L]]], rs: Rep[Costed[Col[R]]]): Rep[CostedPairCol[L, R]];
-      def mkCostedNestedCol[Item](rows: Rep[Col[Costed[Col[Item]]]]): Rep[CostedNestedCol[Item]];
+      def mkCostedCol[T](values: Rep[Coll[T]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Long]], valuesCost: Rep[Int]): Rep[CostedCol[T]];
+      def mkCostedPairCol[L, R](ls: Rep[Costed[Coll[L]]], rs: Rep[Costed[Coll[R]]]): Rep[CostedPairCol[L, R]];
+      def mkCostedNestedCol[Item](rows: Rep[Coll[Costed[Coll[Item]]]]): Rep[CostedNestedCol[Item]];
       def mkCostedSome[T](costedValue: Rep[Costed[T]]): Rep[CostedOption[T]];
       def mkCostedNone[T](cost: Rep[Int])(implicit eT: Elem[T]): Rep[CostedOption[T]];
       def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Long]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]]
