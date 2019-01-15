@@ -8,10 +8,11 @@ class CollsTests extends BaseTests {
   val xs = builder.fromItems(1, 2, 3)
   val ys = builder.fromItems(1L, 2L, 3L, 4L)
   val zs = builder.fromItems(true, false)
+  val tens = builder.replicate(3, 10)
 
   test("Coll.indices") {
     xs.indices.arr shouldBe Array(0, 1, 2)
-    builder.replicate(3, 10).indices.arr shouldBe Array(0,1,2)
+    tens.indices.arr shouldBe Array(0,1,2)
     ys.zip(xs).indices.arr shouldBe Array(0,1,2,3) // TODO should use min length
   }
 
@@ -21,5 +22,12 @@ class CollsTests extends BaseTests {
     val matrix = zs.map(_ => xs)
     val res = zs.zip(matrix).flatMap(_._2)
     res.arr shouldBe Array(1,2,3, 1,2,3)
+  }
+
+  test("Coll.segmentLength") {
+    tens.segmentLength(_ == 10, 1) shouldBe 2
+    tens.segmentLength(_ == 11, 1) shouldBe 0
+    tens.segmentLength(_ == 11, 3) shouldBe 0
+    ys.segmentLength(_ < 3, 0) shouldBe 2
   }
 }

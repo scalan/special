@@ -7,7 +7,7 @@ import scala.collection.GenSeq
 import scala.collection.generic.CanBuildFrom
 
 /**
-  * @define Coll `Col`
+  * @define Coll `Coll`
   * @define coll collection
   * @tparam A the collection element type
   */
@@ -51,17 +51,15 @@ trait Coll[A] {
     */
   def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B]
 
-//  /** Computes length of longest segment whose elements all satisfy some predicate.
-//    *
-//    *  $mayNotTerminateInf
-//    *
-//    *  @param   p     the predicate used to test elements.
-//    *  @param   from  the index where the search starts.
-//    *  @return  the length of the longest segment of this $coll starting from index `from`
-//    *           such that every element of the segment satisfies the predicate `p`.
-//    */
-//  def segmentLength(p: A => Boolean, from: Int): Int
-//
+  /** Computes length of longest segment whose elements all satisfy some predicate.
+    *
+    *  @param   p     the predicate used to test elements.
+    *  @param   from  the index where the search starts.
+    *  @return  the length of the longest segment of this $coll starting from index `from`
+    *           such that every element of the segment satisfies the predicate `p`.
+    */
+  def segmentLength(p: A => Boolean, from: Int): Int
+
 //  /** Finds index of the first element satisfying some predicate after or at some start index.
 //    *
 //    *  $mayNotTerminateInf

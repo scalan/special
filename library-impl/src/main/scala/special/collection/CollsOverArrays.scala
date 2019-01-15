@@ -38,9 +38,9 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
   @NeverInline
   override def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
 
-//  @NeverInline
-//  override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
-//
+  @NeverInline
+  override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
+
 //  @NeverInline
 //  override def indexWhere(p: A => Boolean, from: Int): Int = arr.indexWhere(p, from)
 //
@@ -131,6 +131,11 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   @NeverInline
   override def flatMap[B: ClassTag](f: ((L, R)) => Coll[B]): Coll[B] =
     builder.fromArray(arr.flatMap(p => f(p).arr))
+
+  @NeverInline
+  override def segmentLength(p: ((L, R)) => Boolean, from: Int): Int = {
+    arr.segmentLength(p, from)
+  }
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
@@ -169,6 +174,14 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
     val seg = f(value).arr
     val xs = Range(0, length).flatMap(_ => seg).toArray
     builder.fromArray(xs)
+  }
+
+  @NeverInline
+  override def segmentLength(p: A => Boolean, from: Int): Int = {
+    if (from >= length) 0
+    else
+    if (p(value)) length - from
+    else 0
   }
 }
 
