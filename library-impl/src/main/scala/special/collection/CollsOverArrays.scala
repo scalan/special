@@ -41,9 +41,9 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
   @NeverInline
   override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
 
-//  @NeverInline
-//  override def indexWhere(p: A => Boolean, from: Int): Int = arr.indexWhere(p, from)
-//
+  @NeverInline
+  override def indexWhere(p: A => Boolean, from: Int): Int = arr.indexWhere(p, from)
+
 //  @NeverInline
 //  override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
 //
@@ -136,6 +136,9 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   override def segmentLength(p: ((L, R)) => Boolean, from: Int): Int = {
     arr.segmentLength(p, from)
   }
+
+  @NeverInline
+  override def indexWhere(p: ((L, R)) => Boolean, from: Int): Int = arr.indexWhere(p, from)
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
@@ -182,6 +185,14 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
     else
     if (p(value)) length - from
     else 0
+  }
+
+  @NeverInline
+  override def indexWhere(p: A => Boolean, from: Int): Int = {
+    if (from >= length) -1
+    else
+    if (p(value)) from
+    else -1
   }
 }
 
