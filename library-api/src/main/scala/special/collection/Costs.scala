@@ -34,23 +34,23 @@ trait CostedFunc[Env,Arg,Res] extends Costed[Arg => Res]  {
   def dataSize: Long
 }
 
-trait CostedCol[Item] extends Costed[Col[Item]] {
-  def values: Col[Item]
-  def costs: Col[Int]
-  def sizes: Col[Long]
+trait CostedCol[Item] extends Costed[Coll[Item]] {
+  def values: Coll[Item]
+  def costs: Coll[Int]
+  def sizes: Coll[Long]
   def valuesCost: Int
   def mapCosted[Res](f: Costed[Item] => Costed[Res]): CostedCol[Res]
   def filterCosted(f: Costed[Item] => Costed[Boolean]): CostedCol[Item]
   def foldCosted[B](zero: Costed[B], op: Costed[(B, Item)] => Costed[B]): Costed[B]
 }
 
-trait CostedPairCol[L,R] extends Costed[Col[(L,R)]] {
-  def ls: Costed[Col[L]]
-  def rs: Costed[Col[R]]
+trait CostedPairCol[L,R] extends Costed[Coll[(L,R)]] {
+  def ls: Costed[Coll[L]]
+  def rs: Costed[Coll[R]]
 }
 
-trait CostedNestedCol[Item] extends Costed[Col[Col[Item]]] {
-  def rows: Col[Costed[Col[Item]]]
+trait CostedNestedCol[Item] extends Costed[Coll[Coll[Item]]] {
+  def rows: Coll[Costed[Coll[Item]]]
 }
 
 /** NOTE: Option is a special case of Either, such that Option[T] is isomorphic to Either[Unit, T].
@@ -78,9 +78,9 @@ trait CostedBuilder {
   def mkCostedPair[L,R](first: Costed[L], second: Costed[R]): CostedPair[L,R]
   def mkCostedSum[L,R](value: Either[L, R], left: Costed[Unit], right: Costed[Unit]): CostedSum[L, R]
   def mkCostedFunc[Env,Arg,Res](envCosted: Costed[Env], func: Costed[Arg] => Costed[Res], cost: Int, dataSize: Long): CostedFunc[Env, Arg, Res]
-  def mkCostedCol[T](values: Col[T], costs: Col[Int], sizes: Col[Long], valuesCost: Int): CostedCol[T]
-  def mkCostedPairCol[L,R](ls: Costed[Col[L]], rs: Costed[Col[R]]): CostedPairCol[L,R]
-  def mkCostedNestedCol[Item](rows: Col[Costed[Col[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedCol[Item]
+  def mkCostedCol[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Long], valuesCost: Int): CostedCol[T]
+  def mkCostedPairCol[L,R](ls: Costed[Coll[L]], rs: Costed[Coll[R]]): CostedPairCol[L,R]
+  def mkCostedNestedCol[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedCol[Item]
   def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T]
   def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T]
   def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Long], accumulatedCost: Int): CostedOption[T]

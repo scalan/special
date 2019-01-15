@@ -14,23 +14,23 @@ import scala.collection.generic.CanBuildFrom
 @ContainerType
 @FunctorType
 @scalan.Liftable
-trait Col[A] {
+trait Coll[A] {
   def builder: ColBuilder
   def arr: Array[A]
   def length: Int
   def apply(i: Int): A
   def getOrElse(i: Int, default: A): A
-  def map[B: ClassTag](f: A => B): Col[B]
+  def map[B: ClassTag](f: A => B): Coll[B]
 
   /** For this collection (x0, ..., xN) and other collection (y0, ..., yM)
     * produces a collection ((x0, y0), ..., (xK, yK)) where K = min(N, M) */
-  def zip[B](ys: Col[B]): PairCol[A, B]
+  def zip[B](ys: Coll[B]): PairColl[A, B]
 
   def foreach(f: A => Unit): Unit
   def exists(p: A => Boolean): Boolean
   def forall(p: A => Boolean): Boolean
-  def filter(p: A => Boolean): Col[A]
-  def where(p: A => Boolean): Col[A] = this.filter(p)
+  def filter(p: A => Boolean): Coll[A]
+  def where(p: A => Boolean): Coll[A] = this.filter(p)
   def fold[B](zero: B, op: ((B, A)) => B): B
 
 //  /** Produces the range of all indices of this collection [0 .. size-1] */
@@ -157,10 +157,10 @@ trait Col[A] {
     *  @param from   the lowest index to include from this $coll.
     *  @param until  the lowest index to EXCLUDE from this $coll.
     */
-  def slice(from: Int, until: Int): Col[A]
-  
+  def slice(from: Int, until: Int): Coll[A]
+
   /** Puts the elements of other collection after the elements of this collection (concatenation of 2 collections) */
-  def append(other: Col[A]): Col[A]
+  def append(other: Coll[A]): Coll[A]
 
   @Internal
   private def trim[T](arr: Array[T]) = arr.take(arr.length min 100)
@@ -168,33 +168,33 @@ trait Col[A] {
   override def toString = s"Col(${trim(arr).mkString(",")})"
 }
 
-trait PairCol[L,R] extends Col[(L,R)] {
-  def ls: Col[L]
-  def rs: Col[R]
+trait PairColl[L,R] extends Coll[(L,R)] {
+  def ls: Coll[L]
+  def rs: Coll[R]
 }
 
 @Liftable
-trait ReplCol[A] extends Col[A] {
+trait ReplColl[A] extends Coll[A] {
   def value: A
   def length: Int
-  def append(other: Col[A]): Col[A]
+  def append(other: Coll[A]): Coll[A]
 }
 
 @scalan.Liftable
 trait ColBuilder {
-  def pairCol[A,B](as: Col[A], bs: Col[B]): PairCol[A,B]
+  def pairCol[A,B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
 
-  @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Col[T]
+  @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T]
 
   @NeverInline
-  def unzip[A,B](xs: Col[(A,B)]): (Col[A], Col[B]) = xs match {
-    case pa: PairCol[_,_] => (pa.ls, pa.rs)
+  def unzip[A,B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
+    case pa: PairColl[_,_] => (pa.ls, pa.rs)
     case _ => ???
   }
 
-  def xor(left: Col[Byte], right: Col[Byte]): Col[Byte]
+  def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
-  def fromArray[T](arr: Array[T]): Col[T]
-  def replicate[T:ClassTag](n: Int, v: T): Col[T]
+  def fromArray[T](arr: Array[T]): Coll[T]
+  def replicate[T:ClassTag](n: Int, v: T): Coll[T]
 }
 

@@ -21,7 +21,7 @@ object Col extends EntityObject("Col") {
   // entityConst: single const for each entity
   import Liftables._
   import scala.reflect.{ClassTag, classTag}
-  type SCol[A] = special.collection.Col[A]
+  type SCol[A] = special.collection.Coll[A]
   case class ColConst[SA, A](
         constValue: SCol[SA],
         lA: Liftable[SA, A]
@@ -869,7 +869,7 @@ object ReplCol extends EntityObject("ReplCol") {
   // entityConst: single const for each entity
   import Liftables._
   import scala.reflect.{ClassTag, classTag}
-  type SReplCol[A] = special.collection.ReplCol[A]
+  type SReplCol[A] = special.collection.ReplColl[A]
   case class ReplColConst[SA, A](
         constValue: SReplCol[SA],
         lA: Liftable[SA, A]
