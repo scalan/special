@@ -1,6 +1,5 @@
 package special.buffer
 
-import special.Iso
 import scalan.Updater
 
 trait Buffer {
@@ -25,7 +24,3 @@ trait BufferBuilder {
   def fromArray(arr: Array[Byte]): Buffer
 }
 
-class ArrayToBufferIso(b: BufferBuilder) extends Iso[Array[Byte], Buffer] {
-  override def to(a: Array[Byte]) = b.fromArray(a)
-  override def from(buf: Buffer) = buf.toArray
-}

@@ -15,7 +15,7 @@ import scala.collection.generic.CanBuildFrom
 @FunctorType
 @scalan.Liftable
 trait Coll[A] {
-  def builder: ColBuilder
+  def builder: CollBuilder
   def arr: Array[A]
   def length: Int
   def apply(i: Int): A
@@ -181,7 +181,7 @@ trait ReplColl[A] extends Coll[A] {
 }
 
 @scalan.Liftable
-trait ColBuilder {
+trait CollBuilder {
   def pairCol[A,B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
 
   @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T]

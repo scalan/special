@@ -10,7 +10,7 @@ import scalan.util.CollectionUtil.unboxedArray
 import scalan.{Internal, NeverInline, OverloadId, Reified}
 
 class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
-  def builder: ColBuilder = new ColOverArrayBuilder
+  def builder: CollBuilder = new CollOverArrayBuilder
   def length: Int = arr.length
   def apply(i: Int): A = arr.apply(i)
   @NeverInline
@@ -78,7 +78,7 @@ class CollOverArray[A](val arr: Array[A]) extends Coll[A] {
   override def hashCode() = CollectionUtil.deepHashCode(arr)
 }
 
-class ColOverArrayBuilder extends ColBuilder {
+class CollOverArrayBuilder extends CollBuilder {
   def pairCol[A, B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
 
   @NeverInline
@@ -98,7 +98,7 @@ class ColOverArrayBuilder extends ColBuilder {
 }
 
 class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
-  override def builder: ColBuilder = new ColOverArrayBuilder
+  override def builder: CollBuilder = new CollOverArrayBuilder
   override def arr: Array[(L, R)] = ls.arr.zip(rs.arr)
   override def length: Int = ls.length
   override def apply(i: Int): (L, R) = (ls(i), rs(i))
@@ -128,7 +128,7 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
-  def builder: ColBuilder = new ColOverArrayBuilder
+  def builder: CollBuilder = new CollOverArrayBuilder
   def arr: Array[A] = Array.fill(length)(value)
   def apply(i: Int): A = value
   @NeverInline

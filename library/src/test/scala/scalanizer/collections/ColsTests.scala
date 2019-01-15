@@ -81,8 +81,8 @@ class ColsTests extends WrappersTests {
 
   def runMeasure(name: String, alphaEq: Boolean, keepOrig: Boolean, unfoldWithOrig: Boolean) = {
     println(s"runMeasure($name, alphaEq = $alphaEq, keepOrig = $keepOrig, unfoldWithOrig = $unfoldWithOrig)")
-    val nIters = 10
-    val nRepeats = 1000
+    val nIters = 5
+    val nRepeats = 100
     def warmUp(i: Int) = {
       val ctx = new Ctx {
         override val performViewsLifting = false
@@ -167,7 +167,7 @@ class ColsTests extends WrappersTests {
     import ColBuilder._
     import EnvRep._
 
-    val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
+    val Cols: SColBuilder = new special.collection.CollOverArrayBuilder
     val arr = Array(1, 2, 3)
     val col = Cols.fromArray(arr)
 
@@ -195,7 +195,7 @@ class ColsTests extends WrappersTests {
     import CReplColl._
     import EnvRep._
 
-    val Cols: SColBuilder = new special.collection.ColOverArrayBuilder
+    val Cols: SColBuilder = new special.collection.CollOverArrayBuilder
     val colData = Cols.replicate(10, 10)
     val colSym = RCReplColl(10, 10)
     val resSym = colSym.append(colSym)

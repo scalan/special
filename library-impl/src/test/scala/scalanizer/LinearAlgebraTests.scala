@@ -1,7 +1,7 @@
 package scalanizer
 
 import org.scalatest._
-import special.collection.ColOverArrayBuilder
+import special.collection.CollOverArrayBuilder
 
 import scala.util.Random
 

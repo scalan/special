@@ -1159,7 +1159,7 @@ object ColBuilder extends EntityObject("ColBuilder") {
   // entityConst: single const for each entity
   import Liftables._
   import scala.reflect.{ClassTag, classTag}
-  type SColBuilder = special.collection.ColBuilder
+  type SColBuilder = special.collection.CollBuilder
   case class ColBuilderConst(
         constValue: SColBuilder
       ) extends ColBuilder with LiftedConst[SColBuilder, ColBuilder]
