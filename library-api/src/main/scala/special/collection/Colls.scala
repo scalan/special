@@ -106,9 +106,9 @@ trait Coll[A] {
     */
   def updated(index: Int, elem: A): Coll[A]
 
-//  /** Returns a copy of this collection where elements at `indexes` are replaced with `values`. */
-//  def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A]
-//
+  /** Returns a copy of this collection where elements at `indexes` are replaced with `values`. */
+  def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A]
+
 //  /** Apply m for each element of this collection, group by key and reduce each group using r.
 //    * @returns one item for each group in a new collection of (K,V) pairs. */
 //  def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: (V,V) => V): Coll[(K,V)]
@@ -194,7 +194,7 @@ trait CollBuilder {
 
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
-  def fromArray[T:ClassTag](arr: Array[T]): Coll[T]
+  def fromArray[T](arr: Array[T]): Coll[T]
   def replicate[T:ClassTag](n: Int, v: T): Coll[T]
   def emptyColl[T](implicit cT: ClassTag[T]): Coll[T]
 }

@@ -6,8 +6,9 @@ import special.SpecialPredef
 
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
-import scalan.util.CollectionUtil.unboxedArray
+import scalan.util.CollectionUtil.{unboxedArray}
 import scalan.{Internal, NeverInline, OverloadId, Reified}
+import Helpers._
 
 class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
   def builder: CollBuilder = new CollOverArrayBuilder
@@ -65,9 +66,20 @@ class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll
     builder.fromArray(res)
   }
 
-//  override def updateMany(indexes: Coll[Int],
-//      values: Coll[A]): Coll[A] = ???
-//
+  @NeverInline
+  override def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A] = {
+    requireSameLength(indexes, values)
+    val resArr = arr.clone()
+    var i = 0
+    while (i < indexes.length) {
+      val pos = indexes(i)
+      if (pos < 0 || pos >= arr.length) throw new IndexOutOfBoundsException(pos.toString)
+      resArr(pos) = values(i)
+      i += 1
+    }
+    builder.fromArray(resArr)
+  }
+
 //  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V),
 //      r: (V, V) => V): Coll[(K, V)] = ???
 //
@@ -97,7 +109,10 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 
   @NeverInline
-  def fromArray[T:ClassTag](arr: Array[T]): Coll[T] = new CollOverArray[T](arr)
+  def fromArray[T](arr: Array[T]): Coll[T] = {
+    implicit val cT = ClassTag[T](arr.getClass.getComponentType.asInstanceOf[Class[T]])
+    new CollOverArray[T](arr)
+  }
 
   @NeverInline
   def replicate[T:ClassTag](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
@@ -175,12 +190,38 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
     val ru = rs.updated(index, elem._2)
     builder.pairColl(lu, ru)
   }
+
+  @NeverInline
+  override def updateMany(indexes: Coll[Int], values: Coll[(L, R)]): Coll[(L, R)] = {
+    requireSameLength(indexes, values)
+    val resL = ls.arr.clone()
+    val resR = rs.arr.clone()
+    var i = 0
+    while (i < indexes.length) {
+      val pos = indexes(i)
+      if (pos < 0 || pos >= length) throw new IndexOutOfBoundsException(pos.toString)
+      resL(pos) = values(i)._1
+      resR(pos) = values(i)._2
+      i += 1
+    }
+    builder.pairColl(builder.fromArray(resL), builder.fromArray(resR))
+  }
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
   def builder: CollBuilder = new CollOverArrayBuilder
-  def arr: Array[A] = Array.fill(length)(value)
+  @Internal
+  private var _arr: Array[A] = _
+
+  @NeverInline
+  def arr: Array[A] = {
+    if (_arr == null)
+      _arr = Array.fill(length)(value)
+    _arr
+  }
+
   def apply(i: Int): A = value
+
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default
   def map[B: ClassTag](f: A => B): Coll[B] = new CReplColl(f(value), length)
@@ -257,6 +298,20 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
       val res = arr.updated(index, elem)
       builder.fromArray(res)
     }
+  }
+
+  @NeverInline
+  override def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A] = {
+    requireSameLength(indexes, values)
+    val resArr = arr.clone()
+    var i = 0
+    while (i < indexes.length) {
+      val pos = indexes(i)
+      if (pos < 0 || pos >= length) throw new IndexOutOfBoundsException(pos.toString)
+      resArr(pos) = values(i)
+      i += 1
+    }
+    builder.fromArray(resArr)
   }
 
   @Internal

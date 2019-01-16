@@ -22,14 +22,19 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   val builder = new CollOverArrayBuilder
 
   val valGen = choose(-100, 100)
-  val arrayGen: Gen[Array[Int]] = containerOfN[Array, Int](100, valGen)
   val indexGen = choose(0, 100)
   val replacedGen = choose(0, 100)
   val lenGen = choose(0, 100)
+
+  val arrayGen: Gen[Array[Int]] = containerOfN[Array, Int](100, valGen)
+  val indexesGen = containerOfN[Array, Int](10, indexGen).map(arr => builder.fromArray(arr.distinct.sorted))
+
   val collOverArrayGen = arrayGen.map(builder.fromArray(_))
   val replCollGen = for { l <- lenGen; v <- valGen } yield builder.replicate(l, v)
   val collGen = Gen.oneOf(collOverArrayGen, replCollGen)
+
   implicit val arbColl = Arbitrary(collGen)
+
   def eq0(x: Int) = x == 0
   def lt0(x: Int) = x < 0
 
@@ -94,7 +99,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.patch") {
-    forAll(collGen, indexGen, collGen, replacedGen) { (col: Coll[Int], from: Int, patch: Coll[Int], replaced: Int) =>
+    forAll(collGen, choose(-100, 100), collGen, replacedGen) { (col, from, patch, replaced) =>
       whenever(from < col.length ) {
         val patchedC = col.patch(from, patch, replaced)
         val patched = col.arr.patch(from, patch.arr, replaced)
@@ -109,6 +114,30 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val patchedC = col.updated(index, elem)
         val patched = col.arr.updated(index, elem)
         patchedC.arr shouldBe patched
+      }
+      an[IndexOutOfBoundsException] should be thrownBy {
+        col.updated(col.length, elem)
+      }
+      an[IndexOutOfBoundsException] should be thrownBy {
+        col.updated(-1, elem)
+      }
+    }
+  }
+
+  property("Coll.updateMany") {
+    forAll(collGen, indexesGen) { (col, indexes) =>
+      whenever(indexes.forall(_ < col.length)) {
+        val updatedC = col.updateMany(indexes, indexes)
+        val updated = col.arr.clone()
+        for (i <- indexes)
+          updated.update(i, i)
+        updatedC.arr shouldBe updated
+      }
+      an[IndexOutOfBoundsException] should be thrownBy {
+        col.updateMany(builder.fromItems(col.length), builder.fromItems(0))
+      }      
+      an[IndexOutOfBoundsException] should be thrownBy {
+        col.updateMany(builder.fromItems(-1), builder.fromItems(0))
       }
     }
   }
