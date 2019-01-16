@@ -20,7 +20,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   import Gen._
 
   val builder = new CollOverArrayBuilder
-
   val valGen = choose(-100, 100)
   val indexGen = choose(0, 100)
   val replacedGen = choose(0, 100)
@@ -55,6 +54,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   property("Coll.indices") {
     forAll(collGen, collGen) { (col1: Coll[Int], col2: Coll[Int]) =>
       col1.indices.arr shouldBe col1.arr.indices.toArray
+//      col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
 // TODO     col1.zip(col2).indices.arr shouldBe col1.arr.zip(col2.arr).indices.toArray
     }
   }
@@ -141,4 +141,62 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       }
     }
   }
+
+  property("Coll methods") {
+    forAll(collGen, indexGen) { (col, index) =>
+      {
+        val res = col.sum(builder.Monoids.intPlusMonoid)
+        res shouldBe col.arr.sum
+      }
+      {
+        def inc(x: Int) = x + 1
+        val res = col.map(inc)
+        res.arr shouldBe col.arr.map(inc)
+      }
+      {
+        val res = col.filter(lt0)
+        res.arr shouldBe col.arr.filter(lt0)
+      }
+      {
+        val res = col.forall(lt0)
+        res shouldBe col.arr.forall(lt0)
+      }
+      {
+        val res = col.exists(lt0)
+        res shouldBe col.arr.exists(lt0)
+      }
+      {
+        def plus(acc: Int, x: Int): Int = acc + x
+        val res = col.fold[Int](0, p => plus(p._1, p._2) )
+        res shouldBe col.arr.foldLeft(0)(plus)
+      }
+      whenever(index < col.length) {
+        val res = col(index)
+        res shouldBe col.arr(index)
+
+        val res2 = col.getOrElse(index, index)
+        res2 shouldBe col.arr(index)
+      }
+      
+      col.getOrElse(col.length, index) shouldBe index
+      col.getOrElse(-1, index) shouldBe index
+    }
+  }
+
+  property("Coll.slice") {
+    forAll(collGen, indexGen, indexGen) { (col, from, until) =>
+      whenever(until < col.length) {
+        val res = col.slice(from, until)
+        res.arr shouldBe col.arr.slice(from, until)
+      }
+    }
+  }
+
+  property("Coll.append") {
+    forAll(collGen, collGen) { (col1, col2) =>
+      val res = col1.append(col2)
+      res.arr shouldBe (col1.arr ++ col2.arr)
+    }
+  }
+
 }

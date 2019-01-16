@@ -100,6 +100,8 @@ class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll
 }
 
 class CollOverArrayBuilder extends CollBuilder {
+  override def Monoids: MonoidBuilder = new MonoidBuilderInst
+
   def pairColl[A, B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
 
   @NeverInline
@@ -233,13 +235,18 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
   @NeverInline
   def fold[B](zero: B, op: ((B, A)) => B): B =
     SpecialPredef.loopUntil[(B, Int)]((zero,0),
-      p => p._2 < length,
+      p => p._2 >= length,
       p => (op((p._1, value)), p._2 + 1)
     )._1
 
   def zip[B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
 
-  def slice(from: Int, until: Int): Coll[A] = new CReplColl(value, until - from)
+  def slice(from: Int, until: Int): Coll[A] = {
+    val lo = math.max(from, 0)
+    val hi = math.min(math.max(until, 0), length)
+    val size = math.max(hi - lo, 0)
+    new CReplColl(value, size)
+  }
 
   @NeverInline
   def append(other: Coll[A]): Coll[A] = builder.fromArray(arr).append(builder.fromArray(other.arr))

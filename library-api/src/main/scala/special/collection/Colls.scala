@@ -182,6 +182,7 @@ trait ReplColl[A] extends Coll[A] {
 
 @scalan.Liftable
 trait CollBuilder {
+  def Monoids: MonoidBuilder
   def pairColl[A,B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
 
   @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T]
