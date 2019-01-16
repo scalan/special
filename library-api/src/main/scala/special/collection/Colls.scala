@@ -98,14 +98,14 @@ trait Coll[A] {
     */
   def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A]
 
-//  /** A copy of this $coll with one single replaced element.
-//    *  @param  index  the position of the replacement
-//    *  @param  elem   the replacing element
-//    *  @return a new $coll which is a copy of this $coll with the element at position `index` replaced by `elem`.
-//    *  @throws IndexOutOfBoundsException if `index` does not satisfy `0 <= index < length`.
-//    */
-//  def updated(index: Int, elem: A): Coll[A]
-//
+  /** A copy of this $coll with one single replaced element.
+    *  @param  index  the position of the replacement
+    *  @param  elem   the replacing element
+    *  @return a new $coll which is a copy of this $coll with the element at position `index` replaced by `elem`.
+    *  @throws IndexOutOfBoundsException if `index` does not satisfy `0 <= index < length`.
+    */
+  def updated(index: Int, elem: A): Coll[A]
+
 //  /** Returns a copy of this collection where elements at `indexes` are replaced with `values`. */
 //  def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A]
 //
@@ -165,7 +165,7 @@ trait Coll[A] {
   @Internal
   private def trim[T](arr: Array[T]) = arr.take(arr.length min 100)
   @Internal
-  override def toString = s"Col(${trim(arr).mkString(",")})"
+  override def toString = s"Coll(${trim(arr).mkString(",")})"
 }
 
 trait PairColl[L,R] extends Coll[(L,R)] {

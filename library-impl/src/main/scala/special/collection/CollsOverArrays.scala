@@ -53,11 +53,18 @@ class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll
     (builder.fromArray(ls), builder.fromArray(rs))
   }
 
-  override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] =
-    builder.fromArray(arr.patch(from, patch.arr, replaced).toArray)
+  @NeverInline
+  override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] = {
+    val res = arr.patch(from, patch.arr, replaced).toArray
+    builder.fromArray(res)
+  }
 
-//  override def updated(index: Int, elem: A): Coll[A] = ???
-//
+  @NeverInline
+  override def updated(index: Int, elem: A): Coll[A] = {
+    val res = arr.updated(index, elem)
+    builder.fromArray(res)
+  }
+
 //  override def updateMany(indexes: Coll[Int],
 //      values: Coll[A]): Coll[A] = ???
 //
@@ -154,11 +161,19 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
     (builder.fromArray(ls), builder.fromArray(rs))
   }
 
+  @NeverInline
   override def patch(from: Int, patch: Coll[(L, R)], replaced: Int): Coll[(L, R)] = {
     val (lsPatch, rsPatch) = builder.unzip(patch)
     val lp = ls.patch(from, lsPatch, replaced)
     val rp = rs.patch(from, rsPatch, replaced)
     builder.pairColl(lp, rp)
+  }
+
+  @NeverInline
+  override def updated(index: Int, elem: (L, R)): Coll[(L, R)] = {
+    val lu = ls.updated(index, elem._1)
+    val ru = rs.updated(index, elem._2)
+    builder.pairColl(lu, ru)
   }
 }
 
@@ -234,5 +249,17 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
   override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] = {
     builder.fromArray(arr.patch(from, patch.arr, replaced))
   }
+
+  @NeverInline
+  override def updated(index: Int, elem: A): Coll[A] = {
+    if (elem == value) this
+    else {
+      val res = arr.updated(index, elem)
+      builder.fromArray(res)
+    }
+  }
+
+  @Internal
+  override def toString = s"ReplColl($value, $length)"
 }
 
