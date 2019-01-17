@@ -154,6 +154,13 @@ object Coll extends EntityObject("Coll") {
         true, false, element[Int]))
     }
 
+    override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        CollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
+        List(elem, from),
+        true, false, element[Int]))
+    }
+
     override def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         CollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
@@ -369,6 +376,13 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Int]))
     }
 
+    override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
+        List(elem, from),
+        true, true, element[Int]))
+    }
+
     def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
@@ -487,7 +501,7 @@ implicit val eV = m.elem.eRange.eSnd
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "indexWhere", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "unionSet", "sum", "slice", "append"
+        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "unionSet", "sum", "slice", "append"
         ))
     }
 
@@ -757,6 +771,19 @@ implicit val eV = m.elem.eRange.eSnd
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object indexOf {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "indexOf" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A], Rep[Int]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1087,6 +1114,13 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
         List(p, from),
+        true, true, element[Int]))
+    }
+
+    override def indexOf(elem: Rep[(L, R)], from: Rep[Int]): Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
+        List(elem, from),
         true, true, element[Int]))
     }
 
@@ -1448,6 +1482,13 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[Int]))
     }
 
+    override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
+        List(elem, from),
+        true, true, element[Int]))
+    }
+
     def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
@@ -1660,6 +1701,15 @@ implicit val eB = bs.eA
         true, false, element[Coll[T]]))
     }
 
+    override def unzip[A, B](xs: Rep[Coll[(A, B)]]): Rep[(Coll[A], Coll[B])] = {
+      implicit val eA = xs.eA.eFst
+implicit val eB = xs.eA.eSnd
+      asRep[(Coll[A], Coll[B])](mkMethodCall(self,
+        CollBuilderClass.getMethod("unzip", classOf[Sym]),
+        List(xs),
+        true, false, element[(Coll[A], Coll[B])]))
+    }
+
     override def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = {
       asRep[Coll[Byte]](mkMethodCall(self,
         CollBuilderClass.getMethod("xor", classOf[Sym], classOf[Sym]),
@@ -1744,6 +1794,15 @@ implicit val eB = bs.eA
         thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
         true, true, element[Coll[T]]))
+    }
+
+    override def unzip[A, B](xs: Rep[Coll[(A, B)]]): Rep[(Coll[A], Coll[B])] = {
+      implicit val eA = xs.eA.eFst
+implicit val eB = xs.eA.eSnd
+      asRep[(Coll[A], Coll[B])](mkMethodCall(source,
+        thisClass.getMethod("unzip", classOf[Sym]),
+        List(xs),
+        true, true, element[(Coll[A], Coll[B])]))
     }
 
     def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = {

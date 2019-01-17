@@ -465,6 +465,7 @@ object ScalanAst {
     val symbol = SEntityItemSymbol(owner, name, DefType.Def)
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
+    def isNeverInline: Boolean = hasAnnotation(NeverInlineAnnotation)
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
     override def rhs: Option[SExpr] = body
     override def exprType = ??? // TODO build STpeFunc for this method type

@@ -307,16 +307,26 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
   def builder: CollBuilder = new CollOverArrayBuilder
   
   def arr: Array[A] = Array.fill(length)(value)
-  def apply(i: Int): A = value
+
+  @NeverInline
+  def apply(i: Int): A = if (i >= 0 && i < this.length) value else throw new IndexOutOfBoundsException(i.toString)
 
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default
   def map[B: ClassTag](f: A => B): Coll[B] = new CReplColl(f(value), length)
   @NeverInline
   def foreach(f: A => Unit): Unit = (0 until length).foreach(_ => f(value))
-  def exists(p: A => Boolean): Boolean = p(value)
-  def forall(p: A => Boolean): Boolean = p(value)
-  def filter(p: A => Boolean): Coll[A] = if (p(value)) this else new CReplColl(value, 0)
+  @NeverInline
+  def exists(p: A => Boolean): Boolean = if (length == 0) false else p(value)
+  @NeverInline
+  def forall(p: A => Boolean): Boolean = if (length == 0) true else p(value)
+  @NeverInline
+  def filter(p: A => Boolean): Coll[A] =
+    if (length == 0) this
+    else
+    if (p(value)) this
+    else new CReplColl(value, 0)
+
   @NeverInline
   def fold[B](zero: B, op: ((B, A)) => B): B =
     SpecialPredef.loopUntil[(B, Int)]((zero,0),

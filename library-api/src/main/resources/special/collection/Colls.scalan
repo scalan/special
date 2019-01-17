@@ -27,6 +27,7 @@ package special.collection {
       def flatMap[B](f: Rep[scala.Function1[A, Coll[B]]]): Rep[Coll[B]];
       def segmentLength(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int];
       def indexWhere(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int];
+      @NeverInline def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = delayInvoke;
       def lastIndexWhere(p: Rep[scala.Function1[A, Boolean]], end: Rep[Int]): Rep[Int];
       def partition(pred: Rep[scala.Function1[A, Boolean]]): Rep[scala.Tuple2[Coll[A], Coll[A]]];
       def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]];

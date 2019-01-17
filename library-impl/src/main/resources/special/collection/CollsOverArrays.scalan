@@ -89,13 +89,13 @@ package special.collection {
     abstract class CReplColl[A](val value: Rep[A], val length: Rep[Int]) extends ReplColl[A] {
       def builder: Rep[CollBuilder] = RCollOverArrayBuilder();
       def arr: Rep[WArray[A]] = RWArray.fill[A](CReplColl.this.length, Thunk(CReplColl.this.value));
-      def apply(i: Rep[Int]): Rep[A] = CReplColl.this.value;
+      @NeverInline def apply(i: Rep[Int]): Rep[A] = delayInvoke;
       @NeverInline def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = delayInvoke;
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Coll[B]] = RCReplColl(f.apply(CReplColl.this.value), CReplColl.this.length);
       @NeverInline def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = delayInvoke;
-      def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(CReplColl.this.value);
-      def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = p.apply(CReplColl.this.value);
-      def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Coll[A]] = IF(p.apply(CReplColl.this.value)).THEN(this).ELSE(RCReplColl(CReplColl.this.value, toRep(0.asInstanceOf[Int])));
+      @NeverInline def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = delayInvoke;
+      @NeverInline def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = delayInvoke;
+      @NeverInline def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[Coll[A]] = delayInvoke;
       @NeverInline def fold[B](zero: Rep[B], op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke;
       def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[A, B]] = CReplColl.this.builder.pairColl[A, B](this, ys);
       @NeverInline def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]] = delayInvoke;

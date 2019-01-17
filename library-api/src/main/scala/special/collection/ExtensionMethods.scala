@@ -2,7 +2,7 @@ package special.collection
 
 import scala.reflect.ClassTag
 
-object Extentions {
+object ExtentionMethods {
 
 //  implicit class ColOps[A: ClassTag](xs: Coll[A]) {
 //

@@ -113,7 +113,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
 
   def entityConst(e: EntityTemplateData) = {
     val info = new LiftableInfo(e); import info._
-    val methods = e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }
+    val methods = e.entity.body.collect { case m: SMethodDef if (m.isAbstract || m.isNeverInline) && !m.isTypeDesc => m }
     val thisClassFieldName = EName + "Class"
     s"""
       |  // entityConst: single const for each entity
@@ -193,7 +193,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val adapC = ConcreteClassTemplateData(unit, clazz)
     val b = adapC.extractionBuilder(extractFromEntity = false)
     val methods = adapC.c.collectVisibleMembers.collect {
-      case SEntityMember(_, md: SMethodDef) if md.isAbstract && !md.isTypeDesc => md
+      case SEntityMember(_, md: SMethodDef) if (md.isAbstract || md.isNeverInline) && !md.isTypeDesc => md
     }
     s"""
       |  // entityAdapter for $entityName trait

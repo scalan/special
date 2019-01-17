@@ -1385,6 +1385,13 @@ object CReplColl extends EntityObject("CReplColl") {
     override def transform(t: Transformer) = CReplCollCtor[A](t(value), t(length))
     private val thisClass = classOf[ReplColl[_]]
 
+    override def apply(i: Rep[Int]): Rep[A] = {
+      asRep[A](mkMethodCall(self,
+        thisClass.getMethod("apply", classOf[Sym]),
+        List(i),
+        true, false, element[A]))
+    }
+
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
@@ -1397,6 +1404,27 @@ object CReplColl extends EntityObject("CReplColl") {
         thisClass.getMethod("foreach", classOf[Sym]),
         List(f),
         true, false, element[Unit]))
+    }
+
+    override def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("exists", classOf[Sym]),
+        List(p),
+        true, false, element[Boolean]))
+    }
+
+    override def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("forall", classOf[Sym]),
+        List(p),
+        true, false, element[Boolean]))
+    }
+
+    override def filter(p: Rep[A => Boolean]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        thisClass.getMethod("filter", classOf[Sym]),
+        List(p),
+        true, false, element[Coll[A]]))
     }
 
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {

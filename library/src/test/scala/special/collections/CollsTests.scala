@@ -82,6 +82,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("Coll.indexOf") {
+    forAll(collGen, indexGen, valGen) { (col, from, elem) =>
+      col.indexOf(elem, from) shouldBe col.arr.indexOf(elem, from)
+      col.zip(col).indexOf((elem, elem), from) shouldBe col.arr.zip(col.arr).indexOf((elem, elem), from)
+    }
+  }
+
   property("Coll.lastIndexWhere") {
     forAll(collGen, indexGen) { (col, end) =>
       col.lastIndexWhere(eq0, end) shouldBe col.lastIndexWhere(eq0, end)
@@ -161,10 +168,12 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       {
         val res = col.forall(lt0)
         res shouldBe col.arr.forall(lt0)
+        builder.replicate(0, 10).forall(lt0) shouldBe Array[Int]().forall(lt0)
       }
       {
         val res = col.exists(lt0)
         res shouldBe col.arr.exists(lt0)
+        builder.replicate(0, -10).exists(lt0) shouldBe Array[Int]().exists(lt0)
       }
       {
         def plus(acc: Int, x: Int): Int = acc + x

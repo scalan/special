@@ -85,6 +85,16 @@ trait Coll[A] {
     */
   def indexWhere(p: A => Boolean, from: Int): Int
 
+  /** Finds index of first occurrence of some value in this $coll after or at some start index.
+    *
+    *  @param   elem   the element value to search for.
+    *  @param   from   the start index
+    *  @return  the index `>= from` of the first element of this $coll that is equal (as determined by `==`)
+    *           to `elem`, or `-1`, if none exists.
+    */
+  @NeverInline
+  def indexOf(elem: A, from: Int): Int = this.indexWhere(x => elem == x, from)
+
   /** Finds index of last element satisfying some predicate before or at given end index.
     *
     *  @param   p     the predicate used to test elements.
