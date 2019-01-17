@@ -223,16 +223,8 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
   def builder: CollBuilder = new CollOverArrayBuilder
-  @Internal
-  private var _arr: Array[A] = _
-
-  @NeverInline
-  def arr: Array[A] = {
-    if (_arr == null)
-      _arr = Array.fill(length)(value)
-    _arr
-  }
-
+  
+  def arr: Array[A] = Array.fill(length)(value)
   def apply(i: Int): A = value
 
   @NeverInline
@@ -252,6 +244,7 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
 
   def zip[B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
 
+  @NeverInline
   def slice(from: Int, until: Int): Coll[A] = {
     val lo = math.max(from, 0)
     val hi = math.min(math.max(until, 0), length)

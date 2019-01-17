@@ -182,7 +182,8 @@ object ScalanAstTransformers {
     }
     def valdefTransform(valdef: SValDef): SValDef = {
       val newExpr = exprTransform(valdef.expr)
-      valdef.copy(expr = newExpr)
+      val newTpe = methodResTransform(valdef.tpe)
+      valdef.copy(expr = newExpr, tpe = newTpe)
     }
     def tpeDefArgTransform(tpeArg: STpeArg): STpeArg = tpeArg
     def tpeDefArgsTransform(tpeArgs: STpeArgs): STpeArgs = {
