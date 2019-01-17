@@ -3,7 +3,7 @@ package special.collection
 import scala.reflect.ClassTag
 import scalan._
 
-import scala.collection.GenSeq
+import scala.collection.{GenSeq, immutable}
 import scala.collection.generic.CanBuildFrom
 
 /**
@@ -20,6 +20,19 @@ trait Coll[A] {
 
   def builder: CollBuilder
   def arr: Array[A]
+
+  @Internal
+  def toMap[T, U](implicit ev: A <:< (T, U)): immutable.Map[T, U] = {
+    val b = immutable.Map.newBuilder[T, U]
+    var i = 0
+    val len = length
+    while (i < len) {
+      b += this(i)
+      i += 1
+    }
+    b.result()
+  }
+
   def length: Int
   def apply(i: Int): A
   def getOrElse(i: Int, default: A): A
@@ -192,6 +205,9 @@ trait CollBuilder {
   def pairCollFromArrays[A,B](as: Array[A], bs: Array[B]): PairColl[A,B] =
     pairColl(fromArray(as), fromArray(bs))
 
+  @Internal
+  def fromMap[K:ClassTag,V:ClassTag](m: Map[K,V]): Coll[(K,V)]
+
   @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T]
 
   @NeverInline
@@ -205,5 +221,19 @@ trait CollBuilder {
   def fromArray[T](arr: Array[T]): Coll[T]
   def replicate[T:ClassTag](n: Int, v: T): Coll[T]
   def emptyColl[T](implicit cT: ClassTag[T]): Coll[T]
+
+  /** Performs outer join operation between left and right collections.
+    * This is a restricted version of relational join operation.
+    * It expects `left` and `right` collections have distinct K values in pairs (otherwise exception is thrown).
+    * Under this condition resulting collection has size <= left.size + right.size.
+    * @param l projection function executed for each element of `left`
+    * @param r projection function executed for each element of `right`
+    * @param inner projection function which is executed for matching items (K, L) and (K, R) with the same K
+    * @return collection of (K, O) pairs, where each key comes form either left or right collection and values are produced by projections
+    * @since 2.0
+    */
+  def outerJoin[K:ClassTag, L, R, O:ClassTag]
+      (left: Coll[(K, L)], right: Coll[(K, R)])
+      (l: ((K,L)) => O, r: ((K,R)) => O, inner: ((K,(L,R))) => O): Coll[(K,O)]
 }
 

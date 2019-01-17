@@ -20,6 +20,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   import Gen._
 
   val builder = new CollOverArrayBuilder
+  val monoid = builder.Monoids.intPlusMonoid
   val valGen = choose(-100, 100)
   val indexGen = choose(0, 100)
   val replacedGen = choose(0, 100)
@@ -216,6 +217,33 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, collGen) { (col1, col2) =>
       val res = col1.unionSet(col2)
       res.arr shouldBe (col1.arr.union(col2.arr).distinct)
+    }
+    builder.replicate(2, 10).unionSet(builder.replicate(3, 10)).arr shouldBe Array(10)
+  }
+
+  property("CollBuilder.outerJoin") {
+    def test(col: Coll[Int]) = {
+      val inner = col.indices
+      val rightOnly = inner.map(i => i + col.length)
+      val leftOnly = rightOnly.map(i => -i)
+
+      val leftKeys = inner.append(leftOnly)
+      val leftValues = col.append(col.map(x => x + 2))
+
+      val rightKeys = inner.append(rightOnly)
+      val rightValues = col.append(col.map(x => x + 3))
+
+      val left  = builder.pairColl(leftKeys, leftValues)
+      val right = builder.pairColl(rightKeys, rightValues)
+      val res = builder.outerJoin(left, right)(l => l._2 - 2, r => r._2 - 3, i => i._2._1 + 5)
+      val (ks, vs) = builder.unzip(res)
+      vs.sum(monoid) shouldBe (col.sum(monoid) * 2 + col.map(_ + 5).sum(monoid))
+    }
+//    test(builder.fromItems(0))
+//    val gen = containerOfN[Array, Int](100, choose(20, 100))
+//        .map(xs => builder.fromArray(xs.distinct))
+    forAll(collGen) { col =>
+      test(col)
     }
   }
 

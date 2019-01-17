@@ -138,6 +138,12 @@ class CollOverArrayBuilder extends CollBuilder {
 
   def pairColl[A, B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
 
+  @Internal
+  override def fromMap[K: ClassTag, V: ClassTag](m: Map[K, V]): Coll[(K, V)] = {
+    val (ks, vs) = Helpers.mapToArrays(m)
+    pairCollFromArrays(ks, vs)
+  }
+
   @NeverInline
   @Reified("T")
   def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T] = {
@@ -158,6 +164,17 @@ class CollOverArrayBuilder extends CollBuilder {
 
   @NeverInline
   override def emptyColl[T](implicit cT: ClassTag[T]): Coll[T] = new CollOverArray[T](Array[T]())
+
+  @NeverInline
+  override def outerJoin[K:ClassTag, L, R, O:ClassTag]
+      (left: Coll[(K, L)], right: Coll[(K, R)])
+      (l: ((K, L)) => O, r: ((K, R)) => O, inner: ((K, (L, R))) => O): Coll[(K, O)] = {
+    val res = CollectionUtil.outerJoin[K,L,R,O](left.toMap, right.toMap)(
+      (k,lv) => l((k,lv)),
+      (k,rv) => r((k,rv)),
+      (k, lv, rv) => inner((k, (lv, rv))))
+    fromMap(res)
+  }
 }
 
 class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
@@ -414,7 +431,10 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
         builder.fromItems(value, repl.value)
       }
     case _ =>
-      builder.fromItems(value).unionSet(that)
+      if (length > 0)
+        builder.fromItems(value).unionSet(that)
+      else
+        builder.emptyColl[A].unionSet(that)
   }
 
   @Internal

@@ -58,7 +58,8 @@ package special.collection {
       def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]];
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]];
-      def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]]
+      def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]];
+      def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]]
     };
     trait CollCompanion;
     trait PairCollCompanion;

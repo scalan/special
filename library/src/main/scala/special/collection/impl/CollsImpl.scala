@@ -1689,6 +1689,17 @@ implicit val eB = bs.eA
         List(cT),
         true, false, element[Coll[T]]))
     }
+
+    override def outerJoin[K, L, R, O](left: Rep[Coll[(K, L)]], right: Rep[Coll[(K, R)]])(l: Rep[((K, L)) => O], r: Rep[((K, R)) => O], inner: Rep[((K, (L, R))) => O]): Rep[Coll[(K, O)]] = {
+      implicit val eK = left.eA.eFst
+implicit val eL = left.eA.eSnd
+implicit val eR = right.eA.eSnd
+implicit val eO = l.elem.eRange
+      asRep[Coll[(K, O)]](mkMethodCall(self,
+        CollBuilderClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(left, right, l, r, inner),
+        true, false, element[Coll[(K, O)]]))
+    }
   }
 
   implicit object LiftableCollBuilder
@@ -1764,6 +1775,17 @@ implicit val eB = bs.eA
         List(cT),
         true, true, element[Coll[T]]))
     }
+
+    def outerJoin[K, L, R, O](left: Rep[Coll[(K, L)]], right: Rep[Coll[(K, R)]])(l: Rep[((K, L)) => O], r: Rep[((K, R)) => O], inner: Rep[((K, (L, R))) => O]): Rep[Coll[(K, O)]] = {
+      implicit val eK = left.eA.eFst
+implicit val eL = left.eA.eSnd
+implicit val eR = right.eA.eSnd
+implicit val eO = l.elem.eRange
+      asRep[Coll[(K, O)]](mkMethodCall(source,
+        thisClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(left, right, l, r, inner),
+        true, true, element[Coll[(K, O)]]))
+    }
   }
 
   // entityProxy: single proxy for each type family
@@ -1781,7 +1803,7 @@ implicit val eB = bs.eA
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[CollBuilder], classOf[SCollBuilder], Set(
-        "Monoids", "pairColl", "fromItems", "unzip", "xor", "fromArray", "replicate", "emptyColl"
+        "Monoids", "pairColl", "fromItems", "unzip", "xor", "fromArray", "replicate", "emptyColl", "outerJoin"
         ))
     }
 
@@ -1923,6 +1945,19 @@ implicit val eB = bs.eA
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CollBuilder], Elem[T]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object outerJoin {
+      def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "outerJoin" =>
+          val res = (receiver, args(0), args(1), args(2), args(3), args(4))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

@@ -52,7 +52,8 @@ package special.collection {
       @NeverInline def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]] = delayInvoke;
       @NeverInline def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]] = delayInvoke;
       @NeverInline def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = delayInvoke;
-      @NeverInline override def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]] = delayInvoke
+      @NeverInline override def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]] = delayInvoke;
+      @NeverInline override def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]] = delayInvoke
     };
     abstract class PairOfCols[L, R](val ls: Rep[Coll[L]], val rs: Rep[Coll[R]]) extends PairColl[L, R] {
       override def builder: Rep[CollBuilder] = RCollOverArrayBuilder();

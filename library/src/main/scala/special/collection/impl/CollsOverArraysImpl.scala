@@ -603,6 +603,17 @@ object CollOverArrayBuilder extends EntityObject("CollOverArrayBuilder") {
         List(cT),
         true, false, element[Coll[T]]))
     }
+
+    override def outerJoin[K, L, R, O](left: Rep[Coll[(K, L)]], right: Rep[Coll[(K, R)]])(l: Rep[((K, L)) => O], r: Rep[((K, R)) => O], inner: Rep[((K, (L, R))) => O]): Rep[Coll[(K, O)]] = {
+      implicit val eK = left.eA.eFst
+implicit val eL = left.eA.eSnd
+implicit val eR = right.eA.eSnd
+implicit val eO = l.elem.eRange
+      asRep[Coll[(K, O)]](mkMethodCall(self,
+        thisClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(left, right, l, r, inner),
+        true, false, element[Coll[(K, O)]]))
+    }
   }
   // elem for concrete class
   class CollOverArrayBuilderElem(val iso: Iso[CollOverArrayBuilderData, CollOverArrayBuilder])
@@ -784,6 +795,19 @@ object CollOverArrayBuilder extends EntityObject("CollOverArrayBuilder") {
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Elem[T]) forSome {type T}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object outerJoin {
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "outerJoin" =>
+          val res = (receiver, args(0), args(1), args(2), args(3), args(4))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
