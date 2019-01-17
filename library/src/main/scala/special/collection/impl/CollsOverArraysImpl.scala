@@ -127,6 +127,13 @@ implicit val eV = m.elem.eRange.eSnd
         List(m, r),
         true, false, element[Coll[(K, V)]]))
     }
+
+    override def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, false, element[Coll[A]]))
+    }
   }
   // elem for concrete class
   class CollOverArrayElem[A](val iso: Iso[CollOverArrayData[A], CollOverArray[A]])(implicit override val eA: Elem[A])
@@ -532,6 +539,19 @@ implicit val eV = m.elem.eRange.eSnd
         case _ => Nullable.None
       }
     }
+
+    object unionSet {
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArray[A]], Rep[Coll[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "unionSet" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArray[A]], Rep[Coll[A]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArray[A]], Rep[Coll[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
   }
 
   object CollOverArrayCompanionMethods {
@@ -837,6 +857,7 @@ implicit lazy val eR = rs.eA
         true, false, element[Int]))
     }
 
+    // manual fix
     override def partition(pred: Rep[((L, R)) => Boolean]): Rep[(Coll[(L, R)], Coll[(L, R)])] = {
       asRep[(Coll[(L, R)], Coll[(L, R)])](mkMethodCall(self,
         thisClass.getMethod("partition", classOf[Sym]),
@@ -872,6 +893,13 @@ implicit val eV = m.elem.eRange.eSnd
         thisClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
         List(m, r),
         true, false, element[Coll[(K, V)]]))
+    }
+
+    override def unionSet(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(self,
+        thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, false, element[Coll[(L, R)]]))
     }
   }
   // elem for concrete class
@@ -1303,6 +1331,19 @@ implicit val eR = p.rs.eA
         case _ => Nullable.None
       }
     }
+
+    object unionSet {
+      def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[Coll[(L, R)]]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "unionSet" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[PairOfCols[L, R]], Rep[Coll[(L, R)]]) forSome {type L; type R}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[PairOfCols[L, R]], Rep[Coll[(L, R)]]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
   }
 
   object PairOfColsCompanionMethods {
@@ -1427,6 +1468,13 @@ implicit val eV = m.elem.eRange.eSnd
         thisClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
         List(m, r),
         true, false, element[Coll[(K, V)]]))
+    }
+
+    override def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, false, element[Coll[A]]))
     }
   }
   // elem for concrete class
@@ -1834,6 +1882,19 @@ implicit val eV = m.elem.eRange.eSnd
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CReplColl[A]], Rep[A => (K, V)], Rep[((V, V)) => V]) forSome {type A; type K; type V}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object unionSet {
+      def unapply(d: Def[_]): Nullable[(Rep[CReplColl[A]], Rep[Coll[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "unionSet" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CReplColl[A]], Rep[Coll[A]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CReplColl[A]], Rep[Coll[A]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

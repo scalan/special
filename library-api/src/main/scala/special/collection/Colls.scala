@@ -15,6 +15,9 @@ import scala.collection.generic.CanBuildFrom
 @FunctorType
 @scalan.Liftable
 trait Coll[A] {
+  @Internal
+  def cItem: ClassTag[A]
+
   def builder: CollBuilder
   def arr: Array[A]
   def length: Int
@@ -113,17 +116,17 @@ trait Coll[A] {
     * @returns one item for each group in a new collection of (K,V) pairs. */
   def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: ((V,V)) => V): Coll[(K,V)]
 
-//  /** Produces a new collection which contains all distinct elements of this $coll and also all elements of
-//    *  a given collection that are not in this collection.
-//    *  This is order preserving operation considering only first occurrences of each distinct elements.
-//    *  Any collection `xs` can be transformed to a sequence with distinct elements by using xs.unionSet(Col()).
-//    *
-//    *  NOTE: Use append if you don't need set semantics.
-//    *
-//    *  @param that   the collection to add.
-//    */
-//  def unionSets(that: Coll[A]): Coll[A]
-//
+  /** Produces a new collection which contains all distinct elements of this $coll and also all elements of
+    *  a given collection that are not in this collection.
+    *  This is order preserving operation considering only first occurrences of each distinct elements.
+    *  Any collection `xs` can be transformed to a sequence with distinct elements by using xs.unionSet(Col()).
+    *
+    *  NOTE: Use append if you don't need set semantics.
+    *
+    *  @param that   the collection to add.
+    */
+  def unionSet(that: Coll[A]): Coll[A]
+
 //  /** Computes the multiset difference between this $coll and another sequence.
 //    *
 //    *  @param that   the sequence of elements to remove

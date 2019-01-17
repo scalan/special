@@ -13,6 +13,8 @@ import Helpers._
 import scala.collection.mutable.ArrayBuffer
 
 class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
+  @Internal
+  override def cItem: ClassTag[A] = cA
   def builder: CollBuilder = new CollOverArrayBuilder
   def length: Int = arr.length
   def apply(i: Int): A = arr.apply(i)
@@ -88,8 +90,35 @@ class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll
     builder.pairCollFromArrays(keys, values)
   }
 
-//  override def unionSets(that: Coll[A]): Coll[A] = ???
-//
+  @NeverInline
+  override def unionSet(that: Coll[A]): Coll[A] = {
+    val set = new util.HashSet[A](32)
+    val res = ArrayBuffer.empty[A]
+    def addItemToSet(x: A) = {
+      if (!set.contains(x)) {
+        set.add(x)
+        res += x
+      }
+    }
+    def addToSet(arr: Array[A]) = {
+      var i = 0
+      while (i < arr.length) {
+        val x = arr(i)
+        addItemToSet(x)
+        i += 1
+      }
+    }
+    addToSet(this.arr)
+
+    that match {
+      case repl: ReplColl[A@unchecked] => // optimization
+        addItemToSet(repl.value)
+      case _ =>
+        addToSet(that.arr)
+    }
+    builder.fromArray(res.toArray)
+  }
+
 //  override def diff(that: Coll[A]): Coll[A] = ???
 //
 //  override def intersect(that: Coll[A]): Coll[A] = ???
@@ -132,6 +161,12 @@ class CollOverArrayBuilder extends CollBuilder {
 }
 
 class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
+  @Internal
+  override def cItem: ClassTag[(L, R)] = {
+    implicit val cL = ls.cItem; implicit val cR = rs.cItem
+    scala.reflect.classTag[(L,R)]
+  }
+
   override def builder: CollBuilder = new CollOverArrayBuilder
   override def arr: Array[(L, R)] = ls.arr.zip(rs.arr)
   override def length: Int = ls.length
@@ -216,12 +251,42 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
 
   @NeverInline
   override def mapReduce[K: ClassTag, V: ClassTag](m: ((L, R)) => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
-    val (keys, values) = Helpers.mapReduce(arr, m, r)
+    val (keys, values) = Helpers.mapReduce(arr, m, r)  // TODO optimize: don't reify arr
     builder.pairCollFromArrays(keys, values)
+  }
+
+  @NeverInline
+  override def unionSet(that: Coll[(L, R)]): Coll[(L, R)] = {
+    val set = new util.HashSet[(L,R)](32)
+    val resL = ArrayBuffer.empty[L]
+    val resR = ArrayBuffer.empty[R]
+    def addToSet(item: (L,R)) = {
+      if (!set.contains(item)) {
+        set.add(item)
+        resL += item._1
+        resR += item._2
+      }
+    }
+    var i = 0
+    val thisLen = ls.length
+    while (i < thisLen) {
+      addToSet((ls(i), rs(i)))
+      i += 1
+    }
+    i = 0
+    val thatLen = that.length
+    while (i < thatLen) {
+      addToSet(that(i))
+      i += 1
+    }
+    builder.pairCollFromArrays(resL.toArray(ls.cItem), resR.toArray(rs.cItem))
   }
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
+  @Internal
+  override def cItem: ClassTag[A] = cA
+
   def builder: CollBuilder = new CollOverArrayBuilder
   
   def arr: Array[A] = Array.fill(length)(value)
@@ -336,6 +401,20 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
       i += 1
     }
     builder.pairColl(builder.fromItems(k), builder.fromItems(reducedV))
+  }
+
+  @NeverInline
+  override def unionSet(that: Coll[A]): Coll[A] = that match {
+    case repl: ReplColl[A@unchecked] =>
+      if (value == repl.value) {
+        // both replications have the same element `value`, just return it in a singleton set
+        builder.replicate(1, value)
+      }
+      else {
+        builder.fromItems(value, repl.value)
+      }
+    case _ =>
+      builder.fromItems(value).unionSet(that)
   }
 
   @Internal

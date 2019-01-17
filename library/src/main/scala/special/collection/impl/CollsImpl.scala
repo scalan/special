@@ -198,6 +198,13 @@ implicit val eV = m.elem.eRange.eSnd
         true, false, element[Coll[(K, V)]]))
     }
 
+    override def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        CollClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, false, element[Coll[A]]))
+    }
+
     override def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("sum", classOf[Sym]),
@@ -406,6 +413,13 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Coll[(K, V)]]))
     }
 
+    def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[A]]))
+    }
+
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("sum", classOf[Sym]),
@@ -473,7 +487,7 @@ implicit val eV = m.elem.eRange.eSnd
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "indexWhere", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "sum", "slice", "append"
+        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "indexWhere", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "unionSet", "sum", "slice", "append"
         ))
     }
 
@@ -826,6 +840,19 @@ implicit val eV = m.elem.eRange.eSnd
       }
     }
 
+    object unionSet {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "unionSet" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object sum {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "sum" =>
@@ -1070,6 +1097,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Int]))
     }
 
+    // manual fix
     def partition(pred: Rep[((L, R)) => Boolean]): Rep[(Coll[(L, R)], Coll[(L, R)])] = {
       asRep[(Coll[(L, R)], Coll[(L, R)])](mkMethodCall(source,
         thisClass.getMethod("partition", classOf[Sym]),
@@ -1105,6 +1133,13 @@ implicit val eV = m.elem.eRange.eSnd
         thisClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
         List(m, r),
         true, true, element[Coll[(K, V)]]))
+    }
+
+    def unionSet(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(source,
+        thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[(L, R)]]))
     }
 
     def sum(m: Rep[Monoid[(L, R)]]): Rep[(L, R)] = {
@@ -1455,6 +1490,13 @@ implicit val eV = m.elem.eRange.eSnd
         thisClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
         List(m, r),
         true, true, element[Coll[(K, V)]]))
+    }
+
+    def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[A]]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {

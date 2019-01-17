@@ -42,7 +42,8 @@ package special.collection {
       @NeverInline override def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke;
-      @NeverInline override def mapReduce[K, V](m: Rep[scala.Function1[A, scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]] = delayInvoke
+      @NeverInline override def mapReduce[K, V](m: Rep[scala.Function1[A, scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]] = delayInvoke;
+      @NeverInline override def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke
     };
     abstract class CollOverArrayBuilder extends CollBuilder {
       override def Monoids: Rep[MonoidBuilder] = RMonoidBuilderInst();
@@ -81,7 +82,8 @@ package special.collection {
       @NeverInline override def patch(from: Rep[Int], patch: Rep[Coll[scala.Tuple2[L, R]]], replaced: Rep[Int]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke;
       @NeverInline override def updated(index: Rep[Int], elem: Rep[scala.Tuple2[L, R]]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke;
       @NeverInline override def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[scala.Tuple2[L, R]]]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke;
-      @NeverInline override def mapReduce[K, V](m: Rep[scala.Function1[scala.Tuple2[L, R], scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]] = delayInvoke
+      @NeverInline override def mapReduce[K, V](m: Rep[scala.Function1[scala.Tuple2[L, R], scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]] = delayInvoke;
+      @NeverInline override def unionSet(that: Rep[Coll[scala.Tuple2[L, R]]]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke
     };
     abstract class CReplColl[A](val value: Rep[A], val length: Rep[Int]) extends ReplColl[A] {
       def builder: Rep[CollBuilder] = RCollOverArrayBuilder();
@@ -107,7 +109,8 @@ package special.collection {
       @NeverInline override def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke;
-      @NeverInline override def mapReduce[K, V](m: Rep[scala.Function1[A, scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]] = delayInvoke
+      @NeverInline override def mapReduce[K, V](m: Rep[scala.Function1[A, scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]] = delayInvoke;
+      @NeverInline override def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke
     };
     trait CollOverArrayCompanion;
     trait CollOverArrayBuilderCompanion;

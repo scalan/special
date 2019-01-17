@@ -33,6 +33,7 @@ package special.collection {
       def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]];
       def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]];
       def mapReduce[K, V](m: Rep[scala.Function1[A, scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]];
+      def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]];
       def sum(m: Rep[Monoid[A]]): Rep[A];
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]];
       def append(other: Rep[Coll[A]]): Rep[Coll[A]]

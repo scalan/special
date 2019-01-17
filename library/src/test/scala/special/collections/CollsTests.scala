@@ -212,4 +212,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("Coll.unionSet") {
+    forAll(collGen, collGen) { (col1, col2) =>
+      val res = col1.unionSet(col2)
+      res.arr shouldBe (col1.arr.union(col2.arr).distinct)
+    }
+  }
+
 }
