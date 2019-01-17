@@ -109,10 +109,10 @@ trait Coll[A] {
   /** Returns a copy of this collection where elements at `indexes` are replaced with `values`. */
   def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A]
 
-//  /** Apply m for each element of this collection, group by key and reduce each group using r.
-//    * @returns one item for each group in a new collection of (K,V) pairs. */
-//  def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: (V,V) => V): Coll[(K,V)]
-//
+  /** Apply m for each element of this collection, group by key and reduce each group using r.
+    * @returns one item for each group in a new collection of (K,V) pairs. */
+  def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: ((V,V)) => V): Coll[(K,V)]
+
 //  /** Produces a new collection which contains all distinct elements of this $coll and also all elements of
 //    *  a given collection that are not in this collection.
 //    *  This is order preserving operation considering only first occurrences of each distinct elements.
@@ -184,6 +184,10 @@ trait ReplColl[A] extends Coll[A] {
 trait CollBuilder {
   def Monoids: MonoidBuilder
   def pairColl[A,B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
+
+  @Internal
+  def pairCollFromArrays[A,B](as: Array[A], bs: Array[B]): PairColl[A,B] =
+    pairColl(fromArray(as), fromArray(bs))
 
   @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T]
 

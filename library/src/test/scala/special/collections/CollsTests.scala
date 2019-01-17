@@ -199,4 +199,17 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("Coll.mapReduce") {
+    import scalan.util.CollectionUtil.TraversableOps
+    def m(x: Int) = (math.abs(x) % 10, x)
+    def r(v1: Int, v2: Int) = v1 + v2
+    forAll(collGen) { col =>
+      val res = col.mapReduce(m, (p: (Int,Int)) => r(p._1, p._2))
+      val (ks, vs) = builder.unzip(res)
+      vs.arr.sum shouldBe col.arr.sum
+      ks.length <= 10 shouldBe true
+      res.arr shouldBe col.arr.toIterable.mapReduce(m)(r).toArray
+    }
+  }
+
 }

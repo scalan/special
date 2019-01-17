@@ -6,9 +6,11 @@ import special.SpecialPredef
 
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
-import scalan.util.CollectionUtil.{unboxedArray}
-import scalan.{Internal, NeverInline, OverloadId, Reified}
+import scalan.util.CollectionUtil.{TraversableOps, unboxedArray}
+import scalan.{Internal, NeverInline, Reified, OverloadId}
 import Helpers._
+
+import scala.collection.mutable.ArrayBuffer
 
 class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
   def builder: CollBuilder = new CollOverArrayBuilder
@@ -80,9 +82,12 @@ class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll
     builder.fromArray(resArr)
   }
 
-//  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V),
-//      r: (V, V) => V): Coll[(K, V)] = ???
-//
+  @NeverInline
+  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
+    val (keys, values) = Helpers.mapReduce(arr, m, r)
+    builder.pairCollFromArrays(keys, values)
+  }
+
 //  override def unionSets(that: Coll[A]): Coll[A] = ???
 //
 //  override def diff(that: Coll[A]): Coll[A] = ???
@@ -208,6 +213,12 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
     }
     builder.pairColl(builder.fromArray(resL), builder.fromArray(resR))
   }
+
+  @NeverInline
+  override def mapReduce[K: ClassTag, V: ClassTag](m: ((L, R)) => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
+    val (keys, values) = Helpers.mapReduce(arr, m, r)
+    builder.pairCollFromArrays(keys, values)
+  }
 }
 
 class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
@@ -319,6 +330,19 @@ class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) exte
       i += 1
     }
     builder.fromArray(resArr)
+  }
+
+  @NeverInline
+  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
+    if (length <= 0) return builder.pairColl(builder.emptyColl[K], builder.emptyColl[V])
+    val (k, v) = m(value)
+    var reducedV = v
+    var i = 1
+    while (i < length) {
+      reducedV = r((reducedV, v))
+      i += 1
+    }
+    builder.pairColl(builder.fromItems(k), builder.fromItems(reducedV))
   }
 
   @Internal
