@@ -8,6 +8,19 @@ object ExtentionMethods {
 
   implicit class CollOps[A](val source: Coll[A]) extends AnyVal {
 
+    /** Tests whether every element of this $coll relates to the
+      *  corresponding element of another sequence by satisfying a test predicate.
+      *
+      *  @param   that  the other sequence
+      *  @param   p     the test predicate, which relates elements from both sequences
+      *  @tparam  B     the type of the elements of `that`
+      *  @return  `true` if both sequences have the same length and
+      *                  `p(x, y)` is `true` for all corresponding elements `x` of this $coll
+      *                  and `y` of `that`, otherwise `false`.
+      */
+    def corresponds[B](that: Coll[B])(p: ((A, B)) => Boolean): Boolean =
+      source.zip(that).forall(p)
+
 //    /** Returns the length of the longest prefix whose elements all satisfy some predicate.
 //      *
 //      *  $mayNotTerminateInf
@@ -104,6 +117,7 @@ object ExtentionMethods {
 
     def sumByKey(implicit m: Monoid[B]): Coll[(A,B)] =
       reduceByKey(r => m.plus(r._1, r._2))
+
   }
 }
 

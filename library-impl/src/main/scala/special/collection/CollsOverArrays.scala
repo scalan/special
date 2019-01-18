@@ -10,7 +10,7 @@ import scalan.util.CollectionUtil.{TraversableOps, unboxedArray}
 import scalan.{Internal, NeverInline, Reified, OverloadId}
 import Helpers._
 
-import scala.collection.mutable.ArrayBuffer
+import scala.collection.mutable
 
 class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
   @Internal
@@ -93,7 +93,7 @@ class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll
   @NeverInline
   override def unionSet(that: Coll[A]): Coll[A] = {
     val set = new util.HashSet[A](32)
-    val res = ArrayBuffer.empty[A]
+    val res = mutable.ArrayBuilder.make[A]
     def addItemToSet(x: A) = {
       if (!set.contains(x)) {
         set.add(x)
@@ -116,7 +116,7 @@ class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll
       case _ =>
         addToSet(that.arr)
     }
-    builder.fromArray(res.toArray)
+    builder.fromArray(res.result())
   }
 
 //  override def diff(that: Coll[A]): Coll[A] = ???
@@ -275,8 +275,8 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   @NeverInline
   override def unionSet(that: Coll[(L, R)]): Coll[(L, R)] = {
     val set = new util.HashSet[(L,R)](32)
-    val resL = ArrayBuffer.empty[L]
-    val resR = ArrayBuffer.empty[R]
+    val resL = mutable.ArrayBuilder.make[L]()(ls.cItem)
+    val resR = mutable.ArrayBuilder.make[R]()(rs.cItem)
     def addToSet(item: (L,R)) = {
       if (!set.contains(item)) {
         set.add(item)
@@ -296,7 +296,7 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
       addToSet(that(i))
       i += 1
     }
-    builder.pairCollFromArrays(resL.toArray(ls.cItem), resR.toArray(rs.cItem))
+    builder.pairCollFromArrays(resL.result(), resR.result())
   }
 }
 

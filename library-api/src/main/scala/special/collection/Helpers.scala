@@ -1,5 +1,6 @@
 package special.collection
 
+import scala.collection.mutable
 import scala.reflect.ClassTag
 import scala.collection.mutable.ArrayBuffer
 
@@ -17,32 +18,36 @@ object Helpers {
 
   def mapReduce[A, K: ClassTag, V: ClassTag](arr: Array[A], m: A => (K, V), r: ((V, V)) => V): (Array[K], Array[V]) = {
     val keyPositions = new java.util.HashMap[K, Int](32)
-    val keys = ArrayBuffer.empty[K]
-    val values = ArrayBuffer.empty[V]
+    val keys = mutable.ArrayBuilder.make[K]
+    val values = Array.ofDim[V](arr.length)
     var i = 0
+    var nValues = 0
     while (i < arr.length) {
       val (key, value) = m(arr(i))
       val pos = keyPositions.getOrDefault(key, 0)
       if (pos == 0) {
-        keyPositions.put(key, keys.length + 1)
+        keyPositions.put(key, nValues + 1)
         keys += key
-        values += value
+        values(nValues) = value
+        nValues += 1
       } else {
         values(pos - 1) = r((values(pos - 1), value))
       }
       i += 1
     }
-    (keys.toArray, values.toArray)
+    val resValues = Array.ofDim[V](nValues)
+    Array.copy(values, 0, resValues, 0, nValues)
+    (keys.result(), resValues)
   }
 
   def mapToArrays[K: ClassTag, V: ClassTag](m: Map[K,V]): (Array[K], Array[V]) = {
-    val keys = ArrayBuffer.empty[K]
-    val values = ArrayBuffer.empty[V]
+    val keys = mutable.ArrayBuilder.make[K]
+    val values = mutable.ArrayBuilder.make[V]
     for ((k,v) <- m) {
       keys += k
       values += v
     }
-    (keys.toArray, values.toArray)
+    (keys.result, values.result)
   }
 
 }
