@@ -4,7 +4,6 @@ import scala.reflect.ClassTag
 import scalan._
 
 import scala.collection.{GenSeq, immutable}
-import scala.collection.generic.CanBuildFrom
 
 /**
   * @define Coll `Coll`
@@ -15,24 +14,8 @@ import scala.collection.generic.CanBuildFrom
 @FunctorType
 @scalan.Liftable
 trait Coll[A] {
-  @Internal
-  def cItem: ClassTag[A]
-
   def builder: CollBuilder
   def arr: Array[A]
-
-  @Internal
-  def toMap[T, U](implicit ev: A <:< (T, U)): immutable.Map[T, U] = {
-    val b = immutable.Map.newBuilder[T, U]
-    var i = 0
-    val len = length
-    while (i < len) {
-      b += this(i)
-      i += 1
-    }
-    b.result()
-  }
-
   def length: Int
   def apply(i: Int): A
   def getOrElse(i: Int, default: A): A
@@ -75,6 +58,19 @@ trait Coll[A] {
     *           such that every element of the segment satisfies the predicate `p`.
     */
   def segmentLength(p: A => Boolean, from: Int): Int
+
+  /** Finds the first element of the $coll satisfying a predicate, if any.
+    *
+    *  @param p       the predicate used to test elements.
+    *  @return        an option value containing the first element in the $coll
+    *                 that satisfies `p`, or `None` if none exists.
+    */
+  @NeverInline
+  def find(p: A => Boolean): Option[A] = {
+    val i = segmentLength(!p(_), 0)
+    if (i < length) Some(this(i)) else None
+  }
+
 
   /** Finds index of the first element satisfying some predicate after or at some start index.
     *
@@ -192,6 +188,41 @@ trait Coll[A] {
   private def trim[T](arr: Array[T]) = arr.take(arr.length min 100)
   @Internal
   override def toString = s"Coll(${trim(arr).mkString(",")})"
+
+  @Internal
+  def cItem: ClassTag[A]
+
+  @Internal
+  def toMap[T, U](implicit ev: A <:< (T, U)): immutable.Map[T, U] = {
+    var b = immutable.Map.empty[T,U]
+    var i = 0
+    val len = length
+    while (i < len) {
+      val kv = this(i)
+      if (b.contains(kv._1))
+        throw new IllegalArgumentException(s"Cannot transform collection $this to Map: duplicate key in entry $kv")
+      b = b + kv
+      i += 1
+    }
+    b
+  }
+
+  @Internal
+  def distinctByKey[T, U](implicit ev: A <:< (T, U)): Coll[A] = {
+    unionSetByKey(builder.emptyColl[A](cItem))
+  }
+
+
+  @Internal
+  def unionSetByKey[T, U](that: Coll[A])(implicit ev: A <:< (T, U)): Coll[A] = {
+    import scalan.util.CollectionUtil._
+    // TODO optimize representation-wise
+    val res = append(that).arr.toIterable.distinctBy(_._1)
+//    val (ls, rs) = res.unzip
+//    builder.pairCollFromArrays(ls.toArray, rs.toArray)
+    builder.fromArray(res.toArray(cItem))
+  }
+
 }
 
 trait PairColl[L,R] extends Coll[(L,R)] {

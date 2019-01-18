@@ -1,11 +1,13 @@
 package special.collection
 
 import scala.reflect.ClassTag
+import scalan.util.CollectionUtil._
 
 object ExtentionMethods {
+  import Helpers._
 
-//  implicit class ColOps[A: ClassTag](xs: Coll[A]) {
-//
+  implicit class CollOps[A](val source: Coll[A]) extends AnyVal {
+
 //    /** Returns the length of the longest prefix whose elements all satisfy some predicate.
 //      *
 //      *  $mayNotTerminateInf
@@ -42,17 +44,7 @@ object ExtentionMethods {
 //      */
 //    def lastIndexWhere(p: A => Boolean): Int = xs.lastIndexWhere(p, xs.length - 1)
 //
-//    /** Finds the first element of the $coll satisfying a predicate, if any.
-//      *
-//      *  @param p       the predicate used to test elements.
-//      *  @return        an option value containing the first element in the $coll
-//      *                 that satisfies `p`, or `None` if none exists.
-//      */
-//    def find(p: A => Boolean): Option[A] = {
-//      val i = xs.prefixLength(!p(_))
-//      if (i < xs.length) Some(xs(i)) else None
-//    }
-//
+
 //    /** Builds a new $coll from this $coll without any duplicate elements.
 //      *
 //      *  @return  A new $coll which contains the first occurrence of every element of this $coll.
@@ -98,8 +90,20 @@ object ExtentionMethods {
 //      else
 //        xs.append(xs.builder.replicate(len - xs.length, elem))
 //    }
-//
-//  }
 
+  }
+  implicit class PairCollOps[A: ClassTag, B: ClassTag](source: Coll[(A,B)]) {
+    // TODO optimize
+    def unionSetByKey(that: Coll[(A,B)]): Coll[(A,B)] = {
+      source.unionSetByKey(that)
+    }
+
+    def reduceByKey(r: ((B,B)) => B): Coll[(A,B)] = {
+      source.mapReduce(identity, r)
+    }
+
+    def sumByKey(implicit m: Monoid[B]): Coll[(A,B)] =
+      reduceByKey(r => m.plus(r._1, r._2))
+  }
 }
 

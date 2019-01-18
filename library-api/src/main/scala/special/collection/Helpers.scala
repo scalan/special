@@ -1,7 +1,7 @@
 package special.collection
 
-import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
+import scala.collection.mutable.ArrayBuffer
 
 object Helpers {
   private def sameLengthErrorMsg[A,B](xs: Coll[A], ys: Coll[B]) =
@@ -45,9 +45,4 @@ object Helpers {
     (keys.toArray, values.toArray)
   }
 
-  type TokenId = Coll[Byte]
-  type TokensColl = Coll[(TokenId, Long)]
-
-  implicit class PairCollOps[L,R](val source: Coll[(L,R)]) extends AnyVal {
-  }
 }
