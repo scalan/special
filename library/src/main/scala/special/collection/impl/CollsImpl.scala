@@ -16,6 +16,7 @@ import Monoid._
 import MonoidBuilder._
 import PairColl._
 import WArray._
+import WOption._
 import ReplColl._
 
 object Coll extends EntityObject("Coll") {
@@ -145,6 +146,13 @@ object Coll extends EntityObject("Coll") {
         CollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, false, element[Int]))
+    }
+
+    override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
+      asRep[WOption[A]](mkMethodCall(self,
+        CollClass.getMethod("find", classOf[Sym]),
+        List(p),
+        true, false, element[WOption[A]]))
     }
 
     override def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
@@ -369,6 +377,13 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Int]))
     }
 
+    override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
+      asRep[WOption[A]](mkMethodCall(source,
+        thisClass.getMethod("find", classOf[Sym]),
+        List(p),
+        true, true, element[WOption[A]]))
+    }
+
     def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
@@ -501,7 +516,7 @@ implicit val eV = m.elem.eRange.eSnd
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "unionSet", "sum", "slice", "append"
+        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "unionSet", "sum", "slice", "append"
         ))
     }
 
@@ -758,6 +773,19 @@ implicit val eV = m.elem.eRange.eSnd
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object find {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "find" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1108,6 +1136,13 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         thisClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
+    }
+
+    override def find(p: Rep[((L, R)) => Boolean]): Rep[WOption[(L, R)]] = {
+      asRep[WOption[(L, R)]](mkMethodCall(source,
+        thisClass.getMethod("find", classOf[Sym]),
+        List(p),
+        true, true, element[WOption[(L, R)]]))
     }
 
     def indexWhere(p: Rep[((L, R)) => Boolean], from: Rep[Int]): Rep[Int] = {
@@ -1473,6 +1508,13 @@ object ReplColl extends EntityObject("ReplColl") {
         thisClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
+    }
+
+    override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
+      asRep[WOption[A]](mkMethodCall(source,
+        thisClass.getMethod("find", classOf[Sym]),
+        List(p),
+        true, true, element[WOption[A]]))
     }
 
     def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {

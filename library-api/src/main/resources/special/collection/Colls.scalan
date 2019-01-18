@@ -8,6 +8,7 @@ package special.collection {
     import MonoidBuilder._;
     import PairColl._;
     import WArray._;
+    import WOption._;
     @ContainerType @FunctorType @Liftable trait Coll[A] extends Def[Coll[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[CollBuilder];
@@ -26,6 +27,7 @@ package special.collection {
       def indices: Rep[Coll[Int]];
       def flatMap[B](f: Rep[scala.Function1[A, Coll[B]]]): Rep[Coll[B]];
       def segmentLength(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int];
+      @NeverInline def find(p: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]] = delayInvoke;
       def indexWhere(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int];
       @NeverInline def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = delayInvoke;
       def lastIndexWhere(p: Rep[scala.Function1[A, Boolean]], end: Rep[Int]): Rep[Int];
