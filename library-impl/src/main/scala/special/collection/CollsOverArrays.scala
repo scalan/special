@@ -12,7 +12,7 @@ import Helpers._
 
 import scala.collection.mutable
 
-class CollOverArray[A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
+class CollOverArray[@specialized(Int, Long) A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
   @Internal
   override def cItem: ClassTag[A] = cA
   def builder: CollBuilder = new CollOverArrayBuilder
@@ -151,7 +151,7 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 
   @NeverInline
-  def fromArray[T](arr: Array[T]): Coll[T] = {
+  def fromArray[@specialized(Int, Long) T](arr: Array[T]): Coll[T] = {
     implicit val cT = ClassTag[T](arr.getClass.getComponentType.asInstanceOf[Class[T]])
     new CollOverArray[T](arr)
   }
@@ -177,9 +177,9 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 }
 
-class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
+class PairOfCols[@specialized(Int, Long) L, @specialized(Int, Long) R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   @Internal
-  override def cItem: ClassTag[(L, R)] = {
+  override val cItem: ClassTag[(L, R)] = {
     implicit val cL = ls.cItem; implicit val cR = rs.cItem
     scala.reflect.classTag[(L,R)]
   }
@@ -196,11 +196,56 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
       val d = default // force thunk
       (d._1, d._2)
     }
-  override def map[V: ClassTag](f: ((L, R)) => V): Coll[V] = new CollOverArray(arr.map(f))
+  @NeverInline
+  override def map[V: ClassTag](f: ((L, R)) => V): Coll[V] = {
+    val len = ls.length
+    val res = new Array[V](len)
+    var i = 0
+    while (i < len) {
+      res(i) = f((ls(i), rs(i)))
+      i += 1
+    }
+    new CollOverArray(res)
+  }
   override def foreach(f: ((L, R)) => Unit): Unit = arr.foreach(f)
-  override def exists(p: ((L, R)) => Boolean): Boolean = arr.exists(p)
-  override def forall(p: ((L, R)) => Boolean): Boolean = arr.forall(p)
-  override def filter(p: ((L, R)) => Boolean): Coll[(L,R)] = new CollOverArray(arr.filter(p))
+  override def exists(p: ((L, R)) => Boolean): Boolean = {
+    val len = ls.length
+    var i = 0
+    while (i < len) {
+      val found = p((ls(i), rs(i)))
+      if (found) return true
+      i += 1
+    }
+    false
+  }
+  override def forall(p: ((L, R)) => Boolean): Boolean = {
+    val len = ls.length
+    var i = 0
+    while (i < len) {
+      val ok = p((ls(i), rs(i)))
+      if (!ok) return false
+      i += 1
+    }
+    false
+  }
+  override def filter(p: ((L, R)) => Boolean): Coll[(L,R)] = {
+    val len = ls.length
+    val resL = mutable.ArrayBuilder.make[L]()(ls.cItem)
+    val resR = mutable.ArrayBuilder.make[R]()(rs.cItem)
+    var i = 0
+    while (i < len) {
+      val l = ls(i)
+      val r = rs(i)
+      val ok = p((l, r))
+      if (ok) {
+        resL += l
+        resR += r
+      }
+      i += 1
+    }
+    builder.pairCollFromArrays(resL.result(), resR.result())
+  }
+
   @NeverInline
   override def fold[B](zero: B, op: ((B, (L, R))) => B): B = arr.foldLeft(zero)((b, a) => op((b,a)))
   override def slice(from: Int, until: Int): PairColl[L,R] = builder.pairColl(ls.slice(from, until), rs.slice(from, until))
@@ -300,7 +345,7 @@ class PairOfCols[L,R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   }
 }
 
-class CReplColl[A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
+class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
   @Internal
   override def cItem: ClassTag[A] = cA
 

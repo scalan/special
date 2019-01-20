@@ -29,6 +29,8 @@ trait CollGens { testSuite =>
 
   def eq0(x: Int) = x == 0
   def lt0(x: Int) = x < 0
+  def plus(acc: Int, x: Int): Int = acc + x
+  val plusF = (p: (Int,Int)) => plus(p._1, p._2)
 
   implicit def buildableColl[T:ClassTag] = new Buildable[T,Coll[T]] {
     def builder = new mutable.Builder[T,Coll[T]] {

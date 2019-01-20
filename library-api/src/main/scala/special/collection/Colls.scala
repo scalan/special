@@ -13,7 +13,7 @@ import scala.collection.{GenSeq, immutable}
 @ContainerType
 @FunctorType
 @scalan.Liftable
-trait Coll[A] {
+trait Coll[@specialized(Int, Long) A] {
   def builder: CollBuilder
   def arr: Array[A]
   def length: Int
@@ -225,13 +225,13 @@ trait Coll[A] {
 
 }
 
-trait PairColl[L,R] extends Coll[(L,R)] {
+trait PairColl[@specialized(Int, Long) L, @specialized(Int, Long) R] extends Coll[(L,R)] {
   def ls: Coll[L]
   def rs: Coll[R]
 }
 
 @Liftable
-trait ReplColl[A] extends Coll[A] {
+trait ReplColl[@specialized(Int, Long) A] extends Coll[A] {
   def value: A
   def length: Int
   def append(other: Coll[A]): Coll[A]

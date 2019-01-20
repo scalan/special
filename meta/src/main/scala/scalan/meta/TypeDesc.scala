@@ -52,11 +52,12 @@ object RType {
 
   case class ConcreteRType[A](tag: WeakTypeTag[A]) extends RType[A]
 
-  implicit val ByteType : RType[Byte]  = ConcreteRType[Byte] (universe.weakTypeTag[Byte])
-  implicit val ShortType: RType[Short] = ConcreteRType[Short](universe.weakTypeTag[Short])
-  implicit val IntType  : RType[Int]   = ConcreteRType[Int]  (universe.weakTypeTag[Int])
-  implicit val LongType : RType[Long]  = ConcreteRType[Long] (universe.weakTypeTag[Long])
-  implicit val StringType: RType[String] = ConcreteRType[String] (universe.weakTypeTag[String])
+  implicit val BooleanType : RType[Boolean]  = ConcreteRType[Boolean] (universe.weakTypeTag[Boolean])
+  implicit val ByteType    : RType[Byte]     = ConcreteRType[Byte]    (universe.weakTypeTag[Byte])
+  implicit val ShortType   : RType[Short]    = ConcreteRType[Short]   (universe.weakTypeTag[Short])
+  implicit val IntType     : RType[Int]      = ConcreteRType[Int]     (universe.weakTypeTag[Int])
+  implicit val LongType    : RType[Long]     = ConcreteRType[Long]    (universe.weakTypeTag[Long])
+  implicit val StringType  : RType[String]   = ConcreteRType[String]  (universe.weakTypeTag[String])
 
   implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairRType(tA, tB)
 

@@ -121,6 +121,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         def inc(x: Int) = x + 1
         val res = col.map(inc)
         res.arr shouldBe col.arr.map(inc)
+        val pairs = col.zip(col)
+        pairs.map(plusF).arr shouldBe pairs.arr.map(plusF)
       }
       {
         val res = col.filter(lt0)
@@ -137,8 +139,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         builder.replicate(0, -10).exists(lt0) shouldBe Array[Int]().exists(lt0)
       }
       {
-        def plus(acc: Int, x: Int): Int = acc + x
-        val res = col.fold[Int](0, p => plus(p._1, p._2) )
+        val res = col.fold[Int](0, plusF)
         res shouldBe col.arr.foldLeft(0)(plus)
       }
       whenever(index < col.length) {
@@ -173,13 +174,12 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   property("Coll.mapReduce") {
     import scalan.util.CollectionUtil.TraversableOps
     def m(x: Int) = (math.abs(x) % 10, x)
-    def r(v1: Int, v2: Int) = v1 + v2
     forAll(collGen) { col =>
-      val res = col.mapReduce(m, (p: (Int,Int)) => r(p._1, p._2))
+      val res = col.mapReduce(m, plusF)
       val (ks, vs) = builder.unzip(res)
       vs.arr.sum shouldBe col.arr.sum
       ks.length <= 10 shouldBe true
-      res.arr shouldBe col.arr.toIterable.mapReduce(m)(r).toArray
+      res.arr shouldBe col.arr.toIterable.mapReduce(m)(plus).toArray
     }
   }
 
