@@ -82,12 +82,12 @@ object Coll extends EntityObject("Coll") {
         true, false, element[Coll[B]]))
     }
 
-    override def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[A, B]] = {
+    override def zip[B](ys: Rep[Coll[B]]): Rep[Coll[(A, B)]] = {
       implicit val eB = ys.eA
-      asRep[PairColl[A, B]](mkMethodCall(self,
+      asRep[Coll[(A, B)]](mkMethodCall(self,
         CollClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, false, element[PairColl[A, B]]))
+        true, false, element[Coll[(A, B)]]))
     }
 
     override def foreach(f: Rep[A => Unit]): Rep[Unit] = {
@@ -311,12 +311,12 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Coll[B]]))
     }
 
-    def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[A, B]] = {
+    def zip[B](ys: Rep[Coll[B]]): Rep[Coll[(A, B)]] = {
       implicit val eB = ys.eA
-      asRep[PairColl[A, B]](mkMethodCall(source,
+      asRep[Coll[(A, B)]](mkMethodCall(source,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, true, element[PairColl[A, B]]))
+        true, true, element[Coll[(A, B)]]))
     }
 
     def foreach(f: Rep[A => Unit]): Rep[Unit] = {
@@ -1072,12 +1072,13 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Coll[B]]))
     }
 
-    def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[(L, R), B]] = {
+    // manual fix
+    def zip[B](ys: Rep[Coll[B]]): Rep[Coll[((L, R), B)]] = {
       implicit val eB = ys.eA
-      asRep[PairColl[(L, R), B]](mkMethodCall(source,
+      asRep[Coll[((L, R), B)]](mkMethodCall(source,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, true, element[PairColl[(L, R), B]]))
+        true, true, element[Coll[((L, R), B)]](collElement(pairElement(pairElement(eL, eR), eB)))))
     }
 
     def foreach(f: Rep[((L, R)) => Unit]): Rep[Unit] = {
@@ -1444,12 +1445,12 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[Coll[B]]))
     }
 
-    def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[A, B]] = {
+    def zip[B](ys: Rep[Coll[B]]): Rep[Coll[(A, B)]] = {
       implicit val eB = ys.eA
-      asRep[PairColl[A, B]](mkMethodCall(source,
+      asRep[Coll[(A, B)]](mkMethodCall(source,
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
-        true, true, element[PairColl[A, B]]))
+        true, true, element[Coll[(A, B)]]))
     }
 
     def foreach(f: Rep[A => Unit]): Rep[Unit] = {

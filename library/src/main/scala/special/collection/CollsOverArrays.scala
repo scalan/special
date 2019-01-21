@@ -61,11 +61,11 @@ package special.collection {
       override def length: Rep[Int] = PairOfCols.this.ls.length;
       override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
       @NeverInline override def getOrElse(i: Rep[Int], default: Rep[scala.Tuple2[L, R]]): Rep[scala.Tuple2[L, R]] = delayInvoke;
-      override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Coll[V]] = RCollOverArray(PairOfCols.this.arr.map(f));
-      override def foreach(f: Rep[scala.Function1[scala.Tuple2[L, R], Unit]]): Rep[Unit] = PairOfCols.this.arr.foreach(f);
-      override def exists(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.exists(p);
-      override def forall(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = PairOfCols.this.arr.forall(p);
-      override def filter(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Coll[scala.Tuple2[L, R]]] = RCollOverArray(PairOfCols.this.arr.filter(p));
+      @NeverInline override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Coll[V]] = delayInvoke;
+      @NeverInline override def foreach(f: Rep[scala.Function1[scala.Tuple2[L, R], Unit]]): Rep[Unit] = delayInvoke;
+      @NeverInline override def exists(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = delayInvoke;
+      @NeverInline override def forall(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = delayInvoke;
+      @NeverInline override def filter(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke;
       @NeverInline override def fold[B](zero: Rep[B], op: Rep[scala.Function1[scala.Tuple2[B, scala.Tuple2[L, R]], B]]): Rep[B] = delayInvoke;
       override def slice(from: Rep[Int], until: Rep[Int]): Rep[PairColl[L, R]] = PairOfCols.this.builder.pairColl[L, R](PairOfCols.this.ls.slice(from, until), PairOfCols.this.rs.slice(from, until));
       def append(other: Rep[Coll[scala.Tuple2[L, R]]]): Rep[Coll[scala.Tuple2[L, R]]] = {

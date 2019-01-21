@@ -1,14 +1,9 @@
 package special.collections
 
-import special.collection.{Coll, CollOverArrayBuilder}
-import org.scalacheck.util.Buildable
-import org.scalacheck.{Arbitrary, Gen}
+import special.collection.Coll
+import org.scalacheck.Gen
 import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
-
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
-import scala.reflect.ClassTag
 
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
@@ -118,7 +113,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         res shouldBe col.arr.sum
         val pairs = col.zip(col)
         val pairMonoid = builder.Monoids.pairMonoid(monoid, monoid)
-        pairs.sum(pairMonoid) shouldBe (res, res)
+        pairs.sum(pairMonoid) shouldBe ((res, res))
       }
       {
         def inc(x: Int) = x + 1

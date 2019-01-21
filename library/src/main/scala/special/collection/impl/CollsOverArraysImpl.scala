@@ -837,6 +837,42 @@ implicit lazy val eR = rs.eA
         true, false, element[(L, R)]))
     }
 
+    override def map[V](f: Rep[((L, R)) => V]): Rep[Coll[V]] = {
+      implicit val eV = f.elem.eRange
+      asRep[Coll[V]](mkMethodCall(self,
+        thisClass.getMethod("map", classOf[Sym]),
+        List(f),
+        true, false, element[Coll[V]]))
+    }
+
+    override def foreach(f: Rep[((L, R)) => Unit]): Rep[Unit] = {
+      asRep[Unit](mkMethodCall(self,
+        thisClass.getMethod("foreach", classOf[Sym]),
+        List(f),
+        true, false, element[Unit]))
+    }
+
+    override def exists(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("exists", classOf[Sym]),
+        List(p),
+        true, false, element[Boolean]))
+    }
+
+    override def forall(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("forall", classOf[Sym]),
+        List(p),
+        true, false, element[Boolean]))
+    }
+
+    override def filter(p: Rep[((L, R)) => Boolean]): Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(self,
+        thisClass.getMethod("filter", classOf[Sym]),
+        List(p),
+        true, false, element[Coll[(L, R)]]))
+    }
+
     override def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
