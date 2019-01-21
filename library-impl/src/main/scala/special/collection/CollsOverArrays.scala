@@ -6,16 +6,15 @@ import special.SpecialPredef
 
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
-import scalan.util.CollectionUtil.{TraversableOps, unboxedArray}
-import scalan.{Internal, NeverInline, Reified, OverloadId}
+import scalan.util.CollectionUtil.unboxedArray
+import scalan.{Internal, NeverInline, Reified}
 import Helpers._
 import debox.Buffer
-import scala.{specialized => sp}
 import spire.syntax.all._
 
 import scala.collection.mutable
 
-class CollOverArray[@sp A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
+class CollOverArray[@specialized A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
   @Internal
   override def cItem: ClassTag[A] = cA
   def builder: CollBuilder = new CollOverArrayBuilder
@@ -23,7 +22,7 @@ class CollOverArray[@sp A](val arr: Array[A])(implicit cA: ClassTag[A]) extends 
   @inline def apply(i: Int): A = arr.apply(i)
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < arr.length) arr(i) else default
-  def map[@sp B: ClassTag](f: A => B): Coll[B] = builder.fromArray(arr.map(f))
+  def map[@specialized B: ClassTag](f: A => B): Coll[B] = builder.fromArray(arr.map(f))
   def foreach(f: A => Unit): Unit = arr.foreach(f)
   def exists(p: A => Boolean): Boolean = arr.exists(p)
   def forall(p: A => Boolean): Boolean = arr.forall(p)
@@ -32,7 +31,7 @@ class CollOverArray[@sp A](val arr: Array[A])(implicit cA: ClassTag[A]) extends 
   def fold[B](zero: B, op: ((B, A)) => B): B = arr.foldLeft(zero)((b, a) => op((b, a)))
   def slice(from: Int, until: Int): Coll[A] = builder.fromArray(arr.slice(from, until))
   def sum(m: Monoid[A]): A = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
-  @inline def zip[@sp B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
+  @inline def zip[@specialized B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
   @NeverInline
   def append(other: Coll[A]): Coll[A] = {
     if (arr.length <= 0) return other
@@ -139,7 +138,7 @@ class CollOverArray[@sp A](val arr: Array[A])(implicit cA: ClassTag[A]) extends 
 class CollOverArrayBuilder extends CollBuilder {
   override def Monoids: MonoidBuilder = new MonoidBuilderInst
 
-  @inline def pairColl[@sp A, @sp B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
+  @inline def pairColl[@specialized A, @specialized B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
 
   @Internal
   override def fromMap[K: ClassTag, V: ClassTag](m: Map[K, V]): Coll[(K, V)] = {
@@ -154,7 +153,7 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 
   @NeverInline
-  def fromArray[@sp T](arr: Array[T]): Coll[T] = {
+  def fromArray[@specialized T](arr: Array[T]): Coll[T] = {
     implicit val cT = ClassTag[T](arr.getClass.getComponentType.asInstanceOf[Class[T]])
     new CollOverArray[T](arr)
   }
@@ -180,7 +179,7 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 }
 
-class PairOfCols[@sp L, @sp R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
+class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   @Internal
   override def cItem: ClassTag[(L, R)] = {
     implicit val cL = ls.cItem; implicit val cR = rs.cItem
@@ -191,6 +190,7 @@ class PairOfCols[@sp L, @sp R](val ls: Coll[L], val rs: Coll[R]) extends PairCol
   override def arr: Array[(L, R)] = ls.arr.zip(rs.arr)
   @inline override def length: Int = ls.length
   @inline override def apply(i: Int): (L, R) = (ls(i), rs(i))
+  
   @NeverInline
   override def getOrElse(i: Int, default: (L, R)): (L, R) =
     if (i >= 0 && i < this.length)
@@ -199,8 +199,9 @@ class PairOfCols[@sp L, @sp R](val ls: Coll[L], val rs: Coll[R]) extends PairCol
       val d = default // force thunk
       (d._1, d._2)
     }
+
   @NeverInline
-  override def map[@sp V: ClassTag](f: ((L, R)) => V): Coll[V] = {
+  override def map[@specialized V: ClassTag](f: ((L, R)) => V): Coll[V] = {
     val limit = ls.length
     val res = new Array[V](limit)
     cfor(0)(_ < limit, _ + 1) { i =>
@@ -208,7 +209,10 @@ class PairOfCols[@sp L, @sp R](val ls: Coll[L], val rs: Coll[R]) extends PairCol
     }
     new CollOverArray(res)
   }
+
+  @NeverInline
   override def foreach(f: ((L, R)) => Unit): Unit = arr.foreach(f)
+
   @NeverInline
   override def exists(p: ((L, R)) => Boolean): Boolean = {
     val len = ls.length
@@ -280,7 +284,7 @@ class PairOfCols[@sp L, @sp R](val ls: Coll[L], val rs: Coll[R]) extends PairCol
     state
   }
 
-  def zip[@sp B](ys: Coll[B]): PairColl[(L,R), B] = builder.pairColl(this, ys)
+  def zip[@specialized B](ys: Coll[B]): PairColl[(L,R), B] = builder.pairColl(this, ys)
 
   override def indices: Coll[Int] = ls.indices
 
@@ -383,7 +387,7 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
 
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default
-  def map[@sp B: ClassTag](f: A => B): Coll[B] = new CReplColl(f(value), length)
+  def map[@specialized B: ClassTag](f: A => B): Coll[B] = new CReplColl(f(value), length)
   @NeverInline
   def foreach(f: A => Unit): Unit = (0 until length).foreach(_ => f(value))
   @NeverInline
@@ -404,7 +408,7 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
       p => (op((p._1, value)), p._2 + 1)
     )._1
 
-  def zip[@sp B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
+  def zip[@specialized B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
 
   @NeverInline
   def slice(from: Int, until: Int): Coll[A] = {

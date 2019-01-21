@@ -27,7 +27,6 @@ package special.collection {
     import Monoid._;
     import MonoidBuilder._;
     import MonoidBuilderInst._;
-    import PairColl._;
     import WEither._;
     import WOption._;
     import WRType._;

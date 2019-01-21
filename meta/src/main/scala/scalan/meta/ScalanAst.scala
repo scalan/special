@@ -343,7 +343,10 @@ object ScalanAst {
   final val FunctorTypeAnnotation    = classOf[FunctorType].getSimpleName
   final val ReifiedTypeArgAnnotation = classOf[Reified].getSimpleName
   final val NeverInlineAnnotation    = classOf[NeverInline].getSimpleName
+  final val SpecializedAnnotation    = classOf[specialized].getSimpleName
+  final val InlineAnnotation         = classOf[inline].getSimpleName
 
+  val AnnotationsToRemove = Array(SpecializedAnnotation, InlineAnnotation)
 
   object ExternalEntityAnnotation {
     def apply(externalName: String) =

@@ -12,7 +12,8 @@ package special.collection {
     };
     trait MonoidBuilder extends Def[MonoidBuilder] {
       def intPlusMonoid: Rep[Monoid[Int]];
-      def longPlusMonoid: Rep[Monoid[Long]]
+      def longPlusMonoid: Rep[Monoid[Long]];
+      def pairMonoid[A, B](m1: Rep[Monoid[A]], m2: Rep[Monoid[B]]): Rep[Monoid[scala.Tuple2[A, B]]]
     };
     trait MonoidCompanion;
     trait MonoidBuilderCompanion
