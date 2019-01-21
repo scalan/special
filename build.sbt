@@ -18,7 +18,8 @@ lazy val buildSettings = Seq(
     "-language:higherKinds",
     "-language:implicitConversions",
     "-language:existentials",
-    "-language:experimental.macros"),
+    "-language:experimental.macros",
+    "-opt:_"),
   publishTo := {
 //    val nexus = "http://10.122.85.37:9081/nexus/"
     val nexus = "https://oss.sonatype.org/"
@@ -123,13 +124,19 @@ lazy val libraryapi = Project("library-api", file("library-api"))
 lazy val libraryimpl = Project("library-impl", file("library-impl"))
     .dependsOn(meta, libraryapi % allConfigDependency)
     .settings(libraryDefSettings,
-      libraryDependencies ++= Seq())
+      libraryDependencies ++= Seq(
+        "org.spire-math" %% "debox" % "0.8.0",
+        "org.scala-metal" %% "metal-core" % "0.16.0.1-SNAPSHOT",
+        "org.scala-metal" %% "metal-library" % "0.16.0.1-SNAPSHOT"
+      ))
 
 lazy val library = Project("library", file("library"))
     .dependsOn(common % allConfigDependency, core % allConfigDependency, libraryimpl)
     .settings(//commonSettings,
       libraryDefSettings,
-      libraryDependencies ++= Seq())
+      libraryDependencies ++= Seq(
+        "org.spire-math" %% "debox" % "0.8.0"
+      ))
 
 lazy val libraryconf = Project("library-conf", file("library-conf"))
     .dependsOn(plugin)

@@ -114,8 +114,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   property("Coll methods") {
     forAll(collGen, indexGen) { (col, index) =>
       {
-        val res = col.sum(builder.Monoids.intPlusMonoid)
+        val res = col.sum(monoid)
         res shouldBe col.arr.sum
+        val pairs = col.zip(col)
+        val pairMonoid = builder.Monoids.pairMonoid(monoid, monoid)
+        pairs.sum(pairMonoid) shouldBe (res, res)
       }
       {
         def inc(x: Int) = x + 1
@@ -141,6 +144,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       {
         val res = col.fold[Int](0, plusF)
         res shouldBe col.arr.foldLeft(0)(plus)
+        val pairs = col.zip(col)
+        val op = (in: (Int,(Int,Int))) => in._1 + in._2._1 + in._2._2
+        pairs.fold(0, op) shouldBe pairs.arr.foldLeft(0)((b,a) => op((b,a)))
       }
       whenever(index < col.length) {
         val res = col(index)

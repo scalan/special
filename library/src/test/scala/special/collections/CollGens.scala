@@ -5,13 +5,13 @@ import org.scalacheck.util.Buildable
 
 import scala.collection.mutable
 import org.scalacheck.{Arbitrary, Gen}
-import special.collection.{Coll, CollOverArrayBuilder}
+import special.collection.{Coll, CollOverArrayBuilder, CollBuilder}
 
 import scala.reflect.ClassTag
 
 trait CollGens { testSuite =>
   import Gen._
-  val builder = new CollOverArrayBuilder
+  val builder: CollBuilder = new CollOverArrayBuilder
   val monoid = builder.Monoids.intPlusMonoid
   val valGen = choose(-100, 100)
   val indexGen = choose(0, 100)

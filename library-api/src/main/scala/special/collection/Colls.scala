@@ -2,7 +2,7 @@ package special.collection
 
 import scala.reflect.ClassTag
 import scalan._
-
+import scala.{specialized => sp}
 import scala.collection.{GenSeq, immutable}
 
 /**
@@ -13,17 +13,17 @@ import scala.collection.{GenSeq, immutable}
 @ContainerType
 @FunctorType
 @scalan.Liftable
-trait Coll[@specialized(Int, Long) A] {
+trait Coll[@sp A] {
   def builder: CollBuilder
   def arr: Array[A]
   def length: Int
   def apply(i: Int): A
   def getOrElse(i: Int, default: A): A
-  def map[B: ClassTag](f: A => B): Coll[B]
+  def map[@sp B: ClassTag](f: A => B): Coll[B]
 
   /** For this collection (x0, ..., xN) and other collection (y0, ..., yM)
     * produces a collection ((x0, y0), ..., (xK, yK)) where K = min(N, M) */
-  def zip[B](ys: Coll[B]): PairColl[A, B]
+  def zip[@sp B](ys: Coll[B]): Coll[(A, B)]
 
   def foreach(f: A => Unit): Unit
   def exists(p: A => Boolean): Boolean
@@ -225,13 +225,13 @@ trait Coll[@specialized(Int, Long) A] {
 
 }
 
-trait PairColl[@specialized(Int, Long) L, @specialized(Int, Long) R] extends Coll[(L,R)] {
+trait PairColl[@sp L, @sp R] extends Coll[(L,R)] {
   def ls: Coll[L]
   def rs: Coll[R]
 }
 
 @Liftable
-trait ReplColl[@specialized(Int, Long) A] extends Coll[A] {
+trait ReplColl[@sp A] extends Coll[A] {
   def value: A
   def length: Int
   def append(other: Coll[A]): Coll[A]
@@ -240,7 +240,7 @@ trait ReplColl[@specialized(Int, Long) A] extends Coll[A] {
 @scalan.Liftable
 trait CollBuilder {
   def Monoids: MonoidBuilder
-  def pairColl[A,B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
+  def pairColl[@sp A, @sp B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
 
   @Internal
   def pairCollFromArrays[A,B](as: Array[A], bs: Array[B]): PairColl[A,B] =
@@ -259,7 +259,7 @@ trait CollBuilder {
 
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
-  def fromArray[T](arr: Array[T]): Coll[T]
+  def fromArray[@sp T](arr: Array[T]): Coll[T]
   def replicate[T:ClassTag](n: Int, v: T): Coll[T]
   def emptyColl[T](implicit cT: ClassTag[T]): Coll[T]
 
