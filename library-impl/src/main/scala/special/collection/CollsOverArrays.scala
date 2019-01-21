@@ -121,10 +121,6 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit cA: ClassTag[A])
     builder.fromArray(res.result())
   }
 
-//  override def diff(that: Coll[A]): Coll[A] = ???
-//
-//  override def intersect(that: Coll[A]): Coll[A] = ???
-
   @Internal
   override def equals(obj: scala.Any) = obj match {
     case obj: Coll[_] => util.Objects.deepEquals(obj.arr, arr)

@@ -192,6 +192,22 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     builder.replicate(2, 10).unionSet(builder.replicate(3, 10)).arr shouldBe Array(10)
   }
 
+  property("Coll.diff") {
+    forAll(collGen, collGen) { (col1, col2) =>
+      val res = col1.diff(col2)
+      res.arr shouldBe (col1.arr.diff(col2.arr))
+    }
+    builder.replicate(2, 10).diff(builder.replicate(1, 10)).arr shouldBe Array(10)
+  }
+
+  property("Coll.intersect") {
+    forAll(collGen, collGen) { (col1, col2) =>
+      val res = col1.intersect(col2)
+      res.arr shouldBe (col1.arr.intersect(col2.arr))
+    }
+    builder.replicate(2, 10).intersect(builder.replicate(3, 10)).arr shouldBe Array(10, 10)
+  }
+
   property("CollBuilder.outerJoin") {
     def test(col: Coll[Int]) = {
       val inner = col.indices

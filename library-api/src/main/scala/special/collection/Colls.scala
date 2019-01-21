@@ -145,29 +145,38 @@ trait Coll[@specialized A] {
     */
   def unionSet(that: Coll[A]): Coll[A]
 
-//  /** Computes the multiset difference between this $coll and another sequence.
-//    *
-//    *  @param that   the sequence of elements to remove
-//    *  @tparam B     the element type of the returned $coll.
-//    *  @return       a new collection which contains all elements of this $coll
-//    *                except some of occurrences of elements that also appear in `that`.
-//    *                If an element value `x` appears
-//    *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will not form
-//    *                part of the result, but any following occurrences will.
-//    */
-//  def diff(that: Coll[A]): Coll[A]
-//
-//  /** Computes the multiset intersection between this $coll and another sequence.
-//    *
-//    *  @param that   the sequence of elements to intersect with.
-//    *  @return       a new collection which contains all elements of this $coll
-//    *                which also appear in `that`.
-//    *                If an element value `x` appears
-//    *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will be retained
-//    *                in the result, but any following occurrences will be omitted.
-//    */
-//  def intersect(that: Coll[A]): Coll[A]
-//
+  /** Computes the multiset difference between this $coll and another sequence.
+    *
+    *  @param that   the sequence of elements to remove
+    *  @tparam B     the element type of the returned $coll.
+    *  @return       a new collection which contains all elements of this $coll
+    *                except some of occurrences of elements that also appear in `that`.
+    *                If an element value `x` appears
+    *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will not form
+    *                part of the result, but any following occurrences will.
+    */
+  @NeverInline
+  def diff(that: Coll[A]): Coll[A] = {
+    val res = arr.diff(that.arr)
+    builder.fromArray(res)
+  }
+
+
+  /** Computes the multiset intersection between this $coll and another sequence.
+    *
+    *  @param that   the sequence of elements to intersect with.
+    *  @return       a new collection which contains all elements of this $coll
+    *                which also appear in `that`.
+    *                If an element value `x` appears
+    *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will be retained
+    *                in the result, but any following occurrences will be omitted.
+    */
+  @NeverInline
+  def intersect(that: Coll[A]): Coll[A] = {
+    val res = arr.intersect(that.arr)
+    builder.fromArray(res)
+  }
+
   def sum(m: Monoid[A]): A
 
   /** Selects an interval of elements.  The returned collection is made up

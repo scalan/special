@@ -1,9 +1,29 @@
 package special.collections
 
 import org.scalameter.api._
+import org.scalameter.picklers.Implicits._
 import special.collection.Coll
 
-object CollBenchmark extends Bench.LocalTime with CollGens {
+object CollBenchmark extends Bench.OfflineRegressionReport with CollGens {
+//  lazy val executor = LocalExecutor(
+//    new Executor.Warmer.Default,
+//    Aggregator.min[Double],
+//    measurer)
+//  lazy val measurer = new Measurer.Default
+//  def reporter: Reporter[Double] = Reporter.Composite(
+//    new LoggingReporter[Double],
+////    new RegressionReporter(
+////      RegressionReporter.Tester.OverlapIntervals(),
+////      RegressionReporter.Historian.ExponentialBackoff() ),
+//    HtmlReporter(true)
+//  )
+
+//  reports.resultDir -> "tmp1"
+//  lazy val reporter = HtmlReporter(true)
+//  lazy val reporter = new LoggingReporter[Double]
+  
+//  lazy val persistor = Persistor.None
+
   val sizes = Gen.range("size")(3000, 15000, 3000)
 
   val ranges = for { size <- sizes } yield 0 until size
