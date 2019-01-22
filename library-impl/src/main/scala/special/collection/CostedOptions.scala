@@ -1,12 +1,8 @@
 package special.collection
 
 import special.SpecialPredef
-
-import scalan.meta.RType
-import RType._
 import special.SpecialPredef._
-
-import scalan.NeverInline
+import scalan.{NeverInline, RType}
 
 class CostedSome[T](val costedValue: Costed[T]) extends CostedOption[T] {
   def builder: CostedBuilder = new CCostedBuilder

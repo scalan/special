@@ -2,7 +2,6 @@ package scalan
 
 import scala.reflect.runtime.universe._
 import scalan.common.SegmentsModule
-import scalan.meta.TypeDesc
 import scalan.util.ReflectionUtil
 
 //import scalan.monads.{FreesDslExp, MonadsDslExp}

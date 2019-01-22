@@ -7,7 +7,6 @@ import scala.collection.immutable.ListMap
 import scala.reflect.runtime.universe._
 import scala.reflect.{AnyValManifest, ClassTag}
 import scalan.meta.ScalanAst._
-import scalan.meta.{TypeDesc, RType}
 import scalan.util._
 import scalan.util.ReflectionUtil.ClassOps
 
@@ -208,7 +207,7 @@ trait TypeDescs extends Base { self: Scalan =>
     def method: Method
   }
   case class RMethodDesc(method: Method) extends MethodDesc
-  case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method) extends MethodDesc
+  case class WMethodDesc(wrapSpec: WrapSpec, method: Method) extends MethodDesc
 
   // TODO optimize performance hot spot (45% of invokeUnlifted time)
   def getSourceValues(dataEnv: DataEnv, transformElems: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
@@ -389,7 +388,7 @@ trait TypeDescs extends Base { self: Scalan =>
       }.to[Seq]
     }
 
-    def declaredWrapperMethods(wrapSpec: special.wrappers.WrapSpec, wcls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
+    def declaredWrapperMethods(wrapSpec: WrapSpec, wcls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
       val specCls = wrapSpec.getClass
       val wMethods = wcls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
       val specMethods = specCls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))

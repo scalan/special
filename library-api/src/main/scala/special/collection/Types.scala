@@ -1,6 +1,6 @@
 package special.collection
 
-import scalan.meta.RType
+import scalan.RType
 
 import scala.reflect.ClassTag
 

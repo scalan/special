@@ -2,9 +2,7 @@ package special.wrappers
 
 import scala.reflect.ClassTag
 import special.SpecialPredef
-
-import scalan.NeverInline
-import scalan.meta.RType
+import scalan.{NeverInline, RType, WrapSpec}
 
 trait WrapSpecBase extends WrapSpec {
 }

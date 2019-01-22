@@ -1,9 +1,8 @@
 package special.collection
 
 import scala.reflect.ClassTag
-import scalan.{NeverInline, Internal, Reified, OverloadId}
+import scalan._
 import special.SpecialPredef._
-import scalan.meta.RType
 
 class CCostedPrim[Val](val value: Val, val cost: Int, val dataSize: Long) extends CostedPrim[Val] {
   def builder: CostedBuilder = new CCostedBuilder

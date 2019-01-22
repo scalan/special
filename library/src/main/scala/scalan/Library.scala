@@ -5,8 +5,6 @@ import java.util.Objects
 
 import special.collection._
 import special.wrappers.{WrappersSpecModule, WrappersModule}
-
-import scalan.meta.RType
 import scalan.util.ReflectionUtil
 
 trait Library extends Scalan

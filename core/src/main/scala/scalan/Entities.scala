@@ -2,7 +2,6 @@ package scalan
 
 import scala.annotation.tailrec
 import scala.language.higherKinds
-import scalan.meta.TypeDesc
 import scalan.util.ReflectionUtil
 
 trait Entities extends TypeDescs { self: Scalan =>

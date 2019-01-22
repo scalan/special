@@ -1,10 +1,8 @@
-package scalan.meta
+package scalan
 
 import scala.collection.immutable.ListMap
-import scala.reflect.runtime.universe
 import scala.reflect.{AnyValManifest, ClassTag}
-import scala.reflect.runtime.universe.{WeakTypeTag, TypeTag}
-import scalan.util.{Variance, ReflectionUtil}
+import scalan.util.Variance
 import scalan.util.ReflectionUtil.ClassOps
 
 trait TypeDesc extends Serializable {

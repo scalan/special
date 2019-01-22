@@ -1,7 +1,8 @@
 package special.collection
 
+import scalan.RType
+
 import scala.reflect.ClassTag
-import scalan.meta.RType
 
 trait Costed[Val] {
   def builder: CostedBuilder

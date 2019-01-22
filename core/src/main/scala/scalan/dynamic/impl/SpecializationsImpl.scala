@@ -1,11 +1,12 @@
 package scalan.dynamic
 
 import java.lang.reflect.Method
-import scalan.meta.TypeDesc
-import scalan.{Lazy, _}
+
+import scalan.{Lazy, TypeDesc, _}
 import scalan.universe.api.TypesApi
 import scalan.universe.api.UniverseUtils._
 import scalan.util.CollectionUtil._
+
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
 

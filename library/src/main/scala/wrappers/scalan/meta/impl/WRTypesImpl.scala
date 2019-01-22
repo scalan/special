@@ -1,10 +1,10 @@
 package wrappers.scalan.meta
 
-import scalan._
+import scalan.{RType, _}
 import impl._
-import scalan.meta.RType
 import special.wrappers.WrappersModule
 import special.wrappers.RTypeWrapSpec
+
 import scala.reflect.runtime.universe._
 import scala.reflect._
 

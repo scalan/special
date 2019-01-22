@@ -115,14 +115,14 @@ lazy val plugin = Project("plugin", file("plugin"))
 
 
 lazy val libraryapi = Project("library-api", file("library-api"))
-    .dependsOn(meta, macros)
+    .dependsOn(common)
     .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
         "org.typelevel" %% "macro-compat" % "1.1.1"
       ))
 
 lazy val libraryimpl = Project("library-impl", file("library-impl"))
-    .dependsOn(meta, libraryapi % allConfigDependency)
+    .dependsOn(libraryapi % allConfigDependency)
     .settings(libraryDefSettings,
       libraryDependencies ++= Seq(
         "org.spire-math" %% "debox" % "0.8.0",

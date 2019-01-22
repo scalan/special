@@ -1,8 +1,8 @@
 package special.wrappers
 
+import scalan.RType
+
 import scala.language.reflectiveCalls
-import scalan.meta.RType
-import RType._
 import special.collection.Types._
 
 class WRTypeTests extends WrappersTests {
