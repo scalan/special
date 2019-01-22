@@ -126,8 +126,8 @@ lazy val libraryimpl = Project("library-impl", file("library-impl"))
     .settings(libraryDefSettings,
       libraryDependencies ++= Seq(
         "org.spire-math" %% "debox" % "0.8.0",
-        "org.scala-metal" %% "metal-core" % "0.16.0.1-SNAPSHOT",
-        "org.scala-metal" %% "metal-library" % "0.16.0.1-SNAPSHOT"
+//        "org.scala-metal" %% "metal-core" % "0.16.0.1-SNAPSHOT",
+//        "org.scala-metal" %% "metal-library" % "0.16.0.1-SNAPSHOT"
       ))
 
 lazy val library = Project("library", file("library"))
