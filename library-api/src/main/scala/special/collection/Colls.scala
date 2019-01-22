@@ -25,6 +25,7 @@ trait Coll[@specialized A] {
   def zip[@specialized B](ys: Coll[B]): Coll[(A, B)]
 
   def foreach(f: A => Unit): Unit
+
   def exists(p: A => Boolean): Boolean
   def forall(p: A => Boolean): Boolean
   def filter(p: A => Boolean): Coll[A]
@@ -134,6 +135,43 @@ trait Coll[@specialized A] {
     * @returns one item for each group in a new collection of (K,V) pairs. */
   def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: ((V,V)) => V): Coll[(K,V)]
 
+  /** Partitions this $coll into a map of ${coll}s according to some discriminator function.
+    *
+    *  @param key   the discriminator function.
+    *  @tparam K    the type of keys returned by the discriminator function.
+    *  @return      A map from keys to ${coll}s such that the following invariant holds:
+    *               {{{
+    *                 (xs groupBy key)(k) = xs filter (x => key(x) == k)
+    *               }}}
+    *               That is, every key `k` is bound to a $coll of those elements `x`
+    *               for which `key(x)` equals `k`.
+    */
+  @NeverInline
+  def groupBy[K: ClassTag](key: A => K): Coll[(K, Coll[A])] = {
+    val res = arr.groupBy(key).mapValues(builder.fromArray(_))
+    builder.fromMap(res)
+  }
+
+  /** Partitions this $coll into a map of ${coll}s according to some discriminator function.
+    * Additionally projecting each element to a new value.
+    *
+    *  @param key   the discriminator function.
+    *  @param proj  projection function to produce new value for each element of this $coll
+    *  @tparam K    the type of keys returned by the discriminator function.
+    *  @tparam V    the type of values returned by the projection function.
+    *  @return      A map from keys to ${coll}s such that the following invariant holds:
+    *               {{{
+    *                 (xs groupByProjecting (key, proj))(k) = xs filter (x => key(x) == k).map(proj)
+    *               }}}
+    *               That is, every key `k` is bound to projections of those elements `x`
+    *               for which `key(x)` equals `k`.
+    */
+  @NeverInline
+  def groupByProjecting[K: ClassTag, V: ClassTag](key: A => K, proj: A => V): Coll[(K, Coll[V])] = {
+    val res = arr.groupBy(key).mapValues(arr => builder.fromArray(arr.map(proj)))
+    builder.fromMap(res)
+  }
+
   /** Produces a new collection which contains all distinct elements of this $coll and also all elements of
     *  a given collection that are not in this collection.
     *  This is order preserving operation considering only first occurrences of each distinct elements.
@@ -161,7 +199,6 @@ trait Coll[@specialized A] {
     builder.fromArray(res)
   }
 
-
   /** Computes the multiset intersection between this $coll and another sequence.
     *
     *  @param that   the sequence of elements to intersect with.
@@ -177,6 +214,12 @@ trait Coll[@specialized A] {
     builder.fromArray(res)
   }
 
+  /** Folding through all elements of this $coll starting from m.zero and applying m.plus to accumulate
+    * resulting value.
+    *
+    * @param m monoid object to use for summation
+    * @return  result of the following operations (m.zero `m.plus` x1 `m.plus` x2 `m.plus` ... xN)
+    * */
   def sum(m: Monoid[A]): A
 
   /** Selects an interval of elements.  The returned collection is made up
@@ -191,6 +234,12 @@ trait Coll[@specialized A] {
 
   /** Puts the elements of other collection after the elements of this collection (concatenation of 2 collections) */
   def append(other: Coll[A]): Coll[A]
+
+  /** Returns new $coll with elements in reversed order.
+    *
+    *  @return A new $coll with all elements of this $coll in reversed order.
+    */
+  def reverse: Coll[A]
 
   @Internal
   private def trim[T](arr: Array[T]) = arr.take(arr.length min 100)
@@ -284,5 +333,17 @@ trait CollBuilder {
   def outerJoin[K:ClassTag, L, R, O:ClassTag]
       (left: Coll[(K, L)], right: Coll[(K, R)])
       (l: ((K,L)) => O, r: ((K,R)) => O, inner: ((K,(L,R))) => O): Coll[(K,O)]
+
+  /** Flattens a two-dimensional array by concatenating all its rows
+    *  into a single array.
+    *
+    *  @tparam U        Type of row elements.
+    *  @param asTrav    A function that converts elements of this array to rows - arrays of type `U`.
+    *  @return          An array obtained by concatenating rows of this array.
+    */
+  def flattenColl[A:ClassTag](coll: Coll[Coll[A]]): Coll[A] = {
+    val res = coll.map(xs => xs.arr).arr.flatten
+    fromArray(res)
+  }
 }
 

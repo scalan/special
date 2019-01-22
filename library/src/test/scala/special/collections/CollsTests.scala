@@ -7,6 +7,7 @@ import org.scalatest.prop.PropertyChecks
 
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
+  import special.collection.ExtensionMethods._
 
   property("Coll.indices") {
     forAll(collGen, collGen) { (col1: Coll[Int], col2: Coll[Int]) =>
@@ -181,6 +182,30 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       vs.arr.sum shouldBe col.arr.sum
       ks.length <= 10 shouldBe true
       res.arr shouldBe col.arr.toIterable.mapReduce(m)(plus).toArray
+    }
+  }
+
+  property("Coll.groupBy") {
+    def key(x: Int) = math.abs(x) % 10
+    forAll(collGen) { col =>
+      val res = col.groupBy(key)
+      val (ks, vs) = builder.unzip(res)
+      vs.flatten.arr.sum shouldBe col.arr.sum
+      ks.length <= 10 shouldBe true
+      val pairs = col.map(x => (key(x), x))
+      val res2 = pairs.groupByKey
+      val (ks2, vs2) = builder.unzip(res)
+      ks shouldBe ks2
+      vs shouldBe vs2
+    }
+  }
+
+  property("Coll.reverse") {
+    forAll(collGen) { col =>
+      val res = col.reverse
+      res.arr shouldBe col.arr.reverse
+      val pairs = col.zip(col)
+      pairs.reverse.arr shouldBe pairs.arr.reverse
     }
   }
 

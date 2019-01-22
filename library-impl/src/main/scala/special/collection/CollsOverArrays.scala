@@ -27,16 +27,29 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit cA: ClassTag[A])
   def exists(p: A => Boolean): Boolean = arr.exists(p)
   def forall(p: A => Boolean): Boolean = arr.forall(p)
   def filter(p: A => Boolean): Coll[A] = builder.fromArray(arr.filter(p))
+
   @NeverInline
   def fold[B](zero: B, op: ((B, A)) => B): B = arr.foldLeft(zero)((b, a) => op((b, a)))
+
   def slice(from: Int, until: Int): Coll[A] = builder.fromArray(arr.slice(from, until))
   def sum(m: Monoid[A]): A = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
   @inline def zip[@specialized B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
+
   @NeverInline
   def append(other: Coll[A]): Coll[A] = {
     if (arr.length <= 0) return other
     val result = CollectionUtil.concatArrays(arr, other.arr)
     builder.fromArray(result)
+  }
+
+  @NeverInline
+  def reverse: Coll[A] = {
+    val limit = length
+    val res = new Array[A](limit)
+    cfor(0)(_ < limit, _ + 1) { i =>
+      res(i) = arr(limit - i - 1)
+    }
+    builder.fromArray(res)
   }
 
   @NeverInline
@@ -263,9 +276,14 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   }
 
   override def slice(from: Int, until: Int): PairColl[L,R] = builder.pairColl(ls.slice(from, until), rs.slice(from, until))
+
   def append(other: Coll[(L, R)]): Coll[(L,R)] = {
     val arrs = builder.unzip(other)
     builder.pairColl(ls.append(arrs._1), rs.append(arrs._2))
+  }
+
+  override def reverse: Coll[(L, R)] = {
+    builder.pairColl(ls.reverse, rs.reverse)
   }
 
   @NeverInline
@@ -416,6 +434,8 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
 
   @NeverInline
   def append(other: Coll[A]): Coll[A] = builder.fromArray(arr).append(builder.fromArray(other.arr))
+
+  override def reverse: Coll[A] = this
 
   def sum(m: Monoid[A]): A = m.power(value, length)
 

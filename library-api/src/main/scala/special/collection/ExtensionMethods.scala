@@ -3,7 +3,7 @@ package special.collection
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil._
 
-object ExtentionMethods {
+object ExtensionMethods {
   import Helpers._
 
   implicit class CollOps[A](val source: Coll[A]) extends AnyVal {
@@ -105,6 +105,7 @@ object ExtentionMethods {
 //    }
 
   }
+
   implicit class PairCollOps[A: ClassTag, B: ClassTag](source: Coll[(A,B)]) {
     // TODO optimize
     def unionSetByKey(that: Coll[(A,B)]): Coll[(A,B)] = {
@@ -118,6 +119,11 @@ object ExtentionMethods {
     def sumByKey(implicit m: Monoid[B]): Coll[(A,B)] =
       reduceByKey(r => m.plus(r._1, r._2))
 
+    def groupByKey: Coll[(A, Coll[B])] = source.groupByProjecting(_._1, _._2)
+  }
+
+  implicit class NestedCollOps[A: ClassTag](source: Coll[Coll[A]]) {
+    def flatten: Coll[A] = source.builder.flattenColl(source)
   }
 }
 

@@ -5,7 +5,7 @@ import special.collection.{Coll, CollBuilder}
 class Examples(builder: CollBuilder) {
   import builder._
   import Examples._
-  import special.collection.ExtentionMethods._
+  import special.collection.ExtensionMethods._
   implicit val longMonoid = Monoids.longPlusMonoid
 
   def checkTokenBalance(ctx: Context): Boolean = {

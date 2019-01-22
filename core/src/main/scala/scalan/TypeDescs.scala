@@ -231,6 +231,8 @@ trait TypeDescs extends Base { self: Scalan =>
   @implicitNotFound(msg = "No Elem available for ${A}.")
   abstract class Elem[A] extends RType[A] { _: scala.Equals =>
     import Liftables._
+    def tag: WeakTypeTag[A]
+    final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
 
     def liftable: Liftable[_, A] =
       !!!(s"Cannot get Liftable instance for $this")

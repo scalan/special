@@ -16,10 +16,9 @@ trait TypeDesc extends Serializable {
 }
 
 trait RType[A] extends TypeDesc {
-  def tag: WeakTypeTag[A]
-  final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
+  def classTag: ClassTag[A]
   // classTag.runtimeClass is cheap, no reason to make it lazy
-  final def runtimeClass: Class[_] = classTag.runtimeClass
+  @inline final def runtimeClass: Class[_] = classTag.runtimeClass
   def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
   lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
   def typeArgsIterator = typeArgs.valuesIterator.map(_._1)
@@ -50,22 +49,26 @@ object RType {
   def apply[A](implicit t: RType[A]): RType[A] = t
   implicit def rtypeToClassTag[A](implicit t: RType[A]): ClassTag[A] = t.classTag
 
-  case class ConcreteRType[A](tag: WeakTypeTag[A]) extends RType[A]
+  case class ConcreteType[A](classTag: ClassTag[A]) extends RType[A]
 
-  implicit val BooleanType : RType[Boolean]  = ConcreteRType[Boolean] (universe.weakTypeTag[Boolean])
-  implicit val ByteType    : RType[Byte]     = ConcreteRType[Byte]    (universe.weakTypeTag[Byte])
-  implicit val ShortType   : RType[Short]    = ConcreteRType[Short]   (universe.weakTypeTag[Short])
-  implicit val IntType     : RType[Int]      = ConcreteRType[Int]     (universe.weakTypeTag[Int])
-  implicit val LongType    : RType[Long]     = ConcreteRType[Long]    (universe.weakTypeTag[Long])
-  implicit val StringType  : RType[String]   = ConcreteRType[String]  (universe.weakTypeTag[String])
+  implicit val BooleanType : RType[Boolean]  = ConcreteType[Boolean] (ClassTag.Boolean)
+  implicit val ByteType    : RType[Byte]     = ConcreteType[Byte]    (ClassTag.Byte)
+  implicit val ShortType   : RType[Short]    = ConcreteType[Short]   (ClassTag.Short)
+  implicit val IntType     : RType[Int]      = ConcreteType[Int]     (ClassTag.Int)
+  implicit val LongType    : RType[Long]     = ConcreteType[Long]    (ClassTag.Long)
+  implicit val CharType    : RType[Char]     = ConcreteType[Char]    (ClassTag.Char)
+  implicit val FloatType   : RType[Float]    = ConcreteType[Float]   (ClassTag.Float)
+  implicit val DoubleType  : RType[Double]   = ConcreteType[Double]  (ClassTag.Double)
+  implicit val UnitType    : RType[Unit]     = ConcreteType[Unit]    (ClassTag.Unit)
 
-  implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairRType(tA, tB)
-
-  case class PairRType[A,B](tA: RType[A], tB: RType[B]) extends RType[(A,B)] {
-    def tag: universe.WeakTypeTag[(A, B)] = universe.weakTypeTag[(A,B)]
+  implicit case object StringType extends RType[String] {
+    override def classTag: ClassTag[String] = ClassTag[String](classOf[String])
   }
 
-  object syntax {
-    implicit def rtypeFromTypeTag[A](implicit tag: TypeTag[A]): RType[A] = RType[A]
+  implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairType(tA, tB)
+
+  case class PairType[A,B](tA: RType[A], tB: RType[B]) extends RType[(A,B)] {
+    val classTag: ClassTag[(A, B)] = scala.reflect.classTag[(A,B)]
   }
+
 }
