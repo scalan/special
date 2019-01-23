@@ -75,6 +75,9 @@ object Segment extends EntityObject("Segment") {
     lazy val sourceClassTag: ClassTag[SSegment] = {
       classTag[SSegment]
     }
+    lazy val sourceType: RType[SSegment] = {
+      RType[SSegment]
+    }
     def lift(x: SSegment): Rep[Segment] = SegmentConst(x)
     def unlift(w: Rep[Segment]): SSegment = w match {
       case Def(SegmentConst(x: SSegment))

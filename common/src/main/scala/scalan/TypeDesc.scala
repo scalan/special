@@ -59,7 +59,13 @@ object RType {
     case _ => ConcreteType[A](ctA)
   }).asInstanceOf[RType[A]]
 
+  type SomeType = RType[_]
+
   case class ConcreteType[A](classTag: ClassTag[A]) extends RType[A]
+
+  val AnyType      : RType[Any]      = ConcreteType[Any]     (ClassTag.Any)
+  val AnyRefType   : RType[AnyRef]   = ConcreteType[AnyRef]  (ClassTag.AnyRef)
+  val NothingType  : RType[Nothing]  = ConcreteType[Nothing] (ClassTag.Nothing)
 
   implicit val BooleanType : RType[Boolean]  = ConcreteType[Boolean] (ClassTag.Boolean)
   implicit val ByteType    : RType[Byte]     = ConcreteType[Byte]    (ClassTag.Byte)
@@ -81,12 +87,37 @@ object RType {
     val classTag: ClassTag[(A, B)] = scala.reflect.classTag[(A,B)]
   }
 
+  implicit def funcRType[A,B](implicit tDom: RType[A], tRange: RType[B]): RType[A => B] = FuncType(tDom, tRange)
+
+  case class FuncType[A,B](tDom: RType[A], tRange: RType[B]) extends RType[A => B] {
+    val classTag: ClassTag[A => B] = scala.reflect.classTag[A => B]
+  }
+
+  type StructData = Array[AnyRef]
+
+  implicit def structRType(names: Array[String], types: Array[SomeType]): RType[StructData] = StructType(names, types)
+
+  case class StructType(fieldNames: Array[String], fieldTypes: Array[SomeType]) extends RType[StructData] {
+    val classTag: ClassTag[StructData] = scala.reflect.classTag[StructData]
+  }
+
   implicit def arrayRType[A](implicit tA: RType[A]): RType[Array[A]] = ArrayType(tA)
 
   case class ArrayType[A](tA: RType[A]) extends RType[Array[A]] {
     val classTag: ClassTag[Array[A]] = {
       implicit val ctA: ClassTag[A] = tA.classTag
       scala.reflect.classTag[Array[A]]
+    }
+  }
+
+  type ThunkData[A] = () => A
+
+  implicit def thunkRType[A](implicit tA: RType[A]): RType[ThunkData[A]] = ThunkType(tA)
+
+  case class ThunkType[A](tA: RType[A]) extends RType[ThunkData[A]] {
+    val classTag: ClassTag[ThunkData[A]] = {
+      implicit val ctA: ClassTag[A] = tA.classTag
+      scala.reflect.classTag[ThunkData[A]]
     }
   }
 

@@ -161,6 +161,12 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
              }
       |      classTag[$SName$tyUseS]
       |    }
+      |    lazy val sourceType: RType[$SName$tyUseS] = {
+      |      ${repArgs(zipped)({ (sa, a) =>
+           s"|      implicit val tag$sa = l$a.sourceType.asInstanceOf[RType[$sa]]".stripMargin}, "\n")
+             }
+      |      RType[$SName$tyUseS]
+      |    }
       |    def lift(x: $SName$tyUseS): Rep[$EName$tyUse] = ${EName}Const(x${optArgs(zipped)(", ", (_,a) => s"l$a", ",", "")})
       |    def unlift(w: Rep[$EName$tyUse]): $SName$tyUseS = w match {
       |      case Def(${EName}Const(x: $SName${optArgs(zipped)("[", (_,_) => "_", ",", "]")}${optArgs(zipped)(", ", (_,a) => s"_l$a", ",", "")}))

@@ -8,6 +8,7 @@ import scala.reflect.runtime.universe._
 import scala.reflect.{AnyValManifest, ClassTag}
 import scalan.meta.ScalanAst._
 import scalan.util._
+import scalan.RType._
 import scalan.util.ReflectionUtil.ClassOps
 
 trait TypeDescs extends Base { self: Scalan =>
@@ -568,47 +569,51 @@ trait TypeDescs extends Base { self: Scalan =>
   }
 
   val AnyElement: Elem[Any] = new BaseElem[Any](null) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, AnyType)
   }
   val AnyRefElement: Elem[AnyRef] = new BaseElem[AnyRef](null) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, AnyRefType)
   }
 
   // very ugly casts but should be safe
+//  val NothingElement: Elem[Nothing] =
+//    new BaseElem[Null](null)(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]) {
+//      override def liftable = new Liftables.BaseLiftable()(this, NothingType)
+//    }.asElem[Nothing]
   val NothingElement: Elem[Nothing] =
-    new BaseElem[Null](null)(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]) {
-      override def liftable = new Liftables.BaseLiftable()(this)
-    }.asElem[Nothing]
+    new BaseElem[Nothing](null.asInstanceOf[Nothing])(WeakTypeTag.Nothing) {
+      override def liftable = new Liftables.BaseLiftable[Nothing]()(this, NothingType)
+    }
 
   implicit val BooleanElement: Elem[Boolean] = new BaseElem(false) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, BooleanType)
   }
   implicit val ByteElement: Elem[Byte] = new BaseElem(0.toByte) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, ByteType)
   }
   implicit val ShortElement: Elem[Short] = new BaseElem(0.toShort) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, ShortType)
   }
   implicit val IntElement: Elem[Int] = new BaseElem(0) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, IntType)
   }
   implicit val LongElement: Elem[Long] = new BaseElem(0L) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, LongType)
   }
   implicit val FloatElement: Elem[Float] = new BaseElem(0.0F) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, FloatType)
   }
   implicit val DoubleElement: Elem[Double] = new BaseElem(0.0) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, DoubleType)
   }
   implicit val UnitElement: Elem[Unit] = new BaseElem(()) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, UnitType)
   }
   implicit val StringElement: Elem[String] = new BaseElem("") {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, StringType)
   }
   implicit val CharElement: Elem[Char] = new BaseElem('\u0000') {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, CharType)
   }
 
   implicit def pairElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[(A, B)] =
