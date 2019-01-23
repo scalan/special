@@ -217,7 +217,7 @@ trait TypeDescs extends Base { self: Scalan =>
       case vec: Seq[AnyRef]@unchecked => Seq(getSourceValues(dataEnv, transformElems, vec:_*))
       case e: Elem[_] => Seq(if (transformElems) e.sourceClassTag else e)
       case c: ClassTag[_] => Seq(c)
-      case _: Overloaded1 | _: Overloaded2 | _: Overloaded3 | _: Overloaded4 | _: Overloaded5 | _: Overloaded6 => Nil
+      case _: Overloaded => Nil
     }
     vs
   }

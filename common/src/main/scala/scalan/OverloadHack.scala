@@ -3,13 +3,14 @@ package scalan
 // hack to appease erasure
 
 object OverloadHack {
-  class Overloaded1 { override def toString = "O1"}
-  class Overloaded2 { override def toString = "O2"}
-  class Overloaded3 { override def toString = "O3"}
-  class Overloaded4 { override def toString = "O4"}
-  class Overloaded5 { override def toString = "O5"}
-  class Overloaded6 { override def toString = "O6"}
-  class Overloaded7 { override def toString = "O7"}
+  trait Overloaded
+  class Overloaded1 extends Overloaded { override def toString = "O1"}
+  class Overloaded2 extends Overloaded { override def toString = "O2"}
+  class Overloaded3 extends Overloaded { override def toString = "O3"}
+  class Overloaded4 extends Overloaded { override def toString = "O4"}
+  class Overloaded5 extends Overloaded { override def toString = "O5"}
+  class Overloaded6 extends Overloaded { override def toString = "O6"}
+  class Overloaded7 extends Overloaded { override def toString = "O7"}
   implicit val overloaded1 = new Overloaded1
   implicit val overloaded2 = new Overloaded2
   implicit val overloaded3 = new Overloaded3
