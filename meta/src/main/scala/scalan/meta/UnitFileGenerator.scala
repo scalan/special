@@ -155,13 +155,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  ${if(isGeneric) "case class" else "implicit object"} Liftable$sName$typesDeclAll${optArgs(zipped)("(", (sa,a) => s"l$a: Liftable[$sa, $a]", ",", ")")}
       |    extends Liftable[$SName$tyUseS, $EName$tyUse] {
       |    lazy val eW: Elem[$EName$tyUse] = $elemMethodName${optArgs(zipped)("(", (_,a) => s"l$a.eW", ",", ")")}
-      |    lazy val sourceClassTag: ClassTag[$SName$tyUseS] = {
-      |      ${repArgs(zipped)({ (sa,a) =>
-           s"|      implicit val tag$sa = l$a.eW.sourceClassTag.asInstanceOf[ClassTag[$sa]]".stripMargin}, "\n")
-             }
-      |      classTag[$SName$tyUseS]
-      |    }
-      |    lazy val sourceType: RType[$SName$tyUseS] = {
+      |    override lazy val sourceType: RType[$SName$tyUseS] = {
       |      ${repArgs(zipped)({ (sa, a) =>
            s"|      implicit val tag$sa = l$a.sourceType.asInstanceOf[RType[$sa]]".stripMargin}, "\n")
              }

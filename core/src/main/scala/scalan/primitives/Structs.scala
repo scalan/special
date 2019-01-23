@@ -68,7 +68,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   case class LiftableStruct[T <: Struct](eW: Elem[T]) extends Liftable[SStruct, T] {
     val sourceClassTag = classTag[SStruct]
-    val sourceType = eW match {
+    override val sourceType = eW match {
       case se: StructElem[_] =>
         val (names, elems) = se.fields.unzip
         val types = elems.map(e => e.liftable.sourceType)

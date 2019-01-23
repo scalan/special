@@ -199,7 +199,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
       * In general T is different type obtained by virtualization procedure from ST. */
     @implicitNotFound(msg = "Cannot find implicit for Liftable[${ST},${T}].")
     trait Liftable[ST, T] {
-      def sourceClassTag: ClassTag[ST]
       def sourceType: RType[ST] = ???
       def eW: Elem[T]
       def lift(x: ST): Rep[T]
@@ -221,15 +220,12 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def liftConst[ST,T](x: ST)(implicit lT: Liftable[ST,T]): Rep[T] = lT.lift(x)
 
     class BaseLiftable[T](implicit val eW: Elem[T], override val sourceType: RType[T]) extends Liftable[T, T] {
-      def sourceClassTag: ClassTag[T] = eW.classTag
-//      def eW = eT
       def lift(x: T) = toRep(x)
       def unlift(w: Rep[T]) = w.asValue
     }
 
     class PairLiftable[SA,SB,A,B](implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[(SA,SB), (A,B)] {
       val eW: Elem[(A, B)] = pairElement(lA.eW, lB.eW)
-      val sourceClassTag = { classTag[(SA, SB)] }
       override val sourceType: RType[(SA, SB)] = RType.pairRType(lA.sourceType, lB.sourceType)
 
       def lift(x: (SA, SB)): Rep[(A, B)] = Pair(lA.lift(x._1), lB.lift(x._2))
@@ -244,7 +240,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
     class FuncLiftable[SA,SB,A,B](implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[SA => SB, A => B] {
       val eW: Elem[A => B] = funcElement(lA.eW, lB.eW)
-      val sourceClassTag = { classTag[SA => SB] }
       override val sourceType = { RType.funcRType(lA.sourceType, lB.sourceType) }
       def lift(srcF: SA => SB): Rep[A => B] = FuncConst[SA,SB,A,B](srcF)
       def unlift(f: Rep[A => B]): SA => SB = f match {

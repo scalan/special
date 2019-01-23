@@ -216,7 +216,7 @@ trait TypeDescs extends Base { self: Scalan =>
     val vs = stagedValues.flatMap {
       case s: Sym => Seq(dataEnv(s))
       case vec: Seq[AnyRef]@unchecked => Seq(getSourceValues(dataEnv, transformElems, vec:_*))
-      case e: Elem[_] => Seq(if (transformElems) e.sourceClassTag else e)
+      case e: Elem[_] => Seq(if (transformElems) e.sourceType else e)
       case c: ClassTag[_] => Seq(c)
       case _: Overloaded => Nil
     }
@@ -237,7 +237,8 @@ trait TypeDescs extends Base { self: Scalan =>
     def liftable: Liftable[_, A] =
       !!!(s"Cannot get Liftable instance for $this")
 
-    final lazy val sourceClassTag: ClassTag[_] = liftable.sourceClassTag
+    final lazy val sourceClassTag: ClassTag[_] = ???
+    final lazy val sourceType: RType[_] = liftable.sourceType
     protected def collectMethods: Map[Method, MethodDesc] = Map()
     protected lazy val methods: Map[Method, MethodDesc] = collectMethods
 
