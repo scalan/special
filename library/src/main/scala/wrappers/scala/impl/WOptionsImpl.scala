@@ -99,9 +99,9 @@ object WOption extends EntityObject("WOption") {
   case class LiftableOption[SA, A](lA: Liftable[SA, A])
     extends Liftable[Option[SA], WOption[A]] {
     lazy val eW: Elem[WOption[A]] = wOptionElement(lA.eW)
-    lazy val sourceClassTag: ClassTag[Option[SA]] = {
-            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
-      classTag[Option[SA]]
+    lazy val sourceType: RType[Option[SA]] = {
+            implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
+      RType[Option[SA]]
     }
     def lift(x: Option[SA]): Rep[WOption[A]] = WOptionConst(x, lA)
     def unlift(w: Rep[WOption[A]]): Option[SA] = w match {

@@ -81,10 +81,25 @@ object RType {
     override def classTag: ClassTag[String] = ClassTag[String](classOf[String])
   }
 
+  implicit def rtypeRType[A](implicit tA: RType[A]): RType[RType[A]] = RTypeType(tA)
+
+  case class RTypeType[A](tA: RType[A]) extends RType[RType[A]] {
+    val classTag: ClassTag[RType[A]] = {
+      implicit val ctA: ClassTag[A] = tA.classTag
+      scala.reflect.classTag[RType[A]]
+    }
+  }
+
   implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairType(tA, tB)
 
   case class PairType[A,B](tA: RType[A], tB: RType[B]) extends RType[(A,B)] {
     val classTag: ClassTag[(A, B)] = scala.reflect.classTag[(A,B)]
+  }
+
+  implicit def eitherRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[Either[A,B]] = EitherType(tA, tB)
+
+  case class EitherType[A,B](tA: RType[A], tB: RType[B]) extends RType[Either[A,B]] {
+    val classTag: ClassTag[Either[A, B]] = scala.reflect.classTag[Either[A,B]]
   }
 
   implicit def funcRType[A,B](implicit tDom: RType[A], tRange: RType[B]): RType[A => B] = FuncType(tDom, tRange)
@@ -107,6 +122,15 @@ object RType {
     val classTag: ClassTag[Array[A]] = {
       implicit val ctA: ClassTag[A] = tA.classTag
       scala.reflect.classTag[Array[A]]
+    }
+  }
+
+  implicit def optionRType[A](implicit tA: RType[A]): RType[Option[A]] = OptionType(tA)
+
+  case class OptionType[A](tA: RType[A]) extends RType[Option[A]] {
+    val classTag: ClassTag[Option[A]] = {
+      implicit val ctA: ClassTag[A] = tA.classTag
+      scala.reflect.classTag[Option[A]]
     }
   }
 

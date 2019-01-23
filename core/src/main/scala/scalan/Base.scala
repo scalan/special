@@ -199,7 +199,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
       * In general T is different type obtained by virtualization procedure from ST. */
     @implicitNotFound(msg = "Cannot find implicit for Liftable[${ST},${T}].")
     trait Liftable[ST, T] {
-      def sourceType: RType[ST] = ???
+      def sourceType: RType[ST]
       def eW: Elem[T]
       def lift(x: ST): Rep[T]
       def unlift(w: Rep[T]): ST

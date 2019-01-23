@@ -49,7 +49,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   case class LiftableThunk[ST, T](lT: Liftable[ST, T]) extends Liftable[SThunk[ST], Thunk[T]] {
     import RType._
     def eW: Elem[Thunk[T]] = thunkElement(lT.eW)
-    override def sourceType: RType[SThunk[ST]] = {
+    def sourceType: RType[SThunk[ST]] = {
       implicit val tST = lT.sourceType
       RType[SThunk[ST]]
     }

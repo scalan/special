@@ -1,10 +1,10 @@
-package wrappers.scalan.meta
+package wrappers.scalan
 
-import scalan.{RType, _}
+import scalan._
 import impl._
+import scalan.RType
 import special.wrappers.WrappersModule
 import special.wrappers.RTypeWrapSpec
-
 import scala.reflect.runtime.universe._
 import scala.reflect._
 
@@ -47,9 +47,9 @@ object WRType extends EntityObject("WRType") {
   case class LiftableRType[SA, A](lA: Liftable[SA, A])
     extends Liftable[RType[SA], WRType[A]] {
     lazy val eW: Elem[WRType[A]] = wRTypeElement(lA.eW)
-    lazy val sourceClassTag: ClassTag[RType[SA]] = {
-            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
-      classTag[RType[SA]]
+    lazy val sourceType: RType[RType[SA]] = {
+            implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
+      RType[RType[SA]]
     }
     def lift(x: RType[SA]): Rep[WRType[A]] = WRTypeConst(x, lA)
     def unlift(w: Rep[WRType[A]]): RType[SA] = w match {
@@ -162,7 +162,7 @@ object WRType extends EntityObject("WRType") {
   registerModule(WRTypesModule)
 }
 
-object WRTypesModule extends scalan.ModuleInfo("wrappers.scalan.meta", "WRTypes")
+object WRTypesModule extends scalan.ModuleInfo("wrappers.scalan", "WRTypes")
 }
 
-trait WRTypesModule extends wrappers.scalan.meta.impl.WRTypesDefs {self: WrappersModule =>}
+trait WRTypesModule extends wrappers.scalan.impl.WRTypesDefs {self: WrappersModule =>}

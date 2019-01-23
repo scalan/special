@@ -283,9 +283,9 @@ implicit val eV = proj.elem.eRange
   case class LiftableColl[SA, A](lA: Liftable[SA, A])
     extends Liftable[SColl[SA], Coll[A]] {
     lazy val eW: Elem[Coll[A]] = collElement(lA.eW)
-    lazy val sourceClassTag: ClassTag[SColl[SA]] = {
-            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
-      classTag[SColl[SA]]
+    lazy val sourceType: RType[SColl[SA]] = {
+            implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
+      RType[SColl[SA]]
     }
     def lift(x: SColl[SA]): Rep[Coll[A]] = CollConst(x, lA)
     def unlift(w: Rep[Coll[A]]): SColl[SA] = w match {
@@ -1544,9 +1544,9 @@ object ReplColl extends EntityObject("ReplColl") {
   case class LiftableReplColl[SA, A](lA: Liftable[SA, A])
     extends Liftable[SReplColl[SA], ReplColl[A]] {
     lazy val eW: Elem[ReplColl[A]] = replCollElement(lA.eW)
-    lazy val sourceClassTag: ClassTag[SReplColl[SA]] = {
-            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
-      classTag[SReplColl[SA]]
+    lazy val sourceType: RType[SReplColl[SA]] = {
+            implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
+      RType[SReplColl[SA]]
     }
     def lift(x: SReplColl[SA]): Rep[ReplColl[A]] = ReplCollConst(x, lA)
     def unlift(w: Rep[ReplColl[A]]): SReplColl[SA] = w match {
@@ -2023,8 +2023,8 @@ implicit val eO = l.elem.eRange
   implicit object LiftableCollBuilder
     extends Liftable[SCollBuilder, CollBuilder] {
     lazy val eW: Elem[CollBuilder] = collBuilderElement
-    lazy val sourceClassTag: ClassTag[SCollBuilder] = {
-      classTag[SCollBuilder]
+    lazy val sourceType: RType[SCollBuilder] = {
+      RType[SCollBuilder]
     }
     def lift(x: SCollBuilder): Rep[CollBuilder] = CollBuilderConst(x)
     def unlift(w: Rep[CollBuilder]): SCollBuilder = w match {

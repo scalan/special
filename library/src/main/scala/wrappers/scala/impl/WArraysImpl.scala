@@ -112,9 +112,9 @@ object WArray extends EntityObject("WArray") {
   case class LiftableArray[ST, T](lT: Liftable[ST, T])
     extends Liftable[Array[ST], WArray[T]] {
     lazy val eW: Elem[WArray[T]] = wArrayElement(lT.eW)
-    lazy val sourceClassTag: ClassTag[Array[ST]] = {
-            implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
-      classTag[Array[ST]]
+    lazy val sourceType: RType[Array[ST]] = {
+            implicit val tagST = lT.sourceType.asInstanceOf[RType[ST]]
+      RType[Array[ST]]
     }
     def lift(x: Array[ST]): Rep[WArray[T]] = WArrayConst(x, lT)
     def unlift(w: Rep[WArray[T]]): Array[ST] = w match {

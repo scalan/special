@@ -49,10 +49,10 @@ object WEither extends EntityObject("WEither") {
   case class LiftableEither[SA, SB, A, B](lA: Liftable[SA, A],lB: Liftable[SB, B])
     extends Liftable[Either[SA, SB], WEither[A, B]] {
     lazy val eW: Elem[WEither[A, B]] = wEitherElement(lA.eW,lB.eW)
-    lazy val sourceClassTag: ClassTag[Either[SA, SB]] = {
-            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
-      implicit val tagSB = lB.eW.sourceClassTag.asInstanceOf[ClassTag[SB]]
-      classTag[Either[SA, SB]]
+    lazy val sourceType: RType[Either[SA, SB]] = {
+            implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
+      implicit val tagSB = lB.sourceType.asInstanceOf[RType[SB]]
+      RType[Either[SA, SB]]
     }
     def lift(x: Either[SA, SB]): Rep[WEither[A, B]] = WEitherConst(x, lA,lB)
     def unlift(w: Rep[WEither[A, B]]): Either[SA, SB] = w match {

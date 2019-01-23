@@ -68,7 +68,7 @@ object MetaTest extends EntityObject("MetaTest") {
   case class LiftableMetaTest[ST, T](lT: Liftable[ST, T])
     extends Liftable[SMetaTest[ST], MetaTest[T]] {
     lazy val eW: Elem[MetaTest[T]] = metaTestElement(lT.eW)
-    override lazy val sourceType: RType[SMetaTest[ST]] = {
+    lazy val sourceType: RType[SMetaTest[ST]] = {
             implicit val tagST = lT.sourceType.asInstanceOf[RType[ST]]
       RType[SMetaTest[ST]]
     }
@@ -287,7 +287,7 @@ object MetaPair extends EntityObject("MetaPair") {
   case class LiftableMetaPair[SA, SB, A, B](lA: Liftable[SA, A],lB: Liftable[SB, B])
     extends Liftable[SMetaPair[SA, SB], MetaPair[A, B]] {
     lazy val eW: Elem[MetaPair[A, B]] = metaPairElement(lA.eW,lB.eW)
-    override lazy val sourceType: RType[SMetaPair[SA, SB]] = {
+    lazy val sourceType: RType[SMetaPair[SA, SB]] = {
             implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
       implicit val tagSB = lB.sourceType.asInstanceOf[RType[SB]]
       RType[SMetaPair[SA, SB]]

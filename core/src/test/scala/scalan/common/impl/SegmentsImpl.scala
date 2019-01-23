@@ -72,7 +72,7 @@ object Segment extends EntityObject("Segment") {
   implicit object LiftableSegment
     extends Liftable[SSegment, Segment] {
     lazy val eW: Elem[Segment] = segmentElement
-    override lazy val sourceType: RType[SSegment] = {
+    lazy val sourceType: RType[SSegment] = {
       RType[SSegment]
     }
     def lift(x: SSegment): Rep[Segment] = SegmentConst(x)
