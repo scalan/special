@@ -1,12 +1,13 @@
 package special.collections
 
+import org.scalameter.{execution, Executor, Persistor, persistence}
 import org.scalameter.api._
 import org.scalameter.picklers.Implicits._
 import special.collection.Coll
 import special.collections.CollBenchmark.{builder, using}
 
 trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
-  val sizes = Gen.range("size")(3000, 15000, 3000)
+  val sizes = Gen.exponential("size")(10, 100000, 10)
 
   val ranges = for { size <- sizes } yield 0 until size
   //  performance of "Range" in {
@@ -62,6 +63,7 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
         arr => arr.zip(arr).reverse
       }
     }
+
   }
 
   performance of "PairColl" in {
@@ -98,7 +100,12 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
 object FastCollBenchmark extends Bench.LocalTime with CollBenchmarkCases {
 }
 
-object CollBenchmark extends Bench.OfflineRegressionReport with CollGens {
+object CollBenchmark extends Bench.OfflineRegressionReport with CollBenchmarkCases {
+  override def executor: Executor[Double] = new execution.LocalExecutor(
+    warmer,
+    aggregator,
+    measurer
+  )
 //  lazy val executor = LocalExecutor(
 //    new Executor.Warmer.Default,
 //    Aggregator.min[Double],
