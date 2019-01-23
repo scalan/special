@@ -81,7 +81,7 @@ trait CostedBuilder {
   def mkCostedFunc[Env,Arg,Res](envCosted: Costed[Env], func: Costed[Arg] => Costed[Res], cost: Int, dataSize: Long): CostedFunc[Env, Arg, Res]
   def mkCostedColl[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Long], valuesCost: Int): CostedColl[T]
   def mkCostedPairColl[L,R](ls: Costed[Coll[L]], rs: Costed[Coll[R]]): CostedPairColl[L,R]
-  def mkCostedNestedColl[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedColl[Item]
+  def mkCostedNestedColl[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: RType[Item]): CostedNestedColl[Item]
   def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T]
   def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T]
   def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Long], accumulatedCost: Int): CostedOption[T]

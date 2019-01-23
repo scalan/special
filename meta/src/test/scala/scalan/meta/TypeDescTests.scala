@@ -1,7 +1,7 @@
 package scalan.meta
 
 import scalan.RType
-
+import scalan._
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 

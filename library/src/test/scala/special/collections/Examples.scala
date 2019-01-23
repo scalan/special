@@ -1,6 +1,9 @@
 package special.collections
 
+import scalan.RType
 import special.collection.{Coll, CollBuilder}
+
+import scala.reflect.{ClassTag, classTag}
 
 class Examples(builder: CollBuilder) {
   import builder._
@@ -47,6 +50,7 @@ object Examples {
       s"Box{id=$idVal; tokens=$tokenStr}"
     }
   }
+  implicit val boxType = RType.fromClassTag(classTag[Box])
   case class Context(inputs: Coll[Box], outputs: Coll[Box], selfBoxIndex: Int) {
     override def toString: String = {
       s"""Ctx {

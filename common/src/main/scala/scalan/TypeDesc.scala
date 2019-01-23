@@ -45,7 +45,19 @@ trait RType[A] extends TypeDesc {
 
 object RType {
   def apply[A](implicit t: RType[A]): RType[A] = t
-  implicit def rtypeToClassTag[A](implicit t: RType[A]): ClassTag[A] = t.classTag
+
+  def fromClassTag[A](ctA: ClassTag[A]): RType[A] = (ctA match {
+    case ClassTag.Boolean => BooleanType
+    case ClassTag.Byte => ByteType
+    case ClassTag.Short => ShortType
+    case ClassTag.Int => IntType
+    case ClassTag.Long => LongType
+    case ClassTag.Char => CharType
+    case ClassTag.Float => FloatType
+    case ClassTag.Double => DoubleType
+    case ClassTag.Unit => UnitType
+    case _ => ConcreteType[A](ctA)
+  }).asInstanceOf[RType[A]]
 
   case class ConcreteType[A](classTag: ClassTag[A]) extends RType[A]
 
@@ -67,6 +79,15 @@ object RType {
 
   case class PairType[A,B](tA: RType[A], tB: RType[B]) extends RType[(A,B)] {
     val classTag: ClassTag[(A, B)] = scala.reflect.classTag[(A,B)]
+  }
+
+  implicit def arrayRType[A](implicit tA: RType[A]): RType[Array[A]] = ArrayType(tA)
+
+  case class ArrayType[A](tA: RType[A]) extends RType[Array[A]] {
+    val classTag: ClassTag[Array[A]] = {
+      implicit val ctA: ClassTag[A] = tA.classTag
+      scala.reflect.classTag[Array[A]]
+    }
   }
 
 }

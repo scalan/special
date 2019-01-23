@@ -2,6 +2,7 @@ package special.collections
 
 import special.collection.Coll
 import scalan.util.CollectionUtil._
+import scalan.RType._
 
 trait ExampleGens extends CollGens {
   import Examples._

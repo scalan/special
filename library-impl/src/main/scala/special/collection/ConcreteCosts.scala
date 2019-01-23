@@ -67,7 +67,7 @@ class CCostedPairColl[L,R](val ls: Costed[Coll[L]], val rs: Costed[Coll[R]]) ext
 
 class CCostedNestedColl[Item]
       (val rows: Coll[Costed[Coll[Item]]])
-      (implicit val cItem: ClassTag[Item]) extends CostedNestedColl[Item]
+      (implicit val cItem: RType[Item]) extends CostedNestedColl[Item]
 {
   def builder: CostedBuilder = new CCostedBuilder
   @NeverInline
@@ -107,7 +107,7 @@ class CCostedBuilder extends CostedBuilder {
   def mkCostedPairColl[L,R](ls: Costed[Coll[L]], rs: Costed[Coll[R]]): CostedPairColl[L,R] =
     new CCostedPairColl(ls, rs)
 
-  def mkCostedNestedColl[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: ClassTag[Item]): CostedNestedColl[Item] =
+  def mkCostedNestedColl[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: RType[Item]): CostedNestedColl[Item] =
     new CCostedNestedColl[Item](rows)
 
   def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T] =

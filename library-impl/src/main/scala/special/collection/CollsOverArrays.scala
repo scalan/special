@@ -5,24 +5,31 @@ import java.util
 import special.SpecialPredef
 
 import scala.reflect.ClassTag
+import scalan._
 import scalan.util.CollectionUtil
 import scalan.util.CollectionUtil.unboxedArray
-import scalan.{Internal, NeverInline, Reified}
+import scalan.{Internal, NeverInline, Reified, RType}
 import Helpers._
 import debox.Buffer
 import spire.syntax.all._
 
 import scala.collection.mutable
 
-class CollOverArray[@specialized A](val arr: Array[A])(implicit cA: ClassTag[A]) extends Coll[A] {
+class CollOverArray[@specialized A](val arr: Array[A])(implicit tA: RType[A]) extends Coll[A] {
   @Internal
-  override def cItem: ClassTag[A] = cA
+  override def cItem: RType[A] = tA
   def builder: CollBuilder = new CollOverArrayBuilder
   @inline def length: Int = arr.length
   @inline def apply(i: Int): A = arr.apply(i)
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < arr.length) arr(i) else default
-  def map[@specialized B: ClassTag](f: A => B): Coll[B] = builder.fromArray(arr.map(f))
+
+  @NeverInline
+  def map[@specialized B: RType](f: A => B): Coll[B] = {
+    implicit val ctB = RType[B].classTag
+    builder.fromArray(arr.map(f))
+  }
+
   def foreach(f: A => Unit): Unit = arr.foreach(f)
   def exists(p: A => Boolean): Boolean = arr.exists(p)
   def forall(p: A => Boolean): Boolean = arr.forall(p)
@@ -56,7 +63,10 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit cA: ClassTag[A])
   def indices: Coll[Int] = builder.fromArray(arr.indices.toArray)
 
   @NeverInline
-  override def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B] = builder.fromArray(arr.flatMap(x => f(x).arr))
+  override def flatMap[B: RType](f: A => Coll[B]): Coll[B] = {
+    implicit val ctB = RType[B].classTag
+    builder.fromArray(arr.flatMap(x => f(x).arr))
+  }
 
   @NeverInline
   override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
@@ -100,7 +110,7 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit cA: ClassTag[A])
   }
 
   @NeverInline
-  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
+  override def mapReduce[K: RType, V: RType](m: A => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
     val (keys, values) = Helpers.mapReduce(arr, m, r)
     builder.pairCollFromArrays(keys, values)
   }
@@ -150,34 +160,34 @@ class CollOverArrayBuilder extends CollBuilder {
   @inline def pairColl[@specialized A, @specialized B](as: Coll[A], bs: Coll[B]): PairColl[A, B] = new PairOfCols(as, bs)
 
   @Internal
-  override def fromMap[K: ClassTag, V: ClassTag](m: Map[K, V]): Coll[(K, V)] = {
+  override def fromMap[K: RType, V: RType](m: Map[K, V]): Coll[(K, V)] = {
     val (ks, vs) = Helpers.mapToArrays(m)
     pairCollFromArrays(ks, vs)
   }
 
   @NeverInline
   @Reified("T")
-  def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T] = {
+  def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T] = {
     new CollOverArray(unboxedArray(items))
   }
 
   @NeverInline
-  def fromArray[@specialized T](arr: Array[T]): Coll[T] = {
-    implicit val cT = ClassTag[T](arr.getClass.getComponentType.asInstanceOf[Class[T]])
+  def fromArray[@specialized T: RType](arr: Array[T]): Coll[T] = {
+//    implicit val cT = ClassTag[T](arr.getClass.getComponentType.asInstanceOf[Class[T]])
     new CollOverArray[T](arr)
   }
 
   @NeverInline
-  def replicate[T:ClassTag](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
+  def replicate[T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
 
   @NeverInline
-  override def emptyColl[T](implicit cT: ClassTag[T]): Coll[T] = new CollOverArray[T](Array[T]())
+  override def emptyColl[T](implicit cT: RType[T]): Coll[T] = new CollOverArray[T](Array[T]())
 
   @NeverInline
-  override def outerJoin[K:ClassTag, L, R, O:ClassTag]
+  override def outerJoin[K: RType, L, R, O: RType]
       (left: Coll[(K, L)], right: Coll[(K, R)])
       (l: ((K, L)) => O, r: ((K, R)) => O, inner: ((K, (L, R))) => O): Coll[(K, O)] = {
     val res = CollectionUtil.outerJoin[K,L,R,O](left.toMap, right.toMap)(
@@ -189,10 +199,14 @@ class CollOverArrayBuilder extends CollBuilder {
 }
 
 class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
+  @Internal @inline
+  implicit def tL = ls.cItem
+  @Internal @inline
+  implicit def tR = rs.cItem
+
   @Internal
-  override def cItem: ClassTag[(L, R)] = {
-    implicit val cL = ls.cItem; implicit val cR = rs.cItem
-    scala.reflect.classTag[(L,R)]
+  override def cItem: RType[(L, R)] = {
+    RType.pairRType(tL, tR)
   }
 
   override def builder: CollBuilder = new CollOverArrayBuilder
@@ -210,7 +224,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
     }
 
   @NeverInline
-  override def map[@specialized V: ClassTag](f: ((L, R)) => V): Coll[V] = {
+  override def map[@specialized V: RType](f: ((L, R)) => V): Coll[V] = {
     val limit = ls.length
     val res = new Array[V](limit)
     cfor(0)(_ < limit, _ + 1) { i =>
@@ -247,8 +261,8 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   @NeverInline
   override def filter(p: ((L, R)) => Boolean): Coll[(L,R)] = {
     val len = ls.length
-    val resL: Buffer[L] = Buffer.empty[L](ls.cItem)
-    val resR: Buffer[R] = Buffer.empty[R](rs.cItem)
+    val resL: Buffer[L] = Buffer.empty[L](ls.cItem.classTag)
+    val resR: Buffer[R] = Buffer.empty[R](rs.cItem.classTag)
     var i = 0
     while (i < len) {
       val l = ls.apply(i)
@@ -303,7 +317,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   override def indices: Coll[Int] = ls.indices
 
   @NeverInline
-  override def flatMap[B: ClassTag](f: ((L, R)) => Coll[B]): Coll[B] =
+  override def flatMap[B: RType](f: ((L, R)) => Coll[B]): Coll[B] =
     builder.fromArray(arr.flatMap(p => f(p).arr))
 
   @NeverInline
@@ -355,7 +369,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   }
 
   @NeverInline
-  override def mapReduce[K: ClassTag, V: ClassTag](m: ((L, R)) => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
+  override def mapReduce[K: RType, V: RType](m: ((L, R)) => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
     val (keys, values) = Helpers.mapReduce(arr, m, r)  // TODO optimize: don't reify arr
     builder.pairCollFromArrays(keys, values)
   }
@@ -363,8 +377,10 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   @NeverInline
   override def unionSet(that: Coll[(L, R)]): Coll[(L, R)] = {
     val set = new util.HashSet[(L,R)](32)
-    val resL = mutable.ArrayBuilder.make[L]()(ls.cItem)
-    val resR = mutable.ArrayBuilder.make[R]()(rs.cItem)
+    implicit val ctL = ls.cItem.classTag
+    implicit val ctR = rs.cItem.classTag
+    val resL = Buffer.empty[L]
+    val resR = Buffer.empty[R]
     def addToSet(item: (L,R)) = {
       if (!set.contains(item)) {
         set.add(item)
@@ -384,13 +400,13 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
       addToSet(that(i))
       i += 1
     }
-    builder.pairCollFromArrays(resL.result(), resR.result())
+    builder.pairCollFromArrays(resL.toArray, resR.toArray)
   }
 }
 
-class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implicit cA: ClassTag[A]) extends ReplColl[A] {
+class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implicit tA: RType[A]) extends ReplColl[A] {
   @Internal
-  override def cItem: ClassTag[A] = cA
+  override def cItem: RType[A] = tA
 
   def builder: CollBuilder = new CollOverArrayBuilder
   
@@ -401,7 +417,7 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
 
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default
-  def map[@specialized B: ClassTag](f: A => B): Coll[B] = new CReplColl(f(value), length)
+  def map[@specialized B: RType](f: A => B): Coll[B] = new CReplColl(f(value), length)
   @NeverInline
   def foreach(f: A => Unit): Unit = (0 until length).foreach(_ => f(value))
   @NeverInline
@@ -443,7 +459,7 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
   override def indices: Coll[Int] = builder.fromArray((0 until length).toArray)
 
   @NeverInline
-  override def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B] = {
+  override def flatMap[B: RType](f: A => Coll[B]): Coll[B] = {
     val seg = f(value).arr
     val xs = Range(0, length).flatMap(_ => seg).toArray
     builder.fromArray(xs)
@@ -475,7 +491,7 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
 
   @NeverInline
   override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = {
-    if (pred(value)) (this, builder.emptyColl)
+    if (pred(value)) (this, builder.emptyColl[A])
     else (builder.emptyColl, this)
   }
 
@@ -508,7 +524,7 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
   }
 
   @NeverInline
-  override def mapReduce[K: ClassTag, V: ClassTag](m: A => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
+  override def mapReduce[K: RType, V: RType](m: A => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
     if (length <= 0) return builder.pairColl(builder.emptyColl[K], builder.emptyColl[V])
     val (k, v) = m(value)
     var reducedV = v

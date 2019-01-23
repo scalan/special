@@ -5,6 +5,7 @@ import org.scalacheck.util.Buildable
 
 import scala.collection.mutable
 import org.scalacheck.{Arbitrary, Gen}
+import scalan._
 import special.collection.{Coll, CollOverArrayBuilder, CollBuilder}
 
 import scala.reflect.ClassTag
@@ -32,7 +33,7 @@ trait CollGens { testSuite =>
   def plus(acc: Int, x: Int): Int = acc + x
   val plusF = (p: (Int,Int)) => plus(p._1, p._2)
 
-  implicit def buildableColl[T:ClassTag] = new Buildable[T,Coll[T]] {
+  implicit def buildableColl[T:RType] = new Buildable[T,Coll[T]] {
     def builder = new mutable.Builder[T,Coll[T]] {
       val al = new ArrayBuffer[T]
       def +=(x: T) = {

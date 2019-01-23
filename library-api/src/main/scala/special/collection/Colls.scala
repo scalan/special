@@ -18,7 +18,7 @@ trait Coll[@specialized A] {
   def length: Int
   def apply(i: Int): A
   def getOrElse(i: Int, default: A): A
-  def map[@specialized B: ClassTag](f: A => B): Coll[B]
+  def map[@specialized B: RType](f: A => B): Coll[B]
 
   /** For this collection (x0, ..., xN) and other collection (y0, ..., yM)
     * produces a collection ((x0, y0), ..., (xK, yK)) where K = min(N, M) */
@@ -48,7 +48,7 @@ trait Coll[@specialized A] {
     * @return a new collection of type `Coll[B]` resulting from applying the given collection-valued function
     *         `f` to each element of this $coll and concatenating the results.
     */
-  def flatMap[B: ClassTag](f: A => Coll[B]): Coll[B]
+  def flatMap[B: RType](f: A => Coll[B]): Coll[B]
 
   /** Computes length of longest segment whose elements all satisfy some predicate.
     *
@@ -133,7 +133,7 @@ trait Coll[@specialized A] {
 
   /** Apply m for each element of this collection, group by key and reduce each group using r.
     * @returns one item for each group in a new collection of (K,V) pairs. */
-  def mapReduce[K: ClassTag, V: ClassTag](m: A => (K,V), r: ((V,V)) => V): Coll[(K,V)]
+  def mapReduce[K: RType, V: RType](m: A => (K,V), r: ((V,V)) => V): Coll[(K,V)]
 
   /** Partitions this $coll into a map of ${coll}s according to some discriminator function.
     *
@@ -147,7 +147,7 @@ trait Coll[@specialized A] {
     *               for which `key(x)` equals `k`.
     */
   @NeverInline
-  def groupBy[K: ClassTag](key: A => K): Coll[(K, Coll[A])] = {
+  def groupBy[K: RType](key: A => K): Coll[(K, Coll[A])] = {
     val res = arr.groupBy(key).mapValues(builder.fromArray(_))
     builder.fromMap(res)
   }
@@ -167,7 +167,8 @@ trait Coll[@specialized A] {
     *               for which `key(x)` equals `k`.
     */
   @NeverInline
-  def groupByProjecting[K: ClassTag, V: ClassTag](key: A => K, proj: A => V): Coll[(K, Coll[V])] = {
+  def groupByProjecting[K: RType, V: RType](key: A => K, proj: A => V): Coll[(K, Coll[V])] = {
+    implicit val ctV: ClassTag[V] = RType[V].classTag
     val res = arr.groupBy(key).mapValues(arr => builder.fromArray(arr.map(proj)))
     builder.fromMap(res)
   }
@@ -247,7 +248,7 @@ trait Coll[@specialized A] {
   override def toString = s"Coll(${trim(arr).mkString(",")})"
 
   @Internal
-  def cItem: ClassTag[A]
+  implicit def cItem: RType[A]
 
   @Internal
   def toMap[T, U](implicit ev: A <:< (T, U)): immutable.Map[T, U] = {
@@ -277,7 +278,7 @@ trait Coll[@specialized A] {
     val res = append(that).arr.toIterable.distinctBy(_._1)
 //    val (ls, rs) = res.unzip
 //    builder.pairCollFromArrays(ls.toArray, rs.toArray)
-    builder.fromArray(res.toArray(cItem))
+    builder.fromArray(res.toArray(cItem.classTag))
   }
 
 }
@@ -300,13 +301,13 @@ trait CollBuilder {
   def pairColl[@specialized A, @specialized B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
 
   @Internal
-  def pairCollFromArrays[A,B](as: Array[A], bs: Array[B]): PairColl[A,B] =
+  def pairCollFromArrays[A: RType, B: RType](as: Array[A], bs: Array[B]): PairColl[A,B] =
     pairColl(fromArray(as), fromArray(bs))
 
   @Internal
-  def fromMap[K:ClassTag,V:ClassTag](m: Map[K,V]): Coll[(K,V)]
+  def fromMap[K: RType, V: RType](m: Map[K,V]): Coll[(K,V)]
 
-  @Reified("T") def fromItems[T](items: T*)(implicit cT: ClassTag[T]): Coll[T]
+  @Reified("T") def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T]
 
   @NeverInline
   def unzip[A,B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
@@ -316,9 +317,9 @@ trait CollBuilder {
 
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
-  def fromArray[@specialized T](arr: Array[T]): Coll[T]
-  def replicate[T:ClassTag](n: Int, v: T): Coll[T]
-  def emptyColl[T](implicit cT: ClassTag[T]): Coll[T]
+  def fromArray[@specialized T: RType](arr: Array[T]): Coll[T]
+  def replicate[T: RType](n: Int, v: T): Coll[T]
+  def emptyColl[T: RType]: Coll[T]
 
   /** Performs outer join operation between left and right collections.
     * This is a restricted version of relational join operation.
@@ -330,7 +331,7 @@ trait CollBuilder {
     * @return collection of (K, O) pairs, where each key comes form either left or right collection and values are produced by projections
     * @since 2.0
     */
-  def outerJoin[K:ClassTag, L, R, O:ClassTag]
+  def outerJoin[K: RType, L, R, O: RType]
       (left: Coll[(K, L)], right: Coll[(K, R)])
       (l: ((K,L)) => O, r: ((K,R)) => O, inner: ((K,(L,R))) => O): Coll[(K,O)]
 
@@ -341,7 +342,8 @@ trait CollBuilder {
     *  @param asTrav    A function that converts elements of this array to rows - arrays of type `U`.
     *  @return          An array obtained by concatenating rows of this array.
     */
-  def flattenColl[A:ClassTag](coll: Coll[Coll[A]]): Coll[A] = {
+  def flattenColl[A:RType](coll: Coll[Coll[A]]): Coll[A] = {
+    implicit val ctA = RType[A].classTag
     val res = coll.map(xs => xs.arr).arr.flatten
     fromArray(res)
   }

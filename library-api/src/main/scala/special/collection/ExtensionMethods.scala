@@ -1,5 +1,7 @@
 package special.collection
 
+import scalan.RType
+
 import scala.reflect.ClassTag
 import scalan.util.CollectionUtil._
 
@@ -106,7 +108,7 @@ object ExtensionMethods {
 
   }
 
-  implicit class PairCollOps[A: ClassTag, B: ClassTag](source: Coll[(A,B)]) {
+  implicit class PairCollOps[A: RType, B: RType](source: Coll[(A,B)]) {
     // TODO optimize
     def unionSetByKey(that: Coll[(A,B)]): Coll[(A,B)] = {
       source.unionSetByKey(that)
@@ -122,7 +124,7 @@ object ExtensionMethods {
     def groupByKey: Coll[(A, Coll[B])] = source.groupByProjecting(_._1, _._2)
   }
 
-  implicit class NestedCollOps[A: ClassTag](source: Coll[Coll[A]]) {
+  implicit class NestedCollOps[A: RType](source: Coll[Coll[A]]) {
     def flatten: Coll[A] = source.builder.flattenColl(source)
   }
 }
