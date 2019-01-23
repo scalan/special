@@ -19,7 +19,7 @@ package special.collection {
       def length: Rep[Int] = CollOverArray.this.arr.length;
       def apply(i: Rep[Int]): Rep[A] = CollOverArray.this.arr.apply(i);
       @NeverInline def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = delayInvoke;
-      def map[B](f: Rep[scala.Function1[A, B]]): Rep[Coll[B]] = CollOverArray.this.builder.fromArray[B](CollOverArray.this.arr.map(f));
+      @NeverInline def map[B](f: Rep[scala.Function1[A, B]]): Rep[Coll[B]] = delayInvoke;
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = CollOverArray.this.arr.foreach(f);
       def exists(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = CollOverArray.this.arr.exists(p);
       def forall(p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = CollOverArray.this.arr.forall(p);
@@ -33,6 +33,7 @@ package special.collection {
       })));
       def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[A, B]] = CollOverArray.this.builder.pairColl[A, B](this, ys);
       @NeverInline def append(other: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke;
+      @NeverInline def reverse: Rep[Coll[A]] = delayInvoke;
       @NeverInline def indices: Rep[Coll[Int]] = delayInvoke;
       @NeverInline override def flatMap[B](f: Rep[scala.Function1[A, Coll[B]]]): Rep[Coll[B]] = delayInvoke;
       @NeverInline override def segmentLength(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int] = delayInvoke;
@@ -53,7 +54,8 @@ package special.collection {
       @NeverInline def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]] = delayInvoke;
       @NeverInline def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = delayInvoke;
       @NeverInline override def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]] = delayInvoke;
-      @NeverInline override def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]] = delayInvoke
+      @NeverInline override def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]] = delayInvoke;
+      @NeverInline override def flattenColl[A](coll: Rep[Coll[Coll[A]]]): Rep[Coll[A]] = delayInvoke
     };
     abstract class PairOfCols[L, R](val ls: Rep[Coll[L]], val rs: Rep[Coll[R]]) extends PairColl[L, R] {
       override def builder: Rep[CollBuilder] = RCollOverArrayBuilder();
@@ -72,6 +74,7 @@ package special.collection {
         val arrs: Rep[scala.Tuple2[Coll[L], Coll[R]]] = PairOfCols.this.builder.unzip[L, R](other);
         PairOfCols.this.builder.pairColl[L, R](PairOfCols.this.ls.append(arrs._1), PairOfCols.this.rs.append(arrs._2))
       };
+      override def reverse: Rep[Coll[scala.Tuple2[L, R]]] = PairOfCols.this.builder.pairColl[L, R](PairOfCols.this.ls.reverse, PairOfCols.this.rs.reverse);
       @NeverInline override def sum(m: Rep[Monoid[scala.Tuple2[L, R]]]): Rep[scala.Tuple2[L, R]] = delayInvoke;
       def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[scala.Tuple2[L, R], B]] = PairOfCols.this.builder.pairColl[scala.Tuple2[L, R], B](this, ys);
       override def indices: Rep[Coll[Int]] = PairOfCols.this.ls.indices;
@@ -100,6 +103,7 @@ package special.collection {
       def zip[B](ys: Rep[Coll[B]]): Rep[PairColl[A, B]] = CReplColl.this.builder.pairColl[A, B](this, ys);
       @NeverInline def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]] = delayInvoke;
       @NeverInline def append(other: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke;
+      override def reverse: Rep[Coll[A]] = this;
       def sum(m: Rep[Monoid[A]]): Rep[A] = m.power(CReplColl.this.value, CReplColl.this.length);
       @NeverInline override def indices: Rep[Coll[Int]] = delayInvoke;
       @NeverInline override def flatMap[B](f: Rep[scala.Function1[A, Coll[B]]]): Rep[Coll[B]] = delayInvoke;

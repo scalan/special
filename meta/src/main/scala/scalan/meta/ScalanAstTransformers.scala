@@ -528,6 +528,7 @@ object ScalanAstTransformers {
 
   class ExtType2WrapperTypeTransformer(name: String) extends TypeReplacer(name, wrap)
 
+  /** Replaces SourceDescriptorTpe types with ElemTpe types */
   class ReplaceImplicitDescriptorsWithElemsInSignatures(implicit ctx: AstContext) extends AstTransformer {
     override def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = {
       val newArg = arg.tpe match {

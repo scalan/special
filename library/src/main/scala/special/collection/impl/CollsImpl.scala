@@ -213,9 +213,40 @@ implicit val eV = m.elem.eRange.eSnd
         true, false, element[Coll[(K, V)]]))
     }
 
+    override def groupBy[K](key: Rep[A => K]): Rep[Coll[(K, Coll[A])]] = {
+      implicit val eK = key.elem.eRange
+      asRep[Coll[(K, Coll[A])]](mkMethodCall(self,
+        CollClass.getMethod("groupBy", classOf[Sym]),
+        List(key),
+        true, false, element[Coll[(K, Coll[A])]]))
+    }
+
+    override def groupByProjecting[K, V](key: Rep[A => K], proj: Rep[A => V]): Rep[Coll[(K, Coll[V])]] = {
+      implicit val eK = key.elem.eRange
+implicit val eV = proj.elem.eRange
+      asRep[Coll[(K, Coll[V])]](mkMethodCall(self,
+        CollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
+        List(key, proj),
+        true, false, element[Coll[(K, Coll[V])]]))
+    }
+
     override def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, false, element[Coll[A]]))
+    }
+
+    override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        CollClass.getMethod("diff", classOf[Sym]),
+        List(that),
+        true, false, element[Coll[A]]))
+    }
+
+    override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        CollClass.getMethod("intersect", classOf[Sym]),
         List(that),
         true, false, element[Coll[A]]))
     }
@@ -238,6 +269,13 @@ implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("append", classOf[Sym]),
         List(other),
+        true, false, element[Coll[A]]))
+    }
+
+    override def reverse: Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        CollClass.getMethod("reverse"),
+        List(),
         true, false, element[Coll[A]]))
     }
   }
@@ -442,9 +480,40 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Coll[(K, V)]]))
     }
 
+    override def groupBy[K](key: Rep[A => K]): Rep[Coll[(K, Coll[A])]] = {
+      implicit val eK = key.elem.eRange
+      asRep[Coll[(K, Coll[A])]](mkMethodCall(source,
+        thisClass.getMethod("groupBy", classOf[Sym]),
+        List(key),
+        true, true, element[Coll[(K, Coll[A])]]))
+    }
+
+    override def groupByProjecting[K, V](key: Rep[A => K], proj: Rep[A => V]): Rep[Coll[(K, Coll[V])]] = {
+      implicit val eK = key.elem.eRange
+implicit val eV = proj.elem.eRange
+      asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
+        thisClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
+        List(key, proj),
+        true, true, element[Coll[(K, Coll[V])]]))
+    }
+
     def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[A]]))
+    }
+
+    override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("diff", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[A]]))
+    }
+
+    override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("intersect", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
@@ -467,6 +536,13 @@ implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[A]](mkMethodCall(source,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
+        true, true, element[Coll[A]]))
+    }
+
+    def reverse: Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("reverse"),
+        List(),
         true, true, element[Coll[A]]))
     }
   }
@@ -516,7 +592,7 @@ implicit val eV = m.elem.eRange.eSnd
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "unionSet", "sum", "slice", "append"
+        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
         ))
     }
 
@@ -895,9 +971,61 @@ implicit val eV = m.elem.eRange.eSnd
       }
     }
 
+    object groupBy {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => K]) forSome {type A; type K}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "groupBy" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => K]) forSome {type A; type K}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => K]) forSome {type A; type K}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object groupByProjecting {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => K], Rep[A => V]) forSome {type A; type K; type V}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "groupByProjecting" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => K], Rep[A => V]) forSome {type A; type K; type V}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => K], Rep[A => V]) forSome {type A; type K; type V}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object unionSet {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "unionSet" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object diff {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "diff" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object intersect {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "intersect" =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -942,6 +1070,19 @@ implicit val eV = m.elem.eRange.eSnd
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object reverse {
+      def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "reverse" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[Coll[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1205,9 +1346,40 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Coll[(K, V)]]))
     }
 
+    override def groupBy[K](key: Rep[((L, R)) => K]): Rep[Coll[(K, Coll[(L, R)])]] = {
+      implicit val eK = key.elem.eRange
+      asRep[Coll[(K, Coll[(L, R)])]](mkMethodCall(source,
+        thisClass.getMethod("groupBy", classOf[Sym]),
+        List(key),
+        true, true, element[Coll[(K, Coll[(L, R)])]](collElement(pairElement(eK, collElement(pairElement(eL, eR)))))))
+    }
+
+    override def groupByProjecting[K, V](key: Rep[((L, R)) => K], proj: Rep[((L, R)) => V]): Rep[Coll[(K, Coll[V])]] = {
+      implicit val eK = key.elem.eRange
+implicit val eV = proj.elem.eRange
+      asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
+        thisClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
+        List(key, proj),
+        true, true, element[Coll[(K, Coll[V])]]))
+    }
+
     def unionSet(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[(L, R)]]))
+    }
+
+    override def diff(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(source,
+        thisClass.getMethod("diff", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[(L, R)]]))
+    }
+
+    override def intersect(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(source,
+        thisClass.getMethod("intersect", classOf[Sym]),
         List(that),
         true, true, element[Coll[(L, R)]]))
     }
@@ -1230,6 +1402,13 @@ implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(L, R)]](mkMethodCall(source,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
+        true, true, element[Coll[(L, R)]]))
+    }
+
+    def reverse: Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(source,
+        thisClass.getMethod("reverse"),
+        List(),
         true, true, element[Coll[(L, R)]]))
     }
   }
@@ -1576,9 +1755,40 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Coll[(K, V)]]))
     }
 
+    override def groupBy[K](key: Rep[A => K]): Rep[Coll[(K, Coll[A])]] = {
+      implicit val eK = key.elem.eRange
+      asRep[Coll[(K, Coll[A])]](mkMethodCall(source,
+        thisClass.getMethod("groupBy", classOf[Sym]),
+        List(key),
+        true, true, element[Coll[(K, Coll[A])]]))
+    }
+
+    override def groupByProjecting[K, V](key: Rep[A => K], proj: Rep[A => V]): Rep[Coll[(K, Coll[V])]] = {
+      implicit val eK = key.elem.eRange
+implicit val eV = proj.elem.eRange
+      asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
+        thisClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
+        List(key, proj),
+        true, true, element[Coll[(K, Coll[V])]]))
+    }
+
     def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         thisClass.getMethod("unionSet", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[A]]))
+    }
+
+    override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("diff", classOf[Sym]),
+        List(that),
+        true, true, element[Coll[A]]))
+    }
+
+    override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("intersect", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
@@ -1594,6 +1804,13 @@ implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[A]](mkMethodCall(source,
         thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
+        true, true, element[Coll[A]]))
+    }
+
+    def reverse: Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("reverse"),
+        List(),
         true, true, element[Coll[A]]))
     }
   }
@@ -1776,10 +1993,10 @@ implicit val eB = xs.eA.eSnd
         true, false, element[Coll[T]]))
     }
 
-    override def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]] = {
+    override def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(self,
         CollBuilderClass.getMethod("emptyColl", classOf[Elem[_]]),
-        List(cT),
+        List(tT),
         true, false, element[Coll[T]]))
     }
 
@@ -1792,6 +2009,14 @@ implicit val eO = l.elem.eRange
         CollBuilderClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
         List(left, right, l, r, inner),
         true, false, element[Coll[(K, O)]]))
+    }
+
+    override def flattenColl[A](coll: Rep[Coll[Coll[A]]]): Rep[Coll[A]] = {
+      implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
+      asRep[Coll[A]](mkMethodCall(self,
+        CollBuilderClass.getMethod("flattenColl", classOf[Sym]),
+        List(coll),
+        true, false, element[Coll[A]]))
     }
   }
 
@@ -1871,10 +2096,10 @@ implicit val eB = xs.eA.eSnd
         true, true, element[Coll[T]]))
     }
 
-    def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]] = {
+    def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(source,
         thisClass.getMethod("emptyColl", classOf[Elem[_]]),
-        List(cT),
+        List(tT),
         true, true, element[Coll[T]]))
     }
 
@@ -1887,6 +2112,14 @@ implicit val eO = l.elem.eRange
         thisClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
         List(left, right, l, r, inner),
         true, true, element[Coll[(K, O)]]))
+    }
+
+    def flattenColl[A](coll: Rep[Coll[Coll[A]]]): Rep[Coll[A]] = {
+      implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("flattenColl", classOf[Sym]),
+        List(coll),
+        true, true, element[Coll[A]]))
     }
   }
 
@@ -1905,7 +2138,7 @@ implicit val eO = l.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[CollBuilder], classOf[SCollBuilder], Set(
-        "Monoids", "pairColl", "fromItems", "unzip", "xor", "fromArray", "replicate", "emptyColl", "outerJoin"
+        "Monoids", "pairColl", "fromItems", "unzip", "xor", "fromArray", "replicate", "emptyColl", "outerJoin", "flattenColl"
         ))
     }
 
@@ -2060,6 +2293,19 @@ implicit val eO = l.elem.eRange
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CollBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object flattenColl {
+      def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Coll[Coll[A]]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "flattenColl" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Coll[Coll[A]]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollBuilder], Rep[Coll[Coll[A]]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

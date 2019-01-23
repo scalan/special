@@ -196,6 +196,13 @@ class CollOverArrayBuilder extends CollBuilder {
       (k, lv, rv) => inner((k, (lv, rv))))
     fromMap(res)
   }
+
+  @NeverInline
+  override def flattenColl[A: RType](coll: Coll[Coll[A]]): Coll[A] = {
+    implicit val ctA = RType[A].classTag
+    val res = coll.map(xs => xs.arr).arr.flatten
+    fromArray(res)
+  }
 }
 
 class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {

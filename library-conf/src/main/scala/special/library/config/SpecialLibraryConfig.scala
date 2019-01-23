@@ -29,10 +29,10 @@ class SpecialLibraryConfig extends LibraryConfig {
       name = "SpecialPredef"
     ),
     WrapperConf(baseDir,
-      packageName = "scalan.meta",
+      packageName = "scalan",
       name = "RType",
       annotations = List(classOf[Liftable]).map(_.getSimpleName),
-      imports = List("scalan.meta.RType")
+      imports = List("scalan.RType")
     ),
   ).map(w => (w.name, w)).toMap
 

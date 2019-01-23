@@ -40,6 +40,14 @@ object CollOverArray extends EntityObject("CollOverArray") {
         true, false, element[A]))
     }
 
+    override def map[B](f: Rep[A => B]): Rep[Coll[B]] = {
+      implicit val eB = f.elem.eRange
+      asRep[Coll[B]](mkMethodCall(self,
+        thisClass.getMethod("map", classOf[Sym]),
+        List(f),
+        true, false, element[Coll[B]]))
+    }
+
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
@@ -52,6 +60,13 @@ object CollOverArray extends EntityObject("CollOverArray") {
       asRep[Coll[A]](mkMethodCall(self,
         thisClass.getMethod("append", classOf[Sym]),
         List(other),
+        true, false, element[Coll[A]]))
+    }
+
+    override def reverse: Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        thisClass.getMethod("reverse"),
+        List(),
         true, false, element[Coll[A]]))
     }
 
@@ -410,6 +425,19 @@ implicit val eV = m.elem.eRange.eSnd
       }
     }
 
+    object reverse {
+      def unapply(d: Def[_]): Nullable[Rep[CollOverArray[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "reverse" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CollOverArray[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CollOverArray[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object indices {
       def unapply(d: Def[_]): Nullable[Rep[CollOverArray[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "indices" =>
@@ -614,6 +642,14 @@ implicit val eO = l.elem.eRange
         List(left, right, l, r, inner),
         true, false, element[Coll[(K, O)]]))
     }
+
+    override def flattenColl[A](coll: Rep[Coll[Coll[A]]]): Rep[Coll[A]] = {
+      implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
+      asRep[Coll[A]](mkMethodCall(self,
+        thisClass.getMethod("flattenColl", classOf[Sym]),
+        List(coll),
+        true, false, element[Coll[A]]))
+    }
   }
   // elem for concrete class
   class CollOverArrayBuilderElem(val iso: Iso[CollOverArrayBuilderData, CollOverArrayBuilder])
@@ -808,6 +844,19 @@ implicit val eO = l.elem.eRange
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object flattenColl {
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[Coll[A]]]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "flattenColl" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[Coll[A]]]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[Coll[A]]]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1231,6 +1280,19 @@ implicit val eR = p.rs.eA
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[PairOfCols[L, R]], Rep[Coll[(L, R)]]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object reverse {
+      def unapply(d: Def[_]): Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "reverse" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1827,6 +1889,19 @@ implicit val eV = m.elem.eRange.eSnd
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CReplColl[A]], Rep[Coll[A]]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object reverse {
+      def unapply(d: Def[_]): Nullable[Rep[CReplColl[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "reverse" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CReplColl[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CReplColl[A]] forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

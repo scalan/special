@@ -319,7 +319,9 @@ trait CollBuilder {
 
   def fromArray[@specialized T: RType](arr: Array[T]): Coll[T]
   def replicate[T: RType](n: Int, v: T): Coll[T]
-  def emptyColl[T: RType]: Coll[T]
+
+//  @Reified(value = "T")
+  def emptyColl[T](implicit tT: RType[T]): Coll[T]
 
   /** Performs outer join operation between left and right collections.
     * This is a restricted version of relational join operation.
@@ -342,10 +344,7 @@ trait CollBuilder {
     *  @param asTrav    A function that converts elements of this array to rows - arrays of type `U`.
     *  @return          An array obtained by concatenating rows of this array.
     */
-  def flattenColl[A:RType](coll: Coll[Coll[A]]): Coll[A] = {
-    implicit val ctA = RType[A].classTag
-    val res = coll.map(xs => xs.arr).arr.flatten
-    fromArray(res)
-  }
+
+  def flattenColl[A:RType](coll: Coll[Coll[A]]): Coll[A]
 }
 

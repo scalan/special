@@ -36,10 +36,15 @@ package special.collection {
       def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]];
       def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]];
       def mapReduce[K, V](m: Rep[scala.Function1[A, scala.Tuple2[K, V]]], r: Rep[scala.Function1[scala.Tuple2[V, V], V]]): Rep[Coll[scala.Tuple2[K, V]]];
+      @NeverInline def groupBy[K](key: Rep[scala.Function1[A, K]]): Rep[Coll[scala.Tuple2[K, Coll[A]]]] = delayInvoke;
+      @NeverInline def groupByProjecting[K, V](key: Rep[scala.Function1[A, K]], proj: Rep[scala.Function1[A, V]]): Rep[Coll[scala.Tuple2[K, Coll[V]]]] = delayInvoke;
       def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]];
+      @NeverInline def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke;
+      @NeverInline def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = delayInvoke;
       def sum(m: Rep[Monoid[A]]): Rep[A];
       def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]];
-      def append(other: Rep[Coll[A]]): Rep[Coll[A]]
+      def append(other: Rep[Coll[A]]): Rep[Coll[A]];
+      def reverse: Rep[Coll[A]]
     };
     trait PairColl[L, R] extends Coll[scala.Tuple2[L, R]] {
       implicit def eL: Elem[L];
@@ -61,8 +66,9 @@ package special.collection {
       def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]];
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]];
-      def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]];
-      def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]]
+      def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]];
+      def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]];
+      def flattenColl[A](coll: Rep[Coll[Coll[A]]]): Rep[Coll[A]]
     };
     trait CollCompanion;
     trait PairCollCompanion;
