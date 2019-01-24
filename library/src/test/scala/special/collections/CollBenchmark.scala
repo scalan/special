@@ -1,97 +1,135 @@
 package special.collections
 
-import org.scalameter.{execution, Executor, Persistor, persistence}
+import org.scalameter.{execution, Executor}
 import org.scalameter.api._
 import org.scalameter.picklers.Implicits._
 import special.collection.Coll
-import special.collections.CollBenchmark.{builder, using}
+import special.collection.ExtensionMethods._
+import spire.syntax.all._
 
 trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
   val sizes = Gen.exponential("size")(10, 100000, 10)
 
-  val ranges = for { size <- sizes } yield 0 until size
-  //  performance of "Range" in {
-  //    measure method "map" in {
-  //      using(ranges) in {
-  //        r => r.map(_ + 1)
-  //      }
-  //    }
-  //  }
+  val ranges = for { size <- sizes } yield (0 until size, 100000 / size)
 
-  val arrays = ranges.map(r => r.toArray)
+  val arrays = ranges.map { case (r, i) => (r.toArray, i) }
 
-  //  performance of "Array" in {
-  //    measure method "map" in {
-  //      using(arrays) in {
-  //        r => r.map(_ + 1)
-  //      }
-  //    }
-  //  }
+  val colls = arrays.map { case (arr, i) => (builder.fromArray(arr), i) }
 
-  val colls = arrays.map(arr => builder.fromArray(arr))
-  //  performance of "Coll" in {
-  //    measure method "map" in {
-  //      using(colls) in {
-  //        r => r.map(_ + 1)
-  //      }
-  //    }
-  //  }
-
-  performance of "PairArray" in {
-    measure method "filter" in {
-      using(arrays) in {
-        arr => arr.zip(arr).filter(p => p._1 == p._2)
+  performance of "map" in {
+    measure method "of Array" in {
+      using(arrays) in { case (arr, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.map(inc)
+        }
       }
     }
-    measure method "map" in {
-      using(arrays) in {
-        arr => arr.zip(arr).map(p => p._1 + p._2)
+    measure method "of Coll" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.map(inc)
+        }
       }
     }
-    measure method "exists" in {
-      using(arrays) in {
-        arr => arr.zip(arr).exists(p => p._1 != p._2)
-      }
-    }
-    measure method "fold" in {
-      using(arrays) in {
-        arr => arr.zip(arr).foldLeft(0)((b, p) => b + p._1 + p._2)
-      }
-    }
-    measure method "reverse" in {
-      using(arrays) in {
-        arr => arr.zip(arr).reverse
-      }
-    }
-
   }
 
-  performance of "PairColl" in {
-    measure method "filter" in {
-      def doFilter(c: Coll[Int]) = c.zip(c).filter(p => p._1 == p._2)
-      using(colls) in {
-        c => doFilter(c)
+  performance of "filter" in {
+    measure method "of PairArray" in {
+      using(arrays) in { case (arr, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.zip(arr).filter(p => p._1 == p._2)
+        }
       }
     }
-    measure method "map" in {
+    measure method "of PairColl" in {
+      @inline def doFilter(c: Coll[Int]) = c.zip(c).filter(p => p._1 == p._2)
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          doFilter(c)
+        }
+      }
+    }
+  }
+
+  performance of "map" in {
+    measure method "of PairArray" in {
+      using(arrays) in { case (arr, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.zip(arr).map(p => p._1 + p._2)
+        }
+      }
+    }
+    measure method "of PairColl" in {
       def doMap(c: Coll[Int]) = c.zip(c).map(p => (p._1 + p._2).toLong)
-      using(colls) in {
-        c => doMap(c)
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          doMap(c)
+        }
       }
     }
-    measure method "exists" in {
-      using(colls) in {
-        c => c.zip(c).exists(p => p._1 != p._2)
+  }
+
+  performance of "exists" in {
+    measure method "of PairArray" in {
+      using(arrays) in { case (arr, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.zip(arr).exists(p => p._1 != p._2)
+        }
       }
     }
-    measure method "fold" in {
-      using(colls) in {
-        c => c.zip(c).fold[Int](0, p => p._1 + p._2._1 + p._2._2)
+    measure method "of PairColl" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.zip(c).exists(p => p._1 != p._2)
+        }
       }
     }
-    measure method "reverse" in {
-      using(colls) in {
-        c => c.zip(c).reverse
+  }
+  performance of "fold" in {
+    measure method "PairArray" in {
+      using(arrays) in { case (arr, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.zip(arr).foldLeft(0)((b, p) => b + p._1 + p._2)
+        }
+      }
+    }
+    measure method "of PairColl" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.zip(c).fold[Int](0, p => p._1 + p._2._1 + p._2._2)
+        }
+      }
+    }
+  }
+  performance of "reverse" in {
+    measure method "of PairArray" in {
+      using(arrays) in { case (arr, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.zip(arr).reverse
+        }
+      }
+    }
+    measure method "of PairColl" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.zip(c).reverse
+        }
+      }
+    }
+  }
+  performance of "mapFirst" in {
+    measure method "of PairArray" in {
+      using(arrays) in { case (arr, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.zip(arr).map(p => (inc(p._1), p._2))
+        }
+      }
+    }
+    measure method "of PairColl" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.zip(c).mapFirst(inc)
+        }
       }
     }
   }

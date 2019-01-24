@@ -409,6 +409,14 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
     }
     builder.pairCollFromArrays(resL.toArray, resR.toArray)
   }
+
+  override def mapFirst[T1: RType](f: L => T1): Coll[(T1, R)] = {
+    builder.pairColl(ls.map(f), rs)
+  }
+
+  override def mapSecond[T1: RType](f: R => T1): Coll[(L, T1)] = {
+    builder.pairColl(ls, rs.map(f))
+  }
 }
 
 class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implicit tA: RType[A]) extends ReplColl[A] {

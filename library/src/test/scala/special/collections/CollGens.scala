@@ -32,6 +32,7 @@ trait CollGens { testSuite =>
   def lt0(x: Int) = x < 0
   def plus(acc: Int, x: Int): Int = acc + x
   val plusF = (p: (Int,Int)) => plus(p._1, p._2)
+  def inc(x: Int) = x + 1
 
   implicit def buildableColl[T:RType] = new Buildable[T,Coll[T]] {
     def builder = new mutable.Builder[T,Coll[T]] {

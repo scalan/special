@@ -117,7 +117,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         pairs.sum(pairMonoid) shouldBe ((res, res))
       }
       {
-        def inc(x: Int) = x + 1
         val res = col.map(inc)
         res.arr shouldBe col.arr.map(inc)
         val pairs = col.zip(col)
@@ -206,6 +205,14 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.arr shouldBe col.arr.reverse
       val pairs = col.zip(col)
       pairs.reverse.arr shouldBe pairs.arr.reverse
+    }
+  }
+
+  property("PairColl.mapFirst") {
+    forAll(collGen) { col =>
+      val pairs = col.zip(col)
+      pairs.mapFirst(inc).arr shouldBe pairs.arr.map { case (x, y) => (inc(x), y) }
+      pairs.mapSecond(inc).arr shouldBe pairs.arr.map { case (x, y) => (x, inc(y)) }
     }
   }
 

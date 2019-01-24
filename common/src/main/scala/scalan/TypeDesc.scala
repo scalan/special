@@ -92,9 +92,10 @@ object RType {
 
   implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairType(tA, tB)
 
-  case class PairType[A,B](tA: RType[A], tB: RType[B]) extends RType[(A,B)] {
+  case class PairType[A,B](tFst: RType[A], tSnd: RType[B]) extends RType[(A,B)] {
     val classTag: ClassTag[(A, B)] = scala.reflect.classTag[(A,B)]
   }
+  implicit def extendPairType[A,B](pt: RType[(A,B)]): PairType[A,B] = pt.asInstanceOf[PairType[A,B]]
 
   implicit def eitherRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[Either[A,B]] = EitherType(tA, tB)
 

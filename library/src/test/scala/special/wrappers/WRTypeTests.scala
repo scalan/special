@@ -3,7 +3,6 @@ package special.wrappers
 import scalan.RType
 
 import scala.language.reflectiveCalls
-import special.collection.Types._
 
 class WRTypeTests extends WrappersTests {
 

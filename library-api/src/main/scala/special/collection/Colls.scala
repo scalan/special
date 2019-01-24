@@ -276,16 +276,15 @@ trait Coll[@specialized A] {
     import scalan.util.CollectionUtil._
     // TODO optimize representation-wise
     val res = append(that).arr.toIterable.distinctBy(_._1)
-//    val (ls, rs) = res.unzip
-//    builder.pairCollFromArrays(ls.toArray, rs.toArray)
     builder.fromArray(res.toArray(cItem.classTag))
   }
-
 }
 
 trait PairColl[@specialized L, @specialized R] extends Coll[(L,R)] {
   def ls: Coll[L]
   def rs: Coll[R]
+  def mapFirst[T1: RType](f: L => T1): Coll[(T1, R)]
+  def mapSecond[T1: RType](f: R => T1): Coll[(L, T1)]
 }
 
 @Liftable

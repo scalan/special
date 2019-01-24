@@ -3,7 +3,6 @@ package special.wrappers
 
 import scala.language.reflectiveCalls
 import scalan.RType
-import special.collection.Types._
 
 class WSpecialPredefTests extends WrappersTests {
 
