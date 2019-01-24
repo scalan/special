@@ -11,6 +11,7 @@ import scalan.util.CollectionUtil.unboxedArray
 import scalan.{Internal, NeverInline, Reified, RType}
 import Helpers._
 import debox.Buffer
+import scalan.RType._
 import spire.syntax.all._
 
 import scala.collection.mutable
@@ -117,31 +118,30 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit tA: RType[A]) ex
 
   @NeverInline
   override def unionSet(that: Coll[A]): Coll[A] = {
-    val set = new util.HashSet[A](32)
-    val res = mutable.ArrayBuilder.make[A]
-    def addItemToSet(x: A) = {
-      if (!set.contains(x)) {
+    val set = debox.Set.ofSize[A](this.length)
+    val res = Buffer.ofSize[A](this.length)
+    @inline def addItemToSet(x: A) = {
+      if (!set(x)) {
         set.add(x)
         res += x
       }
     }
     def addToSet(arr: Array[A]) = {
-      var i = 0
-      while (i < arr.length) {
+      val limit = arr.length
+      cfor(0)(_ < limit, _ + 1) { i =>
         val x = arr(i)
         addItemToSet(x)
-        i += 1
       }
     }
     addToSet(this.arr)
 
     that match {
-      case repl: ReplColl[A@unchecked] => // optimization
+      case repl: ReplColl[A@unchecked] if repl.length > 0 => // optimization
         addItemToSet(repl.value)
       case _ =>
         addToSet(that.arr)
     }
-    builder.fromArray(res.result())
+    builder.fromArray(res.toArray())
   }
 
   @Internal
@@ -184,7 +184,14 @@ class CollOverArrayBuilder extends CollBuilder {
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
 
   @NeverInline
-  override def emptyColl[T](implicit cT: RType[T]): Coll[T] = new CollOverArray[T](Array[T]())
+  override def emptyColl[T](implicit cT: RType[T]): Coll[T] = cT match {
+    case pt: PairType[a,b] =>
+      val ls = emptyColl(pt.tFst)
+      val rs = emptyColl(pt.tSnd)
+      asColl[T](pairColl(ls, rs))
+    case _ =>
+      new CollOverArray[T](Array[T]())
+  }
 
   @NeverInline
   override def outerJoin[K: RType, L, R, O: RType]
@@ -419,7 +426,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   }
 }
 
-class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implicit tA: RType[A]) extends ReplColl[A] {
+class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RType[A]) extends ReplColl[A] {
   @Internal
   override def cItem: RType[A] = tA
 
@@ -554,15 +561,26 @@ class CReplColl[@specialized(Int, Long) A](val value: A, val length: Int)(implic
   @NeverInline
   override def unionSet(that: Coll[A]): Coll[A] = that match {
     case repl: ReplColl[A@unchecked] =>
-      if (value == repl.value) {
-        // both replications have the same element `value`, just return it in a singleton set
-        builder.replicate(1, value)
-      }
-      else {
-        builder.fromItems(value, repl.value)
+      if (this.length > 0) {
+        if (repl.length > 0) {
+          if (value == repl.value) {
+            // both replications have the same element `value`, just return it in a singleton set
+            new CReplColl(value, 1)
+          }
+          else {
+            builder.fromItems(value, repl.value)
+          }
+        }
+        else
+          new CReplColl(value, 1)
+      } else {
+        if (repl.length > 0) {
+          new CReplColl(repl.value, 1)
+        } else
+          new CReplColl(value, 0)  // empty set
       }
     case _ =>
-      if (length > 0)
+      if (this.length > 0)
         builder.fromItems(value).unionSet(that)
       else
         builder.emptyColl[A].unionSet(that)

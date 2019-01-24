@@ -16,6 +16,8 @@ object Helpers {
     require(xs.length == ys.length, sameLengthErrorMsg(xs, ys))
   }
 
+  @inline def asColl[T](coll: Coll[_]): Coll[T] = coll.asInstanceOf[Coll[T]]
+
   def mapReduce[A, K: ClassTag, V: ClassTag](arr: Array[A], m: A => (K, V), r: ((V, V)) => V): (Array[K], Array[V]) = {
     val keyPositions = new java.util.HashMap[K, Int](32)
     val keys = mutable.ArrayBuilder.make[K]

@@ -133,6 +133,24 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
       }
     }
   }
+  performance of "unionSet" in {
+    measure method "of PairArray" in {
+      using(arrays) in { case (arr, n) =>
+        val reversed = arr.reverse
+        cfor(0)(_ < n, _ + 1) { _ =>
+          arr.union(reversed).distinct
+        }
+      }
+    }
+    measure method "of PairColl" in {
+      using(colls) in { case (c, n) =>
+        val reversed = c.reverse
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.unionSet(c)
+        }
+      }
+    }
+  }
 }
 
 object FastCollBenchmark extends Bench.LocalTime with CollBenchmarkCases {

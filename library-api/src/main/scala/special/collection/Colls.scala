@@ -319,7 +319,6 @@ trait CollBuilder {
   def fromArray[@specialized T: RType](arr: Array[T]): Coll[T]
   def replicate[T: RType](n: Int, v: T): Coll[T]
 
-//  @Reified(value = "T")
   def emptyColl[T](implicit tT: RType[T]): Coll[T]
 
   /** Performs outer join operation between left and right collections.
