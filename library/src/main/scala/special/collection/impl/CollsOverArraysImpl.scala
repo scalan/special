@@ -25,12 +25,12 @@ import WArray._
 
 object CollOverArray extends EntityObject("CollOverArray") {
   case class CollOverArrayCtor[A]
-      (override val arr: Rep[WArray[A]])
-    extends CollOverArray[A](arr) with Def[CollOverArray[A]] {
-    implicit lazy val eA = arr.eT
+      (override val toArray: Rep[WArray[A]])
+    extends CollOverArray[A](toArray) with Def[CollOverArray[A]] {
+    implicit lazy val eA = toArray.eT
 
     lazy val selfType = element[CollOverArray[A]]
-    override def transform(t: Transformer) = CollOverArrayCtor[A](t(arr))
+    override def transform(t: Transformer) = CollOverArrayCtor[A](t(toArray))
     private val thisClass = classOf[Coll[_]]
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
@@ -156,7 +156,7 @@ implicit val eV = m.elem.eRange.eSnd
     with ConcreteElem1[A, CollOverArrayData[A], CollOverArray[A], Coll] {
     override lazy val parent: Option[Elem[_]] = Some(collElement(element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override def convertColl(x: Rep[Coll[A]]) = RCollOverArray(x.arr)
+    override def convertColl(x: Rep[Coll[A]]) = RCollOverArray(x.toArray)
     override def getDefaultRep = RCollOverArray(element[WArray[A]].defaultRepValue)
     override lazy val tag = {
       implicit val tagA = eA.tag
@@ -171,12 +171,12 @@ implicit val eV = m.elem.eRange.eSnd
   class CollOverArrayIso[A](implicit eA: Elem[A])
     extends EntityIso[CollOverArrayData[A], CollOverArray[A]] with Def[CollOverArrayIso[A]] {
     override def transform(t: Transformer) = new CollOverArrayIso[A]()(eA)
-    private lazy val _safeFrom = fun { p: Rep[CollOverArray[A]] => p.arr }
+    private lazy val _safeFrom = fun { p: Rep[CollOverArray[A]] => p.toArray }
     override def from(p: Rep[CollOverArray[A]]) =
       tryConvert[CollOverArray[A], WArray[A]](eTo, eFrom, p, _safeFrom)
     override def to(p: Rep[WArray[A]]) = {
-      val arr = p
-      RCollOverArray(arr)
+      val toArray = p
+      RCollOverArray(toArray)
     }
     lazy val eFrom = element[WArray[A]]
     lazy val eTo = new CollOverArrayElem[A](self)
@@ -198,8 +198,8 @@ implicit val eV = m.elem.eRange.eSnd
     override def toString = "CollOverArrayCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[A](arr: Rep[WArray[A]]): Rep[CollOverArray[A]] =
-      mkCollOverArray(arr)
+    def apply[A](toArray: Rep[WArray[A]]): Rep[CollOverArray[A]] =
+      mkCollOverArray(toArray)
 
     def unapply[A](p: Rep[Coll[A]]) = unmkCollOverArray(p)
   }
@@ -222,7 +222,7 @@ implicit val eV = m.elem.eRange.eSnd
 
   implicit class ExtendedCollOverArray[A](p: Rep[CollOverArray[A]]) {
     def toData: Rep[CollOverArrayData[A]] = {
-      implicit val eA = p.arr.eT
+      implicit val eA = p.toArray.eT
       isoCollOverArray(eA).from(p)
     }
   }
@@ -232,12 +232,12 @@ implicit val eV = m.elem.eRange.eSnd
     reifyObject(new CollOverArrayIso[A]()(eA))
 
   def mkCollOverArray[A]
-    (arr: Rep[WArray[A]]): Rep[CollOverArray[A]] = {
-    new CollOverArrayCtor[A](arr)
+    (toArray: Rep[WArray[A]]): Rep[CollOverArray[A]] = {
+    new CollOverArrayCtor[A](toArray)
   }
   def unmkCollOverArray[A](p: Rep[Coll[A]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CollOverArrayElem[A] @unchecked =>
-      Some((asRep[CollOverArray[A]](p).arr))
+      Some((asRep[CollOverArray[A]](p).toArray))
     case _ =>
       None
   }
@@ -1010,6 +1010,22 @@ implicit val eV = m.elem.eRange.eSnd
         List(that),
         true, false, element[Coll[(L, R)]]))
     }
+
+    override def mapFirst[T1](f: Rep[L => T1]): Rep[Coll[(T1, R)]] = {
+      implicit val eT1 = f.elem.eRange
+      asRep[Coll[(T1, R)]](mkMethodCall(self,
+        thisClass.getMethod("mapFirst", classOf[Sym]),
+        List(f),
+        true, false, element[Coll[(T1, R)]]))
+    }
+
+    override def mapSecond[T1](f: Rep[R => T1]): Rep[Coll[(L, T1)]] = {
+      implicit val eT1 = f.elem.eRange
+      asRep[Coll[(L, T1)]](mkMethodCall(self,
+        thisClass.getMethod("mapSecond", classOf[Sym]),
+        List(f),
+        true, false, element[Coll[(L, T1)]]))
+    }
   }
   // elem for concrete class
   class PairOfColsElem[L, R](val iso: Iso[PairOfColsData[L, R], PairOfCols[L, R]])(implicit override val eL: Elem[L], override val eR: Elem[R])
@@ -1129,9 +1145,9 @@ implicit val eR = p.rs.eA
       }
     }
 
-    object arr {
+    object toArray {
       def unapply(d: Def[_]): Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "arr" =>
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "toArray" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
@@ -1466,6 +1482,32 @@ implicit val eR = p.rs.eA
         case _ => Nullable.None
       }
     }
+
+    object mapFirst {
+      def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "mapFirst" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[PairOfCols[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[PairOfCols[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object mapSecond {
+      def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "mapSecond" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[PairOfCols[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[PairOfCols[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
   }
 
   object PairOfColsCompanionMethods {
@@ -1738,9 +1780,9 @@ implicit val eV = m.elem.eRange.eSnd
       }
     }
 
-    object arr {
+    object toArray {
       def unapply(d: Def[_]): Nullable[Rep[CReplColl[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "arr" =>
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "toArray" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CReplColl[A]] forSome {type A}]]
         case _ => Nullable.None

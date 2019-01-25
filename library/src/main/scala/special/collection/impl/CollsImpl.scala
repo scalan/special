@@ -46,9 +46,9 @@ object Coll extends EntityObject("Coll") {
         true, false, element[CollBuilder]))
     }
 
-    override def arr: Rep[WArray[A]] = {
+    override def toArray: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(self,
-        CollClass.getMethod("arr"),
+        CollClass.getMethod("toArray"),
         List(),
         true, false, element[WArray[A]]))
     }
@@ -313,9 +313,9 @@ implicit val eV = proj.elem.eRange
         true, true, element[CollBuilder]))
     }
 
-    def arr: Rep[WArray[A]] = {
+    def toArray: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(source,
-        thisClass.getMethod("arr"),
+        thisClass.getMethod("toArray"),
         List(),
         true, true, element[WArray[A]]))
     }
@@ -592,7 +592,7 @@ implicit val eV = proj.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "arr", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
+        "builder", "toArray", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
         ))
     }
 
@@ -659,9 +659,9 @@ implicit val eV = proj.elem.eRange
       }
     }
 
-    object arr {
+    object toArray {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "arr" =>
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "toArray" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -1170,6 +1170,22 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Coll[R]]))
     }
 
+    def mapFirst[T1](f: Rep[L => T1]): Rep[Coll[(T1, R)]] = {
+      implicit val eT1 = f.elem.eRange
+      asRep[Coll[(T1, R)]](mkMethodCall(source,
+        thisClass.getMethod("mapFirst", classOf[Sym]),
+        List(f),
+        true, true, element[Coll[(T1, R)]]))
+    }
+
+    def mapSecond[T1](f: Rep[R => T1]): Rep[Coll[(L, T1)]] = {
+      implicit val eT1 = f.elem.eRange
+      asRep[Coll[(L, T1)]](mkMethodCall(source,
+        thisClass.getMethod("mapSecond", classOf[Sym]),
+        List(f),
+        true, true, element[Coll[(L, T1)]]))
+    }
+
     def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
@@ -1177,9 +1193,9 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[CollBuilder]))
     }
 
-    def arr: Rep[WArray[(L, R)]] = {
+    def toArray: Rep[WArray[(L, R)]] = {
       asRep[WArray[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("arr"),
+        thisClass.getMethod("toArray"),
         List(),
         true, true, element[WArray[(L, R)]]))
     }
@@ -1346,6 +1362,7 @@ implicit val eV = m.elem.eRange.eSnd
         true, true, element[Coll[(K, V)]]))
     }
 
+    // manual fix
     override def groupBy[K](key: Rep[((L, R)) => K]): Rep[Coll[(K, Coll[(L, R)])]] = {
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[(L, R)])]](mkMethodCall(source,
@@ -1492,6 +1509,32 @@ implicit val eV = proj.elem.eRange
         case _ => Nullable.None
       }
     }
+
+    object mapFirst {
+      def unapply(d: Def[_]): Nullable[(Rep[PairColl[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairCollElem[_, _, _]] && method.getName == "mapFirst" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[PairColl[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[PairColl[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object mapSecond {
+      def unapply(d: Def[_]): Nullable[(Rep[PairColl[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairCollElem[_, _, _]] && method.getName == "mapSecond" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[PairColl[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[PairColl[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
   }
 
   object PairCollCompanionMethods {
@@ -1595,9 +1638,9 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[CollBuilder]))
     }
 
-    def arr: Rep[WArray[A]] = {
+    def toArray: Rep[WArray[A]] = {
       asRep[WArray[A]](mkMethodCall(source,
-        thisClass.getMethod("arr"),
+        thisClass.getMethod("toArray"),
         List(),
         true, true, element[WArray[A]]))
     }

@@ -12,7 +12,7 @@ package special.collection {
     @ContainerType @FunctorType @Liftable trait Coll[A] extends Def[Coll[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[CollBuilder];
-      def arr: Rep[WArray[A]];
+      def toArray: Rep[WArray[A]];
       def length: Rep[Int];
       def apply(i: Rep[Int]): Rep[A];
       def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A];
@@ -50,7 +50,9 @@ package special.collection {
       implicit def eL: Elem[L];
       implicit def eR: Elem[R];
       def ls: Rep[Coll[L]];
-      def rs: Rep[Coll[R]]
+      def rs: Rep[Coll[R]];
+      def mapFirst[T1](f: Rep[scala.Function1[L, T1]]): Rep[Coll[scala.Tuple2[T1, R]]];
+      def mapSecond[T1](f: Rep[scala.Function1[R, T1]]): Rep[Coll[scala.Tuple2[L, T1]]]
     };
     @Liftable trait ReplColl[A] extends Coll[A] {
       implicit def eA: Elem[A];
