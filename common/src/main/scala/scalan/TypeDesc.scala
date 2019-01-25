@@ -13,34 +13,9 @@ trait TypeDesc extends Serializable {
   override def toString = s"${getClass.safeSimpleName}<$name>"
 }
 
-trait RType[A] extends TypeDesc {
+trait RType[A] {
   def classTag: ClassTag[A]
-  // classTag.runtimeClass is cheap, no reason to make it lazy
-  @inline final def runtimeClass: Class[_] = classTag.runtimeClass
-  def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
-  lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
-  def typeArgsIterator = typeArgs.valuesIterator.map(_._1)
-
-  override def getName(f: TypeDesc => String) = {
-    import ClassTag._
-    val className = try { classTag match {
-      case _: AnyValManifest[_] | Any | AnyVal | AnyRef | Object | Nothing | Null => classTag.toString
-      case objectTag =>
-        val cl = objectTag.runtimeClass
-        val name = cl.safeSimpleName
-        name
-    }}
-    catch {
-      case t: Throwable =>
-        ???
-    }
-    if (typeArgs.isEmpty)
-      className
-    else {
-      val typeArgString = typeArgsIterator.map(f).mkString(", ")
-      s"$className[$typeArgString]"
-    }
-  }
+  final def name: String = this.toString
 }
 
 object RType {
@@ -81,14 +56,10 @@ object RType {
     override def classTag: ClassTag[String] = ClassTag[String](classOf[String])
   }
 
-  implicit def rtypeRType[A](implicit tA: RType[A]): RType[RType[A]] = RTypeType(tA)
-
-  case class RTypeType[A](tA: RType[A]) extends RType[RType[A]] {
-    val classTag: ClassTag[RType[A]] = {
-      implicit val ctA: ClassTag[A] = tA.classTag
-      scala.reflect.classTag[RType[A]]
-    }
+  case object RTypeType extends RType[RType[_]] {
+    val classTag: ClassTag[RType[_]] = ClassTag[RType[_]](classOf[RType[_]])
   }
+  implicit def rtypeRType[A]: RType[RType[A]] = asType[RType[A]](RTypeType)
 
   implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairType(tA, tB)
 
@@ -146,4 +117,5 @@ object RType {
     }
   }
 
+  @inline def asType[T](t: RType[_]): RType[T] = t.asInstanceOf[RType[T]]
 }

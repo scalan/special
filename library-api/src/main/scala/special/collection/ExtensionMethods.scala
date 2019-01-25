@@ -110,8 +110,8 @@ object ExtensionMethods {
 
   implicit class PairCollOps[A,B](val source: Coll[(A,B)]) extends AnyVal {
     import RType._
-    @inline implicit def tA = source.cItem.tFst
-    @inline implicit def tB = source.cItem.tSnd
+    @inline implicit def tA = source.tItem.tFst
+    @inline implicit def tB = source.tItem.tSnd
 
     // TODO optimize
     def unionSetByKey(that: Coll[(A,B)]): Coll[(A,B)] = {
@@ -132,7 +132,7 @@ object ExtensionMethods {
   }
 
   implicit class NestedCollOps[A](val source: Coll[Coll[A]]) extends AnyVal {
-    @inline implicit def tA = source.cItem.tItem
+    @inline implicit def tA = source.tItem.tItem
 
     def flatten: Coll[A] = source.builder.flattenColl(source)
   }

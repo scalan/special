@@ -46,6 +46,6 @@ trait CollGens { testSuite =>
     }
   }
 
-  implicit def traversableColl[T](coll: Coll[T]): mutable.Traversable[T] = coll.arr
+  implicit def traversableColl[T](coll: Coll[T]): mutable.Traversable[T] = coll.toArray
 
 }

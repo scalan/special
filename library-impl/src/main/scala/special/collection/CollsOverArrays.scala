@@ -16,37 +16,37 @@ import spire.syntax.all._
 
 import scala.collection.mutable
 
-class CollOverArray[@specialized A](val arr: Array[A])(implicit tA: RType[A]) extends Coll[A] {
+class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]) extends Coll[A] {
   @Internal
-  override def cItem: RType[A] = tA
+  override def tItem: RType[A] = tA
   def builder: CollBuilder = new CollOverArrayBuilder
-  @inline def length: Int = arr.length
-  @inline def apply(i: Int): A = arr.apply(i)
+  @inline def length: Int = toArray.length
+  @inline def apply(i: Int): A = toArray.apply(i)
   @NeverInline
-  def getOrElse(i: Int, default: A): A = if (i >= 0 && i < arr.length) arr(i) else default
+  def getOrElse(i: Int, default: A): A = if (i >= 0 && i < toArray.length) toArray(i) else default
 
   @NeverInline
   def map[@specialized B: RType](f: A => B): Coll[B] = {
     implicit val ctB = RType[B].classTag
-    builder.fromArray(arr.map(f))
+    builder.fromArray(toArray.map(f))
   }
 
-  def foreach(f: A => Unit): Unit = arr.foreach(f)
-  def exists(p: A => Boolean): Boolean = arr.exists(p)
-  def forall(p: A => Boolean): Boolean = arr.forall(p)
-  def filter(p: A => Boolean): Coll[A] = builder.fromArray(arr.filter(p))
+  def foreach(f: A => Unit): Unit = toArray.foreach(f)
+  def exists(p: A => Boolean): Boolean = toArray.exists(p)
+  def forall(p: A => Boolean): Boolean = toArray.forall(p)
+  def filter(p: A => Boolean): Coll[A] = builder.fromArray(toArray.filter(p))
 
   @NeverInline
-  def fold[B](zero: B, op: ((B, A)) => B): B = arr.foldLeft(zero)((b, a) => op((b, a)))
+  def fold[B](zero: B, op: ((B, A)) => B): B = toArray.foldLeft(zero)((b, a) => op((b, a)))
 
-  def slice(from: Int, until: Int): Coll[A] = builder.fromArray(arr.slice(from, until))
-  def sum(m: Monoid[A]): A = arr.foldLeft(m.zero)((b, a) => m.plus(b, a))
+  def slice(from: Int, until: Int): Coll[A] = builder.fromArray(toArray.slice(from, until))
+  def sum(m: Monoid[A]): A = toArray.foldLeft(m.zero)((b, a) => m.plus(b, a))
   @inline def zip[@specialized B](ys: Coll[B]): PairColl[A, B] = builder.pairColl(this, ys)
 
   @NeverInline
   def append(other: Coll[A]): Coll[A] = {
-    if (arr.length <= 0) return other
-    val result = CollectionUtil.concatArrays(arr, other.arr)
+    if (toArray.length <= 0) return other
+    val result = CollectionUtil.concatArrays(toArray, other.toArray)
     builder.fromArray(result)
   }
 
@@ -55,55 +55,55 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit tA: RType[A]) ex
     val limit = length
     val res = new Array[A](limit)
     cfor(0)(_ < limit, _ + 1) { i =>
-      res(i) = arr(limit - i - 1)
+      res(i) = toArray(limit - i - 1)
     }
     builder.fromArray(res)
   }
 
   @NeverInline
-  def indices: Coll[Int] = builder.fromArray(arr.indices.toArray)
+  def indices: Coll[Int] = builder.fromArray(toArray.indices.toArray)
 
   @NeverInline
   override def flatMap[B: RType](f: A => Coll[B]): Coll[B] = {
     implicit val ctB = RType[B].classTag
-    builder.fromArray(arr.flatMap(x => f(x).arr))
+    builder.fromArray(toArray.flatMap(x => f(x).toArray))
   }
 
   @NeverInline
-  override def segmentLength(p: A => Boolean, from: Int): Int = arr.segmentLength(p, from)
+  override def segmentLength(p: A => Boolean, from: Int): Int = toArray.segmentLength(p, from)
 
   @NeverInline
-  override def indexWhere(p: A => Boolean, from: Int): Int = arr.indexWhere(p, from)
+  override def indexWhere(p: A => Boolean, from: Int): Int = toArray.indexWhere(p, from)
 
   @NeverInline
-  override def lastIndexWhere(p: A => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
+  override def lastIndexWhere(p: A => Boolean, end: Int): Int = toArray.lastIndexWhere(p, end)
 
   @NeverInline
   override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = {
-    val (ls, rs) = arr.partition(pred)
+    val (ls, rs) = toArray.partition(pred)
     (builder.fromArray(ls), builder.fromArray(rs))
   }
 
   @NeverInline
   override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] = {
-    val res = arr.patch(from, patch.arr, replaced).toArray
+    val res = toArray.patch(from, patch.toArray, replaced).toArray
     builder.fromArray(res)
   }
 
   @NeverInline
   override def updated(index: Int, elem: A): Coll[A] = {
-    val res = arr.updated(index, elem)
+    val res = toArray.updated(index, elem)
     builder.fromArray(res)
   }
 
   @NeverInline
   override def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A] = {
     requireSameLength(indexes, values)
-    val resArr = arr.clone()
+    val resArr = toArray.clone()
     var i = 0
     while (i < indexes.length) {
       val pos = indexes(i)
-      if (pos < 0 || pos >= arr.length) throw new IndexOutOfBoundsException(pos.toString)
+      if (pos < 0 || pos >= toArray.length) throw new IndexOutOfBoundsException(pos.toString)
       resArr(pos) = values(i)
       i += 1
     }
@@ -112,7 +112,7 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit tA: RType[A]) ex
 
   @NeverInline
   override def mapReduce[K: RType, V: RType](m: A => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
-    val (keys, values) = Helpers.mapReduce(arr, m, r)
+    val (keys, values) = Helpers.mapReduce(toArray, m, r)
     builder.pairCollFromArrays(keys, values)
   }
 
@@ -133,25 +133,25 @@ class CollOverArray[@specialized A](val arr: Array[A])(implicit tA: RType[A]) ex
         addItemToSet(x)
       }
     }
-    addToSet(this.arr)
+    addToSet(this.toArray)
 
     that match {
       case repl: ReplColl[A@unchecked] if repl.length > 0 => // optimization
         addItemToSet(repl.value)
       case _ =>
-        addToSet(that.arr)
+        addToSet(that.toArray)
     }
     builder.fromArray(res.toArray())
   }
 
   @Internal
   override def equals(obj: scala.Any) = obj match {
-    case obj: Coll[_] => util.Objects.deepEquals(obj.arr, arr)
+    case obj: Coll[_] => util.Objects.deepEquals(obj.toArray, toArray)
     case _ => false
   }
 
   @Internal
-  override def hashCode() = CollectionUtil.deepHashCode(arr)
+  override def hashCode() = CollectionUtil.deepHashCode(toArray)
 }
 
 class CollOverArrayBuilder extends CollBuilder {
@@ -181,7 +181,7 @@ class CollOverArrayBuilder extends CollBuilder {
   def replicate[T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
-  def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = fromArray(left.arr.zip(right.arr).map { case (l, r) => (l ^ r).toByte })
+  def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = fromArray(left.toArray.zip(right.toArray).map { case (l, r) => (l ^ r).toByte })
 
   @NeverInline
   override def emptyColl[T](implicit cT: RType[T]): Coll[T] = cT match {
@@ -207,24 +207,24 @@ class CollOverArrayBuilder extends CollBuilder {
   @NeverInline
   override def flattenColl[A: RType](coll: Coll[Coll[A]]): Coll[A] = {
     implicit val ctA = RType[A].classTag
-    val res = coll.map(xs => xs.arr).arr.flatten
+    val res = coll.map(xs => xs.toArray).toArray.flatten
     fromArray(res)
   }
 }
 
 class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   @Internal @inline
-  implicit def tL = ls.cItem
+  implicit def tL = ls.tItem
   @Internal @inline
-  implicit def tR = rs.cItem
+  implicit def tR = rs.tItem
 
   @Internal
-  override def cItem: RType[(L, R)] = {
+  override def tItem: RType[(L, R)] = {
     RType.pairRType(tL, tR)
   }
 
   override def builder: CollBuilder = new CollOverArrayBuilder
-  override def arr: Array[(L, R)] = ls.arr.zip(rs.arr)
+  override def toArray: Array[(L, R)] = ls.toArray.zip(rs.toArray)
   @inline override def length: Int = ls.length
   @inline override def apply(i: Int): (L, R) = (ls(i), rs(i))
   
@@ -248,7 +248,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   }
 
   @NeverInline
-  override def foreach(f: ((L, R)) => Unit): Unit = arr.foreach(f)
+  override def foreach(f: ((L, R)) => Unit): Unit = toArray.foreach(f)
 
   @NeverInline
   override def exists(p: ((L, R)) => Boolean): Boolean = {
@@ -275,8 +275,8 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   @NeverInline
   override def filter(p: ((L, R)) => Boolean): Coll[(L,R)] = {
     val len = ls.length
-    val resL: Buffer[L] = Buffer.empty[L](ls.cItem.classTag)
-    val resR: Buffer[R] = Buffer.empty[R](rs.cItem.classTag)
+    val resL: Buffer[L] = Buffer.empty[L](ls.tItem.classTag)
+    val resR: Buffer[R] = Buffer.empty[R](rs.tItem.classTag)
     var i = 0
     while (i < len) {
       val l = ls.apply(i)
@@ -332,22 +332,22 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   @NeverInline
   override def flatMap[B: RType](f: ((L, R)) => Coll[B]): Coll[B] =
-    builder.fromArray(arr.flatMap(p => f(p).arr))
+    builder.fromArray(toArray.flatMap(p => f(p).toArray))
 
   @NeverInline
   override def segmentLength(p: ((L, R)) => Boolean, from: Int): Int = {
-    arr.segmentLength(p, from)
+    toArray.segmentLength(p, from)
   }
 
   @NeverInline
-  override def indexWhere(p: ((L, R)) => Boolean, from: Int): Int = arr.indexWhere(p, from)
+  override def indexWhere(p: ((L, R)) => Boolean, from: Int): Int = toArray.indexWhere(p, from)
 
   @NeverInline
-  override def lastIndexWhere(p: ((L, R)) => Boolean, end: Int): Int = arr.lastIndexWhere(p, end)
+  override def lastIndexWhere(p: ((L, R)) => Boolean, end: Int): Int = toArray.lastIndexWhere(p, end)
 
   @NeverInline
   override def partition(pred: ((L, R)) => Boolean): (Coll[(L, R)], Coll[(L, R)]) = {
-    val (ls, rs) = arr.partition(pred)
+    val (ls, rs) = toArray.partition(pred)
     (builder.fromArray(ls), builder.fromArray(rs))
   }
 
@@ -369,8 +369,8 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   @NeverInline
   override def updateMany(indexes: Coll[Int], values: Coll[(L, R)]): Coll[(L, R)] = {
     requireSameLength(indexes, values)
-    val resL = ls.arr.clone()
-    val resR = rs.arr.clone()
+    val resL = ls.toArray.clone()
+    val resR = rs.toArray.clone()
     var i = 0
     while (i < indexes.length) {
       val pos = indexes(i)
@@ -384,15 +384,15 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   @NeverInline
   override def mapReduce[K: RType, V: RType](m: ((L, R)) => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
-    val (keys, values) = Helpers.mapReduce(arr, m, r)  // TODO optimize: don't reify arr
+    val (keys, values) = Helpers.mapReduce(toArray, m, r)  // TODO optimize: don't reify arr
     builder.pairCollFromArrays(keys, values)
   }
 
   @NeverInline
   override def unionSet(that: Coll[(L, R)]): Coll[(L, R)] = {
     val set = new util.HashSet[(L,R)](32)
-    implicit val ctL = ls.cItem.classTag
-    implicit val ctR = rs.cItem.classTag
+    implicit val ctL = ls.tItem.classTag
+    implicit val ctR = rs.tItem.classTag
     val resL = Buffer.empty[L]
     val resR = Buffer.empty[R]
     def addToSet(item: (L,R)) = {
@@ -428,11 +428,11 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
 class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RType[A]) extends ReplColl[A] {
   @Internal
-  override def cItem: RType[A] = tA
+  override def tItem: RType[A] = tA
 
   def builder: CollBuilder = new CollOverArrayBuilder
   
-  def arr: Array[A] = Array.fill(length)(value)
+  def toArray: Array[A] = Array.fill(length)(value)
 
   @NeverInline
   @inline def apply(i: Int): A = if (i >= 0 && i < this.length) value else throw new IndexOutOfBoundsException(i.toString)
@@ -471,7 +471,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   }
 
   @NeverInline
-  def append(other: Coll[A]): Coll[A] = builder.fromArray(arr).append(builder.fromArray(other.arr))
+  def append(other: Coll[A]): Coll[A] = builder.fromArray(toArray).append(builder.fromArray(other.toArray))
 
   override def reverse: Coll[A] = this
 
@@ -482,7 +482,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   override def flatMap[B: RType](f: A => Coll[B]): Coll[B] = {
-    val seg = f(value).arr
+    val seg = f(value).toArray
     val xs = Range(0, length).flatMap(_ => seg).toArray
     builder.fromArray(xs)
   }
@@ -519,14 +519,14 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] = {
-    builder.fromArray(arr.patch(from, patch.arr, replaced))
+    builder.fromArray(toArray.patch(from, patch.toArray, replaced))
   }
 
   @NeverInline
   override def updated(index: Int, elem: A): Coll[A] = {
     if (elem == value) this
     else {
-      val res = arr.updated(index, elem)
+      val res = toArray.updated(index, elem)
       builder.fromArray(res)
     }
   }
@@ -534,7 +534,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   @NeverInline
   override def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A] = {
     requireSameLength(indexes, values)
-    val resArr = arr.clone()
+    val resArr = toArray.clone()
     var i = 0
     while (i < indexes.length) {
       val pos = indexes(i)

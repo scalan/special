@@ -45,8 +45,8 @@ object Examples {
   type TokenData = (TokenId, Long)
   case class Box(id: IdType, tokens: Coll[TokenData]) {
     override def toString: String = {
-      val idVal = id.arr(0)
-      val tokenStr = tokens.map(t => s"${t._1.arr(0)}->${t._2}").arr.mkString("[", ";", "]")
+      val idVal = id.toArray(0)
+      val tokenStr = tokens.map(t => s"${t._1.toArray(0)}->${t._2}").toArray.mkString("[", ";", "]")
       s"Box{id=$idVal; tokens=$tokenStr}"
     }
   }
@@ -55,10 +55,10 @@ object Examples {
     override def toString: String = {
       s"""Ctx {
         |  inputs=[
-        |    ${inputs.arr.mkString(";\n    ")}
+        |    ${inputs.toArray.mkString(";\n    ")}
         |  ]
         |  outputs=[
-        |    ${outputs.arr.mkString(";\n    ")}
+        |    ${outputs.toArray.mkString(";\n    ")}
         |  ]
         |  self=$selfBoxIndex
         |}

@@ -14,8 +14,8 @@ trait ExamplesBenchmarkCases extends CollGens with ExampleGens { suite: Bench[Do
 
   type ContextData = (Array[Array[(Array[Byte], Long)]], Array[Array[(Array[Byte], Long)]])
   def getContextData(ctx: Context): ContextData = {
-    val ins = ctx.inputs.map(box => box.tokens.map(t => (t._1.arr, t._2)).arr).arr
-    val outs = ctx.outputs.map(box => box.tokens.map(t => (t._1.arr, t._2)).arr).arr
+    val ins = ctx.inputs.map(box => box.tokens.map(t => (t._1.toArray, t._2)).toArray).toArray
+    val outs = ctx.outputs.map(box => box.tokens.map(t => (t._1.toArray, t._2)).toArray).toArray
     (ins, outs)
   }
 

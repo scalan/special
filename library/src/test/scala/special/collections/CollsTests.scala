@@ -11,7 +11,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.indices") {
     forAll(collGen, collGen) { (col1: Coll[Int], col2: Coll[Int]) =>
-      col1.indices.arr shouldBe col1.arr.indices.toArray
+      col1.indices.toArray shouldBe col1.toArray.indices.toArray
 //      col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
 // TODO     col1.zip(col2).indices.arr shouldBe col1.arr.zip(col2.arr).indices.toArray
     }
@@ -21,28 +21,28 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(containerOfN[Coll, Int](3, valGen), collGen) { (zs, col) =>
       val matrix = zs.map(_ => col)
       val res = zs.zip(matrix).flatMap(_._2)
-      res.arr shouldBe zs.arr.flatMap(_ => col.arr)
+      res.toArray shouldBe zs.toArray.flatMap(_ => col.toArray)
     }
   }
 
   property("Coll.segmentLength") {
     forAll(collGen, indexGen) { (col, from) =>
-      col.segmentLength(lt0, from) shouldBe col.arr.segmentLength(lt0, from)
+      col.segmentLength(lt0, from) shouldBe col.toArray.segmentLength(lt0, from)
     }
   }
 
   property("Coll.indexWhere") {
     forAll(collGen, indexGen) { (col, from) =>
-      col.indexWhere(eq0, from) shouldBe col.arr.indexWhere(eq0, from)
+      col.indexWhere(eq0, from) shouldBe col.toArray.indexWhere(eq0, from)
       def p2(ab: (Int, Int)) = eq0(ab._1) && eq0(ab._2)
-      col.zip(col).indexWhere(p2, from) shouldBe col.arr.zip(col.arr).indexWhere(p2, from)
+      col.zip(col).indexWhere(p2, from) shouldBe col.toArray.zip(col.toArray).indexWhere(p2, from)
     }
   }
 
   property("Coll.indexOf") {
     forAll(collGen, indexGen, valGen) { (col, from, elem) =>
-      col.indexOf(elem, from) shouldBe col.arr.indexOf(elem, from)
-      col.zip(col).indexOf((elem, elem), from) shouldBe col.arr.zip(col.arr).indexOf((elem, elem), from)
+      col.indexOf(elem, from) shouldBe col.toArray.indexOf(elem, from)
+      col.zip(col).indexOf((elem, elem), from) shouldBe col.toArray.zip(col.toArray).indexOf((elem, elem), from)
     }
   }
 
@@ -50,16 +50,16 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, indexGen) { (col, end) =>
       col.lastIndexWhere(eq0, end) shouldBe col.lastIndexWhere(eq0, end)
       def p2(ab: (Int, Int)) = eq0(ab._1) && eq0(ab._2)
-      col.zip(col).lastIndexWhere(p2, end) shouldBe col.arr.zip(col.arr).lastIndexWhere(p2, end)
+      col.zip(col).lastIndexWhere(p2, end) shouldBe col.toArray.zip(col.toArray).lastIndexWhere(p2, end)
     }
   }
 
   property("Coll.partition") {
     forAll(collGen) { col =>
       val (lsC, rsC) = col.partition(lt0)
-      val (ls, rs) = col.arr.partition(lt0)
-      lsC.arr shouldBe ls
-      rsC.arr shouldBe rs
+      val (ls, rs) = col.toArray.partition(lt0)
+      lsC.toArray shouldBe ls
+      rsC.toArray shouldBe rs
     }
   }
 
@@ -67,8 +67,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, choose(-100, 100), collGen, replacedGen) { (col, from, patch, replaced) =>
       whenever(from < col.length ) {
         val patchedC = col.patch(from, patch, replaced)
-        val patched = col.arr.patch(from, patch.arr, replaced)
-        patchedC.arr shouldBe patched
+        val patched = col.toArray.patch(from, patch.toArray, replaced)
+        patchedC.toArray shouldBe patched
       }
     }
   }
@@ -77,8 +77,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, indexGen, valGen) { (col, index, elem) =>
       whenever(index < col.length ) {
         val patchedC = col.updated(index, elem)
-        val patched = col.arr.updated(index, elem)
-        patchedC.arr shouldBe patched
+        val patched = col.toArray.updated(index, elem)
+        patchedC.toArray shouldBe patched
       }
       an[IndexOutOfBoundsException] should be thrownBy {
         col.updated(col.length, elem)
@@ -93,10 +93,10 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, indexesGen) { (col, indexes) =>
       whenever(indexes.forall(_ < col.length)) {
         val updatedC = col.updateMany(indexes, indexes)
-        val updated = col.arr.clone()
+        val updated = col.toArray.clone()
         for (i <- indexes)
           updated.update(i, i)
-        updatedC.arr shouldBe updated
+        updatedC.toArray shouldBe updated
       }
       an[IndexOutOfBoundsException] should be thrownBy {
         col.updateMany(builder.fromItems(col.length), builder.fromItems(0))
@@ -111,44 +111,44 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, indexGen) { (col, index) =>
       {
         val res = col.sum(monoid)
-        res shouldBe col.arr.sum
+        res shouldBe col.toArray.sum
         val pairs = col.zip(col)
         val pairMonoid = builder.Monoids.pairMonoid(monoid, monoid)
         pairs.sum(pairMonoid) shouldBe ((res, res))
       }
       {
         val res = col.map(inc)
-        res.arr shouldBe col.arr.map(inc)
+        res.toArray shouldBe col.toArray.map(inc)
         val pairs = col.zip(col)
-        pairs.map(plusF).arr shouldBe pairs.arr.map(plusF)
+        pairs.map(plusF).toArray shouldBe pairs.toArray.map(plusF)
       }
       {
         val res = col.filter(lt0)
-        res.arr shouldBe col.arr.filter(lt0)
+        res.toArray shouldBe col.toArray.filter(lt0)
       }
       {
         val res = col.forall(lt0)
-        res shouldBe col.arr.forall(lt0)
+        res shouldBe col.toArray.forall(lt0)
         builder.replicate(0, 10).forall(lt0) shouldBe Array[Int]().forall(lt0)
       }
       {
         val res = col.exists(lt0)
-        res shouldBe col.arr.exists(lt0)
+        res shouldBe col.toArray.exists(lt0)
         builder.replicate(0, -10).exists(lt0) shouldBe Array[Int]().exists(lt0)
       }
       {
         val res = col.fold[Int](0, plusF)
-        res shouldBe col.arr.foldLeft(0)(plus)
+        res shouldBe col.toArray.foldLeft(0)(plus)
         val pairs = col.zip(col)
         val op = (in: (Int,(Int,Int))) => in._1 + in._2._1 + in._2._2
-        pairs.fold(0, op) shouldBe pairs.arr.foldLeft(0)((b,a) => op((b,a)))
+        pairs.fold(0, op) shouldBe pairs.toArray.foldLeft(0)((b,a) => op((b,a)))
       }
       whenever(index < col.length) {
         val res = col(index)
-        res shouldBe col.arr(index)
+        res shouldBe col.toArray(index)
 
         val res2 = col.getOrElse(index, index)
-        res2 shouldBe col.arr(index)
+        res2 shouldBe col.toArray(index)
       }
       
       col.getOrElse(col.length, index) shouldBe index
@@ -160,7 +160,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, indexGen, indexGen) { (col, from, until) =>
       whenever(until < col.length) {
         val res = col.slice(from, until)
-        res.arr shouldBe col.arr.slice(from, until)
+        res.toArray shouldBe col.toArray.slice(from, until)
       }
     }
   }
@@ -168,7 +168,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   property("Coll.append") {
     forAll(collGen, collGen) { (col1, col2) =>
       val res = col1.append(col2)
-      res.arr shouldBe (col1.arr ++ col2.arr)
+      res.toArray shouldBe (col1.toArray ++ col2.toArray)
     }
   }
 
@@ -178,9 +178,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen) { col =>
       val res = col.mapReduce(m, plusF)
       val (ks, vs) = builder.unzip(res)
-      vs.arr.sum shouldBe col.arr.sum
+      vs.toArray.sum shouldBe col.toArray.sum
       ks.length <= 10 shouldBe true
-      res.arr shouldBe col.arr.toIterable.mapReduce(m)(plus).toArray
+      res.toArray shouldBe col.toArray.toIterable.mapReduce(m)(plus).toArray
     }
   }
 
@@ -189,7 +189,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen) { col =>
       val res = col.groupBy(key)
       val (ks, vs) = builder.unzip(res)
-      vs.flatten.arr.sum shouldBe col.arr.sum
+      vs.flatten.toArray.sum shouldBe col.toArray.sum
       ks.length <= 10 shouldBe true
       val pairs = col.map(x => (key(x), x))
       val res2 = pairs.groupByKey
@@ -202,42 +202,42 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   property("Coll.reverse") {
     forAll(collGen) { col =>
       val res = col.reverse
-      res.arr shouldBe col.arr.reverse
+      res.toArray shouldBe col.toArray.reverse
       val pairs = col.zip(col)
-      pairs.reverse.arr shouldBe pairs.arr.reverse
+      pairs.reverse.toArray shouldBe pairs.toArray.reverse
     }
   }
 
   property("PairColl.mapFirst") {
     forAll(collGen) { col =>
       val pairs = col.zip(col)
-      pairs.mapFirst(inc).arr shouldBe pairs.arr.map { case (x, y) => (inc(x), y) }
-      pairs.mapSecond(inc).arr shouldBe pairs.arr.map { case (x, y) => (x, inc(y)) }
+      pairs.mapFirst(inc).toArray shouldBe pairs.toArray.map { case (x, y) => (inc(x), y) }
+      pairs.mapSecond(inc).toArray shouldBe pairs.toArray.map { case (x, y) => (x, inc(y)) }
     }
   }
 
   property("Coll.unionSet") {
     forAll(collGen, collGen) { (col1, col2) =>
       val res = col1.unionSet(col2)
-      res.arr shouldBe (col1.arr.union(col2.arr).distinct)
+      res.toArray shouldBe (col1.toArray.union(col2.toArray).distinct)
     }
-    builder.replicate(2, 10).unionSet(builder.replicate(3, 10)).arr shouldBe Array(10)
+    builder.replicate(2, 10).unionSet(builder.replicate(3, 10)).toArray shouldBe Array(10)
   }
 
   property("Coll.diff") {
     forAll(collGen, collGen) { (col1, col2) =>
       val res = col1.diff(col2)
-      res.arr shouldBe (col1.arr.diff(col2.arr))
+      res.toArray shouldBe (col1.toArray.diff(col2.toArray))
     }
-    builder.replicate(2, 10).diff(builder.replicate(1, 10)).arr shouldBe Array(10)
+    builder.replicate(2, 10).diff(builder.replicate(1, 10)).toArray shouldBe Array(10)
   }
 
   property("Coll.intersect") {
     forAll(collGen, collGen) { (col1, col2) =>
       val res = col1.intersect(col2)
-      res.arr shouldBe (col1.arr.intersect(col2.arr))
+      res.toArray shouldBe (col1.toArray.intersect(col2.toArray))
     }
-    builder.replicate(2, 10).intersect(builder.replicate(3, 10)).arr shouldBe Array(10, 10)
+    builder.replicate(2, 10).intersect(builder.replicate(3, 10)).toArray shouldBe Array(10, 10)
   }
 
   property("CollBuilder.outerJoin") {

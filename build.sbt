@@ -106,7 +106,8 @@ lazy val core = Project("core", file("core"))
         "cglib" % "cglib" % "3.2.3",
         "org.objenesis" % "objenesis" % "2.4",
         "com.github.kxbmap" %% "configs" % "0.4.4",
-        "com.trueaccord.lenses" %% "lenses" % "0.4.12"
+        "com.trueaccord.lenses" %% "lenses" % "0.4.12",
+        "org.spire-math" %% "debox" % "0.8.0",
       ))
 
 lazy val plugin = Project("plugin", file("plugin"))
@@ -126,8 +127,6 @@ lazy val libraryimpl = Project("library-impl", file("library-impl"))
     .settings(libraryDefSettings,
       libraryDependencies ++= Seq(
         "org.spire-math" %% "debox" % "0.8.0",
-//        "org.scala-metal" %% "metal-core" % "0.16.0.1-SNAPSHOT",
-//        "org.scala-metal" %% "metal-library" % "0.16.0.1-SNAPSHOT"
       ))
 
 lazy val library = Project("library", file("library"))

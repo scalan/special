@@ -1,6 +1,5 @@
 package special.collection
 
-import scala.reflect.ClassTag
 import scalan._
 import special.SpecialPredef._
 

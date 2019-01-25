@@ -14,7 +14,7 @@ import scala.collection.immutable
 @scalan.Liftable
 trait Coll[@specialized A] {
   def builder: CollBuilder
-  def arr: Array[A]
+  def toArray: Array[A]
   def length: Int
   def apply(i: Int): A
   def getOrElse(i: Int, default: A): A
@@ -148,7 +148,7 @@ trait Coll[@specialized A] {
     */
   @NeverInline
   def groupBy[K: RType](key: A => K): Coll[(K, Coll[A])] = {
-    val res = arr.groupBy(key).mapValues(builder.fromArray(_))
+    val res = toArray.groupBy(key).mapValues(builder.fromArray(_))
     builder.fromMap(res)
   }
 
@@ -169,7 +169,7 @@ trait Coll[@specialized A] {
   @NeverInline
   def groupByProjecting[K: RType, V: RType](key: A => K, proj: A => V): Coll[(K, Coll[V])] = {
     implicit val ctV: ClassTag[V] = RType[V].classTag
-    val res = arr.groupBy(key).mapValues(arr => builder.fromArray(arr.map(proj)))
+    val res = toArray.groupBy(key).mapValues(arr => builder.fromArray(arr.map(proj)))
     builder.fromMap(res)
   }
 
@@ -196,7 +196,7 @@ trait Coll[@specialized A] {
     */
   @NeverInline
   def diff(that: Coll[A]): Coll[A] = {
-    val res = arr.diff(that.arr)
+    val res = toArray.diff(that.toArray)
     builder.fromArray(res)
   }
 
@@ -211,7 +211,7 @@ trait Coll[@specialized A] {
     */
   @NeverInline
   def intersect(that: Coll[A]): Coll[A] = {
-    val res = arr.intersect(that.arr)
+    val res = toArray.intersect(that.toArray)
     builder.fromArray(res)
   }
 
@@ -245,10 +245,10 @@ trait Coll[@specialized A] {
   @Internal
   private def trim[T](arr: Array[T]) = arr.take(arr.length min 100)
   @Internal
-  override def toString = s"Coll(${trim(arr).mkString(",")})"
+  override def toString = s"Coll(${trim(toArray).mkString(",")})"
 
   @Internal
-  implicit def cItem: RType[A]
+  implicit def tItem: RType[A]
 
   @Internal
   def toMap[T, U](implicit ev: A <:< (T, U)): immutable.Map[T, U] = {
@@ -267,7 +267,7 @@ trait Coll[@specialized A] {
 
   @Internal
   def distinctByKey[T, U](implicit ev: A <:< (T, U)): Coll[A] = {
-    unionSetByKey(builder.emptyColl[A](cItem))
+    unionSetByKey(builder.emptyColl[A](tItem))
   }
 
 
@@ -275,8 +275,8 @@ trait Coll[@specialized A] {
   def unionSetByKey[T, U](that: Coll[A])(implicit ev: A <:< (T, U)): Coll[A] = {
     import scalan.util.CollectionUtil._
     // TODO optimize representation-wise
-    val res = append(that).arr.toIterable.distinctBy(_._1)
-    builder.fromArray(res.toArray(cItem.classTag))
+    val res = append(that).toArray.toIterable.distinctBy(_._1)
+    builder.fromArray(res.toArray(tItem.classTag))
   }
 }
 

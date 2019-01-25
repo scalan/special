@@ -13,8 +13,8 @@ class TypeDescTests extends BaseMetaTests {
         val t= RType[T]
         t.toString shouldBe name
       }
-      test[Int]("ConcreteType<Int>")(RType[Int])
-      test[String]("StringType$<String>")(RType[String])
+      test[Int]("ConcreteType(Int)")(RType[Int])
+      test[String]("StringType")(RType[String])
     }
 
     it("resolve ClassTag") {

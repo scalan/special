@@ -10,6 +10,8 @@ import scalan.meta.ScalanAst._
 import scalan.util._
 import scalan.RType._
 import scalan.util.ReflectionUtil.ClassOps
+import spire.syntax.all._
+import scala.collection.mutable
 
 trait TypeDescs extends Base { self: Scalan =>
 
@@ -211,22 +213,27 @@ trait TypeDescs extends Base { self: Scalan =>
   case class WMethodDesc(wrapSpec: WrapSpec, method: Method) extends MethodDesc
 
   // TODO optimize performance hot spot (45% of invokeUnlifted time)
-  def getSourceValues(dataEnv: DataEnv, transformElems: Boolean, forWrapper: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
+  def getSourceValues(dataEnv: DataEnv, forWrapper: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
     import OverloadHack._
-    val vs = stagedValues.flatMap {
-      case s: Sym => Seq(dataEnv(s))
-      case vec: Seq[AnyRef]@unchecked => Seq(getSourceValues(dataEnv, transformElems, forWrapper, vec:_*))
-      case e: Elem[_] =>
-        val arg = if (transformElems) {
-          if (forWrapper) e.sourceType.classTag
-          else e.sourceType
-        }
-        else e
-        Seq(arg)
-      case c: ClassTag[_] => Seq(c)
-      case _: Overloaded => Nil
+    val limit = stagedValues.length
+    val res = mutable.ArrayBuilder.make[AnyRef]()
+    res.sizeHint(limit)
+    cfor(0)(_ < limit, _ + 1) { i =>
+      val v = stagedValues.apply(i)
+      v match {
+        case s: Sym =>
+          res += dataEnv(s)
+        case vec: Seq[AnyRef]@unchecked =>
+          res += getSourceValues(dataEnv, forWrapper, vec:_*)
+        case e: Elem[_] =>
+          val arg =
+            if (forWrapper) e.sourceType.classTag  // WrapSpec classes use ClassTag implicit arguments
+            else e.sourceType
+          res += arg
+        case _: Overloaded => // filter out special arguments
+      }
     }
-    vs
+    res.result()
   }
 
   /**
@@ -235,10 +242,38 @@ trait TypeDescs extends Base { self: Scalan =>
     * @tparam A The represented type
     */
   @implicitNotFound(msg = "No Elem available for ${A}.")
-  abstract class Elem[A] extends RType[A] { _: scala.Equals =>
+  abstract class Elem[A] extends TypeDesc { _: scala.Equals =>
     import Liftables._
+
     def tag: WeakTypeTag[A]
     final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
+
+    // classTag.runtimeClass is cheap, no reason to make it lazy
+    @inline final def runtimeClass: Class[_] = classTag.runtimeClass
+    def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
+    lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
+    def typeArgsIterator = typeArgs.valuesIterator.map(_._1)
+
+    override def getName(f: TypeDesc => String) = {
+      import ClassTag._
+      val className = try { classTag match {
+        case _: AnyValManifest[_] | Any | AnyVal | AnyRef | Object | Nothing | Null => classTag.toString
+        case objectTag =>
+          val cl = objectTag.runtimeClass
+          val name = cl.safeSimpleName
+          name
+      }}
+      catch {
+        case t: Throwable =>
+          ???
+      }
+      if (typeArgs.isEmpty)
+        className
+      else {
+        val typeArgString = typeArgsIterator.map(f).mkString(", ")
+        s"$className[$typeArgString]"
+      }
+    }
 
     def liftable: Liftable[_, A] =
       !!!(s"Cannot get Liftable instance for $this")
@@ -250,7 +285,7 @@ trait TypeDescs extends Base { self: Scalan =>
     def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = {
       val res = methods.get(mc.method) match {
         case Some(WMethodDesc(wrapSpec, method)) =>
-          val srcArgs = getSourceValues(dataEnv, true, true, mc.receiver +: mc.args:_*)
+          val srcArgs = getSourceValues(dataEnv, true, mc.receiver +: mc.args:_*)
           val res =
             try method.invoke(wrapSpec, srcArgs:_*)
             catch {
@@ -258,9 +293,8 @@ trait TypeDescs extends Base { self: Scalan =>
             }
           res
         case Some(RMethodDesc(method)) =>
-          val hasClassTag = method.getParameterTypes.exists(p => p.getSimpleName == "ClassTag")
-          val srcObj = getSourceValues(dataEnv, hasClassTag, false, mc.receiver).head
-          val srcArgs = getSourceValues(dataEnv, hasClassTag, false, mc.args:_*)
+          val srcObj = getSourceValues(dataEnv, false, mc.receiver).head
+          val srcArgs = getSourceValues(dataEnv, false, mc.args:_*)
           val res =
             try method.invoke(srcObj, srcArgs:_*)
             catch {
