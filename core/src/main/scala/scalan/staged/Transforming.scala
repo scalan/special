@@ -266,7 +266,7 @@ trait Transforming { self: Scalan =>
 
       val newRoot = t1(thunk.root)
       newRootPH.assignDefFrom(newRoot)
-      schedulePH = newSchedule.map { case DefTableEntry(te) => te }
+      schedulePH = newSchedule.collect { case DefTableEntry(te) if !te.sym.isVar => te }
       
       createDefinition(newThunkSym, newThunk)
       (t1 + (node -> newThunkSym), newThunkSym)
