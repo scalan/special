@@ -13,7 +13,6 @@ import scala.util.{Success, Try}
 import org.objenesis.ObjenesisStd
 import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.meta.TypeDesc
 import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
 
 import scala.collection.mutable.ArrayBuffer

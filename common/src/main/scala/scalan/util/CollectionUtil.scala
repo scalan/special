@@ -351,8 +351,15 @@ object CollectionUtil {
     }
   }
 
+  private def sameLengthErrorMsg[A,B](xs: Seq[A], ys: Seq[B]) =
+    s"Collections should have same length but was ${xs.length} and ${ys.length}:\n xs=$xs;\n ys=$ys"
+
   def assertSameLength[A,B](xs: Seq[A], ys: Seq[B]) = {
-    assert(xs.length == ys.length, s"Collections should have same length but was ${xs.length} and ${ys.length}:\n xs=$xs;\n ys=$ys")
+    assert(xs.length == ys.length, sameLengthErrorMsg(xs, ys))
+  }
+
+  def requireSameLength[A,B](xs: Seq[A], ys: Seq[B]) = {
+    require(xs.length == ys.length, sameLengthErrorMsg(xs, ys))
   }
 }
 

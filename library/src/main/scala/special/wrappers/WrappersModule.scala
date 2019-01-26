@@ -2,7 +2,7 @@ package special.wrappers
 
 import wrappers.scala.{WArraysModule, WOptionsModule}
 import wrappers.scala.util.WEithersModule
-import wrappers.scalan.meta.WRTypesModule
+import wrappers.scalan.WRTypesModule
 import wrappers.special.WSpecialPredefsModule
 
 

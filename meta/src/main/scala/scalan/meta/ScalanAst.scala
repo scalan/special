@@ -343,7 +343,10 @@ object ScalanAst {
   final val FunctorTypeAnnotation    = classOf[FunctorType].getSimpleName
   final val ReifiedTypeArgAnnotation = classOf[Reified].getSimpleName
   final val NeverInlineAnnotation    = classOf[NeverInline].getSimpleName
+  final val SpecializedAnnotation    = classOf[specialized].getSimpleName
+  final val InlineAnnotation         = classOf[inline].getSimpleName
 
+  val AnnotationsToRemove = Array(SpecializedAnnotation, InlineAnnotation)
 
   object ExternalEntityAnnotation {
     def apply(externalName: String) =
@@ -465,6 +468,7 @@ object ScalanAst {
     val symbol = SEntityItemSymbol(owner, name, DefType.Def)
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
+    def isNeverInline: Boolean = hasAnnotation(NeverInlineAnnotation)
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
     override def rhs: Option[SExpr] = body
     override def exprType = ??? // TODO build STpeFunc for this method type

@@ -1,11 +1,11 @@
 package scalan.primitives
 
-import scalan._
+import scalan.{TypeDesc, _}
+
 import scala.reflect.runtime.universe._
 import scalan.util.CollectionUtil
 import OverloadHack._
 import scalan.compilation.GraphVizConfig
-import scalan.meta.TypeDesc
 
 /**
  The code is inspired by LMS structs and is used in Scalan with the same semantics
@@ -68,6 +68,14 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   case class LiftableStruct[T <: Struct](eW: Elem[T]) extends Liftable[SStruct, T] {
     val sourceClassTag = classTag[SStruct]
+    val sourceType = eW match {
+      case se: StructElem[_] =>
+        val (names, elems) = se.fields.unzip
+        val types = elems.map(e => e.liftable.sourceType)
+        RType.structRType(names.toArray, types.toArray)
+      case _ =>
+        !!!(s"Invalid argument of LiftableStruct($eW)")
+    }
     def lift(x: SStruct): Rep[T] = StructConst(x, eW)
     def unlift(w: Rep[T]): SStruct = w match {
       case Def(StructConst(x: SStruct, _)) => x

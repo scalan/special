@@ -1,6 +1,7 @@
 package scalan.common
 
-import scalan.Liftable
+import scalan.{Liftable, RType}
+import scala.reflect.classTag
 
 @Liftable
 trait Segment {
@@ -10,7 +11,9 @@ trait Segment {
   def shift(ofs: Int): Segment
   def attach(seg: Segment): Segment
 }
-
+object Segment {
+  implicit val SegmentType = RType.fromClassTag(classTag[Segment])
+}
 case class Interval(val start: Int, val end: Int) extends Segment { self =>
   def length = end - start
   def shift(ofs: Int) = Interval(start + ofs, end + ofs)

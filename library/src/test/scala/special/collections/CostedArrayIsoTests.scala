@@ -1,4 +1,4 @@
-package scalanizer.collections
+package special.collections
 
 class CostedArrayIsoTests extends BaseCostedTests {
   lazy val ctx = new Ctx

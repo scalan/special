@@ -163,6 +163,15 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
         List(),
         true, true, element[Monoid[Long]]))
     }
+
+    def pairMonoid[A, B](m1: Rep[Monoid[A]], m2: Rep[Monoid[B]]): Rep[Monoid[(A, B)]] = {
+      implicit val eA = m1.eT
+implicit val eB = m2.eT
+      asRep[Monoid[(A, B)]](mkMethodCall(source,
+        thisClass.getMethod("pairMonoid", classOf[Sym], classOf[Sym]),
+        List(m1, m2),
+        true, true, element[Monoid[(A, B)]]))
+    }
   }
 
   // entityProxy: single proxy for each type family
@@ -235,6 +244,19 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object pairMonoid {
+      def unapply(d: Def[_]): Nullable[(Rep[MonoidBuilder], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "pairMonoid" =>
+          val res = (receiver, args(0), args(1))
+          Nullable(res).asInstanceOf[Nullable[(Rep[MonoidBuilder], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[MonoidBuilder], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

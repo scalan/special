@@ -1,9 +1,9 @@
-package wrappers.scalan.meta {
+package wrappers.scalan {
   import scalan._
 
   import impl._
 
-  import scalan.meta.RType
+  import scalan.RType
 
   import special.wrappers.WrappersModule
 

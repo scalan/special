@@ -2,11 +2,10 @@ package scalan.universe.api
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls
-import scalan.Scalan
+import scalan.{Scalan, TypeDesc}
 import scalan.OverloadHack.Overloaded1
 import scalan.meta.ScalanAst._
 import scalan.meta.PrintExtensions._
-import scalan.meta.TypeDesc
 import scalan.util.StringUtil
 import scalan.util.CollectionUtil._
 

@@ -186,7 +186,7 @@ class SModuleBuilder(implicit val context: AstContext) {
     unit.copy(classes = newClasses)
   }
 
-  /** ClassTags are removed because in virtualized code they can be extracted from Elems. */
+  /** Replaces SourceDescriptorTpe types with ElemTpe types */
   def replaceImplicitDescriptorsWithElems(unit: SUnitDef) = {
     new ReplaceImplicitDescriptorsWithElemsInSignatures().moduleTransform(unit)
   }

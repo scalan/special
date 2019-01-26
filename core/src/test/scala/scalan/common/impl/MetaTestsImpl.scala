@@ -68,9 +68,9 @@ object MetaTest extends EntityObject("MetaTest") {
   case class LiftableMetaTest[ST, T](lT: Liftable[ST, T])
     extends Liftable[SMetaTest[ST], MetaTest[T]] {
     lazy val eW: Elem[MetaTest[T]] = metaTestElement(lT.eW)
-    lazy val sourceClassTag: ClassTag[SMetaTest[ST]] = {
-            implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
-      classTag[SMetaTest[ST]]
+    lazy val sourceType: RType[SMetaTest[ST]] = {
+            implicit val tagST = lT.sourceType.asInstanceOf[RType[ST]]
+      RType[SMetaTest[ST]]
     }
     def lift(x: SMetaTest[ST]): Rep[MetaTest[T]] = MetaTestConst(x, lT)
     def unlift(w: Rep[MetaTest[T]]): SMetaTest[ST] = w match {
@@ -287,10 +287,10 @@ object MetaPair extends EntityObject("MetaPair") {
   case class LiftableMetaPair[SA, SB, A, B](lA: Liftable[SA, A],lB: Liftable[SB, B])
     extends Liftable[SMetaPair[SA, SB], MetaPair[A, B]] {
     lazy val eW: Elem[MetaPair[A, B]] = metaPairElement(lA.eW,lB.eW)
-    lazy val sourceClassTag: ClassTag[SMetaPair[SA, SB]] = {
-            implicit val tagSA = lA.eW.sourceClassTag.asInstanceOf[ClassTag[SA]]
-      implicit val tagSB = lB.eW.sourceClassTag.asInstanceOf[ClassTag[SB]]
-      classTag[SMetaPair[SA, SB]]
+    lazy val sourceType: RType[SMetaPair[SA, SB]] = {
+            implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
+      implicit val tagSB = lB.sourceType.asInstanceOf[RType[SB]]
+      RType[SMetaPair[SA, SB]]
     }
     def lift(x: SMetaPair[SA, SB]): Rep[MetaPair[A, B]] = MetaPairConst(x, lA,lB)
     def unlift(w: Rep[MetaPair[A, B]]): SMetaPair[SA, SB] = w match {

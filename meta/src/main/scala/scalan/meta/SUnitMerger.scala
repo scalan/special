@@ -7,6 +7,10 @@ import scalan.util.CollectionUtil.{OptionOps, TraversableOps}
 class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
 
   def checkEquals[T](x: T, y: T)(msg: => String) = if (x != y) sys.error(msg)
+  def checkEquals[T](xs: Seq[T], ys: Seq[T])(p: (T,T) => Boolean)(msg: => String) = {
+    val ok = xs.length == ys.length && xs.zip(ys).forall(p.tupled)
+    if (!ok) sys.error(msg)
+  }
 
   def mergeImports(to: SImportStat, from: SImportStat) = {
     checkEquals(to, from)(s"Cannot merge imports because they are different: $to and $from")
@@ -57,8 +61,10 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
   }
 
   def mergeTraits(to: STraitDef, from: STraitDef): STraitDef = {
-    checkEquals(to.tpeArgs, from.tpeArgs)(s"Cannot merge traits with different type args: $to and $from")
-    checkEquals(to.ancestors, from.ancestors)(s"Cannot merge traits with different ancestors $to and $from")
+    checkEquals(to.tpeArgs, from.tpeArgs)(_ == _) {
+      s"Cannot merge traits with different type args: $to and $from"
+    }
+    checkEquals(to.ancestors, from.ancestors)(_ == _)(s"Cannot merge traits with different ancestors $to and $from")
     checkEquals(to.selfType, from.selfType)(s"Cannot merge traits with different self types $to and $from")
     val newBody = to.body.mergeWith(from.body, _.signature, mergeBodyItems)
     val newComp = to.companion.mergeWith(from.companion, mergeEntities)
@@ -67,7 +73,9 @@ class SUnitMerger(uTo: SUnitDef)(implicit ctx: AstContext) {
   }
 
   def mergeClasses(to: SClassDef, from: SClassDef) = {
-    checkEquals(to.tpeArgs, from.tpeArgs)(s"Cannot merge classes with different type args: $to and $from")
+    checkEquals(to.tpeArgs, from.tpeArgs)(_ == _) {
+      s"Cannot merge classes with different type args: $to and $from"
+    }
     val mergedBody = to.body.mergeWith(from.body, _.signature, mergeBodyItems)
     // filter out unnecessaary vals
     val methods = mergedBody.filterMap { case md: SMethodDef => Some(md.name) case _ => None }.toSet

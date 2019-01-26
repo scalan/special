@@ -3,9 +3,9 @@ package scalan.primitives
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{Lazy, ViewsModule, Scalan, Nullable}
+import scalan.{Liftable => _, _}
+
 import scala.reflect.runtime.universe._
-import scalan.meta.TypeDesc
 import scalan.util.Covariant
 
 trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scalan =>
@@ -47,10 +47,11 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   }
 
   case class LiftableThunk[ST, T](lT: Liftable[ST, T]) extends Liftable[SThunk[ST], Thunk[T]] {
+    import RType._
     def eW: Elem[Thunk[T]] = thunkElement(lT.eW)
-    def sourceClassTag: ClassTag[SThunk[ST]] = {
-      implicit val tagST = lT.eW.sourceClassTag.asInstanceOf[ClassTag[ST]]
-      classTag[SThunk[ST]]
+    def sourceType: RType[SThunk[ST]] = {
+      implicit val tST = lT.sourceType
+      RType[SThunk[ST]]
     }
     def lift(x: SThunk[ST]): Rep[Thunk[T]] = ThunkConst(x, lT)
     def unlift(w: Rep[Thunk[T]]): SThunk[ST] = w match {

@@ -268,8 +268,8 @@ trait ScalanParsers[+G <: Global] {
       case _ => None
     }.flatten
     val tparams = tdTree.tparams.map(tpeArg(owner, evidenceTypes, _))
-    val annotations = tdTree.mods.annotations.map {
-      case ExtractAnnotation(name, ts, args) =>
+    val annotations = tdTree.mods.annotations.collect {
+      case ExtractAnnotation(name, ts, args) if !AnnotationsToRemove.contains(name) =>
         STypeArgAnnotation(name, ts.map(_.fold(parseType, parseType)), args.map(parseExpr(owner, _)))
     }
     STpeArg(tdTree.name, bound, contextBounds, tparams, tdTree.mods.flags, annotations)
@@ -333,7 +333,7 @@ trait ScalanParsers[+G <: Global] {
     val selfType = this.selfType(sym, td.impl.self)
     val companion = findCompanion(owner, name, parentScope) // note: using owner, not sym
     val annotations = parseAnnotations(td)((n, ts, as) =>
-      SEntityAnnotation(n.lastComponent('.'), ts.map(parseType), as.map(parseExpr(owner, _)))
+      Some(SEntityAnnotation(n.lastComponent('.'), ts.map(parseType), as.map(parseExpr(owner, _))))
     )
     returnParsed(td, STraitDef(owner, name, tpeArgs, ancestors, body, selfType, companion, annotations))
   }
@@ -364,7 +364,7 @@ trait ScalanParsers[+G <: Global] {
     val isAbstract = cd.mods.hasAbstractFlag
     val companion = findCompanion(owner, name, parentScope)
     val annotations = parseAnnotations(cd)((n, ts, as) =>
-      SEntityAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+      Some(SEntityAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _))))
     )
     returnParsed(cd, SClassDef(owner, cd.name,
       tpeArgs, args, implicitArgs, ancestors, body, selfType, companion, isAbstract, annotations))
@@ -384,7 +384,7 @@ trait ScalanParsers[+G <: Global] {
     val isOverride = vd.mods.isAnyOverride
     val isVal = vd.mods.isParamAccessor
     val annotations = parseAnnotations(vd)((n, ts, as) =>
-      SArgAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+      Some(SArgAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _))))
     )
     val isTypeDesc = TypeDescTpe.unapply(tpe).isDefined
     SClassArg(owner, vd.mods.isImplicit, isOverride, isVal, vd.name, tpe, default, annotations, isTypeDesc)
@@ -425,7 +425,7 @@ trait ScalanParsers[+G <: Global] {
   }
 
   def isInternal(md: ValOrDefDef): Boolean = {
-    val as = parseAnnotations(md)((n, _, _) => SMethodAnnotation(n, Nil, Nil))
+    val as = parseAnnotations(md)((n, _, _) => Some(SMethodAnnotation(n, Nil, Nil)))
     as.exists(_.annotationClass == "Internal") ||
     md.name.toString.startsWith("__") && md.name.toString.endsWith("__")
   }
@@ -508,9 +508,9 @@ trait ScalanParsers[+G <: Global] {
     }
   }
 
-  def parseAnnotations[A <: SAnnotation](md: MemberDef)(p: (String, List[Either[Tree, Type]], List[Tree]) => A): List[A] = {
+  def parseAnnotations[A <: SAnnotation](md: MemberDef)(p: (String, List[Either[Tree, Type]], List[Tree]) => Option[A]): List[A] = {
     val as = md.collectAnnotations
-    val annotations = as.map {
+    val annotations = as.filterMap {
       case ExtractAnnotation(name, ts, args) => p(name, ts, args)
       case a => !!! (s"Cannot parse annotation $a of MemberDef $md")
     }
@@ -549,9 +549,10 @@ trait ScalanParsers[+G <: Global] {
     }
     val annotations = parseAnnotations(md) {
       case ("throws", ts, as) =>
-        SMethodAnnotation("throws", ts.map(parseType), Nil)
-      case (n, ts, as) =>
-        SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(methodSym, _)))
+        Some(SMethodAnnotation("throws", ts.map(parseType), Nil))
+      case (n, ts, as) if !AnnotationsToRemove.contains(n) =>
+        Some(SMethodAnnotation(n, ts.map(parseType), as.map(parseExpr(methodSym, _))))
+      case _ => None
     }
     val optNeverInline = annotations.collectFirst { case a @ SMethodAnnotation(NeverInlineAnnotation, _,_) => a }
     val rhs = optNeverInline match {
@@ -658,7 +659,7 @@ trait ScalanParsers[+G <: Global] {
     val tpe = tpeExpr(owner, vd.tpt)
     val default = optExpr(owner, vd.rhs)
     val annotations = parseAnnotations(vd)((n, ts, as) =>
-      SArgAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _)))
+      Some(SArgAnnotation(n, ts.map(parseType), as.map(parseExpr(owner, _))))
     )
     val isOverride = vd.mods.isAnyOverride
     val isTypeDesc = tpe match {

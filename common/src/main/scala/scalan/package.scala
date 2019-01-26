@@ -1,3 +1,5 @@
+import scala.reflect.ClassTag
+
 package object scalan {
 
   /** Can be used in definition of methods, when implementation of the method
@@ -8,4 +10,5 @@ package object scalan {
     throw new ExternalMethodException(className, methodName)
   }
 
+  implicit def rtypeToClassTag[A](implicit t: RType[A]): ClassTag[A] = t.classTag
 }

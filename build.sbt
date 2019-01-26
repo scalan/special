@@ -18,7 +18,8 @@ lazy val buildSettings = Seq(
     "-language:higherKinds",
     "-language:implicitConversions",
     "-language:existentials",
-    "-language:experimental.macros"),
+    "-language:experimental.macros",
+    "-opt:_"),
   publishTo := {
 //    val nexus = "http://10.122.85.37:9081/nexus/"
     val nexus = "https://oss.sonatype.org/"
@@ -33,6 +34,8 @@ lazy val buildSettings = Seq(
 lazy val testSettings = Seq(
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.0.5" % Test,
+    "org.scalacheck" %% "scalacheck" % "1.13.+" % Test,
+    "com.storm-enroute" %% "scalameter" % "0.8.2" % Test,
     "ch.qos.logback" % "logback-classic" % "1.1.7",
     // TODO separate benchmark configuration, see https://github.com/scalameter/scalameter-examples/blob/master/basic-with-separate-config/build.sbt
     "com.storm-enroute" %% "scalameter" % "0.10" % Test),
@@ -55,7 +58,7 @@ lazy val itSettings = commonSettings ++ Defaults.itSettings ++
 
 def libraryDefSettings = commonSettings ++ Seq(
   scalacOptions ++= Seq(
-//    s"-Xplugin:${file(".").absolutePath }/scalanizer/target/scala-2.12/scalanizer-assembly-i8-more-ops-1d45ad7c-SNAPSHOT.jar"
+//    s"-Xplugin:${file(".").absolutePath }/scalanizer/target/scala-2.12/scalanizer-assembly-i8-more-ops-f9cfb81f-SNAPSHOT.jar"
     //          , s"-P:scalanizer:module=$scalanizerOption"
     //    , "-Xgenerate-phase-graph"
   )
@@ -103,7 +106,8 @@ lazy val core = Project("core", file("core"))
         "cglib" % "cglib" % "3.2.3",
         "org.objenesis" % "objenesis" % "2.4",
         "com.github.kxbmap" %% "configs" % "0.4.4",
-        "com.trueaccord.lenses" %% "lenses" % "0.4.12"
+        "com.trueaccord.lenses" %% "lenses" % "0.4.12",
+        "org.spire-math" %% "debox" % "0.8.0",
       ))
 
 lazy val plugin = Project("plugin", file("plugin"))
@@ -112,22 +116,26 @@ lazy val plugin = Project("plugin", file("plugin"))
 
 
 lazy val libraryapi = Project("library-api", file("library-api"))
-    .dependsOn(meta, macros)
+    .dependsOn(common)
     .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
         "org.typelevel" %% "macro-compat" % "1.1.1"
       ))
 
 lazy val libraryimpl = Project("library-impl", file("library-impl"))
-    .dependsOn(meta, libraryapi % allConfigDependency)
+    .dependsOn(libraryapi % allConfigDependency)
     .settings(libraryDefSettings,
-      libraryDependencies ++= Seq())
+      libraryDependencies ++= Seq(
+        "org.spire-math" %% "debox" % "0.8.0",
+      ))
 
 lazy val library = Project("library", file("library"))
-    .dependsOn(common % allConfigDependency, core % allConfigDependency, libraryimpl)
+    .dependsOn(common % allConfigDependency, core % allConfigDependency, libraryapi, libraryimpl)
     .settings(//commonSettings,
       libraryDefSettings,
-      libraryDependencies ++= Seq())
+      libraryDependencies ++= Seq(
+        "org.spire-math" %% "debox" % "0.8.0"
+      ))
 
 lazy val libraryconf = Project("library-conf", file("library-conf"))
     .dependsOn(plugin)

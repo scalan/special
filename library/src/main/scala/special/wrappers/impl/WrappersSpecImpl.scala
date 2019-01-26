@@ -92,6 +92,16 @@ object ArrayWrapSpec extends EntityObject("ArrayWrapSpec") {
       extends ArrayWrapSpec with Def[ArrayWrapSpec] {
     val selfType: Elem[ArrayWrapSpec] = element[ArrayWrapSpec]
     override def transform(t: Transformer) = ArrayWrapSpecAdapter(t(source))
+    private val thisClass = classOf[ArrayWrapSpec]
+
+    override def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+      implicit val eA = xs.eT
+implicit val eB = zero.elem
+      asRep[B](mkMethodCall(source,
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(xs, zero, op),
+        true, true, element[B]))
+    }
   }
 
   // entityProxy: single proxy for each type family
@@ -298,6 +308,24 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
       extends OptionWrapSpec with Def[OptionWrapSpec] {
     val selfType: Elem[OptionWrapSpec] = element[OptionWrapSpec]
     override def transform(t: Transformer) = OptionWrapSpecAdapter(t(source))
+    private val thisClass = classOf[OptionWrapSpec]
+
+    override def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = {
+      implicit val eA = xs.eA
+      asRep[A](mkMethodCall(source,
+        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        List(xs, default),
+        true, true, element[A]))
+    }
+
+    override def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
+      implicit val eA = xs.eA
+implicit val eB = ifEmpty.elem.eItem
+      asRep[B](mkMethodCall(source,
+        thisClass.getMethod("fold", classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(xs, ifEmpty, f),
+        true, true, element[B]))
+    }
   }
 
   // entityProxy: single proxy for each type family

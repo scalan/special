@@ -7,9 +7,11 @@ import scala.collection.immutable.ListMap
 import scala.reflect.runtime.universe._
 import scala.reflect.{AnyValManifest, ClassTag}
 import scalan.meta.ScalanAst._
-import scalan.meta.{TypeDesc, RType}
 import scalan.util._
+import scalan.RType._
 import scalan.util.ReflectionUtil.ClassOps
+import spire.syntax.all._
+import scala.collection.mutable
 
 trait TypeDescs extends Base { self: Scalan =>
 
@@ -208,19 +210,30 @@ trait TypeDescs extends Base { self: Scalan =>
     def method: Method
   }
   case class RMethodDesc(method: Method) extends MethodDesc
-  case class WMethodDesc(wrapSpec: special.wrappers.WrapSpec, method: Method) extends MethodDesc
+  case class WMethodDesc(wrapSpec: WrapSpec, method: Method) extends MethodDesc
 
   // TODO optimize performance hot spot (45% of invokeUnlifted time)
-  def getSourceValues(dataEnv: DataEnv, transformElems: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
+  def getSourceValues(dataEnv: DataEnv, forWrapper: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
     import OverloadHack._
-    val vs = stagedValues.flatMap {
-      case s: Sym => Seq(dataEnv(s))
-      case vec: Seq[AnyRef]@unchecked => Seq(getSourceValues(dataEnv, transformElems, vec:_*))
-      case e: Elem[_] => Seq(if (transformElems) e.sourceClassTag else e)
-      case c: ClassTag[_] => Seq(c)
-      case _: Overloaded1 | _: Overloaded2 | _: Overloaded3 | _: Overloaded4 | _: Overloaded5 | _: Overloaded6 => Nil
+    val limit = stagedValues.length
+    val res = mutable.ArrayBuilder.make[AnyRef]()
+    res.sizeHint(limit)
+    cfor(0)(_ < limit, _ + 1) { i =>
+      val v = stagedValues.apply(i)
+      v match {
+        case s: Sym =>
+          res += dataEnv(s)
+        case vec: Seq[AnyRef]@unchecked =>
+          res += getSourceValues(dataEnv, forWrapper, vec:_*)
+        case e: Elem[_] =>
+          val arg =
+            if (forWrapper) e.sourceType.classTag  // WrapSpec classes use ClassTag implicit arguments
+            else e.sourceType
+          res += arg
+        case _: Overloaded => // filter out special arguments
+      }
     }
-    vs
+    res.result()
   }
 
   /**
@@ -229,13 +242,43 @@ trait TypeDescs extends Base { self: Scalan =>
     * @tparam A The represented type
     */
   @implicitNotFound(msg = "No Elem available for ${A}.")
-  abstract class Elem[A] extends RType[A] { _: scala.Equals =>
+  abstract class Elem[A] extends TypeDesc { _: scala.Equals =>
     import Liftables._
+
+    def tag: WeakTypeTag[A]
+    final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
+
+    // classTag.runtimeClass is cheap, no reason to make it lazy
+    @inline final def runtimeClass: Class[_] = classTag.runtimeClass
+    def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
+    lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
+    def typeArgsIterator = typeArgs.valuesIterator.map(_._1)
+
+    override def getName(f: TypeDesc => String) = {
+      import ClassTag._
+      val className = try { classTag match {
+        case _: AnyValManifest[_] | Any | AnyVal | AnyRef | Object | Nothing | Null => classTag.toString
+        case objectTag =>
+          val cl = objectTag.runtimeClass
+          val name = cl.safeSimpleName
+          name
+      }}
+      catch {
+        case t: Throwable =>
+          ???
+      }
+      if (typeArgs.isEmpty)
+        className
+      else {
+        val typeArgString = typeArgsIterator.map(f).mkString(", ")
+        s"$className[$typeArgString]"
+      }
+    }
 
     def liftable: Liftable[_, A] =
       !!!(s"Cannot get Liftable instance for $this")
 
-    final lazy val sourceClassTag: ClassTag[_] = liftable.sourceClassTag
+    final lazy val sourceType: RType[_] = liftable.sourceType
     protected def collectMethods: Map[Method, MethodDesc] = Map()
     protected lazy val methods: Map[Method, MethodDesc] = collectMethods
 
@@ -250,9 +293,8 @@ trait TypeDescs extends Base { self: Scalan =>
             }
           res
         case Some(RMethodDesc(method)) =>
-          val hasClassTag = method.getParameterTypes.exists(p => p.getSimpleName == "ClassTag")
-          val srcObj = getSourceValues(dataEnv, hasClassTag, mc.receiver).head
-          val srcArgs = getSourceValues(dataEnv, hasClassTag, mc.args:_*)
+          val srcObj = getSourceValues(dataEnv, false, mc.receiver).head
+          val srcArgs = getSourceValues(dataEnv, false, mc.args:_*)
           val res =
             try method.invoke(srcObj, srcArgs:_*)
             catch {
@@ -387,7 +429,7 @@ trait TypeDescs extends Base { self: Scalan =>
       }.to[Seq]
     }
 
-    def declaredWrapperMethods(wrapSpec: special.wrappers.WrapSpec, wcls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
+    def declaredWrapperMethods(wrapSpec: WrapSpec, wcls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
       val specCls = wrapSpec.getClass
       val wMethods = wcls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
       val specMethods = specCls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
@@ -567,47 +609,48 @@ trait TypeDescs extends Base { self: Scalan =>
   }
 
   val AnyElement: Elem[Any] = new BaseElem[Any](null) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, AnyType)
   }
   val AnyRefElement: Elem[AnyRef] = new BaseElem[AnyRef](null) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, AnyRefType)
   }
 
-  // very ugly casts but should be safe
+  // very ugly casts but should be safe after type erasure
   val NothingElement: Elem[Nothing] =
     new BaseElem[Null](null)(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]) {
-      override def liftable = new Liftables.BaseLiftable()(this)
+      override def liftable =
+        new Liftables.BaseLiftable()(this, NothingType.asInstanceOf[RType[Null]])
     }.asElem[Nothing]
 
   implicit val BooleanElement: Elem[Boolean] = new BaseElem(false) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, BooleanType)
   }
   implicit val ByteElement: Elem[Byte] = new BaseElem(0.toByte) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, ByteType)
   }
   implicit val ShortElement: Elem[Short] = new BaseElem(0.toShort) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, ShortType)
   }
   implicit val IntElement: Elem[Int] = new BaseElem(0) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, IntType)
   }
   implicit val LongElement: Elem[Long] = new BaseElem(0L) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, LongType)
   }
   implicit val FloatElement: Elem[Float] = new BaseElem(0.0F) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, FloatType)
   }
   implicit val DoubleElement: Elem[Double] = new BaseElem(0.0) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, DoubleType)
   }
   implicit val UnitElement: Elem[Unit] = new BaseElem(()) {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, UnitType)
   }
   implicit val StringElement: Elem[String] = new BaseElem("") {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, StringType)
   }
   implicit val CharElement: Elem[Char] = new BaseElem('\u0000') {
-    override def liftable = new Liftables.BaseLiftable()(this)
+    override def liftable = new Liftables.BaseLiftable()(this, CharType)
   }
 
   implicit def pairElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[(A, B)] =

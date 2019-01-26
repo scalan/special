@@ -1,5 +1,7 @@
 package scalan.meta
 
+import scalan.RType
+import scalan._
 import scala.reflect.ClassTag
 import scala.reflect.runtime.universe._
 
@@ -11,8 +13,8 @@ class TypeDescTests extends BaseMetaTests {
         val t= RType[T]
         t.toString shouldBe name
       }
-      test[Int]("ConcreteRType<Int>")(RType[Int])
-      test[String]("ConcreteRType<String>")(RType[String])
+      test[Int]("ConcreteType(Int)")(RType[Int])
+      test[String]("StringType")(RType[String])
     }
 
     it("resolve ClassTag") {

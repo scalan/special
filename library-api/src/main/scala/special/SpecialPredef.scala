@@ -1,8 +1,7 @@
 package special
 
 import scala.reflect.ClassTag
-import scalan.Reified
-import scalan.meta.RType
+import scalan.{Reified, RType}
 
 object SpecialPredef {
   def loopUntil[A](s1: A, isMatch: A => Boolean, step: A => A): A = {

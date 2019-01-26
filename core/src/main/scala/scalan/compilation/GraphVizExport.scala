@@ -7,9 +7,7 @@ import configs.Configs
 import configs.syntax._
 import com.typesafe.config.{ConfigUtil, Config}
 import configs.Result.{Success, Failure}
-
-import scalan.meta.TypeDesc
-import scalan.{Base, Scalan}
+import scalan.{Base, Scalan, TypeDesc}
 import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
 
 case class GraphFile(file: File, fileType: String) {

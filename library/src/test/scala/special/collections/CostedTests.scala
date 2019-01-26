@@ -1,4 +1,4 @@
-package scalanizer.collections
+package special.collections
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls
@@ -9,8 +9,8 @@ class CostedTests extends BaseCostedTests {
   lazy val ctx = new Ctx { }
   import ctx._
   import WArray._
-  import ColOverArray._
-  import ColOverArrayBuilder._
+  import CollOverArray._
+  import CollOverArrayBuilder._
 
   def buildGraph[T](nIters: Int, name: String)(action: Int => Rep[T]) = {
     val buf = mutable.ArrayBuilder.make[Rep[T]]()

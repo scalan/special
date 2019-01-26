@@ -113,7 +113,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
 
   def entityConst(e: EntityTemplateData) = {
     val info = new LiftableInfo(e); import info._
-    val methods = e.entity.body.collect { case m: SMethodDef if m.isAbstract && !m.isTypeDesc => m }
+    val methods = e.entity.body.collect { case m: SMethodDef if (m.isAbstract || m.isNeverInline) && !m.isTypeDesc => m }
     val thisClassFieldName = EName + "Class"
     s"""
       |  // entityConst: single const for each entity
@@ -155,11 +155,11 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  ${if(isGeneric) "case class" else "implicit object"} Liftable$sName$typesDeclAll${optArgs(zipped)("(", (sa,a) => s"l$a: Liftable[$sa, $a]", ",", ")")}
       |    extends Liftable[$SName$tyUseS, $EName$tyUse] {
       |    lazy val eW: Elem[$EName$tyUse] = $elemMethodName${optArgs(zipped)("(", (_,a) => s"l$a.eW", ",", ")")}
-      |    lazy val sourceClassTag: ClassTag[$SName$tyUseS] = {
-      |      ${repArgs(zipped)({ (sa,a) =>
-           s"|      implicit val tag$sa = l$a.eW.sourceClassTag.asInstanceOf[ClassTag[$sa]]".stripMargin}, "\n")
+      |    lazy val sourceType: RType[$SName$tyUseS] = {
+      |      ${repArgs(zipped)({ (sa, a) =>
+           s"|      implicit val tag$sa = l$a.sourceType.asInstanceOf[RType[$sa]]".stripMargin}, "\n")
              }
-      |      classTag[$SName$tyUseS]
+      |      RType[$SName$tyUseS]
       |    }
       |    def lift(x: $SName$tyUseS): Rep[$EName$tyUse] = ${EName}Const(x${optArgs(zipped)(", ", (_,a) => s"l$a", ",", "")})
       |    def unlift(w: Rep[$EName$tyUse]): $SName$tyUseS = w match {
@@ -193,7 +193,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val adapC = ConcreteClassTemplateData(unit, clazz)
     val b = adapC.extractionBuilder(extractFromEntity = false)
     val methods = adapC.c.collectVisibleMembers.collect {
-      case SEntityMember(_, md: SMethodDef) if md.isAbstract && !md.isTypeDesc => md
+      case SEntityMember(_, md: SMethodDef) if (md.isAbstract || md.isNeverInline) && !md.isTypeDesc => md
     }
     s"""
       |  // entityAdapter for $entityName trait

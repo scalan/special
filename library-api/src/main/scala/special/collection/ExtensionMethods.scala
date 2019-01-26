@@ -1,11 +1,28 @@
 package special.collection
 
+import scalan.RType
+
 import scala.reflect.ClassTag
+import scalan.util.CollectionUtil._
 
-object Extentions {
+object ExtensionMethods {
+  import Helpers._
 
-//  implicit class ColOps[A: ClassTag](xs: Col[A]) {
-//
+  implicit class CollOps[A](val source: Coll[A]) extends AnyVal {
+
+    /** Tests whether every element of this $coll relates to the
+      *  corresponding element of another sequence by satisfying a test predicate.
+      *
+      *  @param   that  the other sequence
+      *  @param   p     the test predicate, which relates elements from both sequences
+      *  @tparam  B     the type of the elements of `that`
+      *  @return  `true` if both sequences have the same length and
+      *                  `p(x, y)` is `true` for all corresponding elements `x` of this $coll
+      *                  and `y` of `that`, otherwise `false`.
+      */
+    def corresponds[B](that: Coll[B])(p: ((A, B)) => Boolean): Boolean =
+      source.zip(that).forall(p)
+
 //    /** Returns the length of the longest prefix whose elements all satisfy some predicate.
 //      *
 //      *  $mayNotTerminateInf
@@ -42,22 +59,12 @@ object Extentions {
 //      */
 //    def lastIndexWhere(p: A => Boolean): Int = xs.lastIndexWhere(p, xs.length - 1)
 //
-//    /** Finds the first element of the $coll satisfying a predicate, if any.
-//      *
-//      *  @param p       the predicate used to test elements.
-//      *  @return        an option value containing the first element in the $coll
-//      *                 that satisfies `p`, or `None` if none exists.
-//      */
-//    def find(p: A => Boolean): Option[A] = {
-//      val i = xs.prefixLength(!p(_))
-//      if (i < xs.length) Some(xs(i)) else None
-//    }
-//
+
 //    /** Builds a new $coll from this $coll without any duplicate elements.
 //      *
 //      *  @return  A new $coll which contains the first occurrence of every element of this $coll.
 //      */
-//    def distinct: Col[A] = {
+//    def distinct: Coll[A] = {
 //      xs.unionSets(xs.builder.fromItems())
 //    }
 //
@@ -66,7 +73,7 @@ object Extentions {
 //      * @param  that    the sequence to test
 //      * @return `true` if this collection has `that` as a prefix, `false` otherwise.
 //      */
-////    def startsWith[B](that: Col[B]): Boolean = startsWith(that, 0)
+////    def startsWith[B](that: Coll[B]): Boolean = startsWith(that, 0)
 //
 //    /** Tests whether this $coll contains the given sequence at a given index.
 //      *
@@ -78,13 +85,13 @@ object Extentions {
 //      * @return `true` if the sequence `that` is contained in this $coll at
 //      *         index `offset`, otherwise `false`.
 //      */
-////    def startsWith[B](that: Col[B], offset: Int): Boolean =
+////    def startsWith[B](that: Coll[B], offset: Int): Boolean =
 //
 //    /** Tests whether this $coll ends with the given collection.
 //      *  @param  that    the collection to test
 //      *  @return `true` if this $coll has `that` as a suffix, `false` otherwise.
 //      */
-////    def endsWith(that: Col[A]): Boolean
+////    def endsWith(that: Coll[A]): Boolean
 //
 //    /** A copy of this $coll with an element value appended until a given target length is reached.
 //      *
@@ -93,13 +100,41 @@ object Extentions {
 //      *  @return a new collection consisting of all elements of this $coll followed by the minimal
 //      *          number of occurrences of `elem` so that the resulting collection has a length of at least `len`.
 //      */
-//    def padTo(len: Int, elem: A): Col[A] = {
+//    def padTo(len: Int, elem: A): Coll[A] = {
 //      if (len <= xs.length) xs
 //      else
 //        xs.append(xs.builder.replicate(len - xs.length, elem))
 //    }
-//
-//  }
 
+  }
+
+  implicit class PairCollOps[A,B](val source: Coll[(A,B)]) extends AnyVal {
+    import RType._
+    @inline implicit def tA = source.tItem.tFst
+    @inline implicit def tB = source.tItem.tSnd
+
+    // TODO optimize
+    def unionSetByKey(that: Coll[(A,B)]): Coll[(A,B)] = {
+      source.unionSetByKey(that)
+    }
+
+    def reduceByKey(r: ((B,B)) => B): Coll[(A,B)] = {
+      source.mapReduce(identity, r)
+    }
+
+    def sumByKey(implicit m: Monoid[B]): Coll[(A,B)] =
+      reduceByKey(r => m.plus(r._1, r._2))
+
+    def groupByKey: Coll[(A, Coll[B])] = source.groupByProjecting(_._1, _._2)
+
+    @inline def mapFirst[A1: RType](f: A => A1): Coll[(A1, B)] = source.asInstanceOf[PairColl[A,B]].mapFirst(f)
+    @inline def mapSecond[B1: RType](f: B => B1): Coll[(A, B1)] = source.asInstanceOf[PairColl[A,B]].mapSecond(f)
+  }
+
+  implicit class NestedCollOps[A](val source: Coll[Coll[A]]) extends AnyVal {
+    @inline implicit def tA = source.tItem.tItem
+
+    def flatten: Coll[A] = source.builder.flattenColl(source)
+  }
 }
 

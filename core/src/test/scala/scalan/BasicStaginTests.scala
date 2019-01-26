@@ -1,6 +1,6 @@
 package scalan
 
-import scalan.common.{Segments, Segment, Interval, SegmentsModule}
+import scalan.common.{Segments, Interval, SegmentsModule}
 
 class BasicStaginTests extends BaseCtxTests {
   lazy val ctx = new TestContext() with SegmentsModule {
