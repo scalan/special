@@ -15,7 +15,7 @@ trait TypeDesc extends Serializable {
 
 trait RType[A] {
   def classTag: ClassTag[A]
-  final def name: String = this.toString
+  def name: String = this.toString
 }
 
 object RType {
@@ -31,33 +31,47 @@ object RType {
     case ClassTag.Float => FloatType
     case ClassTag.Double => DoubleType
     case ClassTag.Unit => UnitType
-    case _ => ConcreteType[A](ctA)
+    case _ => GeneralType[A](ctA)
   }).asInstanceOf[RType[A]]
 
   type SomeType = RType[_]
 
-  case class ConcreteType[A](classTag: ClassTag[A]) extends RType[A]
+  /** Type descriptor for types with limited type information like Any, AnyRef, Nothing.
+    * It also used to wrap class tags which are GenericClassTag instances (also with limited information about type structure).
+    * To describe structure of the type more precisely use concrete classes in the hierarchy of RType. */
+  case class GeneralType[A](classTag: ClassTag[A]) extends RType[A] {
+    override def name: String = classTag match {
+      case ClassTag.AnyRef => "AnyRef"
+      case ct => ct.toString()
+    }
+  }
 
-  val AnyType      : RType[Any]      = ConcreteType[Any]     (ClassTag.Any)
-  val AnyRefType   : RType[AnyRef]   = ConcreteType[AnyRef]  (ClassTag.AnyRef)
-  val NothingType  : RType[Nothing]  = ConcreteType[Nothing] (ClassTag.Nothing)
+  case class PrimitiveType[A](classTag: ClassTag[A]) extends RType[A] {
+    override def name: String = classTag.toString()
+  }
 
-  implicit val BooleanType : RType[Boolean]  = ConcreteType[Boolean] (ClassTag.Boolean)
-  implicit val ByteType    : RType[Byte]     = ConcreteType[Byte]    (ClassTag.Byte)
-  implicit val ShortType   : RType[Short]    = ConcreteType[Short]   (ClassTag.Short)
-  implicit val IntType     : RType[Int]      = ConcreteType[Int]     (ClassTag.Int)
-  implicit val LongType    : RType[Long]     = ConcreteType[Long]    (ClassTag.Long)
-  implicit val CharType    : RType[Char]     = ConcreteType[Char]    (ClassTag.Char)
-  implicit val FloatType   : RType[Float]    = ConcreteType[Float]   (ClassTag.Float)
-  implicit val DoubleType  : RType[Double]   = ConcreteType[Double]  (ClassTag.Double)
-  implicit val UnitType    : RType[Unit]     = ConcreteType[Unit]    (ClassTag.Unit)
+  val AnyType      : RType[Any]      = GeneralType[Any]     (ClassTag.Any)
+  val AnyRefType   : RType[AnyRef]   = GeneralType[AnyRef]  (ClassTag.AnyRef)
+  val NothingType  : RType[Nothing]  = GeneralType[Nothing] (ClassTag.Nothing)
+
+  implicit val BooleanType : RType[Boolean]  = PrimitiveType[Boolean] (ClassTag.Boolean)
+  implicit val ByteType    : RType[Byte]     = PrimitiveType[Byte]    (ClassTag.Byte)
+  implicit val ShortType   : RType[Short]    = PrimitiveType[Short]   (ClassTag.Short)
+  implicit val IntType     : RType[Int]      = PrimitiveType[Int]     (ClassTag.Int)
+  implicit val LongType    : RType[Long]     = PrimitiveType[Long]    (ClassTag.Long)
+  implicit val CharType    : RType[Char]     = PrimitiveType[Char]    (ClassTag.Char)
+  implicit val FloatType   : RType[Float]    = PrimitiveType[Float]   (ClassTag.Float)
+  implicit val DoubleType  : RType[Double]   = PrimitiveType[Double]  (ClassTag.Double)
+  implicit val UnitType    : RType[Unit]     = PrimitiveType[Unit]    (ClassTag.Unit)
 
   implicit case object StringType extends RType[String] {
     override def classTag: ClassTag[String] = ClassTag[String](classOf[String])
+    override def name: String = "String"
   }
 
   case object RTypeType extends RType[RType[_]] {
     val classTag: ClassTag[RType[_]] = ClassTag[RType[_]](classOf[RType[_]])
+    override def name: String = s"RType[Any]"
   }
   implicit def rtypeRType[A]: RType[RType[A]] = asType[RType[A]](RTypeType)
 
@@ -65,6 +79,7 @@ object RType {
 
   case class PairType[A,B](tFst: RType[A], tSnd: RType[B]) extends RType[(A,B)] {
     val classTag: ClassTag[(A, B)] = scala.reflect.classTag[(A,B)]
+    override def name: String = s"(${tFst.name}, ${tSnd.name})"
   }
   implicit def extendPairType[A,B](pt: RType[(A,B)]): PairType[A,B] = pt.asInstanceOf[PairType[A,B]]
 
@@ -72,12 +87,14 @@ object RType {
 
   case class EitherType[A,B](tA: RType[A], tB: RType[B]) extends RType[Either[A,B]] {
     val classTag: ClassTag[Either[A, B]] = scala.reflect.classTag[Either[A,B]]
+    override def name: String = s"(${tA.name} | ${tB.name})"
   }
 
   implicit def funcRType[A,B](implicit tDom: RType[A], tRange: RType[B]): RType[A => B] = FuncType(tDom, tRange)
 
   case class FuncType[A,B](tDom: RType[A], tRange: RType[B]) extends RType[A => B] {
     val classTag: ClassTag[A => B] = scala.reflect.classTag[A => B]
+    override def name: String = s"${tDom.name} => ${tRange.name}"
   }
 
   type StructData = Array[AnyRef]
@@ -95,6 +112,7 @@ object RType {
       implicit val ctA: ClassTag[A] = tA.classTag
       scala.reflect.classTag[Array[A]]
     }
+    override def name: String = s"Array[${tA.name}]"
   }
 
   implicit def optionRType[A](implicit tA: RType[A]): RType[Option[A]] = OptionType(tA)
@@ -104,6 +122,7 @@ object RType {
       implicit val ctA: ClassTag[A] = tA.classTag
       scala.reflect.classTag[Option[A]]
     }
+    override def name: String = s"Option[${tA.name}]"
   }
 
   type ThunkData[A] = () => A
@@ -115,6 +134,7 @@ object RType {
       implicit val ctA: ClassTag[A] = tA.classTag
       scala.reflect.classTag[ThunkData[A]]
     }
+    override def name: String = s"Thunk[${tA.name}]"
   }
 
   @inline def asType[T](t: RType[_]): RType[T] = t.asInstanceOf[RType[T]]

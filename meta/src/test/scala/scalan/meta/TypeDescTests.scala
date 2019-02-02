@@ -13,7 +13,7 @@ class TypeDescTests extends BaseMetaTests {
         val t= RType[T]
         t.toString shouldBe name
       }
-      test[Int]("ConcreteType(Int)")(RType[Int])
+      test[Int]("PrimitiveType(Int)")(RType[Int])
       test[String]("StringType")(RType[String])
     }
 
@@ -26,7 +26,26 @@ class TypeDescTests extends BaseMetaTests {
       test[Int]("Int")(RType[Int])
       test[String]("java.lang.String")(RType[String])
     }
-
+  }
+  describe("RType") {
+    def test[A](t: RType[A], n: String) = {
+      t.name shouldBe n
+    }
+    it("has names") {
+      Seq(
+        BooleanType -> "Boolean",
+        ByteType    -> "Byte",
+        ShortType   -> "Short",
+        IntType     -> "Int",
+        CharType    -> "Char",
+        FloatType   -> "Float",
+        DoubleType  -> "Double",
+        UnitType    -> "Unit",
+        AnyType     -> "Any",
+        AnyRefType  -> "AnyRef",
+        NothingType -> "Nothing"
+      ).foreach { case (t, n) => test(t, n) }
+    }
   }
 
 }

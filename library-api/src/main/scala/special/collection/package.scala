@@ -7,9 +7,11 @@ import scala.reflect.{ClassTag, classTag}
 package collection {
   case class CollType[A](tItem: RType[A]) extends RType[Coll[A]] {
     val classTag: ClassTag[Coll[A]] = ClassTag[Coll[A]](classOf[Coll[A]])
+    override def name: String = s"Coll[${tItem.name}]"
   }
   case class ReplCollType[A](tItem: RType[A]) extends RType[ReplColl[A]] {
     val classTag: ClassTag[ReplColl[A]] = ClassTag[ReplColl[A]](classOf[ReplColl[A]])
+    override def name: String = s"ReplColl[${tItem.name}]"
   }
 }
 
