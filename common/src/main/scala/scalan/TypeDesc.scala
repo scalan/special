@@ -1,8 +1,7 @@
 package scalan
 
-import scala.collection.immutable.ListMap
-import scala.reflect.{AnyValManifest, ClassTag}
-import scalan.util.Variance
+import scala.reflect.ClassTag
+import scalan.util.CollectionUtil
 import scalan.util.ReflectionUtil.ClassOps
 
 trait TypeDesc extends Serializable {
@@ -99,10 +98,37 @@ object RType {
 
   type StructData = Array[AnyRef]
 
-  implicit def structRType(names: Array[String], types: Array[SomeType]): RType[StructData] = StructType(names, types)
+  def structRType(names: Array[String], types: Array[SomeType]): RType[StructData] = StructType(names, types)
 
   case class StructType(fieldNames: Array[String], fieldTypes: Array[SomeType]) extends RType[StructData] {
     val classTag: ClassTag[StructData] = scala.reflect.classTag[StructData]
+
+    override def hashCode(): Int = {
+      var h = CollectionUtil.deepHashCode(fieldNames)
+      h += h * 31 + CollectionUtil.deepHashCode(fieldTypes)
+      h
+    }
+    override def equals(obj: Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj match {
+      case that: StructType =>
+        java.util.Arrays.equals(fieldNames.asInstanceOf[Array[AnyRef]], that.fieldNames.asInstanceOf[Array[AnyRef]]) &&
+        java.util.Arrays.equals(fieldTypes.asInstanceOf[Array[AnyRef]], that.fieldTypes.asInstanceOf[Array[AnyRef]])
+      case _ => false
+    })
+  }
+
+  type TupleData = Array[AnyRef]
+
+  def tupleRType(types: Array[SomeType]): RType[TupleData] = TupleType(types)
+
+  case class TupleType(items: Array[SomeType]) extends RType[StructData] {
+    val classTag: ClassTag[TupleData] = scala.reflect.classTag[TupleData]
+    override def name: String = items.map(_.name).mkString("(", ", ", ")")
+
+    override def hashCode(): Int = CollectionUtil.deepHashCode(items)
+    override def equals(obj: Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj match {
+      case that: TupleType => java.util.Arrays.equals(items.asInstanceOf[Array[AnyRef]], that.items.asInstanceOf[Array[AnyRef]])
+      case _ => false
+    })
   }
 
   implicit def arrayRType[A](implicit tA: RType[A]): RType[Array[A]] = ArrayType(tA)
