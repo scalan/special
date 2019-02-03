@@ -121,7 +121,7 @@ object Coll extends EntityObject("Coll") {
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        CollClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, false, element[B]))
     }
@@ -388,7 +388,7 @@ implicit val eV = proj.elem.eRange
     def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, true, element[B]))
     }
@@ -592,7 +592,7 @@ implicit val eV = proj.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "toArray", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "fold", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
+        "builder", "toArray", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
         ))
     }
 
@@ -804,7 +804,7 @@ implicit val eV = proj.elem.eRange
 
     object fold {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "fold" =>
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -1269,7 +1269,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, true, element[B]))
     }
@@ -1706,7 +1706,7 @@ object ReplColl extends EntityObject("ReplColl") {
     def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, true, element[B]))
     }

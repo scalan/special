@@ -51,7 +51,7 @@ object CollOverArray extends EntityObject("CollOverArray") {
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, false, element[B]))
     }
@@ -362,7 +362,7 @@ implicit val eV = m.elem.eRange.eSnd
 
     object fold {
       def unapply(d: Def[_]): Nullable[(Rep[CollOverArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "fold" =>
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -925,7 +925,7 @@ implicit lazy val eR = rs.eA
     override def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, false, element[B]))
     }
@@ -1264,7 +1264,7 @@ implicit val eR = p.rs.eA
 
     object fold {
       def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[B], Rep[((B, (L, R))) => B]) forSome {type L; type R; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "fold" =>
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[PairOfCols[L, R]], Rep[B], Rep[((B, (L, R))) => B]) forSome {type L; type R; type B}]]
         case _ => Nullable.None
@@ -1570,7 +1570,7 @@ object CReplColl extends EntityObject("CReplColl") {
     override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym]),
+        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, false, element[B]))
     }
@@ -1886,7 +1886,7 @@ implicit val eV = m.elem.eRange.eSnd
 
     object fold {
       def unapply(d: Def[_]): Nullable[(Rep[CReplColl[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "fold" =>
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[CReplColl[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
         case _ => Nullable.None

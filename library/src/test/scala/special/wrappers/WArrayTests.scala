@@ -44,8 +44,6 @@ class WArrayTests extends WrappersTests {
     val f1 = (x: Int) => sum1 += x
     var sum2 = 0
     val f2 = (x: Int) => sum2 += x
-    check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arg <- lifted(f1) } yield xs.foreach(arg) }, arr.foreach(f2))
-    sum2 shouldBe sum2
 
     val p = (x: Int) => x == 2
     check(arr, { env: EnvRep[WArray[Int]] => for {xs <- env; arg <- lifted(p) } yield xs.exists(arg) }, arr.exists(p))

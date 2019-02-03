@@ -2,11 +2,7 @@ package special.collection
 
 import scalan.RType
 
-import scala.reflect.ClassTag
-import scalan.util.CollectionUtil._
-
 object ExtensionMethods {
-  import Helpers._
 
   implicit class CollOps[A](val source: Coll[A]) extends AnyVal {
 
@@ -136,5 +132,14 @@ object ExtensionMethods {
 
     def flatten: Coll[A] = source.builder.flattenColl(source)
   }
-}
 
+  implicit class OptionOps[A](val source: Option[A]) extends AnyVal {
+    /** Returns a singleton collection containing the $option's value
+      * if it is nonempty, or the empty collection if the $option is empty.
+      * @since  2.0
+      */
+    def toColl(implicit tA: RType[A]): Coll[A] =
+      if (source.isEmpty) Builder.DefaultCollBuilder.emptyColl[A]
+      else Builder.DefaultCollBuilder.fromItems(source.get)
+  }
+}

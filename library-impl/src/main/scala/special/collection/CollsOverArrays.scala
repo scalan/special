@@ -37,7 +37,7 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
   def filter(p: A => Boolean): Coll[A] = builder.fromArray(toArray.filter(p))
 
   @NeverInline
-  def fold[B](zero: B, op: ((B, A)) => B): B = toArray.foldLeft(zero)((b, a) => op((b, a)))
+  def foldLeft[B](zero: B, op: ((B, A)) => B): B = toArray.foldLeft(zero)((b, a) => op((b, a)))
 
   def slice(from: Int, until: Int): Coll[A] = builder.fromArray(toArray.slice(from, until))
   def sum(m: Monoid[A]): A = toArray.foldLeft(m.zero)((b, a) => m.plus(b, a))
@@ -248,9 +248,6 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   }
 
   @NeverInline
-  override def foreach(f: ((L, R)) => Unit): Unit = toArray.foreach(f)
-
-  @NeverInline
   override def exists(p: ((L, R)) => Boolean): Boolean = {
     val len = ls.length
     var i = 0
@@ -292,7 +289,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   }
 
   @NeverInline
-  override def fold[B](zero: B, op: ((B, (L, R))) => B): B = {
+  override def foldLeft[B](zero: B, op: ((B, (L, R))) => B): B = {
     val limit = length
     var state = zero
     cfor(0)(_ < limit, _ + 1) { i =>
@@ -456,7 +453,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
     else new CReplColl(value, 0)
 
   @NeverInline
-  def fold[B](zero: B, op: ((B, A)) => B): B =
+  def foldLeft[B](zero: B, op: ((B, A)) => B): B =
     SpecialPredef.loopUntil[(B, Int)]((zero,0),
       p => p._2 >= length,
       p => (op((p._1, value)), p._2 + 1)

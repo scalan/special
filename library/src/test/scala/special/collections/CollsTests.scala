@@ -137,11 +137,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         builder.replicate(0, -10).exists(lt0) shouldBe Array[Int]().exists(lt0)
       }
       {
-        val res = col.fold[Int](0, plusF)
+        val res = col.foldLeft[Int](0, plusF)
         res shouldBe col.toArray.foldLeft(0)(plus)
         val pairs = col.zip(col)
         val op = (in: (Int,(Int,Int))) => in._1 + in._2._1 + in._2._2
-        pairs.fold(0, op) shouldBe pairs.toArray.foldLeft(0)((b,a) => op((b,a)))
+        pairs.foldLeft(0, op) shouldBe pairs.toArray.foldLeft(0)((b,a) => op((b,a)))
       }
       whenever(index < col.length) {
         val res = col(index)

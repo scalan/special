@@ -85,7 +85,7 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
       }
     }
   }
-  performance of "fold" in {
+  performance of "foldLeft" in {
     measure method "PairArray" in {
       using(arrays) in { case (arr, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
@@ -96,7 +96,7 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
     measure method "of PairColl" in {
       using(colls) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
-          c.zip(c).fold[Int](0, p => p._1 + p._2._1 + p._2._2)
+          c.zip(c).foldLeft[Int](0, p => p._1 + p._2._1 + p._2._2)
         }
       }
     }

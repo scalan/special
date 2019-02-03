@@ -4,9 +4,10 @@ import scala.reflect.ClassTag
 import scalan._
 import scala.collection.immutable
 
-/**
+/** Indexed (zero-based) collection of elements of type `A`
   * @define Coll `Coll`
   * @define coll collection
+  * @define colls collections
   * @tparam A the collection element type
   */
 @ContainerType
@@ -15,25 +16,82 @@ import scala.collection.immutable
 trait Coll[@specialized A] {
   def builder: CollBuilder
   def toArray: Array[A]
+
+  /** The length of the collection */
   def length: Int
-  def apply(i: Int): A
-  def getOrElse(i: Int, default: A): A
+
+  /** The element at given index.
+    *  Indices start at `0`; `xs.apply(0)` is the first element of collection `xs`.
+    *  Note the indexing syntax `xs(i)` is a shorthand for `xs.apply(i)`.
+    *
+    *  @param    i   the index
+    *  @return       the element at the given index
+    *  @throws       ArrayIndexOutOfBoundsException if `i < 0` or `length <= i`
+    */
+  def apply(index: Int): A
+
+  /** The element of the collection or default value.
+    * If an index is out of bounds (`i < 0 || i >= length`) then `default` value is returned.
+    * @param   i   the index
+    * @return      the element at the given index or default value if index is out or bounds
+    * @since 2.0
+    */
+  def getOrElse(index: Int, default: A): A
+
+  /** Builds a new collection by applying a function to all elements of this collection.
+  *
+  *  @param f      the function to apply to each element.
+  *  @tparam B     the element type of the returned collection.
+  *  @return       a new collection of type `Coll[B]` resulting from applying the given function
+  *                `f` to each element of this collection and collecting the results.
+  */
   def map[@specialized B: RType](f: A => B): Coll[B]
 
   /** For this collection (x0, ..., xN) and other collection (y0, ..., yM)
     * produces a collection ((x0, y0), ..., (xK, yK)) where K = min(N, M) */
   def zip[@specialized B](ys: Coll[B]): Coll[(A, B)]
 
-  def foreach(f: A => Unit): Unit
-
+  /** Tests whether a predicate holds for at least one element of this collection.
+    *  @param   p     the predicate used to test elements.
+    *  @return        `true` if the given predicate `p` is satisfied by at least one element of this collection, otherwise `false`
+    */
   def exists(p: A => Boolean): Boolean
+
+  /** Tests whether a predicate holds for all elements of this collection.
+    *  @param   p   the predicate used to test elements.
+    *  @return      `true` if this collection is empty or the given predicate `p`
+    *               holds for all elements of this collection, otherwise `false`.
+    */
   def forall(p: A => Boolean): Boolean
+
+  /** Selects all elements of this collection which satisfy a predicate.
+    *  @param p     the predicate used to test elements.
+    *  @return      a new collection consisting of all elements of this collection that satisfy the given
+    *               predicate `p`. The order of the elements is preserved.
+    *  @since 2.0
+    */
   def filter(p: A => Boolean): Coll[A]
-  def where(p: A => Boolean): Coll[A] = this.filter(p)
-  def fold[B](zero: B, op: ((B, A)) => B): B
+
+  /** Applies a binary operator to a start value and all elements of this collection,
+    *  going left to right.
+    *
+    *  @param   z    the start value.
+    *  @param   op   the binary operator.
+    *  @tparam  B    the result type of the binary operator.
+    *  @return  the result of inserting `op` between consecutive elements of this collection,
+    *           going left to right with the start value `z` on the left:
+    *           {{{
+    *             op(...op(z, x_1), x_2, ..., x_n)
+    *           }}}
+    *           where `x,,1,,, ..., x,,n,,` are the elements of this collection.
+    *           Returns `z` if this collection is empty.
+    */
+  def foldLeft[B](zero: B, op: ((B, A)) => B): B
 
   /** Produces the range of all indices of this collection as a new collection
-    * containing [0 .. length-1] values. */
+    * containing [0 .. length-1] values.
+    * @since 2.0
+    */
   def indices: Coll[Int]
 
   /**
@@ -47,6 +105,7 @@ trait Coll[@specialized A] {
     * @tparam B the element type of the returned collection.
     * @return a new collection of type `Coll[B]` resulting from applying the given collection-valued function
     *         `f` to each element of this $coll and concatenating the results.
+    *  @since 2.0
     */
   def flatMap[B: RType](f: A => Coll[B]): Coll[B]
 
@@ -56,6 +115,7 @@ trait Coll[@specialized A] {
     *  @param   from  the index where the search starts.
     *  @return  the length of the longest segment of this $coll starting from index `from`
     *           such that every element of the segment satisfies the predicate `p`.
+    *  @since 2.0
     */
   def segmentLength(p: A => Boolean, from: Int): Int
 
@@ -64,6 +124,7 @@ trait Coll[@specialized A] {
     *  @param p       the predicate used to test elements.
     *  @return        an option value containing the first element in the $coll
     *                 that satisfies `p`, or `None` if none exists.
+    *  @since 2.0
     */
   @NeverInline
   def find(p: A => Boolean): Option[A] = {
@@ -71,13 +132,13 @@ trait Coll[@specialized A] {
     if (i < length) Some(this(i)) else None
   }
 
-
   /** Finds index of the first element satisfying some predicate after or at some start index.
     *
     *  @param   p     the predicate used to test elements.
     *  @param   from   the start index
     *  @return  the index `>= from` of the first element of this $coll that satisfies the predicate `p`,
     *           or `-1`, if none exists.
+    *  @since 2.0
     */
   def indexWhere(p: A => Boolean, from: Int): Int
 
@@ -87,6 +148,7 @@ trait Coll[@specialized A] {
     *  @param   from   the start index
     *  @return  the index `>= from` of the first element of this $coll that is equal (as determined by `==`)
     *           to `elem`, or `-1`, if none exists.
+    *  @since 2.0
     */
   @NeverInline
   def indexOf(elem: A, from: Int): Int = this.indexWhere(x => elem == x, from)
@@ -96,17 +158,19 @@ trait Coll[@specialized A] {
     *  @param   p     the predicate used to test elements.
     *  @return  the index `<= end` of the last element of this $coll that satisfies the predicate `p`,
     *           or `-1`, if none exists.
+    *  @since 2.0
     */
   def lastIndexWhere(p: A => Boolean, end: Int): Int
 
 
-  /** Partitions this $coll in two ${coll}s according to a predicate.
+  /** Partitions this $coll in two $colls according to a predicate.
     *
     *  @param pred the predicate on which to partition.
-    *  @return     a pair of ${coll}s: the first $coll consists of all elements that
+    *  @return     a pair of $colls: the first $coll consists of all elements that
     *              satisfy the predicate `p` and the second $coll consists of all elements
     *              that don't. The relative order of the elements in the resulting ${coll}s
     *              will BE preserved (this is different from Scala's version of this method).
+    *  @since 2.0
     */
   def partition(pred: A => Boolean): (Coll[A], Coll[A])
 
@@ -117,6 +181,7 @@ trait Coll[@specialized A] {
     *  @param  replaced the number of elements to drop in the original $coll
     *  @return          a new $coll consisting of all elements of this $coll
     *                   except that `replaced` elements starting from `from` are replaced by `patch`.
+    *  @since 2.0
     */
   def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A]
 
@@ -125,14 +190,19 @@ trait Coll[@specialized A] {
     *  @param  elem   the replacing element
     *  @return a new $coll which is a copy of this $coll with the element at position `index` replaced by `elem`.
     *  @throws IndexOutOfBoundsException if `index` does not satisfy `0 <= index < length`.
+    *  @since 2.0
     */
   def updated(index: Int, elem: A): Coll[A]
 
-  /** Returns a copy of this collection where elements at `indexes` are replaced with `values`. */
+  /** Returns a copy of this collection where elements at `indexes` are replaced with `values`.
+    * @since 2.0
+    */
   def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A]
 
   /** Apply m for each element of this collection, group by key and reduce each group using r.
-    * @returns one item for each group in a new collection of (K,V) pairs. */
+    * @returns one item for each group in a new collection of (K,V) pairs.
+    * @since 2.0
+    */
   def mapReduce[K: RType, V: RType](m: A => (K,V), r: ((V,V)) => V): Coll[(K,V)]
 
   /** Partitions this $coll into a map of ${coll}s according to some discriminator function.
@@ -145,6 +215,7 @@ trait Coll[@specialized A] {
     *               }}}
     *               That is, every key `k` is bound to a $coll of those elements `x`
     *               for which `key(x)` equals `k`.
+    *  @since 2.0
     */
   @NeverInline
   def groupBy[K: RType](key: A => K): Coll[(K, Coll[A])] = {
@@ -165,6 +236,7 @@ trait Coll[@specialized A] {
     *               }}}
     *               That is, every key `k` is bound to projections of those elements `x`
     *               for which `key(x)` equals `k`.
+    *  @since 2.0
     */
   @NeverInline
   def groupByProjecting[K: RType, V: RType](key: A => K, proj: A => V): Coll[(K, Coll[V])] = {
@@ -181,6 +253,7 @@ trait Coll[@specialized A] {
     *  NOTE: Use append if you don't need set semantics.
     *
     *  @param that   the collection to add.
+    *  @since 2.0
     */
   def unionSet(that: Coll[A]): Coll[A]
 
@@ -193,6 +266,7 @@ trait Coll[@specialized A] {
     *                If an element value `x` appears
     *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will not form
     *                part of the result, but any following occurrences will.
+    *  @since 2.0
     */
   @NeverInline
   def diff(that: Coll[A]): Coll[A] = {
@@ -208,6 +282,7 @@ trait Coll[@specialized A] {
     *                If an element value `x` appears
     *                ''n'' times in `that`, then the first ''n'' occurrences of `x` will be retained
     *                in the result, but any following occurrences will be omitted.
+    *  @since 2.0
     */
   @NeverInline
   def intersect(that: Coll[A]): Coll[A] = {
@@ -218,9 +293,10 @@ trait Coll[@specialized A] {
   /** Folding through all elements of this $coll starting from m.zero and applying m.plus to accumulate
     * resulting value.
     *
-    * @param m monoid object to use for summation
-    * @return  result of the following operations (m.zero `m.plus` x1 `m.plus` x2 `m.plus` ... xN)
-    * */
+    *  @param m monoid object to use for summation
+    *  @return  result of the following operations (m.zero `m.plus` x1 `m.plus` x2 `m.plus` ... xN)
+    *  @since 2.0
+    */
   def sum(m: Monoid[A]): A
 
   /** Selects an interval of elements.  The returned collection is made up
