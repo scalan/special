@@ -60,17 +60,17 @@ object Coll extends EntityObject("Coll") {
         true, false, element[Int]))
     }
 
-    override def apply(i: Rep[Int]): Rep[A] = {
+    override def apply(index: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        List(index),
         true, false, element[A]))
     }
 
-    override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
+    override def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(i, default),
+        List(index, default),
         true, false, element[A]))
     }
 
@@ -88,13 +88,6 @@ object Coll extends EntityObject("Coll") {
         CollClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, false, element[Coll[(A, B)]]))
-    }
-
-    override def foreach(f: Rep[A => Unit]): Rep[Unit] = {
-      asRep[Unit](mkMethodCall(self,
-        CollClass.getMethod("foreach", classOf[Sym]),
-        List(f),
-        true, false, element[Unit]))
     }
 
     override def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
@@ -118,7 +111,7 @@ object Coll extends EntityObject("Coll") {
         true, false, element[Coll[A]]))
     }
 
-    override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+    override def foldLeft[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
         CollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
@@ -327,17 +320,17 @@ implicit val eV = proj.elem.eRange
         true, true, element[Int]))
     }
 
-    def apply(i: Rep[Int]): Rep[A] = {
+    def apply(index: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        List(index),
         true, true, element[A]))
     }
 
-    def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
+    def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(i, default),
+        List(index, default),
         true, true, element[A]))
     }
 
@@ -355,13 +348,6 @@ implicit val eV = proj.elem.eRange
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, true, element[Coll[(A, B)]]))
-    }
-
-    def foreach(f: Rep[A => Unit]): Rep[Unit] = {
-      asRep[Unit](mkMethodCall(source,
-        thisClass.getMethod("foreach", classOf[Sym]),
-        List(f),
-        true, true, element[Unit]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
@@ -385,7 +371,7 @@ implicit val eV = proj.elem.eRange
         true, true, element[Coll[A]]))
     }
 
-    def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+    def foldLeft[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
@@ -592,7 +578,7 @@ implicit val eV = proj.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "toArray", "length", "apply", "getOrElse", "map", "zip", "foreach", "exists", "forall", "filter", "where", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
+        "builder", "toArray", "length", "apply", "getOrElse", "map", "zip", "exists", "forall", "filter", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
         ))
     }
 
@@ -737,19 +723,6 @@ implicit val eV = proj.elem.eRange
       }
     }
 
-    object foreach {
-      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Unit]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "foreach" =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Unit]) forSome {type A}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => Unit]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
     object exists {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "exists" =>
@@ -789,20 +762,7 @@ implicit val eV = proj.elem.eRange
       }
     }
 
-    object where {
-      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "where" =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object fold {
+    object foldLeft {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
@@ -1207,17 +1167,17 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Int]))
     }
 
-    def apply(i: Rep[Int]): Rep[(L, R)] = {
+    def apply(index: Rep[Int]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        List(index),
         true, true, element[(L, R)]))
     }
 
-    def getOrElse(i: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
+    def getOrElse(index: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(i, default),
+        List(index, default),
         true, true, element[(L, R)]))
     }
 
@@ -1236,13 +1196,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, true, element[Coll[((L, R), B)]](collElement(pairElement(pairElement(eL, eR), eB)))))
-    }
-
-    def foreach(f: Rep[((L, R)) => Unit]): Rep[Unit] = {
-      asRep[Unit](mkMethodCall(source,
-        thisClass.getMethod("foreach", classOf[Sym]),
-        List(f),
-        true, true, element[Unit]))
     }
 
     def exists(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
@@ -1266,7 +1219,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Coll[(L, R)]]))
     }
 
-    def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
+    def foldLeft[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
@@ -1645,17 +1598,17 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[WArray[A]]))
     }
 
-    def apply(i: Rep[Int]): Rep[A] = {
+    def apply(index: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        List(index),
         true, true, element[A]))
     }
 
-    def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
+    def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(i, default),
+        List(index, default),
         true, true, element[A]))
     }
 
@@ -1673,13 +1626,6 @@ object ReplColl extends EntityObject("ReplColl") {
         thisClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, true, element[Coll[(A, B)]]))
-    }
-
-    def foreach(f: Rep[A => Unit]): Rep[Unit] = {
-      asRep[Unit](mkMethodCall(source,
-        thisClass.getMethod("foreach", classOf[Sym]),
-        List(f),
-        true, true, element[Unit]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
@@ -1703,7 +1649,7 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[Coll[A]]))
     }
 
-    def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+    def foldLeft[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),

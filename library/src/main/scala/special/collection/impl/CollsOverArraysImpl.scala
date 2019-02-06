@@ -48,7 +48,7 @@ object CollOverArray extends EntityObject("CollOverArray") {
         true, false, element[Coll[B]]))
     }
 
-    override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+    override def foldLeft[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
@@ -360,7 +360,7 @@ implicit val eV = m.elem.eRange.eSnd
       }
     }
 
-    object fold {
+    object foldLeft {
       def unapply(d: Def[_]): Nullable[(Rep[CollOverArray[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
@@ -894,13 +894,6 @@ implicit lazy val eR = rs.eA
         true, false, element[Coll[V]]))
     }
 
-    override def foreach(f: Rep[((L, R)) => Unit]): Rep[Unit] = {
-      asRep[Unit](mkMethodCall(self,
-        thisClass.getMethod("foreach", classOf[Sym]),
-        List(f),
-        true, false, element[Unit]))
-    }
-
     override def exists(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         thisClass.getMethod("exists", classOf[Sym]),
@@ -922,7 +915,7 @@ implicit lazy val eR = rs.eA
         true, false, element[Coll[(L, R)]]))
     }
 
-    override def fold[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
+    override def foldLeft[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
@@ -1210,19 +1203,6 @@ implicit val eR = p.rs.eA
       }
     }
 
-    object foreach {
-      def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Unit]) forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "foreach" =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Unit]) forSome {type L; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Unit]) forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
     object exists {
       def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "exists" =>
@@ -1262,7 +1242,7 @@ implicit val eR = p.rs.eA
       }
     }
 
-    object fold {
+    object foldLeft {
       def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[B], Rep[((B, (L, R))) => B]) forSome {type L; type R; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
@@ -1567,7 +1547,7 @@ object CReplColl extends EntityObject("CReplColl") {
         true, false, element[Coll[A]]))
     }
 
-    override def fold[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
+    override def foldLeft[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
         thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
@@ -1884,7 +1864,7 @@ implicit val eV = m.elem.eRange.eSnd
       }
     }
 
-    object fold {
+    object foldLeft {
       def unapply(d: Def[_]): Nullable[(Rep[CReplColl[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "foldLeft" =>
           val res = (receiver, args(0), args(1))
