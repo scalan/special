@@ -168,7 +168,7 @@ class CollOverArrayBuilder extends CollBuilder {
   @NeverInline
   @Reified("T")
   def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T] = {
-    new CollOverArray(unboxedArray(items))
+    new CollOverArray(items.toArray(cT.classTag))
   }
 
   @NeverInline

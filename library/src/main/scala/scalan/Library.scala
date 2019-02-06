@@ -104,11 +104,15 @@ trait Library extends Scalan
     }
   }
 
+  val intPlusMonoidValue = new special.collection.MonoidBuilderInst().intPlusMonoid
+  val longPlusMonoidValue = new special.collection.MonoidBuilderInst().longPlusMonoid
+
   override def rewriteDef[T](d: Def[T]) = d match {
     case WA.length(WA.map(xs, _)) => xs.length
     case CM.length(CM.map(xs, _)) => xs.length
 
     case CM.length(CBM.replicate(_, len, _)) => len
+    case CM.length(Def(CollConst(coll, _))) => coll.length
     case CM.length(CBM.fromArray(_, arr)) => arr.length
     case CM.length(CBM.fromItems(_, items, _)) => items.length
     case IsNumericToLong(Def(IsNumericToInt(x))) if x.elem == LongElement => x
@@ -140,6 +144,12 @@ trait Library extends Scalan
     case CM.map(xs, Def(IdentityLambda())) => xs
     case CM.map(xs, Def(ConstantLambda(res))) =>
       RCReplColl(res, xs.length)
+
+    case CM.sum(Def(CollConst(coll, lA)), Def(_: IntPlusMonoid)) if lA.eW == IntElement =>
+      coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
+    case CM.sum(Def(CollConst(coll, lA)), Def(_: LongPlusMonoid)) if lA.eW == LongElement =>
+      coll.asInstanceOf[SColl[Long]].sum(longPlusMonoidValue)
+
     case CM.sum(CBM.replicate(_, n, x: Rep[Int] @unchecked), Def(_: IntPlusMonoid)) =>
       x * n
     case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>
