@@ -1,6 +1,6 @@
 package scalan
 
-import java.lang.reflect.Method
+import java.lang.reflect.{Method, InvocationTargetException}
 
 import scala.annotation.implicitNotFound
 import scala.collection.immutable.ListMap
@@ -11,6 +11,7 @@ import scalan.util._
 import scalan.RType._
 import scalan.util.ReflectionUtil.ClassOps
 import spire.syntax.all._
+
 import scala.collection.mutable
 
 trait TypeDescs extends Base { self: Scalan =>
@@ -286,19 +287,23 @@ trait TypeDescs extends Base { self: Scalan =>
       val res = methods.get(mc.method) match {
         case Some(WMethodDesc(wrapSpec, method)) =>
           val srcArgs = getSourceValues(dataEnv, true, mc.receiver +: mc.args:_*)
+          def msg = s"Cannot invoke method $method on object $wrapSpec with arguments $srcArgs"
           val res =
             try method.invoke(wrapSpec, srcArgs:_*)
             catch {
-              case t: Throwable => !!!(s"Cannot invoke method $method on object $wrapSpec with arguments $srcArgs", t)
+              case e: InvocationTargetException => !!!(msg, e.getTargetException)
+              case t: Throwable => !!!(msg, t)
             }
           res
         case Some(RMethodDesc(method)) =>
           val srcObj = getSourceValues(dataEnv, false, mc.receiver).head
           val srcArgs = getSourceValues(dataEnv, false, mc.args:_*)
+          def msg = s"Cannot invoke method $method on object $srcObj with arguments $srcArgs"
           val res =
             try method.invoke(srcObj, srcArgs:_*)
             catch {
-              case t: Throwable => !!!(s"Cannot invoke method $method on object $srcObj with arguments $srcArgs", t)
+              case e: InvocationTargetException => !!!(msg, e.getTargetException)
+              case t: Throwable => !!!(msg, t)
             }
           res
         case None =>

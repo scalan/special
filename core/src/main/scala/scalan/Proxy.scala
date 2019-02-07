@@ -110,8 +110,14 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     case e => e
   }
 
+  def canBeInvoked(mc: MethodCall) = {
+    val okFlags = !(mc.neverInvoke && !mc.isAdapterCall)
+    val should = shouldInvoke(mc.receiver.rhs, mc.method, mc.args.toArray)
+    okFlags && should
+  }
+
   override protected def nodeColor(td: TypeDesc, d: Def[_])(implicit config: GraphVizConfig) = d match {
-    case mc: MethodCall if mc.neverInvoke => "darkblue"
+    case mc: MethodCall if !canBeInvoked(mc) => "blue"
     case no: NewObject[_] if no.neverInvoke => "darkblue"
     case _ => super.nodeColor(td, d)
   }
@@ -149,12 +155,23 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         case InvokeSuccess(res) => res
         case InvokeFailure(e) if !e.isInstanceOf[DelayInvokeException] =>
           throwInvocationException("Method invocation in rewriteDef", e, receiver, m, args)
-        case _ =>
-          super.rewriteDef(d)
+        case InvokeImpossible =>
+          val res = rewriteNonInvokableMethodCall(call)
+          if (res != null) res
+          else
+            super.rewriteDef(d)
       }
 
     case _ => super.rewriteDef(d)
   }
+
+  /** This method is called for each MethodCall node which is about to be added to the graph.
+    * This means `mc` has been examined by all the rewrite rules, but has not need rewritten.
+    * Now, if this method returns null, then mc will be added to the graph.
+    * However, in this method, `mc` can be examined by a second set of RW rules
+    * (kind of lower priority rules). These rules kind of context dependent, because at this
+    * point we know that the first RW set didn't triggered any rewrite. */
+  def rewriteNonInvokableMethodCall(mc: MethodCall): Rep[_] = null
 
   def methodCallEx[A](receiver: Rep[_], m: Method, args: List[AnyRef]): Rep[A] =
     mkMethodCall(receiver, m, args, true).asInstanceOf[Rep[A]]
