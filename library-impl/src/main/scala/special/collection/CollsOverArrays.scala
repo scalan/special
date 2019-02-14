@@ -7,14 +7,11 @@ import special.SpecialPredef
 import scala.reflect.ClassTag
 import scalan._
 import scalan.util.CollectionUtil
-import scalan.util.CollectionUtil.unboxedArray
 import scalan.{Internal, NeverInline, Reified, RType}
 import Helpers._
 import debox.Buffer
 import scalan.RType._
 import spire.syntax.all._
-
-import scala.collection.mutable
 
 class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]) extends Coll[A] {
   @Internal

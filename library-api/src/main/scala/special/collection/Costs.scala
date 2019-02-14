@@ -2,8 +2,6 @@ package special.collection
 
 import scalan.RType
 
-import scala.reflect.ClassTag
-
 trait Costed[Val] {
   def builder: CostedBuilder
   def value: Val

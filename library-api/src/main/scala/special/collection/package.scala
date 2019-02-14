@@ -1,7 +1,6 @@
 package special
 
 import scalan.RType
-import special.collection.Coll
 import scala.reflect.{ClassTag, classTag}
 
 package collection {

@@ -2,7 +2,6 @@ package special.collection
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
-import scala.collection.mutable.ArrayBuffer
 
 object Helpers {
   private def sameLengthErrorMsg[A,B](xs: Coll[A], ys: Coll[B]) =
