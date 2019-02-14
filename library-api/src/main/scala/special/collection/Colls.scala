@@ -24,11 +24,22 @@ trait Coll[@specialized A] {
     *  Indices start at `0`; `xs.apply(0)` is the first element of collection `xs`.
     *  Note the indexing syntax `xs(i)` is a shorthand for `xs.apply(i)`.
     *
-    *  @param    i   the index
-    *  @return       the element at the given index
-    *  @throws       ArrayIndexOutOfBoundsException if `i < 0` or `length <= i`
+    *  @param  i       the index
+    *  @return         the element at the given index
+    *  @throws         ArrayIndexOutOfBoundsException if `i < 0` or `length <= i`
     */
-  def apply(index: Int): A
+  def apply(i: Int): A
+
+  /** The elements at given indexes.
+    *  Indices start at `0` so that `xs.apply(0)` is the first element of collection `xs`.
+    *  Note the indexing syntax `xs(i)` is a shorthand for `xs.apply(i)`.
+    *
+    *  @param  indexes   the indexes of the elements to extract from this collection
+    *  @return       the elements at the given indexes
+    *  @throws       ArrayIndexOutOfBoundsException if `i < 0` or `length <= i`
+    *                                               for any `i` in `indexes`
+    */
+//  def applyMany(indexes: Coll[Int]): Coll[A]
 
   /** The element of the collection or default value.
     * If an index is out of bounds (`i < 0 || i >= length`) then `default` value is returned.

@@ -259,15 +259,16 @@ trait Transforming { self: Scalan =>
       val newThunk = new ThunkDef(newRootPH, { assert(schedulePH != null); schedulePH })
       val newThunkSym = newThunk.self
 
-      thunkStack.beginScope(newThunkSym)
+      val newScope = thunkStack.beginScope(newThunkSym)
       val schedule = thunk.scheduleSyms
       val (t1, newSchedule) = mirrorSymbols(t, rewriter, thunk, schedule)
       thunkStack.endScope()
 
       val newRoot = t1(thunk.root)
       newRootPH.assignDefFrom(newRoot)
-      schedulePH = newSchedule.collect { case DefTableEntry(te) if !te.sym.isVar => te }
-      
+//      schedulePH = newSchedule.collect { case DefTableEntry(te) if !te.sym.isVar => te }
+      schedulePH = if (newRoot.isVar) Nil else newScope.scheduleForResult(newRoot)
+
       createDefinition(newThunkSym, newThunk)
       (t1 + (node -> newThunkSym), newThunkSym)
     }
