@@ -21,12 +21,11 @@ lazy val buildSettings = Seq(
     "-language:experimental.macros",
     "-opt:_"),
   publishTo := {
-//    val nexus = "http://10.122.85.37:9081/nexus/"
     val nexus = "https://oss.sonatype.org/"
     if (version.value.trim.endsWith("SNAPSHOT"))
       Some("snapshots" at (nexus + "content/repositories/snapshots"))
     else
-      Some("releases" at (nexus + "content/repositories/releases"))
+      Some("releases" at nexus + "service/local/staging/deploy/maven2")
   },
   // do not publish docs for snapshot versions
   publishArtifact in(Compile, packageDoc) := !version.value.trim.endsWith("SNAPSHOT"))
@@ -202,8 +201,6 @@ version in ThisBuild := {
     }
   }
 }
-
-git.gitUncommittedChanges in ThisBuild := true
 
 credentials += Credentials(Path.userHome / ".sbt" / ".special-sonatype-credentials")
 
