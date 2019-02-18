@@ -17,8 +17,11 @@ trait Coll[@specialized A] {
   def builder: CollBuilder
   def toArray: Array[A]
 
-  /** The length of the collection */
+  /** The length of the collection. */
   def length: Int
+
+  /** The size of the collection in elements. */
+  def size: Int = this.length
 
   /** The element at given index.
     *  Indices start at `0`; `xs.apply(0)` is the first element of collection `xs`.
