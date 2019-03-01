@@ -1,9 +1,9 @@
 package special.collections
 
-import scalan.{Lazy, BaseCtxTests, Library}
+import scalan.{Library, Lazy, BaseCtxTests, TestLibrary}
 
 class BaseCostedTests extends BaseCtxTests {
-  class Ctx extends TestContext with Library {
+  class Ctx extends TestContext with TestLibrary {
     import CollOverArrayBuilder._; import Coll._; import ReplColl._; import WArray._;
     import Costed._; import CostedPrim._; import CostedPair._
 

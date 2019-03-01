@@ -17,10 +17,10 @@ class Benchmark[T <: Scalan](createContext: => T) {
 
 class LibraryTests extends BaseCtxTests {
   test("Benchmark Library creation time") {
-    new Benchmark(new Library {}).run()
+    new Benchmark(new TestLibrary {}).run()
   }
 }
 
 object MeasureLibraryCreate extends App {
-  new Benchmark(new Library {}).run()
+  new Benchmark(new TestLibrary {}).run()
 }

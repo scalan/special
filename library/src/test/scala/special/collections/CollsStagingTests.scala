@@ -6,7 +6,7 @@ import scalan._
 import scalan.util.BenchmarkUtil._
 
 class CollsStagingTests extends WrappersTests {
-  class Ctx extends TestContext with Library {
+  class Ctx extends TestContext with TestLibrary {
     import WArray._
     import CollOverArray._
     import CollOverArrayBuilder._

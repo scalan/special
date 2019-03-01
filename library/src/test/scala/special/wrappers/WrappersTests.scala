@@ -1,10 +1,9 @@
 package special.wrappers
 
-import scala.collection.mutable
-import scalan.{BaseLiftableTests, BaseCtxTests, Library}
+import scalan.{BaseLiftableTests, TestLibrary, BaseCtxTests}
 
 /** Base class inhereted by test suite for each wrapper like WArray, WOption etc. */
 abstract class WrappersTests extends BaseCtxTests with BaseLiftableTests {
-  class WrappersCtx extends TestContext with Library with LiftableTestKit {
+  class WrappersCtx extends TestContext with TestLibrary with LiftableTestKit {
   }
 }

@@ -104,6 +104,11 @@ trait Library extends Scalan
     }
   }
 
+  def colBuilder: Rep[CollBuilder]
+  def costedBuilder: Rep[CostedBuilder]
+  def intPlusMonoid: Rep[Monoid[Int]]
+  def longPlusMonoid: Rep[Monoid[Long]]
+
   val intPlusMonoidValue = new special.collection.MonoidBuilderInst().intPlusMonoid
   val longPlusMonoidValue = new special.collection.MonoidBuilderInst().longPlusMonoid
 
@@ -185,6 +190,12 @@ trait Library extends Scalan
     }
     case _ =>
       super.invokeUnlifted(e, mc, dataEnv)
+  }
+
+  override def calcSize[V,S](data: SizeData[V, S]): Rep[Long] = data.value.elem match {
+    case ce: CollElem[a,_] => asRep[Coll[Long]](data.sizeInfo).sum(longPlusMonoid)
+    case oe: WOptionElem[a,_] => asRep[WOption[Long]](data.sizeInfo).getOrElse(Thunk(0L))
+    case _ => super.calcSize(data)
   }
 
   implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
