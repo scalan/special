@@ -30,14 +30,18 @@ package special.collection {
     import WEither._;
     import WOption._;
     import WRType._;
-    abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val dataSize: Rep[Long]) extends CostedPrim[Val] {
+
+    // manual fix
+    abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Long]) extends CostedPrim[Val] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
+      override def dataSize: Rep[Long] = sizeData(value, size)
     };
     abstract class CCostedPair[L, R](val l: Rep[Costed[L]], val r: Rep[Costed[R]]) extends CostedPair[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[scala.Tuple2[L, R]] = Pair(CCostedPair.this.l.value, CCostedPair.this.r.value);
       def cost: Rep[Int] = CCostedPair.this.l.cost.+(CCostedPair.this.r.cost).+(CCostedPair.this.builder.ConstructTupleCost);
-      def dataSize: Rep[Long] = CCostedPair.this.l.dataSize.+(CCostedPair.this.r.dataSize)
+      // manual fix
+      def dataSize: Rep[Long] = sizeData(value, Pair(CCostedPair.this.l.dataSize, CCostedPair.this.r.dataSize))
     };
     abstract class CCostedSum[L, R](val value: Rep[WEither[L, R]], val left: Rep[Costed[Unit]], val right: Rep[Costed[Unit]]) extends CostedSum[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
@@ -52,7 +56,8 @@ package special.collection {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[Coll[Item]] = CCostedColl.this.values;
       def cost: Rep[Int] = CCostedColl.this.valuesCost.+(CCostedColl.this.costs.sum(CCostedColl.this.builder.monoidBuilder.intPlusMonoid));
-      def dataSize: Rep[Long] = CCostedColl.this.sizes.sum(CCostedColl.this.builder.monoidBuilder.longPlusMonoid);
+      // manual fix
+      def dataSize: Rep[Long] = sizeData(value, CCostedColl.this.sizes);
       @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedColl[Res]] = delayInvoke;
       @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedColl[Item]] = delayInvoke;
       @NeverInline def foldCosted[B](zero: Rep[Costed[B]], op: Rep[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Rep[Costed[B]] = delayInvoke

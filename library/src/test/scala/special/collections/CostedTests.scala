@@ -6,11 +6,18 @@ import scalan.util.BenchmarkUtil._
 
 class CostedTests extends BaseCostedTests {
 
-  lazy val ctx = new Ctx { }
+  class ThisCtx extends Ctx  {
+  }
+  lazy val ctx = new ThisCtx
   import ctx._
-  import WArray._
-  import CollOverArray._
-  import CollOverArrayBuilder._
+  import CCostedPair._
+  import CCostedPrim._
+  import CCostedColl._
+  import CollBuilder._
+  import Coll._
+  import Liftables._
+
+  lazy val sizeDataRW = new PartialRewriter({ case Def(sd: SizeData[_,_]) => calcSizeFromData(sd) })
 
   def buildGraph[T](nIters: Int, name: String)(action: Int => Rep[T]) = {
     val buf = mutable.ArrayBuilder.make[Rep[T]]()
@@ -20,6 +27,43 @@ class CostedTests extends BaseCostedTests {
     ctx.emit(name, buf.result(): _*)
   }
 
+  lazy val l = toRep(10)
+  lazy val r = toRep(10.toByte)
+  lazy val lC = RCCostedPrim(l, 1, 4L)
+  lazy val rC = RCCostedPrim(r, 1, 1L)
+  lazy val pC = RCCostedPair(lC, rC)
+  lazy val ppC = RCCostedPair(pC, pC)
+
+  test("dataSize of CostedPair") {
+    val sizeD= pC.dataSize
+    val expected @ Def(d: SizeData[_,_]) = sizeData(pC.value, Pair(sizeData(l, 4L), sizeData(r, 1L)))
+    sizeD shouldBe expected
+    val size = ProgramGraph.transform(sizeD, sizeDataRW)
+    size shouldBe toRep(5L)
+  }
+
+  test("dataSize of nested CostedPair") {
+    val sizeD= ppC.dataSize
+    val ppSize = sizeData(pC.value, Pair(sizeData(l, 4L), sizeData(r, 1L)))
+    val expected @ Def(d: SizeData[_,_]) = sizeData(ppC.value, Pair(ppSize, ppSize))
+    sizeD shouldBe expected
+    val size = ProgramGraph.transform(sizeD, sizeDataRW)
+    size shouldBe toRep(10L)
+  }
+
+  val Colls = new special.collection.CollOverArrayBuilder
+  val xs = Colls.fromItems(10, 20, 30)
+  lazy val xsSym = liftConst(xs)
+  lazy val xsSizes = liftConst(Colls.replicate(3, 4L))
+  lazy val xsC = RCCostedColl(xsSym, liftConst(Colls.replicate(3, 0)), xsSizes, 0)
+
+  test("dataSize of CostedColl") {
+    val sizeD = xsC.dataSize
+    val expected @ Def(d: SizeData[_,_]) = sizeData(xsC.value, xsSizes)
+    sizeD shouldBe expected
+    val size = ProgramGraph.transform(sizeD, sizeDataRW)
+    size shouldBe toRep(12L)
+  }
 
 //  test("measure: plus const propagation") {
 //    buildGraph(10, "measure_plus_const") { i =>

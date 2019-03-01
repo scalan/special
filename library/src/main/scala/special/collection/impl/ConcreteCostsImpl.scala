@@ -40,13 +40,14 @@ import WOption._
 import WRType._
 
 object CCostedPrim extends EntityObject("CCostedPrim") {
+  // manual fix
   case class CCostedPrimCtor[Val]
-      (override val value: Rep[Val], override val cost: Rep[Int], override val dataSize: Rep[Long])
-    extends CCostedPrim[Val](value, cost, dataSize) with Def[CCostedPrim[Val]] {
+      (override val value: Rep[Val], override val cost: Rep[Int], override val size: Rep[Long])
+    extends CCostedPrim[Val](value, cost, size) with Def[CCostedPrim[Val]] {
     implicit lazy val eVal = value.elem
 
     lazy val selfType = element[CCostedPrim[Val]]
-    override def transform(t: Transformer) = CCostedPrimCtor[Val](t(value), t(cost), t(dataSize))
+    override def transform(t: Transformer) = CCostedPrimCtor[Val](t(value), t(cost), t(size))
   }
   // elem for concrete class
   class CCostedPrimElem[Val](val iso: Iso[CCostedPrimData[Val], CCostedPrim[Val]])(implicit override val eVal: Elem[Val])

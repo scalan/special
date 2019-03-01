@@ -192,10 +192,10 @@ trait Library extends Scalan
       super.invokeUnlifted(e, mc, dataEnv)
   }
 
-  override def calcSize[V,S](data: SizeData[V, S]): Rep[Long] = data.value.elem match {
+  override def calcSizeFromData[V,S](data: SizeData[V, S]): Rep[Long] = data.value.elem match {
     case ce: CollElem[a,_] => asRep[Coll[Long]](data.sizeInfo).sum(longPlusMonoid)
     case oe: WOptionElem[a,_] => asRep[WOption[Long]](data.sizeInfo).getOrElse(Thunk(0L))
-    case _ => super.calcSize(data)
+    case _ => super.calcSizeFromData(data)
   }
 
   implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {

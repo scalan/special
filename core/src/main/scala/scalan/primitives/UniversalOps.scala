@@ -1,6 +1,6 @@
 package scalan.primitives
 
-import scalan.{Base, Scalan}
+import scalan.{AVHashMap, Base, Scalan, Nullable}
 
 trait UniversalOps extends Base { self: Scalan =>
   case class HashCode[A]() extends UnOp[A, Int]("hashCode", _.hashCode)
@@ -30,11 +30,10 @@ trait UniversalOps extends Base { self: Scalan =>
     override def transform(t: Transformer) = SizeData(t(value), t(sizeInfo))
   }
 
-  def dataSize[TVal, TSize](value: Rep[TVal], size: Rep[TSize]): Rep[Long] = SizeData(value, size)
+  def sizeData[TVal, TSize](value: Rep[TVal], size: Rep[TSize]): Rep[Long] = SizeData(value, size)
 
-  /** Transform size formula into size computation graph.
-    * The resulting graph should be free from SizeData nodes. */
-  def calcSize[V,S](data: SizeData[V, S]): Rep[Long] = data.value.elem match {
+  /** Transform size primitive into the correspoding size computation graph. */
+  protected def calcSizeFromData[V,S](data: SizeData[V, S]): Rep[Long] = data.value.elem match {
     case _: BaseElem[_] => asRep[Long](data.sizeInfo)
     case pe: PairElem[a,b] =>
       val info = asRep[(Long, Long)](data.sizeInfo)
@@ -51,6 +50,21 @@ trait UniversalOps extends Base { self: Scalan =>
     case _ => !!!(s"Don't know how to calcSize($data)", data.value)
   }
 
+//  /** Eliminate SizeData nodes (if any) by resursively applying calcSizeFromData.
+//    * The resulting graph should be free from SizeData nodes.
+//    * Internally, keeps track of symbol mapping to make the procedure linear in the size of the graph.
+//    */
+//  def calcSizeGraph(sizeData: Rep[Long]): Rep[Long] = {
+//    val mapping = AVHashMap[Rep[Long], Rep[Long]](16)
+//    def calc(size: Rep[Long]): Rep[Long] = mapping.get(size) match {
+//      case Nullable(mapped) => mapped
+//      case _ => size match {
+//        case Def(SizeData())
+//      }
+//    }
+//    calc(sizeData)
+//  }
+//
   case class Downcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo) {
     override def transform(t: Transformer) = Downcast(t(input), eTo)
   }
