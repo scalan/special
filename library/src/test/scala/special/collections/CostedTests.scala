@@ -3,6 +3,7 @@ package special.collections
 import scala.collection.mutable
 import scala.language.reflectiveCalls
 import scalan.util.BenchmarkUtil._
+import special.SpecialPredef
 
 class CostedTests extends BaseCostedTests {
 
@@ -13,8 +14,11 @@ class CostedTests extends BaseCostedTests {
   import CCostedPair._
   import CCostedPrim._
   import CCostedColl._
+  import CCostedOption._
   import CollBuilder._
   import Coll._
+  import WOption._
+  import WSpecialPredef._
   import Liftables._
 
   lazy val sizeDataRW = new PartialRewriter({ case Def(sd: SizeData[_,_]) => calcSizeFromData(sd) })
@@ -63,6 +67,19 @@ class CostedTests extends BaseCostedTests {
     sizeD shouldBe expected
     val size = ProgramGraph.transform(sizeD, sizeDataRW)
     size shouldBe toRep(12L)
+  }
+
+  val opt: Option[Int] = Some(10)
+  lazy val optSym = liftConst(opt)
+  lazy val optSize = RWSpecialPredef.some(4L)
+  lazy val optC = RCCostedOption(optSym, RWSpecialPredef.some(0), optSize, 0)
+
+  test("dataSize of CostedOption") {
+    val sizeD = optC.dataSize
+    val expected @ Def(d: SizeData[_,_]) = sizeData(optC.value, optSize)
+    sizeD shouldBe expected
+    val size = ProgramGraph.transform(sizeD, sizeDataRW)
+    size shouldBe toRep(4L)
   }
 
 //  test("measure: plus const propagation") {
