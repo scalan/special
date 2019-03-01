@@ -26,14 +26,25 @@ trait UniversalOps extends Base { self: Scalan =>
     * @tparam TVal    type of the value which is sized
     * @tparam TInfo   type of the size info representation. For example if TVal == Coll[A] then TInfo == Coll[Long]
     */
-  case class SizeData[TVal, TInfo](value: Rep[TVal], sizeInfo: Rep[TInfo]) extends BaseDef[Long] {
-    override def transform(t: Transformer) = SizeData(t(value), t(sizeInfo))
+  case class SizeData[TVal, TInfo](eVal: Elem[TVal], sizeInfo: Rep[TInfo]) extends BaseDef[Long] {
+    override def transform(t: Transformer) = SizeData(eVal, t(sizeInfo))
   }
 
-  def sizeData[TVal, TSize](value: Rep[TVal], size: Rep[TSize]): Rep[Long] = SizeData(value, size)
+  protected def correctSizeDataType[TVal, TSize](eVal: Elem[TVal], eSize: Elem[TSize]): Boolean = eVal match {
+    case e: BaseElem[_]   => eSize == LongElement
+    case e: PairElem[_,_] => eSize.isInstanceOf[PairElem[_,_]]
+    case e: SumElem[_,_]  => eSize.isInstanceOf[PairElem[_,_]]
+    case _ => true
+  }
+
+  def sizeData[TVal, TSize](eVal: Elem[TVal], size: Rep[TSize]): Rep[Long] = {
+    val okTypes = correctSizeDataType(eVal, size.elem)
+    assert(okTypes, s"SizeData should have the same structure with the data, but was ${eVal} and ${size.elem}")
+    SizeData(eVal, size)
+  }
 
   /** Transform size primitive into the correspoding size computation graph. */
-  protected def calcSizeFromData[V,S](data: SizeData[V, S]): Rep[Long] = data.value.elem match {
+  protected def calcSizeFromData[V,S](data: SizeData[V, S]): Rep[Long] = data.eVal match {
     case _: BaseElem[_] => asRep[Long](data.sizeInfo)
     case pe: PairElem[a,b] =>
       val info = asRep[(Long, Long)](data.sizeInfo)
@@ -47,7 +58,7 @@ trait UniversalOps extends Base { self: Scalan =>
           fields.foldLeft(zero) { case (acc, (fn,_)) => acc + info.get[Long](fn) }
       }
       size
-    case _ => !!!(s"Don't know how to calcSize($data)", data.value)
+    case _ => !!!(s"Don't know how to calcSizeFromData($data): data.value.elem = ${data.eVal}, data.sizeInfo.elem = ${data.sizeInfo.elem}", data.sizeInfo)
   }
 
 //  /** Eliminate SizeData nodes (if any) by resursively applying calcSizeFromData.

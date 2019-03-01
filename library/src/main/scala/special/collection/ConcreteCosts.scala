@@ -34,14 +34,14 @@ package special.collection {
     // manual fix
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Long]) extends CostedPrim[Val] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
-      override def dataSize: Rep[Long] = sizeData(value, size)
+      override def dataSize: Rep[Long] = sizeData(value.elem, size)
     };
     abstract class CCostedPair[L, R](val l: Rep[Costed[L]], val r: Rep[Costed[R]]) extends CostedPair[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[scala.Tuple2[L, R]] = Pair(CCostedPair.this.l.value, CCostedPair.this.r.value);
       def cost: Rep[Int] = CCostedPair.this.l.cost.+(CCostedPair.this.r.cost).+(CCostedPair.this.builder.ConstructTupleCost);
       // manual fix
-      def dataSize: Rep[Long] = sizeData(value, Pair(CCostedPair.this.l.dataSize, CCostedPair.this.r.dataSize))
+      def dataSize: Rep[Long] = sizeData(value.elem, Pair(CCostedPair.this.l.dataSize, CCostedPair.this.r.dataSize))
     };
     abstract class CCostedSum[L, R](val value: Rep[WEither[L, R]], val left: Rep[Costed[Unit]], val right: Rep[Costed[Unit]]) extends CostedSum[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
@@ -57,7 +57,7 @@ package special.collection {
       def value: Rep[Coll[Item]] = CCostedColl.this.values;
       def cost: Rep[Int] = CCostedColl.this.valuesCost.+(CCostedColl.this.costs.sum(CCostedColl.this.builder.monoidBuilder.intPlusMonoid));
       // manual fix
-      def dataSize: Rep[Long] = sizeData(value, CCostedColl.this.sizes);
+      def dataSize: Rep[Long] = sizeData(value.elem, CCostedColl.this.sizes);
       @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedColl[Res]] = delayInvoke;
       @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedColl[Item]] = delayInvoke;
       @NeverInline def foldCosted[B](zero: Rep[Costed[B]], op: Rep[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Rep[Costed[B]] = delayInvoke

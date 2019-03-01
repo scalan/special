@@ -45,7 +45,7 @@ package special.collection {
       // manual fix
       def cost: Rep[Int] = CCostedOption.this.accumulatedCost.+(CCostedOption.this.costOpt.getOrElse[Int](Thunk(toRep(0.asInstanceOf[Int]))));
       // manual fix
-      def dataSize: Rep[Long] = sizeData(value, sizeOpt);
+      def dataSize: Rep[Long] = sizeData(value.elem, sizeOpt);
       def get: Rep[Costed[T]] = CCostedOption.this.builder.mkCostedPrim[T](CCostedOption.this.value.get, CCostedOption.this.cost, CCostedOption.this.dataSize);
       def getOrElse(default: Rep[Costed[T]]): Rep[Costed[T]] = {
         val v: Rep[T] = CCostedOption.this.value.getOrElse[T](default.value);

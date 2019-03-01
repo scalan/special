@@ -196,7 +196,13 @@ trait Library extends Scalan
       super.invokeUnlifted(e, mc, dataEnv)
   }
 
-  override def calcSizeFromData[V,S](data: SizeData[V, S]): Rep[Long] = data.value.elem match {
+  protected override def correctSizeDataType[TVal, TSize](eVal: Elem[TVal], eSize: Elem[TSize]): Boolean = eVal match {
+    case e: CollElem[_,_] => eSize.isInstanceOf[CollElem[_,_]]
+    case e: WOptionElem[_,_] => eSize.isInstanceOf[WOptionElem[_,_]]
+    case _ => super.correctSizeDataType(eVal, eSize)
+  }
+
+  override def calcSizeFromData[V,S](data: SizeData[V, S]): Rep[Long] = data.eVal match {
     case ce: CollElem[a,_] => asRep[Coll[Long]](data.sizeInfo).sum(longPlusMonoid)
     case oe: WOptionElem[a,_] => asRep[WOption[Long]](data.sizeInfo).getOrElse(Thunk(0L))
     case _ => super.calcSizeFromData(data)

@@ -40,7 +40,7 @@ class CostedTests extends BaseCostedTests {
 
   test("dataSize of CostedPair") {
     val sizeD= pC.dataSize
-    val expected @ Def(d: SizeData[_,_]) = sizeData(pC.value, Pair(sizeData(l, 4L), sizeData(r, 1L)))
+    val expected @ Def(d: SizeData[_,_]) = sizeData(pC.value.elem, Pair(sizeData(l.elem, 4L), sizeData(r.elem, 1L)))
     sizeD shouldBe expected
     val size = ProgramGraph.transform(sizeD, sizeDataRW)
     size shouldBe toRep(5L)
@@ -48,8 +48,8 @@ class CostedTests extends BaseCostedTests {
 
   test("dataSize of nested CostedPair") {
     val sizeD= ppC.dataSize
-    val ppSize = sizeData(pC.value, Pair(sizeData(l, 4L), sizeData(r, 1L)))
-    val expected @ Def(d: SizeData[_,_]) = sizeData(ppC.value, Pair(ppSize, ppSize))
+    val ppSize = sizeData(pC.value.elem, Pair(sizeData(l.elem, 4L), sizeData(r.elem, 1L)))
+    val expected @ Def(d: SizeData[_,_]) = sizeData(ppC.value.elem, Pair(ppSize, ppSize))
     sizeD shouldBe expected
     val size = ProgramGraph.transform(sizeD, sizeDataRW)
     size shouldBe toRep(10L)
@@ -63,7 +63,7 @@ class CostedTests extends BaseCostedTests {
 
   test("dataSize of CostedColl") {
     val sizeD = xsC.dataSize
-    val expected @ Def(d: SizeData[_,_]) = sizeData(xsC.value, xsSizes)
+    val expected @ Def(d: SizeData[_,_]) = sizeData(xsC.value.elem, xsSizes)
     sizeD shouldBe expected
     val size = ProgramGraph.transform(sizeD, sizeDataRW)
     size shouldBe toRep(12L)
@@ -76,7 +76,7 @@ class CostedTests extends BaseCostedTests {
 
   test("dataSize of CostedOption") {
     val sizeD = optC.dataSize
-    val expected @ Def(d: SizeData[_,_]) = sizeData(optC.value, optSize)
+    val expected @ Def(d: SizeData[_,_]) = sizeData(optC.value.elem, optSize)
     sizeD shouldBe expected
     val size = ProgramGraph.transform(sizeD, sizeDataRW)
     size shouldBe toRep(4L)
