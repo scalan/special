@@ -11,6 +11,7 @@ class CostedTests extends BaseCostedTests {
   }
   lazy val ctx = new ThisCtx
   import ctx._
+  import Costed._
   import CCostedPair._
   import CCostedPrim._
   import CCostedColl._
@@ -80,6 +81,11 @@ class CostedTests extends BaseCostedTests {
     sizeD shouldBe expected
     val size = ProgramGraph.transform(sizeD, sizeDataRW)
     size shouldBe toRep(4L)
+  }
+
+  test("dataSize of CostedOption.get") {
+    val v = optC.get.dataSize
+    v shouldBe sizeData(element[Int], 4L)
   }
 
 //  test("measure: plus const propagation") {
