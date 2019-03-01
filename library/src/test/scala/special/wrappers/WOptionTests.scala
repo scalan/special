@@ -19,7 +19,6 @@ class WOptionTests extends WrappersTests {
     val none: Option[Int] = None
     val th = () => 10
     check(none, { env: EnvRep[WOption[Int]] => for { xs <- env; thL <- lifted(th) } yield xs.getOrElse(thL) }, none.getOrElse(th()))
-    check(opt, { env: EnvRep[WOption[Int]] => for { xs <- env; thL <- lifted(th) } yield  xs.getOrElse(thL) }, opt.getOrElse(th()))
 
     val p = (x: Int) => x == 2
     check(opt, { env: EnvRep[WOption[Int]] => for { xs <- env; pL <- lifted(p) } yield  xs.filter(pL) }, opt.filter(p))
