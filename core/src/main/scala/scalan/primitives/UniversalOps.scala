@@ -30,6 +30,16 @@ trait UniversalOps extends Base { self: Scalan =>
     override def transform(t: Transformer) = SizeData(eVal, t(sizeInfo))
   }
 
+  protected def sizeDataElem(size: Rep[Long]): Elem[_] = size match {
+    case Def(SizeData(_, info)) => info.elem
+    case _ => size.elem
+  }
+
+  protected def extractSizeData(size: Rep[Long]): Rep[_] = size match {
+    case Def(SizeData(_, info)) => info
+    case _ => size
+  }
+
   protected def correctSizeDataType[TVal, TSize](eVal: Elem[TVal], eSize: Elem[TSize]): Boolean = eVal match {
     case e: BaseElem[_]   => eSize == LongElement
     case e: PairElem[_,_] => eSize.isInstanceOf[PairElem[_,_]]
@@ -37,9 +47,12 @@ trait UniversalOps extends Base { self: Scalan =>
     case _ => true
   }
 
+  def msgIncorrectSizeDataStructure(eVal: Elem[_], eSize: Elem[_]) =
+    s"SizeData should have the same structure with the data, but was ${eVal} and ${eSize}"
+
   def sizeData[TVal, TSize](eVal: Elem[TVal], size: Rep[TSize]): Rep[Long] = {
     val okTypes = correctSizeDataType(eVal, size.elem)
-    assert(okTypes, s"SizeData should have the same structure with the data, but was ${eVal} and ${size.elem}")
+    assert(okTypes, msgIncorrectSizeDataStructure(eVal, size.elem))
     SizeData(eVal, size)
   }
 

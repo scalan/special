@@ -32,9 +32,17 @@ package special.collection {
     import WRType._;
 
     // manual fix
+    private def checkSize[Val](value: Rep[Val], size: Rep[Long]) = {
+      val info = extractSizeData(size)
+      assert(correctSizeDataType(value.elem, info.elem), msgIncorrectSizeDataStructure(value.elem, info.elem))
+    }
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Long]) extends CostedPrim[Val] {
+//      checkSize(value, size)
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
-      override def dataSize: Rep[Long] = sizeData(value.elem, size)
+      override def dataSize: Rep[Long] = {
+        val info = extractSizeData(size)
+        sizeData(value.elem, info)
+      }
     };
     abstract class CCostedPair[L, R](val l: Rep[Costed[L]], val r: Rep[Costed[R]]) extends CostedPair[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
