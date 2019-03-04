@@ -31,14 +31,10 @@ package special.collection {
     import WOption._;
     import WRType._;
 
-    // manual fix
-    private def checkSize[Val](value: Rep[Val], size: Rep[Long]) = {
-      val info = extractSizeData(size)
-      assert(correctSizeDataType(value.elem, info.elem), msgIncorrectSizeDataStructure(value.elem, info.elem))
-    }
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Long]) extends CostedPrim[Val] {
 //      checkSize(value, size)
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
+      // manual fix
       override def dataSize: Rep[Long] = {
         val info = extractSizeData(size)
         sizeData(value.elem, info)

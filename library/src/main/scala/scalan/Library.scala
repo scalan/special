@@ -31,6 +31,11 @@ trait Library extends Scalan
     }
   }
 
+  protected def checkSize[Val](value: Rep[Val], size: Rep[Long]) = {
+    val info = extractSizeData(size)
+    assert(correctSizeDataType(value.elem, info.elem), msgIncorrectSizeDataStructure(value.elem, info.elem))
+  }
+
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
     val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
     liftableRType(lT).lift(eT.asInstanceOf[RType[Any]])

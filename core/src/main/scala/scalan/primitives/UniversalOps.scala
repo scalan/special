@@ -51,8 +51,8 @@ trait UniversalOps extends Base { self: Scalan =>
     s"SizeData should have the same structure with the data, but was ${eVal} and ${eSize}"
 
   def sizeData[TVal, TSize](eVal: Elem[TVal], size: Rep[TSize]): Rep[Long] = {
-    val okTypes = correctSizeDataType(eVal, size.elem)
-    assert(okTypes, msgIncorrectSizeDataStructure(eVal, size.elem))
+//    val okTypes = correctSizeDataType(eVal, size.elem)
+//    assert(okTypes, msgIncorrectSizeDataStructure(eVal, size.elem))
     SizeData(eVal, size)
   }
 
