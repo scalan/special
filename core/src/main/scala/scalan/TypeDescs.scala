@@ -75,8 +75,10 @@ trait TypeDescs extends Base { self: Scalan =>
     def toTypeDesc(env: TypeArgSubst = Map()): TypeDesc = TypeDesc(tpe, env)
   }
 
+  @inline def asElem[T](d: TypeDesc): Elem[T] = d.asInstanceOf[Elem[T]]
+
   implicit class TypeDescOps(d: TypeDesc) {
-    def asElem[B]: Elem[B] = d.asInstanceOf[Elem[B]]
+    def asElem[B]: Elem[B] = self.asElem[B](d)
     def asElemOption[B]: Option[Elem[B]] = if (isElem) Some(d.asInstanceOf[Elem[B]]) else None
     def asCont[C[_]]: Cont[C] = d.asInstanceOf[Cont[C]]
     def asContOption[C[_]]: Option[Cont[C]] = if (isCont) Some(d.asInstanceOf[Cont[C]]) else None
@@ -531,7 +533,7 @@ trait TypeDescs extends Base { self: Scalan =>
     override def buildTypeArgs = ListMap("A" -> (eFst -> Covariant), "B" -> (eSnd -> Covariant))
     protected def getDefaultRep = Pair(eFst.defaultRepValue, eSnd.defaultRepValue)
     override def liftable: Liftables.Liftable[_, (A, B)] =
-      Liftables.PairIsLiftable(eFst.liftable, eSnd.liftable).asLiftable[Either[_,_], (A,B)]
+      Liftables.PairIsLiftable(eFst.liftable, eSnd.liftable).asLiftable[(_,_), (A,B)]
   }
 
   case class SumElem[A, B](eLeft: Elem[A], eRight: Elem[B]) extends Elem[A | B] {
@@ -557,6 +559,8 @@ trait TypeDescs extends Base { self: Scalan =>
       val defaultB = eRange.defaultRepValue
       fun[A, B](_ => defaultB)(Lazy(eDom))
     }
+    override def liftable: Liftables.Liftable[_, A => B] =
+      Liftables.FuncIsLiftable(eDom.liftable, eRange.liftable).asLiftable[_ => _, A => B]
   }
 
   class ArgElem(val tyArg: STpeArg) extends Elem[Any] with Serializable with scala.Equals {
