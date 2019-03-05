@@ -40,8 +40,10 @@ object RType {
     * To describe structure of the type more precisely use concrete classes in the hierarchy of RType. */
   case class GeneralType[A](classTag: ClassTag[A]) extends RType[A] {
     override def name: String = classTag match {
+      case ClassTag.Any => "Any"
       case ClassTag.AnyRef => "AnyRef"
-      case ct => ct.toString()
+      case ClassTag.Nothing => "Nothing"
+      case ct => ct.runtimeClass.getSimpleName()
     }
   }
 

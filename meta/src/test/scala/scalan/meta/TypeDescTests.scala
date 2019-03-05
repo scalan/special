@@ -2,8 +2,11 @@ package scalan.meta
 
 import scalan.RType
 import scalan._
-import scala.reflect.ClassTag
+
+import scala.reflect.{ClassTag, classTag}
 import scala.reflect.runtime.universe._
+
+class MyClass
 
 class TypeDescTests extends BaseMetaTests {
   import RType._
@@ -31,6 +34,9 @@ class TypeDescTests extends BaseMetaTests {
     def test[A](t: RType[A], n: String) = {
       t.name shouldBe n
     }
+
+    implicit val MyClassRType = RType.fromClassTag(classTag[MyClass])
+
     it("has names") {
       Seq(
         BooleanType -> "Boolean",
@@ -43,7 +49,9 @@ class TypeDescTests extends BaseMetaTests {
         UnitType    -> "Unit",
         AnyType     -> "Any",
         AnyRefType  -> "AnyRef",
-        NothingType -> "Nothing"
+        NothingType -> "Nothing",
+        RTypeType   -> "RType[Any]",
+        MyClassRType -> "MyClass"
       ).foreach { case (t, n) => test(t, n) }
       test(RType[(Int, Long)], "(Int, Long)")
       test(RType[Option[(Int, Long)]], "Option[(Int, Long)]")
