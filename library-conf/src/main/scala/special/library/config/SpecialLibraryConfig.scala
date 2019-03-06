@@ -41,11 +41,13 @@ class SpecialLibraryConfig extends LibraryConfig {
       .addUnit("special/collection/Monoids.scala")
       .addUnit("special/collection/Colls.scala")
       .addUnit("special/collection/Costs.scala")
+      .addUnit("special/collection/Sizes.scala")
 
   val ImplModule = new SourceModuleConf(baseDir, "library-impl")
       .addUnit("special/collection/MonoidInstances.scala")
       .addUnit("special/collection/CollsOverArrays.scala")
       .addUnit("special/collection/ConcreteCosts.scala")
+      .addUnit("special/collection/ConcreteSizes.scala")
       .addUnit("special/collection/CostedOptions.scala")
       .dependsOn(ApiModule)
 
