@@ -3,7 +3,32 @@ package special.collection
 import scalan._
 import special.SpecialPredef._
 
-class CCostedPrim[Val](val value: Val, val cost: Int, val dataSize: Long) extends CostedPrim[Val] {
+class CSizePrim[Val](val dataSize: Long) extends SizePrim[Val] {
+}
+
+class CSizePair[L,R](val l: Size[L], val r: Size[R]) extends SizePair[L, R] {
+  def dataSize: Long = l.dataSize + r.dataSize
+}
+
+class CSizeColl[Item](val sizes: Coll[Size[Item]]) extends SizeColl[Item] {
+  @Internal
+  val builder: CostedBuilder = new CCostedBuilder
+
+  @NeverInline
+  def dataSize: Long = sizes.map(_.dataSize).sum(builder.monoidBuilder.longPlusMonoid)
+}
+
+class CSizeFunc[Env, Arg, Res](val sizeEnv: Size[Env], val sizeFunc: Long) extends SizeFunc[Env, Arg, Res] {
+  @NeverInline
+  def dataSize: Long = sizeEnv.dataSize + sizeFunc
+}
+
+class CSizeOption[Item](val sizeOpt: Option[Size[Item]]) extends SizeOption[Item] {
+  @NeverInline
+  def dataSize: Long = sizeOpt.map(_.dataSize).getOrElse(0L)
+}
+
+class CCostedPrim[Val](val value: Val, val cost: Int, val size: Size[Val]) extends CostedPrim[Val] {
   def builder: CostedBuilder = new CCostedBuilder
 }
 
@@ -11,19 +36,7 @@ class CCostedPair[L,R](val l: Costed[L], val r: Costed[R]) extends CostedPair[L,
   def builder: CostedBuilder = new CCostedBuilder
   def value: (L,R) = (l.value, r.value)
   def cost: Int = l.cost + r.cost + builder.ConstructTupleCost
-  def dataSize: Long = l.dataSize + r.dataSize
-}
-
-class CCostedSum[L,R](
-      val value: Either[L, R],
-      val left: Costed[Unit],
-      val right: Costed[Unit]) extends CostedSum[L, R]
-{
-  def builder: CostedBuilder = new CCostedBuilder
-  @NeverInline
-  def cost: Int = left.cost max right.cost + builder.ConstructSumCost
-  @NeverInline
-  def dataSize: Long = left.dataSize max right.dataSize + builder.SumTagSize
+  def size: Size[(L,R)] = builder.mkSizePair(l.size, r.size)
 }
 
 /** @param cost Cost of creating the closure object of this function, doesn't include the cost of creating environment
@@ -33,7 +46,7 @@ class CCostedFunc[Env,Arg,Res](
       val envCosted: Costed[Env],
       val func: Costed[Arg] => Costed[Res],
       val cost: Int,
-      val dataSize: Long) extends CostedFunc[Env, Arg, Res]
+      val size: Size[Arg => Res]) extends CostedFunc[Env, Arg, Res]
 {
   def builder: CostedBuilder = new CCostedBuilder
   @NeverInline def value: Arg => Res = rewritableMethod
@@ -42,39 +55,19 @@ class CCostedFunc[Env,Arg,Res](
 class CCostedColl[Item](
       val values: Coll[Item],
       val costs: Coll[Int],
-      val sizes: Coll[Long],
+      val sizes: Coll[Size[Item]],
       val valuesCost: Int) extends CostedColl[Item]
 {
   def builder: CostedBuilder = new CCostedBuilder
   def value: Coll[Item] = values
   def cost: Int = valuesCost + costs.sum(builder.monoidBuilder.intPlusMonoid)
-  def dataSize: Long = sizes.sum(builder.monoidBuilder.longPlusMonoid)
+  def size: Size[Coll[Item]] = builder.mkSizeColl(sizes)
   @NeverInline
   def mapCosted[Res](f: Costed[Item] => Costed[Res]): CostedColl[Res] = rewritableMethod
   @NeverInline
   def filterCosted(f: Costed[Item] => Costed[Boolean]): CostedColl[Item] = rewritableMethod
   @NeverInline
   def foldCosted[B](zero: Costed[B], op: Costed[(B, Item)] => Costed[B]): Costed[B] = rewritableMethod
-}
-
-class CCostedPairColl[L,R](val ls: Costed[Coll[L]], val rs: Costed[Coll[R]]) extends CostedPairColl[L,R] {
-  def builder: CostedBuilder = new CCostedBuilder
-  def value: Coll[(L,R)] = ls.value.zip(rs.value)
-  def cost: Int = ls.cost + rs.cost + builder.ConstructTupleCost
-  def dataSize: Long = ls.dataSize + rs.dataSize
-}
-
-class CCostedNestedColl[Item]
-      (val rows: Coll[Costed[Coll[Item]]])
-      (implicit val cItem: RType[Item]) extends CostedNestedColl[Item]
-{
-  def builder: CostedBuilder = new CCostedBuilder
-  @NeverInline
-  def value: Coll[Coll[Item]] = rows.map(r => r.value)
-  @NeverInline
-  def cost: Int = rows.map(r => r.cost).sum(builder.monoidBuilder.intPlusMonoid)
-  @NeverInline
-  def dataSize: Long = rows.map(r => r.dataSize).sum(builder.monoidBuilder.longPlusMonoid)
 }
 
 class CCostedBuilder extends CostedBuilder {
@@ -86,36 +79,37 @@ class CCostedBuilder extends CostedBuilder {
   @NeverInline
   def defaultValue[T](valueType: RType[T]): T = rewritableMethod
 
-  def mkCostedPrim[T](value: T, cost: Int, size: Long): CostedPrim[T] =
+  def mkSizePrim[T](dataSize: Long): SizePrim[T] =
+    new CSizePrim[T](dataSize)
+
+  def mkSizePair[L, R](l: Size[L], r: Size[R]): SizePair[L, R] =
+    new CSizePair(l, r)
+
+  def mkSizeColl[T](sizes: Coll[Size[T]]): SizeColl[T] =
+    new CSizeColl[T](sizes)
+
+  def mkSizeFunc[E, A, R](sizeEnv: Size[E], sizeFunc: Long): SizeFunc[E, A, R] =
+    new CSizeFunc[E, A, R](sizeEnv, sizeFunc)
+
+  def mkSizeOption[T](sizeOpt: Option[Size[T]]): SizeOption[T] =
+    new CSizeOption[T](sizeOpt)
+
+  def mkCostedPrim[T](value: T, cost: Int, size: Size[T]): CostedPrim[T] =
     new CCostedPrim[T](value, cost, size)
 
   def mkCostedPair[L,R](first: Costed[L], second: Costed[R]): CostedPair[L,R] =
     new CCostedPair(first, second)
 
-  def mkCostedSum[L,R](value: Either[L, R], left: Costed[Unit], right: Costed[Unit]): CostedSum[L, R] =
-    new CCostedSum(value, left, right)
-
   def mkCostedFunc[Env,Arg,Res](
         envCosted: Costed[Env],
         func: Costed[Arg] => Costed[Res],
-        cost: Int, dataSize: Long): CostedFunc[Env, Arg, Res] = new CCostedFunc(envCosted, func, cost, dataSize)
+        cost: Int, size: Size[Arg=>Res]): CostedFunc[Env, Arg, Res]
+    = new CCostedFunc(envCosted, func, cost, size)
 
-  def mkCostedColl[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Long], valuesCost: Int): CostedColl[T] =
+  def mkCostedColl[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Size[T]], valuesCost: Int): CostedColl[T] =
     new CCostedColl[T](values, costs, sizes, valuesCost)
 
-  def mkCostedPairColl[L,R](ls: Costed[Coll[L]], rs: Costed[Coll[R]]): CostedPairColl[L,R] =
-    new CCostedPairColl(ls, rs)
-
-  def mkCostedNestedColl[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: RType[Item]): CostedNestedColl[Item] =
-    new CCostedNestedColl[Item](rows)
-
-  def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T] =
-    new CostedSome[T](costedValue)
-
-  def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T] =
-    new CostedNone[T](cost)
-
-  def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Long], accumulatedCost: Int): CostedOption[T] =
+  def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Size[T]], accumulatedCost: Int): CostedOption[T] =
     new CCostedOption[T](value, costOpt, sizeOpt, accumulatedCost)
 }
 

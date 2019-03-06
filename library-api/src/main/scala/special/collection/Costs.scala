@@ -2,17 +2,42 @@ package special.collection
 
 import scalan.RType
 
+trait Size[Val] {
+  def dataSize: Long
+}
+
+trait SizePrim[Val] extends Size[Val] {
+  def dataSize: Long
+}
+
+trait SizePair[L,R] extends Size[(L,R)] {
+  def l: Size[L]
+  def r: Size[R]
+}
+
+trait SizeColl[Item] extends Size[Coll[Item]] {
+  def sizes: Coll[Size[Item]]
+}
+
+trait SizeFunc[Env, Arg, Res] extends Size[Arg => Res] {
+  def sizeEnv: Size[Env]
+}
+
+trait SizeOption[T] extends Size[Option[T]] {
+  def sizeOpt: Option[Size[T]]
+}
+
 trait Costed[Val] {
   def builder: CostedBuilder
   def value: Val
   def cost: Int
-  def dataSize: Long
+  def size: Size[Val]
 }
 
 trait CostedPrim[Val] extends Costed[Val] {
   def value: Val
   def cost: Int
-  def dataSize: Long
+  def size: Size[Val]
 }
 
 trait CostedPair[L,R] extends Costed[(L,R)] {
@@ -20,49 +45,28 @@ trait CostedPair[L,R] extends Costed[(L,R)] {
   def r: Costed[R]
 }
 
-trait CostedSum[L,R] extends Costed[Either[L, R]] {
-  def value: Either[L, R]
-  def left: Costed[Unit]
-  def right: Costed[Unit]
-}
-
 trait CostedFunc[Env,Arg,Res] extends Costed[Arg => Res]  {
   def envCosted: Costed[Env]
   def func: Costed[Arg] => Costed[Res]
   def cost: Int
-  def dataSize: Long
 }
 
 trait CostedColl[Item] extends Costed[Coll[Item]] {
   def values: Coll[Item]
   def costs: Coll[Int]
-  def sizes: Coll[Long]
+  def sizes: Coll[Size[Item]]
   def valuesCost: Int
   def mapCosted[Res](f: Costed[Item] => Costed[Res]): CostedColl[Res]
   def filterCosted(f: Costed[Item] => Costed[Boolean]): CostedColl[Item]
   def foldCosted[B](zero: Costed[B], op: Costed[(B, Item)] => Costed[B]): Costed[B]
 }
 
-trait CostedPairColl[L,R] extends Costed[Coll[(L,R)]] {
-  def ls: Costed[Coll[L]]
-  def rs: Costed[Coll[R]]
-}
-
-trait CostedNestedColl[Item] extends Costed[Coll[Coll[Item]]] {
-  def rows: Coll[Costed[Coll[Item]]]
-}
-
 /** NOTE: Option is a special case of Either, such that Option[T] is isomorphic to Either[Unit, T].
   * Keeping this in mind, we however define constructions for Option separately. */
 trait CostedOption[T] extends Costed[Option[T]] {
-  def get: Costed[T]
-  def getOrElse(default: Costed[T]): Costed[T]
-  def fold[B](ifEmpty: Costed[B], f: Costed[T => B]): Costed[B]
-  def isEmpty: Costed[Boolean]
-  def isDefined: Costed[Boolean]
-  def filter(p: Costed[T => Boolean]): Costed[Option[T]]
-  def flatMap[B](f: Costed[T => Option[B]]): Costed[Option[B]]
-  def map[B](f: Costed[T => B]): Costed[Option[B]]
+  def costOpt: Option[Int]
+  def sizeOpt: Option[Size[T]]
+  def accumulatedCost: Int
 }
 
 trait CostedBuilder {
@@ -73,16 +77,17 @@ trait CostedBuilder {
   def costedValue[T](x: T, optCost: Option[Int])(implicit cT: RType[T]): Costed[T]
   def defaultValue[T](valueType: RType[T]): T
   def monoidBuilder: MonoidBuilder
-  def mkCostedPrim[T](value: T, cost: Int, size: Long): CostedPrim[T]
+  def mkSizePrim[T](dataSize: Long): SizePrim[T]
+  def mkSizePair[L,R](l: Size[L], r: Size[R]): SizePair[L,R]
+  def mkSizeColl[T](sizes: Coll[Size[T]]): SizeColl[T]
+  def mkSizeFunc[E,A,R](sizeEnv: Size[E], sizeFunc: Long): SizeFunc[E,A,R]
+  def mkSizeOption[T](sizeOpt: Option[Size[T]]): SizeOption[T]
+
+  def mkCostedPrim[T](value: T, cost: Int, size: Size[T]): CostedPrim[T]
   def mkCostedPair[L,R](first: Costed[L], second: Costed[R]): CostedPair[L,R]
-  def mkCostedSum[L,R](value: Either[L, R], left: Costed[Unit], right: Costed[Unit]): CostedSum[L, R]
-  def mkCostedFunc[Env,Arg,Res](envCosted: Costed[Env], func: Costed[Arg] => Costed[Res], cost: Int, dataSize: Long): CostedFunc[Env, Arg, Res]
-  def mkCostedColl[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Long], valuesCost: Int): CostedColl[T]
-  def mkCostedPairColl[L,R](ls: Costed[Coll[L]], rs: Costed[Coll[R]]): CostedPairColl[L,R]
-  def mkCostedNestedColl[Item](rows: Coll[Costed[Coll[Item]]])(implicit cItem: RType[Item]): CostedNestedColl[Item]
-  def mkCostedSome[T](costedValue: Costed[T]): CostedOption[T]
-  def mkCostedNone[T](cost: Int)(implicit eT: RType[T]): CostedOption[T]
-  def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Long], accumulatedCost: Int): CostedOption[T]
+  def mkCostedFunc[Env,Arg,Res](envCosted: Costed[Env], func: Costed[Arg] => Costed[Res], cost: Int, size: Size[Arg=>Res]): CostedFunc[Env, Arg, Res]
+  def mkCostedColl[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Size[T]], valuesCost: Int): CostedColl[T]
+  def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Size[T]], accumulatedCost: Int): CostedOption[T]
 }
 
 
