@@ -14,6 +14,7 @@ class CostedTests extends BaseCostedTests {
   import CSizePrim._
   import CSizePair._
   import CSizeColl._
+  import CSizeOption._
   import Costed._
   import CCostedPair._
   import CCostedPrim._
@@ -70,23 +71,16 @@ class CostedTests extends BaseCostedTests {
     sizeD shouldBe expected
   }
 
-//  val opt: Option[Int] = Some(10)
-//  lazy val optSym = liftConst(opt)
-//  lazy val optSize = RWSpecialPredef.some(4L)
-//  lazy val optC = RCCostedOption(optSym, RWSpecialPredef.some(0), optSize, 0)
-//
-//  test("dataSize of CostedOption") {
-//    val sizeD = optC.dataSize
-//    val expected @ Def(d: SizeData[_,_]) = sizeData(optC.value.elem, optSize)
-//    sizeD shouldBe expected
-//    val size = ProgramGraph.transform(sizeD, sizeDataRW)
-//    size shouldBe toRep(4L)
-//  }
-//
-//  test("dataSize of CostedOption.get") {
-//    val v = optC.get.dataSize
-//    v shouldBe sizeData(element[Int], 4L)
-//  }
+  val opt: Option[Int] = Some(10)
+  lazy val optSym = liftConst(opt)
+  lazy val optSize = RWSpecialPredef.some(IntSize)
+  lazy val optC = costedBuilder.mkCostedOption(optSym, RWSpecialPredef.some(0), optSize, 0)
+
+  test("dataSize of CostedOption") {
+    val sizeD = optC.size
+    val expected = RCSizeOption(optSize)
+    sizeD shouldBe expected
+  }
 
 //  test("measure: plus const propagation") {
 //    buildGraph(10, "measure_plus_const") { i =>
