@@ -36,25 +36,23 @@ class CostedTests extends BaseCostedTests {
 
   lazy val l = toRep(10)
   lazy val r = toRep(10.toByte)
-  lazy val lC = RCCostedPrim(l, 1, RCSizePrim[Int](4L))
-  lazy val rC = RCCostedPrim(r, 1, RCSizePrim[Byte](1L))
+  lazy val lC = RCCostedPrim(l, 1, RCSizePrim(4L, element[Int]))
+  lazy val rC = RCCostedPrim(r, 1, RCSizePrim(1L, element[Byte]))
   lazy val pC = RCCostedPair(lC, rC)
   lazy val ppC = RCCostedPair(pC, pC)
 
   test("dataSize of CostedPair") {
     val sizeD= pC.size
-    val expected = RCSizePair(RCSizePrim[Int](4L), RCSizePrim[Int](1L))
+    val expected = RCSizePair(RCSizePrim(4L, element[Int]), RCSizePrim(1L, element[Byte]))
     sizeD shouldBe expected
   }
 
-//  test("dataSize of nested CostedPair") {
-//    val sizeD= ppC.dataSize
-//    val ppSize = sizeData(pC.value.elem, Pair(sizeData(l.elem, 4L), sizeData(r.elem, 1L)))
-//    val expected @ Def(d: SizeData[_,_]) = sizeData(ppC.value.elem, Pair(ppSize, ppSize))
-//    sizeD shouldBe expected
-//    val size = ProgramGraph.transform(sizeD, sizeDataRW)
-//    size shouldBe toRep(10L)
-//  }
+  test("dataSize of nested CostedPair") {
+    val sizeD= ppC.size
+    val ppSize = pC.size
+    val expected  = RCSizePair(ppSize, ppSize)
+    sizeD shouldBe expected
+  }
 //
 //  val Colls = new special.collection.CollOverArrayBuilder
 //  val xs = Colls.fromItems(10, 20, 30)

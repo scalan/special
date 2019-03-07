@@ -40,7 +40,7 @@ trait Library extends Scalan
 
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
     val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
-    liftableRType(lT).lift(eT.asInstanceOf[RType[Any]])
+    liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
   }
 
   override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {

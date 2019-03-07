@@ -887,13 +887,13 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     }
 
     object mkSizePrim {
-      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Long], Elem[T]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CCostedBuilderElem] && method.getName == "mkSizePrim" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Long], Elem[T]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Long], Elem[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -925,15 +925,14 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       }
     }
 
-    // manual fix
     object mkSizeFunc {
-      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Elem[A], Elem[R]) forSome {type E; type A; type R}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CCostedBuilderElem] && method.getName == "mkSizeFunc" =>
           val res = (receiver, args(0), args(1), args(2), args(3))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Elem[A], Elem[R]) forSome {type E; type A; type R}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Elem[A], Elem[R]) forSome {type E; type A; type R}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

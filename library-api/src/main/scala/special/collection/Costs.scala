@@ -52,10 +52,10 @@ trait CostedBuilder {
   def costedValue[T](x: T, optCost: Option[Int])(implicit cT: RType[T]): Costed[T]
   def defaultValue[T](valueType: RType[T]): T
   def monoidBuilder: MonoidBuilder
-  @Reified("T") def mkSizePrim[T](dataSize: Long)(implicit tT: RType[T]): SizePrim[T]
+  def mkSizePrim[T](dataSize: Long, tT: RType[T]): SizePrim[T]
   def mkSizePair[L,R](l: Size[L], r: Size[R]): SizePair[L,R]
   def mkSizeColl[T](sizes: Coll[Size[T]]): SizeColl[T]
-  @Reified("A") @Reified("R")def mkSizeFunc[E,A,R](sizeEnv: Size[E], sizeFunc: Long)(implicit tA: RType[A], tR: RType[R]): SizeFunc[E,A,R]
+  def mkSizeFunc[E,A,R](sizeEnv: Size[E], sizeFunc: Long, tA: RType[A], tR: RType[R]): SizeFunc[E,A,R]
   def mkSizeOption[T](sizeOpt: Option[Size[T]]): SizeOption[T]
 
   def mkCostedPrim[T](value: T, cost: Int, size: Size[T]): CostedPrim[T]

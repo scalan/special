@@ -2,7 +2,7 @@ package special.collection
 
 import scalan._
 
-class CSizePrim[Val](val dataSize: Long) extends SizePrim[Val] {
+class CSizePrim[Val](val dataSize: Long, val tVal: RType[Val]) extends SizePrim[Val] {
 }
 
 class CSizePair[L,R](val l: Size[L], val r: Size[R]) extends SizePair[L, R] {
@@ -18,7 +18,7 @@ class CSizeColl[Item](val sizes: Coll[Size[Item]]) extends SizeColl[Item] {
   def dataSize: Long = sizes.map(_.dataSize).sum(builder.monoidBuilder.longPlusMonoid)
 }
 
-class CSizeFunc[Env, Arg, Res](val sizeEnv: Size[Env], val sizeFunc: Long) extends SizeFunc[Env, Arg, Res] {
+class CSizeFunc[Env, Arg, Res](val sizeEnv: Size[Env], val sizeFunc: Long, val tArg: RType[Arg], val tRes: RType[Res]) extends SizeFunc[Env, Arg, Res] {
   @NeverInline
   def dataSize: Long = sizeEnv.dataSize + sizeFunc
 }

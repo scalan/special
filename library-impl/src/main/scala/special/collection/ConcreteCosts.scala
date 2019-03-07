@@ -54,8 +54,8 @@ class CCostedBuilder extends CostedBuilder {
   @NeverInline
   def defaultValue[T](valueType: RType[T]): T = rewritableMethod
 
-  @Reified("T") def mkSizePrim[T](dataSize: Long)(implicit tT: RType[T]): SizePrim[T] =
-    new CSizePrim[T](dataSize)
+  def mkSizePrim[T](dataSize: Long, tT: RType[T]): SizePrim[T] =
+    new CSizePrim[T](dataSize, tT)
 
   def mkSizePair[L, R](l: Size[L], r: Size[R]): SizePair[L, R] =
     new CSizePair(l, r)
@@ -63,8 +63,8 @@ class CCostedBuilder extends CostedBuilder {
   def mkSizeColl[T](sizes: Coll[Size[T]]): SizeColl[T] =
     new CSizeColl[T](sizes)
 
-  @Reified("A") @Reified("R") def mkSizeFunc[E, A, R](sizeEnv: Size[E], sizeFunc: Long)(implicit tA: RType[A], tR: RType[R]): SizeFunc[E, A, R] =
-    new CSizeFunc[E, A, R](sizeEnv, sizeFunc)
+  def mkSizeFunc[E, A, R](sizeEnv: Size[E], sizeFunc: Long, tA: RType[A], tR: RType[R]): SizeFunc[E, A, R] =
+    new CSizeFunc[E, A, R](sizeEnv, sizeFunc, tA, tR)
 
   def mkSizeOption[T](sizeOpt: Option[Size[T]]): SizeOption[T] =
     new CSizeOption[T](sizeOpt)

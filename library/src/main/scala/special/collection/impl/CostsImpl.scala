@@ -1036,9 +1036,10 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
         true, true, element[MonoidBuilder]))
     }
 
-    def mkSizePrim[T](dataSize: Rep[Long])(implicit tT: Elem[T]): Rep[SizePrim[T]] = {
+    def mkSizePrim[T](dataSize: Rep[Long], tT: Rep[WRType[T]]): Rep[SizePrim[T]] = {
+      implicit val eT = tT.eA
       asRep[SizePrim[T]](mkMethodCall(source,
-        thisClass.getMethod("mkSizePrim", classOf[Sym], classOf[Elem[_]]),
+        thisClass.getMethod("mkSizePrim", classOf[Sym], classOf[Sym]),
         List(dataSize, tT),
         true, true, element[SizePrim[T]]))
     }
@@ -1060,10 +1061,12 @@ implicit val eR = r.eVal
         true, true, element[SizeColl[T]]))
     }
 
-    def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long])(implicit tA: Elem[A], tR: Elem[R]): Rep[SizeFunc[E, A, R]] = {
+    def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long], tA: Rep[WRType[A]], tR: Rep[WRType[R]]): Rep[SizeFunc[E, A, R]] = {
       implicit val eE = sizeEnv.eVal
+implicit val eA = tA.eA
+implicit val eR = tR.eA
       asRep[SizeFunc[E, A, R]](mkMethodCall(source,
-        thisClass.getMethod("mkSizeFunc", classOf[Sym], classOf[Sym], classOf[Elem[_]], classOf[Elem[_]]),
+        thisClass.getMethod("mkSizeFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
         List(sizeEnv, sizeFunc, tA, tR),
         true, true, element[SizeFunc[E, A, R]]))
     }
@@ -1261,13 +1264,13 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     }
 
     object mkSizePrim {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Long], Elem[T]) forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkSizePrim" =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Long], Elem[T]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Long], Elem[T]) forSome {type T}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1300,13 +1303,13 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     }
 
     object mkSizeFunc {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Elem[A], Elem[R], Elem[E]) forSome {type E; type A; type R}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkSizeFunc" =>
-          val res = (receiver, args(0), args(1), args(2), args(3), args(4))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Elem[A], Elem[R], Elem[E]) forSome {type E; type A; type R}]]
+          val res = (receiver, args(0), args(1), args(2), args(3))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Elem[A], Elem[R], Elem[E]) forSome {type E; type A; type R}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

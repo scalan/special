@@ -70,10 +70,10 @@ package special.collection {
       def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]];
       def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T];
       def monoidBuilder: Rep[MonoidBuilder];
-      @Reified(value = "T") def mkSizePrim[T](dataSize: Rep[Long])(implicit tT: Elem[T]): Rep[SizePrim[T]];
+      def mkSizePrim[T](dataSize: Rep[Long], tT: Rep[WRType[T]]): Rep[SizePrim[T]];
       def mkSizePair[L, R](l: Rep[Size[L]], r: Rep[Size[R]]): Rep[SizePair[L, R]];
       def mkSizeColl[T](sizes: Rep[Coll[Size[T]]]): Rep[SizeColl[T]];
-      @Reified(value = "A") @Reified(value = "R") def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long])(implicit tA: Elem[A], tR: Elem[R]): Rep[SizeFunc[E, A, R]];
+      def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long], tA: Rep[WRType[A]], tR: Rep[WRType[R]]): Rep[SizeFunc[E, A, R]];
       def mkSizeOption[T](sizeOpt: Rep[WOption[Size[T]]]): Rep[SizeOption[T]];
       def mkCostedPrim[T](value: Rep[T], cost: Rep[Int], size: Rep[Size[T]]): Rep[CostedPrim[T]];
       def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]];

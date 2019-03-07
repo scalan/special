@@ -58,10 +58,10 @@ package special.collection {
       def monoidBuilder: Rep[MonoidBuilderInst] = RMonoidBuilderInst();
       @NeverInline def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = delayInvoke;
       @NeverInline def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = delayInvoke;
-      @Reified(value = "T") def mkSizePrim[T](dataSize: Rep[Long])(implicit tT: Elem[T]): Rep[SizePrim[T]] = RCSizePrim(dataSize);
+      def mkSizePrim[T](dataSize: Rep[Long], tT: Rep[WRType[T]]): Rep[SizePrim[T]] = RCSizePrim(dataSize, tT);
       def mkSizePair[L, R](l: Rep[Size[L]], r: Rep[Size[R]]): Rep[SizePair[L, R]] = RCSizePair(l, r);
       def mkSizeColl[T](sizes: Rep[Coll[Size[T]]]): Rep[SizeColl[T]] = RCSizeColl(sizes);
-      @Reified(value = "A") @Reified(value = "R") def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long])(implicit tA: Elem[A], tR: Elem[R]): Rep[SizeFunc[E, A, R]] = RCSizeFunc(sizeEnv, sizeFunc);
+      def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long], tA: Rep[WRType[A]], tR: Rep[WRType[R]]): Rep[SizeFunc[E, A, R]] = RCSizeFunc(sizeEnv, sizeFunc, tA, tR);
       def mkSizeOption[T](sizeOpt: Rep[WOption[Size[T]]]): Rep[SizeOption[T]] = RCSizeOption(sizeOpt);
       def mkCostedPrim[T](value: Rep[T], cost: Rep[Int], size: Rep[Size[T]]): Rep[CostedPrim[T]] = RCCostedPrim(value, cost, size);
       def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]] = RCCostedPair(first, second);
