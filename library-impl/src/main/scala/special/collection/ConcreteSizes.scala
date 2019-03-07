@@ -6,12 +6,13 @@ class CSizePrim[Val](val dataSize: Long) extends SizePrim[Val] {
 }
 
 class CSizePair[L,R](val l: Size[L], val r: Size[R]) extends SizePair[L, R] {
+  @NeverInline
   def dataSize: Long = l.dataSize + r.dataSize
 }
 
 class CSizeColl[Item](val sizes: Coll[Size[Item]]) extends SizeColl[Item] {
   @Internal
-  val builder: CostedBuilder = new CCostedBuilder
+  def builder: CostedBuilder = new CCostedBuilder
 
   @NeverInline
   def dataSize: Long = sizes.map(_.dataSize).sum(builder.monoidBuilder.longPlusMonoid)
