@@ -12,9 +12,9 @@ trait Library extends Scalan
   with WrappersSpecModule
   with CollsModule
   with CollsOverArraysModule
-//  with SizesModule
+  with SizesModule
   with CostsModule
-//  with ConcreteSizesModule
+  with ConcreteSizesModule
   with ConcreteCostsModule
   with MonoidsModule
   with MonoidInstancesModule

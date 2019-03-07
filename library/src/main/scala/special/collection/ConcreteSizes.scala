@@ -1,0 +1,29 @@
+package special.collection {
+  import scalan._
+
+  trait ConcreteSizes extends Base { self: Library =>
+    import SizeColl._;
+    import SizeFunc._;
+    import SizeOption._;
+    import SizePair._;
+    import SizePrim._;
+    abstract class CSizePrim[Val](val dataSize: Rep[Long]) extends SizePrim[Val];
+    abstract class CSizePair[L, R](val l: Rep[Size[L]], val r: Rep[Size[R]]) extends SizePair[L, R] {
+      @NeverInline def dataSize: Rep[Long] = delayInvoke
+    };
+    abstract class CSizeColl[Item](val sizes: Rep[Coll[Size[Item]]]) extends SizeColl[Item] {
+      @NeverInline def dataSize: Rep[Long] = delayInvoke
+    };
+    abstract class CSizeFunc[Env, Arg, Res](val sizeEnv: Rep[Size[Env]], val sizeFunc: Rep[Long]) extends SizeFunc[Env, Arg, Res] {
+      @NeverInline def dataSize: Rep[Long] = delayInvoke
+    };
+    abstract class CSizeOption[Item](val sizeOpt: Rep[WOption[Size[Item]]]) extends SizeOption[Item] {
+      @NeverInline def dataSize: Rep[Long] = delayInvoke
+    };
+    trait CSizePrimCompanion;
+    trait CSizePairCompanion;
+    trait CSizeCollCompanion;
+    trait CSizeFuncCompanion;
+    trait CSizeOptionCompanion
+  }
+}

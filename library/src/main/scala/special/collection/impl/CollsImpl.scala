@@ -60,10 +60,10 @@ object Coll extends EntityObject("Coll") {
         true, false, element[Int]))
     }
 
-    override def apply(index: Rep[Int]): Rep[A] = {
+    override def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("apply", classOf[Sym]),
-        List(index),
+        List(i),
         true, false, element[A]))
     }
 
@@ -320,10 +320,10 @@ implicit val eV = proj.elem.eRange
         true, true, element[Int]))
     }
 
-    def apply(index: Rep[Int]): Rep[A] = {
+    def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
-        List(index),
+        List(i),
         true, true, element[A]))
     }
 
@@ -578,7 +578,7 @@ implicit val eV = proj.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "toArray", "length", "apply", "getOrElse", "map", "zip", "exists", "forall", "filter", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
+        "builder", "toArray", "length", "size", "apply", "getOrElse", "map", "zip", "exists", "forall", "filter", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
         ))
     }
 
@@ -661,6 +661,19 @@ implicit val eV = proj.elem.eRange
     object length {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "length" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[Coll[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object size {
+      def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "size" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -1167,10 +1180,10 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Int]))
     }
 
-    def apply(index: Rep[Int]): Rep[(L, R)] = {
+    def apply(i: Rep[Int]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
-        List(index),
+        List(i),
         true, true, element[(L, R)]))
     }
 
@@ -1598,10 +1611,10 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[WArray[A]]))
     }
 
-    def apply(index: Rep[Int]): Rep[A] = {
+    def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
-        List(index),
+        List(i),
         true, true, element[A]))
     }
 

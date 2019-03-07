@@ -14,7 +14,8 @@ package special.collection {
       def builder: Rep[CollBuilder];
       def toArray: Rep[WArray[A]];
       def length: Rep[Int];
-      def apply(index: Rep[Int]): Rep[A];
+      def size: Rep[Int] = this.length;
+      def apply(i: Rep[Int]): Rep[A];
       def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A];
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Coll[B]];
       def zip[B](ys: Rep[Coll[B]]): Rep[Coll[scala.Tuple2[A, B]]];
