@@ -20,6 +20,50 @@ import SizePair._
 import SizePrim._
 
 object Size extends EntityObject("Size") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SSize[Val] = special.collection.Size[Val]
+  case class SizeConst[SVal, Val](
+        constValue: SSize[SVal],
+        lVal: Liftable[SVal, Val]
+      ) extends Size[Val] with LiftedConst[SSize[SVal], Size[Val]]
+        with Def[Size[Val]] with SizeConstMethods[Val] {
+    implicit def eVal: Elem[Val] = lVal.eW
+
+    val liftable: Liftable[SSize[SVal], Size[Val]] = liftableSize(lVal)
+    val selfType: Elem[Size[Val]] = liftable.eW
+  }
+
+  trait SizeConstMethods[Val] extends Size[Val]  { thisConst: Def[_] =>
+    implicit def eVal: Elem[Val]
+    private val SizeClass = classOf[Size[Val]]
+
+    override def dataSize: Rep[Long] = {
+      asRep[Long](mkMethodCall(self,
+        SizeClass.getMethod("dataSize"),
+        List(),
+        true, false, element[Long]))
+    }
+  }
+
+  case class LiftableSize[SVal, Val](lVal: Liftable[SVal, Val])
+    extends Liftable[SSize[SVal], Size[Val]] {
+    lazy val eW: Elem[Size[Val]] = sizeElement(lVal.eW)
+    lazy val sourceType: RType[SSize[SVal]] = {
+            implicit val tagSVal = lVal.sourceType.asInstanceOf[RType[SVal]]
+      RType[SSize[SVal]]
+    }
+    def lift(x: SSize[SVal]): Rep[Size[Val]] = SizeConst(x, lVal)
+    def unlift(w: Rep[Size[Val]]): SSize[SVal] = w match {
+      case Def(SizeConst(x: SSize[_], _lVal))
+            if _lVal == lVal => x.asInstanceOf[SSize[SVal]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableSize[SVal, Val](implicit lVal: Liftable[SVal,Val]): Liftable[SSize[SVal], Size[Val]] =
+    LiftableSize(lVal)
+
   // entityAdapter for Size trait
   case class SizeAdapter[Val](source: Rep[Size[Val]])
       extends Size[Val] with Def[Size[Val]] {
@@ -48,6 +92,15 @@ object Size extends EntityObject("Size") {
   class SizeElem[Val, To <: Size[Val]](implicit _eVal: Elem[Val])
     extends EntityElem[To] {
     def eVal = _eVal
+
+    override val liftable: Liftables.Liftable[_, To] = liftableSize(_eVal.liftable).asLiftable[SSize[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[Size[Val]], classOf[SSize[_]], Set(
+        "dataSize"
+        ))
+    }
 
     lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
@@ -109,6 +162,50 @@ object Size extends EntityObject("Size") {
   registerEntityObject("Size", Size)
 
 object SizePrim extends EntityObject("SizePrim") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SSizePrim[Val] = special.collection.SizePrim[Val]
+  case class SizePrimConst[SVal, Val](
+        constValue: SSizePrim[SVal],
+        lVal: Liftable[SVal, Val]
+      ) extends SizePrim[Val] with LiftedConst[SSizePrim[SVal], SizePrim[Val]]
+        with Def[SizePrim[Val]] with SizePrimConstMethods[Val] {
+    implicit def eVal: Elem[Val] = lVal.eW
+
+    val liftable: Liftable[SSizePrim[SVal], SizePrim[Val]] = liftableSizePrim(lVal)
+    val selfType: Elem[SizePrim[Val]] = liftable.eW
+  }
+
+  trait SizePrimConstMethods[Val] extends SizePrim[Val] with SizeConstMethods[Val] { thisConst: Def[_] =>
+    implicit def eVal: Elem[Val]
+    private val SizePrimClass = classOf[SizePrim[Val]]
+
+    override def dataSize: Rep[Long] = {
+      asRep[Long](mkMethodCall(self,
+        SizePrimClass.getMethod("dataSize"),
+        List(),
+        true, false, element[Long]))
+    }
+  }
+
+  case class LiftableSizePrim[SVal, Val](lVal: Liftable[SVal, Val])
+    extends Liftable[SSizePrim[SVal], SizePrim[Val]] {
+    lazy val eW: Elem[SizePrim[Val]] = sizePrimElement(lVal.eW)
+    lazy val sourceType: RType[SSizePrim[SVal]] = {
+            implicit val tagSVal = lVal.sourceType.asInstanceOf[RType[SVal]]
+      RType[SSizePrim[SVal]]
+    }
+    def lift(x: SSizePrim[SVal]): Rep[SizePrim[Val]] = SizePrimConst(x, lVal)
+    def unlift(w: Rep[SizePrim[Val]]): SSizePrim[SVal] = w match {
+      case Def(SizePrimConst(x: SSizePrim[_], _lVal))
+            if _lVal == lVal => x.asInstanceOf[SSizePrim[SVal]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableSizePrim[SVal, Val](implicit lVal: Liftable[SVal,Val]): Liftable[SSizePrim[SVal], SizePrim[Val]] =
+    LiftableSizePrim(lVal)
+
   // entityAdapter for SizePrim trait
   case class SizePrimAdapter[Val](source: Rep[SizePrim[Val]])
       extends SizePrim[Val] with Def[SizePrim[Val]] {
@@ -137,6 +234,15 @@ object SizePrim extends EntityObject("SizePrim") {
   class SizePrimElem[Val, To <: SizePrim[Val]](implicit _eVal: Elem[Val])
     extends SizeElem[Val, To] {
     override def eVal = _eVal
+
+    override val liftable: Liftables.Liftable[_, To] = liftableSizePrim(_eVal.liftable).asLiftable[SSizePrim[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[SizePrim[Val]], classOf[SSizePrim[_]], Set(
+        "dataSize"
+        ))
+    }
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
@@ -198,6 +304,61 @@ object SizePrim extends EntityObject("SizePrim") {
   registerEntityObject("SizePrim", SizePrim)
 
 object SizePair extends EntityObject("SizePair") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SSizePair[L, R] = special.collection.SizePair[L, R]
+  case class SizePairConst[SL, SR, L, R](
+        constValue: SSizePair[SL, SR],
+        lL: Liftable[SL, L], lR: Liftable[SR, R]
+      ) extends SizePair[L, R] with LiftedConst[SSizePair[SL, SR], SizePair[L, R]]
+        with Def[SizePair[L, R]] with SizePairConstMethods[L, R] {
+    implicit def eL: Elem[L] = lL.eW
+    implicit def eR: Elem[R] = lR.eW
+    implicit def eVal: Elem[(L, R)] = element[(L, R)]
+
+    val liftable: Liftable[SSizePair[SL, SR], SizePair[L, R]] = liftableSizePair(lL,lR)
+    val selfType: Elem[SizePair[L, R]] = liftable.eW
+  }
+
+  trait SizePairConstMethods[L, R] extends SizePair[L, R] with SizeConstMethods[(L, R)] { thisConst: Def[_] =>
+    implicit def eL: Elem[L]
+    implicit def eR: Elem[R]
+    private val SizePairClass = classOf[SizePair[L, R]]
+
+    override def l: Rep[Size[L]] = {
+      asRep[Size[L]](mkMethodCall(self,
+        SizePairClass.getMethod("l"),
+        List(),
+        true, false, element[Size[L]]))
+    }
+
+    override def r: Rep[Size[R]] = {
+      asRep[Size[R]](mkMethodCall(self,
+        SizePairClass.getMethod("r"),
+        List(),
+        true, false, element[Size[R]]))
+    }
+  }
+
+  case class LiftableSizePair[SL, SR, L, R](lL: Liftable[SL, L],lR: Liftable[SR, R])
+    extends Liftable[SSizePair[SL, SR], SizePair[L, R]] {
+    lazy val eW: Elem[SizePair[L, R]] = sizePairElement(lL.eW,lR.eW)
+    lazy val sourceType: RType[SSizePair[SL, SR]] = {
+            implicit val tagSL = lL.sourceType.asInstanceOf[RType[SL]]
+      implicit val tagSR = lR.sourceType.asInstanceOf[RType[SR]]
+      RType[SSizePair[SL, SR]]
+    }
+    def lift(x: SSizePair[SL, SR]): Rep[SizePair[L, R]] = SizePairConst(x, lL,lR)
+    def unlift(w: Rep[SizePair[L, R]]): SSizePair[SL, SR] = w match {
+      case Def(SizePairConst(x: SSizePair[_,_], _lL,_lR))
+            if _lL == lL && _lR == lR => x.asInstanceOf[SSizePair[SL, SR]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableSizePair[SL, SR, L, R](implicit lL: Liftable[SL,L],lR: Liftable[SR,R]): Liftable[SSizePair[SL, SR], SizePair[L, R]] =
+    LiftableSizePair(lL,lR)
+
   // entityAdapter for SizePair trait
   case class SizePairAdapter[L, R](source: Rep[SizePair[L, R]])
       extends SizePair[L, R] with Def[SizePair[L, R]] {
@@ -242,6 +403,15 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     extends SizeElem[(L, R), To] {
     def eL = _eL
     def eR = _eR
+
+    override val liftable: Liftables.Liftable[_, To] = liftableSizePair(_eL.liftable, _eR.liftable).asLiftable[SSizePair[_,_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[SizePair[L, R]], classOf[SSizePair[_,_]], Set(
+        "l", "r"
+        ))
+    }
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
@@ -317,6 +487,51 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   registerEntityObject("SizePair", SizePair)
 
 object SizeColl extends EntityObject("SizeColl") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SSizeColl[Item] = special.collection.SizeColl[Item]
+  case class SizeCollConst[SItem, Item](
+        constValue: SSizeColl[SItem],
+        lItem: Liftable[SItem, Item]
+      ) extends SizeColl[Item] with LiftedConst[SSizeColl[SItem], SizeColl[Item]]
+        with Def[SizeColl[Item]] with SizeCollConstMethods[Item] {
+    implicit def eItem: Elem[Item] = lItem.eW
+    implicit def eVal: Elem[Coll[Item]] = element[Coll[Item]]
+
+    val liftable: Liftable[SSizeColl[SItem], SizeColl[Item]] = liftableSizeColl(lItem)
+    val selfType: Elem[SizeColl[Item]] = liftable.eW
+  }
+
+  trait SizeCollConstMethods[Item] extends SizeColl[Item] with SizeConstMethods[Coll[Item]] { thisConst: Def[_] =>
+    implicit def eItem: Elem[Item]
+    private val SizeCollClass = classOf[SizeColl[Item]]
+
+    override def sizes: Rep[Coll[Size[Item]]] = {
+      asRep[Coll[Size[Item]]](mkMethodCall(self,
+        SizeCollClass.getMethod("sizes"),
+        List(),
+        true, false, element[Coll[Size[Item]]]))
+    }
+  }
+
+  case class LiftableSizeColl[SItem, Item](lItem: Liftable[SItem, Item])
+    extends Liftable[SSizeColl[SItem], SizeColl[Item]] {
+    lazy val eW: Elem[SizeColl[Item]] = sizeCollElement(lItem.eW)
+    lazy val sourceType: RType[SSizeColl[SItem]] = {
+            implicit val tagSItem = lItem.sourceType.asInstanceOf[RType[SItem]]
+      RType[SSizeColl[SItem]]
+    }
+    def lift(x: SSizeColl[SItem]): Rep[SizeColl[Item]] = SizeCollConst(x, lItem)
+    def unlift(w: Rep[SizeColl[Item]]): SSizeColl[SItem] = w match {
+      case Def(SizeCollConst(x: SSizeColl[_], _lItem))
+            if _lItem == lItem => x.asInstanceOf[SSizeColl[SItem]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableSizeColl[SItem, Item](implicit lItem: Liftable[SItem,Item]): Liftable[SSizeColl[SItem], SizeColl[Item]] =
+    LiftableSizeColl(lItem)
+
   // entityAdapter for SizeColl trait
   case class SizeCollAdapter[Item](source: Rep[SizeColl[Item]])
       extends SizeColl[Item] with Def[SizeColl[Item]] {
@@ -352,6 +567,15 @@ object SizeColl extends EntityObject("SizeColl") {
   class SizeCollElem[Item, To <: SizeColl[Item]](implicit _eItem: Elem[Item])
     extends SizeElem[Coll[Item], To] {
     def eItem = _eItem
+
+    override val liftable: Liftables.Liftable[_, To] = liftableSizeColl(_eItem.liftable).asLiftable[SSizeColl[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[SizeColl[Item]], classOf[SSizeColl[_]], Set(
+        "sizes"
+        ))
+    }
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(collElement(element[Item])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
@@ -413,6 +637,57 @@ object SizeColl extends EntityObject("SizeColl") {
   registerEntityObject("SizeColl", SizeColl)
 
 object SizeFunc extends EntityObject("SizeFunc") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SSizeFunc[Env, Arg, Res] = special.collection.SizeFunc[Env, Arg, Res]
+  case class SizeFuncConst[SEnv, SArg, SRes, Env, Arg, Res](
+        constValue: SSizeFunc[SEnv, SArg, SRes],
+        lEnv: Liftable[SEnv, Env], lArg: Liftable[SArg, Arg], lRes: Liftable[SRes, Res]
+      ) extends SizeFunc[Env, Arg, Res] with LiftedConst[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]]
+        with Def[SizeFunc[Env, Arg, Res]] with SizeFuncConstMethods[Env, Arg, Res] {
+    implicit def eEnv: Elem[Env] = lEnv.eW
+    implicit def eArg: Elem[Arg] = lArg.eW
+    implicit def eRes: Elem[Res] = lRes.eW
+    implicit def eVal: Elem[Arg => Res] = element[Arg => Res]
+
+    val liftable: Liftable[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]] = liftableSizeFunc(lEnv,lArg,lRes)
+    val selfType: Elem[SizeFunc[Env, Arg, Res]] = liftable.eW
+  }
+
+  trait SizeFuncConstMethods[Env, Arg, Res] extends SizeFunc[Env, Arg, Res] with SizeConstMethods[Arg => Res] { thisConst: Def[_] =>
+    implicit def eEnv: Elem[Env]
+    implicit def eArg: Elem[Arg]
+    implicit def eRes: Elem[Res]
+    private val SizeFuncClass = classOf[SizeFunc[Env, Arg, Res]]
+
+    override def sizeEnv: Rep[Size[Env]] = {
+      asRep[Size[Env]](mkMethodCall(self,
+        SizeFuncClass.getMethod("sizeEnv"),
+        List(),
+        true, false, element[Size[Env]]))
+    }
+  }
+
+  case class LiftableSizeFunc[SEnv, SArg, SRes, Env, Arg, Res](lEnv: Liftable[SEnv, Env],lArg: Liftable[SArg, Arg],lRes: Liftable[SRes, Res])
+    extends Liftable[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]] {
+    lazy val eW: Elem[SizeFunc[Env, Arg, Res]] = sizeFuncElement(lEnv.eW,lArg.eW,lRes.eW)
+    lazy val sourceType: RType[SSizeFunc[SEnv, SArg, SRes]] = {
+            implicit val tagSEnv = lEnv.sourceType.asInstanceOf[RType[SEnv]]
+      implicit val tagSArg = lArg.sourceType.asInstanceOf[RType[SArg]]
+      implicit val tagSRes = lRes.sourceType.asInstanceOf[RType[SRes]]
+      RType[SSizeFunc[SEnv, SArg, SRes]]
+    }
+    def lift(x: SSizeFunc[SEnv, SArg, SRes]): Rep[SizeFunc[Env, Arg, Res]] = SizeFuncConst(x, lEnv,lArg,lRes)
+    def unlift(w: Rep[SizeFunc[Env, Arg, Res]]): SSizeFunc[SEnv, SArg, SRes] = w match {
+      case Def(SizeFuncConst(x: SSizeFunc[_,_,_], _lEnv,_lArg,_lRes))
+            if _lEnv == lEnv && _lArg == lArg && _lRes == lRes => x.asInstanceOf[SSizeFunc[SEnv, SArg, SRes]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableSizeFunc[SEnv, SArg, SRes, Env, Arg, Res](implicit lEnv: Liftable[SEnv,Env],lArg: Liftable[SArg,Arg],lRes: Liftable[SRes,Res]): Liftable[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]] =
+    LiftableSizeFunc(lEnv,lArg,lRes)
+
   // entityAdapter for SizeFunc trait
   case class SizeFuncAdapter[Env, Arg, Res](source: Rep[SizeFunc[Env, Arg, Res]])
       extends SizeFunc[Env, Arg, Res] with Def[SizeFunc[Env, Arg, Res]] {
@@ -452,6 +727,15 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     def eEnv = _eEnv
     def eArg = _eArg
     def eRes = _eRes
+
+    override val liftable: Liftables.Liftable[_, To] = liftableSizeFunc(_eEnv.liftable, _eArg.liftable, _eRes.liftable).asLiftable[SSizeFunc[_,_,_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[SizeFunc[Env, Arg, Res]], classOf[SSizeFunc[_,_,_]], Set(
+        "sizeEnv"
+        ))
+    }
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(funcElement(element[Arg],element[Res])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
@@ -515,6 +799,51 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   registerEntityObject("SizeFunc", SizeFunc)
 
 object SizeOption extends EntityObject("SizeOption") {
+  // entityConst: single const for each entity
+  import Liftables._
+  import scala.reflect.{ClassTag, classTag}
+  type SSizeOption[T] = special.collection.SizeOption[T]
+  case class SizeOptionConst[ST, T](
+        constValue: SSizeOption[ST],
+        lT: Liftable[ST, T]
+      ) extends SizeOption[T] with LiftedConst[SSizeOption[ST], SizeOption[T]]
+        with Def[SizeOption[T]] with SizeOptionConstMethods[T] {
+    implicit def eT: Elem[T] = lT.eW
+    implicit def eVal: Elem[WOption[T]] = element[WOption[T]]
+
+    val liftable: Liftable[SSizeOption[ST], SizeOption[T]] = liftableSizeOption(lT)
+    val selfType: Elem[SizeOption[T]] = liftable.eW
+  }
+
+  trait SizeOptionConstMethods[T] extends SizeOption[T] with SizeConstMethods[WOption[T]] { thisConst: Def[_] =>
+    implicit def eT: Elem[T]
+    private val SizeOptionClass = classOf[SizeOption[T]]
+
+    override def sizeOpt: Rep[WOption[Size[T]]] = {
+      asRep[WOption[Size[T]]](mkMethodCall(self,
+        SizeOptionClass.getMethod("sizeOpt"),
+        List(),
+        true, false, element[WOption[Size[T]]]))
+    }
+  }
+
+  case class LiftableSizeOption[ST, T](lT: Liftable[ST, T])
+    extends Liftable[SSizeOption[ST], SizeOption[T]] {
+    lazy val eW: Elem[SizeOption[T]] = sizeOptionElement(lT.eW)
+    lazy val sourceType: RType[SSizeOption[ST]] = {
+            implicit val tagST = lT.sourceType.asInstanceOf[RType[ST]]
+      RType[SSizeOption[ST]]
+    }
+    def lift(x: SSizeOption[ST]): Rep[SizeOption[T]] = SizeOptionConst(x, lT)
+    def unlift(w: Rep[SizeOption[T]]): SSizeOption[ST] = w match {
+      case Def(SizeOptionConst(x: SSizeOption[_], _lT))
+            if _lT == lT => x.asInstanceOf[SSizeOption[ST]]
+      case _ => unliftError(w)
+    }
+  }
+  implicit def liftableSizeOption[ST, T](implicit lT: Liftable[ST,T]): Liftable[SSizeOption[ST], SizeOption[T]] =
+    LiftableSizeOption(lT)
+
   // entityAdapter for SizeOption trait
   case class SizeOptionAdapter[T](source: Rep[SizeOption[T]])
       extends SizeOption[T] with Def[SizeOption[T]] {
@@ -550,6 +879,15 @@ object SizeOption extends EntityObject("SizeOption") {
   class SizeOptionElem[T, To <: SizeOption[T]](implicit _eT: Elem[T])
     extends SizeElem[WOption[T], To] {
     def eT = _eT
+
+    override val liftable: Liftables.Liftable[_, To] = liftableSizeOption(_eT.liftable).asLiftable[SSizeOption[_], To]
+
+    override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
+      super.collectMethods ++
+        Elem.declaredMethods(classOf[SizeOption[T]], classOf[SSizeOption[_]], Set(
+        "sizeOpt"
+        ))
+    }
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(wOptionElement(element[T])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))

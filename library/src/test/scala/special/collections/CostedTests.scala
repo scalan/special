@@ -13,12 +13,14 @@ class CostedTests extends BaseCostedTests {
   import ctx._
   import CSizePrim._
   import CSizePair._
+  import CSizeColl._
   import Costed._
   import CCostedPair._
   import CCostedPrim._
   import CCostedColl._
   import CCostedOption._
   import CollBuilder._
+  import CostedBuilder._
   import Coll._
   import WOption._
   import WSpecialPredef._
@@ -53,21 +55,21 @@ class CostedTests extends BaseCostedTests {
     val expected  = RCSizePair(ppSize, ppSize)
     sizeD shouldBe expected
   }
-//
-//  val Colls = new special.collection.CollOverArrayBuilder
-//  val xs = Colls.fromItems(10, 20, 30)
-//  lazy val xsSym = liftConst(xs)
-//  lazy val xsSizes = liftConst(Colls.replicate(3, 4L))
-//  lazy val xsC = RCCostedColl(xsSym, liftConst(Colls.replicate(3, 0)), xsSizes, 0)
-//
-//  test("dataSize of CostedColl") {
-//    val sizeD = xsC.dataSize
-//    val expected @ Def(d: SizeData[_,_]) = sizeData(xsC.value.elem, xsSizes)
-//    sizeD shouldBe expected
-//    val size = ProgramGraph.transform(sizeD, sizeDataRW)
-//    size shouldBe toRep(12L)
-//  }
-//
+
+  val Colls = new special.collection.CollOverArrayBuilder
+  val xs = Colls.fromItems(10, 20, 30)
+  lazy val xsSym: Rep[Coll[Int]] = liftConst(xs)
+  lazy val xsCosts = liftConst(Colls.replicate(3, 0))
+  lazy val IntSize: RSize[Int] = costedBuilder.mkSizePrim(4L, element[Int])
+  lazy val xsSizes = colBuilder.replicate(3, IntSize)
+  lazy val xsC = costedBuilder.mkCostedColl(xsSym, xsCosts, xsSizes, 0)
+
+  test("dataSize of CostedColl") {
+    val sizeD = xsC.size
+    val expected = RCSizeColl(xsSizes)
+    sizeD shouldBe expected
+  }
+
 //  val opt: Option[Int] = Some(10)
 //  lazy val optSym = liftConst(opt)
 //  lazy val optSize = RWSpecialPredef.some(4L)

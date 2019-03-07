@@ -27,6 +27,9 @@ trait Library extends Scalan
   import CostedFunc._;
   import WSpecialPredef._
 
+  type RSize[Val] = Rep[Size[Val]]
+  type RCosted[A] = Rep[Costed[A]]
+
   trait Sized[Val] { node: Costed[Val] =>
     lazy val dataSize: Rep[Long] = {
       sizeOf(value)
