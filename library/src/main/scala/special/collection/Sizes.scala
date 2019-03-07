@@ -5,13 +5,15 @@ package special.collection {
     import Coll._;
     import Size._;
     import WOption._;
+    import WRType._;
     @Liftable trait Size[Val] extends Def[Size[Val]] {
       implicit def eVal: Elem[Val];
       def dataSize: Rep[Long]
     };
     @Liftable trait SizePrim[Val] extends Size[Val] {
       implicit def eVal: Elem[Val];
-      def dataSize: Rep[Long]
+      def dataSize: Rep[Long];
+      def tVal: Rep[WRType[Val]]
     };
     @Liftable trait SizePair[L, R] extends Size[scala.Tuple2[L, R]] {
       implicit def eL: Elem[L];

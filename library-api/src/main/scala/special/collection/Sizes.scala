@@ -1,5 +1,7 @@
 package special.collection
 
+import scalan.RType
+
 @scalan.Liftable
 trait Size[Val] {
   def dataSize: Long
@@ -8,6 +10,7 @@ trait Size[Val] {
 @scalan.Liftable
 trait SizePrim[Val] extends Size[Val] {
   def dataSize: Long
+  def tVal: RType[Val]
 }
 
 @scalan.Liftable

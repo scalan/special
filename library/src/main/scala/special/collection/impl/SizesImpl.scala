@@ -13,6 +13,7 @@ import Converter._
 import Coll._
 import Size._
 import WOption._
+import WRType._
 import SizeColl._
 import SizeFunc._
 import SizeOption._
@@ -187,6 +188,13 @@ object SizePrim extends EntityObject("SizePrim") {
         List(),
         true, false, element[Long]))
     }
+
+    override def tVal: Rep[WRType[Val]] = {
+      asRep[WRType[Val]](mkMethodCall(self,
+        SizePrimClass.getMethod("tVal"),
+        List(),
+        true, false, element[WRType[Val]]))
+    }
   }
 
   case class LiftableSizePrim[SVal, Val](lVal: Liftable[SVal, Val])
@@ -221,6 +229,13 @@ object SizePrim extends EntityObject("SizePrim") {
         List(),
         true, true, element[Long]))
     }
+
+    def tVal: Rep[WRType[Val]] = {
+      asRep[WRType[Val]](mkMethodCall(source,
+        thisClass.getMethod("tVal"),
+        List(),
+        true, true, element[WRType[Val]]))
+    }
   }
 
   // entityProxy: single proxy for each type family
@@ -240,7 +255,7 @@ object SizePrim extends EntityObject("SizePrim") {
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[SizePrim[Val]], classOf[SSizePrim[_]], Set(
-        "dataSize"
+        "dataSize", "tVal"
         ))
     }
 
@@ -287,6 +302,19 @@ object SizePrim extends EntityObject("SizePrim") {
     object dataSize {
       def unapply(d: Def[_]): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizePrimElem[_, _]] && method.getName == "dataSize" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object tVal {
+      def unapply(d: Def[_]): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizePrimElem[_, _]] && method.getName == "tVal" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
         case _ => Nullable.None
