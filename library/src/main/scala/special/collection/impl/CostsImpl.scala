@@ -338,6 +338,13 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Costed[R]]))
     }
 
+    def accCost: Rep[Int] = {
+      asRep[Int](mkMethodCall(source,
+        thisClass.getMethod("accCost"),
+        List(),
+        true, true, element[Int]))
+    }
+
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         thisClass.getMethod("builder"),
@@ -437,6 +444,19 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     object r {
       def unapply(d: Def[_]): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPairElem[_, _, _]] && method.getName == "r" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object accCost {
+      def unapply(d: Def[_]): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPairElem[_, _, _]] && method.getName == "accCost" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
@@ -1087,12 +1107,12 @@ implicit val eR = tR.eA
         true, true, element[CostedPrim[T]]))
     }
 
-    def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]] = {
+    def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]], accCost: Rep[Int]): Rep[CostedPair[L, R]] = {
       implicit val eL = first.eVal
 implicit val eR = second.eVal
       asRep[CostedPair[L, R]](mkMethodCall(source,
-        thisClass.getMethod("mkCostedPair", classOf[Sym], classOf[Sym]),
-        List(first, second),
+        thisClass.getMethod("mkCostedPair", classOf[Sym], classOf[Sym], classOf[Sym]),
+        List(first, second, accCost),
         true, true, element[CostedPair[L, R]]))
     }
 
@@ -1342,13 +1362,13 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     }
 
     object mkCostedPair {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]]) forSome {type L; type R}] = d match {
+      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedPair" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]]) forSome {type L; type R}]]
+          val res = (receiver, args(0), args(1), args(2))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]]) forSome {type L; type R}] = exp match {
+      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

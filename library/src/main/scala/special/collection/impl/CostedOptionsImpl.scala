@@ -11,12 +11,12 @@ trait CostedOptionsDefs extends scalan.Scalan with CostedOptions {
 import IsoUR._
 import Converter._
 import CCostedBuilder._
-import CCostedOption._
 import CostedBuilder._
 import CostedOption._
 import Size._
 import SizeOption._
 import WOption._
+import CCostedOption._
 
 object CCostedOption extends EntityObject("CCostedOption") {
   case class CCostedOptionCtor[T]
@@ -26,6 +26,14 @@ object CCostedOption extends EntityObject("CCostedOption") {
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     lazy val selfType = element[CCostedOption[T]]
     override def transform(t: Transformer) = CCostedOptionCtor[T](t(value), t(costOpt), t(sizeOpt), t(accumulatedCost))
+    private val thisClass = classOf[CostedOption[_]]
+
+    override def cost: Rep[Int] = {
+      asRep[Int](mkMethodCall(self,
+        thisClass.getMethod("cost"),
+        List(),
+        true, false, element[Int]))
+    }
   }
   // elem for concrete class
   class CCostedOptionElem[T](val iso: Iso[CCostedOptionData[T], CCostedOption[T]])(implicit override val eT: Elem[T])

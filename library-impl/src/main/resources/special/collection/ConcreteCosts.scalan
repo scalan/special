@@ -21,8 +21,6 @@ package special.collection {
     import CostedOption._;
     import CostedPair._;
     import CostedPrim._;
-    import Monoid._;
-    import MonoidBuilder._;
     import MonoidBuilderInst._;
     import Size._;
     import SizeColl._;
@@ -35,10 +33,10 @@ package special.collection {
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Size[Val]]) extends CostedPrim[Val] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
     };
-    abstract class CCostedPair[L, R](val l: Rep[Costed[L]], val r: Rep[Costed[R]]) extends CostedPair[L, R] {
+    abstract class CCostedPair[L, R](val l: Rep[Costed[L]], val r: Rep[Costed[R]], val accCost: Rep[Int]) extends CostedPair[L, R] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[scala.Tuple2[L, R]] = Pair(CCostedPair.this.l.value, CCostedPair.this.r.value);
-      def cost: Rep[Int] = CCostedPair.this.l.cost.+(CCostedPair.this.r.cost).+(CCostedPair.this.builder.ConstructTupleCost);
+      @NeverInline def cost: Rep[Int] = delayInvoke;
       def size: Rep[Size[scala.Tuple2[L, R]]] = CCostedPair.this.builder.mkSizePair[L, R](CCostedPair.this.l.size, CCostedPair.this.r.size)
     };
     abstract class CCostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], val cost: Rep[Int], val size: Rep[Size[scala.Function1[Arg, Res]]]) extends CostedFunc[Env, Arg, Res] {
@@ -48,7 +46,7 @@ package special.collection {
     abstract class CCostedColl[Item](val values: Rep[Coll[Item]], val costs: Rep[Coll[Int]], val sizes: Rep[Coll[Size[Item]]], val valuesCost: Rep[Int]) extends CostedColl[Item] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       def value: Rep[Coll[Item]] = CCostedColl.this.values;
-      def cost: Rep[Int] = CCostedColl.this.valuesCost.+(CCostedColl.this.costs.sum(CCostedColl.this.builder.monoidBuilder.intPlusMonoid));
+      @NeverInline def cost: Rep[Int] = delayInvoke;
       def size: Rep[Size[Coll[Item]]] = CCostedColl.this.builder.mkSizeColl[Item](CCostedColl.this.sizes);
       @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedColl[Res]] = delayInvoke;
       @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedColl[Item]] = delayInvoke;
@@ -64,7 +62,7 @@ package special.collection {
       def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long], tA: Rep[WRType[A]], tR: Rep[WRType[R]]): Rep[SizeFunc[E, A, R]] = RCSizeFunc(sizeEnv, sizeFunc, tA, tR);
       def mkSizeOption[T](sizeOpt: Rep[WOption[Size[T]]]): Rep[SizeOption[T]] = RCSizeOption(sizeOpt);
       def mkCostedPrim[T](value: Rep[T], cost: Rep[Int], size: Rep[Size[T]]): Rep[CostedPrim[T]] = RCCostedPrim(value, cost, size);
-      def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]]): Rep[CostedPair[L, R]] = RCCostedPair(first, second);
+      def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]], accCost: Rep[Int]): Rep[CostedPair[L, R]] = RCCostedPair(first, second, accCost);
       def mkCostedFunc[Env, Arg, Res](envCosted: Rep[Costed[Env]], func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], cost: Rep[Int], size: Rep[Size[scala.Function1[Arg, Res]]]): Rep[CostedFunc[Env, Arg, Res]] = RCCostedFunc(envCosted, func, cost, size);
       def mkCostedColl[T](values: Rep[Coll[T]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Size[T]]], valuesCost: Rep[Int]): Rep[CostedColl[T]] = RCCostedColl(values, costs, sizes, valuesCost);
       def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]] = RCCostedOption(value, costOpt, sizeOpt, accumulatedCost)

@@ -41,8 +41,8 @@ class CostedTests extends BaseCostedTests {
   lazy val r = toRep(10.toByte)
   lazy val lC = RCCostedPrim(l, 1, RCSizePrim(4L, element[Int]))
   lazy val rC = RCCostedPrim(r, 1, RCSizePrim(1L, element[Byte]))
-  lazy val pC = RCCostedPair(lC, rC)
-  lazy val ppC = RCCostedPair(pC, pC)
+  lazy val pC = RCCostedPair(lC, rC, 1)
+  lazy val ppC = RCCostedPair(pC, pC, 1)
 
   test("dataSize of CostedPair") {
     val sizeD= pC.size

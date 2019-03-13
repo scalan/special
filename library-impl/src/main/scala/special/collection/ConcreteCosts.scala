@@ -7,11 +7,11 @@ class CCostedPrim[Val](val value: Val, val cost: Int, val size: Size[Val]) exten
   def builder: CostedBuilder = new CCostedBuilder
 }
 
-@StagedMixin("CostedPairStaged")
 class CCostedPair[L,R](val l: Costed[L], val r: Costed[R], val accCost: Int) extends CostedPair[L,R] {
   def builder: CostedBuilder = new CCostedBuilder
   def value: (L,R) = (l.value, r.value)
-  def cost: Int = rewritableMethod
+  @NeverInline
+  def cost: Int = rewritableMethod  // implementation is only expressible in staged code (see RW rule)
   def size: Size[(L,R)] = builder.mkSizePair(l.size, r.size)
 }
 
@@ -36,7 +36,8 @@ class CCostedColl[Item](
 {
   def builder: CostedBuilder = new CCostedBuilder
   def value: Coll[Item] = values
-  def cost: Int = rewritableMethod //valuesCost + costs.sum(builder.monoidBuilder.intPlusMonoid)
+  @NeverInline
+  def cost: Int = rewritableMethod // implementation is only expressible in staged code (see RW rule)
   def size: Size[Coll[Item]] = builder.mkSizeColl(sizes)
   @NeverInline
   def mapCosted[Res](f: Costed[Item] => Costed[Res]): CostedColl[Res] = rewritableMethod

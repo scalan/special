@@ -3,7 +3,6 @@ package special.collection {
 
   trait CostedOptions extends Base { self: Library =>
     import CCostedBuilder._;
-    import CCostedOption._;
     import CostedBuilder._;
     import CostedOption._;
     import Size._;
@@ -11,8 +10,7 @@ package special.collection {
     import WOption._;
     abstract class CCostedOption[T](val value: Rep[WOption[T]], val costOpt: Rep[WOption[Int]], val sizeOpt: Rep[WOption[Size[T]]], val accumulatedCost: Rep[Int]) extends CostedOption[T] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      // manual fix
-      def cost: Rep[Int] = CCostedOption.this.accumulatedCost.+(CCostedOption.this.costOpt.getOrElse[Int](Thunk(toRep(0.asInstanceOf[Int]))));
+      @NeverInline def cost: Rep[Int] = delayInvoke;
       def size: Rep[Size[WOption[T]]] = CCostedOption.this.builder.mkSizeOption[T](CCostedOption.this.sizeOpt)
     };
     trait CCostedOptionCompanion

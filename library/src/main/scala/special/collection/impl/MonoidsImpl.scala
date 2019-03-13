@@ -157,9 +157,37 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
         true, true, element[Monoid[Int]]))
     }
 
+    def intMaxMonoid: Rep[Monoid[Int]] = {
+      asRep[Monoid[Int]](mkMethodCall(source,
+        thisClass.getMethod("intMaxMonoid"),
+        List(),
+        true, true, element[Monoid[Int]]))
+    }
+
+    def intMinMonoid: Rep[Monoid[Int]] = {
+      asRep[Monoid[Int]](mkMethodCall(source,
+        thisClass.getMethod("intMinMonoid"),
+        List(),
+        true, true, element[Monoid[Int]]))
+    }
+
     def longPlusMonoid: Rep[Monoid[Long]] = {
       asRep[Monoid[Long]](mkMethodCall(source,
         thisClass.getMethod("longPlusMonoid"),
+        List(),
+        true, true, element[Monoid[Long]]))
+    }
+
+    def longMaxMonoid: Rep[Monoid[Long]] = {
+      asRep[Monoid[Long]](mkMethodCall(source,
+        thisClass.getMethod("longMaxMonoid"),
+        List(),
+        true, true, element[Monoid[Long]]))
+    }
+
+    def longMinMonoid: Rep[Monoid[Long]] = {
+      asRep[Monoid[Long]](mkMethodCall(source,
+        thisClass.getMethod("longMinMonoid"),
         List(),
         true, true, element[Monoid[Long]]))
     }
@@ -236,9 +264,61 @@ implicit val eB = m2.eT
       }
     }
 
+    object intMaxMonoid {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "intMaxMonoid" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object intMinMonoid {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "intMinMonoid" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object longPlusMonoid {
       def unapply(d: Def[_]): Nullable[Rep[MonoidBuilder]] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "longPlusMonoid" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object longMaxMonoid {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "longMaxMonoid" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object longMinMonoid {
+      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderElem[_]] && method.getName == "longMinMonoid" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
         case _ => Nullable.None

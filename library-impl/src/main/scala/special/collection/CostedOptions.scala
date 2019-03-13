@@ -17,7 +17,8 @@ class CCostedOption[T](
     ) extends CostedOption[T]
 {
   def builder: CostedBuilder = new CCostedBuilder
-  def cost: Int = accumulatedCost + costOpt.getOrElse(0)
+  @NeverInline
+  def cost: Int = rewritableMethod
   def size: Size[Option[T]] = builder.mkSizeOption(sizeOpt)
 }
 
