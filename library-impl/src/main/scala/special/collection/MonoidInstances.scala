@@ -1,11 +1,23 @@
 package special.collection
 
+import scalan.NeverInline
+
 class MonoidBuilderInst extends MonoidBuilder {
   val intPlusMonoid = new IntPlusMonoid(0)
+  val intMaxMonoid = new IntMaxMonoid(0x80000000)  // Int.MinValue cannot be used due to virtualization
+  val intMinMonoid = new IntMinMonoid(0x7fffffff)  // Int.MinValue cannot be used due to virtualization
   val longPlusMonoid = new LongPlusMonoid(0L)
-
+  val longMaxMonoid = new LongMaxMonoid(0x8000000000000000L)  // Long.MinValue cannot be used due to virtualization
+  val longMinMonoid = new LongMinMonoid(0x7fffffffffffffffL)  // Int.MinValue cannot be used due to virtualization
+  
   override def pairMonoid[@specialized(Int, Long) A, @specialized(Int, Long) B](m1: Monoid[A], m2: Monoid[B]): Monoid[(A, B)] =
     new PairMonoid(m1, m2)
+
+//  def sizePlusMonoid[A](mA: Monoid[A]): Monoid[Size[A]] = ???
+//
+//  def sizeMaxMonoid[A](mA: Monoid[A]): Monoid[Size[A]] = ???
+//
+//  def sizeMinMonoid[A](mA: Monoid[A]): Monoid[Size[A]] = ???
 }
 
 class IntPlusMonoid(val zero: Int) extends Monoid[Int] {
@@ -13,9 +25,37 @@ class IntPlusMonoid(val zero: Int) extends Monoid[Int] {
   def power(x: Int, n: Int): Int = x * n
 }
 
+class IntMaxMonoid(val zero: Int) extends Monoid[Int] {
+  @NeverInline
+  def plus(x: Int, y: Int): Int = x max y
+  @NeverInline
+  def power(x: Int, n: Int): Int = x // x max x max .... x (n times)
+}
+
+class IntMinMonoid(val zero: Int) extends Monoid[Int] {
+  @NeverInline
+  def plus(x: Int, y: Int): Int = x min y
+  @NeverInline
+  def power(x: Int, n: Int): Int = x // x max x max .... x (n times)
+}
+
 class LongPlusMonoid(val zero: Long) extends Monoid[Long] {
   def plus(x: Long, y: Long): Long = x + y
   def power(x: Long, n: Int): Long = x * n.toLong
+}
+
+class LongMaxMonoid(val zero: Long) extends Monoid[Long] {
+  @NeverInline
+  def plus(x: Long, y: Long): Long = x max y
+  @NeverInline
+  def power(x: Long, n: Int): Long = x // x max x max .... x (n times)
+}
+
+class LongMinMonoid(val zero: Long) extends Monoid[Long] {
+  @NeverInline
+  def plus(x: Long, y: Long): Long = x min y
+  @NeverInline
+  def power(x: Long, n: Int): Long = x // x max x max .... x (n times)
 }
 
 class PairMonoid[@specialized(Int, Long) A, @specialized(Int, Long) B](val m1: Monoid[A], m2: Monoid[B]) extends Monoid[(A,B)] {

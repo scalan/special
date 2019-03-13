@@ -7,10 +7,11 @@ class CCostedPrim[Val](val value: Val, val cost: Int, val size: Size[Val]) exten
   def builder: CostedBuilder = new CCostedBuilder
 }
 
-class CCostedPair[L,R](val l: Costed[L], val r: Costed[R]) extends CostedPair[L,R] {
+@StagedMixin("CostedPairStaged")
+class CCostedPair[L,R](val l: Costed[L], val r: Costed[R], val accCost: Int) extends CostedPair[L,R] {
   def builder: CostedBuilder = new CCostedBuilder
   def value: (L,R) = (l.value, r.value)
-  def cost: Int = l.cost + r.cost + builder.ConstructTupleCost
+  def cost: Int = rewritableMethod
   def size: Size[(L,R)] = builder.mkSizePair(l.size, r.size)
 }
 
@@ -35,7 +36,7 @@ class CCostedColl[Item](
 {
   def builder: CostedBuilder = new CCostedBuilder
   def value: Coll[Item] = values
-  def cost: Int = valuesCost + costs.sum(builder.monoidBuilder.intPlusMonoid)
+  def cost: Int = rewritableMethod //valuesCost + costs.sum(builder.monoidBuilder.intPlusMonoid)
   def size: Size[Coll[Item]] = builder.mkSizeColl(sizes)
   @NeverInline
   def mapCosted[Res](f: Costed[Item] => Costed[Res]): CostedColl[Res] = rewritableMethod
@@ -72,8 +73,8 @@ class CCostedBuilder extends CostedBuilder {
   def mkCostedPrim[T](value: T, cost: Int, size: Size[T]): CostedPrim[T] =
     new CCostedPrim[T](value, cost, size)
 
-  def mkCostedPair[L,R](first: Costed[L], second: Costed[R]): CostedPair[L,R] =
-    new CCostedPair(first, second)
+  def mkCostedPair[L,R](first: Costed[L], second: Costed[R], accCost: Int): CostedPair[L,R] =
+    new CCostedPair(first, second, accCost)
 
   def mkCostedFunc[Env,Arg,Res](
         envCosted: Costed[Env],

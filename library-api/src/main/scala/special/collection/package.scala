@@ -7,35 +7,43 @@ package collection {
   case class CollType[A](tItem: RType[A]) extends RType[Coll[A]] {
     val classTag: ClassTag[Coll[A]] = ClassTag[Coll[A]](classOf[Coll[A]])
     override def name: String = s"Coll[${tItem.name}]"
+    override def isConstantSize: Boolean = false
   }
   case class ReplCollType[A](tItem: RType[A]) extends RType[ReplColl[A]] {
     val classTag: ClassTag[ReplColl[A]] = ClassTag[ReplColl[A]](classOf[ReplColl[A]])
     override def name: String = s"ReplColl[${tItem.name}]"
+    override def isConstantSize: Boolean = false
   }
 
   case class SizeType[A](tVal: RType[A]) extends RType[Size[A]] {
     val classTag: ClassTag[Size[A]] = ClassTag[Size[A]](classOf[Size[A]])
     override def name: String = s"Size[${tVal.name}]"
+    override def isConstantSize: Boolean = tVal.isConstantSize
   }
   case class SizePrimType[A](tVal: RType[A]) extends RType[SizePrim[A]] {
     val classTag: ClassTag[SizePrim[A]] = ClassTag[SizePrim[A]](classOf[SizePrim[A]])
     override def name: String = s"SizePrim[${tVal.name}]"
+    override def isConstantSize: Boolean = tVal.isConstantSize
   }
   case class SizePairType[A,B](tFst: RType[A], tSnd: RType[B]) extends RType[SizePair[A, B]] {
     val classTag: ClassTag[SizePair[A, B]] = ClassTag[SizePair[A, B]](classOf[SizePair[A, B]])
     override def name: String = s"SizePair[${tFst.name},${tSnd.name}]"
+    override def isConstantSize: Boolean = tFst.isConstantSize && tSnd.isConstantSize
   }
   case class SizeCollType[A](tItem: RType[A]) extends RType[SizeColl[A]] {
     val classTag: ClassTag[SizeColl[A]] = ClassTag[SizeColl[A]](classOf[SizeColl[A]])
     override def name: String = s"SizeColl[${tItem.name}]"
+    override def isConstantSize: Boolean = tItem.isConstantSize
   }
   case class SizeFuncType[E,A,B](tEnv: RType[E], tDom: RType[A], tRange: RType[B]) extends RType[SizeFunc[E, A, B]] {
     val classTag: ClassTag[SizeFunc[E, A, B]] = ClassTag[SizeFunc[E, A, B]](classOf[SizeFunc[E, A, B]])
     override def name: String = s"SizeFunc[${tEnv.name},${tDom.name},${tRange.name}]"
+    override def isConstantSize: Boolean = false
   }
   case class SizeOptionType[A](tItem: RType[A]) extends RType[SizeOption[A]] {
     val classTag: ClassTag[SizeOption[A]] = ClassTag[SizeOption[A]](classOf[SizeOption[A]])
     override def name: String = s"SizeOption[${tItem.name}]"
+    override def isConstantSize: Boolean = tItem.isConstantSize
   }
 }
 

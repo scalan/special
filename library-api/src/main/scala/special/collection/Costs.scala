@@ -15,9 +15,11 @@ trait CostedPrim[Val] extends Costed[Val] {
   def size: Size[Val]
 }
 
+// TODO add accumulatedCost property (necessary when CostedPrim is converted to CostedPair)
 trait CostedPair[L,R] extends Costed[(L,R)] {
   def l: Costed[L]
   def r: Costed[R]
+  def accCost: Int
 }
 
 trait CostedFunc[Env,Arg,Res] extends Costed[Arg => Res]  {
@@ -59,7 +61,7 @@ trait CostedBuilder {
   def mkSizeOption[T](sizeOpt: Option[Size[T]]): SizeOption[T]
 
   def mkCostedPrim[T](value: T, cost: Int, size: Size[T]): CostedPrim[T]
-  def mkCostedPair[L,R](first: Costed[L], second: Costed[R]): CostedPair[L,R]
+  def mkCostedPair[L,R](first: Costed[L], second: Costed[R], accCost: Int): CostedPair[L,R]
   def mkCostedFunc[Env,Arg,Res](envCosted: Costed[Env], func: Costed[Arg] => Costed[Res], cost: Int, size: Size[Arg=>Res]): CostedFunc[Env, Arg, Res]
   def mkCostedColl[T](values: Coll[T], costs: Coll[Int], sizes: Coll[Size[T]], valuesCost: Int): CostedColl[T]
   def mkCostedOption[T](value: Option[T], costOpt: Option[Int], sizeOpt: Option[Size[T]], accumulatedCost: Int): CostedOption[T]
