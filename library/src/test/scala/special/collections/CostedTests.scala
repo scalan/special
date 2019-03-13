@@ -27,8 +27,6 @@ class CostedTests extends BaseCostedTests {
   import WSpecialPredef._
   import Liftables._
 
-  lazy val sizeDataRW = new PartialRewriter({ case Def(sd: SizeData[_,_]) => calcSizeFromData(sd) })
-
   def buildGraph[T](nIters: Int, name: String)(action: Int => Rep[T]) = {
     val buf = mutable.ArrayBuilder.make[Rep[T]]()
     measure(nIters) { i =>

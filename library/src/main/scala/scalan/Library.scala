@@ -30,17 +30,6 @@ trait Library extends Scalan
   type RSize[Val] = Rep[Size[Val]]
   type RCosted[A] = Rep[Costed[A]]
 
-  trait Sized[Val] { node: Costed[Val] =>
-    lazy val dataSize: Rep[Long] = {
-      sizeOf(value)
-    }
-  }
-
-  protected def checkSize[Val](value: Rep[Val], size: Rep[Long]) = {
-    val info = extractSizeData(size)
-    assert(correctSizeDataType(value.elem, info.elem), msgIncorrectSizeDataStructure(value.elem, info.elem))
-  }
-
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
     val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
     liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
@@ -204,18 +193,6 @@ trait Library extends Scalan
     }
     case _ =>
       super.invokeUnlifted(e, mc, dataEnv)
-  }
-
-  protected override def correctSizeDataType[TVal, TSize](eVal: Elem[TVal], eSize: Elem[TSize]): Boolean = eVal match {
-    case e: CollElem[_,_] => eSize.isInstanceOf[CollElem[_,_]]
-    case e: WOptionElem[_,_] => eSize.isInstanceOf[WOptionElem[_,_]]
-    case _ => super.correctSizeDataType(eVal, eSize)
-  }
-
-  override def calcSizeFromData[V,S](data: SizeData[V, S]): Rep[Long] = data.eVal match {
-    case ce: CollElem[a,_] => asRep[Coll[Long]](data.sizeInfo).sum(longPlusMonoid)
-    case oe: WOptionElem[a,_] => asRep[WOption[Long]](data.sizeInfo).getOrElse(Thunk(0L))
-    case _ => super.calcSizeFromData(data)
   }
 
   implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
