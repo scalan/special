@@ -13,6 +13,8 @@ import debox.Buffer
 import scalan.RType._
 import spire.syntax.all._
 
+import scala.runtime.RichInt
+
 class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]) extends Coll[A] {
   @Internal
   override def tItem: RType[A] = tA
@@ -74,6 +76,17 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
 
   @NeverInline
   override def lastIndexWhere(p: A => Boolean, end: Int): Int = toArray.lastIndexWhere(p, end)
+
+  @NeverInline
+  override def take(n: Int): Coll[A] = {
+    if (n <= 0) builder.emptyColl
+    else if (n >= length) this
+    else {
+      val res = Array.ofDim[A](n)
+      Array.copy(toArray, 0, res, 0, n)
+      builder.fromArray(res)
+    }
+  }
 
   @NeverInline
   override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = {
@@ -164,8 +177,21 @@ class CollOverArrayBuilder extends CollBuilder {
 
   @NeverInline
   @Reified("T")
-  def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T] = {
-    new CollOverArray(items.toArray(cT.classTag))
+  def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T] = cT match {
+    case pt: PairType[a,b] =>
+      val len = items.length
+      val tA = pt.tFst
+      val tB = pt.tSnd
+      val resA = Array.ofDim[a](len)(tA.classTag)
+      val resB = Array.ofDim[b](len)(tB.classTag)
+      cfor(0)(_ < len, _ + 1) { i =>
+        val item = items.apply(i).asInstanceOf[(a,b)]
+        resA(i) = item._1
+        resB(i) = item._2
+      }
+      pairCollFromArrays(resA, resB)(tA, tB)
+    case _ =>
+      new CollOverArray(items.toArray(cT.classTag))
   }
 
   @NeverInline
@@ -178,7 +204,7 @@ class CollOverArrayBuilder extends CollBuilder {
   def replicate[T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
-  def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = fromArray(left.toArray.zip(right.toArray).map { case (l, r) => (l ^ r).toByte })
+  def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = left.zip(right).map { case (l, r) => (l ^ r).toByte }
 
   @NeverInline
   override def emptyColl[T](implicit cT: RType[T]): Coll[T] = cT match {
@@ -338,6 +364,9 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   @NeverInline
   override def lastIndexWhere(p: ((L, R)) => Boolean, end: Int): Int = toArray.lastIndexWhere(p, end)
+
+  @NeverInline
+  override def take(n: Int): Coll[(L, R)] = builder.pairColl(ls.take(n), rs.take(n))
 
   @NeverInline
   override def partition(pred: ((L, R)) => Boolean): (Coll[(L, R)], Coll[(L, R)]) = {
@@ -506,6 +535,14 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
     else if (p(value)) i
     else -1
   }
+
+  @NeverInline
+  override def take(n: Int): Coll[A] =
+    if (n <= 0) builder.emptyColl
+    else {
+      val m = new RichInt(n).min(length)
+      new CReplColl(value, m)
+    }
 
   @NeverInline
   override def partition(pred: A => Boolean): (Coll[A], Coll[A]) = {

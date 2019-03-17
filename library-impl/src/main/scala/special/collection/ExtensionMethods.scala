@@ -56,13 +56,14 @@ object ExtensionMethods {
 //    def lastIndexWhere(p: A => Boolean): Int = xs.lastIndexWhere(p, xs.length - 1)
 //
 
-//    /** Builds a new $coll from this $coll without any duplicate elements.
-//      *
-//      *  @return  A new $coll which contains the first occurrence of every element of this $coll.
-//      */
-//    def distinct: Coll[A] = {
-//      xs.unionSets(xs.builder.fromItems())
-//    }
+    /** Builds a new $coll from this $coll without any duplicate elements.
+      *
+      *  @return  A new $coll which contains the first occurrence of every element of this $coll.
+      */
+    def distinct: Coll[A] = {
+      implicit val tA = source.tItem
+      source.unionSet(source.builder.emptyColl[A])
+    }
 //
 //    /** Tests whether this $coll starts with the given sequence.
 //      *

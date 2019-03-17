@@ -15,18 +15,25 @@ trait CollGens { testSuite =>
   val builder: CollBuilder = new CollOverArrayBuilder
   val monoid = builder.Monoids.intPlusMonoid
   val valGen = choose(-100, 100)
+  val byteGen = choose[Byte](-100, 100)
   val indexGen = choose(0, 100)
   val replacedGen = choose(0, 100)
   val lenGen = choose(0, 100)
 
+  val bytesArrayGen: Gen[Array[Byte]] = containerOfN[Array, Byte](100, byteGen)
   val arrayGen: Gen[Array[Int]] = containerOfN[Array, Int](100, valGen)
   val indexesGen = containerOfN[Array, Int](10, indexGen).map(arr => builder.fromArray(arr.distinct.sorted))
 
   val collOverArrayGen = arrayGen.map(builder.fromArray(_))
+  val bytesOverArrayGen = bytesArrayGen.map(builder.fromArray(_))
   val replCollGen = for { l <- lenGen; v <- valGen } yield builder.replicate(l, v)
+  val replBytesCollGen = for { l <- lenGen; v <- byteGen } yield builder.replicate(l, v)
+
   val collGen = Gen.oneOf(collOverArrayGen, replCollGen)
+  val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen)
 
   implicit val arbColl = Arbitrary(collGen)
+  implicit val arbBytes = Arbitrary(bytesGen)
 
   def eq0(x: Int) = x == 0
   def lt0(x: Int) = x < 0

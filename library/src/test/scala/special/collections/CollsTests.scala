@@ -208,6 +208,25 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("Coll.take") {
+    forAll(collGen) { col =>
+      val n = col.length / 2
+      val res = col.take(n)
+      res.toArray shouldBe col.toArray.take(n)
+      val pairs = col.zip(col)
+      pairs.take(n).toArray shouldBe pairs.toArray.take(n)
+    }
+  }
+
+  property("Coll.distinct") {
+    forAll(collGen) { col =>
+      val res = col.distinct
+      res.toArray shouldBe col.toArray.distinct
+      val pairs = col.zip(col)
+      pairs.distinct.toArray shouldBe pairs.toArray.distinct
+    }
+  }
+
   property("PairColl.mapFirst") {
     forAll(collGen) { col =>
       val pairs = col.zip(col)
@@ -238,6 +257,15 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe (col1.toArray.intersect(col2.toArray))
     }
     builder.replicate(2, 10).intersect(builder.replicate(3, 10)).toArray shouldBe Array(10, 10)
+  }
+
+  property("CollBuilder.xor") {
+    forAll(bytesGen, bytesGen) { (col1, col2) =>
+      val n = col1.length min col2.length
+      val c1 = col1.take(n)
+      val c2 = col2.take(n)
+      builder.xor(c1, c2).toArray shouldBe c1.toArray.zip(c2.toArray).map { case (l,r) => (l ^ r).toByte }
+    }
   }
 
   property("CollBuilder.outerJoin") {

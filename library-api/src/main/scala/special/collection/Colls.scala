@@ -176,6 +176,13 @@ trait Coll[@specialized A] {
     */
   def lastIndexWhere(p: A => Boolean, end: Int): Int
 
+  /** Selects first ''n'' elements.
+    *  @param  n    the number of elements to take from this $coll.
+    *  @return a $coll consisting only of the first `n` elements of this $coll,
+    *          or else the whole $coll, if it has less than `n` elements.
+    *          If `n` is negative, returns an empty $coll.
+    */
+  def take(n: Int): Coll[A]
 
   /** Partitions this $coll in two $colls according to a predicate.
     *
@@ -399,7 +406,7 @@ trait CollBuilder {
   @Reified("T") def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T]
 
   @NeverInline
-  def unzip[A,B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
+  def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
     case pa: PairColl[_,_] => (pa.ls, pa.rs)
     case _ => ???
   }
