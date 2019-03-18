@@ -2,6 +2,7 @@ package special.collection
 
 import scala.reflect.ClassTag
 import scalan._
+
 import scala.collection.immutable
 
 /** Indexed (zero-based) collection of elements of type `A`
@@ -23,6 +24,16 @@ trait Coll[@specialized A] {
   /** The size of the collection in elements. */
   def size: Int = this.length
 
+  /** Tests whether the $coll is empty.
+    *  @return    `true` if the $coll contains no elements, `false` otherwise.
+    */
+  def isEmpty: Boolean
+
+  /** Tests whether the $coll is not empty.
+    *  @return    `true` if the $coll contains at least one element, `false` otherwise.
+    */
+  def nonEmpty: Boolean
+
   /** The element at given index.
     *  Indices start at `0`; `xs.apply(0)` is the first element of collection `xs`.
     *  Note the indexing syntax `xs(i)` is a shorthand for `xs.apply(i)`.
@@ -32,6 +43,16 @@ trait Coll[@specialized A] {
     *  @throws         ArrayIndexOutOfBoundsException if `i < 0` or `length <= i`
     */
   def apply(i: Int): A
+
+  /** Tests whether this $coll contains given index.
+    *
+    *  The implementations of methods `apply` and `isDefinedAt` turn a `Coll[A]` into
+    *  a `PartialFunction[Int, A]`.
+    *
+    * @param    idx     the index to test
+    * @return   `true` if this $coll contains an element at position `idx`, `false` otherwise.
+    */
+  def isDefinedAt(idx: Int): Boolean
 
   /** The elements at given indexes.
     *  Indices start at `0` so that `xs.apply(0)` is the first element of collection `xs`.
@@ -406,10 +427,7 @@ trait CollBuilder {
   @Reified("T") def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T]
 
   @NeverInline
-  def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
-    case pa: PairColl[_,_] => (pa.ls, pa.rs)
-    case _ => ???
-  }
+  def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B])
 
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 

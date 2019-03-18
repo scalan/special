@@ -21,6 +21,16 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
   def builder: CollBuilder = new CollOverArrayBuilder
   @inline def length: Int = toArray.length
   @inline def apply(i: Int): A = toArray.apply(i)
+
+  @NeverInline
+  override def isEmpty: Boolean = length == 0
+
+  @NeverInline
+  override def nonEmpty: Boolean = length > 0
+
+  @NeverInline
+  override def isDefinedAt(idx: Int): Boolean = (idx >= 0) && (idx < length)
+
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < toArray.length) toArray(i) else default
 
@@ -175,33 +185,58 @@ class CollOverArrayBuilder extends CollBuilder {
     pairCollFromArrays(ks, vs)
   }
 
+  private def fromBoxedPairs[A, B](seq: Seq[(A, B)])(implicit tA: RType[A], tB: RType[B]): PairColl[A,B] = {
+    val len = seq.length
+    val resA = Array.ofDim[A](len)(tA.classTag)
+    val resB = Array.ofDim[B](len)(tB.classTag)
+    cfor(0)(_ < len, _ + 1) { i =>
+      val item = seq.apply(i).asInstanceOf[(A,B)]
+      resA(i) = item._1
+      resB(i) = item._2
+    }
+    pairCollFromArrays(resA, resB)(tA, tB)
+  }
+
   @NeverInline
   @Reified("T")
   def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T] = cT match {
     case pt: PairType[a,b] =>
-      val len = items.length
       val tA = pt.tFst
       val tB = pt.tSnd
-      val resA = Array.ofDim[a](len)(tA.classTag)
-      val resB = Array.ofDim[b](len)(tB.classTag)
-      cfor(0)(_ < len, _ + 1) { i =>
-        val item = items.apply(i).asInstanceOf[(a,b)]
-        resA(i) = item._1
-        resB(i) = item._2
-      }
-      pairCollFromArrays(resA, resB)(tA, tB)
+      fromBoxedPairs(items)(tA, tB)
     case _ =>
       new CollOverArray(items.toArray(cT.classTag))
   }
 
   @NeverInline
-  def fromArray[@specialized T: RType](arr: Array[T]): Coll[T] = {
-//    implicit val cT = ClassTag[T](arr.getClass.getComponentType.asInstanceOf[Class[T]])
-    new CollOverArray[T](arr)
+  def fromArray[@specialized T: RType](arr: Array[T]): Coll[T] = RType[T] match {
+    case pt: PairType[a,b] =>
+      val tA = pt.tFst
+      val tB = pt.tSnd
+      fromBoxedPairs[a,b](arr.asInstanceOf[Array[(a,b)]])(tA, tB)
+    case _ =>
+      new CollOverArray(arr)
   }
 
   @NeverInline
   def replicate[T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
+
+  @NeverInline
+  def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
+    case pa: PairColl[_,_] => (pa.ls, pa.rs)
+    case _ =>
+      val limit = xs.length
+      implicit val tA = xs.tItem.tFst
+      implicit val tB = xs.tItem.tSnd
+      val ls = Array.ofDim[A](limit)
+      val rs = Array.ofDim[B](limit)
+      cfor(0)(_ < limit, _ + 1) { i =>
+        val p = xs(i)
+        ls(i) = p._1
+        rs(i) = p._2
+      }
+      (fromArray(ls), fromArray(rs))
+  }
 
   @NeverInline
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte] = left.zip(right).map { case (l, r) => (l ^ r).toByte }
@@ -250,7 +285,16 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   override def toArray: Array[(L, R)] = ls.toArray.zip(rs.toArray)
   @inline override def length: Int = ls.length
   @inline override def apply(i: Int): (L, R) = (ls(i), rs(i))
-  
+
+  @NeverInline
+  override def isEmpty: Boolean = length == 0
+
+  @NeverInline
+  override def nonEmpty: Boolean = length > 0
+
+  @NeverInline
+  override def isDefinedAt(idx: Int): Boolean = ls.isDefinedAt(idx) && rs.isDefinedAt(idx)
+
   @NeverInline
   override def getOrElse(i: Int, default: (L, R)): (L, R) =
     if (i >= 0 && i < this.length)
@@ -461,6 +505,15 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   @inline def apply(i: Int): A = if (i >= 0 && i < this.length) value else throw new IndexOutOfBoundsException(i.toString)
+
+  @NeverInline
+  override def isEmpty: Boolean = length == 0
+
+  @NeverInline
+  override def nonEmpty: Boolean = length > 0
+
+  @NeverInline
+  override def isDefinedAt(idx: Int): Boolean = (idx >= 0 && idx < this.length)
 
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default
