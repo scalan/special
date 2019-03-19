@@ -1,7 +1,9 @@
 package special.collection
 
-import scala.collection.mutable
 import scala.reflect.ClassTag
+import scala.collection.mutable
+import scalan.Internal
+import spire.syntax.all._
 
 object Helpers {
   private def sameLengthErrorMsg[A,B](xs: Coll[A], ys: Coll[B]) =
@@ -49,6 +51,15 @@ object Helpers {
       values += v
     }
     (keys.result, values.result)
+  }
+
+  @inline def isReplArray[A](arr: Array[A], len: Int, value: A): Boolean = {
+    arr.length == len && {
+      cfor(0)(_ < len, _ + 1) { i =>
+        if (arr(i) != value) return false
+      }
+      true
+    }
   }
 
 }

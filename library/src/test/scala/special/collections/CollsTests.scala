@@ -128,8 +128,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       }
       {
         val res = col.forall(lt0)
+        val emptyRepl = builder.replicate(0, 10)
+        val repl = builder.replicate(col.length, 10)
         res shouldBe col.toArray.forall(lt0)
-        builder.replicate(0, 10).forall(lt0) shouldBe Array[Int]().forall(lt0)
+        emptyRepl.forall(lt0) shouldBe Array[Int]().forall(lt0)
+        col.zip(repl).forall(predF) shouldBe col.zip(repl).toArray.forall(predF)
       }
       {
         val res = col.exists(lt0)
@@ -224,6 +227,31 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe col.toArray.distinct
       val pairs = col.zip(col)
       pairs.distinct.toArray shouldBe pairs.toArray.distinct
+    }
+  }
+
+  property("Coll.equals") {
+    forAll(valGen, indexGen) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      assert(coll == repl)
+      assert(repl == coll)
+      repl.hashCode() shouldBe coll.hashCode()
+
+      val zip1 = repl.zip(repl)
+      val zip2 = repl.zip(coll)
+      val zip3 = coll.zip(coll)
+      val zip4 = coll.zip(repl)
+      
+      assert(zip1 == zip2)
+      assert(zip2 == zip3)
+      assert(zip3 == zip4)
+      assert(zip4 == zip1)
+      zip1.hashCode() shouldBe zip2.hashCode()
+      zip2.hashCode() shouldBe zip3.hashCode()
+      zip3.hashCode() shouldBe zip4.hashCode()
+      zip4.hashCode() shouldBe zip1.hashCode()
     }
   }
 

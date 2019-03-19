@@ -367,7 +367,7 @@ trait Slicing extends Scalan {
         fields.toList == other.fields.toList && elem == other.elem
       case _ => false
     })
-    override def hashCode = fields.hashCode * 21 + elem.hashCode
+    override def hashCode = fields.hashCode * 41 + elem.hashCode
 
     def productArity = 2
     def productElement(n: Int) = n match {

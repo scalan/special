@@ -91,7 +91,7 @@ trait Entities extends TypeDescs { self: Scalan =>
       case other: EntityElem1[_,_,_] => other.canEqual(this) && cont == other.cont && eItem == other.eItem
       case _ => false
     }
-    override def hashCode = eItem.hashCode * 21 + cont.hashCode
+    override def hashCode = eItem.hashCode * 41 + cont.hashCode
   }
   trait ConcreteElem[TData, TClass] extends EntityElem[TClass] with ViewElem[TData, TClass] { eClass =>
     def getConverterFrom[E](eEntity: EntityElem[E]): Option[Conv[E, TClass]] = {

@@ -164,9 +164,13 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
     builder.fromArray(res.toArray())
   }
 
+
   @Internal
-  override def equals(obj: scala.Any) = obj match {
-    case obj: Coll[_] => util.Objects.deepEquals(obj.toArray, toArray)
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case obj: CollOverArray[_] =>
+      util.Objects.deepEquals(obj.toArray, toArray)
+    case repl: CReplColl[A]@unchecked =>
+      isReplArray(toArray, repl.length, repl.value)
     case _ => false
   }
 
@@ -271,6 +275,13 @@ class CollOverArrayBuilder extends CollBuilder {
 }
 
 class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
+  @Internal
+  override def equals(that: scala.Any) = (this eq that.asInstanceOf[AnyRef]) || (that match {
+    case that: PairColl[_,_] => ls == that.ls && rs == that.rs
+    case _ => false
+  })
+  @Internal
+  override def hashCode() = ls.hashCode() * 41 + rs.hashCode()
   @Internal @inline
   implicit def tL = ls.tItem
   @Internal @inline
@@ -334,7 +345,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
       if (!ok) return false
       i += 1
     }
-    false
+    true
   }
   @NeverInline
   override def filter(p: ((L, R)) => Boolean): Coll[(L,R)] = {
@@ -501,7 +512,11 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   def builder: CollBuilder = new CollOverArrayBuilder
   
-  def toArray: Array[A] = Array.fill(length)(value)
+  lazy val toArray: Array[A] = {
+    val res = Array.ofDim[A](length)
+    cfor(0)(_ < length, _ + 1) { i => res(i) = value }
+    res
+  }
 
   @NeverInline
   @inline def apply(i: Int): A = if (i >= 0 && i < this.length) value else throw new IndexOutOfBoundsException(i.toString)
@@ -671,6 +686,18 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
       else
         builder.emptyColl[A].unionSet(that)
   }
+
+  @Internal
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case repl: CReplColl[A]@unchecked =>
+      this.length == repl.length && this.value == repl.value
+    case obj: CollOverArray[A] if obj.tItem == this.tItem =>
+      isReplArray(obj.toArray, this.length, this.value)
+    case _ => false
+  }
+
+  @Internal
+  override def hashCode() = CollectionUtil.deepHashCode(toArray)
 
   @Internal
   override def toString = s"ReplColl($value, $length)"

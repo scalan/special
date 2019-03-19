@@ -426,11 +426,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   private[this] val defClasses = AVHashMap[Class[_], ReflectedProductClass](255)
 
+  import Liftables.LiftedConst
+
   def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case c: Const[_] => c.self
     case v: Variable[_] => v.self
     case comp: CompanionDef[_] => comp.self
-    case lc: Liftables.LiftedConst[_,_] => lc.self
+    case lc if lc.isInstanceOf[LiftedConst[_,_]] => lc.self
     case _ =>
       val newD = d.transform(t)
       reifyObject(newD)
