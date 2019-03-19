@@ -703,7 +703,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def toString = s"ReplColl($value, $length)"
 }
 
-class CViewColl[A,B](val source: Coll[A], f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
+class CViewColl[@specialized A, @specialized B](val source: Coll[A], f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
 
   private val items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
 
