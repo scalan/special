@@ -703,3 +703,73 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def toString = s"ReplColl($value, $length)"
 }
 
+class CViewColl[A,B](val source: Coll[A], f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
+
+  private val items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
+
+  override def builder: CollBuilder = ???
+
+  override def toArray: Array[B] = {
+
+  }
+
+  override def length: Int = source.length
+
+  override def isEmpty: Boolean = source.isEmpty
+
+  override def nonEmpty: Boolean = ???
+
+  override def apply(i: Int): B = ???
+
+  override def isDefinedAt(idx: Int): Boolean = ???
+
+  override def getOrElse(index: Int, default: B): B = ???
+
+  override def map[B: RType](f: B => B): Coll[B] = ???
+
+  override def zip[B](ys: Coll[B]): Coll[(B, B)] = ???
+
+  override def exists(p: B => Boolean): Boolean = ???
+
+  override def forall(p: B => Boolean): Boolean = ???
+
+  override def filter(p: B => Boolean): Coll[B] = ???
+
+  override def foldLeft[B](zero: B, op: ((B, B)) => B): B = ???
+
+  override def indices: Coll[Int] = ???
+
+  override def flatMap[B: RType](f: B => Coll[B]): Coll[B] = ???
+
+  override def segmentLength(p: B => Boolean, from: Int): Int = ???
+
+  override def indexWhere(p: B => Boolean, from: Int): Int = ???
+
+  override def lastIndexWhere(p: B => Boolean, end: Int): Int = ???
+
+  override def take(n: Int): Coll[B] = ???
+
+  override def partition(pred: B => Boolean): (Coll[B], Coll[B]) = ???
+
+  override def patch(from: Int,
+      patch: Coll[B],
+      replaced: Int): Coll[B] = ???
+
+  override def updated(index: Int, elem: B): Coll[B] = ???
+
+  override def updateMany(indexes: Coll[Int],
+      values: Coll[B]): Coll[B] = ???
+
+  override def mapReduce[K: RType, V: RType](m: B => (K, V),
+      r: ((V, V)) => V): Coll[(K, V)] = ???
+
+  override def unionSet(that: Coll[B]): Coll[B] = ???
+
+  override def sum(m: Monoid[B]): B = ???
+
+  override def slice(from: Int, until: Int): Coll[B] = ???
+
+  override def append(other: Coll[B]): Coll[B] = ???
+
+  override def reverse: Coll[B] = ???
+}
