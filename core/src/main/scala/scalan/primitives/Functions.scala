@@ -95,7 +95,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     override lazy val  schedule: Schedule = {
       if (isIdentity) Nil
       else {
-        val g = new PGraph(roots, Nullable(s => s.rhs.nodeId >= x.rhs.nodeId))
+        val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= x.rhs._nodeId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](boundVars.toSet)(sym => g.usagesOf(sym).filter(g.domain.contains))
         val sch = g.schedule.filter(te => locals.contains(te.sym) && !te.sym.isVar)
         val currSch = g.getRootsIfEmpty(sch)
