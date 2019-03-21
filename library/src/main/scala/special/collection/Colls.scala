@@ -15,7 +15,10 @@ package special.collection {
       def toArray: Rep[WArray[A]];
       def length: Rep[Int];
       def size: Rep[Int] = this.length;
+      def isEmpty: Rep[Boolean];
+      def nonEmpty: Rep[Boolean];
       def apply(i: Rep[Int]): Rep[A];
+      def isDefinedAt(idx: Rep[Int]): Rep[Boolean];
       def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A];
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Coll[B]];
       def zip[B](ys: Rep[Coll[B]]): Rep[Coll[scala.Tuple2[A, B]]];
@@ -30,6 +33,7 @@ package special.collection {
       def indexWhere(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int];
       @NeverInline def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = delayInvoke;
       def lastIndexWhere(p: Rep[scala.Function1[A, Boolean]], end: Rep[Int]): Rep[Int];
+      def take(n: Rep[Int]): Rep[Coll[A]];
       def partition(pred: Rep[scala.Function1[A, Boolean]]): Rep[scala.Tuple2[Coll[A], Coll[A]]];
       def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]];
       def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]];
@@ -63,7 +67,7 @@ package special.collection {
       def Monoids: Rep[MonoidBuilder];
       def pairColl[A, B](as: Rep[Coll[A]], bs: Rep[Coll[B]]): Rep[PairColl[A, B]];
       @Reified(value = "T") def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]];
-      @NeverInline def unzip[A, B](xs: Rep[Coll[scala.Tuple2[A, B]]]): Rep[scala.Tuple2[Coll[A], Coll[B]]] = delayInvoke;
+      def unzip[A, B](xs: Rep[Coll[scala.Tuple2[A, B]]]): Rep[scala.Tuple2[Coll[A], Coll[B]]];
       def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]];
       def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]];

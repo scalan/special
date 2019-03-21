@@ -38,6 +38,7 @@ import SizePair._
 import SizePrim._
 import WOption._
 import WRType._
+import WSpecialPredef._
 
 object CCostedPrim extends EntityObject("CCostedPrim") {
   case class CCostedPrimCtor[Val]
@@ -491,6 +492,58 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     object value {
       def unapply(d: Def[_]): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedFuncElem[_, _, _]] && method.getName == "value" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object sliceCalc {
+      def unapply(d: Def[_]): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedFuncElem[_, _, _]] && method.getName == "sliceCalc" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object sliceCost {
+      def unapply(d: Def[_]): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedFuncElem[_, _, _]] && method.getName == "sliceCost" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object sliceCostEx {
+      def unapply(d: Def[_]): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedFuncElem[_, _, _]] && method.getName == "sliceCostEx" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object sliceSize {
+      def unapply(d: Def[_]): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedFuncElem[_, _, _]] && method.getName == "sliceSize" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None

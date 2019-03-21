@@ -60,11 +60,32 @@ object Coll extends EntityObject("Coll") {
         true, false, element[Int]))
     }
 
+    override def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        CollClass.getMethod("isEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
+    override def nonEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        CollClass.getMethod("nonEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
     override def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, false, element[A]))
+    }
+
+    override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        CollClass.getMethod("isDefinedAt", classOf[Sym]),
+        List(idx),
+        true, false, element[Boolean]))
     }
 
     override def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
@@ -167,6 +188,13 @@ object Coll extends EntityObject("Coll") {
         CollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, false, element[Int]))
+    }
+
+    override def take(n: Rep[Int]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        CollClass.getMethod("take", classOf[Sym]),
+        List(n),
+        true, false, element[Coll[A]]))
     }
 
     override def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
@@ -320,11 +348,32 @@ implicit val eV = proj.elem.eRange
         true, true, element[Int]))
     }
 
+    def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, true, element[Boolean]))
+    }
+
+    def nonEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("nonEmpty"),
+        List(),
+        true, true, element[Boolean]))
+    }
+
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, true, element[A]))
+    }
+
+    def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        List(idx),
+        true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
@@ -427,6 +476,13 @@ implicit val eV = proj.elem.eRange
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, true, element[Int]))
+    }
+
+    def take(n: Rep[Int]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("take", classOf[Sym]),
+        List(n),
+        true, true, element[Coll[A]]))
     }
 
     def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
@@ -578,7 +634,7 @@ implicit val eV = proj.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "toArray", "length", "size", "apply", "getOrElse", "map", "zip", "exists", "forall", "filter", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
+        "builder", "toArray", "length", "size", "isEmpty", "nonEmpty", "apply", "isDefinedAt", "getOrElse", "map", "zip", "exists", "forall", "filter", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "take", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
         ))
     }
 
@@ -684,9 +740,48 @@ implicit val eV = proj.elem.eRange
       }
     }
 
+    object isEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "isEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[Coll[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object nonEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "nonEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[Coll[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "apply" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object isDefinedAt {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "isDefinedAt" =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -874,6 +969,19 @@ implicit val eV = proj.elem.eRange
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object take {
+      def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "take" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
@@ -1180,11 +1288,32 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[Int]))
     }
 
+    def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, true, element[Boolean]))
+    }
+
+    def nonEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("nonEmpty"),
+        List(),
+        true, true, element[Boolean]))
+    }
+
     def apply(i: Rep[Int]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, true, element[(L, R)]))
+    }
+
+    def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        List(idx),
+        true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
@@ -1288,6 +1417,13 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, true, element[Int]))
+    }
+
+    def take(n: Rep[Int]): Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(source,
+        thisClass.getMethod("take", classOf[Sym]),
+        List(n),
+        true, true, element[Coll[(L, R)]]))
     }
 
     // manual fix
@@ -1611,11 +1747,32 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[WArray[A]]))
     }
 
+    def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, true, element[Boolean]))
+    }
+
+    def nonEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("nonEmpty"),
+        List(),
+        true, true, element[Boolean]))
+    }
+
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, true, element[A]))
+    }
+
+    def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(source,
+        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        List(idx),
+        true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
@@ -1718,6 +1875,13 @@ object ReplColl extends EntityObject("ReplColl") {
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, true, element[Int]))
+    }
+
+    def take(n: Rep[Int]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(source,
+        thisClass.getMethod("take", classOf[Sym]),
+        List(n),
+        true, true, element[Coll[A]]))
     }
 
     def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {

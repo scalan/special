@@ -33,6 +33,27 @@ object CollOverArray extends EntityObject("CollOverArray") {
     override def transform(t: Transformer) = CollOverArrayCtor[A](t(toArray))
     private val thisClass = classOf[Coll[_]]
 
+    override def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
+    override def nonEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("nonEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
+    override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        List(idx),
+        true, false, element[Boolean]))
+    }
+
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
@@ -104,6 +125,13 @@ object CollOverArray extends EntityObject("CollOverArray") {
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, false, element[Int]))
+    }
+
+    override def take(n: Rep[Int]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        thisClass.getMethod("take", classOf[Sym]),
+        List(n),
+        true, false, element[Coll[A]]))
     }
 
     override def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
@@ -272,6 +300,45 @@ implicit val eV = m.elem.eRange.eSnd
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "apply" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object isEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[CollOverArray[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "isEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CollOverArray[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CollOverArray[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object nonEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[CollOverArray[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "nonEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CollOverArray[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CollOverArray[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object isDefinedAt {
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "isDefinedAt" =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -503,6 +570,19 @@ implicit val eV = m.elem.eRange.eSnd
       }
     }
 
+    object take {
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "take" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArray[A]], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object partition {
       def unapply(d: Def[_]): Nullable[(Rep[CollOverArray[A]], Rep[A => Boolean]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayElem[_]] && method.getName == "partition" =>
@@ -616,6 +696,15 @@ object CollOverArrayBuilder extends EntityObject("CollOverArrayBuilder") {
         thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
         true, false, element[Coll[T]]))
+    }
+
+    override def unzip[A, B](xs: Rep[Coll[(A, B)]]): Rep[(Coll[A], Coll[B])] = {
+      implicit val eA = xs.eA.eFst
+implicit val eB = xs.eA.eSnd
+      asRep[(Coll[A], Coll[B])](mkMethodCall(self,
+        thisClass.getMethod("unzip", classOf[Sym]),
+        List(xs),
+        true, false, element[(Coll[A], Coll[B])]))
     }
 
     override def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = {
@@ -810,6 +899,19 @@ implicit val eO = l.elem.eRange
       }
     }
 
+    object unzip {
+      def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[(A, B)]]) forSome {type A; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "unzip" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[(A, B)]]) forSome {type A; type B}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[(A, B)]]) forSome {type A; type B}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object xor {
       def unapply(d: Def[_]): Nullable[(Rep[CollOverArrayBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollOverArrayBuilderElem] && method.getName == "xor" =>
@@ -878,6 +980,27 @@ implicit lazy val eR = rs.eA
     lazy val selfType = element[PairOfCols[L, R]]
     override def transform(t: Transformer) = PairOfColsCtor[L, R](t(ls), t(rs))
     private val thisClass = classOf[Coll[_]]
+
+    override def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
+    override def nonEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("nonEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
+    override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        List(idx),
+        true, false, element[Boolean]))
+    }
 
     override def getOrElse(i: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(self,
@@ -957,6 +1080,13 @@ implicit lazy val eR = rs.eA
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, false, element[Int]))
+    }
+
+    override def take(n: Rep[Int]): Rep[Coll[(L, R)]] = {
+      asRep[Coll[(L, R)]](mkMethodCall(self,
+        thisClass.getMethod("take", classOf[Sym]),
+        List(n),
+        true, false, element[Coll[(L, R)]]))
     }
 
     // manual fix
@@ -1177,6 +1307,45 @@ implicit val eR = p.rs.eA
       }
     }
 
+    object isEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "isEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object nonEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "nonEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[PairOfCols[L, R]] forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object isDefinedAt {
+      def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "isDefinedAt" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object getOrElse {
       def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[Int], Rep[(L, R)]) forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "getOrElse" =>
@@ -1385,6 +1554,19 @@ implicit val eR = p.rs.eA
       }
     }
 
+    object take {
+      def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "take" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[PairOfCols[L, R]], Rep[Int]) forSome {type L; type R}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
     object partition {
       def unapply(d: Def[_]): Nullable[(Rep[PairOfCols[L, R]], Rep[((L, R)) => Boolean]) forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairOfColsElem[_, _]] && method.getName == "partition" =>
@@ -1505,11 +1687,39 @@ object CReplColl extends EntityObject("CReplColl") {
     override def transform(t: Transformer) = CReplCollCtor[A](t(value), t(length))
     private val thisClass = classOf[ReplColl[_]]
 
+    override def toArray: Rep[WArray[A]] = {
+      asRep[WArray[A]](mkMethodCall(self,
+        thisClass.getMethod("toArray"),
+        List(),
+        true, false, element[WArray[A]]))
+    }
+
     override def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, false, element[A]))
+    }
+
+    override def isEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("isEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
+    override def nonEmpty: Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("nonEmpty"),
+        List(),
+        true, false, element[Boolean]))
+    }
+
+    override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
+      asRep[Boolean](mkMethodCall(self,
+        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        List(idx),
+        true, false, element[Boolean]))
     }
 
     override def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = {
@@ -1603,6 +1813,13 @@ object CReplColl extends EntityObject("CReplColl") {
         thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, false, element[Int]))
+    }
+
+    override def take(n: Rep[Int]): Rep[Coll[A]] = {
+      asRep[Coll[A]](mkMethodCall(self,
+        thisClass.getMethod("take", classOf[Sym]),
+        List(n),
+        true, false, element[Coll[A]]))
     }
 
     override def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
@@ -1776,6 +1993,45 @@ implicit val eV = m.elem.eRange.eSnd
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "apply" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object isEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[CReplColl[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "isEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CReplColl[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CReplColl[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object nonEmpty {
+      def unapply(d: Def[_]): Nullable[Rep[CReplColl[A]] forSome {type A}] = d match {
+        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "nonEmpty" =>
+          val res = receiver
+          Nullable(res).asInstanceOf[Nullable[Rep[CReplColl[A]] forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[Rep[CReplColl[A]] forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object isDefinedAt {
+      def unapply(d: Def[_]): Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "isDefinedAt" =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -2002,6 +2258,19 @@ implicit val eV = m.elem.eRange.eSnd
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CReplColl[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}] = exp match {
+        case Def(d) => unapply(d)
+        case _ => Nullable.None
+      }
+    }
+
+    object take {
+      def unapply(d: Def[_]): Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}] = d match {
+        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CReplCollElem[_]] && method.getName == "take" =>
+          val res = (receiver, args(0))
+          Nullable(res).asInstanceOf[Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}]]
+        case _ => Nullable.None
+      }
+      def unapply(exp: Sym): Nullable[(Rep[CReplColl[A]], Rep[Int]) forSome {type A}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

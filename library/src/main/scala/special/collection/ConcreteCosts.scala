@@ -30,6 +30,7 @@ package special.collection {
     import SizePrim._;
     import WOption._;
     import WRType._;
+    import WSpecialPredef._;
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Size[Val]]) extends CostedPrim[Val] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
     };

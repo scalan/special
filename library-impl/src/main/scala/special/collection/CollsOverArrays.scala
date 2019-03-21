@@ -189,6 +189,7 @@ class CollOverArrayBuilder extends CollBuilder {
     pairCollFromArrays(ks, vs)
   }
 
+  @Internal
   private def fromBoxedPairs[A, B](seq: Seq[(A, B)])(implicit tA: RType[A], tB: RType[B]): PairColl[A,B] = {
     val len = seq.length
     val resA = Array.ofDim[A](len)(tA.classTag)
@@ -511,12 +512,15 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def tItem: RType[A] = tA
 
   def builder: CollBuilder = new CollOverArrayBuilder
-  
-  lazy val toArray: Array[A] = {
+
+  @Internal
+  lazy val _toArray: Array[A] = {
     val res = Array.ofDim[A](length)
     cfor(0)(_ < length, _ + 1) { i => res(i) = value }
     res
   }
+  @NeverInline
+  def toArray = _toArray
 
   @NeverInline
   @inline def apply(i: Int): A = if (i >= 0 && i < this.length) value else throw new IndexOutOfBoundsException(i.toString)

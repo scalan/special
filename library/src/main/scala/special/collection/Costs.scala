@@ -45,7 +45,11 @@ package special.collection {
       implicit def eRes: Elem[Res];
       def envCosted: Rep[Costed[Env]];
       def func: Rep[scala.Function1[Costed[Arg], Costed[Res]]];
-      def cost: Rep[Int]
+      def cost: Rep[Int];
+      def sliceCalc: Rep[scala.Function1[Arg, Res]];
+      def sliceCost: Rep[scala.Function1[scala.Tuple2[Int, Size[Arg]], Int]];
+      def sliceCostEx: Rep[scala.Function1[scala.Tuple2[Arg, scala.Tuple2[Int, Size[Arg]]], Int]];
+      def sliceSize: Rep[scala.Function1[Size[Arg], Size[Res]]]
     };
     trait CostedColl[Item] extends Costed[Coll[Item]] {
       implicit def eItem: Elem[Item];
