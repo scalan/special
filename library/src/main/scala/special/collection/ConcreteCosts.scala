@@ -42,6 +42,28 @@ package special.collection {
     abstract class CCostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], val cost: Rep[Int], val size: Rep[Size[scala.Function1[Arg, Res]]]) extends CostedFunc[Env, Arg, Res] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
       @NeverInline def value: Rep[scala.Function1[Arg, Res]] = delayInvoke
+
+      // manual fix
+      lazy val sliceCalc: Rep[Arg => Res] = fun { x: Rep[Arg] => func(RCCostedPrim(x, 0, zeroSize(x.elem))).value }
+
+      // manual fix
+      lazy val sliceCost: Rep[((Int,Size[Arg])) => Int] = fun { in: Rep[(Int, Size[Arg])] =>
+        val Pair(c, s) = in
+        func(RCCostedPrim(placeholder[Arg], c, s)).cost
+      }
+
+      // manual fix
+      lazy val sliceCostEx: Rep[((Arg, (Int,Size[Arg]))) => Int] = fun { in: Rep[(Arg, (Int, Size[Arg]))] =>
+        val Pair(ctx, Pair(c, s)) = in
+        func(RCCostedPrim(ctx, c, s)).cost
+      }
+
+      // manual fix
+      lazy val sliceSize: Rep[Size[Arg] => Size[Res]] = fun { in: Rep[Size[Arg]] =>
+        val s = in
+        val arg = RCCostedPrim(placeholder[Arg], 0, s)
+        func(arg).size
+      }
     };
     abstract class CCostedColl[Item](val values: Rep[Coll[Item]], val costs: Rep[Coll[Int]], val sizes: Rep[Coll[Size[Item]]], val valuesCost: Rep[Int]) extends CostedColl[Item] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();

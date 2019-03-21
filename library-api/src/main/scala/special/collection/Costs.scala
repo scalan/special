@@ -26,6 +26,10 @@ trait CostedFunc[Env,Arg,Res] extends Costed[Arg => Res]  {
   def envCosted: Costed[Env]
   def func: Costed[Arg] => Costed[Res]
   def cost: Int
+  def sliceCalc: Arg => Res
+  def sliceCost: ((Int,Size[Arg])) => Int
+  def sliceCostEx: ((Arg, (Int,Size[Arg]))) => Int
+  def sliceSize: Size[Arg] => Size[Res]
 }
 
 trait CostedColl[Item] extends Costed[Coll[Item]] {

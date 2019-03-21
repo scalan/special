@@ -23,12 +23,14 @@ trait Library extends Scalan
   import WRType._
   import Coll._; import CollBuilder._;
   import CReplColl._
-  import Costed._
+  import Size._
+  import Costed._; import CostedBuilder._
   import CostedFunc._;
   import WSpecialPredef._
 
   type RSize[Val] = Rep[Size[Val]]
   type RCosted[A] = Rep[Costed[A]]
+  type LazyRep[T] = MutableLazy[Rep[T]]
 
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
     val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
@@ -39,6 +41,24 @@ trait Library extends Scalan
     case ea: WArrayElem[_,_] => Objects.deepEquals(x, y)
     case _ => super.equalValues[A](x, y)
   }
+
+  private val _specialPredef: LazyRep[WSpecialPredefCompanionCtor] = MutableLazy(RWSpecialPredef)
+  def specialPredef: Rep[WSpecialPredefCompanionCtor] = _specialPredef.value
+
+  override protected def onReset(): Unit = {
+    _specialPredef.reset()
+    super.onReset()
+  }
+
+  def zeroSize[V](eVal: Elem[V]): RSize[V] = asRep[Size[V]](eVal match {
+    case pe: PairElem[a,b] => costedBuilder.mkSizePair(zeroSize[a](pe.eFst), zeroSize[b](pe.eSnd))
+    case ce: CollElem[_,_] =>
+      implicit val eItem = ce.eItem
+      costedBuilder.mkSizeColl(colBuilder.fromItems(zeroSize(eItem)))
+    case oe: WOptionElem[_,_] => costedBuilder.mkSizeOption(specialPredef.some(zeroSize(oe.eItem)))
+    case _: BaseElem[_] | _: EntityElem[_] => costedBuilder.mkSizePrim(0L, eVal)
+    case _ => !!!(s"Cannot create zeroSize($eVal)")
+  })
 
   override protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = receiver.elem match {
     case ae: WOptionElem[a, _] => m.getName match {
