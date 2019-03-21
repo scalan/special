@@ -703,39 +703,73 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def toString = s"ReplColl($value, $length)"
 }
 
-class CViewColl[A,B](val source: Coll[A], f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
+class CViewColl[@specialized A, @specialized B](val source: Coll[A], f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
 
-  private val items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
+  private var isCalculated: Array[Boolean] = Array.ofDim[Boolean](source.length)(RType.BooleanType.classTag)
+  private var items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
 
-  override def builder: CollBuilder = ???
+  private def checkAndCalculateItem(index: Int): Unit = {
+    if (!isCalculated(index)) {
+      items(index) = f(source(index))
+      isCalculated(index) = true
+    }
+  }
+
+  private def getAndCalculateItem(index: Int): B = {
+    checkAndCalculateItem(index)
+    items(index)
+  }
+
+  override def builder: CollBuilder = new CollOverArrayBuilder
 
   override def toArray: Array[B] = {
+    val length = source.length
+    i = 0
+    while(i < length) {
+      checkAndCalculateItem(i)
+      i += 1
+    }
 
+    items
   }
 
   override def length: Int = source.length
 
   override def isEmpty: Boolean = source.isEmpty
 
-  override def nonEmpty: Boolean = ???
+  override def nonEmpty: Boolean = !isEmpty
 
-  override def apply(i: Int): B = ???
+  override def apply(i: Int): B = {
+    checkAndCalculateItem(i)
+    items(i)
+  }
 
-  override def isDefinedAt(idx: Int): Boolean = ???
+  override def isDefinedAt(idx: Int): Boolean = (idx >= 0) && (idx < length)
 
-  override def getOrElse(index: Int, default: B): B = ???
+  override def getOrElse(index: Int, default: B): B = if (isDefinedAt(index)) getAndCalculateItem(index) else default
 
-  override def map[B: RType](f: B => B): Coll[B] = ???
+  override def map[B: RType](f: B => B): Coll[B] = new CollOverArray(toArray.map(f))
 
-  override def zip[B](ys: Coll[B]): Coll[(B, B)] = ???
+  override def zip[B](ys: Coll[B]): Coll[(B, B)] = builder.pairColl(this, ys)
 
-  override def exists(p: B => Boolean): Boolean = ???
+  override def exists(p: B => Boolean): Boolean = {
+    val length = source.length
+    var i = 0
+    while(i < source.length) {
+      checkAndCalculateItem(i)
+      val found = p(items(i))
+      if (found) return true
+      i += 1
+    }
 
-  override def forall(p: B => Boolean): Boolean = ???
+    false
+  }
 
-  override def filter(p: B => Boolean): Coll[B] = ???
+  override def forall(p: B => Boolean): Boolean = toArray.forall(p)
 
-  override def foldLeft[B](zero: B, op: ((B, B)) => B): B = ???
+  override def filter(p: B => Boolean): Coll[B] = builder.fromArray(toArray.filter(p))
+
+  override def foldLeft[B](zero: B, op: ((B, B)) => B): B = toArray.foldLeft(zero)((b, a) => op((b, a)))
 
   override def indices: Coll[Int] = ???
 
