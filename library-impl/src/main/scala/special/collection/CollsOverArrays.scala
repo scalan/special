@@ -226,6 +226,9 @@ class CollOverArrayBuilder extends CollBuilder {
   def replicate[T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
+  def makeView[@specialized A: RType, @specialized B: RType](source: Array[A], f: A => B): Coll[B] = new CViewColl(fromArray(source), f)
+
+  @NeverInline
   def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
     case pa: PairColl[_,_] => (pa.ls, pa.rs)
     case _ =>
@@ -336,6 +339,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
     }
     false
   }
+
   @NeverInline
   override def forall(p: ((L, R)) => Boolean): Boolean = {
     val len = ls.length
@@ -511,7 +515,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def tItem: RType[A] = tA
 
   def builder: CollBuilder = new CollOverArrayBuilder
-  
+
   lazy val toArray: Array[A] = {
     val res = Array.ofDim[A](length)
     cfor(0)(_ < length, _ + 1) { i => res(i) = value }
@@ -703,10 +707,19 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def toString = s"ReplColl($value, $length)"
 }
 
-class CViewColl[@specialized A, @specialized B](val source: Coll[A], f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
+class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A], val f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
+
 
   private var isCalculated: Array[Boolean] = Array.ofDim[Boolean](source.length)(RType.BooleanType.classTag)
   private var items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
+
+  private def this(source: Coll[A], f: A => B, calculated: Array[Boolean], calculatedItems: Array[B])(implicit tItem: RType[B]) {
+    this(source, f)(tItem)
+    assert(isCalculated.length == source.length && isCalculated.length == calculatedItems.length)
+
+    isCalculated = calculated
+    items = calculatedItems
+  }
 
   private def checkAndCalculateItem(index: Int): Unit = {
     if (!isCalculated(index)) {
@@ -722,88 +735,199 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], f: A => B)(
 
   override def builder: CollBuilder = new CollOverArrayBuilder
 
+  @NeverInline
   override def toArray: Array[B] = {
-    val length = source.length
-    i = 0
-    while(i < length) {
+    cfor(0)(_ < length, _ + 1) { i =>
       checkAndCalculateItem(i)
-      i += 1
     }
 
     items
   }
 
+  @NeverInline
   override def length: Int = source.length
 
+  @NeverInline
   override def isEmpty: Boolean = source.isEmpty
 
+  @NeverInline
   override def nonEmpty: Boolean = !isEmpty
 
+  @NeverInline
   override def apply(i: Int): B = {
+    if (!isDefinedAt(i))
+      throw new ArrayIndexOutOfBoundsException()
+
     checkAndCalculateItem(i)
     items(i)
   }
 
+  @NeverInline
   override def isDefinedAt(idx: Int): Boolean = (idx >= 0) && (idx < length)
 
+  @NeverInline
   override def getOrElse(index: Int, default: B): B = if (isDefinedAt(index)) getAndCalculateItem(index) else default
 
-  override def map[B: RType](f: B => B): Coll[B] = new CollOverArray(toArray.map(f))
+  @NeverInline
+  override def map[C: RType](g: B => C): Coll[C] = new CViewColl(builder.fromArray(toArray)(tItem), g)() // TODO: find out how to remember execution result in new CViewColl
 
-  override def zip[B](ys: Coll[B]): Coll[(B, B)] = builder.pairColl(this, ys)
+  @NeverInline
+  override def zip[C](ys: Coll[C]): Coll[(B, C)] = builder.pairColl(this, ys)
 
+  @NeverInline
   override def exists(p: B => Boolean): Boolean = {
-    val length = source.length
-    var i = 0
-    while(i < source.length) {
+    cfor(0)(_ < length, _ + 1) { i =>
       checkAndCalculateItem(i)
       val found = p(items(i))
       if (found) return true
-      i += 1
     }
 
     false
   }
 
+  @NeverInline
   override def forall(p: B => Boolean): Boolean = toArray.forall(p)
 
-  override def filter(p: B => Boolean): Coll[B] = builder.fromArray(toArray.filter(p))
+  @NeverInline
+  override def filter(p: B => Boolean): Coll[B] = builder.fromArray(toArray)(tItem).filter(p)
 
-  override def foldLeft[B](zero: B, op: ((B, B)) => B): B = toArray.foldLeft(zero)((b, a) => op((b, a)))
+  @NeverInline
+  override def foldLeft[C](zero: C, op: ((C, B)) => C): C = toArray.foldLeft(zero)((item1, item2) => op((item1, item2)))
 
-  override def indices: Coll[Int] = ???
+  @NeverInline
+  override def indices: Coll[Int] = builder.fromArray((0 until source.length).toArray)
 
-  override def flatMap[B: RType](f: B => Coll[B]): Coll[B] = ???
+  @NeverInline
+  override def flatMap[C: RType](g: B => Coll[C]): Coll[C] = builder.fromArray(toArray)(tItem).flatMap(g)
 
-  override def segmentLength(p: B => Boolean, from: Int): Int = ???
+  @NeverInline
+  override def segmentLength(p: B => Boolean, from: Int): Int = {
+    var answer = 0
+    var currentSequenceLength = 0
+    cfor(from)(_ < length, _ + 1) { i =>
+      checkAndCalculateItem(i)
+      val checkResult = p(items(i))
 
-  override def indexWhere(p: B => Boolean, from: Int): Int = ???
+      if (checkResult) {
+        currentSequenceLength += 1
+      } else {
+        if (currentSequenceLength > answer)
+          answer = currentSequenceLength
+        currentSequenceLength = 0
+      }
+    }
 
-  override def lastIndexWhere(p: B => Boolean, end: Int): Int = ???
+    answer
+  }
 
-  override def take(n: Int): Coll[B] = ???
+  @NeverInline
+  override def indexWhere(p: B => Boolean, from: Int): Int = {
+    cfor(math.max(0, from))(_ < length, _ + 1) { i =>
+      val found = p(items(i))
+      if (found) return i
+    }
 
-  override def partition(pred: B => Boolean): (Coll[B], Coll[B]) = ???
+    -1
+  }
 
+  @NeverInline
+  override def lastIndexWhere(p: B => Boolean, end: Int): Int = toArray.lastIndexWhere(p, end)
+
+  @NeverInline
+  override def take(n: Int): Coll[B] = {
+    if (n < 0)
+      builder.emptyColl(tItem)
+
+    if (n > length)
+      this
+
+    slice(0, n)
+  }
+
+  @NeverInline
+  override def partition(pred: B => Boolean): (Coll[B], Coll[B]) = builder.fromArray(toArray)(tItem).partition(pred)
+
+  @NeverInline
   override def patch(from: Int,
       patch: Coll[B],
-      replaced: Int): Coll[B] = ???
+      replaced: Int): Coll[B] = {
+    val start = math.max(0, from)
 
-  override def updated(index: Int, elem: B): Coll[B] = ???
+    var isCalcCopy = isCalculated
+    var itemsCopy = items
 
+    cfor(start)(_ < math.min(length, start + replaced), _ + 1) { i =>
+      itemsCopy(i) = patch(i)
+      isCalcCopy(i) = true
+    }
+
+    new CViewColl(source, f, isCalcCopy, itemsCopy)(tItem)
+  }
+
+  @NeverInline
+  override def updated(index: Int, elem: B): Coll[B] = {
+    if (!isDefinedAt(index))
+      throw new IndexOutOfBoundsException()
+
+    var isCalcCopy = isCalculated
+    var itemsCopy = items
+
+    isCalcCopy(index) = true
+    itemsCopy(index) = elem
+
+    new CViewColl(source, f, isCalcCopy, itemsCopy)(tItem)
+  }
+
+  @NeverInline
   override def updateMany(indexes: Coll[Int],
-      values: Coll[B]): Coll[B] = ???
+      values: Coll[B]): Coll[B] = {
+    var isCalcCopy = isCalculated
+    var itemsCopy = items
 
+    cfor(0)(_ < indexes.length, _ + 1) { i =>
+      itemsCopy(indexes(i)) = values(i)
+      isCalcCopy(indexes(i)) = true
+    }
+
+    new CViewColl(source, f, isCalcCopy, itemsCopy)(tItem)
+  }
+
+  @NeverInline
   override def mapReduce[K: RType, V: RType](m: B => (K, V),
-      r: ((V, V)) => V): Coll[(K, V)] = ???
+      r: ((V, V)) => V): Coll[(K, V)] = builder.fromArray(toArray)(tItem).mapReduce(m, r)
 
-  override def unionSet(that: Coll[B]): Coll[B] = ???
+  @NeverInline
+  override def unionSet(that: Coll[B]): Coll[B] = builder.fromArray(toArray)(tItem).unionSet(that)
 
-  override def sum(m: Monoid[B]): B = ???
+  @NeverInline
+  override def sum(m: Monoid[B]): B = toArray.foldLeft(m.zero)((b, a) => m.plus(b, a))
 
-  override def slice(from: Int, until: Int): Coll[B] = ???
+  @NeverInline
+  override def slice(from: Int, until: Int): Coll[B] = {
+    if (until < 0)
+      builder.emptyColl(tItem)
 
-  override def append(other: Coll[B]): Coll[B] = ???
+    val start = math.max(0, from)
+    val end = math.min(until, length)
 
-  override def reverse: Coll[B] = ???
+    val itemsCopy = Array.ofDim[B](end - start)(tItem.classTag)
+    Array.copy(items, start, itemsCopy, 0, end - start)
+
+    val calcCopy = Array.ofDim[Boolean](end - start)(RType.BooleanType.classTag)
+    Array.copy(isCalculated, start, calcCopy, 0, end - start)
+
+    val sourceCopy = Array.ofDim[A](end - start)(source.tItem.classTag)
+    Array.copy(source, start, sourceCopy, 0, end - start)
+
+    new CViewColl(builder.fromArray(sourceCopy), f, calcCopy, itemsCopy)(tItem)
+  }
+
+  // TODO: find out if laziness is needed in append
+  @NeverInline
+  override def append(other: Coll[B]): Coll[B] = builder.fromArray(toArray)(tItem).append(other)
+
+  @NeverInline
+  override def reverse: Coll[B] = {
+    new CViewColl[A, B](source.reverse, f, isCalculated.reverse, items.reverse)(tItem)
+  }
 }

@@ -28,9 +28,11 @@ trait CollGens { testSuite =>
   val bytesOverArrayGen = bytesArrayGen.map(builder.fromArray(_))
   val replCollGen = for { l <- lenGen; v <- valGen } yield builder.replicate(l, v)
   val replBytesCollGen = for { l <- lenGen; v <- byteGen } yield builder.replicate(l, v)
+/*  val lazyCollGen = arrayGen.map(builder.makeView(_ , x => x))
+  val lazyByteGen = bytesArrayGen.map(builder.makeView(_ , x => x))*/
 
-  val collGen = Gen.oneOf(collOverArrayGen, replCollGen)
-  val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen)
+  val collGen = Gen.oneOf(collOverArrayGen, replCollGen/*, lazyCollGen*/)
+  val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen/*, lazyByteGen*/)
 
   implicit val arbColl = Arbitrary(collGen)
   implicit val arbBytes = Arbitrary(bytesGen)
