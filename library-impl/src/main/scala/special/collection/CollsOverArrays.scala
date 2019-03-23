@@ -709,7 +709,6 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
 class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A], val f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
 
-
   private var isCalculated: Array[Boolean] = Array.ofDim[Boolean](source.length)(RType.BooleanType.classTag)
   private var items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
 
