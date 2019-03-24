@@ -226,7 +226,12 @@ class CollOverArrayBuilder extends CollBuilder {
   def replicate[T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
-  def makeView[@specialized A: RType, @specialized B: RType](source: Array[A], f: A => B): Coll[B] = new CViewColl(fromArray(source), f)
+  def makeView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B): Coll[B] = new CViewColl(source, f)
+
+  @NeverInline
+  def makePartialView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B, calculated: Array[Boolean], calculatedItems: Array[B]): Coll[B] = {
+    new CViewColl(source, f).fromPartialCalculation(calculated, calculatedItems)
+  }
 
   @NeverInline
   def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B]) = xs match {
@@ -707,28 +712,34 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def toString = s"ReplColl($value, $length)"
 }
 
-class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A], val f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
+class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
 
   private var isCalculated: Array[Boolean] = Array.ofDim[Boolean](source.length)(RType.BooleanType.classTag)
   private var items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
+  private var calculatedCount = 0
 
-  private def this(source: Coll[A], f: A => B, calculated: Array[Boolean], calculatedItems: Array[B])(implicit tItem: RType[B]) {
-    this(source, f)(tItem)
-    assert(isCalculated.length == source.length && isCalculated.length == calculatedItems.length)
-
+  def fromPartialCalculation(calculated: Array[Boolean], calculatedItems: Array[B]): CViewColl[A, B] = {
+    if (calculated.length != source.length || calculatedItems.length != source.length)
+      throw new RuntimeException("Can't make partial collection: calculated items dimension != source dimension")
     isCalculated = calculated
     items = calculatedItems
+    def toInt(boolean: Boolean): Int = if (boolean) 1 else 0
+    calculatedCount = isCalculated.foldLeft[Int](0)(_ + toInt(_))
+    this
   }
 
-  private def checkAndCalculateItem(index: Int): Unit = {
+  private def isAllItemsCalculated(): Boolean = calculatedCount == length
+
+  private def ensureItem(index: Int): Unit = {
     if (!isCalculated(index)) {
       items(index) = f(source(index))
       isCalculated(index) = true
+      calculatedCount += 1
     }
   }
 
-  private def getAndCalculateItem(index: Int): B = {
-    checkAndCalculateItem(index)
+  @inline private def ensureAndGetItem(index: Int): B = {
+    ensureItem(index)
     items(index)
   }
 
@@ -736,10 +747,11 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
 
   @NeverInline
   override def toArray: Array[B] = {
-    cfor(0)(_ < length, _ + 1) { i =>
-      checkAndCalculateItem(i)
+    if (!isAllItemsCalculated()) {
+      cfor(0)(_ < length, _ + 1) { i =>
+        ensureItem(i)
+      }
     }
-
     items
   }
 
@@ -757,30 +769,27 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
     if (!isDefinedAt(i))
       throw new ArrayIndexOutOfBoundsException()
 
-    checkAndCalculateItem(i)
-    items(i)
+    ensureAndGetItem(i)
   }
 
   @NeverInline
   override def isDefinedAt(idx: Int): Boolean = (idx >= 0) && (idx < length)
 
   @NeverInline
-  override def getOrElse(index: Int, default: B): B = if (isDefinedAt(index)) getAndCalculateItem(index) else default
+  override def getOrElse(index: Int, default: B): B = if (isDefinedAt(index)) ensureAndGetItem(index) else default
 
   @NeverInline
-  override def map[C: RType](g: B => C): Coll[C] = new CViewColl(builder.fromArray(toArray)(tItem), g)() // TODO: find out how to remember execution result in new CViewColl
+  override def map[@specialized C: RType](g: B => C): Coll[C] = builder.makeView(this, g)
 
   @NeverInline
-  override def zip[C](ys: Coll[C]): Coll[(B, C)] = builder.pairColl(this, ys)
+  override def zip[@specialized C](ys: Coll[C]): Coll[(B, C)] = builder.pairColl(this, ys)
 
   @NeverInline
   override def exists(p: B => Boolean): Boolean = {
     cfor(0)(_ < length, _ + 1) { i =>
-      checkAndCalculateItem(i)
-      val found = p(items(i))
+      val found = p(ensureAndGetItem(i))
       if (found) return true
     }
-
     false
   }
 
@@ -801,31 +810,23 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
 
   @NeverInline
   override def segmentLength(p: B => Boolean, from: Int): Int = {
-    var answer = 0
-    var currentSequenceLength = 0
-    cfor(from)(_ < length, _ + 1) { i =>
-      checkAndCalculateItem(i)
-      val checkResult = p(items(i))
-
-      if (checkResult) {
-        currentSequenceLength += 1
-      } else {
-        if (currentSequenceLength > answer)
-          answer = currentSequenceLength
-        currentSequenceLength = 0
+    val trueFrom = math.max(0, from)
+    cfor(trueFrom)(_ < length, _ + 1) { i =>
+      val checkResult = p(ensureAndGetItem(i))
+      if (!checkResult) {
+        return i - trueFrom
       }
     }
-
-    answer
+    length - trueFrom
   }
 
   @NeverInline
   override def indexWhere(p: B => Boolean, from: Int): Int = {
-    cfor(math.max(0, from))(_ < length, _ + 1) { i =>
-      val found = p(items(i))
+    val trueFrom = math.max(0, from)
+    cfor(trueFrom)(_ < length, _ + 1) { i =>
+      val found = p(ensureAndGetItem(i))
       if (found) return i
     }
-
     -1
   }
 
@@ -834,12 +835,10 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
 
   @NeverInline
   override def take(n: Int): Coll[B] = {
-    if (n < 0)
-      builder.emptyColl(tItem)
-
+    if (n <= 0)
+      return builder.emptyColl(tItem)
     if (n > length)
-      this
-
+      return this
     slice(0, n)
   }
 
@@ -850,17 +849,31 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
   override def patch(from: Int,
       patch: Coll[B],
       replaced: Int): Coll[B] = {
-    val start = math.max(0, from)
+    if (length > 0) {
+      val start = math.max(0, from)
+      val trueReplace = math.max(replaced, 0)
+      val newLength = patch.length + length - math.min(trueReplace, length - start)
 
-    var isCalcCopy = isCalculated
-    var itemsCopy = items
+      var itemsCopy = Array.ofDim[B](newLength)(tItem.classTag)
+      Array.copy(items, 0, itemsCopy, 0, start)
+      Array.copy(patch.toArray, 0, itemsCopy, start, patch.length)
+      if (start + trueReplace < length)
+        Array.copy(items, start + trueReplace, itemsCopy, start + patch.length, length - start - trueReplace)
 
-    cfor(start)(_ < math.min(length, start + replaced), _ + 1) { i =>
-      itemsCopy(i) = patch(i)
-      isCalcCopy(i) = true
+      var calcCopy = Array.ofDim[Boolean](newLength)(RType.BooleanType.classTag)
+      Array.copy(isCalculated, 0, calcCopy, 0, start)
+      if (start + trueReplace < length)
+        Array.copy(isCalculated, start + trueReplace, calcCopy, start + patch.length, length - start - trueReplace)
+
+      cfor(start)(_ < start + patch.length, _ + 1) { i =>
+        calcCopy(i) = true
+      }
+
+      val patchColl = new CReplColl(source(0), patch.length)(source.tItem)
+      builder.makePartialView(source.patch(start, patchColl, replaced), f, calcCopy, itemsCopy)(tItem)
+    } else {
+      builder.fromArray(toArray).patch(from, patch, replaced)
     }
-
-    new CViewColl(source, f, isCalcCopy, itemsCopy)(tItem)
   }
 
   @NeverInline
@@ -868,27 +881,31 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
     if (!isDefinedAt(index))
       throw new IndexOutOfBoundsException()
 
-    var isCalcCopy = isCalculated
-    var itemsCopy = items
+    var itemsCopy = Array.ofDim[B](length)(tItem.classTag)
+    Array.copy(items, 0, itemsCopy, 0, length)
 
-    isCalcCopy(index) = true
+    var calcCopy = Array.ofDim[Boolean](length)(RType.BooleanType.classTag)
+    Array.copy(isCalculated, 0, calcCopy, 0, length)
+
+    calcCopy(index) = true
     itemsCopy(index) = elem
-
-    new CViewColl(source, f, isCalcCopy, itemsCopy)(tItem)
+    builder.makePartialView(source, f, calcCopy, itemsCopy)
   }
 
   @NeverInline
   override def updateMany(indexes: Coll[Int],
       values: Coll[B]): Coll[B] = {
-    var isCalcCopy = isCalculated
-    var itemsCopy = items
+    var itemsCopy = Array.ofDim[B](length)(tItem.classTag)
+    Array.copy(items, 0, itemsCopy, 0, length)
+
+    var calcCopy = Array.ofDim[Boolean](length)(RType.BooleanType.classTag)
+    Array.copy(isCalculated, 0, calcCopy, 0, length)
 
     cfor(0)(_ < indexes.length, _ + 1) { i =>
       itemsCopy(indexes(i)) = values(i)
-      isCalcCopy(indexes(i)) = true
+      calcCopy(indexes(i)) = true
     }
-
-    new CViewColl(source, f, isCalcCopy, itemsCopy)(tItem)
+    builder.makePartialView(source, f, calcCopy, itemsCopy)(tItem)
   }
 
   @NeverInline
@@ -903,8 +920,8 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
 
   @NeverInline
   override def slice(from: Int, until: Int): Coll[B] = {
-    if (until < 0)
-      builder.emptyColl(tItem)
+    if (until <= 0 || until - from <= 0)
+      return builder.emptyColl(tItem)
 
     val start = math.max(0, from)
     val end = math.min(until, length)
@@ -915,18 +932,14 @@ class CViewColl[@specialized A: RType, @specialized B: RType](val source: Coll[A
     val calcCopy = Array.ofDim[Boolean](end - start)(RType.BooleanType.classTag)
     Array.copy(isCalculated, start, calcCopy, 0, end - start)
 
-    val sourceCopy = Array.ofDim[A](end - start)(source.tItem.classTag)
-    Array.copy(source, start, sourceCopy, 0, end - start)
-
-    new CViewColl(builder.fromArray(sourceCopy), f, calcCopy, itemsCopy)(tItem)
+    builder.makePartialView(source.slice(from, until), f, calcCopy, itemsCopy)
   }
 
-  // TODO: find out if laziness is needed in append
   @NeverInline
   override def append(other: Coll[B]): Coll[B] = builder.fromArray(toArray)(tItem).append(other)
 
   @NeverInline
   override def reverse: Coll[B] = {
-    new CViewColl[A, B](source.reverse, f, isCalculated.reverse, items.reverse)(tItem)
+    builder.makePartialView(source.reverse, f, isCalculated.reverse, items.reverse)(tItem)
   }
 }
