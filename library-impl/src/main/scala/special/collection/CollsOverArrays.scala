@@ -723,17 +723,32 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
       throw new RuntimeException("Can't make partial collection: calculated items dimension != source dimension")
     isCalculated = calculated
     items = calculatedItems
-    def toInt(boolean: Boolean): Int = if (boolean) 1 else 0
-    calculatedCount = isCalculated.foldLeft[Int](0)(_ + toInt(_))
+    calculatedCount = 0
+    cfor(0)(_ < isCalculated.length, _ + 1) { i =>
+      if (isCalculated(i)) {
+        calculatedCount += 1
+      }
+    }
+
     this
   }
 
   private def isAllItemsCalculated(): Boolean = calculatedCount == length
 
+  private def calculateItem(index: Int): Unit = {
+    items(index) = f(source(index))
+    isCalculated(index) = true
+  }
+
+  private def ensureItemNoCalcCountChange(index: Int): Unit = {
+    if (!isCalculated(index)) {
+      calculateItem(index)
+    }
+  }
+
   private def ensureItem(index: Int): Unit = {
     if (!isCalculated(index)) {
-      items(index) = f(source(index))
-      isCalculated(index) = true
+      calculateItem(index)
       calculatedCount += 1
     }
   }
@@ -749,8 +764,9 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   override def toArray: Array[B] = {
     if (!isAllItemsCalculated()) {
       cfor(0)(_ < length, _ + 1) { i =>
-        ensureItem(i)
+        ensureItemNoCalcCountChange(i)
       }
+      calculatedCount = length
     }
     items
   }
@@ -845,6 +861,19 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   @NeverInline
   override def partition(pred: B => Boolean): (Coll[B], Coll[B]) = builder.fromArray(toArray)(tItem).partition(pred)
 
+  /** Adds elements from patch starting at position from to the original $coll, dropping first #replaced elements
+    * starting at position from. The rest of the original collection then is appended to new collection.
+    * Example: forPatch = Coll(1, 2, 3, 4)
+    *          patch    = Coll(5, 6)
+    *          forPatch.patch(1, patch, 0) is Coll(1, 5, 6, 2, 3, 4)
+    *          forPatch.patch(1, patch, 1) is Coll(1, 5, 6, 3, 4)
+    *
+    * @param  from     the index of the first replaced element
+    * @param  patch    the replacement sequence
+    * @param  replaced the number of elements to drop in the original $coll
+    * @return          a new $coll consisting of all elements of this $coll
+    *                   except that `replaced` elements starting from `from` are replaced by `patch`.
+    */
   @NeverInline
   override def patch(from: Int,
       patch: Coll[B],
@@ -869,6 +898,11 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
         calcCopy(i) = true
       }
 
+      /*
+       * patchColl solves problem with the absence of source elements in patch collection: it tries to copy the first
+       * element as source for all elements of patch. If there's no any source elements (collection is empty) then
+       * current collection is converted to CollOverArray and patch of CollOverArray is called
+       */
       val patchColl = new CReplColl(source(0), patch.length)(source.tItem)
       builder.makePartialView(source.patch(start, patchColl, replaced), f, calcCopy, itemsCopy)(tItem)
     } else {
@@ -881,25 +915,26 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
     if (!isDefinedAt(index))
       throw new IndexOutOfBoundsException()
 
-    var itemsCopy = Array.ofDim[B](length)(tItem.classTag)
-    Array.copy(items, 0, itemsCopy, 0, length)
-
-    var calcCopy = Array.ofDim[Boolean](length)(RType.BooleanType.classTag)
-    Array.copy(isCalculated, 0, calcCopy, 0, length)
+    var itemsCopy = items.clone()
+    var calcCopy = isCalculated.clone()
 
     calcCopy(index) = true
     itemsCopy(index) = elem
     builder.makePartialView(source, f, calcCopy, itemsCopy)
   }
 
+  /** Replaces elements at specified indexes with values from values collection in this $coll
+    *
+    * @param indexes  collection of element's indexes in current collection at which values should be replaced with
+    *                 ones provided by second param
+    * @param values   collection of values that will replace original values in this $coll at specified indexes
+    * @return the updated $coll
+    */
   @NeverInline
   override def updateMany(indexes: Coll[Int],
       values: Coll[B]): Coll[B] = {
-    var itemsCopy = Array.ofDim[B](length)(tItem.classTag)
-    Array.copy(items, 0, itemsCopy, 0, length)
-
-    var calcCopy = Array.ofDim[Boolean](length)(RType.BooleanType.classTag)
-    Array.copy(isCalculated, 0, calcCopy, 0, length)
+    var itemsCopy = items.clone()
+    var calcCopy = isCalculated.clone()
 
     cfor(0)(_ < indexes.length, _ + 1) { i =>
       itemsCopy(indexes(i)) = values(i)
@@ -925,12 +960,13 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
 
     val start = math.max(0, from)
     val end = math.min(until, length)
+    val sliceLength = end - start
 
-    val itemsCopy = Array.ofDim[B](end - start)(tItem.classTag)
-    Array.copy(items, start, itemsCopy, 0, end - start)
+    val itemsCopy = Array.ofDim[B](sliceLength)(tItem.classTag)
+    Array.copy(items, start, itemsCopy, 0, sliceLength)
 
-    val calcCopy = Array.ofDim[Boolean](end - start)(RType.BooleanType.classTag)
-    Array.copy(isCalculated, start, calcCopy, 0, end - start)
+    val calcCopy = Array.ofDim[Boolean](sliceLength)(RType.BooleanType.classTag)
+    Array.copy(isCalculated, start, calcCopy, 0, sliceLength)
 
     builder.makePartialView(source.slice(from, until), f, calcCopy, itemsCopy)
   }
