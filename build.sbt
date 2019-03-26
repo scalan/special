@@ -98,8 +98,15 @@ lazy val macros = Project("macros", file("macros"))
         "org.typelevel" %% "macro-compat" % "1.1.1"
       ))
 
+lazy val libraryapi = Project("library-api", file("library-api"))
+    .dependsOn(common % allConfigDependency)
+    .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
+      libraryDependencies ++= Seq(
+        "org.typelevel" %% "macro-compat" % "1.1.1"
+      ))
+
 lazy val core = Project("core", file("core"))
-    .dependsOn(common % allConfigDependency, meta % allConfigDependency, macros)
+    .dependsOn(common % allConfigDependency, meta % allConfigDependency, libraryapi % allConfigDependency, macros)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.3",
@@ -112,14 +119,6 @@ lazy val core = Project("core", file("core"))
 lazy val plugin = Project("plugin", file("plugin"))
     .dependsOn(meta)
     .settings(commonSettings)
-
-
-lazy val libraryapi = Project("library-api", file("library-api"))
-    .dependsOn(common)
-    .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
-      libraryDependencies ++= Seq(
-        "org.typelevel" %% "macro-compat" % "1.1.1"
-      ))
 
 lazy val libraryimpl = Project("library-impl", file("library-impl"))
     .dependsOn(libraryapi % allConfigDependency)

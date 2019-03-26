@@ -6,6 +6,7 @@ import scala.reflect.runtime.universe._
 import scalan.util.CollectionUtil
 import OverloadHack._
 import scalan.compilation.GraphVizConfig
+import special.Types
 
 /**
  The code is inspired by LMS structs and is used in Scalan with the same semantics
@@ -55,14 +56,15 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   import Liftables._
   import scala.reflect.{ClassTag, classTag}
-  type SStruct = Array[AnyRef]
+
+  type SStruct = special.collection.Coll[Any]
 
   case class StructConst[T <: Struct](constValue: SStruct, _selfType: StructElem[T])
         extends AbstractStruct[T] with LiftedConst[SStruct, T] {
     override lazy val selfType = _selfType
     def tag = _selfType.structTag
     val fields: Seq[(String, Rep[Any])] =
-      constValue.zip(_selfType.fields).map { case (v, (fn, e)) => (fn, toRep(v)(e.asElem[AnyRef])) }
+      constValue.toArray.zip(_selfType.fields).map { case (v, (fn, e)) => (fn, toRep(v)(e.asElem[Any])) }
     def liftable = liftableStruct(_selfType)
   }
 
@@ -72,7 +74,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
       case se: StructElem[_] =>
         val (names, elems) = se.fields.unzip
         val types = elems.map(e => e.liftable.sourceType)
-        RType.structRType(names.toArray, types.toArray)
+        Types.structRType(names.toArray, types.toArray)
       case _ =>
         !!!(s"Invalid argument of LiftableStruct($eW)")
     }
