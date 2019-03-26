@@ -322,4 +322,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("CViewColl.correctWork") {
+    forAll(collGen) { coll =>
+      val view = builder.makeView(coll, complexFunction)
+      val usual = coll.map(complexFunction)
+      view.toArray shouldBe usual.toArray
+    }
+  }
 }

@@ -434,6 +434,12 @@ trait CollBuilder {
   def fromArray[@specialized T: RType](arr: Array[T]): Coll[T]
   def replicate[T: RType](n: Int, v: T): Coll[T]
 
+  @NeverInline
+  def makeView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B): Coll[B]
+
+  @NeverInline
+  def makePartialView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B, calculated: Array[Boolean], calculatedItems: Array[B]): Coll[B]
+
   def emptyColl[T](implicit tT: RType[T]): Coll[T]
 
   /** Performs outer join operation between left and right collections.

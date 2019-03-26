@@ -29,8 +29,17 @@ trait CollGens { testSuite =>
   val replCollGen = for { l <- lenGen; v <- valGen } yield builder.replicate(l, v)
   val replBytesCollGen = for { l <- lenGen; v <- byteGen } yield builder.replicate(l, v)
 
-  val collGen = Gen.oneOf(collOverArrayGen, replCollGen)
-  val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen)
+  val lazyCollGen = collOverArrayGen.map(builder.makeView(_, identity[Int]))
+  val lazyByteGen = bytesOverArrayGen.map(builder.makeView(_, identity[Byte]))
+
+  def easyFunction(arg: Int): Int = arg * 20 + 300
+  def inverseEasyFunction(arg: Int): Int = (arg - 300) / 20
+
+  val lazyFuncCollGen = collOverArrayGen.map(builder.makeView(_, easyFunction))
+  val lazyUnFuncCollGen = lazyFuncCollGen.map(builder.makeView(_, inverseEasyFunction))
+
+  val collGen = Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen)
+  val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen)
 
   implicit val arbColl = Arbitrary(collGen)
   implicit val arbBytes = Arbitrary(bytesGen)
@@ -41,6 +50,16 @@ trait CollGens { testSuite =>
   val plusF = (p: (Int,Int)) => plus(p._1, p._2)
   val predF = (p: (Int,Int)) => plus(p._1, p._2) > 0
   def inc(x: Int) = x + 1
+
+  def complexFunction(arg: Int): Int = {
+    var i = 0
+    var res = 0
+    while (i < 10) {
+      res += arg - i
+      i += 1
+    }
+    res
+  }
 
   implicit def buildableColl[T:RType] = new Buildable[T,Coll[T]] {
     def builder = new mutable.Builder[T,Coll[T]] {
