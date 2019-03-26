@@ -29,10 +29,17 @@ trait CollGens { testSuite =>
   val replCollGen = for { l <- lenGen; v <- valGen } yield builder.replicate(l, v)
   val replBytesCollGen = for { l <- lenGen; v <- byteGen } yield builder.replicate(l, v)
 
-  val lazyCollGen = collOverArrayGen.map(builder.makeView(_, identity[Int])(RType.IntType))
-  val lazyByteGen = bytesOverArrayGen.map(builder.makeView(_, identity[Byte])(RType.ByteType))
+  val lazyCollGen = collOverArrayGen.map(builder.makeView(_, identity[Int]))
+  val lazyByteGen = bytesOverArrayGen.map(builder.makeView(_, identity[Byte]))
 
-  val collGen = Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen)
+
+  def easyFunction(arg: Int): Int = arg * 20 + 300
+  def inverseEasyFunction(arg: Int): Int = (arg - 300) / 20
+
+  val lazyFuncCollGen = collOverArrayGen.map(builder.makeView(_, easyFunction))
+  val lazyUnFuncCollGen = lazyFuncCollGen.map(builder.makeView(_, inverseEasyFunction))
+
+  val collGen = Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen)
   val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen)
 
   implicit val arbColl = Arbitrary(collGen)
@@ -54,6 +61,7 @@ trait CollGens { testSuite =>
     }
     res
   }
+
 
   implicit def buildableColl[T:RType] = new Buildable[T,Coll[T]] {
     def builder = new mutable.Builder[T,Coll[T]] {
