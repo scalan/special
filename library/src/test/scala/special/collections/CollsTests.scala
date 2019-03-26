@@ -296,14 +296,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
-  property("CViewColl.correctWork") {
-    forAll(collGen) { coll =>
-      val view = builder.makeView(coll, complexFunction)
-      val usual = coll.map(complexFunction)
-      view.toArray shouldBe usual.toArray
-    }
-  }
-
   property("CollBuilder.outerJoin") {
     def test(col: Coll[Int]) = {
       val inner = col.indices
@@ -330,4 +322,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("CViewColl.correctWork") {
+    forAll(collGen) { coll =>
+      val view = builder.makeView(coll, complexFunction)
+      val usual = coll.map(complexFunction)
+      view.toArray shouldBe usual.toArray
+    }
+  }
 }

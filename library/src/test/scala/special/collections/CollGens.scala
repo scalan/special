@@ -32,7 +32,6 @@ trait CollGens { testSuite =>
   val lazyCollGen = collOverArrayGen.map(builder.makeView(_, identity[Int]))
   val lazyByteGen = bytesOverArrayGen.map(builder.makeView(_, identity[Byte]))
 
-
   def easyFunction(arg: Int): Int = arg * 20 + 300
   def inverseEasyFunction(arg: Int): Int = (arg - 300) / 20
 
@@ -61,7 +60,6 @@ trait CollGens { testSuite =>
     }
     res
   }
-
 
   implicit def buildableColl[T:RType] = new Buildable[T,Coll[T]] {
     def builder = new mutable.Builder[T,Coll[T]] {
