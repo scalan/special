@@ -30,6 +30,7 @@ package special.collection {
     import SizePrim._;
     import WOption._;
     import WRType._;
+    import WSpecialPredef._;
     abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Size[Val]]) extends CostedPrim[Val] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder()
     };
@@ -41,7 +42,11 @@ package special.collection {
     };
     abstract class CCostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], val cost: Rep[Int], val size: Rep[Size[scala.Function1[Arg, Res]]]) extends CostedFunc[Env, Arg, Res] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      @NeverInline def value: Rep[scala.Function1[Arg, Res]] = delayInvoke
+      @NeverInline def value: Rep[scala.Function1[Arg, Res]] = delayInvoke;
+      override def sliceCalc: Rep[scala.Function1[Arg, Res]] = RWSpecialPredef.rewritableMethod;
+      override def sliceCost: Rep[scala.Function1[scala.Tuple2[Int, Size[Arg]], Int]] = RWSpecialPredef.rewritableMethod;
+      override def sliceCostEx: Rep[scala.Function1[scala.Tuple2[Arg, scala.Tuple2[Int, Size[Arg]]], Int]] = RWSpecialPredef.rewritableMethod;
+      override def sliceSize: Rep[scala.Function1[Size[Arg], Size[Res]]] = RWSpecialPredef.rewritableMethod
     };
     abstract class CCostedColl[Item](val values: Rep[Coll[Item]], val costs: Rep[Coll[Int]], val sizes: Rep[Coll[Size[Item]]], val valuesCost: Rep[Int]) extends CostedColl[Item] {
       def builder: Rep[CostedBuilder] = RCCostedBuilder();

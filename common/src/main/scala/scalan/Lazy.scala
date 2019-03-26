@@ -1,14 +1,20 @@
 package scalan
 
+/** Non-thread safe (but efficient on single thread) immutable lazy value.
+  * The `block` is executed only once. */
 class Lazy[A] private (block: => A) {
-  @volatile private[this] var _isSet = false
+  @volatile private[this] var _isSet: Boolean = false
+  private[this] var _value: A = _
 
-  lazy val value: A = {
-    _isSet = true
-    block
+  def value: A = {
+    if (!_isSet) {
+      _value = block
+      _isSet = true
+    }
+    _value
   }
   
-  def isSet = _isSet
+  @inline def isSet = _isSet
   
   override def toString = {
     if (!_isSet)
@@ -20,4 +26,34 @@ class Lazy[A] private (block: => A) {
 
 object Lazy {
   def apply[A](block: => A): Lazy[A] = new Lazy(block)
+}
+
+/** Non-thread safe (but efficient on single thread) immutable lazy value with reset.
+  * The `block` may execute potentially many times, but only once after each reset. */
+class MutableLazy[A] private (block: => A) {
+  @volatile private[this] var _isSet: Boolean = false
+  private[this] var _value: A = _
+
+  def value: A = {
+    if (!_isSet) {
+      _value = block
+      _isSet = true
+    }
+    _value
+  }
+
+  @inline def isSet = _isSet
+
+  @inline def reset() = { _isSet = false }
+
+  override def toString = {
+    if (!_isSet)
+      "<lazy>"
+    else
+      value.toString
+  }
+}
+
+object MutableLazy {
+  def apply[A](block: => A): MutableLazy[A] = new MutableLazy(block)
 }

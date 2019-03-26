@@ -26,6 +26,10 @@ class CCostedFunc[Env,Arg,Res](
 {
   def builder: CostedBuilder = new CCostedBuilder
   @NeverInline def value: Arg => Res = rewritableMethod
+  override def sliceCalc: Arg => Res = rewritableMethod
+  override def sliceCost: ((Int, Size[Arg])) => Int = rewritableMethod
+  override def sliceCostEx: ((Arg, (Int, Size[Arg]))) => Int = rewritableMethod
+  override def sliceSize: Size[Arg] => Size[Res] = rewritableMethod
 }
 
 class CCostedColl[Item](

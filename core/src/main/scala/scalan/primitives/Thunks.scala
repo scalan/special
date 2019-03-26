@@ -95,10 +95,10 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
     override lazy val schedule: Schedule = _schedule
     // structural equality pattern implementation
-    override lazy val hashCode: Int = nodeId //41 * (41 + root.hashCode) + schedule.hashCode
+    override lazy val hashCode: Int = _nodeId //41 * (41 + root.hashCode) + schedule.hashCode
     override def equals(other: Any) =
       other match {
-        case that: ThunkDef[_] => nodeId == that.nodeId
+        case that: ThunkDef[_] => _nodeId == that._nodeId
 //            (this.root equals that.root) &&
 //            (this.schedule equals that.schedule)
         case _ => false

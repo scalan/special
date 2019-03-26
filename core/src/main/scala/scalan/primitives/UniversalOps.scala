@@ -16,6 +16,34 @@ trait UniversalOps extends Base { self: Scalan =>
 
   def sizeOf[T](value: Rep[T]): Rep[Long] = SizeOf(value)
 
+  /** Special graph node to represent accumulation of the operation costs.
+    * In general, due to node sharing it is incorrect to just sum up all the `args` costs
+    * and add `resCost` to that value.
+    * Example: <br>
+    * <code>
+    * val x = ..
+    * val y = op1(x)
+    * val z = op2(x)
+    * val res = op3(y, z)
+    * </code>
+    * The naive summation will lead to the cost of x` is accumulated both into `cost of y`
+    * and into `cost of z`, so in the `cost of res` it is accumulated twice.
+    * To avoid this problem OpCost nodes require special handling in during evaluation.
+    *
+    * @param  args    costs of the arguments, which are here represent dependency information.
+    * @param  opCost operation cost, which should be added to the currently accumulated cost
+    * @see `Evaluation`
+    */
+  case class OpCost(costedValueId: Int, args: Seq[Rep[Int]], opCost: Rep[Int]) extends BaseDef[Int] {
+    override def transform(t: Transformer) = OpCost(costedValueId, t(args), t(opCost))
+  }
+  val defaultCostedValueId: Int = SingleSym.freshId
+  def opCost(args: Seq[Rep[Int]], opCost: Rep[Int]): Rep[Int] = OpCost(defaultCostedValueId, args, opCost)
+  def opCost(costedValue: Sym, args: Seq[Rep[Int]], opCost: Rep[Int]): Rep[Int] = {
+    val id = costedValue.rhs.nodeId
+    OpCost(id, args, opCost)
+  }
+
   case class Downcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo) {
     override def transform(t: Transformer) = Downcast(t(input), eTo)
   }

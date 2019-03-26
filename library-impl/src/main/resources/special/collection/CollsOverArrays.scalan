@@ -18,6 +18,9 @@ package special.collection {
       def builder: Rep[CollBuilder] = RCollOverArrayBuilder();
       def length: Rep[Int] = CollOverArray.this.toArray.length;
       def apply(i: Rep[Int]): Rep[A] = CollOverArray.this.toArray.apply(i);
+      @NeverInline override def isEmpty: Rep[Boolean] = delayInvoke;
+      @NeverInline override def nonEmpty: Rep[Boolean] = delayInvoke;
+      @NeverInline override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = delayInvoke;
       @NeverInline def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = delayInvoke;
       @NeverInline def map[B](f: Rep[scala.Function1[A, B]]): Rep[Coll[B]] = delayInvoke;
       def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = CollOverArray.this.toArray.foreach(f);
@@ -39,6 +42,7 @@ package special.collection {
       @NeverInline override def segmentLength(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int] = delayInvoke;
       @NeverInline override def indexWhere(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int] = delayInvoke;
       @NeverInline override def lastIndexWhere(p: Rep[scala.Function1[A, Boolean]], end: Rep[Int]): Rep[Int] = delayInvoke;
+      @NeverInline override def take(n: Rep[Int]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def partition(pred: Rep[scala.Function1[A, Boolean]]): Rep[scala.Tuple2[Coll[A], Coll[A]]] = delayInvoke;
       @NeverInline override def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = delayInvoke;
@@ -52,6 +56,7 @@ package special.collection {
       @NeverInline @Reified(value = "T") def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]] = delayInvoke;
       @NeverInline def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]] = delayInvoke;
       @NeverInline def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]] = delayInvoke;
+      @NeverInline def unzip[A, B](xs: Rep[Coll[scala.Tuple2[A, B]]]): Rep[scala.Tuple2[Coll[A], Coll[B]]] = delayInvoke;
       @NeverInline def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = delayInvoke;
       @NeverInline override def emptyColl[T](implicit cT: Elem[T]): Rep[Coll[T]] = delayInvoke;
       @NeverInline override def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]] = delayInvoke;
@@ -62,6 +67,9 @@ package special.collection {
       override def toArray: Rep[WArray[scala.Tuple2[L, R]]] = PairOfCols.this.ls.toArray.zip(PairOfCols.this.rs.toArray);
       override def length: Rep[Int] = PairOfCols.this.ls.length;
       override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
+      @NeverInline override def isEmpty: Rep[Boolean] = delayInvoke;
+      @NeverInline override def nonEmpty: Rep[Boolean] = delayInvoke;
+      @NeverInline override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = delayInvoke;
       @NeverInline override def getOrElse(i: Rep[Int], default: Rep[scala.Tuple2[L, R]]): Rep[scala.Tuple2[L, R]] = delayInvoke;
       @NeverInline override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Coll[V]] = delayInvoke;
       @NeverInline override def exists(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[Boolean] = delayInvoke;
@@ -81,6 +89,7 @@ package special.collection {
       @NeverInline override def segmentLength(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]], from: Rep[Int]): Rep[Int] = delayInvoke;
       @NeverInline override def indexWhere(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]], from: Rep[Int]): Rep[Int] = delayInvoke;
       @NeverInline override def lastIndexWhere(p: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]], end: Rep[Int]): Rep[Int] = delayInvoke;
+      @NeverInline override def take(n: Rep[Int]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke;
       @NeverInline override def partition(pred: Rep[scala.Function1[scala.Tuple2[L, R], Boolean]]): Rep[scala.Tuple2[Coll[scala.Tuple2[L, R]], Coll[scala.Tuple2[L, R]]]] = delayInvoke;
       @NeverInline override def patch(from: Rep[Int], patch: Rep[Coll[scala.Tuple2[L, R]]], replaced: Rep[Int]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke;
       @NeverInline override def updated(index: Rep[Int], elem: Rep[scala.Tuple2[L, R]]): Rep[Coll[scala.Tuple2[L, R]]] = delayInvoke;
@@ -92,8 +101,11 @@ package special.collection {
     };
     abstract class CReplColl[A](val value: Rep[A], val length: Rep[Int]) extends ReplColl[A] {
       def builder: Rep[CollBuilder] = RCollOverArrayBuilder();
-      def toArray: Rep[WArray[A]] = RWArray.fill[A](CReplColl.this.length, Thunk(CReplColl.this.value));
+      @NeverInline def toArray: Rep[WArray[A]] = delayInvoke;
       @NeverInline def apply(i: Rep[Int]): Rep[A] = delayInvoke;
+      @NeverInline override def isEmpty: Rep[Boolean] = delayInvoke;
+      @NeverInline override def nonEmpty: Rep[Boolean] = delayInvoke;
+      @NeverInline override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = delayInvoke;
       @NeverInline def getOrElse(i: Rep[Int], default: Rep[A]): Rep[A] = delayInvoke;
       def map[B](f: Rep[scala.Function1[A, B]]): Rep[Coll[B]] = RCReplColl(f.apply(CReplColl.this.value), CReplColl.this.length);
       @NeverInline def foreach(f: Rep[scala.Function1[A, Unit]]): Rep[Unit] = delayInvoke;
@@ -111,6 +123,7 @@ package special.collection {
       @NeverInline override def segmentLength(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int] = delayInvoke;
       @NeverInline override def indexWhere(p: Rep[scala.Function1[A, Boolean]], from: Rep[Int]): Rep[Int] = delayInvoke;
       @NeverInline override def lastIndexWhere(p: Rep[scala.Function1[A, Boolean]], end: Rep[Int]): Rep[Int] = delayInvoke;
+      @NeverInline override def take(n: Rep[Int]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def partition(pred: Rep[scala.Function1[A, Boolean]]): Rep[scala.Tuple2[Coll[A], Coll[A]]] = delayInvoke;
       @NeverInline override def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = delayInvoke;
       @NeverInline override def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = delayInvoke;

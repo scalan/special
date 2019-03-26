@@ -426,7 +426,6 @@ trait CollBuilder {
 
   @Reified("T") def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T]
 
-  @NeverInline
   def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B])
 
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]

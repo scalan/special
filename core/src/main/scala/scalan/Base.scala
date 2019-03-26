@@ -60,13 +60,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
     /** Unique id of the node. Initially undefined, should be defined after Def is added to the graph.
       * Doesn't participate in equality of this Def.
       * Use only to provide global Def numbering. */
-    private[scalan] var nodeId: Int = SingleSym.freshId
+    private[scalan] var _nodeId: Int = SingleSym.freshId
     @inline private [scalan] def assignId(): Unit = {
-      assert(nodeId == 0, s"Definition $this has already been assigned with nodeId=$nodeId")
-      nodeId = SingleSym.freshId
+      assert(_nodeId == 0, s"Definition $this has already been assigned with nodeId=${_nodeId}")
+      _nodeId = SingleSym.freshId
     }
 
     private[scalan] var _tableEntry: TableEntry[T @uncheckedVariance] = _
+    @inline def nodeId: Int = _nodeId
     @inline def tableEntry: TableEntry[T] = _tableEntry
     @inline private[scalan] def tableEntry_=(te: TableEntry[T @uncheckedVariance]) = {
       assert(_tableEntry == null, s"TableEntry already assigned for $this definition")
@@ -678,7 +679,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
   class SingleSym[+T](private var _rhs: Def[T @uncheckedVariance]) extends Exp[T] {
     override def elem: Elem[T @uncheckedVariance] = _rhs.selfType
     def rhs: Def[T] = _rhs
-
     private[scalan] def assignDef[B >: T](d: Def[B]): Unit = {
 //      assert(d.selfType <:< elem, s"violated pre-condition ${d.selfType} <:< $elem")
       _rhs = d.asInstanceOf[Def[T]]
@@ -687,7 +687,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
       assignDef(sym.rhs)
     }
 
-    def varName = "s" + _rhs.nodeId
+    def varName = "s" + _rhs._nodeId
     override def toString = varName
     def toStringWithDefinition = toStringWithType + s" = ${_rhs}"
 
@@ -696,7 +696,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
       case _ => false
     }))
 
-    override def hashCode(): Int = _rhs.nodeId
+    override def hashCode(): Int = _rhs._nodeId
   }
 
   @inline def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
