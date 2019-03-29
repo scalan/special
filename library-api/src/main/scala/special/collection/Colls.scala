@@ -421,24 +421,47 @@ trait CollBuilder {
   def pairCollFromArrays[A: RType, B: RType](as: Array[A], bs: Array[B]): PairColl[A,B] =
     pairColl(fromArray(as), fromArray(bs))
 
+  /** Construct a collection of (K,V) pairs using PairColl representation,
+    * in which keys and values are stored as separate unboxed arrays. */
   @Internal
   def fromMap[K: RType, V: RType](m: Map[K,V]): Coll[(K,V)]
 
+  /** Construct a new collection from the given list of arguments.
+    * The arguments should be of the same type for which there should be
+    * an implicit type descriptor at the call site. */
   @Reified("T") def fromItems[T](items: T*)(implicit cT: RType[T]): Coll[T]
 
+  /** Deconstruct collection of (A,B) pairs into pair of collections.
+    * If `xs` is represented as PairColl, then this is O(1) operation (no data is touched). */
   def unzip[@specialized A, @specialized B](xs: Coll[(A,B)]): (Coll[A], Coll[B])
 
+  /** Element-wise xor of two collections. */
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
+  /** Wrap array into collection. */
   def fromArray[@specialized T: RType](arr: Array[T]): Coll[T]
+
+  /** Creates a new collection by replicating value `v`.
+    * @param  n  how many times to replicate value `v`
+    * @param  v  value to replicate
+    * @return    collection of the form (v, v, v, ... v) of n elements.*/
   def replicate[T: RType](n: Int, v: T): Coll[T]
 
+  /** Create a new collection in which every item is executed lazily
+    * form the corresponding item of the `source` collection.
+    * @param  source  collection which is used as the source of items
+    * @param  f       function to compute each item of this collection from the source item
+    * This is O(1) operation, all executions of `f` are delayed until the corresponding
+    * item of this collection is needed in some operation.
+    */
   @NeverInline
   def makeView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B): Coll[B]
 
   @NeverInline
   def makePartialView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B, calculated: Array[Boolean], calculatedItems: Array[B]): Coll[B]
 
+  /** Create an empty collection with items of the given type.
+    * Even though there are no items, the type of them is specified. */
   def emptyColl[T](implicit tT: RType[T]): Coll[T]
 
   /** Performs outer join operation between left and right collections.
@@ -462,7 +485,6 @@ trait CollBuilder {
     *  @param asTrav    A function that converts elements of this array to rows - arrays of type `U`.
     *  @return          An array obtained by concatenating rows of this array.
     */
-
   def flattenColl[A:RType](coll: Coll[Coll[A]]): Coll[A]
 }
 
