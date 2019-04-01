@@ -361,6 +361,9 @@ trait Coll[@specialized A] {
   def reverse: Coll[A]
 
   @Internal
+  private[collection] def isReplArray(len: Int, value: A): Boolean
+
+  @Internal
   private def trim[T](arr: Array[T]) = arr.take(arr.length min 100)
   @Internal
   override def toString = s"Coll(${trim(toArray).mkString(",")})"

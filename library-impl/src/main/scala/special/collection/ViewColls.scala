@@ -263,4 +263,6 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   override def reverse: Coll[B] = {
     builder.makePartialView(source.reverse, f, isCalculated.reverse, items.reverse)(tItem)
   }
+
+  override private[collection] def isReplArray(len: Int, value: B) = ???
 }
