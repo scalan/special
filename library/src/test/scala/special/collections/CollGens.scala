@@ -111,12 +111,11 @@ trait CollGens { testSuite =>
 
   val innerGen = Gen.oneOf(collOverArrayGen, replCollGen)
 
-  val superGen = getSuperGen(1, Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen))
+  val superGenInt = getSuperGen(1, Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen))
+  val superGenByte = getSuperGen(1, Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen))
+  val superGen = Gen.oneOf(superGenInt, superGenByte)
 
-  def generateFinalArray[T: RType](valGen: Gen[T]): CollOverArray[T] = {
-    val item = containerOfN[Array, T](100, valGen).sample.getOrElse(Array())
-    new CollOverArray[T](item)
-  }
+  val allGen = Gen.oneOf(superGen, collGen)
 
   implicit val arbColl = Arbitrary(collGen)
   implicit val arbBytes = Arbitrary(bytesGen)

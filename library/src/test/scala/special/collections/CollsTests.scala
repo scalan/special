@@ -257,42 +257,23 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.reverse") {
-    forAll(collGen) { col =>
+    val minSuccess = minSuccessful(50)
+    forAll(allGen, minSuccess) { col =>
       val res = col.reverse
       res.toArray shouldBe col.toArray.reverse
       val pairs = col.zip(col)
       pairs.reverse.toArray shouldBe pairs.toArray.reverse
     }
-
-    forAll(superGen) {
-      case cl: PairColl[_, _] => {
-        val res = cl.reverse
-        res.toArray shouldBe cl.toArray.reverse
-        val pairs = cl.zip(cl)
-        pairs.reverse.toArray shouldBe pairs.toArray.reverse
-      }
-      case _ => false shouldBe true
-    }
   }
 
   property("Coll.take") {
-    forAll(collGen) { col =>
+    val minSuccess = minSuccessful(50)
+    forAll(allGen, minSuccess) { col =>
       val n = col.length / 2
       val res = col.take(n)
       res.toArray shouldBe col.toArray.take(n)
       val pairs = col.zip(col)
       pairs.take(n).toArray shouldBe pairs.toArray.take(n)
-    }
-
-    forAll(superGen) {
-      case col: PairColl[_, _] => {
-        val n = col.length / 2
-        val res = col.take(n)
-        res.toArray shouldBe col.toArray.take(n)
-        val pairs = col.zip(col)
-        pairs.take(n).toArray shouldBe pairs.toArray.take(n)
-      }
-      case _ => false shouldBe true
     }
   }
 
@@ -341,10 +322,17 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("PairColl.mapFirst") {
-    forAll(collGen) { col =>
+    val minSuccess = minSuccessful(30)
+
+    forAll(collGen, minSuccess) { col =>
       val pairs = col.zip(col)
       pairs.mapFirst(inc).toArray shouldBe pairs.toArray.map { case (x, y) => (inc(x), y) }
       pairs.mapSecond(inc).toArray shouldBe pairs.toArray.map { case (x, y) => (x, inc(y)) }
+    }
+    forAll(superGen, minSuccess) { col =>
+      val pairs = col.zip(col)
+      pairs.mapFirst(collMatchRepl).toArray shouldBe pairs.toArray.map { case (x, y) => (collMatchRepl(x), y) }
+      pairs.mapSecond(collMatchRepl).toArray shouldBe pairs.toArray.map { case (x, y) => (x, collMatchRepl(y)) }
     }
   }
 
