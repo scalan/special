@@ -91,7 +91,7 @@ trait CollGens { testSuite =>
   val indexesGen = containerOfN[Array, Int](10, indexGen).map(arr => builder.fromArray(arr.distinct.sorted))
 
   val collOverArrayGen = getCollOverArrayGen(valGen) //arrayGen.map(builder.fromArray(_))
-  // val collsOverArrayGen = for { _ <- lenGen } yield containerOfN[Array, Int](100, valGen).map(builder.fromArray(_))
+
   val bytesOverArrayGen = getCollOverArrayGen(byteGen)
   val replCollGen = getCollReplGen(lenGen, valGen)
   val replBytesCollGen = getCollReplGen(lenGen, byteGen)
@@ -106,22 +106,12 @@ trait CollGens { testSuite =>
   val lazyFuncCollGen = getCollViewGen[Int, Int](collOverArrayGen, easyFunction)
   val lazyUnFuncCollGen = getCollViewGen[Int, Int](lazyFuncCollGen, inverseEasyFunction)
 
-  //val collsOfCollsArr = builder.fromItems(collsOverArrayGen) //(for { coll <- collOverArrayGen } yield coll).map(x => builder.fromItems(x))
-  val collsOfCollsRepl = (for { len <- lenGen; coll <- replCollGen } yield builder.replicate(len, coll)).map(x => builder.fromItems(x))
-  val collsOfCollsLazy = (for { coll <- Gen.oneOf(lazyCollGen, lazyUnFuncCollGen) } yield builder.makeView(coll, identity[Int])).map(x => builder.fromItems(x))
-  val pairColls = for { coll1 <- Gen.oneOf(collsOfCollsRepl, collsOfCollsLazy); coll2 <- Gen.oneOf(collsOfCollsRepl, collsOfCollsLazy)}
-    yield builder.pairColl(coll1, coll2)
-
-  val collsOfCollsGen = Gen.oneOf(collsOfCollsRepl, collsOfCollsLazy, pairColls)
-  //val collsOfCollsMixedGen = (for {_ <- lenGen} yield Gen.oneOf(collsOfCollsGen, collsOfCollsRepl, collsOfCollsLazy)
-
   val collGen = Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen)
   val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen)
 
   val innerGen = Gen.oneOf(collOverArrayGen, replCollGen)
-  // val collOfCollsGen = collGen.map(builder.fromItems(_))
 
-  val superGen = getSuperGen(5, Gen.oneOf(collOverArrayGen, replCollGen))
+  val superGen = getSuperGen(1, Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen))
 
   def generateFinalArray[T: RType](valGen: Gen[T]): CollOverArray[T] = {
     val item = containerOfN[Array, T](100, valGen).sample.getOrElse(Array())

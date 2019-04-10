@@ -283,6 +283,17 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val pairs = col.zip(col)
       pairs.take(n).toArray shouldBe pairs.toArray.take(n)
     }
+
+    forAll(superGen) {
+      case col: PairColl[_, _] => {
+        val n = col.length / 2
+        val res = col.take(n)
+        res.toArray shouldBe col.toArray.take(n)
+        val pairs = col.zip(col)
+        pairs.take(n).toArray shouldBe pairs.toArray.take(n)
+      }
+      case _ => false shouldBe true
+    }
   }
 
   property("Coll.distinct") {
@@ -291,6 +302,16 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe col.toArray.distinct
       val pairs = col.zip(col)
       pairs.distinct.toArray shouldBe pairs.toArray.distinct
+    }
+    forAll(getSuperGen(2, Gen.oneOf(getCollReplGen(choose(1, 10), valGen),
+      getCollReplGen(choose(1, 10), valGen)))) {
+      case col: PairColl[_, _] => {
+        val res = col.distinct
+        res.toArray shouldBe col.toArray.distinct
+        val pairs = col.zip(col)
+        pairs.distinct.toArray shouldBe pairs.toArray.distinct
+      }
+      case _ => false shouldBe true
     }
   }
 
