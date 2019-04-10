@@ -61,14 +61,14 @@ trait CollGens { testSuite =>
   def getSuperGen[T: RType](length: Int = 1, collGen: Gen[Coll[T]]): Gen[PairColl[_, _]] = {
     length match {
       case 0 => {
-        return Gen.oneOf(getCollPairGenFinal(collGen, collGen),
+        Gen.oneOf(getCollPairGenFinal(collGen, collGen),
           getCollPairGenFinal(collGen, collGen))
       }
       case _ => {
         getSuperGen(length - 1, collGen) match {
-          case (lg: Gen[PairColl[RType[_], RType[_]]]) => {
+          case lg: Gen[PairColl[RType[_], RType[_]]] => {
             getSuperGen(length - 1, collGen) match {
-              case (rg: Gen[PairColl[RType[_], RType[_]]]) => {
+              case rg: Gen[PairColl[RType[_], RType[_]]] => {
                 val gen = Gen.oneOf(
                   getCollPairGenFinal(collGen, collGen),
                   getCollPairGenLeft(lg, collGen),
