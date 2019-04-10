@@ -303,7 +303,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   override def builder: CollBuilder = new CollOverArrayBuilder
   override def toArray: Array[(L, R)] = ls.toArray.zip(rs.toArray)
-  @inline override def length: Int = ls.length
+  @inline override def length: Int = if (ls.length <= rs.length) ls.length else rs.length
   @inline override def apply(i: Int): (L, R) = (ls(i), rs(i))
 
   @NeverInline

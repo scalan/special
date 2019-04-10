@@ -31,7 +31,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
           println(cl)
           cl.indices.toArray shouldBe cl.toArray.indices.toArray
         }
-        case _ => //false shouldBe true
+        case _ => false shouldBe true
       }
     }
   }
