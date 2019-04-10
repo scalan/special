@@ -75,25 +75,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       lsC.toArray shouldBe ls
       rsC.toArray shouldBe rs
     }
-/*
-    val minSuccess = minSuccessful(100)
-    forAll(superGen, minSuccess) { col =>
-      col match {
-        case cl: PairColl[_, ReplColl[RType[_]]] => {
-          val (lsC, rsC) = cl.partition(collMatchRepl)
-          val (ls, rs) = cl.toArray.partition(collMatchRepl)
-          for (item <- ls)
-            print(item)
-          println(lsC)
-
-          println(rsC)
-          for (item <- rs)
-            print(item)
-          rsC shouldBe rs
-        }
-        case _ => false shouldBe true
-      }
-    }*/
   }
 
   property("Coll.patch") {
@@ -285,8 +266,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val pairs = col.zip(col)
       pairs.distinct.toArray shouldBe pairs.toArray.distinct
     }
-    forAll(getSuperGen(2, Gen.oneOf(getCollReplGen(choose(1, 10), valGen),
-      getCollReplGen(choose(1, 10), valGen)))) {
+    forAll(superGen) {
       case col: PairColl[_, _] => {
         val res = col.distinct
         res.toArray shouldBe col.toArray.distinct
@@ -353,6 +333,12 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, collGen) { (col1, col2) =>
       val res = col1.diff(col2)
       res.toArray shouldBe (col1.toArray.diff(col2.toArray))
+    }
+    forAll(superGen) {
+      case col: Coll[(_, _)] =>
+        val res = col.diff(col)
+        res.toArray shouldBe (col.toArray.diff(col.toArray))
+      case _ => false shouldBe true // TODO make similar gens
     }
     builder.replicate(2, 10).diff(builder.replicate(1, 10)).toArray shouldBe Array(10)
   }

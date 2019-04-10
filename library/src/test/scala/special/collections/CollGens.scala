@@ -58,6 +58,7 @@ trait CollGens { testSuite =>
     for { left <- collGenLeft; right <- collGenRight } yield builder.pairColl(left, right)
   }
 
+  // TODO: there's a need in generator that produces collections with different elements and the same type scheme
   def getSuperGen[T: RType](length: Int = 1, collGen: Gen[Coll[T]]): Gen[PairColl[_, _]] = {
     length match {
       case 0 => {
