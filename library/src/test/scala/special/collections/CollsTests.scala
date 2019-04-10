@@ -5,6 +5,7 @@ import org.scalacheck.Gen
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.PropertyChecks
 import scalan.RType
+import scalan.RType.PairType
 
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
@@ -329,11 +330,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       pairs.mapFirst(inc).toArray shouldBe pairs.toArray.map { case (x, y) => (inc(x), y) }
       pairs.mapSecond(inc).toArray shouldBe pairs.toArray.map { case (x, y) => (x, inc(y)) }
     }
-    forAll(superGen, minSuccess) { col =>
-      val pairs = col.zip(col)
-      pairs.mapFirst(collMatchRepl).toArray shouldBe pairs.toArray.map { case (x, y) => (collMatchRepl(x), y) }
-      pairs.mapSecond(collMatchRepl).toArray shouldBe pairs.toArray.map { case (x, y) => (x, collMatchRepl(y)) }
-    }
   }
 
   property("Coll.unionSet") {
@@ -342,6 +338,15 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe (col1.toArray.union(col2.toArray).distinct)
     }
     builder.replicate(2, 10).unionSet(builder.replicate(3, 10)).toArray shouldBe Array(10)
+    forAll(superGen, superGen) { (col1, col2) =>
+      col1 match {
+        case cl1: Coll[(_, _)] => {
+          val res = cl1.unionSet(cl1)
+          res.toArray shouldBe (cl1.toArray.union(cl1.toArray).distinct)
+        }
+        case _ => false shouldBe true
+      }
+    }
   }
 
   property("Coll.diff") {
