@@ -1,19 +1,38 @@
 package special.collections
 
-import special.collection.Coll
+import special.collection.{Coll, PairColl}
 import org.scalacheck.Gen
-import org.scalatest.{PropSpec, Matchers}
+import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.PropertyChecks
+import scalan.RType
 
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
   import special.collection.ExtensionMethods._
 
+  implicit val minTestsOk: Int = 50
   property("Coll.indices") {
+    // implicit val params = Parameters(minTestsOk = 20)
+
+    val minSuccess = MinSuccessful(30)
+    /*forAll(arrayGen, minSuccess) { arr =>
+      println(arr)
+     // col.indices.toArray shouldBe col.toArray.indices.toArray
+    }*/
     forAll(collGen, collGen) { (col1: Coll[Int], col2: Coll[Int]) =>
+      println("kek", col1)
       col1.indices.toArray shouldBe col1.toArray.indices.toArray
 //      col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
 // TODO     col1.zip(col2).indices.arr shouldBe col1.arr.zip(col2.arr).indices.toArray
+    }
+    forAll(superGen) { col =>
+      col match {
+        case (cl: PairColl[_, _]) => {
+          println(cl)
+          cl.indices.toArray shouldBe cl.toArray.indices.toArray
+        }
+        case _ => //false shouldBe true
+      }
     }
   }
 
@@ -27,6 +46,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.segmentLength") {
     forAll(collGen, indexGen) { (col, from) =>
+      println("i")
+
       col.segmentLength(lt0, from) shouldBe col.toArray.segmentLength(lt0, from)
     }
   }
