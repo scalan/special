@@ -413,7 +413,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   def zip[@specialized B](ys: Coll[B]): PairColl[(L,R), B] = builder.pairColl(this, ys)
 
-  override def indices: Coll[Int] = ls.indices
+  override def indices: Coll[Int] = if (ls.length <= rs.length) ls.indices else rs.indices
 
   @NeverInline
   override def flatMap[B: RType](f: ((L, R)) => Coll[B]): Coll[B] =
