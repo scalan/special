@@ -497,7 +497,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
       }
     }
     var i = 0
-    val thisLen = ls.length
+    val thisLen = math.min(ls.length, rs.length)
     while (i < thisLen) {
       addToSet((ls(i), rs(i)))
       i += 1
