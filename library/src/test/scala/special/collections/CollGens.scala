@@ -6,7 +6,7 @@ import org.scalacheck.util.Buildable
 import scala.collection.mutable
 import org.scalacheck.{Arbitrary, Gen}
 import scalan._
-import special.collection.{Coll, CollBuilder, CollOverArray, CollOverArrayBuilder, PairColl}
+import special.collection.{Coll, CollBuilder, CollOverArray, CollOverArrayBuilder, PairColl, ReplColl}
 
 import scala.reflect.ClassTag
 import scala.util.Random
@@ -137,6 +137,11 @@ trait CollGens { testSuite =>
   val plusF = (p: (Int,Int)) => plus(p._1, p._2)
   val predF = (p: (Int,Int)) => plus(p._1, p._2) > 0
   def inc(x: Int) = x + 1
+
+  def collMatchRepl[B](coll: B): Boolean = coll match {
+    case _ : ReplColl[_] => true
+    case _ => false
+  }
 
   def complexFunction(arg: Int): Int = {
     var i = 0

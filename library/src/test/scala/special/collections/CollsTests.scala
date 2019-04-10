@@ -1,6 +1,6 @@
 package special.collections
 
-import special.collection.{Coll, PairColl}
+import special.collection.{Coll, PairColl, ReplColl}
 import org.scalacheck.Gen
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.PropertyChecks
@@ -10,29 +10,18 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   import Gen._
   import special.collection.ExtensionMethods._
 
-  implicit val minTestsOk: Int = 50
   property("Coll.indices") {
-    // implicit val params = Parameters(minTestsOk = 20)
-
     val minSuccess = MinSuccessful(30)
-    /*forAll(arrayGen, minSuccess) { arr =>
-      println(arr)
-     // col.indices.toArray shouldBe col.toArray.indices.toArray
-    }*/
-    forAll(collGen, collGen) { (col1: Coll[Int], col2: Coll[Int]) =>
-      println("kek", col1)
+    forAll(collGen, collGen, minSuccess) { (col1: Coll[Int], col2: Coll[Int]) =>
       col1.indices.toArray shouldBe col1.toArray.indices.toArray
 //      col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
 // TODO     col1.zip(col2).indices.arr shouldBe col1.arr.zip(col2.arr).indices.toArray
     }
-    forAll(superGen) { col =>
-      col match {
-        case (cl: PairColl[_, _]) => {
-          println(cl)
-          cl.indices.toArray shouldBe cl.toArray.indices.toArray
-        }
-        case _ => false shouldBe true
+    forAll(superGen, minSuccess) {
+      case cl: PairColl[_, _] => {
+        cl.indices.toArray shouldBe cl.toArray.indices.toArray
       }
+      case _ => false shouldBe true
     }
   }
 
@@ -46,9 +35,12 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.segmentLength") {
     forAll(collGen, indexGen) { (col, from) =>
-      println("i")
-
       col.segmentLength(lt0, from) shouldBe col.toArray.segmentLength(lt0, from)
+    }
+
+    val minSuccess = minSuccessful(30)
+    forAll(superGen, indexGen, minSuccess) { (col, from) =>
+      col.segmentLength(collMatchRepl, from) shouldBe col.toArray.segmentLength(collMatchRepl, from)
     }
   }
 
@@ -82,6 +74,25 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       lsC.toArray shouldBe ls
       rsC.toArray shouldBe rs
     }
+/*
+    val minSuccess = minSuccessful(100)
+    forAll(superGen, minSuccess) { col =>
+      col match {
+        case cl: PairColl[_, ReplColl[RType[_]]] => {
+          val (lsC, rsC) = cl.partition(collMatchRepl)
+          val (ls, rs) = cl.toArray.partition(collMatchRepl)
+          for (item <- ls)
+            print(item)
+          println(lsC)
+
+          println(rsC)
+          for (item <- rs)
+            print(item)
+          rsC shouldBe rs
+        }
+        case _ => false shouldBe true
+      }
+    }*/
   }
 
   property("Coll.patch") {
@@ -178,6 +189,16 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       col.getOrElse(col.length, index) shouldBe index
       col.getOrElse(-1, index) shouldBe index
     }
+    forAll(superGen, indexGen) { (col, index) => col match {
+      case cl: PairColl[_, _] => {
+        whenever(index < col.length) {
+          val res = col(index)
+          res shouldBe col.toArray(index)
+        }
+      }
+      case _ => false shouldBe true
+      }
+    }
   }
 
   property("Coll.slice") {
@@ -185,6 +206,18 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       whenever(until < col.length) {
         val res = col.slice(from, until)
         res.toArray shouldBe col.toArray.slice(from, until)
+      }
+    }
+
+    forAll(superGen, indexGen, indexGen) { (col, from, until) =>
+      col match {
+        case cl: PairColl[_, _] => {
+          whenever(until < cl.length) {
+            val res = cl.slice(from, until)
+            res.toArray shouldBe cl.toArray.slice(from, until)
+          }
+        }
+        case _ => false shouldBe true
       }
     }
   }
@@ -229,6 +262,16 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe col.toArray.reverse
       val pairs = col.zip(col)
       pairs.reverse.toArray shouldBe pairs.toArray.reverse
+    }
+
+    forAll(superGen) {
+      case cl: PairColl[_, _] => {
+        val res = cl.reverse
+        res.toArray shouldBe cl.toArray.reverse
+        val pairs = cl.zip(cl)
+        pairs.reverse.toArray shouldBe pairs.toArray.reverse
+      }
+      case _ => false shouldBe true
     }
   }
 
