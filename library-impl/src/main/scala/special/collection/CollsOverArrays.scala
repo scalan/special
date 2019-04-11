@@ -398,7 +398,9 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   override def reverse: Coll[(L, R)] = {
     val lLen = ls.length
     val rLen = rs.length
-    if (lLen <= rLen) {
+    if (lLen == rLen) {
+      builder.pairColl(ls.reverse, rs.reverse)
+    } else if (lLen < rLen) {
       builder.pairColl(ls.reverse, rs.slice(0, lLen).reverse)
     } else {
       builder.pairColl(ls.slice(0, rLen).reverse, rs.reverse)
