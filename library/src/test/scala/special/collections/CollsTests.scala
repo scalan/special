@@ -18,11 +18,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 //      col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
 // TODO     col1.zip(col2).indices.arr shouldBe col1.arr.zip(col2.arr).indices.toArray
     }
-    forAll(superGen, minSuccess) {
-      case cl: PairColl[_, _] => {
-        cl.indices.toArray shouldBe cl.toArray.indices.toArray
-      }
-      case _ => false shouldBe true
+    forAll(superGen, minSuccess) { cl =>
+      cl.indices.toArray shouldBe cl.toArray.indices.toArray
     }
   }
 
@@ -171,14 +168,10 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       col.getOrElse(col.length, index) shouldBe index
       col.getOrElse(-1, index) shouldBe index
     }
-    forAll(superGen, indexGen) { (col, index) => col match {
-      case cl: PairColl[_, _] => {
-        whenever(index < col.length) {
-          val res = col(index)
-          res shouldBe col.toArray(index)
-        }
-      }
-      case _ => false shouldBe true
+    forAll(superGen, indexGen) { (col, index) =>
+      whenever(index < col.length) {
+        val res = col(index)
+        res shouldBe col.toArray(index)
       }
     }
   }
@@ -192,14 +185,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
 
     forAll(superGen, indexGen, indexGen) { (col, from, until) =>
-      col match {
-        case cl: PairColl[_, _] => {
-          whenever(until < cl.length) {
-            val res = cl.slice(from, until)
-            res.toArray shouldBe cl.toArray.slice(from, until)
-          }
-        }
-        case _ => false shouldBe true
+      whenever(until < col.length) {
+        val res = col.slice(from, until)
+        res.toArray shouldBe col.toArray.slice(from, until)
       }
     }
   }
@@ -266,14 +254,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val pairs = col.zip(col)
       pairs.distinct.toArray shouldBe pairs.toArray.distinct
     }
-    forAll(superGen) {
-      case col: PairColl[_, _] => {
+    forAll(superGen) { col =>
         val res = col.distinct
         res.toArray shouldBe col.toArray.distinct
         val pairs = col.zip(col)
         pairs.distinct.toArray shouldBe pairs.toArray.distinct
-      }
-      case _ => false shouldBe true
     }
   }
 
@@ -318,15 +303,20 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe (col1.toArray.union(col2.toArray).distinct)
     }
     builder.replicate(2, 10).unionSet(builder.replicate(3, 10)).toArray shouldBe Array(10)
-    forAll(superGen, superGen) { (col1, col2) =>
-      col1 match {
-        case cl1: Coll[(_, _)] => {
-          val res = cl1.unionSet(cl1)
-          res.toArray shouldBe (cl1.toArray.union(cl1.toArray).distinct)
-        }
-        case _ => false shouldBe true
+    forAll(superGen) {
+      case cl1: Coll[(_, _)] => {
+        val res = cl1.unionSet(cl1)
+        res.toArray shouldBe (cl1.toArray.union(cl1.toArray).distinct)
       }
+      case _ => assert(false, "Generator returned invalid PairColl")
     }
+    /* TODO: simplify the above code
+     * match-case removal gives the following compilation error:
+        type mismatch;
+        found   : special.collection.PairColl[_$1(in value res),_$2(in value res)] where type _$2(in value res), type _$1(in value res)
+        required: special.collection.Coll[(_$1(in method getSuperGen), _$2(in method getSuperGen))]
+          val res = col1.unionSet(col1)
+     */
   }
 
   property("Coll.diff") {
@@ -340,6 +330,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         res.toArray shouldBe (col.toArray.diff(col.toArray))
       case _ => false shouldBe true // TODO make similar gens
     }
+    /* TODO: simplify the above code
+     * match-case removal gives the following compilation error:
+        type mismatch;
+        found   : special.collection.PairColl[_$1(in value res),_$2(in value res)] where type _$2(in value res), type _$1(in value res)
+        required: special.collection.Coll[(_$1(in method getSuperGen), _$2(in method getSuperGen))]
+          val res = col.diff(col)
+     */
     builder.replicate(2, 10).diff(builder.replicate(1, 10)).toArray shouldBe Array(10)
   }
 
