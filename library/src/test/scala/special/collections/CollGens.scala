@@ -87,6 +87,65 @@ trait CollGens { testSuite =>
     }
   }
 
+  /*def wrapGenPairColl(item: Any, f: Gen[PairColl[RType[_], RType[_]]] => (Gen[PairColl[_, _]], Gen[PairColl[_, _]])): (Gen[PairColl[_, _]], Gen[PairColl[_, _]]) = {
+    item match {
+      case col: Gen[PairColl[RType[_], RType[_]]] => {
+        f(col)
+      }
+      case _ => throw new RuntimeException("PairColl was expected")
+    }
+  }*/
+
+  def getPairedCollPairGenFinal[A: RType, B: RType](collGenLeft_1: Gen[Coll[A]], collGenLeft_2: Gen[Coll[B]],
+                                                    collGenRight_1: Gen[Coll[A]], collGenRight_2: Gen[Coll[B]]): Gen[(PairColl[A, B], PairColl[A, B])] = {
+    for { left_1 <- collGenLeft_1; left_2 <- collGenLeft_2; right_1 <- collGenRight_1; right_2 <- collGenRight_2 }
+      yield (builder.pairColl(left_1, left_2), builder.pairColl(right_1, right_2))
+  }
+
+  def getPairedCollPairGenRight[A: RType, B: RType, C: RType](collGenRight: Gen[(PairColl[B, C], PairColl[B, C])],
+                                                              collGenLeft_1: Gen[Coll[A]], collGenLeft_2: Gen[Coll[A]]): Gen[(PairColl[A, (B, C)], PairColl[A, (B, C)])] = {
+    for { pair <- collGenRight; left_1 <- collGenLeft_1; left_2 <- collGenLeft_2 }
+      yield (builder.pairColl(left_1, pair._1), builder.pairColl(left_2, pair._2))
+  }
+
+  def getPairedCollPairGenLeft[A: RType, B: RType, C: RType](collGenLeft: Gen[(PairColl[A, B], PairColl[A, B])], collGenRight_1: Gen[Coll[C]], collGenRight_2: Gen[Coll[C]]): Gen[(PairColl[(A, B), C], PairColl[(A, B), C])] = {
+    for { pair <- collGenLeft; right_1 <- collGenRight_1; right_2 <- collGenRight_2 }
+      yield (builder.pairColl(pair._1, right_1), builder.pairColl(pair._2, right_2))
+  }
+
+  def getPairedCollPairGenBoth[A: RType, B: RType, C: RType, D: RType](collGenLeft: Gen[(PairColl[A, B], PairColl[A, B])],
+                                           collGenRight: Gen[(PairColl[C, D], PairColl[C, D])]): Gen[(PairColl[(A, B), (C, D)], PairColl[(A, B), (C, D)])] = {
+    for {pairLeft <- collGenLeft; pairRight <- collGenRight}
+      yield (builder.pairColl(pairLeft._1, pairRight._1), builder.pairColl(pairLeft._2, pairRight._2))
+  }
+
+  def getSuperPairedGen[T: RType](length: Int = 1, collGen: Gen[Coll[T]]): Gen[(PairColl[_, _], PairColl[_, _])] = {
+    length match {
+      case 0 => {
+        getPairedCollPairGenFinal(collGen, collGen, collGen, collGen)
+      }
+      case _ => {
+        getSuperGen(length - 1, collGen) match {
+          case lg: Gen[(PairColl[RType[_], RType[_]], PairColl[RType[_], RType[_]])] => {
+            getSuperGen(length - 1, collGen) match {
+              case rg: Gen[(PairColl[RType[_], RType[_]], PairColl[RType[_], RType[_]])] => {
+                val gen = Gen.oneOf(
+                  getPairedCollPairGenFinal(collGen, collGen, collGen, collGen),
+                  getPairedCollPairGenLeft(lg, collGen, collGen),
+                  getPairedCollPairGenRight(rg, collGen, collGen),
+                  getPairedCollPairGenBoth(lg, rg),
+                )
+                return gen
+              }
+              case _ => throw new RuntimeException("Invalid rGen")
+            }
+          }
+          case _ => throw new RuntimeException("Invalid lGen")
+        }
+      }
+    }
+  }
+
   val bytesArrayGen: Gen[Array[Byte]] = getArrayGen[Byte](byteGen) //containerOfN[Array, Byte](100, byteGen)
   val arrayGen: Gen[Array[Int]] = getArrayGen[Int](valGen) //containerOfN[Array, Int](100, valGen)
   val indexesGen = containerOfN[Array, Int](10, indexGen).map(arr => builder.fromArray(arr.distinct.sorted))
@@ -112,9 +171,12 @@ trait CollGens { testSuite =>
 
   val innerGen = Gen.oneOf(collOverArrayGen, replCollGen)
 
-  val superGenInt = getSuperGen(1, Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen))
-  val superGenByte = getSuperGen(1, Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen))
+  val superGenInt = getSuperGen(5, Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen))
+  val superGenByte = getSuperGen(5, Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen))
   val superGen = Gen.oneOf(superGenInt, superGenByte)
+
+  val superPairedGenInt = getSuperPairedGen(5, Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen))
+  val superPairedGenByte = getSuperPairedGen(5, Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen))
 
   val allGen = Gen.oneOf(superGen, collGen)
 

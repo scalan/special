@@ -197,6 +197,12 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val res = col1.append(col2)
       res.toArray shouldBe (col1.toArray ++ col2.toArray)
     }
+    /*forAll(superPairGenInt) { (col) =>
+      val col1: PairColl[_, _] = col._1.sample.get
+      val col2: PairColl[_, _] = col._2.sample.get
+      val res = col1.append(col2)
+      res.toArray shouldBe (col1.toArray ++ col2.toArray)
+    }*/
   }
 
   property("Coll.mapReduce") {
@@ -323,7 +329,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     forAll(collGen, collGen) { (col1, col2) =>
       val res = col1.diff(col2)
       res.toArray shouldBe (col1.toArray.diff(col2.toArray))
-    }
+    }/*
+    forAll(superPairedGenInt._1, superPairedGenInt._2) { (col1, col2) =>
+      println(col1)
+      println(col2)
+      val res = col1.diff(col2)
+      res.toArray shouldBe (col1.toArray.diff(col2.toArray))
+    }*/
     forAll(superGen) {
       case col: Coll[(_, _)] =>
         val res = col.diff(col)
@@ -354,7 +366,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val c1 = col1.take(n)
       val c2 = col2.take(n)
       builder.xor(c1, c2).toArray shouldBe c1.toArray.zip(c2.toArray).map { case (l,r) => (l ^ r).toByte }
-    }
+    }/*
+    forAll(superPairedGenByte._1, superPairedGenByte._2) { (col1, col2) =>
+      val n = col1.length min col2.length
+      val c1 = col1.take(n)
+      val c2 = col2.take(n)
+      builder.xor(c1, c2).toArray shouldBe c1.toArray.zip(c2.toArray).map { case (l,r) => (l ^ r).toByte }
+    }*/
   }
 
   property("CollBuilder.outerJoin") {
