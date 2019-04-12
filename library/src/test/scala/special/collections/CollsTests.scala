@@ -328,7 +328,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       case col: Coll[(_, _)] =>
         val res = col.diff(col)
         res.toArray shouldBe (col.toArray.diff(col.toArray))
-      case _ => false shouldBe true // TODO make similar gens
+      case _ => assert(false, "Generator returned invalid PairColl") // TODO make similar gens
     }
     /* TODO: simplify the above code
      * match-case removal gives the following compilation error:
