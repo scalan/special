@@ -37,8 +37,6 @@ trait UniversalOps extends Base { self: Scalan =>
   case class OpCost(costedValueId: Int, args: Seq[Rep[Int]], opCost: Rep[Int]) extends BaseDef[Int] {
     override def transform(t: Transformer) = OpCost(costedValueId, t(args), t(opCost))
   }
-  val defaultCostedValueId: Int = SingleSym.freshId
-  def opCost(args: Seq[Rep[Int]], opCost: Rep[Int]): Rep[Int] = OpCost(defaultCostedValueId, args, opCost)
   def opCost(costedValue: Sym, args: Seq[Rep[Int]], opCost: Rep[Int]): Rep[Int] = {
     val id = costedValue.rhs.nodeId
     OpCost(id, args, opCost)
