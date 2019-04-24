@@ -101,9 +101,10 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
       isoCCostedPrim[Val].to(p)
     }
 
+    // manual fix
     @scalan.OverloadId("fromFields")
     def apply[Val](value: Rep[Val], cost: Rep[Int], size: Rep[Size[Val]]): Rep[CCostedPrim[Val]] = {
-      assert(if (cost.isInstanceOf[OpCost@unchecked]) value.rhs.nodeId == cost.asInstanceOf[OpCost].costedValueId else true)
+      assert(if (cost.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == cost.rhs.asInstanceOf[OpCost].costedValueId else true)
       mkCCostedPrim(value, cost, size)
     }
 
