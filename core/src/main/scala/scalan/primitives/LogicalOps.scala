@@ -51,7 +51,7 @@ trait LogicalOps extends Base { self: Scalan =>
         case Or =>
           matchBoolConsts(d, lhs, rhs, _ => true, x => x, x => x, _ => true)
         case BinaryXorOp =>
-          matchBoolConsts(d, lhs, rhs, x => !x.asInstanceOf[Rep[Boolean]], x => !x.asInstanceOf[Rep[Boolean]], _ => false, _ => true)
+          matchBoolConsts(d, lhs, rhs, x => !x.asInstanceOf[Rep[Boolean]], x => x.asInstanceOf[Rep[Boolean]], _ => false, _ => true)
         case _ => super.rewriteDef(d)
       }
     case ApplyUnOp(o1, Def(ApplyUnOp(o2, x))) if o1 == Not && o2 == Not => x
