@@ -20,7 +20,6 @@ trait LogicalOps extends Base { self: Scalan =>
 
     def lazy_&&(y: Rep[Thunk[Boolean]]): Rep[Boolean] = And.applyLazy(value, y)
     def lazy_||(y: Rep[Thunk[Boolean]]): Rep[Boolean] = Or.applyLazy(value, y)
-    def lazy_^(y: Rep[Thunk[Boolean]]): Rep[Boolean] = BinaryXorOp.applyLazy(value, y)
 
     def unary_!() : Rep[Boolean] = Not(value)
     def toInt: Rep[Int] = BooleanToInt(value)
