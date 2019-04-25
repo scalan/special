@@ -87,9 +87,13 @@ object CCostedOption extends EntityObject("CCostedOption") {
       isoCCostedOption[T].to(p)
     }
 
+    // manual fix
     @scalan.OverloadId("fromFields")
-    def apply[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CCostedOption[T]] =
+    def apply[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CCostedOption[T]] = {
+      assert(if (costOpt.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == costOpt.rhs.asInstanceOf[OpCost].costedValueId else true,
+        s"${value.rhs} value node id (${value.rhs.nodeId}) is not equal to OpCost.costedValueId (${costOpt.rhs.asInstanceOf[OpCost].costedValueId})")
       mkCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
+    }
 
     def unapply[T](p: Rep[CostedOption[T]]) = unmkCCostedOption(p)
   }

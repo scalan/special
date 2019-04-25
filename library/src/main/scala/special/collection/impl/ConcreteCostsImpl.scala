@@ -246,9 +246,14 @@ implicit val eR = p._2.eVal
       isoCCostedPair[L, R].to(p)
     }
 
+    // manual fix
     @scalan.OverloadId("fromFields")
-    def apply[L, R](l: Rep[Costed[L]], r: Rep[Costed[R]], accCost: Rep[Int]): Rep[CCostedPair[L, R]] =
+    def apply[L, R](l: Rep[Costed[L]], r: Rep[Costed[R]], accCost: Rep[Int]): Rep[CCostedPair[L, R]] = {
+      val value = Pair(l, r)
+      assert(if (accCost.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == accCost.rhs.asInstanceOf[OpCost].costedValueId else true,
+        s"${value.rhs} value node id (${value.rhs.nodeId}) is not equal to OpCost.costedValueId (${accCost.rhs.asInstanceOf[OpCost].costedValueId})")
       mkCCostedPair(l, r, accCost)
+    }
 
     def unapply[L, R](p: Rep[CostedPair[L, R]]) = unmkCCostedPair(p)
   }
@@ -656,9 +661,13 @@ object CCostedColl extends EntityObject("CCostedColl") {
       isoCCostedColl[Item].to(p)
     }
 
+    // manual fix
     @scalan.OverloadId("fromFields")
-    def apply[Item](values: Rep[Coll[Item]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Size[Item]]], valuesCost: Rep[Int]): Rep[CCostedColl[Item]] =
+    def apply[Item](values: Rep[Coll[Item]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Size[Item]]], valuesCost: Rep[Int]): Rep[CCostedColl[Item]] = {
+      assert(if (costs.rhs.isInstanceOf[OpCost]) values.rhs.nodeId == costs.rhs.asInstanceOf[OpCost].costedValueId else true,
+        s"${values.rhs} value node id (${values.rhs.nodeId}) is not equal to OpCost.costedValueId (${costs.rhs.asInstanceOf[OpCost].costedValueId})")
       mkCCostedColl(values, costs, sizes, valuesCost)
+    }
 
     def unapply[Item](p: Rep[CostedColl[Item]]) = unmkCCostedColl(p)
   }
