@@ -360,7 +360,7 @@ class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenC
       s"$x < $y and $x or $y"
     case And => src"$x and $y"
     case Or => src"$x or $y"
-    case Xor => src"$x xor $y"
+    case BinaryXorOp => src"$x xor $y"
     case _ => super.binOp(op, x, y)
   }
 

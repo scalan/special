@@ -9,18 +9,18 @@ trait LogicalOps extends Base { self: Scalan =>
 
   val Not = new EndoUnOp[Boolean]("!", !_)
 
-  val Xor = new EndoBinOp[Boolean]("^", _ ^ _)
+  val BinaryXorOp = new EndoBinOp[Boolean]("^", _ ^ _)
 
   val BooleanToInt = new UnOp[Boolean, Int]("ToInt", if (_) 1 else 0)
 
   implicit class RepBooleanOps(value: Rep[Boolean]) {
     def &&(y: Rep[Boolean]): Rep[Boolean] = And(value, y)
     def ||(y: Rep[Boolean]): Rep[Boolean] = Or(value, y)
-    def ^(y: Rep[Boolean]): Rep[Boolean] = Xor(value, y)
+    def ^(y: Rep[Boolean]): Rep[Boolean] = BinaryXorOp(value, y)
 
     def lazy_&&(y: Rep[Thunk[Boolean]]): Rep[Boolean] = And.applyLazy(value, y)
     def lazy_||(y: Rep[Thunk[Boolean]]): Rep[Boolean] = Or.applyLazy(value, y)
-    def lazy_^(y: Rep[Thunk[Boolean]]): Rep[Boolean] = Xor.applyLazy(value, y)
+    def lazy_^(y: Rep[Thunk[Boolean]]): Rep[Boolean] = BinaryXorOp.applyLazy(value, y)
 
     def unary_!() : Rep[Boolean] = Not(value)
     def toInt: Rep[Int] = BooleanToInt(value)
@@ -51,7 +51,7 @@ trait LogicalOps extends Base { self: Scalan =>
           matchBoolConsts(d, lhs, rhs, x => x, _ => false, x => x, _ => false)
         case Or =>
           matchBoolConsts(d, lhs, rhs, _ => true, x => x, x => x, _ => true)
-        case Xor =>
+        case BinaryXorOp =>
           matchBoolConsts(d, lhs, rhs, x => !x.asInstanceOf[Rep[Boolean]], x => !x.asInstanceOf[Rep[Boolean]], _ => false, _ => true)
         case _ => super.rewriteDef(d)
       }
