@@ -661,7 +661,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     // manual fix
     @scalan.OverloadId("fromFields")
     def apply[Item](values: Rep[Coll[Item]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Size[Item]]], valuesCost: Rep[Int]): Rep[CCostedColl[Item]] = {
-      assertValueIdForOpCost(values, costs)
+      assertValueIdForOpCost(values, valuesCost)
       mkCCostedColl(values, costs, sizes, valuesCost)
     }
 
