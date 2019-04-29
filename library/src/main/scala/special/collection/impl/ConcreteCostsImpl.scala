@@ -104,8 +104,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     // manual fix
     @scalan.OverloadId("fromFields")
     def apply[Val](value: Rep[Val], cost: Rep[Int], size: Rep[Size[Val]]): Rep[CCostedPrim[Val]] = {
-      assert(if (cost.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == cost.rhs.asInstanceOf[OpCost].costedValueId else true,
-        s"${value.rhs} value node id (${value.rhs.nodeId}) is not equal to OpCost.costedValueId (${cost.rhs.asInstanceOf[OpCost].costedValueId})")
+      assertValueIdForOpCost(value, cost)
       mkCCostedPrim(value, cost, size)
     }
 
@@ -249,9 +248,7 @@ implicit val eR = p._2.eVal
     // manual fix
     @scalan.OverloadId("fromFields")
     def apply[L, R](l: Rep[Costed[L]], r: Rep[Costed[R]], accCost: Rep[Int]): Rep[CCostedPair[L, R]] = {
-      val value = Pair(l, r)
-      assert(if (accCost.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == accCost.rhs.asInstanceOf[OpCost].costedValueId else true,
-        s"${value.rhs} value node id (${value.rhs.nodeId}) is not equal to OpCost.costedValueId (${accCost.rhs.asInstanceOf[OpCost].costedValueId})")
+      assertValueIdForOpCost(Pair(l, r), accCost)
       mkCCostedPair(l, r, accCost)
     }
 
@@ -664,8 +661,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     // manual fix
     @scalan.OverloadId("fromFields")
     def apply[Item](values: Rep[Coll[Item]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Size[Item]]], valuesCost: Rep[Int]): Rep[CCostedColl[Item]] = {
-      assert(if (costs.rhs.isInstanceOf[OpCost]) values.rhs.nodeId == costs.rhs.asInstanceOf[OpCost].costedValueId else true,
-        s"${values.rhs} value node id (${values.rhs.nodeId}) is not equal to OpCost.costedValueId (${costs.rhs.asInstanceOf[OpCost].costedValueId})")
+      assertValueIdForOpCost(values, costs)
       mkCCostedColl(values, costs, sizes, valuesCost)
     }
 

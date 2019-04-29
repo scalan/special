@@ -42,6 +42,11 @@ trait UniversalOps extends Base { self: Scalan =>
     OpCost(id, args, opCost)
   }
 
+  def assertValueIdForOpCost[A,B](value: Rep[A], cost: Rep[B]): Unit = {
+    assert(if (cost.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == cost.rhs.asInstanceOf[OpCost].costedValueId else true,
+      s"${value.rhs} value node id (${value.rhs.nodeId}) is not equal to OpCost.costedValueId (${cost.rhs.asInstanceOf[OpCost].costedValueId})")
+  }
+
   case class Downcast[From, To](input: Rep[From], eTo: Elem[To]) extends BaseDef[To]()(eTo) {
     override def transform(t: Transformer) = Downcast(t(input), eTo)
   }

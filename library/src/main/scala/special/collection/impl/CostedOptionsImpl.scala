@@ -90,8 +90,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     // manual fix
     @scalan.OverloadId("fromFields")
     def apply[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CCostedOption[T]] = {
-      assert(if (accumulatedCost.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == accumulatedCost.rhs.asInstanceOf[OpCost].costedValueId else true,
-        s"${value.rhs} value node id (${value.rhs.nodeId}) is not equal to OpCost.costedValueId (${accumulatedCost.rhs.asInstanceOf[OpCost].costedValueId})")
+      assertValueIdForOpCost(value, accumulatedCost)
       mkCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
     }
 
