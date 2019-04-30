@@ -1,6 +1,7 @@
 package special.collection
 
 import java.util
+import java.util.Objects
 
 import special.SpecialPredef
 
@@ -164,13 +165,39 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
     builder.fromArray(res.toArray())
   }
 
+  @Internal
+  protected def isAllPrimValue(value: A): Boolean = {
+    cfor(0)(_ < length, _ + 1) { i =>
+      if (this(i) != value) return false
+    }
+    true
+  }
+
+  @Internal
+  protected def isAllDeepEquals(value: Any): Boolean = {
+    cfor(0)(_ < length, _ + 1) { i =>
+      if (!Objects.deepEquals(this(i), value)) return false
+    }
+    true
+  }
+
+  @Internal
+  def isReplArray(len: Int, value: A): Boolean = {
+    length == len && {
+      if (tItem.classTag.runtimeClass.isPrimitive) {
+        isAllPrimValue(value)
+      } else {
+        isAllDeepEquals(value)
+      }
+    }
+  }
 
   @Internal
   override def equals(obj: scala.Any): Boolean = obj match {
-    case obj: CollOverArray[_] =>
+    case obj: CollOverArray[_] if obj.tItem == this.tItem =>
       util.Objects.deepEquals(obj.toArray, toArray)
-    case repl: CReplColl[A]@unchecked =>
-      isReplArray(toArray, repl.length, repl.value)
+    case repl: CReplColl[A]@unchecked if repl.tItem == this.tItem =>
+      isReplArray(repl.length, repl.value)
     case _ => false
   }
 
@@ -285,8 +312,16 @@ class CollOverArrayBuilder extends CollBuilder {
 
 class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R]) extends PairColl[L,R] {
   @Internal
+  override private[collection] def isReplArray(len: Int, value: (L, R)): Boolean = {
+    ls.isReplArray(len, value._1) && rs.isReplArray(len, value._2)
+  }
+
+  @Internal
   override def equals(that: scala.Any) = (this eq that.asInstanceOf[AnyRef]) || (that match {
-    case that: PairColl[_,_] => ls == that.ls && rs == that.rs
+    case that: PairColl[_,_] if that.tItem == this.tItem => ls == that.ls && rs == that.rs
+    case that: ReplColl[(L,R)]@unchecked if that.tItem == this.tItem =>
+      ls.isReplArray(that.length, that.value._1) &&
+      rs.isReplArray(that.length, that.value._2)
     case _ => false
   })
   @Internal
@@ -297,7 +332,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   implicit def tR = rs.tItem
 
   @Internal
-  override def tItem: RType[(L, R)] = {
+  override lazy val tItem: RType[(L, R)] = {
     RType.pairRType(tL, tR)
   }
 
@@ -709,13 +744,18 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   }
 
   @Internal
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case repl: CReplColl[A]@unchecked =>
-      this.length == repl.length && this.value == repl.value
-    case obj: CollOverArray[A] if obj.tItem == this.tItem =>
-      isReplArray(obj.toArray, this.length, this.value)
-    case _ => false
+  override private[collection] def isReplArray(len: Int, value: A): Boolean = {
+    this.length == len && this.value == value
   }
+
+  @Internal
+  override def equals(obj: scala.Any): Boolean = obj != null && (obj match {
+    case repl: CReplColl[A]@unchecked if repl.tItem == this.tItem =>
+      this.length == repl.length && this.value == repl.value
+    case obj: Coll[A] if obj.tItem == this.tItem =>
+      obj.isReplArray(this.length, this.value)
+    case _ => false
+  })
 
   @Internal
   override def hashCode() = CollectionUtil.deepHashCode(toArray)

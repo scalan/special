@@ -53,13 +53,4 @@ object Helpers {
     (keys.result, values.result)
   }
 
-  @inline def isReplArray[A](arr: Array[A], len: Int, value: A): Boolean = {
-    arr.length == len && {
-      cfor(0)(_ < len, _ + 1) { i =>
-        if (arr(i) != value) return false
-      }
-      true
-    }
-  }
-
 }

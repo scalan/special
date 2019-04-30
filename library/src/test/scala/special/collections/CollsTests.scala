@@ -1,8 +1,8 @@
 package special.collections
 
 import special.collection.{Coll, PairColl, ReplColl}
-import org.scalacheck.Gen
-import org.scalatest.{Matchers, PropSpec}
+import org.scalacheck.{Gen, Shrink}
+import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import scalan.RType
 import scalan.RType.PairType
@@ -390,4 +390,90 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       view.toArray shouldBe usual.toArray
     }
   }
+
+  property("Coll equality") {
+    val arr1 = Array[Int](1, 2, 3)
+    val arr2 = Array[Int](1, 2, 3)
+    val repl1 = Array[Int](1,1,1)
+    val repl2 = Array[Int](1,1,1)
+    val pairs1 = arr1.zip(repl1)
+    val replPairs = repl1.zip(repl2)
+    def ids = Array.tabulate(3) { i => Array.fill(32)(i.toByte) }
+    def replIds = Array.fill(3) { Array.fill(32)(1) }
+    val tokensArr = ids.zip(arr1)
+    case class NoShrink[T](x: T)
+
+
+    val collGen = Gen.oneOf(builder.fromArray(arr1), builder.fromArray(arr2), builder.fromItems(1, 2, 3)).map(NoShrink(_))
+    val replGen = Gen.oneOf(builder.fromArray(repl1), builder.replicate(3, 1)).map(NoShrink(_))
+    val idsGen = Gen.oneOf(builder.fromArray(ids), builder.fromArray(ids)).map(NoShrink(_))
+    val replIdsGen = Gen.oneOf(builder.fromArray(replIds), builder.replicate(3, Array.fill(32)(1))).map(NoShrink(_))
+
+    val pairsGen = Gen.oneOf(
+      for { c1 <- collGen; c2 <- replGen } yield builder.pairColl(c1.x, c2.x): Coll[(Int, Int)],
+      Gen.const(builder.fromArray(pairs1)),
+      Gen.const(builder.fromItems((1, 1), (2, 1), (3, 1)))
+    ).map(NoShrink(_))
+    val replPairsGen = Gen.oneOf(
+      for { c1 <- replGen; c2 <- replGen } yield builder.pairColl(c1.x, c2.x): Coll[(Int, Int)],
+      Gen.const(builder.replicate(3, (1,1))),
+      Gen.const(builder.fromArray(replPairs))
+    ).map(NoShrink(_))
+
+    val tokensGen = Gen.oneOf(
+      for { c1 <- idsGen; c2 <- collGen } yield builder.pairColl(c1.x, c2.x): Coll[(Array[Byte], Int)],
+      Gen.const(builder.fromArray(tokensArr)),
+      Gen.const(builder.fromItems(tokensArr(0), tokensArr(1), tokensArr(2)))
+    ).map(NoShrink(_))
+
+    val minSuccess = MinSuccessful(30)
+    
+    forAll(collGen, collGen, minSuccess) { (c1, c2) =>
+      assert(c1.x == c2.x)
+      assert(c2.x == c1.x)
+    }
+    forAll(replGen, replGen, minSuccess) { (c1, c2) =>
+      assert(c1.x == c2.x)
+      assert(c2.x == c1.x)
+    }
+    forAll(collGen, replGen, minSuccess) { (c1, c2) =>
+      assert(c1.x != c2.x)
+      assert(c2.x != c1.x)
+    }
+    forAll(pairsGen, pairsGen, minSuccess) { (c1, c2) =>
+      assert(c1.x == c2.x)
+      assert(c2.x == c1.x)
+    }
+    forAll(replPairsGen, replPairsGen, minSuccess) { (c1, c2) =>
+      assert(c1.x == c2.x)
+      assert(c2.x == c1.x)
+//      println(s"c1=$c1; c2=$c2")
+    }
+
+    forAll(idsGen, idsGen, minSuccess) { (c1, c2) =>
+      assert(c1.x == c2.x)
+      assert(c2.x == c1.x)
+//      println(s"c1=$c1; c2=$c2")
+    }
+
+    forAll(replIdsGen, replIdsGen, minSuccess) { (c1, c2) =>
+      assert(c1.x == c2.x)
+      assert(c2.x == c1.x)
+//      println(s"c1=$c1; c2=$c2")
+    }
+
+    forAll(tokensGen, tokensGen, minSuccess) { (c1, c2) =>
+      assert(c1.x == c2.x)
+      assert(c2.x == c1.x)
+//      println(s"c1=$c1; c2=$c2")
+    }
+
+// TODO the following test fails because equality of Seq is not deep, and nested arrays are shallow compared
+//    forAll(tokensGen, minSuccess) { c1 =>
+//      println(s"c1=${c1.x.toArray.toSeq.map { case (id, v) => (id.toSeq, v) }}")
+//      val tokens = c1.x
+//      assert(tokens.toArray.toSeq == tokensArr.toSeq)
+//    }
+  }
+
 }

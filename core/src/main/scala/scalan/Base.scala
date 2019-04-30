@@ -196,7 +196,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
       def liftable: Liftable[ST, T]
     }
 
-    /** Describes lifting constant values of type ST (Source Type) to IR nodes of the correspoding staged type T.
+    /** Describes lifting data values of type ST (Source Type) to IR nodes of the correspoding staged type T.
       * In general T is different type obtained by virtualization procedure from ST. */
     @implicitNotFound(msg = "Cannot find implicit for Liftable[${ST},${T}].")
     trait Liftable[ST, T] {
@@ -218,6 +218,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
       @inline def asLiftable[ST,T]: Liftable[ST,T] = l.asInstanceOf[Liftable[ST,T]]
     }
     def liftable[ST, T](implicit lT: Liftable[ST,T]) = lT
+
+    /** Given data value of type `ST` and `Liftable` instance between `ST` and `T`,
+      * produces `LiftedConst` node (some concrete implemenation) and returns it's symbol.
+      * This is generic way to put any liftable data object into graph and then use
+      * its symbol in other nodes. */
     def liftConst[ST,T](x: ST)(implicit lT: Liftable[ST,T]): Rep[T] = lT.lift(x)
 
     class BaseLiftable[T](implicit val eW: Elem[T], override val sourceType: RType[T]) extends Liftable[T, T] {
