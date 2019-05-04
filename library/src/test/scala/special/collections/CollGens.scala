@@ -6,9 +6,10 @@ import org.scalacheck.util.Buildable
 import scala.collection.mutable
 import org.scalacheck.{Arbitrary, Gen}
 import scalan._
-import special.collection.{Coll, CollOverArrayBuilder, CollBuilder}
+import special.collection.{Coll, CollBuilder, CollOverArray, CollOverArrayBuilder, PairColl, ReplColl}
 
 import scala.reflect.ClassTag
+import scala.util.Random
 
 trait CollGens { testSuite =>
   import Gen._
@@ -20,26 +21,102 @@ trait CollGens { testSuite =>
   val replacedGen = choose(0, 100)
   val lenGen = choose(0, 100)
 
-  val bytesArrayGen: Gen[Array[Byte]] = containerOfN[Array, Byte](100, byteGen)
-  val arrayGen: Gen[Array[Int]] = containerOfN[Array, Int](100, valGen)
+  def getArrayGen[T](valGen: Gen[T], count: Int = 100)
+                    (implicit evb: Buildable[T,Array[T]], evt: Array[T] => Traversable[T]): Gen[Array[T]] = {
+    containerOfN[Array, T](count, valGen)
+  }
+
+  def getCollOverArrayGen[T: RType](valGen: Gen[T], count: Int = 100): Gen[Coll[T]] = {
+    containerOfN[Array, T](count, valGen).map(builder.fromArray(_))
+  }
+
+  def getCollReplGen[T: RType](lenGen: Gen[Int], valGen: Gen[T], count: Int = 100): Gen[Coll[T]] = {
+    for { l <- lenGen; v <- valGen } yield builder.replicate(l, v)
+  }
+
+  def getCollViewGen[A: RType](valGen: Gen[Coll[A]]): Gen[Coll[A]] = {
+    valGen.map(builder.makeView(_, identity[A]))
+  }
+
+  def getCollViewGen[A, B: RType](valGen: Gen[Coll[A]], f: A => B): Gen[Coll[B]] = {
+    valGen.map(builder.makeView(_, f))
+  }
+
+  def getCollPairGenFinal[A: RType, B: RType](collGenLeft: Gen[Coll[A]], collGenRight: Gen[Coll[B]]): Gen[PairColl[A, B]] = {
+    for { left <- collGenLeft; right <- collGenRight } yield builder.pairColl(left, right)
+  }
+
+  def getCollPairGenRight[A: RType, B: RType, C: RType](collGenLeft: Gen[Coll[A]], collGenRight: Gen[PairColl[B, C]]): Gen[PairColl[A, (B, C)]] = {
+    for { left <- collGenLeft; right <- collGenRight } yield builder.pairColl(left, right)
+  }
+
+  def getCollPairGenLeft[A: RType, B: RType, C: RType](collGenLeft: Gen[PairColl[A, B]], collGenRight: Gen[Coll[C]]): Gen[PairColl[(A, B), C]] = {
+    for { left <- collGenLeft; right <- collGenRight } yield builder.pairColl(left, right)
+  }
+
+  def getCollPairGenBoth[A: RType, B: RType, C: RType, D: RType](collGenLeft: Gen[PairColl[A, B]], collGenRight: Gen[PairColl[C, D]]): Gen[PairColl[(A, B), (C, D)]] = {
+    for { left <- collGenLeft; right <- collGenRight } yield builder.pairColl(left, right)
+  }
+
+  // TODO: there's a need in generator that produces collections with different elements and the same type scheme
+  def getSuperGen[T: RType](length: Int = 1, collGen: Gen[Coll[T]]): Gen[PairColl[_, _]] = {
+    length match {
+      case 0 => {
+        Gen.oneOf(getCollPairGenFinal(collGen, collGen),
+          getCollPairGenFinal(collGen, collGen))
+      }
+      case _ => {
+        getSuperGen(length - 1, collGen) match {
+          case lg: Gen[PairColl[RType[_], RType[_]]] => {
+            getSuperGen(length - 1, collGen) match {
+              case rg: Gen[PairColl[RType[_], RType[_]]] => {
+                val gen = Gen.oneOf(
+                  getCollPairGenFinal(collGen, collGen),
+                  getCollPairGenLeft(lg, collGen),
+                  getCollPairGenRight(collGen, rg),
+                  getCollPairGenBoth(lg, rg),
+                )
+                return gen
+              }
+              case _ => throw new RuntimeException("Invalid rGen")
+            }
+          }
+          case _ => throw new RuntimeException("Invalid lGen")
+        }
+      }
+    }
+  }
+
+  val bytesArrayGen: Gen[Array[Byte]] = getArrayGen[Byte](byteGen) //containerOfN[Array, Byte](100, byteGen)
+  val arrayGen: Gen[Array[Int]] = getArrayGen[Int](valGen) //containerOfN[Array, Int](100, valGen)
   val indexesGen = containerOfN[Array, Int](10, indexGen).map(arr => builder.fromArray(arr.distinct.sorted))
 
-  val collOverArrayGen = arrayGen.map(builder.fromArray(_))
-  val bytesOverArrayGen = bytesArrayGen.map(builder.fromArray(_))
-  val replCollGen = for { l <- lenGen; v <- valGen } yield builder.replicate(l, v)
-  val replBytesCollGen = for { l <- lenGen; v <- byteGen } yield builder.replicate(l, v)
+  val collOverArrayGen = getCollOverArrayGen(valGen) //arrayGen.map(builder.fromArray(_))
 
-  val lazyCollGen = collOverArrayGen.map(builder.makeView(_, identity[Int]))
-  val lazyByteGen = bytesOverArrayGen.map(builder.makeView(_, identity[Byte]))
+  val bytesOverArrayGen = getCollOverArrayGen(byteGen)
+  val replCollGen = getCollReplGen(lenGen, valGen)
+  val replBytesCollGen = getCollReplGen(lenGen, byteGen)
+
+
+  val lazyCollGen = getCollViewGen(collOverArrayGen)
+  val lazyByteGen = getCollViewGen(bytesOverArrayGen)
 
   def easyFunction(arg: Int): Int = arg * 20 + 300
   def inverseEasyFunction(arg: Int): Int = (arg - 300) / 20
 
-  val lazyFuncCollGen = collOverArrayGen.map(builder.makeView(_, easyFunction))
-  val lazyUnFuncCollGen = lazyFuncCollGen.map(builder.makeView(_, inverseEasyFunction))
+  val lazyFuncCollGen = getCollViewGen[Int, Int](collOverArrayGen, easyFunction)
+  val lazyUnFuncCollGen = getCollViewGen[Int, Int](lazyFuncCollGen, inverseEasyFunction)
 
   val collGen = Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen)
   val bytesGen = Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen)
+
+  val innerGen = Gen.oneOf(collOverArrayGen, replCollGen)
+
+  val superGenInt = getSuperGen(1, Gen.oneOf(collOverArrayGen, replCollGen, lazyCollGen, lazyUnFuncCollGen))
+  val superGenByte = getSuperGen(1, Gen.oneOf(bytesOverArrayGen, replBytesCollGen, lazyByteGen))
+  val superGen = Gen.oneOf(superGenInt, superGenByte)
+
+  val allGen = Gen.oneOf(superGen, collGen)
 
   implicit val arbColl = Arbitrary(collGen)
   implicit val arbBytes = Arbitrary(bytesGen)
@@ -50,6 +127,11 @@ trait CollGens { testSuite =>
   val plusF = (p: (Int,Int)) => plus(p._1, p._2)
   val predF = (p: (Int,Int)) => plus(p._1, p._2) > 0
   def inc(x: Int) = x + 1
+
+  def collMatchRepl[B](coll: B): Boolean = coll match {
+    case _ : ReplColl[_] => true
+    case _ => false
+  }
 
   def complexFunction(arg: Int): Int = {
     var i = 0

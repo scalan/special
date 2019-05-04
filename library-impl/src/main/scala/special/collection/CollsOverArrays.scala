@@ -338,7 +338,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   override def builder: CollBuilder = new CollOverArrayBuilder
   override def toArray: Array[(L, R)] = ls.toArray.zip(rs.toArray)
-  @inline override def length: Int = ls.length
+  @inline override def length: Int = if (ls.length <= rs.length) ls.length else rs.length
   @inline override def apply(i: Int): (L, R) = (ls(i), rs(i))
 
   @NeverInline
@@ -431,7 +431,15 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   }
 
   override def reverse: Coll[(L, R)] = {
-    builder.pairColl(ls.reverse, rs.reverse)
+    val lLen = ls.length
+    val rLen = rs.length
+    if (lLen == rLen) {
+      builder.pairColl(ls.reverse, rs.reverse)
+    } else if (lLen < rLen) {
+      builder.pairColl(ls.reverse, rs.slice(0, lLen).reverse)
+    } else {
+      builder.pairColl(ls.slice(0, rLen).reverse, rs.reverse)
+    }
   }
 
   @NeverInline
@@ -448,7 +456,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   def zip[@specialized B](ys: Coll[B]): PairColl[(L,R), B] = builder.pairColl(this, ys)
 
-  override def indices: Coll[Int] = ls.indices
+  override def indices: Coll[Int] = if (ls.length <= rs.length) ls.indices else rs.indices
 
   @NeverInline
   override def flatMap[B: RType](f: ((L, R)) => Coll[B]): Coll[B] =
@@ -526,7 +534,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
       }
     }
     var i = 0
-    val thisLen = ls.length
+    val thisLen = math.min(ls.length, rs.length)
     while (i < thisLen) {
       addToSet((ls(i), rs(i)))
       i += 1
