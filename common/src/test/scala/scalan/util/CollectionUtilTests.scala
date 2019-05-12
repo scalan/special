@@ -200,18 +200,18 @@ class CollectionUtilTests extends BaseTests {
     unboxedArray(Seq[Any]()).isInstanceOf[Array[Any]] shouldBe true
 
     // primitive types
-    unboxedArray(Seq[Byte](new java.lang.Byte(1.toByte))).isInstanceOf[Array[Byte]] shouldBe true
-    Seq[Any](new java.lang.Byte(1.toByte)).toArray.isInstanceOf[Array[Byte]] shouldBe false
+    unboxedArray(Seq[Byte](java.lang.Byte.valueOf(1.toByte))).isInstanceOf[Array[Byte]] shouldBe true
+    Seq[Any](java.lang.Byte.valueOf(1.toByte)).toArray.isInstanceOf[Array[Byte]] shouldBe false
     Seq[Byte](1.toByte).toArray[Byte].isInstanceOf[Array[Byte]] shouldBe true
 
-    unboxedArray(Seq[Short](new java.lang.Short(1.toShort))).isInstanceOf[Array[Short]] shouldBe true
-    unboxedArray(Seq[Int](new java.lang.Integer(1))).isInstanceOf[Array[Int]] shouldBe true
-    unboxedArray(Seq[Long](new java.lang.Long(1))).isInstanceOf[Array[Long]] shouldBe true
-    unboxedArray(Seq[Double](new java.lang.Double(1.0))).isInstanceOf[Array[Double]] shouldBe true
-    unboxedArray(Seq[Float](new java.lang.Float(1.0))).isInstanceOf[Array[Float]] shouldBe true
-    unboxedArray(Seq[Boolean](new java.lang.Boolean(true))).isInstanceOf[Array[Boolean]] shouldBe true
-    unboxedArray(Seq[Char](new java.lang.Character('a'))).isInstanceOf[Array[Char]] shouldBe true
-    unboxedArray(Seq[String](new java.lang.String("str"))).isInstanceOf[Array[String]] shouldBe true
+    unboxedArray(Seq[Short](java.lang.Short.valueOf(1.toShort))).isInstanceOf[Array[Short]] shouldBe true
+    unboxedArray(Seq[Int](java.lang.Integer.valueOf(1))).isInstanceOf[Array[Int]] shouldBe true
+    unboxedArray(Seq[Long](java.lang.Long.valueOf(1))).isInstanceOf[Array[Long]] shouldBe true
+    unboxedArray(Seq[Double](java.lang.Double.valueOf(1.0))).isInstanceOf[Array[Double]] shouldBe true
+    unboxedArray(Seq[Float](java.lang.Float.valueOf(1.0f))).isInstanceOf[Array[Float]] shouldBe true
+    unboxedArray(Seq[Boolean](java.lang.Boolean.valueOf(true))).isInstanceOf[Array[Boolean]] shouldBe true
+    unboxedArray(Seq[Char](java.lang.Character.valueOf('a'))).isInstanceOf[Array[Char]] shouldBe true
+    unboxedArray(Seq[String]("str")).isInstanceOf[Array[String]] shouldBe true
 
     // non-primitive type
     unboxedArray(Seq[Any](Option.empty[Boolean])).isInstanceOf[Array[Any]] shouldBe true

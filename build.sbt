@@ -3,7 +3,7 @@ import scala.util.Try
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 lazy val buildSettings = Seq(
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.8",
   organization := "io.github.scalan",
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalacOptions ++= Seq(
@@ -33,11 +33,9 @@ lazy val buildSettings = Seq(
 lazy val testSettings = Seq(
   libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-    "org.scalacheck" %% "scalacheck" % "1.13.+" % Test,
+    "org.scalacheck" %% "scalacheck" % "1.14.+" % Test,
     "com.storm-enroute" %% "scalameter" % "0.8.2" % Test,
-    "ch.qos.logback" % "logback-classic" % "1.1.7",
-    // TODO separate benchmark configuration, see https://github.com/scalameter/scalameter-examples/blob/master/basic-with-separate-config/build.sbt
-    "com.storm-enroute" %% "scalameter" % "0.10" % Test),
+    "ch.qos.logback" % "logback-classic" % "1.2.3"),
   parallelExecution in Test := false,
   baseDirectory in Test := file("."),
   publishArtifact in Test := true,

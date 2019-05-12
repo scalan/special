@@ -2,6 +2,7 @@ package scalan.meta
 
 import java.util.Properties
 import java.io.FileReader
+import java.util
 
 object Base {
   lazy val config = {
@@ -16,7 +17,7 @@ object Base {
     } catch {
       case _: Throwable => {}
     }
-    prop.putAll(System.getProperties)
+    prop.putAll(System.getProperties.asInstanceOf[util.Hashtable[Any, Any]])
     prop
   }
 

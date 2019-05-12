@@ -9,6 +9,7 @@ import com.typesafe.config.{ConfigUtil, Config}
 import configs.Result.{Success, Failure}
 import scalan.{Base, Scalan, TypeDesc}
 import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
+import scala.collection.immutable.StringOps
 
 case class GraphFile(file: File, fileType: String) {
   def open() = {
@@ -135,7 +136,7 @@ trait GraphVizExport { self: Scalan =>
   protected def formatConst(x: Any): String = x match {
     case str: String =>
       val tripleQuote = "\"\"\""
-      str.lines.toSeq match {
+      new StringOps(str).lines.toSeq match {
         case Seq() =>
           "\"\""
         case Seq(line) =>
@@ -330,7 +331,7 @@ trait GraphVizExport { self: Scalan =>
       // skip ???, !!!, throwInvocationException and other methods which just build and throw exceptions
       !(methodName.endsWith("???") || methodName.endsWith("!!!") || methodName.startsWith("throw"))
     }.map(ste => ScalaNameUtil.cleanScalaName(ste.toString)).toList
-    stream.println(config.nodeLabel(e.toString.lines.toList ++ firstUsefulStackTraceLine))
+    stream.println(config.nodeLabel(new StringOps(e.toString).lines.toList ++ firstUsefulStackTraceLine))
     stream.println(s"shape=note,color=red,style=filled,fillcolor=white")
     stream.println("]")
   }
@@ -498,7 +499,7 @@ case class GraphVizConfig(emitGraphs: Boolean,
     val sb = new StringBuilder()
     var isFirst = true
     parts.foreach { part =>
-      val lines = part.lines.toSeq
+      val lines = new StringOps(part).lines.toSeq
       if (isFirst) {
         isFirst = false
       } else {
