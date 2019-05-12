@@ -35,9 +35,7 @@ lazy val testSettings = Seq(
     "org.scalatest" %% "scalatest" % "3.0.5" % Test,
     "org.scalacheck" %% "scalacheck" % "1.14.+" % Test,
     "com.storm-enroute" %% "scalameter" % "0.8.2" % Test,
-    "ch.qos.logback" % "logback-classic" % "1.2.3",
-    // TODO separate benchmark configuration, see https://github.com/scalameter/scalameter-examples/blob/master/basic-with-separate-config/build.sbt
-    /*"com.storm-enroute" %% "scalameter" % "0.10" % Test*/),
+    "ch.qos.logback" % "logback-classic" % "1.2.3"),
   parallelExecution in Test := false,
   baseDirectory in Test := file("."),
   publishArtifact in Test := true,
