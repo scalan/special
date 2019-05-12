@@ -67,9 +67,9 @@ trait CollGens { testSuite =>
       }
       case _ => {
         getSuperGen(length - 1, collGen) match {
-          case lg: Gen[PairColl[RType[_], RType[_]]] => {
+          case lg: Gen[PairColl[RType[_], RType[_]]]@unchecked => {
             getSuperGen(length - 1, collGen) match {
-              case rg: Gen[PairColl[RType[_], RType[_]]] => {
+              case rg: Gen[PairColl[RType[_], RType[_]]]@unchecked => {
                 val gen = Gen.oneOf(
                   getCollPairGenFinal(collGen, collGen),
                   getCollPairGenLeft(lg, collGen),

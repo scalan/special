@@ -3,7 +3,7 @@ import scala.util.Try
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 
 lazy val buildSettings = Seq(
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.8",
   organization := "io.github.scalan",
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalacOptions ++= Seq(
