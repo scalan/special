@@ -39,7 +39,7 @@ env:
 language: scala
 
 jdk:
-  - oraclejdk8
+  - oraclejdk9
 
 install:
   - if test ! -d "$HOME/.ivy2/local/org.scala-lang.lms"; then
