@@ -758,12 +758,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
   def createDefinition[T](s: Rep[T], d: Def[T]): TableEntry[T] =
     createDefinition(thunkStack.top, s, d)
 
-  private def createDefinition[T](optScope: Nullable[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
+  protected def createDefinition[T](optScope: Nullable[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
     val te = TableEntry(s, d)
     optScope match {
       case Nullable(scope) =>
         te.rhs.tableEntry = te
-//        defToGlobalDefs.put((scope.thunkSym, te.rhs), te)
         scope += te
       case _ =>
         te.rhs.tableEntry = te
