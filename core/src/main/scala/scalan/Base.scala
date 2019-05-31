@@ -725,6 +725,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
     metadataPool = Map.empty[Sym, MetaNode]
+    tuplesCache.clear()
     onReset()
   }
 
