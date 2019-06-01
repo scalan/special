@@ -5,7 +5,7 @@ import scala.language.reflectiveCalls
 import scalan.{Scalan, TypeDesc}
 import scalan.OverloadHack.Overloaded1
 import scalan.meta.ScalanAst._
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
 import scalan.util.StringUtil
 import scalan.util.CollectionUtil._
 

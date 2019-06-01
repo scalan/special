@@ -1,8 +1,9 @@
 package scalan.meta
 
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
+
 import scala.collection.mutable.ArrayBuffer
-import scalan.util.{StringUtil, ScalaNameUtil, CollectionUtil}
+import scalan.util.{CollectionUtil, StringUtil, ScalaNameUtil, PrintExtensions}
 import CollectionUtil._
 import StringUtil.StringUtilExtensions
 import scalan.meta.ScalanAst._

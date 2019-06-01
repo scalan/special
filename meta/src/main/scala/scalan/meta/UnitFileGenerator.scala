@@ -5,7 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.Global
 import scalan.Entity
 import scalan.meta.Base.!!!
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.util.StringUtil

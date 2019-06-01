@@ -6,7 +6,7 @@ import scala.collection.Seq
 import scala.collection.immutable.ListMap
 import scalan.{Scalan, Lazy}
 import scala.collection.mutable.{Map => MMap}
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
 
 /** Extension of spray.json's default protocol to support Scalan specific types.
   * See https://github.com/spray/spray-json  for details.

@@ -7,7 +7,7 @@ import com.typesafe.config.ConfigUtil
 
 import scala.collection.immutable.{HashMap, HashSet}
 import scala.collection.{mutable, GenIterable}
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
 import scala.collection.mutable.{Map => MMap}
 import scala.reflect.internal.ModifierFlags
 import scalan._

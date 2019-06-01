@@ -4,7 +4,7 @@ package scalan.meta
   * Created by slesarenko on 23/02/15.
   */
 import ScalanAst._
-import PrintExtensions._
+import scalan.util.PrintExtensions._
 import scala.collection.mutable.ArrayBuffer
 import scalan.meta.ScalanAstTraversers.EntityUseTraverser
 import scalan.meta.Symbols.SNamedDefSymbol
