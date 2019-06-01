@@ -2,7 +2,7 @@ package scalan.meta
 
 import scalan.meta.Symbols._
 
-trait Symbols { this: AstContext =>
+trait Symbols { this: AstContextBase =>
 
   def newUnitSymbol(packageName: String, name: String): SUnitDefSymbol = {
     SUnitDefSymbol(SNoSymbol, SSymName(packageName, name))

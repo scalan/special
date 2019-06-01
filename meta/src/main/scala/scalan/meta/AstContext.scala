@@ -10,7 +10,7 @@ import scala.collection.mutable.{Map => MMap}
 import scalan.meta.ScalanAst.{STraitCall, STpeDef, SUnitDef, STpeExpr, STpeFunc, SExpr, SEntityAnnotation, createSubst, Entity, SConst, ExternalAnnotation, SEmpty, WrapperDescr, SEntityDef, Module, SSelect}
 
 class AstContext(configs: List[UnitConfig], val parsers: ScalanParsers[Global], okLoadModules: Boolean = false)
-    extends Symbols {
+    extends AstContextBase {
 
   /** Mapping of external type names to their wrappers ("Array" -> WrapperDescr). */
   private val wrappers = MMap[String, WrapperDescr]()
