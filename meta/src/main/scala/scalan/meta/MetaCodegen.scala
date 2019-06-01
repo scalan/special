@@ -44,7 +44,7 @@ class MetaCodegen {
 
   def entityElemMethodName(name: String) = StringUtil.lowerCaseFirst(name) + "Element"
 
-  def tpeToElemStr(t: STpeExpr, env: List[STpeArg])(implicit ctx: AstContext): String = t match {
+  def tpeToElemStr(t: STpeExpr, env: List[STpeArg])(implicit ctx: AstContextBase): String = t match {
     case STpePrimitive(name,_) => name + "Element"
     case STpeTuple(List(a, b)) => s"pairElement(${tpeToElemStr(a, env)},${tpeToElemStr(b, env)})"
     case STpeFunc(a, b) => s"funcElement(${tpeToElemStr(a, env)},${tpeToElemStr(b, env)})"
@@ -337,7 +337,7 @@ class MetaCodegen {
   // methods to extract elements from data arguments
   class ElemExtractionBuilder(
       module: SUnitDef, entity: SEntityDef,
-      argSubst: Map[String, String], extractFromEntity: Boolean = true)(implicit ctx: AstContext) {
+      argSubst: Map[String, String], extractFromEntity: Boolean = true)(implicit ctx: AstContextBase) {
     val extractionExprs: List[Option[String]] =
        extractImplicitElems(module, entity.args.args, entity.tpeArgs, argSubst, extractFromEntity).map(_._2)
     val tyArgSubst = classArgsAsSeenFromAncestors(entity).map { case (_, (e,a)) => a }

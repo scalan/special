@@ -74,7 +74,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     genConstr(method.copy(argSections = method.cleanedArgs))
   }
 
-  def getWrapperName(entityName: String)(implicit ctx: AstContext): Option[(String, String)] = entityName match {
+  def getWrapperName(entityName: String)(implicit ctx: AstContextBase): Option[(String, String)] = entityName match {
     case ctx.WrapperEntity(m, _, srcName) => Some((m.packageName, srcName))
 //    case ctx.Entity(m, e) => (s"${m.packageName}.${e.name}", false)
     case _ => None //!!!(s"Cannot find srcEntityName($entityName)")

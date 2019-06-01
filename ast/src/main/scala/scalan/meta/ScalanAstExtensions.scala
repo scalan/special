@@ -1,14 +1,12 @@
 package scalan.meta
 
-/**
-  * Created by slesarenko on 23/02/15.
-  */
-import ScalanAst._
-import scalan.util.PrintExtensions._
+import scalan.util.GraphUtil
+import scalan.meta.Symbols.SNamedDefSymbol
 import scala.collection.mutable.ArrayBuffer
 import scalan.meta.ScalanAstTraversers.EntityUseTraverser
-import scalan.meta.Symbols.SNamedDefSymbol
-import scalan.util.GraphUtil
+import scalan.meta.ScalanAst._
+import scalan.util.PrintExtensions._
+import scalan.meta.AstLenses._
 
 object ScalanAstExtensions {
 
@@ -125,7 +123,6 @@ object ScalanAstExtensions {
   }
 
   implicit class SUnitDefOps(unit: SUnitDef) {
-    import AstLenses._
     implicit val ctx = unit.context
     def packageAndName = s"${unit.packageName}.${unit.name}"
     def fileName = s"${unit.packageName.replace('.','/')}/${unit.name}.scala"

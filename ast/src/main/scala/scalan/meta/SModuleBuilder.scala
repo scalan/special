@@ -1,13 +1,13 @@
 package scalan.meta
 
 import scalan.meta.ScalanAstTransformers._
-import scalan.meta.ScalanAstUtils._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
+import scalan.meta.ScalanAstUtils._
 import scalan.meta.Symbols.SEntitySymbol
 import scalan.util.CollectionUtil._
 
-class SModuleBuilder(implicit val context: AstContext) {
+class SModuleBuilder(implicit val context: AstContextBase) {
 
   // Pipeline Step
   def externalTypeToWrapper(unit: SUnitDef) = {
@@ -435,31 +435,4 @@ class SModuleBuilder(implicit val context: AstContext) {
 
 }
 
-class SourceUnitVirtualization(implicit val context: AstContext) extends (SUnitDef => SUnitDef) {
-  val moduleBuilder = new SModuleBuilder()
-  import moduleBuilder._
 
-  private val chain = scala.Function.chain(Seq(
-    fixExistentialType _,
-    transConstr _,
-    replaceImplicitDescriptorsWithElems _,
-    externalTypeToWrapper _,
-    //      composeParentWithExt _,
-    addBaseToAncestors _,
-    addDefAncestorToAllEntities _,
-    updateSelf _,
-    //      addEntityRepSynonym _,
-    addImports _,
-    checkEntityCompanion _,
-    checkClassCompanion _,
-    genEntityImplicits _,
-
-    eliminateClassTagApply _,
-    // genClassesImplicits _, genMethodsImplicits _,
-    fixEntityCompanionName _,
-    fixEvidences _,
-    transConstr _
-//    optimizeModuleImplicits _
-  ))
-  override def apply(module: Module): Module = chain(module)
-}

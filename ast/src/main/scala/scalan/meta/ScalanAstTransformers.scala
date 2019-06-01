@@ -1,12 +1,12 @@
 package scalan.meta
 
 import scala.collection.mutable
-import scalan.meta.ScalanAst._
 import scalan.util.CollectionUtil._
+import scalan.meta.ScalanAst._
 
 object ScalanAstTransformers {
   /** The class implements a default Meta AST transformation strategy: breadth-first search */
-  class AstTransformer(implicit val ctx: AstContext) extends (SExpr => SExpr) {
+  class AstTransformer(implicit val ctx: AstContextBase) extends (SExpr => SExpr) {
     override def apply(e: SExpr): SExpr = exprTransform(e)
     def constTransform(c: SConst): SConst = c
     def identTransform(ident: SIdent): SExpr = ident
@@ -290,7 +290,7 @@ object ScalanAstTransformers {
   }
 
   /** Transform some Meta AST to another AST by applying the repl function to each type name. */
-  class AstReplacer(name: String, repl: String => String)(implicit context: AstContext) extends AstTransformer {
+  class AstReplacer(name: String, repl: String => String)(implicit context: AstContextBase) extends AstTransformer {
     val typeTransformer = new TypeReplacer(name, repl)
 
     override def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = {
@@ -414,7 +414,7 @@ object ScalanAstTransformers {
   }
 
   /** Removes all Rep types including RFunc and type synonims. */
-  class RepTypeRemover(implicit ctx: AstContext) extends TypeTransformer {
+  class RepTypeRemover(implicit ctx: AstContextBase) extends TypeTransformer {
     override def typeTransform(tpe: STpeExpr): STpeExpr = {
       val t = tpe match {
         case ctx.RepTypeOf(t) => t
@@ -450,7 +450,7 @@ object ScalanAstTransformers {
   }
 
   /** Traverse whole META AST and rename types. Returns new tree. */
-  class TypeTransformerInAst(typeTrans: TypeTransformer)(implicit ctx: AstContext) extends AstTransformer {
+  class TypeTransformerInAst(typeTrans: TypeTransformer)(implicit ctx: AstContextBase) extends AstTransformer {
     override def methodResTransform(res: Option[STpeExpr]): Option[STpeExpr] = {
       res.map(typeTrans)
     }
@@ -468,7 +468,7 @@ object ScalanAstTransformers {
   }
 
   /** Traverse whole META AST and rename types. Returns new tree. */
-  class TypeNameTransformer(oldName: String, newName: String)(implicit ctx: AstContext) extends AstTransformer {
+  class TypeNameTransformer(oldName: String, newName: String)(implicit ctx: AstContextBase) extends AstTransformer {
     val typeRenamer = new TypeRenamer(oldName, newName)
     override def entityTpeArgTransform(tpeArg: STpeArg): STpeArg = {
       if (tpeArg.name == oldName) tpeArg.copy(name = newName)
@@ -505,31 +505,29 @@ object ScalanAstTransformers {
   /** The external types that should be rejected during virtualization. */
   def isIgnoredExternalType(typeName: String) = Set("Object", "Any", "AnyRef").contains(typeName)
 
-  class EnrichPipeline(implicit val context: AstContext) extends (SUnitDef => SUnitDef) {
+  class EnrichPipeline(implicit val context: AstContextBase) extends (SUnitDef => SUnitDef) {
     val moduleBuilder = new SModuleBuilder()
-    import moduleBuilder._
     private val chain = scala.Function.chain(Seq(
-      genClassesImplicits _
+      moduleBuilder.genClassesImplicits _
     ))
     override def apply(module: Module): Module = chain(module)
   }
 
-  class DevirtPipeline(implicit val context: AstContext) extends (SUnitDef => SUnitDef) {
+  class DevirtPipeline(implicit val context: AstContextBase) extends (SUnitDef => SUnitDef) {
     val moduleBuilder = new SModuleBuilder()
-    import moduleBuilder._
     private val chain = scala.Function.chain(Seq(
-      unrepAllTypes _
+      moduleBuilder.unrepAllTypes _
     ))
     override def apply(module: Module): Module = chain(module)
   }
 
-  class External2WrapperTypeTransformer(name: String)(implicit context: AstContext) extends AstReplacer(name, wrap) {
+  class External2WrapperTypeTransformer(name: String)(implicit context: AstContextBase) extends AstReplacer(name, wrap) {
   }
 
   class ExtType2WrapperTypeTransformer(name: String) extends TypeReplacer(name, wrap)
 
   /** Replaces SourceDescriptorTpe types with ElemTpe types */
-  class ReplaceImplicitDescriptorsWithElemsInSignatures(implicit ctx: AstContext) extends AstTransformer {
+  class ReplaceImplicitDescriptorsWithElemsInSignatures(implicit ctx: AstContextBase) extends AstTransformer {
     override def methodArgTransform(m: SMethodDef, arg: SMethodArg): SMethodArg = {
       val newArg = arg.tpe match {
         case SourceDescriptorTpe(tpe) if arg.impFlag => arg.copy(tpe = ElemTpe(tpe))

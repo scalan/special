@@ -1,8 +1,7 @@
 package scalan.meta
 
-import scalan.meta.ScalanAst._
-import scalan.meta.Base._
 import scalan.meta.Symbols.{SSymbol, SEntitySymbol}
+import scalan.meta.ScalanAst._
 
 object ScalanAstUtils {
 
@@ -101,7 +100,7 @@ object ScalanAstUtils {
   /** Checks for each type argument if it is used as argument of ancestor entity.
     * For each name of type argument returns a pair (e, tyArg)
     */
-  def classArgsAsSeenFromAncestors(entity: SEntityDef)(implicit ctx: AstContext) = {
+  def classArgsAsSeenFromAncestors(entity: SEntityDef)(implicit ctx: AstContextBase) = {
 //    val subst: List[((SEntityDef, STpeArg), STpeExpr)] = argsSubstOfAncestorEntities(entity)
     val res = entity.tpeArgs.map { clsTpeArg =>
 //      val argTpe = STraitCall(clsTpeArg.name) // don't use toTraitCall here
@@ -120,7 +119,7 @@ object ScalanAstUtils {
     * trait <e.name>[<e.tpeArgs>] { }
     * <clazz> == class <clazz>[<clsTpeArg>..] extends <ancName>[<ancArgs>]
     */
-  def genImplicitArgsForClass(clazz: SEntityDef)(implicit ctx: AstContext): List[SClassArg] = {
+  def genImplicitArgsForClass(clazz: SEntityDef)(implicit ctx: AstContextBase): List[SClassArg] = {
     val argSubst = classArgsAsSeenFromAncestors(clazz)
     val implicitArgs = argSubst.map { case (clsTpeArg, (e, eTpeArg)) =>
       genImplicitClassArg(clazz.symbol, eTpeArg.isHighKind, eTpeArg.name, STraitCall(clsTpeArg.name))
