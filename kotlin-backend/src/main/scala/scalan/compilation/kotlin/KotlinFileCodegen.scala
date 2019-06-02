@@ -5,7 +5,7 @@ import java.io.PrintWriter
 import scalan.{Scalan, TypeDesc}
 import scalan.compilation.{IndentLevel, FileCodegen, CodegenConfig}
 import scalan.meta.ScalanAst._
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
 import scalan.meta.{SSymName, ScalanAstTransformers}
 import scalan.primitives.Blocks
 
@@ -13,7 +13,7 @@ case class GenCtx(module: SUnitDef, writer: PrintWriter)
 
 class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenConfig) extends FileCodegen(_scalan, config) {
   import scalan._
-  implicit val context = parsers.context
+  implicit val context = astContext
   val PairType = SSymName("kotlin", "Pair")
 
   def languageName = "Kotlin"

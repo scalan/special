@@ -5,7 +5,7 @@ import scalan.meta.ScalanAst.{STpeSingle, STraitCall, SClassArg, SLiteralPattern
 object ScalanAstTraversers {
 
   /** The class implements a default Meta AST transformation strategy: breadth-first search */
-  class AstTraverser(implicit val ctx: AstContext) {
+  class AstTraverser(implicit val ctx: AstContextBase) {
     def constTraverse(c: SConst): Unit = {
       c.exprType foreach tpeExprTraverse
     }
@@ -189,9 +189,9 @@ object ScalanAstTraversers {
     }
     def methodResTraverse(res: Option[STpeExpr]): Unit =
       res foreach tpeExprTraverse
-    def methodBodyTraverse(body: Option[SExpr]): Unit = 
+    def methodBodyTraverse(body: Option[SExpr]): Unit =
       body foreach exprTraverse
-      
+
     def methodTraverse(method: SMethodDef): Unit = {
       methodArgSectionsTraverse(method.argSections)
       methodResTraverse(method.tpeRes)
@@ -276,7 +276,7 @@ object ScalanAstTraversers {
     }
   }
 
-  class EntityUseTraverser(accept: STpeExpr => Unit)(implicit override val ctx: AstContext) extends AstTraverser {
+  class EntityUseTraverser(accept: STpeExpr => Unit)(implicit override val ctx: AstContextBase) extends AstTraverser {
     override def traitCallTraverse(tc: STraitCall): Unit = {
       accept(tc)
       super.traitCallTraverse(tc)

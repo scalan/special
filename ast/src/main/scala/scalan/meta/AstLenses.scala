@@ -1,9 +1,8 @@
 package scalan.meta
 
 import com.trueaccord.lenses.{ObjectLens, Lens}
-
-import scalan.meta.ScalanAst._
 import scalan.meta.Symbols.SSymbol
+import scalan.meta.ScalanAst.{STpeDef, SUnitDef, STpeExpr, SExpr, STpeArg, SEntityAnnotation, SClassDef, SObjectDef, SSelfTypeDef, STraitDef, SMethodDef, STypeApply, SClassArgs, SMethodArgs, SImportStat, SBodyItem, SEntityDef, SMethodAnnotation}
 
 object AstLenses {
   implicit class SeqLikeLens[U, A, Coll[A] <: collection.SeqLike[A, Coll[A]]](val lens: Lens[U, Coll[A]]) extends AnyVal {
@@ -26,7 +25,7 @@ object AstLenses {
     }
   }
 
-  implicit class SUnitDefLens[U](_l: Lens[U, SUnitDef])(implicit ctx: AstContext) extends ObjectLens[U, SUnitDef](_l) {
+  implicit class SUnitDefLens[U](_l: Lens[U, SUnitDef])(implicit ctx: AstContextBase) extends ObjectLens[U, SUnitDef](_l) {
     def imports: Lens[U, List[SImportStat]] = field(_.imports)((c, f) => c.copy(imports = f))
     def name: Lens[U, String] = field(_.name)((c, f) => c.copy(name = f))
     def typeDefs: Lens[U, List[STpeDef]] = field(_.typeDefs)((c, f) => c.copy(typeDefs = f))

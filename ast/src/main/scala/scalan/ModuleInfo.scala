@@ -7,4 +7,3 @@ case class ModuleInfo(packageName: String, moduleName: String, extension: String
   def getKey = name.mkFullName
   def sourceFileName = packageName.replace('.', '/') + s"/$moduleName$extension"
 }
-

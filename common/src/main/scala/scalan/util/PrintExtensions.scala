@@ -1,4 +1,4 @@
-package scalan.meta
+package scalan.util
 
 object PrintExtensions {
   implicit class AnyExtension[A](x: A) {

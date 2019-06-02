@@ -2,14 +2,16 @@ package scalan.json
 
 import java.lang.reflect.Method
 
+import scalan.meta.Parsers
+import scalan.meta.ScalanAst.SUnitDef
 import spray.json.{JsObject, JsArray, JsString, JsValue, JsBoolean}
 
-import scala.collection.Seq
-import scalan.{Scalan, TypeDesc}
+import scala.collection.{Seq, mutable}
+import scalan.{TypeDesc, Scalan, ModuleInfo}
 
 import scala.collection.mutable.{Map => MMap}
 
-trait ScalanJsonContext[C <: Scalan] { self: ScalanJsonProtocol[C] =>
+trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
   val ctx: C
   import ctx._
   import parsers._

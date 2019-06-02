@@ -5,7 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.tools.nsc.Global
 import scalan.Entity
 import scalan.meta.Base.!!!
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
 import scalan.meta.ScalanAst._
 import scalan.meta.ScalanAstExtensions._
 import scalan.util.StringUtil
@@ -74,7 +74,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     genConstr(method.copy(argSections = method.cleanedArgs))
   }
 
-  def getWrapperName(entityName: String)(implicit ctx: AstContext): Option[(String, String)] = entityName match {
+  def getWrapperName(entityName: String)(implicit ctx: AstContextBase): Option[(String, String)] = entityName match {
     case ctx.WrapperEntity(m, _, srcName) => Some((m.packageName, srcName))
 //    case ctx.Entity(m, e) => (s"${m.packageName}.${e.name}", false)
     case _ => None //!!!(s"Cannot find srcEntityName($entityName)")

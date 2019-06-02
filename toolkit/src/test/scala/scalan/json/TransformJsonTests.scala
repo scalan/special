@@ -10,9 +10,9 @@ import scalan.util.FileUtil
 class TransformJsonTests extends JsonTests {
   val transformDir = resourcesDir + "/transform"
 
-  class Ctx extends Scalan with WrappersModule
+  class Ctx extends ToolkitScalan with WrappersModule
 
-  class PipelineTester[C <: Scalan](pipeline: TransformPipeline[C]) {
+  class PipelineTester[C <: ToolkitScalan](pipeline: TransformPipeline[C]) {
     val trans = new JsonTransformer(pipeline)
 
     def test[A, B](name: String, whatIsTested: String = ""): Unit = {

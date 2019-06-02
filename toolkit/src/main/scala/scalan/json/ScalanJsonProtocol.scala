@@ -6,14 +6,14 @@ import scala.collection.Seq
 import scala.collection.immutable.ListMap
 import scalan.{Scalan, Lazy}
 import scala.collection.mutable.{Map => MMap}
-import scalan.meta.PrintExtensions._
+import scalan.util.PrintExtensions._
 
 /** Extension of spray.json's default protocol to support Scalan specific types.
   * See https://github.com/spray/spray-json  for details.
   * Each instance of protocol is parameterized by Scalan cake containing IR nodes
   * (see Def[_] hierarchy of classes).
   * */
-class ScalanJsonProtocol[C <: Scalan](val ctx: C) extends DefaultJsonProtocol with ScalanJsonContext[C] {
+class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProtocol with ScalanJsonContext[C] {
 
   import ctx._
 //  {PGraph, Lambda, Def, Elem, parsers, ElemOps, TypeDesc, emptySubst, Const, MethodCall, TypeDescOps,

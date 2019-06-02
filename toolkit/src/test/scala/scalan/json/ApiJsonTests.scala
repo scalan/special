@@ -6,7 +6,7 @@ import scalan.Scalan
 
 class ApiJsonTests extends JsonTests {
 
-  class Ctx extends Scalan with WrappersModule
+  class Ctx extends ToolkitScalan with WrappersModule
 
   describe("Wrapped methods <-> Json") {
     val tester = getTester(new Ctx)

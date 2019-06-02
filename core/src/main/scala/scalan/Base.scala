@@ -724,13 +724,15 @@ trait Base extends LazyLogging { scalan: Scalan =>
     defToGlobalDefs.clear()
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
+    metadataPool = Map.empty[Sym, MetaNode]
+    tuplesCache.clear()
     onReset()
   }
 
   /** Called during resetContext() operation after the core context state has been reset.
    * Derived classes can override to define application specific initialization.
    * Don't forget to call super method in the beginning of your overriding method. */
-  protected def onReset() {
+  protected def onReset(): Unit = {
   }
 
   def findDefinition[T](s: Rep[T]): Nullable[TableEntry[T]] =

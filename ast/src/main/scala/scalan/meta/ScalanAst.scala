@@ -1,22 +1,19 @@
 package scalan.meta
 
-import java.util.Objects
-
 import com.trueaccord.lenses.Updatable
-import com.typesafe.config.ConfigUtil
 
-import scala.collection.immutable.{HashMap, HashSet}
-import scala.collection.{mutable, GenIterable}
-import scalan.meta.PrintExtensions._
-import scala.collection.mutable.{Map => MMap}
 import scala.reflect.internal.ModifierFlags
-import scalan._
-import scalan.util.{Covariant, Contravariant, Invariant}
-import scalan.util.CollectionUtil._
-import scalan.meta.ScalanAstExtensions._
-import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
+import java.util.Objects
+import scala.collection.immutable.{HashMap, HashSet}
+import scalan.{ArgList, Constructor, ContainerType, FunctorType, Liftable, Reified, NeverInline, External}
 import scalan.meta.Symbols._
-import scalan.meta.AstLenses._
+import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
+import scala.collection.{mutable, GenIterable}
+import com.typesafe.config.ConfigUtil
+import scalan.util.{Covariant, Contravariant, Invariant, PrintExtensions}
+import PrintExtensions._
+import ScalanAstExtensions._
+import scalan.util.CollectionUtil._
 
 object ScalanAst {
 
@@ -245,7 +242,7 @@ object ScalanAst {
 
   object STpePath {
     def findInEntity(e: SEntityDef, tc: STraitCall, argName: String)
-                    (implicit context: AstContext): Option[STpePath] = {
+                    (implicit context: AstContextBase): Option[STpePath] = {
       val args = tc.args
       for (i <- args.indices) {
         find(args(i), argName) match {
@@ -257,7 +254,7 @@ object ScalanAst {
       None
     }
 
-    def find(tpe: STpeExpr, argName: String)(implicit context: AstContext): Option[STpePath] = tpe match {
+    def find(tpe: STpeExpr, argName: String)(implicit context: AstContextBase): Option[STpePath] = tpe match {
       case STpePrimitive(_, _) => None
       case STpeFunc(d, r) =>
         find(d, argName) match {
@@ -682,7 +679,7 @@ object ScalanAst {
     def isTypeDesc: Boolean
     def hasNoArgs = argss.flatten.isEmpty
     def isMethod: Boolean = this.isInstanceOf[SMethodDef]
-    def applySubst(subst: STpeSubst)(implicit ctx: AstContext): SEntityItem = {
+    def applySubst(subst: STpeSubst)(implicit ctx: AstContextBase): SEntityItem = {
       val typeTrans = new SubstTypeTransformer(subst)
       val trans = new TypeTransformerInAst(typeTrans)
       trans(this).asInstanceOf[SEntityItem]
@@ -692,7 +689,7 @@ object ScalanAst {
   case class SEntityMember(entity: SEntityDef, item: SEntityItem) {
     def isMethod: Boolean = item.isMethod
     def combinedTpeArgs = entity.tpeArgs ++ item.tpeArgs
-    def matches(other: SEntityMember)(implicit ctx: AstContext): Boolean = {
+    def matches(other: SEntityMember)(implicit ctx: AstContextBase): Boolean = {
       item.name == other.item.name && ((item, other.item) match {
         case (m1: SMethodDef, m2: SMethodDef) =>
           val okArgsNum = m1.allArgs.length == m2.allArgs.length
@@ -776,13 +773,13 @@ object ScalanAst {
     def companion: Option[SEntityDef]
 
     def isTrait: Boolean
-    
-    def isWrapper(implicit ctx: AstContext): Boolean = name match {
+
+    def isWrapper(implicit ctx: AstContextBase): Boolean = name match {
       case ctx.WrapperEntity(_,_,_) => true
       case _ => false
     }
 
-    def isLiftable(implicit ctx: AstContext): Boolean = {
+    def isLiftable(implicit ctx: AstContextBase): Boolean = {
       getAnnotation(LiftableAnnotation) match {
         case Some(SEntityAnnotation(_,_,_)) => true
         case _ => false
@@ -813,21 +810,21 @@ object ScalanAst {
     }
 
     /** Direct inheritance relation which forms DAG */
-    def collectAncestorEntities(implicit context: AstContext): List[(SEntityDef, List[STpeExpr])] = {
+    def collectAncestorEntities(implicit context: AstContextBase): List[(SEntityDef, List[STpeExpr])] = {
       ancestors.collect { case STypeApply(STraitCall(context.Entity(m, e), args), _) => (e, args) }
     }
 
-    def collectMethodsFromAncestors(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[SEntityMember] = {
+    def collectMethodsFromAncestors(p: SEntityItem => Boolean)(implicit context: AstContextBase): Seq[SEntityMember] = {
       collectAncestorEntities.flatMap(_._1.collectAvailableMethods(p))
     }
 
-    def collectAvailableMethods(p: SEntityItem => Boolean)(implicit context: AstContext): Seq[SEntityMember] = {
+    def collectAvailableMethods(p: SEntityItem => Boolean)(implicit context: AstContextBase): Seq[SEntityMember] = {
       collectItemsInBody(p) ++ collectMethodsFromAncestors(p)
     }
     //--------------------------------------------------------------------
 
     /** See http://www.scala-lang.org/files/archive/spec/2.13/05-classes-and-objects.html#class-linearization*/
-    def linearization(implicit context: AstContext): List[SEntityDef] = {
+    def linearization(implicit context: AstContextBase): List[SEntityDef] = {
       val merged = mutable.LinkedHashMap.empty[String, SEntityDef]
       for (anc <- collectAncestorEntities) {
         val ancLins = anc._1.linearization
@@ -845,13 +842,13 @@ object ScalanAst {
       * trait <e>[a1..aN] { }
       * trait|class <this> extends <e>[t1,...,tN], ...
       */
-    def collectAncestorEntitiesWithSubst(implicit ctx: AstContext): List[(SEntityDef, List[(STpeArg, STpeExpr)])] = {
+    def collectAncestorEntitiesWithSubst(implicit ctx: AstContextBase): List[(SEntityDef, List[(STpeArg, STpeExpr)])] = {
       val res = collectAncestorEntities.map { case (e, args) => (e, e.tpeArgs zip args) }
       res
     }
 
     def linearizationWithSubst
-        (subst: STpeSubst)(implicit context: AstContext): List[(SEntityDef, List[STpeExpr])] = {
+        (subst: STpeSubst)(implicit context: AstContextBase): List[(SEntityDef, List[STpeExpr])] = {
       val merged = mutable.LinkedHashMap.empty[String, (SEntityDef, List[STpeExpr])]
       for ( (anc, args) <- collectAncestorEntitiesWithSubst ) {
         val ancSubst = args.map { case (a, t) => (a.name, t.applySubst(subst)) }.toMap
@@ -865,7 +862,7 @@ object ScalanAst {
       (this, tpeArgs.map(_.toTraitCall.applySubst(subst))) :: merged.values.toList
     }
 
-    def collectVisibleMembers(implicit context: AstContext): List[SEntityMember] = {
+    def collectVisibleMembers(implicit context: AstContextBase): List[SEntityMember] = {
       val lin = linearizationWithSubst(Map())
       val members = mutable.LinkedHashMap.empty[String, SEntityMember]
       def substTpeArgs(item: SEntityItem, argSubst: STpeSubst): SEntityItem =
@@ -906,7 +903,7 @@ object ScalanAst {
       members.values.toList
     }
 
-    def setOfAvailableNoArgMethods(implicit context: AstContext): Set[String] = {
+    def setOfAvailableNoArgMethods(implicit context: AstContextBase): Set[String] = {
       collectAvailableMethods(_.hasNoArgs).map(_.item.name).toSet
     }
 
@@ -922,19 +919,19 @@ object ScalanAst {
 
     def hasHighKindTpeArg = tpeArgs.exists(_.isHighKind)
 
-    def setOfAbstractNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
+    def setOfAbstractNoArgMethodsInAncestors(implicit context: AstContextBase): Set[String] = {
       collectMethodsFromAncestors(m => m.hasNoArgs && m.isAbstract).map(_.item.name).toSet
     }
 
-    def setOfConcreteNoArgMethodsInAncestors(implicit context: AstContext): Set[String] = {
+    def setOfConcreteNoArgMethodsInAncestors(implicit context: AstContextBase): Set[String] = {
       collectMethodsFromAncestors(m => m.hasNoArgs && !m.isAbstract).map(_.item.name).toSet
     }
 
-    def isAbstractInAncestors(propName: String)(implicit context: AstContext) = {
+    def isAbstractInAncestors(propName: String)(implicit context: AstContextBase) = {
       setOfAbstractNoArgMethodsInAncestors.contains(propName)
     }
 
-    def isConcreteInAncestors(propName: String)(implicit context: AstContext) = {
+    def isConcreteInAncestors(propName: String)(implicit context: AstContextBase) = {
       setOfConcreteNoArgMethodsInAncestors.contains(propName)
     }
 
@@ -942,12 +939,12 @@ object ScalanAst {
       case md: SMethodDef if md.annotations.exists(a => a.annotationClass == annClass) => md
     }
 
-    def getAncestorTypeNames(implicit context: AstContext): List[String] = {
+    def getAncestorTypeNames(implicit context: AstContextBase): List[String] = {
       ancestors.collect { case STypeApply(STraitCall(name,_), _) => name }
     }
 
     /** Assume no cyclic inheritance. It should be prevented by type checking. */
-    def getInheritedTypes(implicit ctx: AstContext): List[STraitCall] = {
+    def getInheritedTypes(implicit ctx: AstContextBase): List[STraitCall] = {
       val ancs = ancestors.collect { case STypeApply(tc, _) => tc }
       val res = ancs.flatMap {
         case tc @ STraitCall(ctx.Entity(_, e), _) => tc :: e.getInheritedTypes
@@ -956,7 +953,7 @@ object ScalanAst {
       res.distinct
     }
 
-    def inherits(traitName: String)(implicit ctx: AstContext): Boolean = {
+    def inherits(traitName: String)(implicit ctx: AstContextBase): Boolean = {
       getInheritedTypes.exists(_.name == traitName)
     }
 
@@ -971,7 +968,7 @@ object ScalanAst {
       SClassArgs(args)
     }
 
-    def getDeclaredElems(implicit context: AstContext): List[(String, STpeExpr)] = {
+    def getDeclaredElems(implicit context: AstContextBase): List[(String, STpeExpr)] = {
       val res = (this :: collectAncestorEntities.map(_._1))
         .flatMap(e => {
           val elems = e.body.collect {
@@ -1133,7 +1130,7 @@ object ScalanAst {
       origModuleTrait: Option[STraitDef], // original module trait declared
       isVirtualized: Boolean,
       okEmitOrigModuleTrait: Boolean = true)
-      (@transient implicit val context: AstContext)
+      (@transient implicit val context: AstContextBase)
     extends SEntityDef with Updatable[SUnitDef] {
     def owner: SSymbol = SNoSymbol
     def signature = DefSig(DefType.Unit, name, Nil)
@@ -1302,7 +1299,7 @@ object ScalanAst {
     val Lua   = KernelType("Lua")
   }
 
-  def optimizeMethodImplicits(m: SMethodDef)(implicit ctx: AstContext): SMethodDef = {
+  def optimizeMethodImplicits(m: SMethodDef)(implicit ctx: AstContextBase): SMethodDef = {
     val explicitArgs = m.explicitArgs
     val newSections = m.argSections.filterMap(as => {
       val newArgs = as.args.filter {
@@ -1315,7 +1312,7 @@ object ScalanAst {
     m.copy(argSections = newSections)
   }
 
-  def optimizeTraitImplicits(t: STraitDef)(implicit context: AstContext): STraitDef = {
+  def optimizeTraitImplicits(t: STraitDef)(implicit context: AstContextBase): STraitDef = {
     val newBody = t.body.map {
       case m: SMethodDef => optimizeMethodImplicits(m)
       case item => item
@@ -1329,18 +1326,18 @@ object ScalanAst {
 
   def optimizeObjectImplicits(objDef: SObjectDef): SObjectDef = objDef
 
-  def optimizeComponentImplicits(t: SEntityDef)(implicit context: AstContext): SEntityDef = t match {
+  def optimizeComponentImplicits(t: SEntityDef)(implicit context: AstContextBase): SEntityDef = t match {
     case c: SClassDef => optimizeClassImplicits(c)
     case o: SObjectDef => optimizeObjectImplicits(o)
     case t: STraitDef => optimizeTraitImplicits(t)
   }
 
-  def canBeExtracted(args: List[SMethodOrClassArg], tyName: String)(implicit context: AstContext) = {
+  def canBeExtracted(args: List[SMethodOrClassArg], tyName: String)(implicit context: AstContextBase) = {
     val res = args.exists(a => STpePath.find(a.tpe, tyName).isDefined)
     res
   }
 
-  def optimizeClassImplicits(c: SClassDef)(implicit ctx: AstContext): SClassDef = {
+  def optimizeClassImplicits(c: SClassDef)(implicit ctx: AstContextBase): SClassDef = {
     val optArgs =
       if (c.args.args.isEmpty) c
       else {
@@ -1367,5 +1364,9 @@ object ScalanAst {
       traits = newTraits,
       classes = newClasses
     )
+  }
+
+  def !!!(msg: String) = {
+    throw new IllegalStateException(msg)
   }
 }

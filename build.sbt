@@ -72,12 +72,18 @@ lazy val common = Project("common", file("common"))
         "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "commons-io" % "commons-io" % "2.5"
+      ))
 
-        //    "com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.9.1"
+lazy val ast = Project("ast", file("ast"))
+    .dependsOn(common % allConfigDependency)
+    .settings(commonSettings,
+      libraryDependencies ++= Seq(
+        "com.github.kxbmap" %% "configs" % "0.4.4",
+        "com.trueaccord.lenses" %% "lenses" % "0.4.12"
       ))
 
 lazy val meta = Project("meta", file("meta"))
-    .dependsOn(common % allConfigDependency)
+    .dependsOn(common % allConfigDependency, ast % allConfigDependency)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-compiler" % scalaVersion.value,
@@ -90,7 +96,7 @@ lazy val meta = Project("meta", file("meta"))
 val paradise = "org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full
 
 lazy val macros = Project("macros", file("macros"))
-    .dependsOn(common % allConfigDependency, meta % allConfigDependency)
+    .dependsOn(common % allConfigDependency, ast % allConfigDependency)
     .settings(commonSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
         "org.typelevel" %% "macro-compat" % "1.1.1"
@@ -104,7 +110,7 @@ lazy val libraryapi = Project("library-api", file("library-api"))
       ))
 
 lazy val core = Project("core", file("core"))
-    .dependsOn(common % allConfigDependency, meta % allConfigDependency, libraryapi % allConfigDependency, macros)
+    .dependsOn(common % allConfigDependency, ast % allConfigDependency, libraryapi % allConfigDependency, macros)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.3",
@@ -164,7 +170,7 @@ lazy val toolkit = Project("toolkit", file("toolkit")).
     )
 
 lazy val root = Project("special", file("."))
-    .aggregate(common, meta, macros, core, plugin,
+    .aggregate(common, ast, meta, macros, core, plugin,
     libraryapi, libraryimpl, library, libraryconf, scalanizer, kotlinBackend, toolkit)
     .settings(buildSettings, publishArtifact := false)
 

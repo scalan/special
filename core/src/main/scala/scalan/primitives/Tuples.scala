@@ -5,7 +5,7 @@
 package scalan.primitives
 
 import scalan.OverloadHack._
-import scalan.{Base, Scalan}
+import scalan.{Base, Scalan, AVHashMap}
 
 trait Tuples extends Base { self: Scalan =>
   object Pair {
@@ -190,7 +190,7 @@ trait Tuples extends Base { self: Scalan =>
       Some((p._1, p._2, p._3, p._4, p._5, p._6, p._7, p._8, p._9, p._10, p._11, p._12, p._13, p._14, p._15, p._16))
   }
 
-  val tuplesCache = scala.collection.mutable.HashMap.empty[Rep[_], (Rep[_], Rep[_])]
+  val tuplesCache = AVHashMap[Rep[_], (Rep[_], Rep[_])](1000)
 
   def unzipPair[A, B](p: Rep[(A, B)]): (Rep[A], Rep[B]) = p match {
     case Def(Tup(a, b)) => (a, b)
@@ -199,8 +199,8 @@ trait Tuples extends Base { self: Scalan =>
         implicit val eA = pe.eFst
         implicit val eB = pe.eSnd
         if (cachePairs) {
-          if (!tuplesCache.contains(p)) {
-            tuplesCache.update(p, (First(p), Second(p)))
+          if (!tuplesCache.containsKey(p)) {
+            tuplesCache.put(p, (First(p), Second(p)))
           }
           tuplesCache(p).asInstanceOf[(Rep[A], Rep[B])]
         }
