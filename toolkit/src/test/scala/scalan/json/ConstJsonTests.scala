@@ -6,7 +6,7 @@ import scalan.Scalan
 
 class ConstJsonTests extends JsonTests {
 
-  class Ctx extends Scalan with WrappersModule
+  class Ctx extends ToolkitScalan with WrappersModule
 
   describe("Const value <-> Json") {
     val tester = getTester(new Ctx)

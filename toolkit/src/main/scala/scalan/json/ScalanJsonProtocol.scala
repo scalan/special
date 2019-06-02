@@ -13,7 +13,7 @@ import scalan.util.PrintExtensions._
   * Each instance of protocol is parameterized by Scalan cake containing IR nodes
   * (see Def[_] hierarchy of classes).
   * */
-class ScalanJsonProtocol[C <: Scalan](val ctx: C) extends DefaultJsonProtocol with ScalanJsonContext[C] {
+class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProtocol with ScalanJsonContext[C] {
 
   import ctx._
 //  {PGraph, Lambda, Def, Elem, parsers, ElemOps, TypeDesc, emptySubst, Const, MethodCall, TypeDescOps,

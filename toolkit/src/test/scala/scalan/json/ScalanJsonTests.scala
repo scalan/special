@@ -5,7 +5,7 @@ import spray.json._
 
 class ScalanJsonTests extends JsonTests {
   describe("Elem <-> Json iso") {
-    val tester = getTester(new Scalan)
+    val tester = getTester(new ToolkitScalan)
     import tester._
     import protocol._
     import ctx._
@@ -46,7 +46,7 @@ class ScalanJsonTests extends JsonTests {
        |  }
        |}""".stripMargin
     describe("Lambda printing") {
-      val tester = getTester(new Scalan)
+      val tester = getTester(new ToolkitScalan)
       import tester._
       import protocol._
       import ctx._
@@ -55,7 +55,7 @@ class ScalanJsonTests extends JsonTests {
       print(g, graphJson)
     }
     describe("Lambda parsing") {
-      val tester = getTester(new Scalan)
+      val tester = getTester(new ToolkitScalan)
       import tester._
       import protocol._
       import ctx._
@@ -63,8 +63,8 @@ class ScalanJsonTests extends JsonTests {
       val g = new PGraph(f)
       parse(graphJson, g)
     }
-    describe("Various Lambda tests") {
-      val tester = getTester(new Scalan)
+    ignore("Various Lambda tests") {
+      val tester = getTester(new ToolkitScalan)
       import tester._
       import protocol._
       import ctx._

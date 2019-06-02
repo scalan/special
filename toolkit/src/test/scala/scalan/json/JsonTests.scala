@@ -9,7 +9,7 @@ import scalan.util.FileUtil
 trait JsonTests extends BaseNestedTests {
   val resourcesDir = "toolkit/src/test/resources/scalan/json"
 
-  class JsonFormatTester[C <: Scalan](val protocol: ScalanJsonProtocol[C]) {
+  class JsonFormatTester[C <: ToolkitScalan](val protocol: ScalanJsonProtocol[C]) {
     import protocol._
     import ctx._
 
@@ -46,7 +46,7 @@ trait JsonTests extends BaseNestedTests {
     }
   }
 
-  def getTester[C <: Scalan](ctx: C) = {
+  def getTester[C <: ToolkitScalan](ctx: C) = {
     val tester = new JsonFormatTester(new ScalanJsonProtocol(ctx))
     tester
   }

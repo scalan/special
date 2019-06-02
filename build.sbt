@@ -96,7 +96,7 @@ lazy val meta = Project("meta", file("meta"))
 val paradise = "org.scalamacros" %% "paradise" % "2.1.0" cross CrossVersion.full
 
 lazy val macros = Project("macros", file("macros"))
-    .dependsOn(common % allConfigDependency, meta % allConfigDependency)
+    .dependsOn(common % allConfigDependency, ast % allConfigDependency)
     .settings(commonSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
         "org.typelevel" %% "macro-compat" % "1.1.1"
@@ -110,7 +110,7 @@ lazy val libraryapi = Project("library-api", file("library-api"))
       ))
 
 lazy val core = Project("core", file("core"))
-    .dependsOn(common % allConfigDependency, ast % allConfigDependency, meta % allConfigDependency, libraryapi % allConfigDependency, macros)
+    .dependsOn(common % allConfigDependency, ast % allConfigDependency, libraryapi % allConfigDependency, macros)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.3",
