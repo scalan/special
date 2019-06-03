@@ -77,7 +77,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   }
 
   implicit def thunkElement[T](implicit eItem: Elem[T]): Elem[Thunk[T]] =
-    cachedElem[ThunkElem[T]](eItem)
+    cachedElemByClass(eItem)(classOf[ThunkElem[T]])
   implicit def extendThunkElement[T](elem: Elem[Thunk[T]]): ThunkElem[T] = elem.asInstanceOf[ThunkElem[T]]
 
   class ThunkDef[A](val root: Exp[A], _schedule: =>Schedule)
@@ -175,7 +175,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   class ThunkStack {
     var stack = List[ThunkScope]()
-    def top: Nullable[ThunkScope] = if (stack.isEmpty) Nullable.None else Nullable(stack.head)
+    @inline def top: Nullable[ThunkScope] = if (stack.isEmpty) Nullable.None else Nullable(stack.head)
     def push(e: ThunkScope): this.type = { stack = e :: stack; this }
     @inline def pop: ThunkScope = {
       val res = stack.head

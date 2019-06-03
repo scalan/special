@@ -13,19 +13,31 @@ trait Equal extends Base { self: Scalan =>
     def ===(y: Rep[A]): Rep[Boolean] = Equals[A].apply(x, y)
     def !==(y: Rep[A]): Rep[Boolean] = NotEquals[A].apply(x, y)
   }
+
   override def rewriteDef[T](d: Def[T]) = d match {
     // rules for Equals
-    case ApplyBinOp(_: Equals[_], x, y) if x == y => true
-    case ApplyBinOp(_: Equals[_], x, Def(Const(b: Boolean))) if x.elem == BooleanElement =>
-      if (b) x else !x.asRep[Boolean]
-    case ApplyBinOp(_: Equals[_], Def(Const(b: Boolean)), x) if x.elem == BooleanElement =>
-      if (b) x else !x.asRep[Boolean]
+    case app @ ApplyBinOp(_: Equals[_], _, _) =>
+      if (app.lhs == app.rhs) Const(true)
+      else {
+        app.rhs match {
+          case Def(Const(b: Boolean)) if app.lhs.elem == BooleanElement =>
+            if (b) app.lhs else Not(asRep[Boolean](app.lhs))
+          case _ =>
+            app.lhs match {
+              case Def(Const(b: Boolean)) if app.rhs.elem == BooleanElement =>
+                if (b) app.rhs else Not(asRep[Boolean](app.rhs))
+              case _ =>
+                super.rewriteDef(d)
+            }
+        }
+      }
+
     // rules for NotEquals
     case ApplyBinOp(_: NotEquals[_], x, y) if x == y => false
     case ApplyBinOp(_: NotEquals[_], x, Def(Const(b: Boolean))) if x.elem == BooleanElement =>
-      if (b) !x.asRep[Boolean] else x
+      if (b) Not(asRep[Boolean](x)) else x
     case ApplyBinOp(_: NotEquals[_], Def(Const(b: Boolean)), x) if x.elem == BooleanElement =>
-      if (b) !x.asRep[Boolean] else x
+      if (b) Not(asRep[Boolean](x)) else x
     case _ => super.rewriteDef(d)
   }
 }

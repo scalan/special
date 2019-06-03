@@ -78,7 +78,7 @@ object Monoid extends EntityObject("Monoid") {
   }
 
   implicit def monoidElement[T](implicit eT: Elem[T]): Elem[Monoid[T]] =
-    cachedElem[MonoidElem[T, Monoid[T]]](eT)
+    cachedElemByClass(eT)(classOf[MonoidElem[T, Monoid[T]]])
 
   implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor] {
     lazy val tag = weakTypeTag[MonoidCompanionCtor]

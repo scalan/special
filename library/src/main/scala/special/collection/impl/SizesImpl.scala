@@ -124,7 +124,7 @@ object Size extends EntityObject("Size") {
   }
 
   implicit def sizeElement[Val](implicit eVal: Elem[Val]): Elem[Size[Val]] =
-    cachedElem[SizeElem[Val, Size[Val]]](eVal)
+    cachedElemByClass(eVal)(classOf[SizeElem[Val, Size[Val]]])
 
   implicit case object SizeCompanionElem extends CompanionElem[SizeCompanionCtor] {
     lazy val tag = weakTypeTag[SizeCompanionCtor]
@@ -280,7 +280,7 @@ object SizePrim extends EntityObject("SizePrim") {
   }
 
   implicit def sizePrimElement[Val](implicit eVal: Elem[Val]): Elem[SizePrim[Val]] =
-    cachedElem[SizePrimElem[Val, SizePrim[Val]]](eVal)
+    cachedElemByClass(eVal)(classOf[SizePrimElem[Val, SizePrim[Val]]])
 
   implicit case object SizePrimCompanionElem extends CompanionElem[SizePrimCompanionCtor] {
     lazy val tag = weakTypeTag[SizePrimCompanionCtor]
@@ -463,7 +463,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   }
 
   implicit def sizePairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[SizePair[L, R]] =
-    cachedElem[SizePairElem[L, R, SizePair[L, R]]](eL, eR)
+    cachedElemByClass(eL, eR)(classOf[SizePairElem[L, R, SizePair[L, R]]])
 
   implicit case object SizePairCompanionElem extends CompanionElem[SizePairCompanionCtor] {
     lazy val tag = weakTypeTag[SizePairCompanionCtor]
@@ -626,7 +626,7 @@ object SizeColl extends EntityObject("SizeColl") {
   }
 
   implicit def sizeCollElement[Item](implicit eItem: Elem[Item]): Elem[SizeColl[Item]] =
-    cachedElem[SizeCollElem[Item, SizeColl[Item]]](eItem)
+    cachedElemByClass(eItem)(classOf[SizeCollElem[Item, SizeColl[Item]]])
 
   implicit case object SizeCollCompanionElem extends CompanionElem[SizeCollCompanionCtor] {
     lazy val tag = weakTypeTag[SizeCollCompanionCtor]
@@ -788,7 +788,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   }
 
   implicit def sizeFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[SizeFunc[Env, Arg, Res]] =
-    cachedElem[SizeFuncElem[Env, Arg, Res, SizeFunc[Env, Arg, Res]]](eEnv, eArg, eRes)
+    cachedElemByClass(eEnv, eArg, eRes)(classOf[SizeFuncElem[Env, Arg, Res, SizeFunc[Env, Arg, Res]]])
 
   implicit case object SizeFuncCompanionElem extends CompanionElem[SizeFuncCompanionCtor] {
     lazy val tag = weakTypeTag[SizeFuncCompanionCtor]
@@ -938,7 +938,7 @@ object SizeOption extends EntityObject("SizeOption") {
   }
 
   implicit def sizeOptionElement[T](implicit eT: Elem[T]): Elem[SizeOption[T]] =
-    cachedElem[SizeOptionElem[T, SizeOption[T]]](eT)
+    cachedElemByClass(eT)(classOf[SizeOptionElem[T, SizeOption[T]]])
 
   implicit case object SizeOptionCompanionElem extends CompanionElem[SizeOptionCompanionCtor] {
     lazy val tag = weakTypeTag[SizeOptionCompanionCtor]

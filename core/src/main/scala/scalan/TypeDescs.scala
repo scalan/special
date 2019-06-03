@@ -470,6 +470,10 @@ trait TypeDescs extends Base { self: Scalan =>
     cachedElem0(tag.runtimeClass, None, args).asInstanceOf[E]
   }
 
+  def cachedElemByClass[E <: Elem[_]](args: AnyRef*)(implicit clazz: Class[E]) = {
+    cachedElem0(clazz, None, args).asInstanceOf[E]
+  }
+
   private def cachedElemI(clazz: Class[_], argsIterator: Iterator[TypeDesc]) = {
     val constructor = getConstructor(clazz)
     // -1 because the constructor includes `self` argument, see cachedElem0 below
@@ -482,7 +486,7 @@ trait TypeDescs extends Base { self: Scalan =>
   private def cachedElem0(clazz: Class[_], optConstructor: Option[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
     elemCache.getOrElseUpdate(
       (clazz, args), {
-        val constructor = optConstructor.getOrElse(getConstructor(clazz))
+        val constructor = if (optConstructor.isEmpty) getConstructor(clazz) else optConstructor.get
         val ownerType = getOwnerParameterType(constructor)
         val constructorArgs = addOwnerParameter(ownerType, args)
         constructor.newInstance(constructorArgs: _*).asInstanceOf[AnyRef]
@@ -624,6 +628,8 @@ trait TypeDescs extends Base { self: Scalan =>
   val AnyElement: Elem[Any] = new BaseElem[Any](null) {
     override def liftable = new Liftables.BaseLiftable()(this, AnyType)
   }
+  val LazyAnyElement = Lazy(AnyElement)
+
   val AnyRefElement: Elem[AnyRef] = new BaseElem[AnyRef](null) {
     override def liftable = new Liftables.BaseLiftable()(this, AnyRefType)
   }
@@ -667,11 +673,11 @@ trait TypeDescs extends Base { self: Scalan =>
   }
 
   implicit def pairElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[(A, B)] =
-    cachedElem[PairElem[A, B]](ea, eb)
+    cachedElemByClass[PairElem[A, B]](ea, eb)(classOf[PairElem[A, B]])
   implicit def sumElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[A | B] =
-    cachedElem[SumElem[A, B]](ea, eb)
+    cachedElemByClass[SumElem[A, B]](ea, eb)(classOf[SumElem[A, B]])
   implicit def funcElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[A => B] =
-    cachedElem[FuncElem[A, B]](ea, eb)
+    cachedElemByClass[FuncElem[A, B]](ea, eb)(classOf[FuncElem[A, B]])
   ///implicit def elemElement[A](implicit ea: Elem[A]): Elem[Elem[A]]
 
   implicit def PairElemExtensions[A, B](eAB: Elem[(A, B)]): PairElem[A, B] = eAB.asInstanceOf[PairElem[A, B]]

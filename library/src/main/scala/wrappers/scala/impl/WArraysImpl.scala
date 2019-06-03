@@ -280,7 +280,7 @@ object WArray extends EntityObject("WArray") {
   }
 
   implicit def wArrayElement[T](implicit eT: Elem[T]): Elem[WArray[T]] =
-    cachedElem[WArrayElem[T, WArray[T]]](eT)
+    cachedElemByClass(eT)(classOf[WArrayElem[T, WArray[T]]])
 
   implicit case object WArrayCompanionElem extends CompanionElem[WArrayCompanionCtor] {
     lazy val tag = weakTypeTag[WArrayCompanionCtor]
@@ -410,7 +410,7 @@ object WArray extends EntityObject("WArray") {
 
     object length {
       def unapply(d: Def[_]): Nullable[Rep[WArray[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "length" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[WArrayElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[WArray[T]] forSome {type T}]]
         case _ => Nullable.None
@@ -423,7 +423,7 @@ object WArray extends EntityObject("WArray") {
 
     object map {
       def unapply(d: Def[_]): Nullable[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "map" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "map" && receiver.elem.isInstanceOf[WArrayElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[WArray[T]], Rep[T => B]) forSome {type T; type B}]]
         case _ => Nullable.None
@@ -436,7 +436,7 @@ object WArray extends EntityObject("WArray") {
 
     object zip {
       def unapply(d: Def[_]): Nullable[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WArrayElem[_, _]] && method.getName == "zip" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "zip" && receiver.elem.isInstanceOf[WArrayElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[WArray[T]], Rep[WArray[B]]) forSome {type T; type B}]]
         case _ => Nullable.None

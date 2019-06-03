@@ -136,7 +136,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   def structElement[T <: Struct](tag: StructTag[T], fields: Seq[(String, Elem[_])]): StructElem[T] =
     if (cacheElems)
-      cachedElem[StructElem[T]](tag, fields)
+      cachedElemByClass(tag, fields)(classOf[StructElem[T]])
     else
       StructElem(tag, fields)
 
@@ -211,7 +211,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
           fnS -> iso.from(y.getUnchecked[t](fnT))
         case (_, nonIso) => !!!(s"Iso expected but found $nonIso", self, y, nonIso)
       }
-      struct(items).asRep[S]
+      asRep[S](struct(items))
     }
     override def to(x: Rep[S]) = {
       val items = eFrom.fields.zip(eTo.fields).zip(itemIsos).map {
@@ -219,7 +219,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
           fnT -> iso.to(x.getUnchecked[s](fnS))
         case (_, nonIso) => !!!(s"Iso expected but found $nonIso", self, x, nonIso)
       }
-      struct(items).asRep[T]
+      asRep[T](struct(items))
     }
 
     lazy val selfType = new ConcreteIsoElem[S, T, StructIso[S, T]](eFrom, eTo).asElem[IsoUR[S, T]]
@@ -231,7 +231,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   implicit class StructOps(s: Rep[Struct]) {
     def getUntyped(index: Int): Rep[_] = field(s, index)
     def getUntyped(fieldName: String): Rep[_] = field(s, fieldName)
-    def getUnchecked[A](fieldName: String): Rep[A] = field(s, fieldName).asRep[A]
+    def getUnchecked[A](fieldName: String): Rep[A] = asRep[A](field(s, fieldName))
     def get[A: Elem](fieldName: String): Rep[A] = {
       val value = getUnchecked[A](fieldName)
       assertElem(value, element[A])
@@ -285,7 +285,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
             val projectedStruct = struct(g.map {
               link => link.nestedField -> x.getUntyped(link.flatName)
             }: _*)
-            val s = iso.to(projectedStruct.asRep[a])
+            val s = iso.to(asRep[a](projectedStruct))
             (fn, s)
           case _ =>
             assert(g.length == 1, s"Many fields $g can't relate to the single field $fn without iso")
@@ -300,7 +300,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
         val g = groups(fn)
         flatIsos.get(fn) match {
           case Some(iso: Iso[_, a] @unchecked) =>
-            val nestedStruct = iso.from(y.getUnchecked[a](fn)).asRep[Struct]
+            val nestedStruct = asRep[Struct](iso.from(y.getUnchecked[a](fn)))
             // nestedStruct is guaranteed to be a Rep[Struct], because iso can be either IdentityIso on a struct or FlatteningIso
             g.map { link =>
               link.flatName -> nestedStruct.getUntyped(link.nestedField)
@@ -653,7 +653,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   }
 
   object SameStructAs {
-    def unapply[A](d: Def[A]): Option[Rep[A]] = d match {
+    def unapply[A](d: Def[A]): Nullable[Rep[A]] = d match {
       case Struct(tag, fields) =>
         fields.headOption match {
           case Some((_, Def(Field(possibleSourceStruct, _)))) if d.selfType == possibleSourceStruct.elem =>
@@ -664,12 +664,12 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
                 false
             }
             if (eachFieldComesFromPossibleSourceStruct)
-              Some(possibleSourceStruct.asRep[A])
+              Nullable(possibleSourceStruct.asRep[A])
             else
-              None
-          case _ => None
+              Nullable.None
+          case _ => Nullable.None
         }
-      case _ => None
+      case _ => Nullable.None
     }
   }
 

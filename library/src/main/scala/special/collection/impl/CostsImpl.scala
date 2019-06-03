@@ -100,7 +100,7 @@ object Costed extends EntityObject("Costed") {
   }
 
   implicit def costedElement[Val](implicit eVal: Elem[Val]): Elem[Costed[Val]] =
-    cachedElem[CostedElem[Val, Costed[Val]]](eVal)
+    cachedElemByClass(eVal)(classOf[CostedElem[Val, Costed[Val]]])
 
   implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor] {
     lazy val tag = weakTypeTag[CostedCompanionCtor]
@@ -249,7 +249,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
   }
 
   implicit def costedPrimElement[Val](implicit eVal: Elem[Val]): Elem[CostedPrim[Val]] =
-    cachedElem[CostedPrimElem[Val, CostedPrim[Val]]](eVal)
+    cachedElemByClass(eVal)(classOf[CostedPrimElem[Val, CostedPrim[Val]]])
 
   implicit case object CostedPrimCompanionElem extends CompanionElem[CostedPrimCompanionCtor] {
     lazy val tag = weakTypeTag[CostedPrimCompanionCtor]
@@ -409,7 +409,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   }
 
   implicit def costedPairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[CostedPair[L, R]] =
-    cachedElem[CostedPairElem[L, R, CostedPair[L, R]]](eL, eR)
+    cachedElemByClass(eL, eR)(classOf[CostedPairElem[L, R, CostedPair[L, R]]])
 
   implicit case object CostedPairCompanionElem extends CompanionElem[CostedPairCompanionCtor] {
     lazy val tag = weakTypeTag[CostedPairCompanionCtor]
@@ -593,7 +593,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   }
 
   implicit def costedFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[CostedFunc[Env, Arg, Res]] =
-    cachedElem[CostedFuncElem[Env, Arg, Res, CostedFunc[Env, Arg, Res]]](eEnv, eArg, eRes)
+    cachedElemByClass(eEnv, eArg, eRes)(classOf[CostedFuncElem[Env, Arg, Res, CostedFunc[Env, Arg, Res]]])
 
   implicit case object CostedFuncCompanionElem extends CompanionElem[CostedFuncCompanionCtor] {
     lazy val tag = weakTypeTag[CostedFuncCompanionCtor]
@@ -832,7 +832,7 @@ object CostedColl extends EntityObject("CostedColl") {
   }
 
   implicit def costedCollElement[Item](implicit eItem: Elem[Item]): Elem[CostedColl[Item]] =
-    cachedElem[CostedCollElem[Item, CostedColl[Item]]](eItem)
+    cachedElemByClass(eItem)(classOf[CostedCollElem[Item, CostedColl[Item]]])
 
   implicit case object CostedCollCompanionElem extends CompanionElem[CostedCollCompanionCtor] {
     lazy val tag = weakTypeTag[CostedCollCompanionCtor]
@@ -1041,7 +1041,7 @@ object CostedOption extends EntityObject("CostedOption") {
   }
 
   implicit def costedOptionElement[T](implicit eT: Elem[T]): Elem[CostedOption[T]] =
-    cachedElem[CostedOptionElem[T, CostedOption[T]]](eT)
+    cachedElemByClass(eT)(classOf[CostedOptionElem[T, CostedOption[T]]])
 
   implicit case object CostedOptionCompanionElem extends CompanionElem[CostedOptionCompanionCtor] {
     lazy val tag = weakTypeTag[CostedOptionCompanionCtor]

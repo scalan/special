@@ -88,7 +88,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
   }
 
   implicit def isoFuncElement[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Elem[IsoFunc[T, R, M]] =
-    cachedElem[IsoFuncElem[T, R, M, IsoFunc[T, R, M]]](eT, eR, eM)
+    cachedElemByClass(eT, eR, eM)(classOf[IsoFuncElem[T, R, M, IsoFunc[T, R, M]]])
 
   implicit case object IsoFuncCompanionElem extends CompanionElem[IsoFuncCompanionCtor] {
     lazy val tag = weakTypeTag[IsoFuncCompanionCtor]

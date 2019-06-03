@@ -128,7 +128,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
   }
 
   implicit def wEitherElement[A, B](implicit eA: Elem[A], eB: Elem[B]): Elem[WEither[A, B]] =
-    cachedElem[WEitherElem[A, B, WEither[A, B]]](eA, eB)
+    cachedElemByClass(eA, eB)(classOf[WEitherElem[A, B, WEither[A, B]]])
 
   implicit case object WEitherCompanionElem extends CompanionElem[WEitherCompanionCtor] {
     lazy val tag = weakTypeTag[WEitherCompanionCtor]

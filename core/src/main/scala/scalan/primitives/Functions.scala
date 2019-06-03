@@ -59,12 +59,16 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         res
       }
     // ensure all lambdas of the same type have the same hashcode,
-    // so they are tested for alpha-equivalence
-    override lazy val hashCode: Int = {
-      if (alphaEquality)
-        41 * (41 + x.elem.hashCode) + y.elem.hashCode
-      else
-        41 * (41 + x.hashCode) + y.hashCode
+    // so they are tested for alpha-equivalence using equals
+    private var _hashCode: Int = 0
+    override def hashCode: Int = {
+      if (_hashCode == 0) {
+        _hashCode = if (alphaEquality)
+          41 * (41 + x.elem.hashCode) + y.elem.hashCode
+        else
+          41 * (41 + x.hashCode) + y.hashCode
+      }
+      _hashCode
     }
 
     override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) ||
@@ -89,11 +93,11 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def productArity: Int = 2
 
     // AstGraph implementation
-    val boundVars = List(x)
-    val roots = List(y)
+    val boundVars = x :: Nil
+    val roots = y :: Nil
     override lazy val freeVars = super.freeVars
     override lazy val  schedule: Schedule = {
-      if (isIdentity) Nil
+      if (isIdentity) new Array[TableEntry[_]](0)
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= x.rhs._nodeId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](boundVars.toSet)(sym => g.usagesOf(sym).filter(g.domain.contains))
@@ -126,7 +130,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     case l: Lambda[a, b] =>
       val newLam = new Lambda(Nullable.None, t(l.x), t(l.y), l.mayInline, l.alphaEquality)
       val newSym = newLam.self
-      toExp(newLam, newSym).asRep[A]
+      asRep[A](toExp(newLam, newSym))
     case _ => super.transformDef(d, t)
   }
 
@@ -329,7 +333,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 //    implicit val eA = leA.value
 
     // ySym will be assigned after f is executed
-    val ySym = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[B]]
+    val ySym = placeholder(LazyAnyElement).asInstanceOf[Rep[B]]
 
     val orig = if (keepOriginalFunc) Nullable(f) else Nullable.None
     val lam = new Lambda(orig, x, ySym, mayInline, alphaEquality)

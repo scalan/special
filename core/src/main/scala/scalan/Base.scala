@@ -75,7 +75,12 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
 
     def selfType: Elem[T @uncheckedVariance]
-    val self: Rep[T] = symbolOf(this)
+    private var _self: Rep[T @uncheckedVariance] = _
+    def self: Rep[T] = {
+      if (_self == null) _self = symbolOf(this)
+      _self
+    }
+
 
     def transform(t: Transformer): Def[T] =
       !!!(s"Cannot transfrom definition using transform($this)", self)
@@ -112,29 +117,33 @@ trait Base extends LazyLogging { scalan: Scalan =>
       case _ => false
     })
 
-    override lazy val hashCode = {
-      val len = productArity
-      var i = 0
-      var result = 1
-      while (i < len) {
-        val element = productElement(i)
-        val elementHashCode = element match {
-          case null => 0
-          case arr: Array[Object] => Arrays.deepHashCode(arr)
-          case arr: Array[Int] => Arrays.hashCode(arr)
-          case arr: Array[Long] => Arrays.hashCode(arr)
-          case arr: Array[Float] => Arrays.hashCode(arr)
-          case arr: Array[Double] => Arrays.hashCode(arr)
-          case arr: Array[Boolean] => Arrays.hashCode(arr)
-          case arr: Array[Byte] => Arrays.hashCode(arr)
-          case arr: Array[Short] => Arrays.hashCode(arr)
-          case arr: Array[Char] => Arrays.hashCode(arr)
-          case _ => element.hashCode
+    private var _hashCode: Int = 0
+    override def hashCode = {
+      if (_hashCode == 0) {
+        val len = productArity
+        var i = 0
+        var result = 1
+        while (i < len) {
+          val element = productElement(i)
+          val elementHashCode = element match {
+            case null => 0
+            case arr: Array[Object] => Arrays.deepHashCode(arr)
+            case arr: Array[Int] => Arrays.hashCode(arr)
+            case arr: Array[Long] => Arrays.hashCode(arr)
+            case arr: Array[Float] => Arrays.hashCode(arr)
+            case arr: Array[Double] => Arrays.hashCode(arr)
+            case arr: Array[Boolean] => Arrays.hashCode(arr)
+            case arr: Array[Byte] => Arrays.hashCode(arr)
+            case arr: Array[Short] => Arrays.hashCode(arr)
+            case arr: Array[Char] => Arrays.hashCode(arr)
+            case _ => element.hashCode
+          }
+          result = 41 * result + elementHashCode
+          i += 1
         }
-        result = 41 * result + elementHashCode
-        i += 1
+        _hashCode = result
       }
-      result
+      _hashCode
     }
 
     override def toString = {

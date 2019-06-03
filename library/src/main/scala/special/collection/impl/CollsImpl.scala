@@ -383,11 +383,12 @@ implicit val eV = proj.elem.eRange
         true, true, element[A]))
     }
 
+    // manual fix (optimization)
     def map[B](f: Rep[A => B]): Rep[Coll[B]] = {
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(source,
         thisClass.getMethod("map", classOf[Sym]),
-        List(f),
+        f :: Nil,
         true, true, element[Coll[B]]))
     }
 
@@ -658,8 +659,9 @@ implicit val eV = proj.elem.eRange
     override def getDefaultRep: Rep[To] = ???
   }
 
+  // manual fix (optimization)
   implicit def collElement[A](implicit eA: Elem[A]): Elem[Coll[A]] =
-    cachedElem[CollElem[A, Coll[A]]](eA)
+    cachedElemByClass[CollElem[A, Coll[A]]](eA)(classOf[CollElem[A, Coll[A]]])
 
   implicit case object CollCompanionElem extends CompanionElem[CollCompanionCtor] {
     lazy val tag = weakTypeTag[CollCompanionCtor]
@@ -716,7 +718,7 @@ implicit val eV = proj.elem.eRange
 
     object length {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "length" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -807,7 +809,7 @@ implicit val eV = proj.elem.eRange
 
     object map {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "map" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "map" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -820,7 +822,7 @@ implicit val eV = proj.elem.eRange
 
     object zip {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "zip" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "zip" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -1119,7 +1121,7 @@ implicit val eV = proj.elem.eRange
 
     object sum {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Monoid[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "sum" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "sum" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Monoid[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -1567,7 +1569,7 @@ implicit val eV = proj.elem.eRange
   }
 
   implicit def pairCollElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[PairColl[L, R]] =
-    cachedElem[PairCollElem[L, R, PairColl[L, R]]](eL, eR)
+    cachedElemByClass(eL, eR)(classOf[PairCollElem[L, R, PairColl[L, R]]])
 
   implicit case object PairCollCompanionElem extends CompanionElem[PairCollCompanionCtor] {
     lazy val tag = weakTypeTag[PairCollCompanionCtor]
@@ -2023,7 +2025,7 @@ implicit val eV = proj.elem.eRange
   }
 
   implicit def replCollElement[A](implicit eA: Elem[A]): Elem[ReplColl[A]] =
-    cachedElem[ReplCollElem[A, ReplColl[A]]](eA)
+    cachedElemByClass(eA)(classOf[ReplCollElem[A, ReplColl[A]]])
 
   implicit case object ReplCollCompanionElem extends CompanionElem[ReplCollCompanionCtor] {
     lazy val tag = weakTypeTag[ReplCollCompanionCtor]
@@ -2425,9 +2427,10 @@ implicit val eO = l.elem.eRange
       }
     }
 
+    // manual fix (optimization)
     object replicate {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "replicate" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "replicate" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Int], Rep[T]) forSome {type T}]]
         case _ => Nullable.None

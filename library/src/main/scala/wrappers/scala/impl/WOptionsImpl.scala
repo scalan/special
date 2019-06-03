@@ -254,7 +254,7 @@ object WOption extends EntityObject("WOption") {
   }
 
   implicit def wOptionElement[A](implicit eA: Elem[A]): Elem[WOption[A]] =
-    cachedElem[WOptionElem[A, WOption[A]]](eA)
+    cachedElemByClass(eA)(classOf[WOptionElem[A, WOption[A]]])
 
   implicit case object WOptionCompanionElem extends CompanionElem[WOptionCompanionCtor] {
     lazy val tag = weakTypeTag[WOptionCompanionCtor]
@@ -285,7 +285,7 @@ object WOption extends EntityObject("WOption") {
   object WOptionMethods {
     object fold {
       def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "fold" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "fold" && receiver.elem.isInstanceOf[WOptionElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -350,7 +350,7 @@ object WOption extends EntityObject("WOption") {
 
     object map {
       def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "map" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "map" && receiver.elem.isInstanceOf[WOptionElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -363,7 +363,7 @@ object WOption extends EntityObject("WOption") {
 
     object getOrElse {
       def unapply(d: Def[_]): Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[WOptionElem[_, _]] && method.getName == "getOrElse" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "getOrElse" && receiver.elem.isInstanceOf[WOptionElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
         case _ => Nullable.None

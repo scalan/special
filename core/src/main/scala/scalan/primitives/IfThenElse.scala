@@ -139,7 +139,7 @@ trait IfThenElse extends Base { self: Scalan =>
           if (eC == eD || (eC.isConcrete && eD.isConcrete))
             (eC, eD) match {
               case IsConvertible(cTo, cFrom) =>
-                Some((c, a.asRep[a], b.asRep[b], iso1, iso2, cTo, cFrom))
+                Some((c, asRep[a](a), asRep[b](b), iso1, iso2, cTo, cFrom))
               case _ => None
             }
           else
@@ -154,9 +154,9 @@ trait IfThenElse extends Base { self: Scalan =>
     case IfThenElseHasViewsWithConvertibleBranches(
           cond, thenp, elsep, iso1: Iso[a, c], iso2: Iso[b, d], cTo, cFrom) =>
       val c = cond
-      val t = thenp.asRep[a]
-      val e = elsep.asRep[b]
-      liftFromIfThenElse(c, t, e, iso1, iso2, cTo.asRep[Converter[c,d]], cFrom.asRep[Converter[d,c]])
+      val t = asRep[a](thenp)
+      val e = asRep[b](elsep)
+      liftFromIfThenElse(c, t, e, iso1, iso2, asRep[Converter[c,d]](cTo), asRep[Converter[d,c]](cFrom))
 
     case _ => super.rewriteViews(d)
   }
@@ -195,7 +195,7 @@ trait IfThenElse extends Base { self: Scalan =>
     // Rule: (if (c) t else e)(arg) ==> if (c) t(arg) else e(arg)
     case apply: Apply[a, b] => apply.f match {
       case Def(IfThenElse(c, t, e)) =>
-        ifThenElse(c, { t.asRep[a=>b](apply.arg) }, { e.asRep[a=>b](apply.arg) })
+        ifThenElse(c, { asRep[a=>b](t)(apply.arg) }, { asRep[a=>b](e)(apply.arg) })
       case _ => super.rewriteDef(d)
     }
 

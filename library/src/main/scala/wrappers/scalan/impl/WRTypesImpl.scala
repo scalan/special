@@ -120,8 +120,9 @@ object WRType extends EntityObject("WRType") {
     override def getDefaultRep: Rep[To] = ???
   }
 
+  // manual fix (optimization)
   implicit def wRTypeElement[A](implicit eA: Elem[A]): Elem[WRType[A]] =
-    cachedElem[WRTypeElem[A, WRType[A]]](eA)
+    cachedElemByClass(eA)(classOf[WRTypeElem[A, WRType[A]]])
 
   implicit case object WRTypeCompanionElem extends CompanionElem[WRTypeCompanionCtor] {
     lazy val tag = weakTypeTag[WRTypeCompanionCtor]
