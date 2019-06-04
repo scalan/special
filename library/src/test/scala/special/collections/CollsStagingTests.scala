@@ -48,7 +48,7 @@ class CollsStagingTests extends WrappersTests {
     var res: Sym = null
     measure(10) { i =>
       var sum: Int = 0
-      for (j <- 0 until 300000) {
+      for (j <- 0 until 3000) {
         val colBuilder: Rep[CollBuilder] = RCollOverArrayBuilder()
         val col = colBuilder.replicate(i*j, 0)
         res = col.map(fun {x => x + 1})
