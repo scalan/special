@@ -196,7 +196,7 @@ implicit val eD = fb.elem.eRange
 
     object some {
       def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "some" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "some" && receiver.elem == WSpecialPredefCompanionElem =>
           val res = args(0)
           Nullable(res).asInstanceOf[Nullable[Rep[A] forSome {type A}]]
         case _ => Nullable.None

@@ -5,7 +5,7 @@ import java.util.Objects
 
 import special.collection._
 import special.wrappers.{WrappersSpecModule, WrappersModule}
-import scalan.util.ReflectionUtil
+import scalan.util.{ReflectionUtil, MemoizedFunc}
 
 trait Library extends Scalan
   with WrappersModule
@@ -32,9 +32,13 @@ trait Library extends Scalan
   type RCosted[A] = Rep[Costed[A]]
   type LazyRep[T] = MutableLazy[Rep[T]]
 
+  private val _liftElemMemo = new MemoizedFunc({
+    case eT: Elem[t] =>
+      val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, t]]
+      liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
+  })
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
-    val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, T]]
-    liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
+    _liftElemMemo(eT).asInstanceOf[Rep[WRType[T]]]
   }
 
   override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
@@ -47,6 +51,7 @@ trait Library extends Scalan
 
   override protected def onReset(): Unit = {
     _specialPredef.reset()
+    _liftElemMemo.reset()
     super.onReset()
   }
 

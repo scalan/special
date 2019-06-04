@@ -5,7 +5,9 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
-// Abs -----------------------------------
+  import scalan.util.MemoizedFunc
+
+  // Abs -----------------------------------
 trait ConcreteSizesDefs extends scalan.Scalan with ConcreteSizes {
   self: Library =>
 import IsoUR._
@@ -117,8 +119,12 @@ object CSizePrim extends EntityObject("CSizePrim") {
   }
 
   // 5) implicit resolution of Iso
+  // manual fix
+  private[ConcreteSizesDefs] val _isoCSizePrimMemo = new MemoizedFunc({ case eVal: Elem[v] =>
+    reifyObject(new CSizePrimIso[v]()(eVal))
+  })
   implicit def isoCSizePrim[Val](implicit eVal: Elem[Val]): Iso[CSizePrimData[Val], CSizePrim[Val]] =
-    reifyObject(new CSizePrimIso[Val]()(eVal))
+    _isoCSizePrimMemo(eVal).asInstanceOf[Iso[CSizePrimData[Val], CSizePrim[Val]]]
 
   def mkCSizePrim[Val]
     (dataSize: Rep[Long], tVal: Rep[WRType[Val]]): Rep[CSizePrim[Val]] = {
@@ -690,6 +696,12 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
   registerEntityObject("CSizeOption", CSizeOption)
 
   registerModule(ConcreteSizesModule)
+
+  // manual fix
+  override protected def onReset(): Unit = {
+    super.onReset()
+    CSizePrim._isoCSizePrimMemo.reset()
+  }
 }
 
 object ConcreteSizesModule extends scalan.ModuleInfo("special.collection", "ConcreteSizes")

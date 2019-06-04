@@ -600,7 +600,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   // regular data (and effect) dependencies
   def syms(e: Any): List[Rep[_]] = e match {
-    case s: Rep[_] => List(s)
+    case s: Rep[_] => new scala.collection.immutable.::(s, Nil)  // optimization of hot spot
     case s: Iterable[_] =>
       flatMapWithBuffer(s.iterator, syms)
     // All case classes extend Product!
@@ -623,7 +623,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
     /** Shallow dependencies don't look into branches of IfThenElse  */
     def getShallowDeps: List[Sym] = symbol match {
-      case Def(IfThenElse(c, _, _)) => List(c)
+      case Def(IfThenElse(c, _, _)) => new scala.collection.immutable.::(c, Nil)  // optimization of hot spot
       case _ => getDeps
     }
 
@@ -633,12 +633,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
   }
 
-  implicit class DefForSomeOps(d: Def[_]) {
-    def getDeps: List[Rep[_]] = d match {
-      case g: AstGraph => g.freeVars.toList
-      case _ => syms(d)
-    }
+  def getDeps(d: Def[_]): List[Rep[_]] = d match {
+    case g: AstGraph => g.freeVars.toList
+    case _ => syms(d)
+  }
 
+  implicit class DefForSomeOps(d: Def[_]) {
+    def getDeps: List[Rep[_]] = scalan.getDeps(d)
     def asDef[T] = d.asInstanceOf[Def[T]]
   }
 

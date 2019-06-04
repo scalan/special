@@ -1,8 +1,8 @@
 package scalan.staged
 
-import scala.collection._
+import scala.collection.{mutable, _}
 import scala.collection.mutable.ArrayBuffer
-import scalan.{Scalan, Nullable}
+import scalan.{Nullable, Scalan}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
 
@@ -43,10 +43,19 @@ trait AstGraphs extends Transforming { self: Scalan =>
     def boundVars: List[Sym]
     def roots: List[Sym]
 
+    /** @hotspot */
     def freeVars: Set[Sym] = {
-      val alldeps = schedule.flatMap { tp => tp.rhs.getDeps }.toSet
-      val free = alldeps filter { s => !(isLocalDef(s) || isBoundVar(s)) }
-      free
+      val res = mutable.HashSet.empty[Sym]
+      schedule.foreach { tp =>
+        for (s <- getDeps(tp.rhs)) {
+          if (!res.contains(s)) {
+            if (!(isLocalDef(s) || isBoundVar(s))) {
+              res += s
+            }
+          }
+        }
+      }
+      res
     }
 
     def getRootsIfEmpty(sch: Schedule) =

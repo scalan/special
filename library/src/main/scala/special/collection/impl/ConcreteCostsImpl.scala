@@ -5,6 +5,8 @@ import scala.reflect.runtime.universe._
 import scala.reflect._
 
 package impl {
+import scalan.util.MemoizedFunc
+
 // Abs -----------------------------------
 trait ConcreteCostsDefs extends scalan.Scalan with ConcreteCosts {
   self: Library =>
@@ -135,8 +137,12 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
   }
 
   // 5) implicit resolution of Iso
+  // manual fix
+  private[ConcreteCostsDefs] val _isoCCostedPrimMemo = new MemoizedFunc({ case eVal: Elem[v] =>
+    reifyObject(new CCostedPrimIso[v]()(eVal))
+  })
   implicit def isoCCostedPrim[Val](implicit eVal: Elem[Val]): Iso[CCostedPrimData[Val], CCostedPrim[Val]] =
-    reifyObject(new CCostedPrimIso[Val]()(eVal))
+    _isoCCostedPrimMemo(eVal).asInstanceOf[Iso[CCostedPrimData[Val], CCostedPrim[Val]]]
 
   def mkCCostedPrim[Val]
     (value: Rep[Val], cost: Rep[Int], size: Rep[Size[Val]]): Rep[CCostedPrim[Val]] = {
@@ -1098,6 +1104,12 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   registerEntityObject("CCostedBuilder", CCostedBuilder)
 
   registerModule(ConcreteCostsModule)
+
+  // manual fix
+  override protected def onReset(): Unit = {
+    super.onReset()
+    CCostedPrim._isoCCostedPrimMemo.reset()
+  }
 }
 
 object ConcreteCostsModule extends scalan.ModuleInfo("special.collection", "ConcreteCosts")

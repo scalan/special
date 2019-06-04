@@ -115,7 +115,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
     override def boundVars = Nil
     override lazy val freeVars = super.freeVars
-    val roots = List(root)
+    val roots = new scala.collection.immutable.::(root, Nil) // optimization of hot spot
   }
   object ThunkDef {
     def unapply(d: ThunkDef[_]): Option[(Rep[T], Schedule) forSome {type T}] = d match {
