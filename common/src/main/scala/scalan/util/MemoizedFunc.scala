@@ -8,6 +8,7 @@ class MemoizedFunc(f: AnyRef => AnyRef) {
     var v = _table(x)
     if (v == null) {
       v = f(x)
+      _table.put(x, v)
     }
     v
   }
