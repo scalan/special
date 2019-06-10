@@ -404,28 +404,25 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   private[this] case class ReflectedProductClass(constructor: Constr[_], paramMirrors: List[ParamMirror], hasScalanParameter: OwnerParameter)
 
-  private[this] lazy val baseType = typeOf[Base]
-
   protected def getOwnerParameterType(constructor: Constr[_]): OwnerParameter = {
     val paramTypes = constructor.getParameterTypes
     val ownerParam =
-      if (paramTypes.length == 0) NoOwner
+      if (paramTypes.length == 0)
+        NoOwner
       else {
         val firstParamClazz = paramTypes(0)
-        // note: classOf[Base].isAssignableFrom(firstParamClazz) can give wrong result due to the way
-        // Scala compiles traits inheriting from classes
-        val firstParamTpe = ReflectionUtil.classToSymbol(firstParamClazz).toType
-        if (firstParamTpe <:< baseType) ScalanOwner
-        else
-        {
-          getEntityObject(firstParamTpe.typeSymbol.name.toString) match {
+        if (firstParamClazz.getSuperclass == classOf[EntityObject]) {
+          val className = firstParamClazz.getSimpleName
+          val entityName = className.substring(0, className.length - 1)
+          getEntityObject(entityName) match {
             case Nullable(obj) =>
               EntityObjectOwner(obj)
-            case _ => NoOwner
+            case _ =>
+              !!!(s"Unknown owner type $firstParamClazz")
           }
-        } /*else {
-          !!!(s"Unsupported owner: $firstParamTpe")
-        }*/
+        } else {
+          ScalanOwner
+        }
       }
     ownerParam
   }
