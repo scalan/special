@@ -751,7 +751,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
   def findGlobalDefinition[T](d: Def[T]): TableEntry[T] =
     defToGlobalDefs(d).asInstanceOf[TableEntry[T]]
 
-  /** @hotspot */
+  /** Lookup `d` in the heap of nodes. If the lookup is successfull, then `d.self`
+    * reference is returned. If the node is not found in the heap, then it is added
+    * and `d.self` reference is returned.
+    * @param  d       node to be added to the head of nodes
+    * @param  newSym  producer of the reference to be used as the reference to `d` node.
+    * @return         return a reference to `d` node in the heap
+    * @hotspot */
   def findOrCreateDefinition[T](d: Def[T], newSym: => Rep[T]): Rep[T] = {
     val optScope = thunkStack.top
     var te = optScope match {
