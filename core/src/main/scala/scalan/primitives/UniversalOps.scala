@@ -34,12 +34,13 @@ trait UniversalOps extends Base { self: Scalan =>
     * @param  opCost operation cost, which should be added to the currently accumulated cost
     * @see `Evaluation`
     */
-  case class OpCost(costedValueId: Int, args: Seq[Rep[Int]], opCost: Rep[Int]) extends BaseDef[Int] {
-    override def transform(t: Transformer) = OpCost(costedValueId, t(args), t(opCost))
+  case class OpCost(lambdaVar: Sym, costedValueId: Int, args: Seq[Rep[Int]], opCost: Rep[Int]) extends BaseDef[Int] {
+    override def transform(t: Transformer) = OpCost(t(lambdaVar), costedValueId, t(args), t(opCost))
   }
   def opCost(costedValue: Sym, args: Seq[Rep[Int]], opCost: Rep[Int]): Rep[Int] = {
     val id = costedValue.rhs.nodeId
-    OpCost(id, args, opCost)
+    val lamVar = lambdaStack.head.x
+    OpCost(lamVar, id, args, opCost)
   }
 
   def assertValueIdForOpCost[A,B](value: Rep[A], cost: Rep[B]): Unit = {
