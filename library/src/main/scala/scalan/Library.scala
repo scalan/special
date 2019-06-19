@@ -153,7 +153,7 @@ trait Library extends Scalan
     // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
     case CM.map(CBM.replicate(b, l, v: Rep[a]), _f) =>
       val f = asRep[a => Any](_f)
-      b.replicate(l, ThunkForce(Thunk(f(v))))
+      b.replicate(l, Apply(f, v, false))
 
     // Rule: xs.map(_._1).zip(xs.map(_._2)) ==> xs
     case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
