@@ -448,7 +448,7 @@ trait CollBuilder {
     * @param  n  how many times to replicate value `v`
     * @param  v  value to replicate
     * @return    collection of the form (v, v, v, ... v) of n elements.*/
-  def replicate[T: RType](n: Int, v: T): Coll[T]
+  def replicate[@specialized T: RType](n: Int, v: T): Coll[T]
 
   /** Create a new collection in which every item is executed lazily
     * form the corresponding item of the `source` collection.

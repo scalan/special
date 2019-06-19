@@ -326,6 +326,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     }, true, useAlphaEquality, keepOriginalFunc)
   }
 
+  var lambdaStack: List[Lambda[_,_]] = Nil
+
   private def lambda[A,B](x: Rep[A])(f: Exp[A] => Exp[B],
                                      mayInline: Boolean,
                                      alphaEquality: Boolean,
@@ -339,8 +341,15 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     val lam = new Lambda(orig, x, ySym, mayInline, alphaEquality)
     val lamSym = lam.self
 
-    val y = reifyEffects(f(x))
-    ySym.assignDefFrom(y)
+    val oldStack = lambdaStack
+    try {
+      lambdaStack = lam :: lambdaStack
+      val y = reifyEffects(f(x))
+      ySym.assignDefFrom(y)
+    }
+    finally {
+      lambdaStack = oldStack
+    }
 
     findOrCreateDefinition(lam, lamSym)
   }

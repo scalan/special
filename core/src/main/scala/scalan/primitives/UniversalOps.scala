@@ -2,7 +2,7 @@ package scalan.primitives
 
 import scalan.{AVHashMap, Base, Scalan, Nullable}
 
-trait UniversalOps extends Base { self: Scalan =>
+trait UniversalOps extends Base { scalan: Scalan =>
   case class HashCode[A]() extends UnOp[A, Int]("hashCode", _.hashCode)
 
   case class ToString[A]() extends UnOp[A, String]("toString", _.toString)
@@ -30,16 +30,27 @@ trait UniversalOps extends Base { self: Scalan =>
     * and into `cost of z`, so in the `cost of res` it is accumulated twice.
     * To avoid this problem OpCost nodes require special handling in during evaluation.
     *
-    * @param  args    costs of the arguments, which are here represent dependency information.
-    * @param  opCost operation cost, which should be added to the currently accumulated cost
-    * @see `Evaluation`
+    * @param lambdaVar      the variable of the lambda in which scope this node is created.
+    *                       This makes this node belong to the lambda body, even if it doesn't
+    *                       otherwise depend on lambda argument.
+    * @param costedValueId  The id of the node for which this node represents cost
+    * @param args           costs of the arguments, which are here represent dependency information.
+    * @param opCost         operation cost, which should be added to the current scope accumulated cost
     */
-  case class OpCost(costedValueId: Int, args: Seq[Rep[Int]], opCost: Rep[Int]) extends BaseDef[Int] {
-    override def transform(t: Transformer) = OpCost(costedValueId, t(args), t(opCost))
+  case class OpCost(lambdaVar: Sym, costedValueId: Int, args: Seq[Rep[Int]], opCost: Rep[Int]) extends BaseDef[Int] {
+    /** When this node is mirrored (as part of mirrorLambda) we apply transformer t for all arguments
+      * with standard data flow semantics.
+      * However this is not correct to do for lambdaVar.
+      * Instead we use current lambda from the top of the stack, which is always points to the most nested
+      * lambda.
+      */
+    override def transform(t: Transformer) = OpCost(lambdaStack.head.x, costedValueId, t(args), t(opCost))
   }
+
   def opCost(costedValue: Sym, args: Seq[Rep[Int]], opCost: Rep[Int]): Rep[Int] = {
     val id = costedValue.rhs.nodeId
-    OpCost(id, args, opCost)
+    val lamVar = lambdaStack.head.x
+    OpCost(lamVar, id, args, opCost)
   }
 
   def assertValueIdForOpCost[A,B](value: Rep[A], cost: Rep[B]): Unit = {

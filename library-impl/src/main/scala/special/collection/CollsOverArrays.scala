@@ -251,7 +251,7 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 
   @NeverInline
-  def replicate[T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
+  def replicate[@specialized T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
 
   @NeverInline
   def makeView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B): Coll[B] = new CViewColl(source, f)
@@ -567,8 +567,10 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @Internal
   lazy val _toArray: Array[A] = {
-    val res = Array.ofDim[A](length)
-    cfor(0)(_ < length, _ + 1) { i => res(i) = value }
+    implicit val cT: ClassTag[A] = tA.classTag
+    val res = new Array[A](length)
+    val v = value
+    cfor(0)(_ < length, _ + 1) { i => res(i) = v }
     res
   }
   @NeverInline
