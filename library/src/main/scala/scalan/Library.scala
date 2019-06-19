@@ -153,7 +153,7 @@ trait Library extends Scalan
     // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
     case CM.map(CBM.replicate(b, l, v: Rep[a]), _f) =>
       val f = asRep[a => Any](_f)
-      b.replicate(l, f(v))
+      b.replicate(l, ThunkForce(Thunk(f(v))))
 
     // Rule: xs.map(_._1).zip(xs.map(_._2)) ==> xs
     case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
@@ -172,7 +172,7 @@ trait Library extends Scalan
 
     case CM.map(xs, Def(IdentityLambda())) => xs
     case CM.map(xs, Def(ConstantLambda(res))) =>
-      RCReplColl(res, xs.length)
+      RCReplColl(ThunkForce(Thunk(res)), xs.length)
 
     case CM.sum(Def(CollConst(coll, lA)), Def(_: IntPlusMonoid)) if lA.eW == IntElement =>
       coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
