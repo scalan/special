@@ -704,7 +704,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def toStringWithDefinition = toStringWithType + s" = ${_rhs}"
 
     override def equals(obj: scala.Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj != null && (obj match {
-      case other: SingleSym[_] => _rhs eq other.rhs
+      case other: SingleSym[_] => _rhs._nodeId == other.rhs._nodeId
       case _ => false
     }))
 
@@ -727,12 +727,16 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def defCount = defToGlobalDefs.hashMap.size()
 
+  private val _intZero = MutableLazy(0: Rep[Int])
+  @inline final def IntZero = _intZero.value
+
   def resetContext() = {
     defToGlobalDefs.clear()
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
     metadataPool = Map.empty[Sym, MetaNode]
     tuplesCache.clear()
+    _intZero.reset()
     onReset()
   }
 
