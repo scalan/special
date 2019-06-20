@@ -263,6 +263,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("CReplColl.hashCode empty case") {
+    forAll(valGen) { x =>
+      val repl = builder.replicate(0, x)
+      repl.hashCode shouldBe 0
+    }
+  }
+
   property("Coll.equals") {
     forAll(valGen, indexGen) { (x, n) =>
       val repl = builder.replicate(n, x)
