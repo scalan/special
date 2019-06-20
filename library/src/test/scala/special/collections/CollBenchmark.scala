@@ -3,6 +3,7 @@ package special.collections
 import org.scalameter.{execution, Executor}
 import org.scalameter.api._
 import org.scalameter.picklers.Implicits._
+import scalan.util.CollectionUtil
 import special.collection.Coll
 import special.collection.ExtensionMethods._
 import spire.syntax.all._
@@ -33,6 +34,38 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
     }
   }
 
+  performance of "hashCode" in {
+    measure method "of compressed Coll" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.hashCode()
+        }
+      }
+    }
+    measure method "of usual Coll" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          CollectionUtil.deepHashCode(c.toArray)
+        }
+      }
+    }
+  }
+  performance of "hashCode" in {
+    measure method "of old CReplColl.hashCode" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          CollectionUtil.deepHashCode(c.toArray)
+        }
+      }
+    }
+    measure method "of new CReplColl.hashCode" in {
+      using(colls) in { case (c, n) =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          c.hashCode()
+        }
+      }
+    }
+  }
   performance of "filter" in {
     measure method "of PairArray" in {
       using(arrays) in { case (arr, n) =>

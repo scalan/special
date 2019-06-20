@@ -15,7 +15,7 @@ import scalan.RType._
 import spire.syntax.all._
 
 import scala.runtime.RichInt
-
+import java.util.Arrays._
 class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]) extends Coll[A] {
   @Internal
   override def tItem: RType[A] = tA
@@ -293,8 +293,8 @@ class CollOverArrayBuilder extends CollBuilder {
 
   @NeverInline
   override def outerJoin[K: RType, L, R, O: RType]
-      (left: Coll[(K, L)], right: Coll[(K, R)])
-      (l: ((K, L)) => O, r: ((K, R)) => O, inner: ((K, (L, R))) => O): Coll[(K, O)] = {
+  (left: Coll[(K, L)], right: Coll[(K, R)])
+  (l: ((K, L)) => O, r: ((K, R)) => O, inner: ((K, (L, R))) => O): Coll[(K, O)] = {
     val res = CollectionUtil.outerJoin[K,L,R,O](left.toMap, right.toMap)(
       (k,lv) => l((k,lv)),
       (k,rv) => r((k,rv)),
@@ -321,7 +321,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
     case that: PairColl[_,_] if that.tItem == this.tItem => ls == that.ls && rs == that.rs
     case that: ReplColl[(L,R)]@unchecked if that.tItem == this.tItem =>
       ls.isReplArray(that.length, that.value._1) &&
-      rs.isReplArray(that.length, that.value._2)
+        rs.isReplArray(that.length, that.value._2)
     case _ => false
   })
   @Internal
@@ -758,7 +758,16 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   })
 
   @Internal
-  override def hashCode() = CollectionUtil.deepHashCode(toArray)
+  override def hashCode() = {
+    val elementHash = value.hashCode()
+    var hash = 1
+    var i = 0
+    while (i < length) {
+      hash = 31 * hash + elementHash
+      i += 1
+    }
+    hash
+  }
 
   @Internal
   override def toString = s"ReplColl($value, $length)"
