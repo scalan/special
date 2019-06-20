@@ -35,22 +35,6 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of compressed Coll" in {
-      using(colls) in { case (c, n) =>
-        cfor(0)(_ < n, _ + 1) { _ =>
-          c.hashCode()
-        }
-      }
-    }
-    measure method "of usual Coll" in {
-      using(colls) in { case (c, n) =>
-        cfor(0)(_ < n, _ + 1) { _ =>
-          CollectionUtil.deepHashCode(c.toArray)
-        }
-      }
-    }
-  }
-  performance of "hashCode" in {
     measure method "of old CReplColl.hashCode" in {
       using(colls) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
@@ -66,6 +50,7 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
       }
     }
   }
+
   performance of "filter" in {
     measure method "of PairArray" in {
       using(arrays) in { case (arr, n) =>
