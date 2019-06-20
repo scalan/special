@@ -2,10 +2,11 @@ package special.collections
 
 import special.collection.{Coll, PairColl, ReplColl}
 import org.scalacheck.{Gen, Shrink}
-import org.scalatest.{PropSpec, Matchers}
+import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.PropertyChecks
 import scalan.RType
 import scalan.RType.PairType
+import scalan.util.CollectionUtil
 
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
@@ -262,11 +263,19 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("CReplColl.hashCode empty case") {
+    forAll(valGen) { x =>
+      val repl = builder.replicate(0, x)
+      repl.hashCode shouldBe 0
+    }
+  }
+
   property("Coll.equals") {
     forAll(valGen, indexGen) { (x, n) =>
       val repl = builder.replicate(n, x)
       val coll = builder.fromArray(Array.fill(n)(x))
 
+      assert(repl.hashCode() == CollectionUtil.deepHashCode(repl.toArray))
       assert(coll == repl)
       assert(repl == coll)
       repl.hashCode() shouldBe coll.hashCode()
