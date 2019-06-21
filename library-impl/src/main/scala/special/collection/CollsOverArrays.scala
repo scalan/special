@@ -761,7 +761,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @Internal
   override def hashCode(): Int = {
-    if (isEmpty) return 0
+    // if (isEmpty) return 0
     val elementHash = value.hashCode()
     var hash = 1
     var i = 0

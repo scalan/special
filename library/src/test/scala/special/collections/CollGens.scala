@@ -21,6 +21,15 @@ trait CollGens { testSuite =>
   val replacedGen = choose(0, 100)
   val lenGen = choose(0, 100)
 
+  val shortGen = choose[Short](Short.MinValue, Short.MaxValue)
+  val intGen = choose[Int](Int.MinValue, Int.MaxValue)
+  val longGen = choose[Long](Long.MinValue, Long.MaxValue)
+  val charGen = choose[Char](Char.MinValue, Char.MaxValue)
+  val floatGen = choose[Float](Float.MinValue, Float.MaxValue)
+  val doubleGen = choose[Double](Double.MinValue, Double.MaxValue)
+
+  val simpleValueGen = Seq(byteGen, shortGen, intGen, longGen, charGen, floatGen, doubleGen)
+
   def getArrayGen[T](valGen: Gen[T], count: Int = 100)
                     (implicit evb: Buildable[T,Array[T]], evt: Array[T] => Traversable[T]): Gen[Array[T]] = {
     containerOfN[Array, T](count, valGen)
