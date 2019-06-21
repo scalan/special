@@ -274,7 +274,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.equals") {
     def checkColls[A](repl: Coll[A], coll: Coll[A]) = {
-      println(s"${repl.hashCode()} - ${coll.hashCode()}: $repl")
       assert(repl.hashCode() == CollectionUtil.deepHashCode(repl.toArray))
       assert(coll == repl)
       assert(repl == coll)
@@ -348,12 +347,10 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
     /*
     forAll (byteGen, doubleGen, intGen, indexGen, minSuccess) { (b, d, i, n) =>
-      if (n != 0) {
-        val repl = builder.replicate(n, (b, i))
-        val coll = builder.fromArray(Array.fill(n)(b, i))
+      val repl = builder.replicate(n, (b, i))
+      val coll = builder.fromArray(Array.fill(n)(b, i))
 
-        checkColls(repl, coll)
-      }
+      checkColls(repl, coll)
     }
     */
   }
