@@ -28,7 +28,7 @@ trait CollGens { testSuite =>
   val floatGen = choose[Float](Float.MinValue, Float.MaxValue)
   val doubleGen = choose[Double](Double.MinValue, Double.MaxValue)
 
-  val simpleValueGen = Seq(byteGen, shortGen, intGen, longGen, charGen, floatGen, doubleGen)
+  val simpleValueGen = Gen.oneOf(byteGen, shortGen, intGen, longGen, charGen, floatGen, doubleGen)
 
   def getArrayGen[T](valGen: Gen[T], count: Int = 100)
                     (implicit evb: Buildable[T,Array[T]], evt: Array[T] => Traversable[T]): Gen[Array[T]] = {
