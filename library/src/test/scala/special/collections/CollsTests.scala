@@ -348,7 +348,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     /*
     forAll (byteGen, doubleGen, intGen, indexGen, minSuccess) { (b, d, i, n) =>
       val repl = builder.replicate(n, (b, i))
-      val coll = builder.fromArray(Array.fill(n)(b, i))
+      val coll = builder.fromArray(Array.fill[(Byte, Int)](n)((b, i)))
 
       checkColls(repl, coll)
     }
