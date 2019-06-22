@@ -171,8 +171,8 @@ trait Library extends Scalan
       xs.map(fun { x: Rep[a] => g(f(x)) })
 
     case CM.map(xs, Def(IdentityLambda())) => xs
-    case CM.map(xs, Def(ConstantLambda(res))) =>
-      RCReplColl(ThunkForce(Thunk(res)), xs.length)
+//    case CM.map(xs, Def(ConstantLambda(res))) =>
+//      RCReplColl(ThunkForce(Thunk(res)), xs.length)
 
     case CM.sum(Def(CollConst(coll, lA)), Def(_: IntPlusMonoid)) if lA.eW == IntElement =>
       coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
