@@ -251,7 +251,15 @@ class CollOverArrayBuilder extends CollBuilder {
   }
 
   @NeverInline
-  def replicate[@specialized T: RType](n: Int, v: T): Coll[T] = new CReplColl(v, n) //this.fromArray(Array.fill(n)(v))
+  def replicate[@specialized T: RType](n: Int, v: T): Coll[T] = RType[T] match {
+    case pt: PairType[a,b] =>
+      val tA = pt.tFst
+      val tB = pt.tSnd
+      val tuple = v.asInstanceOf[Tuple2[a, b]]
+      new PairOfCols(replicate(n, tuple._1)(tA), replicate(n, tuple._2)(tB))
+    case _ =>
+      new CReplColl(v, n)
+  }
 
   @NeverInline
   def makeView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B): Coll[B] = new CViewColl(source, f)

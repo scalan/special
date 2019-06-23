@@ -152,26 +152,26 @@ object CollectionUtil {
     calcPrimitiveArrayHashCode(arr, (element: Char) => element.toInt)
   }
 
-  def longArrayHashCode(array: Array[Long]): Int = {
+  def longArrayHashCode(arr: Array[Long]): Int = {
     calcPrimitiveArrayHashCode(arr, (element: Long) => {
       (element ^ element >>> 32).toInt
     })
   }
 
-  def floatArrayHashCode(array: Array[Float]): Int = {
+  def floatArrayHashCode(arr: Array[Float]): Int = {
     calcPrimitiveArrayHashCode(arr, (element: Float) => {
       java.lang.Float.floatToIntBits(element)
     })
   }
 
-  def doubleArrayHashCode(array: Array[Double]): Int = {
+  def doubleArrayHashCode(arr: Array[Double]): Int = {
     calcPrimitiveArrayHashCode(arr, (element: Double) => {
       val bits = java.lang.Double.doubleToLongBits(element)
       (bits ^ bits >>> 32).toInt
     })
   }
 
-  def boolArrayHashCode(array: Array[Boolean]): Int = {
+  def boolArrayHashCode(arr: Array[Boolean]): Int = {
     calcPrimitiveArrayHashCode(arr, (element: Boolean) => if (element) 1231 else 1237)
   }
 
