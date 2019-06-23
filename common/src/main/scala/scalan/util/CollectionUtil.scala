@@ -4,10 +4,14 @@ import java.util
 import java.util.Objects
 import java.util.function.BiConsumer
 
-import scala.collection.{Seq, mutable, GenIterable}
-import scala.collection.mutable.{HashMap, ArrayBuffer}
+import scalan.RType
+import scalan.RType.PairType
+
+import scala.collection.{GenIterable, Seq, mutable}
+import scala.collection.mutable.{ArrayBuffer, HashMap}
 import scala.collection.generic.CanBuildFrom
 import scala.reflect.ClassTag
+import scala.reflect.runtime.universe._
 
 object CollectionUtil {
 
@@ -43,16 +47,132 @@ object CollectionUtil {
 //    case ClassTag.AnyRef => new Array[AnyRef](len)
 //  }).asInstanceOf[Array[T]]
 
-  def deepHashCode[T](arr: Array[T]): Int = arr match {
-    case arr: Array[AnyRef] => util.Arrays.deepHashCode(arr)
-    case arr: Array[Byte] => util.Arrays.hashCode(arr)
-    case arr: Array[Short] => util.Arrays.hashCode(arr)
-    case arr: Array[Int] => util.Arrays.hashCode(arr)
-    case arr: Array[Long] => util.Arrays.hashCode(arr)
-    case arr: Array[Char] => util.Arrays.hashCode(arr)
-    case arr: Array[Float] => util.Arrays.hashCode(arr)
-    case arr: Array[Double] => util.Arrays.hashCode(arr)
-    case arr: Array[Boolean] => util.Arrays.hashCode(arr)
+
+  def hashElement[T](element: T): Int = element match {
+    case arrayVal: Array[_] => arrayHashCode(arrayVal)
+    case _ => element.hashCode()
+  }
+
+  def arrayHashCode[T](array: Array[T]): Int = if (array == null) 0
+  else {
+    if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
+      deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
+    }
+    array match {
+      case arr: Array[AnyRef] => deepArrayHashCode(arr)
+      case arr: Array[Byte] => byteArrayHashCode(arr)
+      case arr: Array[Short] => shortArrayHashCode(arr)
+      case arr: Array[Int] => intArrayHashCode(arr)
+      case arr: Array[Char] => charArrayHashCode(arr)
+      case arr: Array[Long] => longArrayHashCode(arr)
+      case arr: Array[Float] => floatArrayHashCode(arr)
+      case arr: Array[Double] => doubleArrayHashCode(arr)
+      case arr: Array[Boolean] => boolArrayHashCode(arr)
+    }
+}
+
+  def deepPairedArrayHashCode(array: Array[Tuple2[_, _]]): Int = if (array == null) 0
+  else {
+    val length = array.length
+    var i = 0
+    var lHash = 1
+    var rHash = 1
+    while (i < length) {
+      val element = array(i)
+      val lElement = element._1
+      var lElementHash = 0
+      if (lElement == null) lElementHash = 0
+      else {
+        lElementHash = hashElement(lElement)
+      }
+      lHash = 31 * lHash + lElementHash
+      val rElement = element._2
+      var rElementHash = 0
+      if (rElement == null) rElementHash = 0
+      else {
+        rElementHash = hashElement(rElement)
+      }
+      rHash = 31 * rHash + rElementHash
+      i += 1
+    }
+    41 * lHash + rHash
+  }
+
+  def deepArrayHashCode(array: Array[AnyRef]): Int = if (array == null) 0
+  else {
+//    if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
+//      deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
+//    }
+    var hash = 1
+    val length = array.length
+    var i = 0
+
+    while (i < length) {
+      val element = array(i)
+      var elementHash = 0
+      if (element == null) elementHash = 0
+      else {
+        elementHash = hashElement(element)
+      }
+      hash = 31 * hash + elementHash
+      i += 1
+    }
+
+    hash
+  }
+
+
+  def calcPrimitiveArrayHashCode[T](arr: Array[T], hashOne: T => Int): Int ={
+    if (arr == null) return 0
+    var hash: Int = 1
+    val length = arr.length
+    var i: Int = 0
+    while (i < length) {
+      val element = arr(i)
+      hash = 31 * hash + hashOne(element)
+
+      i += 1
+    }
+    return hash
+  }
+
+  def byteArrayHashCode(arr: Array[Byte]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Byte) => element.toInt)
+  }
+
+  def shortArrayHashCode(arr: Array[Short]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Short) => element.toInt)
+  }
+
+  def intArrayHashCode(arr: Array[Int]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Int) => element)
+  }
+
+  def charArrayHashCode(arr: Array[Char]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Char) => element.toInt)
+  }
+
+  def longArrayHashCode(array: Array[Long]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Long) => {
+      (element ^ element >>> 32).toInt
+    })
+  }
+
+  def floatArrayHashCode(array: Array[Float]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Float) => {
+      java.lang.Float.floatToIntBits(element)
+    })
+  }
+
+  def doubleArrayHashCode(array: Array[Double]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Double) => {
+      val bits = java.lang.Double.doubleToLongBits(element)
+      (bits ^ bits >>> 32).toInt
+    })
+  }
+
+  def boolArrayHashCode(array: Array[Boolean]): Int = {
+    calcPrimitiveArrayHashCode(arr, (element: Boolean) => if (element) 1231 else 1237)
   }
 
   def foldRight[A,B](xs: Seq[A])(proj: A => B)(f: (A,B) => B): B =
@@ -350,8 +470,8 @@ object CollectionUtil {
       var result: Int = 1
       for (x <- xs) {
         val elementHash = x match {
-          case arr: Array[_] => CollectionUtil.deepHashCode(arr)
-          case _ => Objects.hashCode(x)
+          case arr: Array[_] => arrayHashCode(arr)
+          case _ => x.hashCode()
         }
         result = 31 * result + elementHash;
       }

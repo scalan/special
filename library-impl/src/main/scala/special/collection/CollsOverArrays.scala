@@ -202,7 +202,7 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
   }
 
   @Internal
-  override def hashCode() = CollectionUtil.deepHashCode(toArray)
+  override def hashCode() = CollectionUtil.arrayHashCode(toArray)
 }
 
 class CollOverArrayBuilder extends CollBuilder {
@@ -761,14 +761,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @Internal
   override def hashCode(): Int = {
-    val elementHash = value.hashCode()
-    var hash = 1
-    var i = 0
-    while (i < length) {
-      hash = 31 * hash + elementHash
-      i += 1
-    }
-    hash
+    HashUtil.collHashCode(this)
   }
 
   @Internal

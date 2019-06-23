@@ -40,7 +40,7 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
     measure method "of old CReplColl.hashCode" in {
       using(replColls) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
-          CollectionUtil.deepHashCode(c.toArray)
+          CollectionUtil.arrayHashCode(c.toArray)
         }
       }
     }
