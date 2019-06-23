@@ -83,188 +83,57 @@ object HashUtil {
     hash
   }
 
-  def calcPrimitiveCollHashCode[T](arr: Array[T], hashOne: T => Int): Int ={
-    if (arr == null) return 0
+  def calcPrimitiveCollHashCode[T](coll: Coll[T], hashOne: T => Int): Int = if (coll == null) return 0
+  else {
     var hash: Int = 1
-    val length = arr.length
-    var i: Int = 0
-    while (i < length) {
-      val element = arr(i)
-      hash = 31 * hash + hashOne(element)
+    coll match {
+      case cl: CollOverArray[_] => {
+        hash = CollectionUtil.arrayHashCode(cl.toArray)
+      }
+      case cl: ReplColl[_] => {
+        val length = cl.length
+        var i: Int = 0
+        val element = cl.value
+        val hashElement = hashOne(element)
+        while (i < length) {
+          hash = 31 * hash + hashElement
+          i += 1
+        }
+      }
+      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
+    }
+    hash
+  }
 
-      i += 1
-    }
-    return hash
+  def byteCollHashCode(coll: Coll[Byte]): Int = {
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashByte)
   }
 
-  def byteCollHashCode(coll: Coll[Byte]): Int = if (coll == null) return 0
-  else {
-    var hash: Int = 1
-    coll match {
-      case cl: CollOverArray[_] => {
-        hash = CollectionUtil.byteArrayHashCode(cl.toArray)
-      }
-      case cl: ReplColl[_] => {
-        val length = cl.length
-        var i: Int = 0
-        val element = cl.value
-        while (i < length) {
-          hash = 31 * hash + element
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
+  def shortCollHashCode(coll: Coll[Short]): Int = {
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashShort)
   }
-  def shortCollHashCode(coll: Coll[Short]): Int = if (coll == null) return 0
-  else {
-    var hash: Int = 1
-    coll match {
-      case cl: CollOverArray[_] => {
-        hash = CollectionUtil.shortArrayHashCode(cl.toArray)
-      }
-      case cl: ReplColl[_] => {
-        val length = cl.length
-        var i: Int = 0
-        val element = cl.value
-        while (i < length) {
-          hash = 31 * hash + element
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
+
+  def intCollHashCode(coll: Coll[Int]): Int = {
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashInt)
   }
-  def intCollHashCode(coll: Coll[Int]): Int = if (coll == null) return 0
-  else {
-    var hash: Int = 1
-    coll match {
-      case cl: CollOverArray[_] => {
-        hash = CollectionUtil.intArrayHashCode(cl.toArray)
-      }
-      case cl: ReplColl[_] => {
-        val length = cl.length
-        var i: Int = 0
-        val element = cl.value
-        while (i < length) {
-          hash = 31 * hash + element
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
-  }
-  def charCollHashCode(coll: Coll[Char]): Int = if (coll == null) return 0
-  else {
-    var hash: Int = 1
-    coll match {
-      case cl: CollOverArray[_] => {
-        hash = CollectionUtil.charArrayHashCode(cl.toArray)
-      }
-      case cl: ReplColl[_] => {
-        val length = cl.length
-        var i: Int = 0
-        val element = cl.value
-        while (i < length) {
-          hash = 31 * hash + element
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
+
+  def charCollHashCode(coll: Coll[Char]): Int = {
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashChar)
   }
 
   def longCollHashCode(coll: Coll[Long]): Int = {
-    if (coll == null) return 0
-    var hash: Int = 1
-    coll match {
-      case coll: CollOverArray[_] => {
-        hash = CollectionUtil.longArrayHashCode(coll.toArray)
-      }
-      case coll: ReplColl[_] => {
-        val length = coll.length
-        var i: Int = 0
-        val element = coll.value
-        val elementHash = (element ^ element >>> 32).toInt
-        while (i < length) {
-          hash = 31 * hash + elementHash
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashLong)
   }
 
   def floatCollHashCode(coll: Coll[Float]): Int = {
-    if (coll == null) return 0
-    var hash: Int = 1
-    coll match {
-      case coll: CollOverArray[_] => {
-        hash = CollectionUtil.floatArrayHashCode(coll.toArray)
-      }
-      case coll: ReplColl[_] => {
-        val length = coll.length
-        var i: Int = 0
-        val element = coll.value
-        val elementHash = java.lang.Float.floatToIntBits(element)
-        while (i < length) {
-          hash = 31 * hash + elementHash
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashFloat)
   }
 
-
   def doubleCollHashCode(coll: Coll[Double]): Int = {
-    if (coll == null) return 0
-    var hash: Int = 1
-    coll match {
-      case coll: CollOverArray[_] => {
-        hash = CollectionUtil.doubleArrayHashCode(coll.toArray)
-      }
-      case coll: ReplColl[_] => {
-        val length = coll.length
-        var i: Int = 0
-        val element = coll.value
-        val bits = java.lang.Double.doubleToLongBits(element)
-        val elementHash = (bits ^ bits >>> 32).toInt
-        while (i < length) {
-          hash = 31 * hash + elementHash
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashDouble)
   }
 
   def boolCollHashCode(coll: Coll[Boolean]): Int = {
-    if (coll == null) return 0
-    var hash: Int = 1
-    coll match {
-      case coll: CollOverArray[_] => {
-        hash = CollectionUtil.boolArrayHashCode(coll.toArray)
-      }
-      case coll: ReplColl[_] => {
-        val length = coll.length
-        var i: Int = 0
-        val element = coll.value
-        val elementHash = if (element) 1231 else 1237
-        while (i < length) {
-          hash = 31 * hash + elementHash
-          i += 1
-        }
-      }
-      case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
-    }
-    hash
+    calcPrimitiveCollHashCode(coll, PrimitiveTypeHashUtil.hashBool)
   }
 }

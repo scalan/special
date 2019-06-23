@@ -137,42 +137,35 @@ object CollectionUtil {
   }
 
   def byteArrayHashCode(arr: Array[Byte]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Byte) => element.toInt)
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashByte)
   }
 
   def shortArrayHashCode(arr: Array[Short]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Short) => element.toInt)
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashShort)
   }
 
   def intArrayHashCode(arr: Array[Int]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Int) => element)
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashInt)
   }
 
   def charArrayHashCode(arr: Array[Char]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Char) => element.toInt)
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashChar)
   }
 
   def longArrayHashCode(arr: Array[Long]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Long) => {
-      (element ^ element >>> 32).toInt
-    })
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashLong)
   }
 
   def floatArrayHashCode(arr: Array[Float]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Float) => {
-      java.lang.Float.floatToIntBits(element)
-    })
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashFloat)
   }
 
   def doubleArrayHashCode(arr: Array[Double]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Double) => {
-      val bits = java.lang.Double.doubleToLongBits(element)
-      (bits ^ bits >>> 32).toInt
-    })
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashDouble)
   }
 
   def boolArrayHashCode(arr: Array[Boolean]): Int = {
-    calcPrimitiveArrayHashCode(arr, (element: Boolean) => if (element) 1231 else 1237)
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashBoolean)
   }
 
   def foldRight[A,B](xs: Seq[A])(proj: A => B)(f: (A,B) => B): B =
