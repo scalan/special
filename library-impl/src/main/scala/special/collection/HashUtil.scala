@@ -2,7 +2,7 @@ package special.collection
 
 import scalan.{Internal, NeverInline, Reified, RType}
 import scalan.RType._
-import scalan.util.CollectionUtil
+import scalan.util.{CollectionUtil, PrimitiveTypeHashUtil}
 
 import scala.reflect.ClassTag
 

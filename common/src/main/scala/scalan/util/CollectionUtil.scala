@@ -165,7 +165,7 @@ object CollectionUtil {
   }
 
   def boolArrayHashCode(arr: Array[Boolean]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashBoolean)
+    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashBool)
   }
 
   def foldRight[A,B](xs: Seq[A])(proj: A => B)(f: (A,B) => B): B =
