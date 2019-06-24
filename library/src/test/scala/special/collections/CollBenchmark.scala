@@ -17,8 +17,6 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
 
   val colls = arrays.map { case (arr, i) => (builder.fromArray(arr), i) }
 
-  val replColls = arrays.map { case (arr, i) => (builder.replicate(arr.length, (arr((arr.length - 1) / 2), 3)), i) }
-
   performance of "map" in {
     measure method "of Array" in {
       using(arrays) in { case (arr, n) =>
@@ -31,23 +29,6 @@ trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
       using(colls) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.map(inc)
-        }
-      }
-    }
-  }
-
-  performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode" in {
-      using(replColls) in { case (c, n) =>
-        cfor(0)(_ < n, _ + 1) { _ =>
-          CollectionUtil.arrayHashCode(c.toArray)
-        }
-      }
-    }
-    measure method "of new CReplColl.hashCode" in {
-      using(replColls) in { case (c, n) =>
-        cfor(0)(_ < n, _ + 1) { _ =>
-          c.hashCode()
         }
       }
     }
