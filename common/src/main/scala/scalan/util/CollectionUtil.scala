@@ -50,13 +50,17 @@ object CollectionUtil {
 
   def hashElement[T](element: T): Int = element match {
     case arrayVal: Array[_] => arrayHashCode(arrayVal)
-    case _ => element.hashCode()
+    case _ => {
+      if (PrimitiveTypeHashUtil.isPrimitiveType(element))
+        PrimitiveTypeHashUtil.hashPrimitive(element)
+      else element.hashCode()
+    }
   }
 
   def arrayHashCode[T](array: Array[T]): Int = if (array == null) 0
   else {
     if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
-      deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
+      return deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
     }
     array match {
       case arr: Array[AnyRef] => deepArrayHashCode(arr)
@@ -71,6 +75,15 @@ object CollectionUtil {
     }
 }
 
+  def hashOne[T](element: T): Int = {
+    var elementHash = 0
+    if (element == null) elementHash = 0
+    else {
+      elementHash = hashElement(element)
+    }
+    elementHash
+  }
+
   def deepPairedArrayHashCode(array: Array[Tuple2[_, _]]): Int = if (array == null) 0
   else {
     val length = array.length
@@ -79,30 +92,19 @@ object CollectionUtil {
     var rHash = 1
     while (i < length) {
       val element = array(i)
-      val lElement = element._1
-      var lElementHash = 0
-      if (lElement == null) lElementHash = 0
-      else {
-        lElementHash = hashElement(lElement)
-      }
-      lHash = 31 * lHash + lElementHash
-      val rElement = element._2
-      var rElementHash = 0
-      if (rElement == null) rElementHash = 0
-      else {
-        rElementHash = hashElement(rElement)
-      }
-      rHash = 31 * rHash + rElementHash
+      lHash = 31 * lHash + hashOne(element._1)
+      rHash = 31 * rHash + hashOne(element._2)
       i += 1
     }
+
     41 * lHash + rHash
   }
 
   def deepArrayHashCode(array: Array[AnyRef]): Int = if (array == null) 0
   else {
-//    if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
-//      deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
-//    }
+    if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
+      deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
+    }
     var hash = 1
     val length = array.length
     var i = 0

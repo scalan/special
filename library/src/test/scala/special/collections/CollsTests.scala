@@ -273,8 +273,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.equals") {
-    def checkColls[A](repl: Coll[A], coll: Coll[A]) = {
-      assert(repl.hashCode() == CollectionUtil.arrayHashCode(repl.toArray))
+    def checkColls(repl: Coll[_], coll: Coll[_]) = {
       assert(coll == repl)
       assert(repl == coll)
       repl.hashCode() shouldBe coll.hashCode()
@@ -294,7 +293,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       zip4.hashCode() shouldBe zip1.hashCode()
     }
     val minSuccess = minSuccessful(1)
-    // TODO: make normal
     forAll(byteGen, indexGen, minSuccess) { (x, n) =>
       val repl = builder.replicate(n, x)
       val coll = builder.fromArray(Array.fill(n)(x))
@@ -353,90 +351,29 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       checkColls(repl, coll)
     }
     forAll(indexGen, indexGen, minSuccess) { (n, m) =>
-      if (m > 0 && n > 0) {
-        val repl = builder.replicate(n, builder.replicate(m, 1))
-        val coll = builder.fromArray(Array.fill(n)(builder.fromArray(Array.fill(m)(1))))
+      val repl = builder.replicate(n, builder.replicate(m, 1))
+      val coll = builder.fromArray(Array.fill(n)(builder.fromArray(Array.fill(m)(1))))
 
-        assert(repl.hashCode() == CollectionUtil.arrayHashCode(repl.toArray))
-        assert(coll == repl)
-        assert(repl == coll)
-        repl.hashCode() shouldBe coll.hashCode()
-
-        val zip1 = repl.zip(repl)
-        val zip2 = repl.zip(coll)
-        val zip3 = coll.zip(coll)
-        val zip4 = coll.zip(repl)
-
-        assert(zip1 == zip2)
-        assert(zip2 == zip3)
-        assert(zip3 == zip4)
-        assert(zip4 == zip1)
-        zip1.hashCode() shouldBe zip2.hashCode()
-        zip2.hashCode() shouldBe zip3.hashCode()
-        zip3.hashCode() shouldBe zip4.hashCode()
-        zip4.hashCode() shouldBe zip1.hashCode()
-      }
+      checkColls(repl, coll)
     }
 
     forAll (byteGen, doubleGen, intGen, indexGen, minSuccess) { (b, d, i, n) =>
-      if (n > 0) {
-        val repl = builder.replicate(n, (b, i))
+      val repl = builder.replicate(n, (b, i))
+      val coll = builder.fromArray(Array.fill[(Byte, Int)](n)((b, i)))
 
-        val coll = builder.fromArray(Array.fill[(Byte, Int)](n)((b, i)))
-
-//        println(coll)
-//        println(repl)
-        val replHash = repl.hashCode()
-//        val arrayHash = CollectionUtil.arrayHashCode(repl.toArray)
-//        assert(replHash == arrayHash)
-        assert(coll == repl)
-        assert(repl == coll)
-        val collHash = coll.hashCode()
-        replHash shouldBe collHash
-
-        val zip1 = repl.zip(repl)
-        val zip2 = repl.zip(coll)
-        val zip3 = coll.zip(coll)
-        val zip4 = coll.zip(repl)
-
-        assert(zip1 == zip2)
-        assert(zip2 == zip3)
-        assert(zip3 == zip4)
-        assert(zip4 == zip1)
-        zip1.hashCode() shouldBe zip2.hashCode()
-        zip2.hashCode() shouldBe zip3.hashCode()
-        zip3.hashCode() shouldBe zip4.hashCode()
-        zip4.hashCode() shouldBe zip1.hashCode()
-      }
+      checkColls(repl, coll)
     }
     forAll (byteGen, doubleGen, intGen, indexGen, minSuccess) { (b, d, i, n) =>
       val repl = builder.replicate(n, (b, (i, (d, b))))
-
       val coll = builder.fromArray(Array.fill[(Byte, (Int, (Double, Byte)))](n)((b, (i, (d, b)))))
 
-//        println(coll)
-//        println(repl)
-      val replHash = repl.hashCode()
-      //val arrayHash = CollectionUtil.arrayHashCode(repl.toArray)
-      //assert(replHash == arrayHash)
-      assert(coll == repl)
-      assert(repl == coll)
-      val collHash = coll.hashCode()
-      replHash shouldBe collHash
+      checkColls(repl, coll)
+    }
+    forAll (byteGen, doubleGen, intGen, indexGen, indexGen, minSuccess) { (b, d, i, n, m) =>
+      val repl = builder.replicate(n, (b, ((i, (("string", builder.replicate(m, n)), Array(1, 2, 3, 4))), (d, b))))
+      val coll = builder.fromArray(Array.fill(n)((b, ((i, (("string", builder.fromArray(Array.fill(m)(n))), Array(1, 2, 3, 4))), (d, b)))))
 
-      val zip1 = repl.zip(repl)
-      val zip2 = repl.zip(coll)
-      val zip3 = coll.zip(coll)
-      val zip4 = coll.zip(repl)
-
-      assert(zip1 == zip2)
-      assert(zip2 == zip3)
-      assert(zip3 == zip4)
-      assert(zip4 == zip1)
-      zip1.hashCode() shouldBe zip2.hashCode()
-      zip2.hashCode() shouldBe zip3.hashCode()
-      zip3.hashCode() shouldBe zip4.hashCode()
-      zip4.hashCode() shouldBe zip1.hashCode()
+      checkColls(repl, coll)
     }
   }
 
