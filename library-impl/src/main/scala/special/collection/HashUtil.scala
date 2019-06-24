@@ -7,13 +7,6 @@ import scalan.util.{CollectionUtil, PrimitiveTypeHashUtil}
 import scala.reflect.ClassTag
 
 object HashUtil {
-
-  def isPrimitiveType[T](value: T): Boolean = value match {
-    case Boolean | Byte | Short | Int | Long | Char | Double | Float => true
-    case _ => false
-  }
-
-
   def collHashCode[T: RType](coll: Coll[T]): Int = if (coll == null) 0
   else {
     coll match {
@@ -37,46 +30,19 @@ object HashUtil {
         val length = cl.length
         var i = 0
 
-        cl.value match {
-          case element: Tuple2[_, _] => {
-            var lElementHash = 0
-            var rElementHash = 0
-            var lHash = 1
-            var rHash = 1
-//            val element = cl.value.asInstanceOf[Tuple2[_, _]]
-            val lElement = element._1
-            val rElement = element._2
-            if (lElement == null) lElementHash = 0
-            else {
-              lElementHash = CollectionUtil.hashElement(lElement)
-            }
-            if (rElement == null) rElementHash = 0
-            else {
-              rElementHash = CollectionUtil.hashElement(rElement)
-            }
-            while (i < length) {
-              lHash = 31 * lHash + lElementHash
-              rHash = 31 * rHash + rElementHash
-              i += 1
-            }
-            hash = lHash * 41 + rHash
-          }
-          case _ => {
-            var elementHash = 0
-            val value = cl.value
-            if (value == null) elementHash = 0
-            else {
-              elementHash = CollectionUtil.hashElement(value)
-            }
-            while (i < length) {
-              hash = 31 * hash + elementHash
-              i += 1
-            }
-          }
+        var elementHash = 0
+        val value = cl.value
+        if (value == null) elementHash = 0
+        else {
+          elementHash = CollectionUtil.hashElement(value)
+        }
+        while (i < length) {
+          hash = 31 * hash + elementHash
+          i += 1
         }
       }
       case cl: CollOverArray[AnyRef] => {
-        hash = CollectionUtil.deepArrayHashCode(cl.toArray)
+        hash = CollectionUtil.arrayHashCode(cl.toArray)
       }
       case _ => throw new NotImplementedError(s"Unsupported collection passed to deepHashCode: $coll")
     }
