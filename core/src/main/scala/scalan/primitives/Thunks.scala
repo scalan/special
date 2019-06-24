@@ -114,7 +114,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     def productArity: Int = 1
 
     override def boundVars = Nil
-    override lazy val freeVars = super.freeVars
+    override lazy val freeVars = if (schedule.isEmpty) Set(root) else super.freeVars
     val roots = new scala.collection.immutable.::(root, Nil) // optimization of hot spot
   }
   object ThunkDef {
@@ -210,9 +210,12 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     // reify all the effects during block execution
     val res = reifyEffects(block)
     resPH.assignDefFrom(res)
-    schedule = if (res.isVar) Nil else newScope.scheduleForResult(res)
+    schedule =
+      if (res.isVar) Nil
+      else if (newScope.body.isEmpty)  Nil
+      else newScope.scheduleForResult(res)
 
-    val sh = newThunk.schedule  // force lazy value in newThunk (see Lazy above)
+    val sh = newThunk.schedule  // force lazy value in newThunk (see ThunkDef._schedule argument above)
     thunkStack.endScope()
     toExp(newThunk, newThunkSym)
   }

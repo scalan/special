@@ -3,7 +3,6 @@ package special.collections
 import org.scalameter.{execution, Executor}
 import org.scalameter.api._
 import org.scalameter.picklers.Implicits._
-import scalan.util.CollectionUtil
 import special.collection.Coll
 import special.collection.ExtensionMethods._
 import spire.syntax.all._

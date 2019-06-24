@@ -72,7 +72,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
 
         {
           val Def(Lambda(_, _, x, Def(th@ThunkDef(res, sch)))) = t1
-          assert(x == res && sch.isEmpty && th.freeVars.isEmpty)
+          assert(x == res && sch.isEmpty && th.freeVars == Set(res))
         }
         {
           val Def(Lambda(_, _, x, Def(th@ThunkDef(res, sch)))) = t2
@@ -92,7 +92,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
         }
         {
           val Def(Lambda(_, _, x, Def(th@ThunkDef(res, sch)))) = t8
-          assert(sch.size == 1 && th.freeVars.contains(x) && th.freeVars.size == 2)
+          assert(sch.size == 0 && th.freeVars == Set(res))
         }
         {
           val Def(Lambda(_, _, x, Def(th@ThunkDef(res, sch)))) = t11

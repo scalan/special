@@ -2,11 +2,10 @@ package special.collections
 
 import special.collection.{Coll, PairColl, ReplColl}
 import org.scalacheck.{Gen, Shrink}
-import org.scalatest.{Matchers, PropSpec}
+import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import scalan.RType
 import scalan.RType.PairType
-import scalan.util.CollectionUtil
 
 import scala.reflect.ClassTag
 
@@ -274,6 +273,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.equals") {
     def checkColls(repl: Coll[_], coll: Coll[_]) = {
+
       assert(coll == repl)
       assert(repl == coll)
       repl.hashCode() shouldBe coll.hashCode()
