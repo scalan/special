@@ -292,7 +292,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       zip3.hashCode() shouldBe zip4.hashCode()
       zip4.hashCode() shouldBe zip1.hashCode()
     }
-    val minSuccess = minSuccessful(1)
+    val minSuccess = minSuccessful(50)
     forAll(byteGen, indexGen, minSuccess) { (x, n) =>
       val repl = builder.replicate(n, x)
       val coll = builder.fromArray(Array.fill(n)(x))
