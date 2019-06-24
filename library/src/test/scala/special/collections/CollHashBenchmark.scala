@@ -8,6 +8,8 @@ import special.collection.Coll
 import special.collection.ExtensionMethods._
 import spire.syntax.all._
 
+import java.util
+
 trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   val sizes = Gen.exponential("size")(10, 100000, 10)
 
@@ -17,7 +19,7 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
 
   val replColls = arrays.map { case (arr, i) => (builder.replicate(arr.length, (arr((arr.length - 1) / 2), 3)), i) }
 
-  val byteColl = ranges.map { case (r, i) => (Array.fill[Byte](r.toArray.length)(Byte.MaxValue), i) }
+  val byteColl = ranges.map { case (r, i) => (Array.fill[Byte](r.toArray.length)(if (i > 1000) Byte.MaxValue else Byte.MinValue), i) }
   val shortColl = ranges.map { case (r, i) => (Array.fill[Short](r.toArray.length)(Short.MaxValue), i) }
   val intColl = ranges.map { case (r, i) => (Array.fill[Int](r.toArray.length)(Int.MaxValue), i) }
   val charColl = ranges.map { case (r, i) => (Array.fill[Char](r.toArray.length)(Char.MaxValue), i) }
@@ -31,7 +33,6 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   def oldDeepHashCode[T](arr: Array[T]): Int = {
-    import java.util
     arr match {
       case arr: Array[AnyRef] => util.Arrays.deepHashCode(arr)
       case arr: Array[Byte] => util.Arrays.hashCode(arr)
@@ -63,14 +64,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Byte" in {
+    measure method "of old Coll.hashCode on Byte" in {
       using(byteColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Byte" in {
+    measure method "of new Coll.hashCode on Byte" in {
       using(byteColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()
@@ -80,14 +81,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Short" in {
+    measure method "of old Coll.hashCode on Short" in {
       using(shortColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Short" in {
+    measure method "of new Coll.hashCode on Short" in {
       using(shortColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()
@@ -97,14 +98,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Int" in {
+    measure method "of old Coll.hashCode on Int" in {
       using(intColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Int" in {
+    measure method "of new Coll.hashCode on Int" in {
       using(intColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()
@@ -114,14 +115,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Char" in {
+    measure method "of old Coll.hashCode on Char" in {
       using(charColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Char" in {
+    measure method "of new Coll.hashCode on Char" in {
       using(charColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()
@@ -131,14 +132,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Float" in {
+    measure method "of old Coll.hashCode on Float" in {
       using(floatColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Float" in {
+    measure method "of new Coll.hashCode on Float" in {
       using(floatColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()
@@ -148,14 +149,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Double" in {
+    measure method "of old Coll.hashCode on Double" in {
       using(doubleColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Double" in {
+    measure method "of new Coll.hashCode on Double" in {
       using(doubleColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()
@@ -165,14 +166,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Boolean" in {
+    measure method "of old Coll.hashCode on Boolean" in {
       using(boolColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Boolean" in {
+    measure method "of new Coll.hashCode on Boolean" in {
       using(boolColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()
@@ -182,14 +183,14 @@ trait CollHashBenchmarkCases extends CollGens { suite: Bench[Double] =>
   }
 
   performance of "hashCode" in {
-    measure method "of old CReplColl.hashCode on Complex type" in {
+    measure method "of old Coll.hashCode on Complex type" in {
       using(complexColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           oldDeepHashCode(c.toArray)
         }
       }
     }
-    measure method "of new CReplColl.hashCode on Complex type" in {
+    measure method "of new Coll.hashCode on Complex type" in {
       using(complexColl) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
           c.hashCode()

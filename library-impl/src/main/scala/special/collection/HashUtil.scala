@@ -7,7 +7,7 @@ import scalan.util.{CollectionUtil, PrimitiveTypeHashUtil}
 import scala.reflect.ClassTag
 
 object HashUtil {
-  def collHashCode[T: RType](coll: Coll[T]): Int = if (coll == null) 0
+  def collHashCode[@specialized T](coll: Coll[T]): Int = if (coll == null) 0
   else {
     deepCollHashCode(coll)
   }
@@ -34,7 +34,7 @@ object HashUtil {
     hash
   }
 
-  def deepCollHashCode[T](coll: Coll[T]): Int = {
+  def deepCollHashCode[@specialized T](coll: Coll[T]): Int = {
     calcPrimitiveCollHashCode(coll, CollectionUtil.hashOne)
   }
 }

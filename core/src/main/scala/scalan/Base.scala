@@ -15,6 +15,7 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil}
+import scalan.util.CollectionUtil
 
 import scala.reflect.runtime.universe._
 
@@ -127,15 +128,15 @@ trait Base extends LazyLogging { scalan: Scalan =>
           val element = productElement(i)
           val elementHashCode = element match {
             case null => 0
-            case arr: Array[Object] => Arrays.deepHashCode(arr)
-            case arr: Array[Int] => Arrays.hashCode(arr)
-            case arr: Array[Long] => Arrays.hashCode(arr)
-            case arr: Array[Float] => Arrays.hashCode(arr)
-            case arr: Array[Double] => Arrays.hashCode(arr)
-            case arr: Array[Boolean] => Arrays.hashCode(arr)
-            case arr: Array[Byte] => Arrays.hashCode(arr)
-            case arr: Array[Short] => Arrays.hashCode(arr)
-            case arr: Array[Char] => Arrays.hashCode(arr)
+            case arr: Array[Object] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Int] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Long] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Float] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Double] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Boolean] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Byte] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Short] => CollectionUtil.arrayHashCode(arr)
+            case arr: Array[Char] => CollectionUtil.arrayHashCode(arr)
             case _ => element.hashCode
           }
           result = 41 * result + elementHashCode
@@ -727,12 +728,16 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def defCount = defToGlobalDefs.hashMap.size()
 
+  private val _intZero = MutableLazy(0: Rep[Int])
+  @inline final def IntZero = _intZero.value
+
   def resetContext() = {
     defToGlobalDefs.clear()
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
     metadataPool = Map.empty[Sym, MetaNode]
     tuplesCache.clear()
+    _intZero.reset()
     onReset()
   }
 

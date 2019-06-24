@@ -44,7 +44,7 @@ object CollectionUtil {
 //  }).asInstanceOf[Array[T]]
 
 
-  def hashElement[T](element: T): Int = element match {
+  def hashElement[@specialized T](element: T): Int = element match {
     case arrayVal: Array[_] => arrayHashCode(arrayVal)
     case _ => {
       if (PrimitiveTypeHashUtil.isPrimitiveType(element))
@@ -53,7 +53,7 @@ object CollectionUtil {
     }
   }
 
-  def arrayHashCode[T](array: Array[T]): Int = if (array == null) 0
+  def arrayHashCode[@specialized T](array: Array[T]): Int = if (array == null) 0
   else {
     if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
       return deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
@@ -71,7 +71,7 @@ object CollectionUtil {
     }
 }
 
-  def hashOne[T](element: T): Int = {
+  def hashOne[@specialized T](element: T): Int = {
     var elementHash = 0
     if (element == null) elementHash = 0
     else {
@@ -96,7 +96,7 @@ object CollectionUtil {
     41 * lHash + rHash
   }
 
-  private def calcPrimitiveArrayHashCode[T](arr: Array[T], hashT: T => Int): Int = {
+  private def calcPrimitiveArrayHashCode[@specialized T](arr: Array[T], hashT: T => Int): Int = {
     if (arr == null) return 0
     var hash: Int = 1
     val length = arr.length
