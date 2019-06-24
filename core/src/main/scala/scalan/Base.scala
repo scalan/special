@@ -15,7 +15,6 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil}
-import scalan.util.CollectionUtil
 
 import scala.reflect.runtime.universe._
 
