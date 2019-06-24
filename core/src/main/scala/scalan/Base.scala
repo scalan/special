@@ -727,16 +727,12 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def defCount = defToGlobalDefs.hashMap.size()
 
-  private val _intZero = MutableLazy(0: Rep[Int])
-  @inline final def IntZero = _intZero.value
-
   def resetContext() = {
     defToGlobalDefs.clear()
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
     metadataPool = Map.empty[Sym, MetaNode]
     tuplesCache.clear()
-    _intZero.reset()
     onReset()
   }
 
