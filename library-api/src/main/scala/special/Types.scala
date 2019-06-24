@@ -17,8 +17,8 @@ object Types {
     val classTag: ClassTag[StructData] = scala.reflect.classTag[StructData]
     override def isConstantSize: Boolean = fieldTypes.forall(_.isConstantSize)
     override def hashCode(): Int = {
-      var h = CollectionUtil.arrayHashCode(fieldNames)
-      h += h * 31 + CollectionUtil.arrayHashCode(fieldTypes)
+      var h = CollectionUtil.deepHashCode(fieldNames)
+      h += h * 31 + CollectionUtil.deepHashCode(fieldTypes)
       h
     }
     override def equals(obj: Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj match {
@@ -37,7 +37,7 @@ object Types {
     val classTag: ClassTag[TupleData] = scala.reflect.classTag[TupleData]
     override def name: String = items.map(_.name).mkString("(", ", ", ")")
     override def isConstantSize: Boolean = items.forall(_.isConstantSize)
-    override def hashCode(): Int = CollectionUtil.arrayHashCode(items)
+    override def hashCode(): Int = CollectionUtil.deepHashCode(items)
     override def equals(obj: Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj match {
       case that: TupleType => java.util.Arrays.equals(items.asInstanceOf[Array[AnyRef]], that.items.asInstanceOf[Array[AnyRef]])
       case _ => false

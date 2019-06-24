@@ -1,5 +1,9 @@
 package scalan.util
 
+import java.util
+import java.util.Objects
+import java.util.function.BiConsumer
+
 import scalan.RType
 import scalan.RType._
 import scalan.util.PrimitiveTypeHashUtil.{hashBool, hashByte, hashChar, hashDouble, hashFloat, hashInt, hashLong, hashShort}
@@ -44,6 +48,17 @@ object CollectionUtil {
 //    case ClassTag.AnyRef => new Array[AnyRef](len)
 //  }).asInstanceOf[Array[T]]
 
+  def deepHashCode[T](arr: Array[T]): Int = arr match {
+    case arr: Array[AnyRef] => util.Arrays.deepHashCode(arr)
+    case arr: Array[Byte] => util.Arrays.hashCode(arr)
+    case arr: Array[Short] => util.Arrays.hashCode(arr)
+    case arr: Array[Int] => util.Arrays.hashCode(arr)
+    case arr: Array[Long] => util.Arrays.hashCode(arr)
+    case arr: Array[Char] => util.Arrays.hashCode(arr)
+    case arr: Array[Float] => util.Arrays.hashCode(arr)
+    case arr: Array[Double] => util.Arrays.hashCode(arr)
+    case arr: Array[Boolean] => util.Arrays.hashCode(arr)
+  }
 
   def hashElement[@specialized T: RType](element: T): Int = RType[T] match {
     case array: ArrayType[a] =>
@@ -98,15 +113,15 @@ object CollectionUtil {
     cT match {
       case prim: PrimitiveType[a] => {
         hash = prim match {
-          case RType.ByteType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Byte]], hashByte)(RType.ByteType)
-          case RType.ShortType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Short]], hashShort)(RType.ShortType)
-          case RType.IntType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Int]], hashInt)(RType.IntType)
-          case RType.CharType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Char]], hashChar)(RType.CharType)
-          case RType.LongType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Long]], hashLong)(RType.LongType)
-          case RType.FloatType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Float]], hashFloat)(RType.FloatType)
-          case RType.DoubleType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Double]], hashDouble)(RType.DoubleType)
-          case RType.BooleanType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Boolean]], hashBool)(RType.BooleanType)
-          case RType.UnitType => throw new NotImplementedError("Not supported")
+          case RType.ByteType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Byte]], hashByte)
+          case RType.ShortType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Short]], hashShort)
+          case RType.IntType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Int]], hashInt)
+          case RType.CharType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Char]], hashChar)
+          case RType.LongType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Long]], hashLong)
+          case RType.FloatType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Float]], hashFloat)
+          case RType.DoubleType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Double]], hashDouble)
+          case RType.BooleanType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Boolean]], hashBool)
+          case _ => throw new NotImplementedError("Not supported")
         }
       }
       case _ => {
@@ -417,10 +432,10 @@ object CollectionUtil {
       var result: Int = 1
       for (x <- xs) {
         val elementHash = x match {
-          case arr: Array[RType[_]] => arrayHashCode(arr)
-          case _ => x.hashCode()
+          case arr: Array[_] => CollectionUtil.deepHashCode(arr)
+          case _ => Objects.hashCode(x)
         }
-        result = 31 * result + elementHash
+        result = 31 * result + elementHash;
       }
       result
     }
