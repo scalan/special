@@ -84,7 +84,7 @@ object CollectionUtil {
     elementHash
   }
 
-  def deepPairedArrayHashCode(array: Array[Tuple2[_, _]]): Int = if (array == null) 0
+  private def deepPairedArrayHashCode(array: Array[Tuple2[_, _]]): Int = if (array == null) 0
   else {
     val length = array.length
     var i = 0
@@ -100,73 +100,53 @@ object CollectionUtil {
     41 * lHash + rHash
   }
 
-  def deepArrayHashCode(array: Array[AnyRef]): Int = if (array == null) 0
-  else {
-    if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
-      deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
-    }
-    var hash = 1
-    val length = array.length
-    var i = 0
-
-    while (i < length) {
-      val element = array(i)
-      var elementHash = 0
-      if (element == null) elementHash = 0
-      else {
-        elementHash = hashElement(element)
-      }
-      hash = 31 * hash + elementHash
-      i += 1
-    }
-
-    hash
-  }
-
-
-  def calcPrimitiveArrayHashCode[T](arr: Array[T], hashOne: T => Int): Int ={
+  private def calcPrimitiveArrayHashCode[T](arr: Array[T], hashT: T => Int): Int = {
     if (arr == null) return 0
     var hash: Int = 1
     val length = arr.length
     var i: Int = 0
     while (i < length) {
       val element = arr(i)
-      hash = 31 * hash + hashOne(element)
+      hash = 31 * hash + hashT(element)
 
       i += 1
     }
     return hash
   }
 
-  def byteArrayHashCode(arr: Array[Byte]): Int = {
+  private def deepArrayHashCode(arr: Array[AnyRef]): Int = {
+    calcPrimitiveArrayHashCode(arr, hashOne)
+  }
+
+  private def byteArrayHashCode(arr: Array[Byte]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashByte)
   }
 
-  def shortArrayHashCode(arr: Array[Short]): Int = {
+  private def shortArrayHashCode(arr: Array[Short]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashShort)
   }
 
-  def intArrayHashCode(arr: Array[Int]): Int = {
+  private def intArrayHashCode(arr: Array[Int]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashInt)
   }
 
-  def charArrayHashCode(arr: Array[Char]): Int = {
+  private def charArrayHashCode(arr: Array[Char]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashChar)
   }
 
-  def longArrayHashCode(arr: Array[Long]): Int = {
+  private def longArrayHashCode(arr: Array[Long]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashLong)
   }
 
-  def floatArrayHashCode(arr: Array[Float]): Int = {
+  private def floatArrayHashCode(arr: Array[Float]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashFloat)
   }
 
-  def doubleArrayHashCode(arr: Array[Double]): Int = {
+  private def doubleArrayHashCode(arr: Array[Double]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashDouble)
   }
 
-  def boolArrayHashCode(arr: Array[Boolean]): Int = {
+  private def boolArrayHashCode(arr: Array[Boolean]): Int = {
     calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashBool)
   }
 
