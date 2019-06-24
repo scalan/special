@@ -266,7 +266,10 @@ trait Transforming { self: Scalan =>
 
       val newRoot = t1(thunk.root)
       newRootPH.assignDefFrom(newRoot)
-      schedulePH = if (newRoot.isVar) Nil else newScope.scheduleForResult(newRoot)
+      schedulePH =
+          if (newRoot.isVar) Nil
+          else if (newScope.body.isEmpty)  Nil
+          else newScope.scheduleForResult(newRoot)
 
       createDefinition(newThunkSym, newThunk)
       (t1 + (node -> newThunkSym), newThunkSym)
