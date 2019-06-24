@@ -255,7 +255,7 @@ class CollOverArrayBuilder extends CollBuilder {
     case pt: PairType[a,b] =>
       val tA = pt.tFst
       val tB = pt.tSnd
-      val tuple = v.asInstanceOf[Tuple2[a, b]]
+      val tuple = v.asInstanceOf[(a, b)]
       new PairOfCols(replicate(n, tuple._1)(tA), replicate(n, tuple._2)(tB))
     case _ =>
       new CReplColl(v, n)
@@ -769,7 +769,14 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @Internal
   override def hashCode(): Int = {
-    HashUtil.collHashCode(this)
+    var hash = 1
+    var i: Int = 0
+    val hashElement = CollectionUtil.hashElement(value)
+    while (i < length) {
+      hash = 31 * hash + hashElement
+      i += 1
+    }
+    hash
   }
 
   @Internal

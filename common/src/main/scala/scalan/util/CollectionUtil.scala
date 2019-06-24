@@ -1,7 +1,8 @@
 package scalan.util
 
 import scalan.RType
-import scalan.RType.PairType
+import scalan.RType._
+import scalan.util.PrimitiveTypeHashUtil.{hashBool, hashByte, hashChar, hashDouble, hashFloat, hashInt, hashLong, hashShort}
 
 import scala.collection.{GenIterable, Seq, mutable}
 import scala.collection.mutable.{ArrayBuffer, HashMap}
@@ -44,106 +45,81 @@ object CollectionUtil {
 //  }).asInstanceOf[Array[T]]
 
 
-  def hashElement[@specialized T](element: T): Int = element match {
-    case arrayVal: Array[_] => arrayHashCode(arrayVal)
-    case _ => {
-      if (PrimitiveTypeHashUtil.isPrimitiveType(element))
-        PrimitiveTypeHashUtil.hashPrimitive(element)
-      else element.hashCode()
-    }
+  def hashElement[@specialized T: RType](element: T): Int = RType[T] match {
+    case array: ArrayType[a] =>
+      val tA = array.tA
+      arrayHashCode(element.asInstanceOf[Array[a]])(tA)
+    case prim: PrimitiveType[a] =>
+      PrimitiveTypeHashUtil.hashPrimitive(element)
+    case _ =>
+      element.hashCode()
   }
 
-  def arrayHashCode[@specialized T](array: Array[T]): Int = if (array == null) 0
-  else {
-    if (array.isInstanceOf[Array[Tuple2[_, _]]]) {
-      return deepPairedArrayHashCode(array.asInstanceOf[Array[Tuple2[_, _]]])
-    }
-    array match {
-      case arr: Array[AnyRef] => deepArrayHashCode(arr)
-      case arr: Array[Byte] => byteArrayHashCode(arr)
-      case arr: Array[Short] => shortArrayHashCode(arr)
-      case arr: Array[Int] => intArrayHashCode(arr)
-      case arr: Array[Char] => charArrayHashCode(arr)
-      case arr: Array[Long] => longArrayHashCode(arr)
-      case arr: Array[Float] => floatArrayHashCode(arr)
-      case arr: Array[Double] => doubleArrayHashCode(arr)
-      case arr: Array[Boolean] => boolArrayHashCode(arr)
-    }
-}
-
-  def hashOne[@specialized T](element: T): Int = {
-    var elementHash = 0
-    if (element == null) elementHash = 0
-    else {
-      elementHash = hashElement(element)
-    }
-    elementHash
+  def arrayHashCode[@specialized T: RType](array: Array[T]): Int = RType[T] match {
+    case pt: PairType[a, b] =>
+      val tA = pt.tFst
+      val tB = pt.tSnd
+      deepPairedArrayHashCode(array.asInstanceOf[Array[(a, b)]])(tA, tB)
+    case _ => deepArrayHashCode(array)
   }
 
-  private def deepPairedArrayHashCode(array: Array[Tuple2[_, _]]): Int = if (array == null) 0
-  else {
+  private def deepPairedArrayHashCode[@specialized A, @specialized B](array: Array[(A, B)])
+                                                                     (implicit tA: RType[A], tB: RType[B]): Int = {
     val length = array.length
     var i = 0
     var lHash = 1
     var rHash = 1
     while (i < length) {
       val element = array(i)
-      lHash = 31 * lHash + hashOne(element._1)
-      rHash = 31 * rHash + hashOne(element._2)
+      lHash = 31 * lHash + hashElement(element._1)(tA)
+      rHash = 31 * rHash + hashElement(element._2)(tB)
       i += 1
     }
 
     41 * lHash + rHash
   }
 
-  private def calcPrimitiveArrayHashCode[@specialized T](arr: Array[T], hashT: T => Int): Int = {
-    if (arr == null) return 0
+  private def deepPrimitiveArrayHashCode[@specialized T: RType](arr: Array[T], hashFunction: T => Int): Int = {
     var hash: Int = 1
     val length = arr.length
     var i: Int = 0
     while (i < length) {
       val element = arr(i)
-      hash = 31 * hash + hashT(element)
+      hash = 31 * hash + hashFunction(element)
 
       i += 1
     }
-    return hash
+    hash
   }
 
-  private def deepArrayHashCode(arr: Array[AnyRef]): Int = {
-    calcPrimitiveArrayHashCode(arr, hashOne)
-  }
-
-  private def byteArrayHashCode(arr: Array[Byte]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashByte)
-  }
-
-  private def shortArrayHashCode(arr: Array[Short]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashShort)
-  }
-
-  private def intArrayHashCode(arr: Array[Int]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashInt)
-  }
-
-  private def charArrayHashCode(arr: Array[Char]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashChar)
-  }
-
-  private def longArrayHashCode(arr: Array[Long]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashLong)
-  }
-
-  private def floatArrayHashCode(arr: Array[Float]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashFloat)
-  }
-
-  private def doubleArrayHashCode(arr: Array[Double]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashDouble)
-  }
-
-  private def boolArrayHashCode(arr: Array[Boolean]): Int = {
-    calcPrimitiveArrayHashCode(arr, PrimitiveTypeHashUtil.hashBool)
+  private def deepArrayHashCode[@specialized T](arr: Array[T])(implicit cT: RType[T]): Int = {
+    if (arr == null) return 0
+    var hash: Int = 1
+    cT match {
+      case prim: PrimitiveType[a] => {
+        hash = prim match {
+          case RType.ByteType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Byte]], hashByte)(RType.ByteType)
+          case RType.ShortType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Short]], hashShort)(RType.ShortType)
+          case RType.IntType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Int]], hashInt)(RType.IntType)
+          case RType.CharType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Char]], hashChar)(RType.CharType)
+          case RType.LongType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Long]], hashLong)(RType.LongType)
+          case RType.FloatType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Float]], hashFloat)(RType.FloatType)
+          case RType.DoubleType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Double]], hashDouble)(RType.DoubleType)
+          case RType.BooleanType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Boolean]], hashBool)(RType.BooleanType)
+          case RType.UnitType => throw new NotImplementedError("Not supported")
+        }
+      }
+      case _ => {
+        val length = arr.length
+        var i: Int = 0
+        while (i < length) {
+          val element = arr(i)
+          hash = 31 * hash + hashElement(element)(cT)
+          i += 1
+        }
+      }
+    }
+    hash
   }
 
   def foldRight[A,B](xs: Seq[A])(proj: A => B)(f: (A,B) => B): B =
@@ -441,10 +417,10 @@ object CollectionUtil {
       var result: Int = 1
       for (x <- xs) {
         val elementHash = x match {
-          case arr: Array[_] => arrayHashCode(arr)
+          case arr: Array[RType[_]] => arrayHashCode(arr)
           case _ => x.hashCode()
         }
-        result = 31 * result + elementHash;
+        result = 31 * result + elementHash
       }
       result
     }

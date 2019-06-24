@@ -1,20 +1,22 @@
 package scalan.util
 
-object PrimitiveTypeHashUtil {
-  def isPrimitiveType[@specialized T](value: T): Boolean = value match {
-    case Boolean | Byte | Short | Int | Long | Char | Double | Float => true
-    case _ => false
-  }
+import scalan.RType
 
-  def hashPrimitive[T](element: T): Int = element match {
-    case e: Byte => hashByte(e)
-    case e: Short => hashShort(e)
-    case e: Int => hashInt(e)
-    case e: Char => hashChar(e)
-    case e: Long => hashLong(e)
-    case e: Float => hashFloat(e)
-    case e: Double => hashDouble(e)
-    case e: Boolean => hashBool(e)
+object PrimitiveTypeHashUtil {
+
+  def hashPrimitive[@specialized T: RType](element: T): Int = RType[T] match {
+    case prim: RType.PrimitiveType[a] => {
+      prim match {
+        case RType.ByteType => hashByte(element.asInstanceOf[Byte])
+        case RType.ShortType => hashShort(element.asInstanceOf[Short])
+        case RType.IntType => hashInt(element.asInstanceOf[Int])
+        case RType.CharType => hashChar(element.asInstanceOf[Char])
+        case RType.LongType => hashLong(element.asInstanceOf[Long])
+        case RType.FloatType => hashFloat(element.asInstanceOf[Float])
+        case RType.DoubleType => hashDouble(element.asInstanceOf[Double])
+        case RType.BooleanType => hashBool(element.asInstanceOf[Boolean])
+      }
+    }
     case _ => throw new RuntimeException("Non-primitive type was passed")
   }
 
