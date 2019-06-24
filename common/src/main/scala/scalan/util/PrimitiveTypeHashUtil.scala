@@ -15,6 +15,8 @@ object PrimitiveTypeHashUtil {
         case RType.FloatType => hashFloat(element.asInstanceOf[Float])
         case RType.DoubleType => hashDouble(element.asInstanceOf[Double])
         case RType.BooleanType => hashBool(element.asInstanceOf[Boolean])
+        case RType.UnitType => hashUnit(element.asInstanceOf[Unit])
+        case _ => throw new IllegalArgumentException(s"Type ${prim} is not supported")
       }
     }
     case _ => throw new RuntimeException("Non-primitive type was passed")
@@ -42,4 +44,6 @@ object PrimitiveTypeHashUtil {
   }
 
   def hashBool(element: Boolean): Int = if (element) 1231 else 1237
+
+  def hashUnit(element: Unit): Int = 0
 }

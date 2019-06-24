@@ -6,7 +6,7 @@ import java.util.function.BiConsumer
 
 import scalan.RType
 import scalan.RType._
-import scalan.util.PrimitiveTypeHashUtil.{hashBool, hashByte, hashChar, hashDouble, hashFloat, hashInt, hashLong, hashShort}
+import scalan.util.PrimitiveTypeHashUtil.{hashUnit, hashBool, hashByte, hashChar, hashDouble, hashFloat, hashInt, hashLong, hashShort}
 
 import scala.collection.{GenIterable, Seq, mutable}
 import scala.collection.mutable.{ArrayBuffer, HashMap}
@@ -121,7 +121,8 @@ object CollectionUtil {
           case RType.FloatType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Float]], hashFloat)
           case RType.DoubleType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Double]], hashDouble)
           case RType.BooleanType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Boolean]], hashBool)
-          case _ => throw new NotImplementedError("Not supported")
+          case RType.UnitType => deepPrimitiveArrayHashCode(arr.asInstanceOf[Array[Unit]], hashUnit)
+          case _ => throw new IllegalArgumentException(s"Type ${prim} is not supported")
         }
       }
       case _ => {
