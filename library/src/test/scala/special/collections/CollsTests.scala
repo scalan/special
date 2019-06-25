@@ -263,10 +263,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.equals") {
-    forAll(valGen, indexGen) { (x, n) =>
-      val repl = builder.replicate(n, x)
-      val coll = builder.fromArray(Array.fill(n)(x))
-
+    def checkColls(repl: Coll[_], coll: Coll[_]) = {
       assert(coll == repl)
       assert(repl == coll)
       repl.hashCode() shouldBe coll.hashCode()
@@ -275,7 +272,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val zip2 = repl.zip(coll)
       val zip3 = coll.zip(coll)
       val zip4 = coll.zip(repl)
-      
+
       assert(zip1 == zip2)
       assert(zip2 == zip3)
       assert(zip3 == zip4)
@@ -285,7 +282,91 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       zip3.hashCode() shouldBe zip4.hashCode()
       zip4.hashCode() shouldBe zip1.hashCode()
     }
+    val minSuccess = minSuccessful(50)
+    forAll(byteGen, indexGen, minSuccess) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      checkColls(repl, coll)
+    }
+    forAll(shortGen, indexGen, minSuccess) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      checkColls(repl, coll)
+    }
+    forAll(intGen, indexGen, minSuccess) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      checkColls(repl, coll)
+    }
+    forAll(longGen, indexGen, minSuccess) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      checkColls(repl, coll)
+    }
+    forAll(charGen, indexGen, minSuccess) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      checkColls(repl, coll)
+    }
+    forAll(floatGen, indexGen, minSuccess) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      checkColls(repl, coll)
+    }
+    forAll (doubleGen, indexGen, minSuccess) { (x, n) =>
+      val repl = builder.replicate(n, x)
+      val coll = builder.fromArray(Array.fill(n)(x))
+
+      checkColls(repl, coll)
+    }
+    forAll (indexGen, minSuccess) { (n) =>
+      val replTrue = builder.replicate(n, true)
+      val collTrue = builder.fromArray(Array.fill(n)(true))
+      val replFalse = builder.replicate(n, false)
+      val collFalse = builder.fromArray(Array.fill(n)(false))
+
+      checkColls(replTrue, collTrue)
+      checkColls(replFalse, collFalse)
+    }
+    forAll(indexGen, minSuccess) { n =>
+      val repl = builder.replicate(n, builder.fromItems(Array(1, 2, 3)))
+      val coll = builder.fromArray(Array.fill(n)(builder.fromItems(Array(1, 2, 3))))
+
+      checkColls(repl, coll)
+    }
+    forAll(indexGen, indexGen, minSuccess) { (n, m) =>
+      val repl = builder.replicate(n, builder.replicate(m, 1))
+      val coll = builder.fromArray(Array.fill(n)(builder.fromArray(Array.fill(m)(1))))
+
+      checkColls(repl, coll)
+    }
+    // This tuple tests fail with previous implementation
+    forAll (byteGen, doubleGen, intGen, indexGen, minSuccess) { (b, d, i, n) =>
+      val repl = builder.replicate(n, (b, i))
+      val coll = builder.fromArray(Array.fill[(Byte, Int)](n)((b, i)))
+
+      checkColls(repl, coll)
+    }
+    forAll (byteGen, doubleGen, intGen, indexGen, minSuccess) { (b, d, i, n) =>
+      val repl = builder.replicate(n, (b, (i, (d, b))))
+      val coll = builder.fromArray(Array.fill[(Byte, (Int, (Double, Byte)))](n)((b, (i, (d, b)))))
+
+      checkColls(repl, coll)
+    }
+    forAll (byteGen, doubleGen, intGen, indexGen, indexGen, minSuccess) { (b, d, i, n, m) =>
+      val repl = builder.replicate(n, (b, ((i, (("string", builder.replicate(m, n)), Array(1, 2, 3, 4))), (d, b))))
+      val coll = builder.fromArray(Array.fill(n)((b, ((i, (("string", builder.fromArray(Array.fill(m)(n))), Array(1, 2, 3, 4))), (d, b)))))
+
+      checkColls(repl, coll)
+    }
   }
+
 
   property("PairColl.mapFirst") {
     val minSuccess = minSuccessful(30)
