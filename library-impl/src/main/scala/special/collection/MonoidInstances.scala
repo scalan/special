@@ -21,8 +21,8 @@ class MonoidBuilderInst extends MonoidBuilder {
 }
 
 class IntPlusMonoid(val zero: Int) extends Monoid[Int] {
-  def plus(x: Int, y: Int): Int = x + y
-  def power(x: Int, n: Int): Int = x * n
+  def plus(x: Int, y: Int): Int = Math.addExact(x, y)
+  def power(x: Int, n: Int): Int = Math.multiplyExact(x, n)
 }
 
 class IntMaxMonoid(val zero: Int) extends Monoid[Int] {
@@ -40,8 +40,8 @@ class IntMinMonoid(val zero: Int) extends Monoid[Int] {
 }
 
 class LongPlusMonoid(val zero: Long) extends Monoid[Long] {
-  def plus(x: Long, y: Long): Long = x + y
-  def power(x: Long, n: Int): Long = x * n.toLong
+  def plus(x: Long, y: Long): Long = Math.addExact(x, y)
+  def power(x: Long, n: Int): Long = Math.multiplyExact(x, n)
 }
 
 class LongMaxMonoid(val zero: Long) extends Monoid[Long] {
