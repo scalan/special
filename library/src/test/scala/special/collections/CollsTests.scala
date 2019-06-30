@@ -1,7 +1,7 @@
 package special.collections
 
-import special.collection.{Coll, PairColl, ReplColl}
-import org.scalacheck.{Gen, Shrink}
+import special.collection.{ReplColl, PairOfCols, PairColl, CReplColl, Coll}
+import org.scalacheck.{Shrink, Gen}
 import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
 import scalan.RType
@@ -193,9 +193,37 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.append") {
-    forAll(collGen, collGen) { (col1, col2) =>
-      val res = col1.append(col2)
-      res.toArray shouldBe (col1.toArray ++ col2.toArray)
+    forAll(collGen, collGen, valGen, MinSuccessful(50)) { (col1, col2, v) =>
+
+      {
+        val res = col1.append(col2)
+        res.toArray shouldBe (col1.toArray ++ col2.toArray)
+        val pairs1 = col1.zip(col1)
+        val pairs2 = col2.zip(col2)
+        val apairs = pairs1.append(pairs2)
+        apairs.toArray shouldBe (pairs1.toArray ++ pairs2.toArray)
+      }
+
+      {
+        val repl1 = builder.replicate(col1.length, v)
+        val repl2 = builder.replicate(col2.length, v)
+        val arepl = repl1.append(repl2)
+        assert(arepl.isInstanceOf[CReplColl[Int]])
+        arepl.toArray shouldBe (repl1.toArray ++ repl2.toArray)
+        
+        val pairs1 = repl1.zip(repl1)
+        val pairs2 = repl2.zip(repl2)
+        val apairs = pairs1.append(pairs2)
+        apairs.toArray shouldBe (pairs1.toArray ++ pairs2.toArray)
+
+        apairs match {
+          case ps: PairOfCols[_,_] =>
+            assert(ps.ls.isInstanceOf[CReplColl[Int]])
+            assert(ps.rs.isInstanceOf[CReplColl[Int]])
+          case _ =>
+            assert(false, "Invalid type")
+        }
+      }
     }
   }
 
@@ -233,6 +261,10 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe col.toArray.reverse
       val pairs = col.zip(col)
       pairs.reverse.toArray shouldBe pairs.toArray.reverse
+// TODO should work
+//      val c1 = col.asInstanceOf[Coll[Any]]
+//      val appended = c1.append(c1)
+//      appended.toArray shouldBe (c1.toArray ++ c1.toArray)
     }
   }
 

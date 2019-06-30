@@ -144,7 +144,6 @@ trait Library extends Scalan
     case CM.length(Def(CollConst(coll, _))) => coll.length
     case CM.length(CBM.fromArray(_, arr)) => arr.length
     case CM.length(CBM.fromItems(_, items, _)) => items.length
-    case IsNumericToLong(Def(IsNumericToInt(x))) if x.elem == LongElement => x
 
     // Rule: replicate(l, x).zip(replicate(l, y)) ==> replicate(l, (x,y))
     case CM.zip(CBM.replicate(b1, l1, v1), CBM.replicate(b2, l2, v2)) if b1 == b2 && l1 == l2 =>
