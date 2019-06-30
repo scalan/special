@@ -346,8 +346,8 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     }
   }
 
-  // private[this] val isoCache = MutMap.empty[Elem[_], Iso[_, _]]
   // TODO this caching doesn't work with structs (uncomment and check test("flatteningIso"))
+  // private[this] val isoCache = MutMap.empty[Elem[_], Iso[_, _]]
   def buildIso[T](e: Elem[T], builder: IsoBuilder): Iso[_, T] = //isoCache.getOrElseUpdate(
     (//classOf[Iso[_, _]], Seq(e)),
     e match {

@@ -15,12 +15,14 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     val minSuccess = MinSuccessful(30)
     forAll(collGen, collGen, minSuccess) { (col1: Coll[Int], col2: Coll[Int]) =>
       col1.indices.toArray shouldBe col1.toArray.indices.toArray
-//      col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
-// TODO     col1.zip(col2).indices.arr shouldBe col1.arr.zip(col2.arr).indices.toArray
     }
     forAll(superGen, minSuccess) { cl =>
       cl.indices.toArray shouldBe cl.toArray.indices.toArray
     }
+  }
+
+  // TODO col1.zip(col2).length shouldBe col1.arr.zip(col2.arr).length
+  property("Coll.zip") {
   }
 
   property("Coll.flatMap") {

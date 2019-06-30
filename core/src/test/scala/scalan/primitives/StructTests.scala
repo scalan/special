@@ -164,8 +164,8 @@ class StructTests extends BaseViewTests {
     val t2 = e2.tag
     val t3 = e3.tag
     assert(t1 == t2, "should be equal")
-    // TODO this inconsistency can potentially lead to some problems
-    // and should be fixed with better implementation of StructElem.tag
+
+    // NOTE: all StructElem instances are expected to have equal tags
     assert(t1 == t3, "should be equal as well even though e1 != e3 !!!")
 
     assert(es1 == es1again)
@@ -403,7 +403,6 @@ class StructTests extends BaseViewTests {
     }
   }
 
-  // TODO switch to nested tests
   test("More flattening") {
     val ctx = new Ctx
     import ctx.compiler.scalan._; import IsoUR._

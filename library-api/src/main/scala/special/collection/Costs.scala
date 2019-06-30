@@ -15,7 +15,6 @@ trait CostedPrim[Val] extends Costed[Val] {
   def size: Size[Val]
 }
 
-// TODO add accumulatedCost property (necessary when CostedPrim is converted to CostedPair)
 trait CostedPair[L,R] extends Costed[(L,R)] {
   def l: Costed[L]
   def r: Costed[R]

@@ -161,7 +161,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
       buildScheduleForResult(Seq(root), _.getDeps.filter(s => bodySet.contains(s) && !s.isVar))
     }
 
-    // TODO optimize using ListMap
+    // TODO optimize: this is performance hotspot (use ArrayBuilder instead of ListBuffer)
     def findDef[T](d: Def[T]): TableEntry[T] = {
       for (te <- body) {
         if (te.rhs == d) return te.asInstanceOf[TableEntry[T]]

@@ -47,9 +47,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   type StructField = (String, Rep[Any])
   trait Struct {
-    def tag: StructTag[_] // TODO add type argument?
-//    def keys: Rep[KeySet]
-//    def values: Rep[HList]
+    def tag: StructTag[_]
     def fields: Seq[StructField]
   }
   type RStruct = Rep[Struct]
@@ -152,7 +150,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
 
   def tupleStructElement(fieldElems: Elem[_]*)(implicit o: Overloaded1): StructElem[Struct] = {
     val fields = fieldElems.zipWithIndex.map { case (f, i) => tupleFN(i) -> f }
-    // TODO add tupleTag(n)?
+    // TODO refactor: add tupleTag(n)
     structElement(defaultStructTag, fields)
   }
 

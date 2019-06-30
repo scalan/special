@@ -11,7 +11,6 @@ trait Transforming { self: Scalan =>
   trait Pass {
     def name: String
     def config: PassConfig = Pass.defaultPassConfig
-    // TODO what arguments?
     def doFinalization(): Unit = {}
     /**
       * Pass specific optional decision.
@@ -39,7 +38,7 @@ trait Transforming { self: Scalan =>
 
   class DefaultPass(val name: String, override val config: PassConfig = PassConfig()) extends Pass
 
-  //TODO parallel execution of Compilers
+  //TODO optimize: parallel execution of Compilers
   // Current design doesn't allow to run through passes i two Compilers in parallel
   var _currentPass: Pass = Pass.defaultPass
   def currentPass = _currentPass
@@ -286,38 +285,27 @@ trait Transforming { self: Scalan =>
       (t2, mirrored)
     }
 
-    // TODO make protected
     def mirrorNode[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Exp[A]): (Ctx, Sym) = {
-      isMirrored(t, node) match {         // cannot use 'if' because it becomes staged
-        case true => (t, t(node))
-        case _ =>
-//          (
-          node match {
-            case Def(d) => d match {
-              case v: Variable[_] =>
-                mirrorVar(t, rewriter, node)
-              case lam: Lambda[a, b] =>
-                val (t1, mirrored) = mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
-                setMirroredMetadata(t1, node, mirrored)
-              case th: ThunkDef[a] =>
-                val (t1, mirrored) = mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
-                setMirroredMetadata(t1, node, mirrored)
-              case ite: IfThenElse[a] =>
-                val (t1, mirrored) = mirrorIfThenElse(t, rewriter, g, node.asInstanceOf[Rep[a]], ite)
-                setMirroredMetadata(t1, node, mirrored)
-              case _ =>
-                mirrorDef(t, rewriter, node, d)
-            }
-//            case _ =>
-//              val (t1, mirrored) =
-//              setMirroredMetadata(t1, node, mirrored)
+      if (isMirrored(t, node)) {
+        (t, t(node))
+      } else {
+        node match {
+          case Def(d) => d match {
+            case v: Variable[_] =>
+              mirrorVar(t, rewriter, node)
+            case lam: Lambda[a, b] =>
+              val (t1, mirrored) = mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
+              setMirroredMetadata(t1, node, mirrored)
+            case th: ThunkDef[a] =>
+              val (t1, mirrored) = mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
+              setMirroredMetadata(t1, node, mirrored)
+            case ite: IfThenElse[a] =>
+              val (t1, mirrored) = mirrorIfThenElse(t, rewriter, g, node.asInstanceOf[Rep[a]], ite)
+              setMirroredMetadata(t1, node, mirrored)
+            case _ =>
+              mirrorDef(t, rewriter, node, d)
           }
-//          ) match {
-//            case (t1, mirrored: Exp[b]) =>
-//              val (t2, mirroredMetadata) = mirrorMetadata(t1, node, mirrored)
-//              setAllMetadata(mirrored, mirroredMetadata)
-//              (t2, mirrored)
-//          }
+        }
       }
     }
 

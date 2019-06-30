@@ -559,7 +559,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   trait TableEntry[+T] extends Stm {
     def sym: Rep[T]
-    def lambda: Option[Rep[_]]
     def rhs: Def[T]
     def isLambda = rhs.isInstanceOf[Lambda[_, _]]
   }
@@ -720,7 +719,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]) = new TableEntrySingle(sym, rhs, Some(lam))
   }
 
-  //TODO replace with Variable once symbols are merged with Defs
   protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
   private[this] val defToGlobalDefs = AVHashMap[Def[_], TableEntry[_]](10000)

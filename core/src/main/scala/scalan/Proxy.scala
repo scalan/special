@@ -229,31 +229,17 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         case e: Exception => onInvokeException(baseCause(e))
       }
     val d = receiver.rhs
-//    @tailrec
     def findMethodLoop(m: Method): Option[Method] =
       if (shouldInvoke(d, m, args))
         Some(m)
       else
         None
-//        getSuperMethod(m) match {
-//          case None =>
-//            None
-//          case Some(superMethod) =>
-//            findMethodLoop(superMethod)
-//        }
 
     findMethodLoop(m) match {
       case Some(m1) =>
         tryInvoke(d, m1)
       case None =>
-//        if (isDescMethod(m)) {
-//          // when receiver is Lambda variable (there is no Def) it still has Elem,
-//          // so when we are accessing one of the descriptior properties
-//          // we can find a method in the elem with the same name and use it to return requested desciptor
-//          // TODO check invariant that all the nodes and their elems have equal descriptors
-//          tryInvokeElem(d.selfType)
-//        } else
-          onNoMethodFound
+        onNoMethodFound
     }
   }
 

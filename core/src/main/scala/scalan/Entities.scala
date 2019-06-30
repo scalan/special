@@ -9,15 +9,12 @@ trait Entities extends TypeDescs { self: Scalan =>
   
   abstract class EntityElem[A] extends Elem[A] with scala.Equals {
     def parent: Option[Elem[_]]
-    def prestagedClass: Class[_] = !!!(s"Entity $this doesn't have prestagedClass")
     val entityName: String = {
       val elemClassSymbol = ReflectionUtil.classToSymbol(this.getClass)
       val n = elemClassSymbol.name.toString.stripSuffix("Elem")
       n
     }
     def convert(x: Rep[Def[_]]): Rep[A] = !!!("should not be called")
-    //def getConverterTo[B](eB: Elem[B]): Conv[A,B] = !!!  //TODO make it abstract
-    // TODO generate code for this in implementations
     def canEqual(other: Any) = other.isInstanceOf[EntityElem[_]]
     override def equals(other: Any) = other match {
       case other: EntityElem[_] =>

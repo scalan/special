@@ -5,7 +5,6 @@ import scalan.{Scalan, BaseTests}
 class RewriteSuite extends BaseTests {
   val scalan = new Scalan
   import scalan._
-  // TODO will be a describe block
   {
     val rand1 = random(5)
 

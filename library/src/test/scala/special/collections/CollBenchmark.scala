@@ -7,14 +7,9 @@ import special.collection.Coll
 import special.collection.ExtensionMethods._
 import spire.syntax.all._
 
-trait CollBenchmarkCases extends CollGens { suite: Bench[Double] =>
-  val sizes = Gen.exponential("size")(10, 100000, 10)
 
-  val ranges = for { size <- sizes } yield (0 until size, 100000 / size)
 
-  val arrays = ranges.map { case (r, i) => (r.toArray, i) }
-
-  val colls = arrays.map { case (arr, i) => (builder.fromArray(arr), i) }
+trait CollBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
 
   performance of "map" in {
     measure method "of Array" in {

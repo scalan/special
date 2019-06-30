@@ -523,7 +523,8 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   @NeverInline
   override def mapReduce[K: RType, V: RType](m: ((L, R)) => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
-    val (keys, values) = Helpers.mapReduce(toArray, m, r)  // TODO optimize: don't reify arr
+    // TODO optimize: don't reify arr
+    val (keys, values) = Helpers.mapReduce(toArray, m, r)
     builder.pairCollFromArrays(keys, values)
   }
 

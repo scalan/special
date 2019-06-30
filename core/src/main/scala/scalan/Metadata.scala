@@ -41,7 +41,6 @@ trait Metadata { self: Scalan =>
     def withName(name: String) = setMetadata(symNameKey)(name, Some(true))
   }
 
-  // TODO better do it with UnboxedTuple, similar to LMS
   val MultipleArgsKey = MetaKey[Int]("emitMuplipleArgs")
   val symNameKey = MetaKey[String]("symName")
 

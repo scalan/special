@@ -16,7 +16,8 @@ class PrimitivesExamplesSuite extends BaseShouldTests {
   
   def testMethod(name: String) = {
     val ctx = new Scalan with PrimitiveExamples with GraphVizExport {
-      override def isInvokeEnabled(d: Def[_], m: Method) = true //HACK: invoke all domain methods if possible //TODO this is not how it should be specified
+      //HACK: invoke all domain methods if possible //TODO this is not how it should be specified
+      override def isInvokeEnabled(d: Def[_], m: Method) = true
     }
     import ctx._
     val f = getStagedFunc(name)
