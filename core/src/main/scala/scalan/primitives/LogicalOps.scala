@@ -61,18 +61,28 @@ trait LogicalOps extends Base { self: Scalan =>
   @inline
   private def matchBoolConsts(d: Def[_], lhs: Sym, rhs: Sym, ifTrue: Sym => Sym, ifFalse: Sym => Sym, ifEqual: Sym => Sym, ifNegated: Sym => Sym): Sym =
     lhs match {
+      // op(x, x)
       case `rhs` =>
         ifEqual(lhs)
+
+      // op(!x, x) => ifNegated(!x)
       case Def(ApplyUnOp(op, `rhs`)) if op == Not =>
         ifNegated(lhs)
+
+      // op(true, x) => ifTrue(x) | op(false, x) => ifFalse(x)
       case Def(Const(b: Boolean)) =>
         if (b) ifTrue(rhs) else ifFalse(rhs)
-      case _ => rhs match {
-        case Def(Const(b: Boolean)) =>
-          if (b) ifTrue(lhs) else ifFalse(lhs)
-        case Def(ApplyUnOp(op, `lhs`)) if op == Not =>
-          ifNegated(rhs)
-        case _ => super.rewriteDef(d)
-      }
+
+      case _ =>
+        rhs match {
+          // op(x, true) => ifTrue(x) | op(false, x) => ifFalse(x)
+          case Def(Const(b: Boolean)) =>
+            if (b) ifTrue(lhs) else ifFalse(lhs)
+
+          // op(x, !x) => ifNegated(!x)
+          case Def(ApplyUnOp(op, `lhs`)) if op == Not =>
+            ifNegated(rhs)
+          case _ => super.rewriteDef(d)
+        }
     }
 }

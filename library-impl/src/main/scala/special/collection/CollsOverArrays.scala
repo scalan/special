@@ -630,7 +630,12 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   }
 
   @NeverInline
-  def append(other: Coll[A]): Coll[A] = builder.fromArray(toArray).append(builder.fromArray(other.toArray))
+  def append(other: Coll[A]): Coll[A] = other match {
+    case repl: ReplColl[A@unchecked] if this.value == repl.value =>
+      new CReplColl(value, this.length + repl.length)
+    case _ =>
+      builder.fromArray(toArray).append(builder.fromArray(other.toArray))
+  }
 
   override def reverse: Coll[A] = this
 
