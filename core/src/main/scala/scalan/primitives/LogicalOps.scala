@@ -65,7 +65,7 @@ trait LogicalOps extends Base { self: Scalan =>
       case `rhs` =>
         ifEqual(lhs)
 
-      // op(!x, x)
+      // op(!x, x) => ifNegated(!x)
       case Def(ApplyUnOp(op, `rhs`)) if op == Not =>
         ifNegated(lhs)
 
@@ -79,7 +79,7 @@ trait LogicalOps extends Base { self: Scalan =>
           case Def(Const(b: Boolean)) =>
             if (b) ifTrue(lhs) else ifFalse(lhs)
 
-          // op(x, !x) => ifNegated(x)
+          // op(x, !x) => ifNegated(!x)
           case Def(ApplyUnOp(op, `lhs`)) if op == Not =>
             ifNegated(rhs)
           case _ => super.rewriteDef(d)
