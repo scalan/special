@@ -158,16 +158,16 @@ trait Library extends Scalan
     case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
     case CM.zip(CM.map(xs, IsProjectFirst(_)), CM.map(ys, IsProjectSecond(_))) if xs == ys => xs
 
-    case WA.map(WA.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
-      implicit val ea = f.elem.eDom
-      val xs = _xs.asRep[WArray[a]]
-      val g  = _g.asRep[b => c]
-      xs.map(fun { x: Rep[a] => g(f(x)) })
-    case CM.map(CM.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
-      implicit val ea = f.elem.eDom
-      val xs = _xs.asRep[Coll[a]]
-      val g  = _g.asRep[b => c]
-      xs.map(fun { x: Rep[a] => g(f(x)) })
+//    case WA.map(WA.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
+//      implicit val ea = f.elem.eDom
+//      val xs = _xs.asRep[WArray[a]]
+//      val g  = _g.asRep[b => c]
+//      xs.map(fun { x: Rep[a] => g(f(x)) })
+//    case CM.map(CM.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
+//      implicit val ea = f.elem.eDom
+//      val xs = _xs.asRep[Coll[a]]
+//      val g  = _g.asRep[b => c]
+//      xs.map(fun { x: Rep[a] => g(f(x)) })
 
     case CM.map(xs, Def(IdentityLambda())) => xs
 //    case CM.map(xs, Def(ConstantLambda(res))) =>
