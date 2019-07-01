@@ -399,9 +399,9 @@ trait TypeDescs extends Base { self: Scalan =>
     def <:<(e: Elem[_]) = tag.tpe <:< e.tag.tpe
     def >:>(e: Elem[_]) = e <:< this
 
-    if (Base.isDebug) {
-      debug$ElementCounter(this) += 1
-    }
+//    if (Base.isDebug) {
+//      debug$ElementCounter(this) += 1
+//    }
   }
   object Elem {
     implicit def rtypeToElem[SA, A](tSA: RType[SA])(implicit lA: Liftables.Liftable[SA,A]): Elem[A] = lA.eW
@@ -455,7 +455,7 @@ trait TypeDescs extends Base { self: Scalan =>
   def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef =
     e.invokeUnlifted(mc, dataEnv)
 
-  private lazy val debug$ElementCounter = counter[Elem[_]]
+//  private lazy val debug$ElementCounter = counter[Elem[_]]
 
   private[scalan] def getConstructor(clazz: Class[_]) = {
     val constructors = clazz.getDeclaredConstructors()

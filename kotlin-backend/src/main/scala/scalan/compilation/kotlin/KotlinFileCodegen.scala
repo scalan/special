@@ -2,16 +2,18 @@ package scalan.compilation.kotlin
 
 import java.io.PrintWriter
 
-import scalan.{Scalan, TypeDesc}
+import scalan.{TypeDesc, Scalan}
 import scalan.compilation.{IndentLevel, FileCodegen, CodegenConfig}
 import scalan.meta.ScalanAst._
 import scalan.util.PrintExtensions._
 import scalan.meta.{SSymName, ScalanAstTransformers}
-import scalan.primitives.Blocks
+import scalan.primitives.{Blocks, StringOps}
 
 case class GenCtx(module: SUnitDef, writer: PrintWriter)
 
-class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenConfig) extends FileCodegen(_scalan, config) {
+class ScalanEx extends Scalan with Blocks with StringOps
+
+class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) extends FileCodegen(_scalan, config) {
   import scalan._
   implicit val context = astContext
   val PairType = SSymName("kotlin", "Pair")

@@ -155,8 +155,8 @@ trait Library extends Scalan
       b.replicate(l, Apply(f, v, false))
 
     // Rule: xs.map(_._1).zip(xs.map(_._2)) ==> xs
-    case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
-    case CM.zip(CM.map(xs, IsProjectFirst(_)), CM.map(ys, IsProjectSecond(_))) if xs == ys => xs
+//    case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
+//    case CM.zip(CM.map(xs, IsProjectFirst(_)), CM.map(ys, IsProjectSecond(_))) if xs == ys => xs
 
 //    case WA.map(WA.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
 //      implicit val ea = f.elem.eDom

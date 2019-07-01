@@ -2,9 +2,10 @@ package scalan.json
 
 import scalan.meta.{Parsers, AstContextBase}
 import scalan.meta.ScalanAst.SUnitDef
+import scalan.primitives.StringOps
 
 import scala.collection.mutable
-import scalan.{ModuleInfo, Scalan, Modules}
+import scalan.{ModuleInfo, Modules, Scalan}
 
 trait ParsedModules extends Modules { scalan: Scalan =>
   lazy val parsers = {
@@ -33,4 +34,4 @@ trait ParsedModules extends Modules { scalan: Scalan =>
   }
 }
 
-class ToolkitScalan extends Scalan with ParsedModules
+class ToolkitScalan extends Scalan with ParsedModules with StringOps

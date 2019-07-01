@@ -6,12 +6,12 @@ import scalan.staged.Transforming
 
 class Scalan
   extends Base
-  with Debugging
+//  with Debugging
   with TypeDescs
   with Metadata
   with Proxy
   with Tuples
-  with Loops
+//  with Loops
   with TypeSum
   with NumericOps
   with UnBinOps
@@ -22,11 +22,11 @@ class Scalan
   with UniversalOps
   with Functions
   with IfThenElse
-  with PatternMatching
+//  with PatternMatching
   with Transforming
-  with Analyzing
-  with Exceptions
-  with StringOps
+//  with Analyzing
+//  with Exceptions
+//  with StringOps
   with RewriteRules
   with GraphVizExport
   with ViewsModule

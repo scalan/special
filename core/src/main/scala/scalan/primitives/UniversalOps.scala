@@ -72,8 +72,8 @@ trait UniversalOps extends Base { scalan: Scalan =>
     def hashCodeRep: Rep[Int] = HashCode[A]().apply(x)
     def toStringRep = ToString[A]().apply(x)
   }
-  override def rewriteDef[T](d: Def[T]) = d match {
-    case ApplyUnOp(ToString(), x) if x.elem == StringElement => x
-    case _ => super.rewriteDef(d)
-  }
+//  override def rewriteDef[T](d: Def[T]) = d match {
+//    case ApplyUnOp(ToString(), x) if x.elem == StringElement => x
+//    case _ => super.rewriteDef(d)
+//  }
 }

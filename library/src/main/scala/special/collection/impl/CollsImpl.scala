@@ -1202,26 +1202,27 @@ implicit val eV = proj.elem.eRange
 
   type RepColl[A] = Rep[Coll[A]]
 
+  // manual fix
   override def rewriteDef[T](d: Def[T]) = d match {
-    case view1@ViewColl(Def(view2@ViewColl(arr, innerIso2)), innerIso1) =>
-      val compIso = composeIso(innerIso1, innerIso2)
-      implicit val eAB = compIso.eTo
-      ViewColl(arr, compIso)
+//    case view1@ViewColl(Def(view2@ViewColl(arr, innerIso2)), innerIso1) =>
+//      val compIso = composeIso(innerIso1, innerIso2)
+//      implicit val eAB = compIso.eTo
+//      ViewColl(arr, compIso)
 
     case CollMethods.map(xs, f) => (xs, f) match {
       case (_, Def(IdentityLambda())) =>
         xs
-      case (xs: RepColl[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
-        val f1 = asRep[a => c](f)
-        implicit val eB = iso.eFrom
-        val s = xs.map(f1 >> iso.fromFun)
-        val res = ViewColl(s, iso)
-        res
-      case (HasViews(source, Def(contIso: CollIso[a, b])), f: RFunc[_, c]@unchecked) =>
-        val f1 = asRep[b => c](f)
-        val iso = contIso.innerIso
-        implicit val eC = f1.elem.eRange
-        asRep[Coll[a]](source).map(iso.toFun >> f1)
+//      case (xs: RepColl[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
+//        val f1 = asRep[a => c](f)
+//        implicit val eB = iso.eFrom
+//        val s = xs.map(f1 >> iso.fromFun)
+//        val res = ViewColl(s, iso)
+//        res
+//      case (HasViews(source, Def(contIso: CollIso[a, b])), f: RFunc[_, c]@unchecked) =>
+//        val f1 = asRep[b => c](f)
+//        val iso = contIso.innerIso
+//        implicit val eC = f1.elem.eRange
+//        asRep[Coll[a]](source).map(iso.toFun >> f1)
       case _ =>
         super.rewriteDef(d)
     }

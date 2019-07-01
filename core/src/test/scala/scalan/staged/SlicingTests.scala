@@ -1,11 +1,12 @@
 package scalan.staged
 
 import scalan.compilation.{SlicingCompiler, DummyCompiler}
-import scalan.{BaseTests, TestContexts, Scalan, Lazy}
+import scalan.primitives.StringOps
+import scalan.{BaseTests, Lazy, TestContexts, Scalan}
 
 abstract class AbstractSlicingTests extends BaseTests with TestContexts {
 
-  class Ctx extends TestContext with Slicing {
+  class Ctx extends TestContext with Slicing with StringOps {
     def createSliceAnalyzer = new SliceAnalyzer
 
     val eInt = element[Int]

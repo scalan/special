@@ -628,23 +628,23 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     //      ViewArray(parRes, iso)
 
     // Rule: loop(V(start, iso), step, isMatch) ==> iso.to(loop(start, iso.to >> step >> iso.from, iso.to >> isMatch))
-    case LoopUntil(HasViews(startWithoutViews, iso: Iso[a, b]), step, isMatch) =>
-      val start1 = startWithoutViews.asRep[a]
-      implicit val eA = iso.eFrom
-      implicit val eB = iso.eTo
-      val step1 = fun { (x: Rep[a]) =>
-        val x_viewed = iso.to(x)
-        val res_viewed = step.asRep[b => b](x_viewed) // mirrorApply(step.asRep[b => b], x_viewed)
-      val res = iso.from(res_viewed)
-        res
-      }
-      val isMatch1 = fun { (x: Rep[a]) =>
-        val x_viewed = iso.to(x)
-        val res = isMatch.asRep[b => Boolean](x_viewed) // mirrorApply(isMatch.asRep[b => Boolean], x_viewed)
-        res
-      }
-      val loopRes = LoopUntil(start1, step1, isMatch1)
-      iso.to(loopRes)
+//    case LoopUntil(HasViews(startWithoutViews, iso: Iso[a, b]), step, isMatch) =>
+//      val start1 = startWithoutViews.asRep[a]
+//      implicit val eA = iso.eFrom
+//      implicit val eB = iso.eTo
+//      val step1 = fun { (x: Rep[a]) =>
+//        val x_viewed = iso.to(x)
+//        val res_viewed = step.asRep[b => b](x_viewed) // mirrorApply(step.asRep[b => b], x_viewed)
+//      val res = iso.from(res_viewed)
+//        res
+//      }
+//      val isMatch1 = fun { (x: Rep[a]) =>
+//        val x_viewed = iso.to(x)
+//        val res = isMatch.asRep[b => Boolean](x_viewed) // mirrorApply(isMatch.asRep[b => Boolean], x_viewed)
+//        res
+//      }
+//      val loopRes = LoopUntil(start1, step1, isMatch1)
+//      iso.to(loopRes)
 
     case _ => super.rewriteViews(d)
   }
