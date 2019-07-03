@@ -8,7 +8,6 @@ import special.collection.ExtensionMethods._
 import spire.syntax.all._
 
 
-
 trait CollBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
 
   performance of "map" in {
