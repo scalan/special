@@ -1,7 +1,11 @@
 package special.collection
 
-import scalan.{NeverInline, RType}
+import java.util.Objects
+
+import scalan.util.CollectionUtil
+import scalan.{Internal, NeverInline, RType}
 import spire.syntax.all.cfor
+import java.util
 
 
 class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
@@ -264,5 +268,49 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
     builder.makePartialView(source.reverse, f, isCalculated.reverse, items.reverse)(tItem)
   }
 
-  override private[collection] def isReplArray(len: Int, value: B) = ???
+  @Internal
+  protected def isAllPrimValue(value: B): Boolean = {
+    cfor(0)(_ < length, _ + 1) { i =>
+      if (this(i) != value) return false
+    }
+    true
+  }
+
+  @Internal
+  protected def isAllDeepEquals(value: Any): Boolean = {
+    cfor(0)(_ < length, _ + 1) { i =>
+      if (!Objects.deepEquals(this(i), value)) return false
+    }
+    true
+  }
+
+  /*
+   * We could just verify that source is repl array and match f(source(0)) == value, but
+   * there's no guarantee that f is deterministic. Thus, we need to compute the whole
+   * collection.
+   */
+  @Internal
+  override def isReplArray(len: Int, value: B): Boolean = {
+    length == len && {
+      if (tItem.classTag.runtimeClass.isPrimitive) {
+        isAllPrimValue(value)
+      } else {
+        isAllDeepEquals(value)
+      }
+    }
+  }
+
+  @Internal
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case cl: Coll[_] => cl match {
+      case repl: CReplColl[B]@unchecked if repl.tItem == this.tItem =>
+        isReplArray(repl.length, repl.value)
+      case _ if cl.tItem == this.tItem =>
+        util.Objects.deepEquals(cl.toArray, toArray)
+    }
+    case _ => false
+  }
+
+  @Internal
+  override def hashCode(): Int = CollectionUtil.deepHashCode(toArray)
 }

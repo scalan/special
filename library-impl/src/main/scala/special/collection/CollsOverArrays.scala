@@ -194,10 +194,12 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
 
   @Internal
   override def equals(obj: scala.Any): Boolean = obj match {
-    case obj: CollOverArray[_] if obj.tItem == this.tItem =>
-      util.Objects.deepEquals(obj.toArray, toArray)
-    case repl: CReplColl[A]@unchecked if repl.tItem == this.tItem =>
-      isReplArray(repl.length, repl.value)
+    case cl: Coll[_] => cl match {
+      case repl: CReplColl[A]@unchecked if repl.tItem == this.tItem =>
+        isReplArray(repl.length, repl.value)
+      case _ if cl.tItem == this.tItem =>
+        util.Objects.deepEquals(cl.toArray, toArray)
+    }
     case _ => false
   }
 

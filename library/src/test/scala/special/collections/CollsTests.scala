@@ -111,7 +111,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       }
       an[IndexOutOfBoundsException] should be thrownBy {
         col.updateMany(builder.fromItems(col.length), builder.fromItems(0))
-      }      
+      }
       an[IndexOutOfBoundsException] should be thrownBy {
         col.updateMany(builder.fromItems(-1), builder.fromItems(0))
       }
@@ -164,7 +164,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val res2 = col.getOrElse(index, index)
         res2 shouldBe col.toArray(index)
       }
-      
+
       col.getOrElse(col.length, index) shouldBe index
       col.getOrElse(-1, index) shouldBe index
     }
@@ -210,7 +210,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val arepl = repl1.append(repl2)
         assert(arepl.isInstanceOf[CReplColl[Int]])
         arepl.toArray shouldBe (repl1.toArray ++ repl2.toArray)
-        
+
         val pairs1 = repl1.zip(repl1)
         val pairs2 = repl2.zip(repl2)
         val apairs = pairs1.append(pairs2)
@@ -504,6 +504,30 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  property("CViewColl.equality") {
+    def checkEquality(left: Coll[_], right: Coll[_]) = {
+      left.equals(right) shouldBe true
+      right.equals(left) shouldBe true
+      right.hashCode() shouldBe left.hashCode()
+    }
+    forAll(indexGen, intGen) { (n, item) =>
+      def f(i: Int): Int = i + 10
+      val view = builder.makeView(builder.replicate(n, item), f)
+      val repl = builder.replicate(n, item).map(f)
+      checkEquality(view, repl)
+
+      val newView = builder.makeView(builder.makeView(view, inc), dec)
+      checkEquality(newView, view)
+      checkEquality(newView, repl)
+    }
+    forAll(collOverArrayGen) { coll =>
+      def f(i: Int): Int = i * 10
+      val view = builder.makeView(coll, f)
+      val mapped = coll.map(f)
+      checkEquality(view, mapped)
+    }
+  }
+
   property("Coll equality") {
     val arr1 = Array[Int](1, 2, 3)
     val arr2 = Array[Int](1, 2, 3)
@@ -540,7 +564,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     ).map(NoShrink(_))
 
     val minSuccess = MinSuccessful(30)
-    
+
     forAll(collGen, collGen, minSuccess) { (c1, c2) =>
       assert(c1.x == c2.x)
       assert(c2.x == c1.x)

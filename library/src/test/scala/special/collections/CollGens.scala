@@ -28,6 +28,8 @@ trait CollGens { testSuite =>
   val floatGen = choose[Float](Float.MinValue, Float.MaxValue)
   val doubleGen = choose[Double](Double.MinValue, Double.MaxValue)
 
+  def randomIntMapper(itemToMap: Int = 0): Int = Random.nextInt()
+
   def getArrayGen[T](valGen: Gen[T], count: Int = 100)
                     (implicit evb: Buildable[T,Array[T]], evt: Array[T] => Traversable[T]): Gen[Array[T]] = {
     containerOfN[Array, T](count, valGen)
@@ -134,6 +136,7 @@ trait CollGens { testSuite =>
   val plusF = (p: (Int,Int)) => plus(p._1, p._2)
   val predF = (p: (Int,Int)) => plus(p._1, p._2) > 0
   def inc(x: Int) = x + 1
+  def dec(x: Int) = x - 1
 
   def collMatchRepl[B](coll: B): Boolean = coll match {
     case _ : ReplColl[_] => true
