@@ -1,6 +1,3 @@
-/**
- * Shamelessly taken from https://github.com/namin/lms-sandbox
- */
 package scalan
 
 import java.lang.reflect.{InvocationTargetException, Method}
@@ -205,22 +202,14 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
                               onInvokeSuccess: AnyRef => A,
                               onInvokeException: Throwable => A,
                               onNoMethodFound: => A): A = {
-    def tryInvoke(obj: Any, m: Method) = try {
+    def tryInvoke(obj: Any, m: Method) = {
+      try {
         val res = m.invoke(obj, args: _*)
         onInvokeSuccess(res)
       } catch {
         case e: Exception => onInvokeException(baseCause(e))
       }
-    def tryInvokeElem(e: Elem[_]) = try {
-        findTypeDescPropertyOfElem(e, m) match {
-          case Some(elemMethod) =>
-            tryInvoke(e, elemMethod)
-          case _ =>
-            onNoMethodFound
-        }
-      } catch {
-        case e: Exception => onInvokeException(baseCause(e))
-      }
+    }
     val d = receiver.rhs
     def findMethodLoop(m: Method): Option[Method] =
       if (shouldInvoke(d, m, args))
@@ -233,47 +222,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         tryInvoke(d, m1)
       case None =>
         onNoMethodFound
-    }
-  }
-
-  protected def findTypeDescPropertyOfElem(e: Elem[_], nodeMethod: Method) = {
-    try {
-      val elemClass = e.getClass
-      val elemMethod = elemClass.getMethod(nodeMethod.getName, nodeMethod.getParameterTypes: _*)
-      val returnType = getMethodReturnTypeFromElem(e, elemMethod)
-      returnType match {
-        case TypeRef(_, sym, List(tpe1)) if scalan.meta.ScalanAst.TypeDescTpe.DescNames.contains(sym.name.toString) =>
-          Some(elemMethod)
-        case _ => None
-      }
-    } catch {
-      case _: NoSuchMethodException => None
-    }
-  }
-
-  private final lazy val skipInterfaces = {
-    val mirror = scala.reflect.runtime.currentMirror
-    Symbols.SuperTypesOfDef.flatMap { sym =>
-      Try[Class[_]](mirror.runtimeClass(sym.asClass)).toOption
-    }
-  }
-
-  // Do we want to return iterator instead?
-  private def getSuperMethod(m: Method): Option[Method] = {
-    val c = m.getDeclaringClass
-    val superClass = c.getSuperclass
-    val optClassMethod =
-      if (superClass == null || skipInterfaces.contains(superClass))
-        None
-      else
-        Try(superClass.getMethod(m.getName, m.getParameterTypes: _*)).toOption
-    optClassMethod.orElse {
-      val is = c.getInterfaces
-      val methods = is.toIterator
-        .filterNot(i => skipInterfaces.contains(i))
-        .map(i => Try(i.getMethod(m.getName, m.getParameterTypes: _*)))
-      val optInterfaceMethod = methods.collectFirst { case Success(m) => m }
-      optInterfaceMethod
     }
   }
 
@@ -366,128 +314,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
 
   import Symbols._
 
-  private def getDesc(elemMap: Map[Symbol, TypeDesc], sym: Symbol, errorMessage: => String): TypeDesc =
-    elemMap.get(sym).orElse {
-      // For higher-kinded type parameters we may end with unequal symbols here
-      elemMap.collectFirst {
-        case (sym1, d) if sym.name == sym1.name && (internal.isFreeType(sym) || internal.isFreeType(sym1)) => d
-      }
-    }.getOrElse(!!!(errorMessage))
-
-  private def extractParts(elem: Elem[_], classSymbol: Symbol, params: List[Type], tpe: Type): List[(TypeDesc, Type)] = classSymbol match {
-    case UnitSym | BooleanSym | ByteSym | ShortSym | IntSym | LongSym |
-         FloatSym | DoubleSym | StringSym | PredefStringSym | CharSym =>
-      Nil
-    case Tuple2Sym =>
-      val elem1 = elem.asInstanceOf[PairElem[_, _]]
-      List(elem1.eFst -> params(0), elem1.eSnd -> params(1))
-    case EitherSym =>
-      val elem1 = elem.asInstanceOf[SumElem[_, _]]
-      List(elem1.eLeft -> params(0), elem1.eRight -> params(1))
-    case Function1Sym =>
-      val elem1 = elem.asInstanceOf[FuncElem[_, _]]
-      List(elem1.eDom -> params(0), elem1.eRange -> params(1))
-    case _ if classSymbol.isClass =>
-      val declarations = classSymbol.asClass.selfType.decls
-      val res = declarations.flatMap {
-        case member =>
-          val memberTpe = if (member.isMethod)
-              member.asMethod.returnType.dealias
-            else
-              member.asTerm.typeSignature.dealias
-          memberTpe match {
-            // member returning Elem, such as eItem
-            case TypeRef(_, ElementSym, params) =>
-              val param = params(0).asSeenFrom(tpe, classSymbol)
-              // There should be a method with the same name on the corresponding element class
-              val elem1 = getParameterTypeDesc(elem, member.name.toString).asInstanceOf[Elem[_]]
-              List(elem1 -> param)
-            case TypeRef(_, ContSym, params) =>
-              val param = params(0).asSeenFrom(tpe, classSymbol)
-              // There should be a method with the same name on the corresponding element class
-              val cont1 = getParameterTypeDesc(elem, member.name.toString).asInstanceOf[Cont[Any]]
-              List(cont1 -> param)
-            case _ => Nil
-          }
-      }.toList
-      res
-  }
-
-  protected def getParameterTypeDesc(elem: Elem[_], paramName: String): AnyRef = {
-    val correspondingElemMethod = elem.getClass.getMethod(paramName)
-    val desc = correspondingElemMethod.invoke(elem)
-    desc
-  }
-
-  @tailrec
-  private def extractElems(elemsWithTypes: List[(TypeDesc, Type)],
-                           unknownParams: Set[Symbol],
-                           knownParams: Map[Symbol, TypeDesc]): Map[Symbol, TypeDesc] =
-    if (unknownParams.isEmpty)
-      knownParams
-    else
-      elemsWithTypes match {
-        case Nil =>
-          knownParams
-        case (elem: Elem[_], tpe) :: rest =>
-          tpe.dealias match {
-            case TypeRef(_, classSymbol, params) => classSymbol match {
-              case _ if classSymbol.asType.isParameter =>
-                extractElems(rest, unknownParams - classSymbol, knownParams.updated(classSymbol, elem))
-              case _ =>
-                val elemParts = extractParts(elem, classSymbol, params, tpe)
-                extractElems(elemParts ++ rest, unknownParams, knownParams)
-            }
-            case _ =>
-              !!!(s"$tpe was not a TypeRef")
-          }
-        case (cont: Cont[_], tpe) :: rest =>
-          val classSymbol = tpe.dealias match {
-            case TypeRef(_, classSymbol, _) => classSymbol
-            case PolyType(_, TypeRef(_, classSymbol, _)) => classSymbol
-            case _ => !!!(s"Failed to extract symbol from $tpe")
-          }
-
-          if (classSymbol.asType.isParameter)
-            extractElems(rest, unknownParams - classSymbol, knownParams.updated(classSymbol, cont))
-          else {
-//            val elem = cont.lift(UnitElement)
-//            val elemParts = extractParts(elem, classSymbol, List(typeOf[Unit]), tpe)
-            extractElems(/*elemParts ++ */rest, unknownParams, knownParams)
-          }
-        case (d, tpe) :: rest => !!!(s"Unknown TypeDesc $d")
-      }
-
-  // TODO Combine with extractElems
-  private def getElemsMapFromInstanceElem(e: Elem[_], tpe: Type): Map[Symbol, TypeDesc] = {
-    e match {
-      case _: EntityElem[_] =>
-        val kvs = tpe.dealias.typeSymbol.asType.typeParams.map {
-          case sym =>
-            val res = Try {
-              if (sym.asType.toTypeConstructor.takesTypeArgs) {
-                // FIXME hardcoding - naming convention is assumed to be consistent with ScalanCodegen
-                val methodName = "c" + sym.name.toString
-                val cont = invokeMethod(e, methodName).asInstanceOf[Cont[Any]]
-                (cont, Map.empty[Symbol, TypeDesc])
-              } else {
-                val methodName = "e" + sym.name.toString
-                val elem = invokeMethod(e, methodName).asInstanceOf[Elem[_]]
-                val map1 = getElemsMapFromInstanceElem(elem, tpeFromElem(elem))
-                (elem, map1)
-              }
-            }
-            (sym, res)
-        }
-        val successes = kvs.collect { case (k, Success((desc, map))) => (k, desc, map) }
-        val maps = successes.map(_._3)
-        val map0 = successes.map { case (k, desc, _) => (k, desc) }.toMap
-        maps.fold(map0)(_ ++ _)
-      // The above lookup isn't necessary for other elements
-      case _ => Map.empty
-    }
-  }
-
   private def invokeMethod(obj: AnyRef, methodName: String): AnyRef = {
     try {
       val method = obj.getClass.getMethod(methodName)
@@ -537,21 +363,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       }
     } else
       !!!(s"Method $m couldn't be found on type $tpe")
-  }
-
-  def isStagedType(symName: String) =
-    symName == "Rep" || symName == "Exp"
-
-  protected def getMethodReturnTypeFromElem(e: Elem[_], m: Method): Type = {
-    val tpe = tpeFromElem(e)
-    val scalaMethod = findScalaMethod(tpe, m)
-    // http://stackoverflow.com/questions/29256896/get-precise-return-type-from-a-typetag-and-a-method
-    val returnType = scalaMethod.returnType.asSeenFrom(tpe, scalaMethod.owner).dealias
-    returnType
-  }
-
-  private def tpeFromElem(e: Elem[_]): Type = {
-    e.tag.tpe
   }
 
   private object Symbols {
