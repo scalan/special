@@ -698,14 +698,18 @@ trait Base extends LazyLogging { scalan: Scalan =>
       assignDef(sym.rhs)
     }
 
+    private var _adapter: T @uncheckedVariance = _
+    def adapter: T @uncheckedVariance = _adapter
+    def adapter_=(a: T @uncheckedVariance) = { _adapter = a }
+
     def varName = "s" + _rhs._nodeId
     override def toString = varName
     def toStringWithDefinition = toStringWithType + s" = ${_rhs}"
 
-    override def equals(obj: scala.Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj != null && (obj match {
+    override def equals(obj: scala.Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj match {
       case other: SingleSym[_] => _rhs._nodeId == other.rhs._nodeId
       case _ => false
-    }))
+    })
 
     override def hashCode(): Int = _rhs._nodeId
   }

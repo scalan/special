@@ -593,8 +593,15 @@ implicit val eV = proj.elem.eRange
   // entityProxy: single proxy for each type family
   implicit def proxyColl[A](p: Rep[Coll[A]]): Coll[A] = {
     if (p.rhs.isInstanceOf[Coll[A]@unchecked]) p.rhs.asInstanceOf[Coll[A]]
-    else
-      CollAdapter(p)
+    else {
+      val sym = p.asInstanceOf[SingleSym[Coll[A]]]
+      var adapter = sym.adapter
+      if (adapter == null) {
+        adapter = CollAdapter(p)
+        sym.adapter = adapter
+      }
+      adapter
+    }
   }
 
   implicit def castCollElement[A](elem: Elem[Coll[A]]): CollElem[A, Coll[A]] =
@@ -2295,8 +2302,15 @@ implicit val eO = l.elem.eRange
   // entityProxy: single proxy for each type family
   implicit def proxyCollBuilder(p: Rep[CollBuilder]): CollBuilder = {
     if (p.rhs.isInstanceOf[CollBuilder@unchecked]) p.rhs.asInstanceOf[CollBuilder]
-    else
-      CollBuilderAdapter(p)
+    else {
+      val sym = p.asInstanceOf[SingleSym[CollBuilder]]
+      var adapter = sym.adapter
+      if (adapter == null) {
+        adapter = CollBuilderAdapter(p)
+        sym.adapter = adapter
+      }
+      adapter
+    }
   }
 
   // familyElem
