@@ -82,39 +82,42 @@ object MetaTest extends EntityObject("MetaTest") {
   implicit def liftableMetaTest[ST, T](implicit lT: Liftable[ST,T]): Liftable[SMetaTest[ST], MetaTest[T]] =
     LiftableMetaTest(lT)
 
+  private val MetaTestClass = classOf[MetaTest[_]]
+
   // entityAdapter for MetaTest trait
   case class MetaTestAdapter[T](source: Rep[MetaTest[T]])
-      extends MetaTest[T] with Def[MetaTest[T]] {
+      extends MetaTest[T]
+      with Def[MetaTest[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
 
     val selfType: Elem[MetaTest[T]] = element[MetaTest[T]]
     override def transform(t: Transformer) = MetaTestAdapter[T](t(source))
-    private val thisClass = classOf[MetaTest[T]]
+    // private val thisClass = classOf[MetaTest[T]]
 
     def test: RMetaTest[T] = {
       asRep[MetaTest[T]](mkMethodCall(source,
-        thisClass.getMethod("test"),
+        MetaTestClass.getMethod("test"),
         List(),
         true, true, element[MetaTest[T]]))
     }
 
     def give: Rep[T] = {
       asRep[T](mkMethodCall(source,
-        thisClass.getMethod("give"),
+        MetaTestClass.getMethod("give"),
         List(),
         true, true, element[T]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("size"),
+        MetaTestClass.getMethod("size"),
         List(),
         true, true, element[Int]))
     }
 
     def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
       asRep[MetaTest[B]](mkMethodCall(source,
-        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
+        MetaTestClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cB),
         true, true, element[MetaTest[B]]))
     }
@@ -302,54 +305,57 @@ object MetaPair extends EntityObject("MetaPair") {
   implicit def liftableMetaPair[SA, SB, A, B](implicit lA: Liftable[SA,A],lB: Liftable[SB,B]): Liftable[SMetaPair[SA, SB], MetaPair[A, B]] =
     LiftableMetaPair(lA,lB)
 
+  private val MetaPairClass = classOf[MetaPair[_, _]]
+
   // entityAdapter for MetaPair trait
   case class MetaPairAdapter[A, B](source: Rep[MetaPair[A, B]])
-      extends MetaPair[A, B] with Def[MetaPair[A, B]] {
+      extends MetaPair[A, B]
+      with Def[MetaPair[A, B]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
 implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
     val selfType: Elem[MetaPair[A, B]] = element[MetaPair[A, B]]
     override def transform(t: Transformer) = MetaPairAdapter[A, B](t(source))
-    private val thisClass = classOf[MetaPair[A, B]]
+    // private val thisClass = classOf[MetaPair[A, B]]
 
     def indices: Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("indices"),
+        MetaPairClass.getMethod("indices"),
         List(),
         true, true, element[A]))
     }
 
     def values: Rep[B] = {
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("values"),
+        MetaPairClass.getMethod("values"),
         List(),
         true, true, element[B]))
     }
 
     def give: Rep[(A, B)] = {
       asRep[(A, B)](mkMethodCall(source,
-        thisClass.getMethod("give"),
+        MetaPairClass.getMethod("give"),
         List(),
         true, true, element[(A, B)]))
     }
 
     def test: RMetaTest[(A, B)] = {
       asRep[MetaTest[(A, B)]](mkMethodCall(source,
-        thisClass.getMethod("test"),
+        MetaPairClass.getMethod("test"),
         List(),
         true, true, element[MetaTest[(A, B)]]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("size"),
+        MetaPairClass.getMethod("size"),
         List(),
         true, true, element[Int]))
     }
 
     def fromItems[B1](items: Rep[B1]*)(implicit cB: Elem[B1]): Rep[MetaTest[B1]] = {
       asRep[MetaTest[B1]](mkMethodCall(source,
-        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
+        MetaPairClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cB),
         true, true, element[MetaTest[B1]]))
     }
@@ -531,6 +537,8 @@ object MT0 extends EntityObject("MT0") {
     protected def getDefaultRep = MT0Rep
   }
 
+  // private val MT0Class = classOf[MT0]
+
   implicit def proxyMT0(p: Rep[MT0]): MT0 =
     proxyOps[MT0](p)
 
@@ -696,6 +704,8 @@ object MT1 extends EntityObject("MT1") {
     protected def getDefaultRep = MT1Rep
   }
 
+  // private val MT1Class = classOf[MT1[_]]
+
   implicit def proxyMT1[T](p: Rep[MT1[T]]): MT1[T] =
     proxyOps[MT1[T]](p)
 
@@ -851,6 +861,8 @@ implicit val eB = p._2.elem
     lazy val tag = weakTypeTag[MT2CompanionCtor]
     protected def getDefaultRep = MT2Rep
   }
+
+  // private val MT2Class = classOf[MT2[_, _]]
 
   implicit def proxyMT2[A, B](p: Rep[MT2[A, B]]): MT2[A, B] =
     proxyOps[MT2[A, B]](p)

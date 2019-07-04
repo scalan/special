@@ -178,8 +178,9 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |""".stripAndTrim
   }
 
-  def entityAdapter(e: EntityTemplateData) = {
+  def entityAdapter(e: TemplateData) = {
     val entityName = e.name
+    val entityClassFieldName = e.name + "Class"
     val typesDecl = e.tpeArgsDecl
     val typesUse = e.tpeArgsUse
     val sourceType = STraitCall(entityName, e.tpeArgs.map(a => STraitCall(a.name)))
@@ -192,19 +193,42 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       ancestors = List(STypeApply(sourceType)), body = Nil, selfType = None, companion = None, isAbstract = false)
     val adapC = ConcreteClassTemplateData(unit, clazz)
     val b = adapC.extractionBuilder(extractFromEntity = false)
+
     val methods = adapC.c.collectVisibleMembers.collect {
       case SEntityMember(_, md: SMethodDef) if (md.isAbstract || md.isNeverInline) && !md.isTypeDesc => md
     }
+//    val fields = e match {
+//      case c: ConcreteClassTemplateData =>
+//        adapC.c.collectVisibleMembers.collect {
+//          case SEntityMember(_, arg: SClassArg) if c.c.args.args.exists(a => a.name == arg.name =>
+//            SMethodDef()
+//        }
+//      case _ => Nil
+//    }
     s"""
       |  // entityAdapter for $entityName trait
       |  case class ${entityName}Adapter$typesDecl(source: Rep[${e.typeUse}])
-      |      extends ${e.typeUse} with Def[${e.typeUse}] {
+      |      extends ${e match {
+      case c: ConcreteClassTemplateData =>
+        c.typeUse + c.c.args.args.opt(as => s"(${as.rep(_ => "null")})")
+//        s"""${c.typeUse }(
+//          |${c.c.args.args.rep({ a =>
+//          def msgRepRetType = s"Invalid class argument $a. Class argument should have return type of type Rep[T] for some T."
+//          val unreppedReturnType = a.tpe.unRep(unit, config.isVirtualized).getOrElse(!!!(msgRepRetType))
+//          s"""        asRep[$unreppedReturnType](mkMethodCall(source,
+//             |          $entityClassFieldName.getMethod("${a.name}"),
+//             |          Nil, true, true, element[$unreppedReturnType]))""".stripMargin
+//          }, ",\n")})""".stripMargin
+
+      case e: EntityTemplateData => e.typeUse
+             }}
+      |      with Def[${e.typeUse}] {
       |    ${b.emitExtractableImplicits(inClassBody = true) }
       |    ${adapC.elemDefs}
       |    val selfType: Elem[${e.typeUse}] = element[${e.typeUse}]
       |    override def transform(t: Transformer) = ${entityName}Adapter$typesUse(t(source))
-      |    ${methods.opt(_ => s"private val thisClass = classOf[${e.typeUse}]")}
-      |    ${methods.rep({ m => s"""|    ${externalMethod("source", m, isAdapter = true)}""".stripAndTrim },"\n")}
+      |    // ${methods.opt(_ => s"private val thisClass = classOf[${e.typeUse}]")}
+      |    ${methods.rep({ m => s"""|    ${externalMethod("source", m, isAdapter = true, entityClassFieldName)}""".stripAndTrim },"\n")}
       |  }
       |""".stripAndTrim
   }
@@ -495,6 +519,9 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |object $entityName extends EntityObject("$entityName") {
       |${e.entity.isLiftable.opt(entityConst(e))}
+      |
+      |  private val ${e.name}Class = ${emitClassOf(e.name, e.tpeArgs.length)}
+      |
       |${entityAdapter(e)}
       |
       |${entityProxy(e)}
@@ -515,6 +542,10 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  registerEntityObject("$entityName", $entityName)
       |${e.when(_.isCont, emitContainerRewriteDef)}
       |""".stripMargin
+  }
+
+  def emitClassOf(className: String, nArgs: Int) = {
+    s"classOf[$className${(nArgs > 0).opt(s"[${(1 to nArgs).rep(_ => "_")}]")}]"
   }
 
   def emitClasses = {
@@ -614,14 +645,14 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    ${
           if (methods.nonEmpty) liftableAnc match {
             case Some((liftableEnt, entArgs)) =>
-              s"private val thisClass = classOf[${liftableEnt.name + entArgs.opt(as => s"[${as.rep(_ => "_")}]")}]"
+              s"private val thisClass = ${emitClassOf(liftableEnt.name, entArgs.length)}"
             case None =>
               val ancTrait = lin.tail.collectFirst { case (e, _) if e.isTrait => e}
               ancTrait match {
                 case Some(t) =>
-                  s"private val thisClass = classOf[${t.name + t.tpeArgs.opt(as => s"[${as.rep(_ => "_")}]")}]"
+                  s"private val thisClass = ${emitClassOf(t.name, t.tpeArgs.length)}"
                 case None =>
-                  s"private val thisClass = classOf[${c.typeUse }]"
+                  s"private val thisClass = ${emitClassOf(c.name, c.tpeArgs.length)}"
               }
           }
           else ""
@@ -706,6 +737,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    lazy val tag = weakTypeTag[${c.companionCtorName}]
         |    protected def getDefaultRep = ${className}Rep
         |  }
+        |
+        |  // private val ${c.name}Class = ${emitClassOf(c.name, c.tpeArgs.length)}
         |
         |  implicit def proxy${c.typeDecl}(p: Rep[${c.typeUse}]): ${c.typeUse} =
         |    proxyOps[${c.typeUse}](p)
