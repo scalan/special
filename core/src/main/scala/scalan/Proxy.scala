@@ -39,12 +39,17 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     }
 
     def tryInvoke: InvokeResult =
-      if (neverInvoke && !isAdapterCall)
+      if (neverInvoke && !isAdapterCall) {
         InvokeImpossible
-      else
-        findInvokableMethod[InvokeResult](receiver, method, args.toArray) {
-          res => InvokeSuccess(res.asInstanceOf[Sym])
-        } { InvokeFailure(_) } { InvokeImpossible }
+      } else {
+        invokeMethod[InvokeResult](
+          receiver, method, args.toArray,
+          { res => InvokeSuccess(res.asInstanceOf[Sym]) },
+          { InvokeFailure(_) },
+          { InvokeImpossible }
+        )
+      }
+
 
     //TODO optimize
     import scalan.util.CollectionUtil.TraversableOps
@@ -84,16 +89,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       // in the case neverInvoke is false, the method is invoked in rewriteDef
       mkMethodCall(receiver1, method, args1, neverInvoke, mc.isAdapterCall, mc.selfType).asInstanceOf[Rep[A]]
     case _ => super.transformDef(d, t)
-  }
-
-  def mkMethodCall(receiver: Sym, method: Method, args: List[AnyRef], neverInvoke: Boolean): Sym = {
-    val resultElem = try {
-      getResultElem(receiver, method, args)
-    } catch {
-      case e: Exception =>
-        throwInvocationException("getResultElem for", e, receiver, method, args)
-    }
-    mkMethodCall(receiver, method, args, neverInvoke, false, resultElem)
   }
 
   def mkMethodCall(receiver: Sym, method: Method, args: List[AnyRef],
@@ -140,9 +135,9 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
 
   override def rewriteDef[T](d: Def[T]): Sym = d match {
     // Rule: (if(c) t else e).m(args) ==> if (c) t.m(args) else e.m(args)
-    case MethodCall(Def(IfThenElse(cond, t, e)), m, args, neverInvoke) =>
+    case mc @ MethodCall(Def(IfThenElse(cond, t, e)), m, args, neverInvoke) =>
       def copyMethodCall(newReceiver: Sym) =
-        mkMethodCall(newReceiver, m, args, neverInvoke)
+        mkMethodCall(newReceiver, m, args, neverInvoke, false, mc.selfType)
 
       ifThenElse(cond,
         copyMethodCall(t),
@@ -206,10 +201,10 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     classOf[TypeDesc].isAssignableFrom(m.getReturnType)
   }
 
-  private def findInvokableMethod[A](receiver: Sym, m: Method, args: Array[AnyRef])
-                                    (onInvokeSuccess: AnyRef => A)
-                                    (onInvokeException: Throwable => A)
-                                    (onNoMethodFound: => A): A = {
+  private def invokeMethod[A](receiver: Sym, m: Method, args: Array[AnyRef],
+                              onInvokeSuccess: AnyRef => A,
+                              onInvokeException: Throwable => A,
+                              onNoMethodFound: => A): A = {
     def tryInvoke(obj: Any, m: Method) = try {
         val res = m.invoke(obj, args: _*)
         onInvokeSuccess(res)
@@ -555,68 +550,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     returnType
   }
 
-  protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = {
-    val e = receiver.elem
-    val tpe = tpeFromElem(e)
-    val instanceElemMap = getElemsMapFromInstanceElem(e, tpe)
-    val scalaMethod = findScalaMethod(tpe, m)
-
-    // http://stackoverflow.com/questions/29256896/get-precise-return-type-from-a-typetag-and-a-method
-    val returnType = scalaMethod.returnType.asSeenFrom(tpe, scalaMethod.owner).dealias
-    returnType match {
-      // FIXME can't figure out proper comparison with RepType here
-      case TypeRef(_, sym, List(tpe1)) if isStagedType(sym.name.toString) =>
-        val paramTypes = scalaMethod.paramLists.flatten.map(_.typeSignature.asSeenFrom(tpe, scalaMethod.owner).dealias)
-        // reverse to let implicit elem parameters be first
-        val elemsWithTypes: List[(TypeDesc, Type)] = args.zip(paramTypes).reverse.flatMap {
-          case (e: Sym, TypeRef(_, sym, List(tpeE))) if isStagedType(sym.name.toString) =>
-            List(e.elem -> tpeE)
-          case (elem: Elem[_], TypeRef(_, ElementSym, List(tpeElem))) =>
-            List(elem -> tpeElem)
-          case (cont: Cont[_], TypeRef(_, ContSym, List(tpeCont))) =>
-            List(cont -> tpeCont)
-          // below cases can be safely skipped without doing reflection
-          case (_: Function0[_] | _: Function1[_, _] | _: Function2[_, _, _] | _: Numeric[_] | _: Ordering[_], _) => Nil
-          case (obj, tpeObj) =>
-            tpeObj.members.flatMap {
-              case method: MethodSymbol if method.paramLists.isEmpty =>
-                method.returnType.dealias match {
-                  case TypeRef(_, ElementSym | ContSym, List(tpeElemOrCont)) =>
-                    // TODO this doesn't work in InteractAuthExamplesTests.crossDomainStaged
-                    // due to an apparent bug in scala-reflect. Test again after updating to 2.11
-
-                    // val objMirror = runtimeMirror.reflect(obj)
-                    // val methodMirror = objMirror.reflectMethod(method)
-                    val jMethod = ReflectionUtil.methodToJava(method)
-                    jMethod.invoke(obj) /* methodMirror.apply() */ match {
-                      case elem: Elem[_] =>
-                        List(elem -> tpeElemOrCont.asSeenFrom(tpeObj, method.owner))
-                      case cont: Cont[_] =>
-                        List(cont -> tpeElemOrCont.asSeenFrom(tpeObj, method.owner))
-                      case x =>
-                        !!!(s"$tpeObj.$method must return Elem or Cont but returned $x")
-                    }
-                  case _ =>
-                    Nil
-                }
-              case _ => Nil
-            }
-        }
-
-        try {
-          val paramElemMap = extractElems(elemsWithTypes, scalaMethod.typeParams.toSet, Map.empty)
-          val elemMap = instanceElemMap ++ paramElemMap
-          ???
-//          elemFromType(tpe1, elemMap, definitions.NothingTpe)
-        } catch {
-          case e: Exception =>
-            !!!(s"Failure to get result elem for method $m on type $tpe\nReturn type: $returnType", e)
-        }
-      case _ =>
-        !!!(s"Return type of method $m should be a Rep, but is $returnType")
-    }
-  }
-
   private def tpeFromElem(e: Elem[_]): Type = {
     e.tag.tpe
   }
@@ -664,20 +597,11 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     def invoke(proxy: AnyRef, m: Method, _args: Array[AnyRef]) = {
       val args = if (_args == null) Array.empty[AnyRef] else _args
 
-      def mkMethodCall(neverInvoke: Boolean) =
-        Proxy.this.mkMethodCall(receiver, m, args.toList, neverInvoke)
-
-      val res = findInvokableMethod(receiver, m, args)(identity)({
-        case ExternalMethodException(className, methodName) =>
-          mkMethodCall(neverInvoke = true)
-            .setMetadata(externalClassNameMetaKey)(className)
-            .setMetadata(externalMethodNameMetaKey)(methodName)
-        case _: DelayInvokeException =>
-          mkMethodCall(neverInvoke = false)
+      val res = invokeMethod(receiver, m, args, identity, {
         case cause =>
           throwInvocationException("Method invocation", cause, receiver, m, args)
-      })({
-        mkMethodCall(neverInvoke = false)
+      }, {
+        !!!(s"Invocation handler is only supported for successful pass: ExpInvocationHandler($receiver).invoke($proxy, $m, ${args.toSeq})")
       })
       res
     }

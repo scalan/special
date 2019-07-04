@@ -65,38 +65,6 @@ trait Library extends Scalan
     case _ => !!!(s"Cannot create zeroSize($eVal)")
   })
 
-  override protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = receiver.elem match {
-    case ae: WOptionElem[a, _] => m.getName match {
-      case "getOrElse" =>
-        val f = args(0).asInstanceOf[Rep[Thunk[Any]]]
-        f.elem.eItem
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case ae: WArrayElem[a, _] => m.getName match {
-      case "map" =>
-        val f = args(0).asInstanceOf[Rep[a => Any]]
-        wArrayElement(f.elem.eRange)
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case ce: CollElem[a, _] => m.getName match {
-      case "map" =>
-        val f = args(0).asInstanceOf[Rep[a => Any]]
-        collElement(f.elem.eRange)
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case b: CollBuilderElem[_] => m.getName match {
-      case "apply" =>
-        ReflectionUtil.overloadId(m) match {
-          case Some("apply_items") =>
-            val eItem = args(0).asInstanceOf[Seq[Sym]](0).elem
-            collElement(eItem)
-          case _ => super.getResultElem(receiver, m, args)
-        }
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case _ => super.getResultElem(receiver, m, args)
-  }
-
   private val WA = WArrayMethods
   private val CM = CollMethods
   private val CBM = CollBuilderMethods

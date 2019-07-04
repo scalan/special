@@ -466,16 +466,6 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
         (iso1, convertAfterIso(iso2, toC, toD))
     (i1, i2)
   }
-  override protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = receiver match {
-    case Def(iso: IsoUR[_, _]) => m.getName match {
-      case "from" => iso.eFrom
-      case "to" => iso.eTo
-      case "fromFun" => funcElement(iso.eTo, iso.eFrom)
-      case "toFun" => funcElement(iso.eFrom, iso.eTo)
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case _ => super.getResultElem(receiver, m, args)
-  }
 
   type Unpacked[T] = (Rep[Source], Iso[Source, T]) forSome { type Source }
   type UnpackedLambdaResult[T,R] = (Rep[T => R], Iso[Source, R]) forSome { type Source }
