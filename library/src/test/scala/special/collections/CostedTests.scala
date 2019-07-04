@@ -42,13 +42,13 @@ class CostedTests extends BaseCostedTests {
   lazy val pC = RCCostedPair(lC, rC, 1)
   lazy val ppC = RCCostedPair(pC, pC, 1)
 
-  test("dataSize of CostedPair") {
+  ignore("dataSize of CostedPair") {
     val sizeD= pC.size
     val expected = RCSizePair(RCSizePrim(4L, element[Int]), RCSizePrim(1L, element[Byte]))
     sizeD shouldBe expected
   }
 
-  test("dataSize of nested CostedPair") {
+  ignore("dataSize of nested CostedPair") {
     val sizeD= ppC.size
     val ppSize = pC.size
     val expected  = RCSizePair(ppSize, ppSize)

@@ -245,7 +245,7 @@ class StructTests extends BaseViewTests {
     ctx.test("t5", t5)
   }
 
-  test("structWrapper") {
+  ignore("structWrapper") {
     val ctx = new Ctx {
       import compiler.scalan._
       def testWrapper[A,B](functionName: String,
@@ -370,7 +370,7 @@ class StructTests extends BaseViewTests {
 //    }
   }
 
-  test("structIso") {
+  ignore("structIso") {
     val ctx = new Ctx
     import ctx.compiler.scalan._
     import Segment._

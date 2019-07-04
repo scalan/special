@@ -29,7 +29,7 @@ class ProxyTests extends BaseCtxTests {
     }
   }
 
-  test("getResultElem") {
+  ignore("getResultElem") {
     val ctx = new Ctx
     import ctx._
     import Segment._

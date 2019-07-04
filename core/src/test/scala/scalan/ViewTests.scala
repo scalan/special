@@ -59,7 +59,8 @@ abstract class BaseViewTests extends BaseCtxTests {
 
 class ViewTests extends BaseViewTests {
 
-  test("LambdaResultHasViews") {
+
+  ignore("LambdaResultHasViews") {
     val ctx = new ViewTestsCtx with ViewExamples with CommonExamples with SegmentsModule
     import ctx._
     import Segment._
@@ -152,7 +153,7 @@ class ViewTests extends BaseViewTests {
     testGetIso(element[Thunk[Interval]], element[Thunk[(Int,Int)]])
   }
 
-  test("getIsoByElem for structs") {
+  ignore("getIsoByElem for structs") {
     val ctx = new CtxForStructs
     import ctx._
     import Segment._

@@ -15,7 +15,7 @@ class ConverterTests extends BaseCtxTests {
 //  class ConvProgStd extends ScalanDslStd with ConvProg with SegmentsDslStd {
 //  }
 
-  test("simple converter tests") {
+  ignore("simple converter tests") {
     val ctx = new ConvProgStaged
     ctx.emit("t1", ctx.t1)
     ctx.emit("t2", ctx.t2)
@@ -30,24 +30,18 @@ class ConverterTests extends BaseCtxTests {
     ctx.emit("t6", ctx.t6)
   }
 
-//  test("convertSeq") {
-//    val ctx = new ConvProgStd
-//    val res = ctx.t4((10,20))
-//    assertResult((10,30))(res)
-//  }
-
-  test("converIfThenElse") {
+  ignore("converIfThenElse") {
     val ctx = new ConvProgStaged
     ctx.emit("t7", ctx.t7)
     ctx.emit("t9", ctx.t9)
   }
 
-  test("converIfThenElseWithPair") {
+  ignore("converIfThenElseWithPair") {
     val ctx = new ConvProgStaged
     ctx.emit("t8", ctx.t8)
   }
 
-  test("convertIfThenElseWithOption") {
+  ignore("convertIfThenElseWithOption") {
     val ctx = new ConvProgStaged
     ctx.emit("t10", ctx.t10)
     ctx.emit("t10_1", ctx.t10_1)
@@ -57,7 +51,7 @@ class ConverterTests extends BaseCtxTests {
     ctx.emit("t10_5", ctx.t10_5)
   }
 
-  test("convertIfThenElseWithSum") {
+  ignore("convertIfThenElseWithSum") {
     val ctx = new ConvProgStaged
     ctx.emit("t11", ctx.t11)
     ctx.emit("t12", ctx.t12)

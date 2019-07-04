@@ -162,7 +162,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
 
   }
 
-  test("thunksOfDomainTypes") {
+  ignore("thunksOfDomainTypes") {
     val ctx = new TestContext with SegmentsModule with MyDomainProg {
       isInlineThunksOnForce = false
 
@@ -185,7 +185,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
     ctx.emit("t4", ctx.t4)
   }
 
-  test("thunksOfDomainTypesWithoutIsoLifting") {
+  ignore("thunksOfDomainTypesWithoutIsoLifting") {
     val ctx = new TestContext with SegmentsModule with MyDomainProg {
       isInlineThunksOnForce = false
       override def isInvokeEnabled(d: Def[_], m: Method) = true
