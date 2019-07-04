@@ -339,8 +339,34 @@ object Interval extends EntityObject("Interval") {
     protected def getDefaultRep = IntervalRep
   }
 
+  private val IntervalClass = classOf[Interval]
+
+    // entityAdapter for Interval trait
+  case class IntervalAdapter(source: Rep[Interval])
+      extends Interval(
+        asRep[Int](mkMethodCall(source,
+          IntervalClass.getMethod("start"),
+          List(), true, true, element[Int])),
+        asRep[Int](mkMethodCall(source,
+          IntervalClass.getMethod("end"),
+          List(), true, true, element[Int]))
+      ) with Def[Interval] {
+    val selfType: Elem[Interval] = element[Interval]
+    override def transform(t: Transformer) = IntervalAdapter(t(source))
+
+
+    override def attach(seg: Rep[Segment]): Rep[Segment] = {
+      asRep[Segment](mkMethodCall(source,
+        IntervalClass.getMethod("attach", classOf[Sym]),
+        List(seg),
+        true, true, element[Segment]))
+    }
+  }
+
   implicit def proxyInterval(p: Rep[Interval]): Interval =
-    proxyOps[Interval](p)
+    if (p.rhs.isInstanceOf[Interval@unchecked]) p.rhs.asInstanceOf[Interval]
+    else
+      IntervalAdapter(p)
 
   implicit class ExtendedInterval(p: Rep[Interval]) {
     def toData: Rep[IntervalData] = {
@@ -485,8 +511,26 @@ object Slice extends EntityObject("Slice") {
     protected def getDefaultRep = SliceRep
   }
 
+  private val SliceClass = classOf[Slice]
+
+    // entityAdapter for Slice trait
+  case class SliceAdapter(source: Rep[Slice])
+      extends Slice(
+        asRep[Int](mkMethodCall(source,
+          SliceClass.getMethod("start"),
+          List(), true, true, element[Int])),
+        asRep[Int](mkMethodCall(source,
+          SliceClass.getMethod("length"),
+          List(), true, true, element[Int]))
+      ) with Def[Slice] {
+    val selfType: Elem[Slice] = element[Slice]
+    override def transform(t: Transformer) = SliceAdapter(t(source))
+  }
+
   implicit def proxySlice(p: Rep[Slice]): Slice =
-    proxyOps[Slice](p)
+    if (p.rhs.isInstanceOf[Slice@unchecked]) p.rhs.asInstanceOf[Slice]
+    else
+      SliceAdapter(p)
 
   implicit class ExtendedSlice(p: Rep[Slice]) {
     def toData: Rep[SliceData] = {
@@ -632,8 +676,25 @@ object Centered extends EntityObject("Centered") {
     protected def getDefaultRep = CenteredRep
   }
 
+  private val CenteredClass = classOf[Centered]
+    // entityAdapter for Centered trait
+  case class CenteredAdapter(source: Rep[Centered])
+      extends Centered(
+        asRep[Int](mkMethodCall(source,
+          CenteredClass.getMethod("center"),
+          List(), true, true, element[Int])),
+        asRep[Int](mkMethodCall(source,
+          CenteredClass.getMethod("radius"),
+          List(), true, true, element[Int]))
+      ) with Def[Centered] {
+    val selfType: Elem[Centered] = element[Centered]
+    override def transform(t: Transformer) = CenteredAdapter(t(source))
+  }
+
   implicit def proxyCentered(p: Rep[Centered]): Centered =
-    proxyOps[Centered](p)
+    if (p.rhs.isInstanceOf[Centered@unchecked]) p.rhs.asInstanceOf[Centered]
+    else
+      CenteredAdapter(p)
 
   implicit class ExtendedCentered(p: Rep[Centered]) {
     def toData: Rep[CenteredData] = {
