@@ -123,7 +123,8 @@ class CollsStagingTests extends WrappersTests {
         val f = fun { in: Rep[(CollBuilder, Int)] =>
           val Pair(colBuilder, delta) = in
           val col = colBuilder.replicate(i*j, 0)
-          val res = col.map(fun {x => x + delta})
+          val col2 = colBuilder.replicate(j+i, 0)
+          val res = col.map(fun {x => x + delta}).zip(col2)
           res
         }
         outGraph = Pair(f, f(Pair(RCollOverArrayBuilder(), 1)))

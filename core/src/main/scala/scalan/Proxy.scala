@@ -173,9 +173,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     * point we know that the first RW set didn't triggered any rewrite. */
   def rewriteNonInvokableMethodCall(mc: MethodCall): Rep[_] = null
 
-  def methodCallEx[A](receiver: Rep[_], m: Method, args: List[AnyRef]): Rep[A] =
-    mkMethodCall(receiver, m, args, true).asInstanceOf[Rep[A]]
-
   def newObjEx[A](args: Any*)(implicit eA: Elem[A]): Rep[A] = {
     reifyObject(NewObject[A](eA, args.toList, true))
   }
@@ -189,6 +186,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
       case _ => getProxy(x, ct)
     }
 
+  // TODO optimize: call e.createClass only once per clazz
   private def getProxy[Ops](x: Rep[Ops], ct: ClassTag[Ops]) = {
     val proxy = proxies.getOrElseUpdate((x, ct), {
       val clazz = ct.runtimeClass
@@ -372,127 +370,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   protected var methodCallReceivers: List[Sym] = Nil
 
   import Symbols._
-
-  def elemFromType(tpe: Type, elemMap: Map[Symbol, TypeDesc], baseType: Type): Elem[_] = tpe.dealias match {
-    case TypeRef(_, classSymbol, params) => classSymbol match {
-      case UnitSym => UnitElement
-      case BooleanSym => BooleanElement
-      case ByteSym => ByteElement
-      case ShortSym => ShortElement
-      case IntSym => IntElement
-      case LongSym => LongElement
-      case FloatSym => FloatElement
-      case DoubleSym => DoubleElement
-      case StringSym => StringElement
-      case PredefStringSym => StringElement
-      case CharSym => CharElement
-      case Tuple2Sym =>
-        val eA = elemFromType(params(0), elemMap, baseType)
-        val eB = elemFromType(params(1), elemMap, baseType)
-        pairElement(eA, eB)
-      case EitherSym =>
-        val eA = elemFromType(params(0), elemMap, baseType)
-        val eB = elemFromType(params(1), elemMap, baseType)
-        sumElement(eA, eB)
-      case Function1Sym =>
-        val eA = elemFromType(params(0), elemMap, baseType)
-        val eB = elemFromType(params(1), elemMap, baseType)
-        funcElement(eA, eB)
-      case _ if classSymbol.asType.isParameter =>
-        getDesc(elemMap, classSymbol, s"Can't create element for abstract type $tpe") match {
-          case elem: Elem[_] => elem
-          case cont: Cont[_] =>
-            val paramElem = elemFromType(params(0), elemMap, baseType)
-            cont.lift(paramElem)
-        }
-      case _ if classSymbol.isClass =>
-        val paramDescs = params.zip(classSymbol.asType.toTypeConstructor.typeParams).map {
-          case (typaram, formalParam) if typaram.takesTypeArgs =>
-            // handle high-kind argument
-            typaram match {
-              case TypeRef(_, classSymbol, _) =>
-                val desc = getDesc(elemMap, classSymbol, s"Can't find the descriptor for type argument $typaram of $tpe")
-                desc match {
-                  case cont: Cont[_] => cont
-                  case _ =>
-                    !!!(s"Expected a Cont, got $desc for type argument $typaram of $tpe")
-                }
-              case PolyType(_, _) =>
-                // fake to make the compiler happy
-                type F[A] = A
-
-                new Cont[F] {
-                  private val elemMap1: Map[Symbol, TypeDesc] = elemMap + (formalParam -> this)
-
-                  def tag[T](implicit tT: WeakTypeTag[T]): WeakTypeTag[F[T]] = ???
-                  def lift[T](implicit eT: Elem[T]): Elem[F[T]] = {
-                    val tpe1 = appliedType(typaram, List(eT.tag.tpe))
-                    // TODO incorrect baseType
-                    elemFromType(tpe1, elemMap1, baseType).asInstanceOf[Elem[F[T]]]
-                  }
-                  def unlift[T](implicit eFT: Elem[F[T]]) = ???
-                  def getElem[T](fa: Exp[F[T]]) = ???
-                  def unapply[T](e: Elem[_]) = ???
-                  override def getName(f: TypeDesc => String) = typaram.toString
-                }
-            }
-          case (typaram, _) =>
-            elemFromType(typaram, elemMap, baseType)
-        }
-
-        val descClasses = paramDescs.map {
-          case e: Elem[_] =>
-            classOf[Elem[_]]
-          case c: Cont[_] =>
-            // works due to type erasure; should be classOf[Cont[_]], but that's invalid syntax
-            // See other uses of Cont[Any] here as well
-            classOf[Cont[Any]]
-          case d => !!!(s"Unknown type descriptior $d")
-        }.toArray
-        // entity type or base type
-        // FIXME See https://github.com/scalan/scalan/issues/252
-        if (classSymbol.asClass.isTrait || classSymbol == baseType.typeSymbol) {
-          // abstract case, call *Element
-          val entityName = classSymbol.name.toString
-          val obj = getEntityObject(entityName).getOrElse(self)
-          val methodName = StringUtil.lowerCaseFirst(entityName) + "Element"
-          // self.getClass will return the final cake, which should contain the method
-          try {
-            val method = obj.getClass.getMethod(methodName, descClasses: _*)
-            try {
-              val resultElem = method.invoke(obj, paramDescs: _*)
-              resultElem.asInstanceOf[Elem[_]]
-            } catch {
-              case e: Exception =>
-                !!!(s"Failed to invoke $methodName($paramDescs)", e)
-            }
-          } catch {
-            case _: NoSuchMethodException =>
-              !!!(s"Failed to find element-creating method with name $methodName and parameter classes ${descClasses.map(_.getSimpleName).mkString(", ")}")
-          }
-        } else {
-          val className = classSymbol.name.toString
-          // concrete case, call viewElement(*Iso)
-          val methodName = "iso" + className
-          try {
-            val entityObject = getEntityObject(className)
-            val owner = entityObject.getOrElse(self)
-            val method = owner.getClass.getMethod(methodName, descClasses: _*)
-            try {
-              val resultIso = method.invoke(owner, paramDescs: _*)
-              resultIso.asInstanceOf[Iso[_, _]].eTo
-            } catch {
-              case e: Exception =>
-                !!!(s"Failed to invoke $methodName($paramDescs)", e)
-            }
-          } catch {
-            case e: Exception =>
-              !!!(s"Failed to find iso-creating method with name $methodName and parameter classes ${descClasses.map(_.getSimpleName).mkString(", ")}")
-          }
-        }
-    }
-    case _ => !!!(s"Failed to create element from type $tpe")
-  }
 
   private def getDesc(elemMap: Map[Symbol, TypeDesc], sym: Symbol, errorMessage: => String): TypeDesc =
     elemMap.get(sym).orElse {
@@ -729,7 +606,8 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         try {
           val paramElemMap = extractElems(elemsWithTypes, scalaMethod.typeParams.toSet, Map.empty)
           val elemMap = instanceElemMap ++ paramElemMap
-          elemFromType(tpe1, elemMap, definitions.NothingTpe)
+          ???
+//          elemFromType(tpe1, elemMap, definitions.NothingTpe)
         } catch {
           case e: Exception =>
             !!!(s"Failure to get result elem for method $m on type $tpe\nReturn type: $returnType", e)
