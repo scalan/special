@@ -7,6 +7,8 @@ import scalan.{Internal, NeverInline, RType}
 import spire.syntax.all.cfor
 import java.util
 
+import scalan.RType.PrimitiveType
+
 
 class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
 
@@ -292,10 +294,9 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   @Internal
   override def isReplArray(len: Int, value: B): Boolean = {
     length == len && {
-      if (tItem.classTag.runtimeClass.isPrimitive) {
-        isAllPrimValue(value)
-      } else {
-        isAllDeepEquals(value)
+      tItem match {
+        case prim: PrimitiveType[a] => isAllPrimValue(value)
+        case _ => isAllDeepEquals(value)
       }
     }
   }

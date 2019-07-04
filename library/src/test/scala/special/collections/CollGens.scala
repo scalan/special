@@ -28,8 +28,6 @@ trait CollGens { testSuite =>
   val floatGen = choose[Float](Float.MinValue, Float.MaxValue)
   val doubleGen = choose[Double](Double.MinValue, Double.MaxValue)
 
-  def randomIntMapper(itemToMap: Int = 0): Int = Random.nextInt()
-
   def getArrayGen[T](valGen: Gen[T], count: Int = 100)
                     (implicit evb: Buildable[T,Array[T]], evt: Array[T] => Traversable[T]): Gen[Array[T]] = {
     containerOfN[Array, T](count, valGen)
