@@ -97,7 +97,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     def eA = _eA
     def eB = _eB
 
-    override val liftable: Liftables.Liftable[_, To] = liftableEither(_eA.liftable, _eB.liftable).asLiftable[Either[_,_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[Either[_,_], To](liftableEither(_eA.liftable, _eB.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

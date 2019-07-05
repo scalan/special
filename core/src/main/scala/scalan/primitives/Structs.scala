@@ -91,7 +91,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   case class StructElem[T <: Struct](structTag: StructTag[T], fields: Seq[(String, Elem[_])]) extends Elem[T] {
     lazy val tag = structTag.typeTag
 
-    override def liftable: Liftables.Liftable[_, T] = liftableStruct(this).asLiftable[SStruct, T]
+    override def liftable: Liftables.Liftable[_, T] = asLiftable[SStruct, T](liftableStruct(this))
 
     protected def getDefaultRep =
       struct(structTag, fields.map { case (fn,fe) => (fn, fe.defaultRepValue) }: _*)

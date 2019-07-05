@@ -139,7 +139,7 @@ object Segment extends EntityObject("Segment") {
   // familyElem
   class SegmentElem[To <: Segment]
     extends EntityElem[To] {
-    override val liftable: Liftables.Liftable[_, To] = LiftableSegment.asLiftable[SSegment, To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SSegment, To](LiftableSegment)
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

@@ -15,7 +15,6 @@ import spire.syntax.all._
 import scala.collection.mutable
 
 trait TypeDescs extends Base { self: Scalan =>
-
   object TypeDesc {
     def apply(tpe: STpeExpr, env: TypeArgSubst): TypeDesc = tpe match {
       case STpePrimitive(name,_) =>
@@ -541,7 +540,7 @@ trait TypeDescs extends Base { self: Scalan =>
     override def buildTypeArgs = ListMap("A" -> (eFst -> Covariant), "B" -> (eSnd -> Covariant))
     protected def getDefaultRep = Pair(eFst.defaultRepValue, eSnd.defaultRepValue)
     override def liftable: Liftables.Liftable[_, (A, B)] =
-      Liftables.PairIsLiftable(eFst.liftable, eSnd.liftable).asLiftable[(_,_), (A,B)]
+      Liftables.asLiftable[(_,_), (A,B)](Liftables.PairIsLiftable(eFst.liftable, eSnd.liftable))
   }
 
   case class SumElem[A, B](eLeft: Elem[A], eRight: Elem[B]) extends Elem[A | B] {
@@ -556,6 +555,7 @@ trait TypeDescs extends Base { self: Scalan =>
   }
 
   case class FuncElem[A, B](eDom: Elem[A], eRange: Elem[B]) extends Elem[A => B] {
+    import Liftables._
     lazy val tag = {
       implicit val tA = eDom.tag
       implicit val tB = eRange.tag
@@ -567,8 +567,8 @@ trait TypeDescs extends Base { self: Scalan =>
       val defaultB = eRange.defaultRepValue
       fun[A, B](_ => defaultB)(Lazy(eDom))
     }
-    override def liftable: Liftables.Liftable[_, A => B] =
-      Liftables.FuncIsLiftable(eDom.liftable, eRange.liftable).asLiftable[_ => _, A => B]
+    override def liftable: Liftable[_, A => B] =
+      asLiftable[_ => _, A => B](FuncIsLiftable(eDom.liftable, eRange.liftable))
   }
 
   class ArgElem(val tyArg: STpeArg) extends Elem[Any] with Serializable with scala.Equals {

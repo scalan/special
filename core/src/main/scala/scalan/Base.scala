@@ -220,9 +220,9 @@ trait Base extends LazyLogging { scalan: Scalan =>
       })
       override def toString: String = s"Liftable($eW)"
     }
-    implicit class LiftableOps(l: Liftable[_,_]) {
-      @inline def asLiftable[ST,T]: Liftable[ST,T] = l.asInstanceOf[Liftable[ST,T]]
-    }
+
+    @inline def asLiftable[ST,T](l: Liftable[_,_]): Liftable[ST,T] = l.asInstanceOf[Liftable[ST,T]]
+    
     def liftable[ST, T](implicit lT: Liftable[ST,T]) = lT
 
     /** Given data value of type `ST` and `Liftable` instance between `ST` and `T`,
@@ -260,16 +260,16 @@ trait Base extends LazyLogging { scalan: Scalan =>
       }
     }
 
-    implicit lazy val BooleanIsLiftable = BooleanElement.liftable.asLiftable[Boolean,Boolean]
-    implicit lazy val ByteIsLiftable    = ByteElement.liftable.asLiftable[Byte,Byte]
-    implicit lazy val ShortIsLiftable   = ShortElement.liftable.asLiftable[Short,Short]
-    implicit lazy val IntIsLiftable     = IntElement.liftable.asLiftable[Int,Int]
-    implicit lazy val LongIsLiftable    = LongElement.liftable.asLiftable[Long,Long]
-    implicit lazy val StringIsLiftable  = StringElement.liftable.asLiftable[String,String]
-    implicit lazy val FloatIsLiftable   = FloatElement.liftable.asLiftable[Float,Float]
-    implicit lazy val DoubleIsLiftable  = DoubleElement.liftable.asLiftable[Double,Double]
-    implicit lazy val UnitIsLiftable    = UnitElement.liftable.asLiftable[Unit,Unit]
-    implicit lazy val CharIsLiftable    = CharElement.liftable.asLiftable[Char,Char]
+    implicit lazy val BooleanIsLiftable = asLiftable[Boolean,Boolean](BooleanElement.liftable)
+    implicit lazy val ByteIsLiftable    = asLiftable[Byte,Byte](ByteElement.liftable)
+    implicit lazy val ShortIsLiftable   = asLiftable[Short,Short](ShortElement.liftable)
+    implicit lazy val IntIsLiftable     = asLiftable[Int,Int](IntElement.liftable)
+    implicit lazy val LongIsLiftable    = asLiftable[Long,Long](LongElement.liftable)
+    implicit lazy val StringIsLiftable  = asLiftable[String,String](StringElement.liftable)
+    implicit lazy val FloatIsLiftable   = asLiftable[Float,Float](FloatElement.liftable)
+    implicit lazy val DoubleIsLiftable  = asLiftable[Double,Double](DoubleElement.liftable)
+    implicit lazy val UnitIsLiftable    = asLiftable[Unit,Unit](UnitElement.liftable)
+    implicit lazy val CharIsLiftable    = asLiftable[Char,Char](CharElement.liftable)
 
     implicit def PairIsLiftable[SA,SB,A,B]
         (implicit lA: Liftable[SA, A], lB: Liftable[SB, B]): Liftable[(SA, SB), (A, B)] =
@@ -424,19 +424,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
     ownerParam
   }
 
-  private[this] def reflectProductClass(clazz: Class[_], d: Product) = {
-    val constructors = clazz.getDeclaredConstructors
-    assert(constructors.length == 1, s"Every class extending Def must have one constructor, $clazz has ${constructors.length}")
-    val constructor = constructors(0)
-    val paramMirrors = ReflectionUtil.paramMirrors(d)
-    val ownerParam = getOwnerParameterType(constructor)
-    ReflectedProductClass(constructor, paramMirrors, ownerParam)
-  }
-
-  private[this] val defClasses = AVHashMap[Class[_], ReflectedProductClass](255)
-
   import Liftables.LiftedConst
 
+  /** Clone this definition transforming all symbols using `t`.
+    * If new Def[A] is created, it is added to the graph with collapsing and rewriting.
+    * Can be overriden following `stackable overrides` pattern (calling super at the end).
+    * @param  t  mapping of symbols to symbols
+    * @return  symbol of the logical clone. If `d` don't contain symbols, then d.self is returned. */
   def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case c: Const[_] => c.self
     case v: Variable[_] => v.self
@@ -453,7 +447,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case arr: Array[_] => arr.map(transformProductParam(_, t))
     case opt: Option[_] => opt.map(transformProductParam(_, t))
     case d: Def[_] => transformDef(d, t).rhs
-//    case p: Product if p.productArity != 0 => transformProduct(p, t)
     case x => x
   }
 
@@ -501,22 +494,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   abstract class Stm // statement (links syms and definitions)
 
-//  implicit class StmOps(stm: Stm) {
-//    def lhs: List[Rep[Any]] = stm match {
-//      case TableEntry(sym, rhs) => sym :: Nil
-//    }
-//
-//    def defines[A](sym: Rep[A]): Option[Def[A]] = stm match {
-//      case TableEntry(`sym`, rhs: Def[A] @unchecked) => Some(rhs)
-//      case _ => None
-//    }
-//
-//    def defines[A](rhs: Def[A]): Option[Rep[A]] = stm match {
-//      case TableEntry(sym: Rep[A] @unchecked, `rhs`) => Some(sym)
-//      case _ => None
-//    }
-//  }
-
   trait TableEntry[+T] extends Stm {
     def sym: Rep[T]
     def rhs: Def[T]
@@ -526,7 +503,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
   trait TableEntryCompanion {
     def apply[T](sym: Rep[T], rhs: Def[T]): TableEntry[T]
     def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]): TableEntry[T]
-//    def unapply[T](tp: TableEntry[T]): Option[(Rep[T], Def[T])]
   }
 
   object DefTableEntry {

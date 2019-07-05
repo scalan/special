@@ -66,7 +66,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   case class ThunkElem[A](override val eItem: Elem[A])
     extends EntityElem1[A, Thunk[A], Thunk](eItem, container[Thunk]) {
-    override lazy val liftable = liftableThunk(eItem.liftable).asLiftable[SThunk[_], Thunk[A]]
+    override lazy val liftable = asLiftable[SThunk[_], Thunk[A]](liftableThunk(eItem.liftable))
     def parent: Option[Elem[_]] = None
     override lazy val typeArgs = TypeArgs("A" -> (eItem -> Covariant))
     lazy val tag = {

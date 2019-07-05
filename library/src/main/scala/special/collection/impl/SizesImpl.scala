@@ -94,7 +94,7 @@ object Size extends EntityObject("Size") {
     extends EntityElem[To] {
     def eVal = _eVal
 
-    override val liftable: Liftables.Liftable[_, To] = liftableSize(_eVal.liftable).asLiftable[SSize[_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SSize[_], To](liftableSize(_eVal.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -250,7 +250,7 @@ object SizePrim extends EntityObject("SizePrim") {
     extends SizeElem[Val, To] {
     override def eVal = _eVal
 
-    override val liftable: Liftables.Liftable[_, To] = liftableSizePrim(_eVal.liftable).asLiftable[SSizePrim[_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SSizePrim[_], To](liftableSizePrim(_eVal.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -432,7 +432,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def eL = _eL
     def eR = _eR
 
-    override val liftable: Liftables.Liftable[_, To] = liftableSizePair(_eL.liftable, _eR.liftable).asLiftable[SSizePair[_,_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SSizePair[_,_], To](liftableSizePair(_eL.liftable, _eR.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -596,7 +596,7 @@ object SizeColl extends EntityObject("SizeColl") {
     extends SizeElem[Coll[Item], To] {
     def eItem = _eItem
 
-    override val liftable: Liftables.Liftable[_, To] = liftableSizeColl(_eItem.liftable).asLiftable[SSizeColl[_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SSizeColl[_], To](liftableSizeColl(_eItem.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -756,7 +756,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     def eArg = _eArg
     def eRes = _eRes
 
-    override val liftable: Liftables.Liftable[_, To] = liftableSizeFunc(_eEnv.liftable, _eArg.liftable, _eRes.liftable).asLiftable[SSizeFunc[_,_,_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SSizeFunc[_,_,_], To](liftableSizeFunc(_eEnv.liftable, _eArg.liftable, _eRes.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -908,7 +908,7 @@ object SizeOption extends EntityObject("SizeOption") {
     extends SizeElem[WOption[T], To] {
     def eT = _eT
 
-    override val liftable: Liftables.Liftable[_, To] = liftableSizeOption(_eT.liftable).asLiftable[SSizeOption[_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SSizeOption[_], To](liftableSizeOption(_eT.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++

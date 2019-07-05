@@ -637,7 +637,7 @@ implicit val eV = proj.elem.eRange
     extends EntityElem1[A, To, Coll](_eA, container[Coll]) {
     def eA = _eA
 
-    override val liftable: Liftables.Liftable[_, To] = liftableColl(_eA.liftable).asLiftable[SColl[_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SColl[_], To](liftableColl(_eA.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -2003,7 +2003,7 @@ implicit val eV = proj.elem.eRange
     extends CollElem[A, To] {
     override def eA = _eA
 
-    override val liftable: Liftables.Liftable[_, To] = liftableReplColl(_eA.liftable).asLiftable[SReplColl[_], To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SReplColl[_], To](liftableReplColl(_eA.liftable))
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
@@ -2316,7 +2316,7 @@ implicit val eO = l.elem.eRange
   // familyElem
   class CollBuilderElem[To <: CollBuilder]
     extends EntityElem[To] {
-    override val liftable: Liftables.Liftable[_, To] = LiftableCollBuilder.asLiftable[SCollBuilder, To]
+    override val liftable: Liftables.Liftable[_, To] = asLiftable[SCollBuilder, To](LiftableCollBuilder)
 
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
