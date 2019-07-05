@@ -159,6 +159,16 @@ trait TypeSum extends Base { self: Scalan =>
     case _ => false
   }
 
+  override def toRep[A](x: A)(implicit eA: Elem[A]):Rep[A] = eA match {
+    case se: SumElem[a, b] =>
+      val x1 = x.asInstanceOf[a | b]
+      implicit val eA = se.eLeft
+      implicit val eB = se.eRight
+      x1.fold(l => SLeft[a, b](l), r => SRight[a, b](r))
+    case _ =>
+      super.toRep(x)(eA)
+  }
+
   override def rewriteDef[T](d: Def[T]) = d match {
     case SumFold(sum, Def(ConstantLambda(l)), Def(ConstantLambda(r))) if l == r =>
       l

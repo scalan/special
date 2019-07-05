@@ -194,15 +194,11 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     proxy.asInstanceOf[Ops]
   }
 
-  def isDescMethod(m: Method): Boolean = {
-    classOf[TypeDesc].isAssignableFrom(m.getReturnType)
-  }
-
   private def invokeMethod[A](receiver: Sym, m: Method, args: Array[AnyRef],
                               onInvokeSuccess: AnyRef => A,
                               onInvokeException: Throwable => A,
                               onNoMethodFound: => A): A = {
-    def tryInvoke(obj: Any, m: Method) = {
+    def tryInvoke(obj: Any, m: Method): A = {
       try {
         val res = m.invoke(obj, args: _*)
         onInvokeSuccess(res)
@@ -243,18 +239,10 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
     (_, m) => m.getName == "apply" && m.getDeclaringClass.getName.endsWith("CompanionCtor")
   )
 
-  private lazy val isFieldGetterCache = collection.mutable.Map.empty[(Type, Method), Boolean]
-
-  private val isFieldGetter: InvokeTester = NamedInvokeTester("isFieldGetter", { (d, m) =>
-    val tpe = d.selfType.tag.tpe
-    isFieldGetterCache.getOrElseUpdate((tpe, m),
-      findScalaMethod(tpe, m).isParamAccessor)
-  })
-
   protected def initialInvokeTesters: ArrayBuffer[InvokeTester] = {
     val res = new ArrayBuffer[InvokeTester](16)
     res += isCompanionApply
-    res += isFieldGetter
+//    res += isFieldGetter
     res
   }
   private lazy val invokeTesters: ArrayBuffer[InvokeTester] = initialInvokeTesters
@@ -312,7 +300,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   // stack of receivers for which MethodCall nodes should be created by InvocationHandler
   protected var methodCallReceivers: List[Sym] = Nil
 
-  import Symbols._
+//  import Symbols._
 
   private def invokeMethod(obj: AnyRef, methodName: String): AnyRef = {
     try {
@@ -329,69 +317,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         !!!(s"Failed to find method with name $methodName of object $obj")
     }
   }
-
-  private def findScalaMethod(tpe: Type, m: Method) = {
-    val scalaMethod0 = tpe.member(TermName(m.getName))
-    if (scalaMethod0.isTerm) {
-      val overloads = scalaMethod0.asTerm.alternatives
-      val scalaMethod1 = (if (overloads.length == 1) {
-        scalaMethod0
-      } else {
-        val javaOverloadId = ReflectionUtil.overloadId(m)
-
-        overloads.find { sym =>
-          !isSupertypeOfDef(sym.owner) && {
-            val scalaOverloadId = ReflectionUtil.annotation[OverloadId](sym).map { sAnnotation =>
-              val annotationArgs = sAnnotation.tree.children.tail
-              val AssignOrNamedArg(_, Literal(Constant(sOverloadId))) = annotationArgs.head
-              sOverloadId
-            }
-            scalaOverloadId == javaOverloadId
-          }
-        }.getOrElse {
-          val overloadIdString = javaOverloadId.fold("no overload id")(x => s"""overload id "$x"""")
-          !!!(s"Method with name ${m.getName} and $overloadIdString doesn't exist on type $tpe")
-        }
-      }).asMethod
-
-      if (scalaMethod1.returnType.typeSymbol != definitions.NothingClass) {
-        scalaMethod1
-      } else {
-        scalaMethod1.overrides.find(_.asMethod.returnType.typeSymbol != definitions.NothingClass).getOrElse {
-          !!!(s"Method $scalaMethod1 on type $tpe and all overridden methods return Nothing")
-        }.asMethod
-      }
-    } else
-      !!!(s"Method $m couldn't be found on type $tpe")
-  }
-
-  private object Symbols {
-    val RepSym = typeOf[Rep[_]].typeSymbol
-
-    val UnitSym = typeOf[Unit].typeSymbol
-    val BooleanSym = typeOf[Boolean].typeSymbol
-    val ByteSym = typeOf[Byte].typeSymbol
-    val ShortSym = typeOf[Short].typeSymbol
-    val IntSym = typeOf[Int].typeSymbol
-    val LongSym = typeOf[Long].typeSymbol
-    val FloatSym = typeOf[Float].typeSymbol
-    val DoubleSym = typeOf[Double].typeSymbol
-    val StringSym = typeOf[String].typeSymbol
-    val PredefStringSym = definitions.PredefModule.moduleClass.asType.toType.member(TypeName("String"))
-    val CharSym = typeOf[Char].typeSymbol
-
-    val Tuple2Sym = typeOf[(_, _)].typeSymbol
-    val EitherSym = typeOf[_ | _].typeSymbol
-    val Function1Sym = typeOf[_ => _].typeSymbol
-
-    val ElementSym = typeOf[Elem[_]].typeSymbol
-    val ContSym = typeOf[Cont[Any]].typeSymbol
-
-    val SuperTypesOfDef = typeOf[Def[_]].baseClasses.toSet
-  }
-
-  private def isSupertypeOfDef(clazz: Symbol) =
-    Symbols.SuperTypesOfDef.contains(clazz)
 
   lazy val externalClassNameMetaKey = MetaKey[String]("externalClassName")
   lazy val externalMethodNameMetaKey = MetaKey[String]("externalMethodName")

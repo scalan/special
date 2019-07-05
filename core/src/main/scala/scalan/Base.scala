@@ -515,11 +515,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
       implicit val eA = pe.eFst
       implicit val eB = pe.eSnd
       Pair(toRep(x1._1), toRep(x1._2))
-    case se: SumElem[a, b] =>
-      val x1 = x.asInstanceOf[a | b]
-      implicit val eA = se.eLeft
-      implicit val eB = se.eRight
-      x1.fold(l => SLeft[a, b](l), r => SRight[a, b](r))
     case _ =>
       x match {
         // this may be called instead of reifyObject implicit in some cases
