@@ -114,6 +114,7 @@ lazy val core = Project("core", file("core"))
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.3",
+        "org.rudogma" % "supertagged_2.12" % "1.4",
         "org.objenesis" % "objenesis" % "2.4",
         "com.github.kxbmap" %% "configs" % "0.4.4",
         "com.trueaccord.lenses" %% "lenses" % "0.4.12",

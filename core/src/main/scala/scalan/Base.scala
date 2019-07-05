@@ -15,9 +15,11 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil}
+import debox.{Buffer => DBuf}
 
 import scala.reflect.runtime.universe._
-
+import spire.syntax.all.cfor
+import supertagged.TaggedType
 
 /**
   * The Base trait houses common AST nodes. It also manages a list of encountered Definitions which
@@ -58,10 +60,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
       * Doesn't participate in equality of this Def.
       * Use only to provide global Def numbering. */
     private[scalan] var _nodeId: Int = SingleSym.freshId
-    @inline private [scalan] def assignId(): Unit = {
-      assert(_nodeId == 0, s"Definition $this has already been assigned with nodeId=${_nodeId}")
-      _nodeId = SingleSym.freshId
-    }
 
     private[scalan] var _tableEntry: TableEntry[T @uncheckedVariance] = _
     @inline def nodeId: Int = _nodeId
@@ -327,11 +325,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def transform(t: Transformer) = this
   }
 
+  /** @param varId   is independent from nodeId, shouldn't be used as node id.*/
   case class Variable[T](varId: Int)(implicit eT: LElem[T]) extends Def[T] {
     def selfType: Elem[T] = eT.value
     override def transform(t: Transformer): Def[T] =
       !!!(s"Method transfrom should not be called on $this", self)
   }
+
   @inline def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](SingleSym.freshId)
 
   /** Symbols may temporary refer to this node until their target node is updated. */
@@ -601,30 +601,33 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def rewriteVar[T](s: Rep[T]): Rep[_] = null
 
-  /**
-    * A Sym is a symbolic reference used internally to refer to expressions.
-    */
-  object SingleSym {
-    private var currId = 0
-    @inline def freshId: Int = { currId += 1; currId }
-    @inline def freshSym[T](d: Def[T]): Rep[T] = {
-      new SingleSym(d)
-    }
-    def resetIdCounter() = { currId = 0 }
-  }
 
-  /** Light weight stateless immutable reference to a graph node.
-    * Two symbols are equal if they refer to exactly the same instance of node.
+  /** Light weight stateless immutable reference to a graph node (Def[T]).
+    * Two symbols are equal if they refer to the nodes with the same id,
+    * which is due to Def unification means equal symbols refer to the same instance of Def.
     * */
-  class SingleSym[+T](private var _rhs: Def[T @uncheckedVariance]) extends Exp[T] {
+  class SingleSym[+T] private (private var _rhs: Def[T @uncheckedVariance]) extends Exp[T] {
     override def elem: Elem[T @uncheckedVariance] = _rhs.selfType
     def rhs: Def[T] = _rhs
-    private[scalan] def assignDef[B >: T](d: Def[B]): Unit = {
-//      assert(d.selfType <:< elem, s"violated pre-condition ${d.selfType} <:< $elem")
+
+    private[scalan] def assignDefInternal[B >: T](d: Def[B]): Unit = {
+      assert(_rhs.isInstanceOf[Placeholder[_]])
+      assert(_rhs.nodeId > 0)
+      val tab = _symbolTable
+      val oldId = _rhs.nodeId
+      if (tab(oldId) eq this) {
+        tab.update(oldId, null)
+      }
       _rhs = d.asInstanceOf[Def[T]]
     }
+
+    private[scalan] def assignDef[B >: T](d: Def[B]): Unit = {
+      assignDefInternal(d)
+      updateSymbolTable(this, d)
+    }
+
     private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit = {
-      assignDef(sym.rhs)
+      assignDefInternal(sym.rhs)
     }
 
     private var _adapter: T @uncheckedVariance = _
@@ -643,6 +646,41 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def hashCode(): Int = _rhs._nodeId
   }
 
+  /**
+    * A Sym is a symbolic reference used internally to refer to graph nodes.
+    */
+  object SingleSym {
+    private var currId = 0
+    @inline def freshId: Int = { currId += 1; currId }
+
+    @inline def freshSym[T](d: Def[T]): Rep[T] = {
+      val s = new SingleSym(d)
+      updateSymbolTable(s, d)
+      s
+    }
+
+    def resetIdCounter() = { currId = 0 }
+  }
+
+  def updateSymbolTable[T](s: Exp[T], d: Def[T]) = {
+    val id = d.nodeId
+    val tab = _symbolTable  // perf optimization
+    val delta = id - tab.length
+    if (delta < 0) {
+      val sym = tab(id)
+      if (sym == null) {
+        tab.update(id, s)
+      } else {
+        assert(sym.rhs.nodeId == id, s"Each symbol should refer to correct node, but was $sym -> ${sym.rhs}")
+      }
+    } else {
+      // grow table
+      cfor(0)(_ < delta, _ + 1) { _ => tab.append(null) }
+      tab += s
+      assert(tab.length == id + 1)
+    }
+  }
+
   @inline def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
 
   case class TableEntrySingle[T](sym: Rep[T], rhs: Def[T], lambda: Option[Rep[_]]) extends TableEntry[T]
@@ -652,9 +690,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]) = new TableEntrySingle(sym, rhs, Some(lam))
   }
 
-  protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
+  val nInitialDefs = 10000
+  private[this] val _symbolTable: DBuf[Sym] = DBuf.ofSize(nInitialDefs)
+  private[this] val defToGlobalDefs = AVHashMap[Def[_], TableEntry[_]](nInitialDefs)
 
-  private[this] val defToGlobalDefs = AVHashMap[Def[_], TableEntry[_]](10000)
+  protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
   def defCount = defToGlobalDefs.hashMap.size()
 
@@ -663,6 +703,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def resetContext() = {
     defToGlobalDefs.clear()
+    _symbolTable.clear()
+    _symbolTable.splice(0, DBuf.ofSize[Sym](nInitialDefs))
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
     metadataPool = Map.empty[Sym, MetaNode]
@@ -709,6 +751,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     createDefinition(thunkStack.top, s, d)
 
   protected def createDefinition[T](optScope: Nullable[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
+    assert(_symbolTable(d.nodeId).rhs.nodeId == d.nodeId)
     val te = TableEntry(s, d)
     optScope match {
       case Nullable(scope) =>
@@ -759,6 +802,9 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 }
 object Base {
+  object NodeId extends TaggedType[Int]
+  type NodeId = NodeId.Type
+
   // Hacky way to make plugin config avaialable here. It probably shouldn't be, but
   // for now Gcc's initialization fails without it. If we decide it is, move logic from
   // Plugins to here.
