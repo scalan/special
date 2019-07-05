@@ -34,7 +34,7 @@ class IfThenElseTestsExp extends IfThenElseTests(new Scalan with MetaTestsModule
 
   test("type of if-then-else is the upper bound of its branches") {
     val c = variable[Boolean]
-    val x = IFF (c) THEN RMT0(0).asRep[Any] ELSE RMT1(toRep(()), 0).asRep[Any]
+    val x = IFF (c) THEN asRep[Any](RMT0(0)) ELSE asRep[Any](RMT1(toRep(()), 0))
     x.elem shouldEqual element[MetaTest[Unit]]
   }
 }

@@ -207,11 +207,11 @@ trait TypeSum extends Base { self: Scalan =>
 
       // Rule: fold(SumView(source, iso1, iso2), l, r) ==> fold(source, iso1.to >> l, iso2.to >> r)
       case Def(view: SumView[a1, a2, b1, b2]) =>
-        view.source.foldBy(foldD.left.asRep[b1 => T] << view.iso1.toFun, foldD.right.asRep[b2 => T] << view.iso2.toFun)
+        view.source.foldBy(asRep[b1 => T](foldD.left) << view.iso1.toFun, asRep[b2 => T](foldD.right) << view.iso2.toFun)
 
       // Rule: fold(fold(sum, id, id), l, r) ==> fold(sum, x => fold(x, l, r), y => fold(y, l, r))
       case Def(join@IsJoinSum(sum)) =>
-        val source = sum.asRep[(a | b) | (a | b)]
+        val source = asRep[(a | b) | (a | b)](sum)
         implicit val eRes: Elem[a | b] = source.elem.eLeft
         implicit val eT = foldD.left.elem.eRange
         val f1 = fun { x: Rep[a | b] => x.foldBy(foldD.left, foldD.right) }
@@ -233,7 +233,7 @@ trait TypeSum extends Base { self: Scalan =>
     case call@MethodCall(Def(foldD@SumFold(sum, left, right)), m, args, neverInvoke) => {
       implicit val resultElem: Elem[T] = d.selfType
       def copyMethodCall(newReceiver: Sym) =
-        mkMethodCall(newReceiver, m, args, neverInvoke, isAdapterCall = false, resultElem).asRep[T]
+        asRep[T](mkMethodCall(newReceiver, m, args, neverInvoke, isAdapterCall = false, resultElem))
 
       sum.fold(
         a => copyMethodCall(left(a)),
@@ -250,7 +250,7 @@ trait TypeSum extends Base { self: Scalan =>
       val eR = l.eRight
       getIsoByElem(eR) match {
         case iso1: Iso[a2, b2] =>
-          SumView(a.asRep[a1].asLeft(iso1.eFrom))(iso, iso1).self
+          SumView(asRep[a1](a).asLeft(iso1.eFrom))(iso, iso1).self
       }
 
     // Rule: Right[A,B](V(a, iso)) ==> V(Right(a), SumIso(iso[A], iso))
@@ -258,7 +258,7 @@ trait TypeSum extends Base { self: Scalan =>
       val eL = r.eLeft
       getIsoByElem(eL) match {
         case iso1: Iso[a2, b2] =>
-          SumView(a.asRep[a1].asRight(iso1.eFrom))(iso1, iso).self
+          SumView(asRep[a1](a).asRight(iso1.eFrom))(iso1, iso).self
       }
 
     case foldD@SumFold(sum,

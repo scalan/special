@@ -56,7 +56,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       case (eB,eC) if (eB==eC) =>
         val k = fun { x: Rep[S] =>
           val a = isoA.to(x)
-          val b = f(a).asRep[C]
+          val b = asRep[C](f(a))
           isoC.from(b)
         }
         List(k)
@@ -163,7 +163,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
             implicit val et = outIso.eFrom
             implicit val eb = outIso.eTo
             for {
-              kernel <- scalan.composeKernel(inIso, f.asRep[a=>B], outIso)
+              kernel <- scalan.composeKernel(inIso, asRep[a=>B](f), outIso)
             }
             yield kernel
         }
@@ -305,7 +305,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         e1e2 <- matrix.keys.filter { case (e1, e2) => e1 == eFrom }
         cs   <- matrix.get(e1e2).toIterable
         c    <- cs
-      } yield c.asRep[Converter[A1,A2]]
+      } yield asRep[Converter[A1,A2]](c)
       res.toList
     }
     def getInputConvertersToElem[A1,A2](matrix: ConverterMatrix, eTo: Elem[A2]): List[Conv[A1,A2]] = {
@@ -313,7 +313,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         e1e2 <- matrix.keys.filter { case (e1, e2) => e2 == eTo }
         cs   <- matrix.get(e1e2).toIterable
         c    <- cs
-      } yield c.asRep[Converter[A1,A2]]
+      } yield asRep[Converter[A1,A2]](c)
       res.toList
     }
 
@@ -335,15 +335,15 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
               csym @ Def(c: Converter[_,_]) <- cs
               kernel <- {
                 val f = fun({ x: Rep[a] =>
-                  val a1 = csym.asRep[Converter[a,A]].apply(x)
+                  val a1 = asRep[Converter[a,A]](csym).apply(x)
                   val b = originalFunc(a1)
                   b
                 })(Lazy(ea))
-                composeKernel(inIso, f.asRep[a=>B], outIso)(es, et, ea, eB)
+                composeKernel(inIso, asRep[a=>B](f), outIso)(es, et, ea, eB)
               }
             }
             yield {
-              (SpecKey(es, et, c.eR, None), kernel.asRep[Any => Any])
+              (SpecKey(es, et, c.eR, None), asRep[Any => Any](kernel))
             }
             res
         }
@@ -495,7 +495,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       implicit val eb = k.eB
       iso match {
         case iso: Iso[s, c] @unchecked =>
-          val x = _x.asRep[s]
+          val x = asRep[s](_x)
           ApplyKernel(k.self, x, composeIso(isoDom, iso), isoRange, specNum)
       }
     case NoFuse(Def(k@Tup(f,s))) => {

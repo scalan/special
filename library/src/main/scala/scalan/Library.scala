@@ -73,13 +73,13 @@ trait Library extends Scalan
 
   object IsProjectFirst {
     def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-      case Def(Lambda(_,_,x, Def(First(p)))) if p == x => Some(f.asRep[A=>B])
+      case Def(Lambda(_,_,x, Def(First(p)))) if p == x => Some(asRep[A=>B](f))
       case _ => None
     }
   }
   object IsProjectSecond {
     def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-      case Def(Lambda(_,_,x, Def(Second(p)))) if p == x => Some(f.asRep[A=>B])
+      case Def(Lambda(_,_,x, Def(Second(p)))) if p == x => Some(asRep[A=>B](f))
       case _ => None
     }
   }

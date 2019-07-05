@@ -31,7 +31,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan =>
   implicit class ConvOps[A,B](c: Conv[A,B]) {
     def >>[B1 >: B, C](c2: Conv[B1,C]): Conv[A,C] = composeConv(c2, c)
     def >>[B1 >: B, C](f: Rep[B1 => C])(implicit o2: Overloaded2): Rep[A => C] = {
-      compose(f, funcFromConv(c).asRep[A => B1])
+      compose(f, asRep[A => B1](funcFromConv(c)))
     }
   }
   implicit class AnyConvOps(c: Conv[_, _]) {
@@ -197,12 +197,12 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
         type F[T] = T
         val F = e1.cont.asInstanceOf[Functor[F]]
         for { c <- getConverter(ea1, ea2) }
-          yield RFunctorConverter(c)(F).asRep[Converter[A,B]]
+          yield asRep[Converter[A,B]](RFunctorConverter(c)(F))
       case (eEntity: EntityElem[_], eClass: ConcreteElem[tData,tClass]) =>
         val convOpt = eClass.getConverterFrom(eEntity)
         convOpt
       case (eClass: ConcreteElem[tData,tClass], eEntity: EntityElem[_]) if eClass <:< eEntity =>
-        Some(RBaseConverter(identityFun(eClass)).asRep[Converter[A,B]])
+        Some(asRep[Converter[A,B]](RBaseConverter(identityFun(eClass))))
       case _ => None
     }
   }
@@ -214,7 +214,7 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
 
   def tryConvert[From, To](eFrom: Elem[From], eTo: Elem[To], x: Rep[Def[_]], conv: Rep[From => To]): Rep[To] = {
     if (x.elem <:< eFrom)
-      conv(x.asRep[From])
+      conv(asRep[From](x))
     else
       Convert(eFrom, eTo, x, conv)
   }
@@ -222,8 +222,8 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
   override def rewriteViews[T](d: Def[T]) = d match {
     case Convert(eFrom: Elem[from], eTo: Elem[to], HasViews(_x, _iso: Iso[Def[_], _] @unchecked),  _conv) =>
       val iso = _iso.asInstanceOf[Iso[Def[_], from]]
-      val conv = _conv.asRep[from => to]
-      val x = _x.asRep[Def[_]]
+      val conv = asRep[from => to](_conv)
+      val x = asRep[Def[_]](_x)
       tryConvert(x.elem, eTo, x, iso.toFun >> conv)
 
     case _ => super.rewriteViews(d)

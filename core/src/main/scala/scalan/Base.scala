@@ -45,9 +45,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
   def !!!(msg: String, syms: Rep[_]*): Nothing = throw new StagingException(msg, syms)
   def !!!(msg: String, e: Throwable, syms: Rep[_]*): Nothing = throw new StagingException(msg, e, syms)
 
-  implicit class RepForSomeExtension(x: Rep[_]) {
-    def asRep[T]: Rep[T] = x.asInstanceOf[Rep[T]]
-  }
   @inline final def asRep[T](x: Rep[_]): Rep[T] = x.asInstanceOf[Rep[T]]
 
   implicit class RepExtension[A](x: Rep[A]) {
@@ -468,38 +465,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     })
     finalParams.asInstanceOf[Seq[AnyRef]]
   }
-
-  /** @hotspot */
-//  def transformProduct(p: Product, t: Transformer): Product = {
-//    val clazz = p.getClass
-//    val ReflectedProductClass(constructor, paramMirrors, owner) = {
-//      var opt = defClasses.get(clazz)
-//      opt match {
-//        case Nullable(rpc) => rpc
-//        case _ =>
-//          val rpc = reflectProductClass(clazz, p)
-//          defClasses.put(clazz, rpc)
-//          rpc
-//      }
-//    }
-//
-//    val pParams = paramMirrors.map(_.bind(p).get)
-//    val transformedParams = pParams.map(transformProductParam(_, t))
-//    val finalParams = addOwnerParameter(owner, transformedParams)
-//    try {
-//      val transformedP = constructor.newInstance(finalParams: _*).asInstanceOf[Product]
-//      transformedP
-//    } catch {
-//      case e: Exception =>
-//        !!!(
-//          s"""
-//            |Failed to invoke constructor $clazz(${constructor.getParameterTypes.map(_.getSimpleName).mkString(", ")}) with parameters ${finalParams.mkString(", ")}
-//            |
-//             |Graph nodes have scalan cake as the first parameter ($$owner).
-//            |Check that the trait where class $clazz is defined extends Base.
-//            |""".stripMargin, e)
-//    }
-//  }
 
   implicit def reifyObject[A](obj: Def[A]): Rep[A] = {
     toExp(obj, obj.self)

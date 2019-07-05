@@ -94,7 +94,7 @@ trait Entities extends TypeDescs { self: Scalan =>
     def getConverterFrom[E](eEntity: EntityElem[E]): Option[Conv[E, TClass]] = {
       try {
         val convFun: Rep[E => TClass] =
-          fun({ x: Rep[E] => eClass.convert(x.asRep[Def[_]])})(Lazy(eEntity))
+          fun({ x: Rep[E] => eClass.convert(asRep[Def[_]](x))})(Lazy(eEntity))
         Some(RBaseConverter(convFun))
       }
       catch {

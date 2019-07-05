@@ -114,7 +114,7 @@ abstract class FileCodegen[+ScalanCake <: Scalan](val scalan: ScalanCake, val co
         case _ =>
           x.elem match {
             case _: PairElem[a, b] =>
-              val Pair(head, tail) = x.asRep[(a, b)]
+              val Pair(head, tail) = asRep[(a, b)](x)
               head :: argList(tail, n - 1)
             case _ =>
               !!!(s"$n arguments expected, but ${x.toStringWithDefinition } is not a nested tuple")

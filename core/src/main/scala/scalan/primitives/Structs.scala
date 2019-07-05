@@ -423,7 +423,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     def from(y: Rep[T]) = {
       val items = eTo.fields.flatMap {
         case (outerN, outerE: StructElem[_]) =>
-          val s = y.getUntyped(outerN).asRep[Struct]
+          val s = asRep[Struct](y.getUntyped(outerN))
           outerE.fields.map { case (innerN, innerE) => innerN -> s.getUntyped(innerN) }
         case (_, nonStructElem) => !!!(s"StructElem expected but found $nonStructElem", self, y)
       }
@@ -443,7 +443,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   }
 
   def unzipMany[T](tuple: Rep[_], list: List[T]): List[Rep[_]] = {
-    val pair = tuple.asRep[(Any, Any)]
+    val pair = asRep[(Any, Any)](tuple)
     list match {
       case Nil => List(tuple)
       case x :: Nil => List(tuple)
@@ -461,13 +461,13 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
       val res = CollectionUtil.foldRight[String, Rep[_]](eTo.fieldNames)(y.getUntyped(_)) {
         case (fn, s) => Pair(y.getUntyped(fn), s)
       }
-      res.asRep[A]
+      asRep[A](res)
     }
 
     override def to(x: Rep[A]) = {
       val items = unzipMany(x, eTo.fields.toList)
-      val fields = eTo.fieldNames.zip(items.map(_.asRep[Any]))
-      struct(fields).asRep[AS]
+      val fields = eTo.fieldNames.zip(items.map(asRep[Any](_)))
+      asRep[AS](struct(fields))
     }
 
     override def equals(other: Any) = other match {
@@ -484,17 +484,17 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
       case (inIso: Iso[a, A] @unchecked, outIso: Iso[b, B] @unchecked) =>
         outIso.fromFun << f << inIso.toFun
     }
-    wrapperFun.asRep[Any => Any]
+    asRep[Any => Any](wrapperFun)
   }
   def structWrapperIn[A,B](f: Rep[A => B]): Rep[Any => B] = {
     val inIso = getStructWrapperIso[A](f.elem.eDom)
     val wrapperFun = inIso.toFun >> f
-    wrapperFun.asRep[Any => B]
+    asRep[Any => B](wrapperFun)
   }
   def structWrapperOut[A,B](f: Rep[A => B]): Rep[A => Any] = {
     val outIso = getStructWrapperIso[B](f.elem.eRange)
     val wrapperFun = f >> outIso.fromFun
-    wrapperFun.asRep[A => Any]
+    asRep[A => Any](wrapperFun)
   }
   abstract class AbstractStruct[T <: Struct] extends Def[T] {
     def tag: StructTag[T]
@@ -600,7 +600,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     def unapply[T](d: FieldApply[T]): Option[Exp[T]] = d match {
       case FieldApply(Def(SimpleStruct(_, fs)), fn) =>
         val optItem = fs.find { case (n, _) => n == fn }
-        optItem.map(_._2.asRep[T])
+        optItem.map(x => asRep[T](x._2))
       case _ => None
     }
   }
@@ -617,7 +617,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
                 false
             }
             if (eachFieldComesFromPossibleSourceStruct)
-              Nullable(possibleSourceStruct.asRep[A])
+              Nullable(asRep[A](possibleSourceStruct))
             else
               Nullable.None
           case _ => Nullable.None
@@ -637,10 +637,10 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   }
 
   object StructsRewriter extends Rewriter {
-    def apply[T](x: Exp[T]): Exp[T] = (x match {
+    def apply[T](x: Exp[T]): Exp[T] = asRep[T](x match {
       case Def(FieldGet(v)) => v
       case _ => x
-    }).asRep[T]
+    })
   }
 }
 

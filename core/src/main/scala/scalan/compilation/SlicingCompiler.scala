@@ -26,7 +26,7 @@ trait SlicingCompiler[+ScalanCake <: Scalan with Slicing] extends Compiler[Scala
             // get them and use as initial
             sliceAnalyzer.getMark(r)
           }
-          val fm = sliceAnalyzer.analyzeFunc(f.asRep[a => b], rm)
+          val fm = sliceAnalyzer.analyzeFunc(asRep[a => b](f), rm)
         //            sliceAnalyzer.updateOutboundMarking(f, fm)
 
         //          case r: Exp[a] =>

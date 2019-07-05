@@ -583,15 +583,15 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   override def rewriteViews[T](d: Def[T]) = d match {
     // Rule: (V(a, iso1), V(b, iso2)) ==> V((a,b), PairIso(iso1, iso2))
     case Tup(HasViews(a, iso1: Iso[a, c]), HasViews(b, iso2: Iso[b, d])) =>
-      PairView((a.asRep[a], b.asRep[b]), iso1, iso2)
+      PairView((asRep[a](a), asRep[b](b)), iso1, iso2)
 
     // Rule: (V(a, iso1), b) ==> V((a,b), PairIso(iso1, id))
     case Tup(HasViews(a, iso1: Iso[a, c]), b: Rep[b]) =>
-      PairView((a.asRep[a], b), iso1, identityIso(b.elem)).self
+      PairView((asRep[a](a), b), iso1, identityIso(b.elem)).self
 
     // Rule: (a, V(b, iso2)) ==> V((a,b), PairIso(id, iso2))
     case Tup(a: Rep[a], HasViews(b, iso2: Iso[b, d])) =>
-      PairView((a, b.asRep[b]), identityIso(a.elem), iso2).self
+      PairView((a, asRep[b](b)), identityIso(a.elem), iso2).self
 
     // Rule: PairView(source, iso1, _)._1  ==> iso1.to(source._1)
     case First(Def(view@PairView(source,_,_))) =>

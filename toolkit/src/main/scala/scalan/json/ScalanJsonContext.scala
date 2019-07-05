@@ -185,7 +185,7 @@ trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
 
     def unapply(in: (String, Seq[Sym], Element)): Option[ApplyUnOp[_, _]] = declaredOps.get(in._1) match {
       case Some(op: UnOp[a, b]) =>
-        Some(ApplyUnOp[a, b](op, in._2(0).asRep[a]))
+        Some(ApplyUnOp[a, b](op, asRep[a](in._2(0))))
       case _ => None
     }
   }
@@ -196,7 +196,7 @@ trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
       BinOps.get(opName) match {
         case Some(elems) => elems.get(eRes) match {
           case Some(op: BinOp[a, b]) =>
-            Some(ApplyBinOp[a, b](op, args(0).asRep[a], args(1).asRep[a]))
+            Some(ApplyBinOp[a, b](op, asRep[a](args(0)), asRep[a](args(1))))
           case _ => None
         }
         case None => None
