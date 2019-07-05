@@ -303,12 +303,10 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
 
   @Internal
   override def equals(obj: scala.Any): Boolean = obj match {
-    case cl: Coll[_] => cl match {
-      case repl: CReplColl[B]@unchecked if repl.tItem == this.tItem =>
-        isReplArray(repl.length, repl.value)
-      case _ if cl.tItem == this.tItem =>
-        util.Objects.deepEquals(cl.toArray, toArray)
-    }
+    case repl: CReplColl[B]@unchecked if repl.tItem == this.tItem =>
+      isReplArray(repl.length, repl.value)
+    case otherColl: Coll[B] if otherColl.tItem == this.tItem =>
+      util.Objects.deepEquals(otherColl.toArray, toArray)
     case _ => false
   }
 
