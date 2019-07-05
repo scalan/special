@@ -64,7 +64,7 @@ abstract class AbstractSlicingTests extends BaseTests with TestContexts {
     import compiler._
     import compiler.scalan._
 
-    def getFuncMarking[A,B](f: scalan.Exp[A => B], mInitial: SliceMarking[B]): FuncMarking[A,B] = {
+    def getFuncMarking[A,B](f: scalan.Rep[A => B], mInitial: SliceMarking[B]): FuncMarking[A,B] = {
       val slicingPassBuilder = SlicingPass.makePass(false)
       val g = new PGraph(f)
       val pass = slicingPassBuilder(g)
@@ -78,14 +78,14 @@ abstract class AbstractSlicingTests extends BaseTests with TestContexts {
       res
     }
 
-    def testFuncMark[A,B](f: scalan.Exp[A => B], mInitial: SliceMarking[B], mExpected: SliceMarking[A]) = {
+    def testFuncMark[A,B](f: scalan.Rep[A => B], mInitial: SliceMarking[B], mExpected: SliceMarking[A]) = {
       val fm = getFuncMarking(f, mInitial)
       val mA = fm.mDom
       assertResult(mExpected)(mA)
       assertResult(FuncMarking(mA,mInitial))(fm)
     }
 
-    def testFuncSlice[A,B](name: String, f: scalan.Exp[A => B], mInitial: SliceMarking[B]) = {
+    def testFuncSlice[A,B](name: String, f: scalan.Rep[A => B], mInitial: SliceMarking[B]) = {
       import scalan._
       val fm = getFuncMarking(f, mInitial)
       val fsliced = sliceFunc(f, fm)

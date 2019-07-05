@@ -80,7 +80,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 //  def composeWrapper[S,T,A,B,C](isoA: Iso[S,A], f: Rep[A=>B], isoC: Iso[T,C]): List[Rep[S=>T]] = {
 //    (typeOf[B], isoC.tTo) match {
 //      case HasConv(conv) =>
-//        List(fun { x: Exp[S] =>
+//        List(fun { x: Rep[S] =>
 //          val a = isoA.to(x)
 //          val b = f(a)
 //          val converted = conv(b)
@@ -416,13 +416,13 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     /*lazy*/ val extendedKernels = extendedKernelsMap.values.toList.distinct.diff(primaryKernels)
   }
 
-//  case class DynKernelSpecs[A,B](nKernels: Rep[Int], specList: List[Exp[A=>B]])(implicit val eA:Elem[A], val eB: Elem[B]) extends ArrayDef[A=>B] {
+//  case class DynKernelSpecs[A,B](nKernels: Rep[Int], specList: List[Rep[A=>B]])(implicit val eA:Elem[A], val eB: Elem[B]) extends ArrayDef[A=>B] {
 //    lazy val eT = element[A=>B]
 ////    override def mirror(t: Transformer) = DynKernelSpecs(t(nKernels), specList.map{s => t(s)})
 //  }
 
   case class ApplyKernel[A, B, C, A1, D, B1]
-        (kernel: Exp[A => B], arg: Exp[C], isoDom: Iso[C,A1], isoRange: Iso[D,B1], specNum: Rep[Int])
+        (kernel: Rep[A => B], arg: Rep[C], isoDom: Iso[C,A1], isoRange: Iso[D,B1], specNum: Rep[Int])
     extends Def[D]
   {
     // TODO assert(A1 isSpecialOf A && B1 isSpecialOf B)

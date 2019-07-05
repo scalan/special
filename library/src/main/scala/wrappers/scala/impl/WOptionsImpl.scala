@@ -405,7 +405,7 @@ object WOption extends EntityObject("WOption") {
     }
   }
 
-  override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
+  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewWOption[_, _]) =>
       Some((view.source, view.iso))
     case UserTypeWOption(iso: Iso[a, b]) =>

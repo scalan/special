@@ -308,7 +308,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    }
       |  }
       |
-         |  override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
+         |  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
       |    case Def(view: View${e.name}[_, _]) =>
       |      Some((view.source, view.iso))
       |    case UserType${e.name}(iso: Iso[a, b]) =>

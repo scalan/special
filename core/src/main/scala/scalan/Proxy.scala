@@ -327,7 +327,7 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
   case class InvokeFailure(exception: Throwable) extends InvokeResult
   case object InvokeImpossible extends InvokeResult
 
-  class ExpInvocationHandler[T](receiver: Exp[T]) extends InvocationHandler {
+  class ExpInvocationHandler[T](receiver: Rep[T]) extends InvocationHandler {
     override def toString = s"ExpInvocationHandler(${receiver.toStringWithDefinition})"
 
     def invoke(proxy: AnyRef, m: Method, _args: Array[AnyRef]) = {

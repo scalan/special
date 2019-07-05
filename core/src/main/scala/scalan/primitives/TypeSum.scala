@@ -69,11 +69,11 @@ trait TypeSum extends Base { self: Scalan =>
   // TODO used by generated code; ideally should be unnecessary
   def sOptionElement[A: Elem] = element[SOptional[A]]
 
-  case class SLeft[A, B](left: Exp[A])(implicit val eRight: Elem[B]) extends BaseDef[A | B]()(sumElement(left.elem, eRight)) {
+  case class SLeft[A, B](left: Rep[A])(implicit val eRight: Elem[B]) extends BaseDef[A | B]()(sumElement(left.elem, eRight)) {
     override def transform(t: Transformer): Def[A | B] = SLeft(t(left))(eRight)
   }
 
-  case class SRight[A, B](right: Exp[B])(implicit val eLeft: Elem[A]) extends BaseDef[A | B]()(sumElement(eLeft, right.elem)) {
+  case class SRight[A, B](right: Rep[B])(implicit val eLeft: Elem[A]) extends BaseDef[A | B]()(sumElement(eLeft, right.elem)) {
     override def transform(t: Transformer): Def[A | B] = SRight(t(right))(eLeft)
   }
 
@@ -81,12 +81,12 @@ trait TypeSum extends Base { self: Scalan =>
 
   def mkRight[A: Elem, B](b: Rep[B]): Rep[A | B] = SRight[A, B](b)(element[A])
 
-  case class SumFold[A, B, R](sum: Exp[A | B], left: Exp[A => R], right: Exp[B => R])
+  case class SumFold[A, B, R](sum: Rep[A | B], left: Rep[A => R], right: Rep[B => R])
     extends BaseDef[R]()(left.elem.eRange) {
     override def transform(t: Transformer): Def[R] = SumFold(t(sum), t(left), t(right))
   }
 
-  case class SumMap[A, B, C, D](sum: Exp[A | B], left: Exp[A => C], right: Exp[B => D])
+  case class SumMap[A, B, C, D](sum: Rep[A | B], left: Rep[A => C], right: Rep[B => D])
     extends BaseDef[C | D]()(sumElement(left.elem.eRange, right.elem.eRange)) {
     override def transform(t: Transformer): Def[C | D] = SumMap(t(sum), t(left), t(right))
   }
@@ -112,14 +112,14 @@ trait TypeSum extends Base { self: Scalan =>
   implicit def pimpSum[A, B](s: Rep[A | B]): SumOps[A, B] = new SumOpsExp[A, B](s)
 
   object IsLeft {
-    def unapply(b: Def[_]): Option[Exp[_ | _]] = b match {
+    def unapply(b: Def[_]): Option[Rep[_ | _]] = b match {
       case SumFold(sum, Def(VeryConstantLambda(true)), Def(VeryConstantLambda(false))) => Some(sum)
       case _ => None
     }
   }
 
   object IsRight {
-    def unapply(b: Def[_]): Option[Exp[_ | _]] = b match {
+    def unapply(b: Def[_]): Option[Rep[_ | _]] = b match {
       case SumFold(sum, Def(VeryConstantLambda(false)), Def(VeryConstantLambda(true))) => Some(sum)
       case _ => None
     }

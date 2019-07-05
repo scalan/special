@@ -60,7 +60,7 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
                         functionName: String = currentTestNameAsFileName) =
     compilersWithSourceDirs(compilers, functionName).foreach { case (cwc, dir) =>
       cwc.compiler.buildGraph(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Exp[A => B]], graphVizConfig)(cwc.config)
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]], graphVizConfig)(cwc.config)
     }
 
   def compileSource[A, B](f: Prog => Prog#Rep[A => B],
@@ -69,7 +69,7 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
                           functionName: String = currentTestNameAsFileName) =
     compilersWithSourceDirs(compilers, functionName).map { case (cwc, dir) =>
       cwc.compiler.buildExecutable(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Exp[A => B]], graphVizConfig)(cwc.config)
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]], graphVizConfig)(cwc.config)
     }
 
   def getStagedOutput[A, B](f: Prog => Prog#Rep[A => B],
@@ -78,7 +78,7 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
                             functionName: String = currentTestNameAsFileName)(inputs: A*) = {
     val compiled = compilersWithSourceDirs(compilers, functionName).map { case (cwc, dir) =>
       val out = cwc.compiler.buildExecutable(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Exp[A => B]],
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]],
         graphVizConfig)(cwc.config)
       (cwc.compiler, out)
     }
@@ -106,7 +106,7 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
                                      (expectedOutputs: (A, B)*) = {
     val compiled = compilersWithSourceDirs(compilers, functionName).map { case (cwc, dir) =>
       val out = cwc.compiler.buildExecutable(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Exp[A => B]], graphVizConfig)(cwc.config)
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]], graphVizConfig)(cwc.config)
       (cwc.compiler, out)
     }
 
@@ -127,7 +127,7 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
       back.execute(compiled, input)
     }
     @deprecated("Use the overload taking f: S => S#Rep[A => B] instead", "0.2.10")
-    def apply[A, B](f: back.scalan.Exp[A => B], functionName: String, input: A): B =
+    def apply[A, B](f: back.scalan.Rep[A => B], functionName: String, input: A): B =
       getStagedOutputConfig(back)(f, functionName, input, back.defaultCompilerConfig)
   }
   // TODO still used in LmsMSTItTests
@@ -135,18 +135,18 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
   def getStagedOutput[S <: Scalan](back: Compiler[S with Scalan]) = new GetStagedOutput[S, back.type](back)
 
   @deprecated("Use getStagedOutput with f: S => S#Rep[A => B] instead", "0.2.10")
-  def getStagedOutputConfig[A, B](back: Compiler[_ <: Scalan])(f: back.scalan.Exp[A => B], functionName: String, input: A, compilerConfig: back.CompilerConfig): B = {
+  def getStagedOutputConfig[A, B](back: Compiler[_ <: Scalan])(f: back.scalan.Rep[A => B], functionName: String, input: A, compilerConfig: back.CompilerConfig): B = {
     val compiled = compileSource(back)(f, functionName, compilerConfig)
     back.execute(compiled, input)
   }
 
   final class CompileSource[S <: Scalan, Back <: Compiler[S with Scalan]](val back: Back) {
     def apply[A, B](f: S => S#Rep[A => B], functionName: String, compilerConfig: back.CompilerConfig = back.defaultCompilerConfig): back.CompilerOutput[A, B] = {
-      back.buildExecutable(sourceDir(functionName), functionName, f(back.scalan).asInstanceOf[back.Exp[A => B]], defaultGraphVizConfig)(compilerConfig)
+      back.buildExecutable(sourceDir(functionName), functionName, f(back.scalan).asInstanceOf[back.Rep[A => B]], defaultGraphVizConfig)(compilerConfig)
     }
 
     @deprecated("Use the overload taking f: S => S#Rep[A => B] instead", "0.2.10")
-    def apply[A, B](f: back.scalan.Exp[A => B], functionName: String, compilerConfig: back.CompilerConfig) : back.CompilerOutput[A, B] = {
+    def apply[A, B](f: back.scalan.Rep[A => B], functionName: String, compilerConfig: back.CompilerConfig) : back.CompilerOutput[A, B] = {
       back.buildExecutable(sourceDir(functionName), functionName, f, defaultGraphVizConfig)(compilerConfig)
     }
   }
@@ -171,14 +171,14 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
 
   @deprecated("Use the overload taking f: S => S#Rep[A => B] instead", "0.2.10")
   def compareOutputWithStd[A, B](back: Compiler[_ <: Scalan])
-                                (fSeq: A => B, f: back.scalan.Exp[A => B], functionName: String, input: A)
+                                (fSeq: A => B, f: back.scalan.Rep[A => B], functionName: String, input: A)
                                 (implicit comparator: (B, B) => Unit) {
     compareOutputWithSequentialConfig(back)(fSeq, f, functionName, input, back.defaultCompilerConfig)
   }
 
   @deprecated("Use compareOutputWithSequential with f: S => S#Rep[A => B] instead", "0.2.10")
   def compareOutputWithSequentialConfig[A, B](back: Compiler[_ <: Scalan])
-                                             (fSeq: A => B, f: back.scalan.Exp[A => B], functionName: String, input: A, config: back.CompilerConfig)
+                                             (fSeq: A => B, f: back.scalan.Rep[A => B], functionName: String, input: A, config: back.CompilerConfig)
                                              (implicit comparator: (B, B) => Unit) {
     compareOutputWithExpectedConfig(back)(fSeq(input), f, functionName, input, config)
   }
@@ -192,7 +192,7 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
     }
 
     @deprecated("Use the overload taking f: S => S#Rep[A => B] instead", "0.2.10")
-    def apply[A, B](expected: B, f: back.scalan.Exp[A => B], functionName: String, input: A)
+    def apply[A, B](expected: B, f: back.scalan.Rep[A => B], functionName: String, input: A)
                    (implicit comparator: (B, B) => Unit) = {
       compareOutputWithExpectedConfig(back)(expected, f, functionName, input, back.defaultCompilerConfig)
     }
@@ -202,7 +202,7 @@ trait ItTestUtils[Prog <: Scalan] extends TestUtils {
 
   @deprecated("Use compareOutputWithExpected with f: S => S#Rep[A => B] instead", "0.2.10")
   def compareOutputWithExpectedConfig[A, B](back: Compiler[_ <: Scalan])
-                                           (expected: B, f: back.scalan.Exp[A => B], functionName: String, input: A, config: back.CompilerConfig)
+                                           (expected: B, f: back.scalan.Rep[A => B], functionName: String, input: A, config: back.CompilerConfig)
                                            (implicit comparator: (B, B) => Unit) {
     val actual = getStagedOutputConfig(back)(f, functionName, input, config)
     comparator(expected, actual)

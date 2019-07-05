@@ -26,16 +26,16 @@ trait UnBinOps extends Base { self: Scalan =>
   type EndoUnOp[A] = UnOp[A, A]
   type EndoBinOp[A] = BinOp[A, A]
 
-  case class ApplyUnOp[A, R](op: UnOp[A, R], arg: Exp[A]) extends BaseDef[R]()(op.eResult) {
+  case class ApplyUnOp[A, R](op: UnOp[A, R], arg: Rep[A]) extends BaseDef[R]()(op.eResult) {
     override def toString = s"$op($arg)"
     override def transform(t: Transformer): Def[R] = ApplyUnOp[A,R](op, t(arg))
   }
 
-  case class ApplyBinOp[A, R](op: BinOp[A, R], lhs: Exp[A], rhs: Exp[A]) extends BaseDef[R]()(op.eResult) {
+  case class ApplyBinOp[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[A]) extends BaseDef[R]()(op.eResult) {
     override def toString = s"$op($lhs, $rhs)"
     override def transform(t: Transformer): Def[R] = ApplyBinOp[A,R](op, t(lhs), t(rhs))
   }
-  case class ApplyBinOpLazy[A, R](op: BinOp[A, R], lhs: Exp[A], rhs: Exp[Thunk[A]]) extends BaseDef[R]()(op.eResult) {
+  case class ApplyBinOpLazy[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[Thunk[A]]) extends BaseDef[R]()(op.eResult) {
     override def toString = s"$lhs $op { $rhs }"
     override def transform(t: Transformer): Def[R] = ApplyBinOpLazy[A,R](op, t(lhs), t(rhs))
   }

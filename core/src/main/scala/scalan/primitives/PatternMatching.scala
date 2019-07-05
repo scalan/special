@@ -31,15 +31,15 @@ trait PatternMatching extends Base with GraphVizExport { _: Scalan =>
   protected def patternMatch[A, B: Elem](selector: Rep[A])(branches: Branch[_ <: A, B]*)(default: Option[Rep[A => B]]) =
     reifyObject(Match[A, B](selector, branches.toList, default))
 
-  case class Match[A, B](selector: Exp[A], branches: List[Branch[_ <: A, B]], default: Option[Exp[A => B]])(implicit selfType: Elem[B]) extends BaseDef[B] {
+  case class Match[A, B](selector: Rep[A], branches: List[Branch[_ <: A, B]], default: Option[Rep[A => B]])(implicit selfType: Elem[B]) extends BaseDef[B] {
     override def transform(t: Transformer) =
       Match[A,B](t(selector), branches.map(_.transform(t)), default.map(t(_)))
   }
 
-  private def eDom(branchBody: Exp[_ => _]) = branchBody.elem.asInstanceOf[FuncElem[_, _]].eDom
+  private def eDom(branchBody: Rep[_ => _]) = branchBody.elem.asInstanceOf[FuncElem[_, _]].eDom
 
   override def rewriteDef[A](d: Def[A]) = d match {
-    case Match(selector: Exp[a], branches, defaultOpt) =>
+    case Match(selector: Rep[a], branches, defaultOpt) =>
       val selectorClass = selector.elem.runtimeClass
       branches match {
         case Nil => defaultOpt match {

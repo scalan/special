@@ -211,14 +211,14 @@ trait Tuples extends Base { self: Scalan =>
     }
   }
 
-  implicit def zipPair[A, B](p: (Exp[A], Exp[B])): Rep[(A, B)] = {
+  implicit def zipPair[A, B](p: (Rep[A], Rep[B])): Rep[(A, B)] = {
     implicit val ea = p._1.elem
     implicit val eb = p._2.elem
     Tup(p._1, p._2)
   }
 
 
-  case class Tup[A, B](a: Exp[A], b: Exp[B]) extends Def[(A, B)] {
+  case class Tup[A, B](a: Rep[A], b: Rep[B]) extends Def[(A, B)] {
     implicit val eA: Elem[A] = a.elem
     implicit val eB: Elem[B] = b.elem
     assert(null != eA && null != eB)
@@ -226,18 +226,18 @@ trait Tuples extends Base { self: Scalan =>
     override def transform(t: Transformer): Def[(A, B)] = Tup(t(a), t(b))
   }
 
-  case class First[A, B](pair: Exp[(A, B)]) extends Def[A] {
+  case class First[A, B](pair: Rep[(A, B)]) extends Def[A] {
     val selfType: Elem[A] = pair.elem.eFst
     override def transform(t: Transformer): Def[A] = First(t(pair))
   }
 
-  case class Second[A, B](pair: Exp[(A, B)]) extends Def[B] {
+  case class Second[A, B](pair: Rep[(A, B)]) extends Def[B] {
     val selfType: Elem[B] = pair.elem.eSnd
     override def transform(t: Transformer): Def[B] = Second(t(pair))
   }
 
   object TupleProjection {
-    def apply[A,B](t: Exp[(A,B)], i: Int): Sym = i match {
+    def apply[A,B](t: Rep[(A,B)], i: Int): Sym = i match {
       case 1 => t._1
       case 2 => t._2
     }

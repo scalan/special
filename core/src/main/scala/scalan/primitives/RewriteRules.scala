@@ -37,7 +37,7 @@ trait RewriteRules extends Base { self: Scalan =>
     p(variable[A], variable[B], variable[C])
 
   //hotspot: need to avoid allocations
-  override def rewrite[T](s: Exp[T]): Sym = {
+  override def rewrite[T](s: Rep[T]): Sym = {
     var result: Sym = null
     if (rewriteRules.nonEmpty)
       result = rewriteWithRules(rewriteRules)(s)
@@ -45,7 +45,7 @@ trait RewriteRules extends Base { self: Scalan =>
     else super.rewrite(s)
   }
 
-  def rewriteWithRules[T](rules: List[RewriteRule[_]])(s: Exp[T]): Sym = {
+  def rewriteWithRules[T](rules: List[RewriteRule[_]])(s: Rep[T]): Sym = {
     val eT = s.elem
     val iterator = rules.iterator
     var result: Sym = null
@@ -68,14 +68,14 @@ trait RewriteRules extends Base { self: Scalan =>
 
   trait RewriteRule[A] {
     def eA: Elem[A]
-    def apply(x: Exp[A]): Sym
+    def apply(x: Rep[A]): Sym
   }
 
   case class PatternRewriteRule[A](lhs: Rep[A], rhs: Rep[A], eA: Elem[A]) extends RewriteRule[A] {
     val g = new PGraph(rhs)
     import scalan.util.CollectionUtil._
     
-    def apply(s: Exp[A]): Sym = {
+    def apply(s: Rep[A]): Sym = {
       val optSubst = patternMatch(lhs, s)
       if (optSubst.isDefined) {
         val subst = optSubst.get
@@ -92,7 +92,7 @@ trait RewriteRules extends Base { self: Scalan =>
     }
 
   class RulesRewriter(rules: List[RewriteRule[_]]) extends Rewriter {
-    def apply[T](x: Exp[T]): Exp[T] = {
+    def apply[T](x: Rep[T]): Rep[T] = {
       if (rules.isEmpty) return x
       val res = rewriteWithRules(rules)(x)
       if (res != null) res.asInstanceOf[Rep[T]]

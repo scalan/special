@@ -563,7 +563,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   def updateField[S <: Struct](struct: Rep[S], fieldName: String, v: Rep[_]): Rep[S] = FieldUpdate[S,Any](struct, fieldName, v)
   def fields(struct: Rep[Struct], fields: Seq[String]): Rep[Struct] = ProjectionStruct(struct, fields)
 
-  override def syms(e: Any): List[Exp[Any]] = e match {
+  override def syms(e: Any): List[Rep[Any]] = e match {
     case s: ProjectionStruct => syms(s.struct)
     case FieldUpdate(s, _, v) => syms(s) :+ v
     case s: AbstractStruct[_] => s.fields.flatMap(e => this.syms(e._2)).toList
@@ -579,7 +579,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     case _ => super.formatDef(d)
   }
 
-  case class ViewStruct[A, B](source: Exp[A])(val iso: Iso[A, B])
+  case class ViewStruct[A, B](source: Rep[A])(val iso: Iso[A, B])
     extends View[A, B] {
     override def transform(t: Transformer) = ViewStruct(t(source))(t(iso))
     override def toString = s"ViewStruct[${iso.eTo.name}]($source)"
@@ -589,7 +589,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     }
   }
 
-  override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
+  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewStruct[a, b]) =>
       Some((view.source, view.iso))
     case _ =>
@@ -597,7 +597,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   }).asInstanceOf[Option[Unpacked[T]]]
 
   object FieldGet {
-    def unapply[T](d: FieldApply[T]): Option[Exp[T]] = d match {
+    def unapply[T](d: FieldApply[T]): Option[Rep[T]] = d match {
       case FieldApply(Def(SimpleStruct(_, fs)), fn) =>
         val optItem = fs.find { case (n, _) => n == fn }
         optItem.map(x => asRep[T](x._2))
@@ -637,7 +637,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   }
 
   object StructsRewriter extends Rewriter {
-    def apply[T](x: Exp[T]): Exp[T] = asRep[T](x match {
+    def apply[T](x: Rep[T]): Rep[T] = asRep[T](x match {
       case Def(FieldGet(v)) => v
       case _ => x
     })

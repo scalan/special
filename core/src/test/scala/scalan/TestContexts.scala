@@ -59,10 +59,10 @@ trait TestContexts extends TestUtils {
     val compiler: Compiler[_ <: Scalan]
     import compiler._
 
-    def test[A,B](functionName: String, f: => scalan.Exp[A => B]): CompilerOutput[A, B] = {
+    def test[A,B](functionName: String, f: => scalan.Rep[A => B]): CompilerOutput[A, B] = {
       buildExecutable(FileUtil.file(prefix + "/" + testName, functionName), functionName, f, GraphVizConfig.default)(defaultCompilerConfig)
     }
-    def test[A,B](f: => scalan.Exp[A => B]): CompilerOutput[A, B] = test(testName, f)
+    def test[A,B](f: => scalan.Rep[A => B]): CompilerOutput[A, B] = test(testName, f)
 
     // workaround for non-existence of by-name repeated parameters
     def emitF(name: String, sfs: (() => scalan.Sym)*): Unit = stage(scalan)(testName, name, sfs)

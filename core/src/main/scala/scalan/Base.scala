@@ -51,7 +51,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def asValue: A = valueFromRep(x)
   }
 
-  implicit def liftToRep[A:Elem](x: A): Rep[A] = toRep(x)
+  @inline implicit def liftToRep[A:Elem](x: A): Rep[A] = toRep(x)
 
   trait Def[+T] extends Product {
     /** Unique id of the node. Initially undefined, should be defined after Def is added to the graph.
@@ -78,10 +78,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
       _self
     }
 
-
     def transform(t: Transformer): Def[T] =
       !!!(s"Cannot transfrom definition using transform($this)", self)
-//      transformProduct(this, t).asInstanceOf[Def[T]]
 
     override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || (other match {
       // check that nodes correspond to same operation, have the same type, and the same arguments
@@ -221,15 +219,15 @@ trait Base extends LazyLogging { scalan: Scalan =>
       override def toString: String = s"Liftable($eW)"
     }
 
-    @inline def asLiftable[ST,T](l: Liftable[_,_]): Liftable[ST,T] = l.asInstanceOf[Liftable[ST,T]]
+    @inline final def asLiftable[ST,T](l: Liftable[_,_]): Liftable[ST,T] = l.asInstanceOf[Liftable[ST,T]]
     
-    def liftable[ST, T](implicit lT: Liftable[ST,T]) = lT
+    @inline final def liftable[ST, T](implicit lT: Liftable[ST,T]) = lT
 
     /** Given data value of type `ST` and `Liftable` instance between `ST` and `T`,
       * produces `LiftedConst` node (some concrete implemenation) and returns it's symbol.
       * This is generic way to put any liftable data object into graph and then use
       * its symbol in other nodes. */
-    def liftConst[ST,T](x: ST)(implicit lT: Liftable[ST,T]): Rep[T] = lT.lift(x)
+    @inline final def liftConst[ST,T](x: ST)(implicit lT: Liftable[ST,T]): Rep[T] = lT.lift(x)
 
     class BaseLiftable[T](implicit val eW: Elem[T], override val sourceType: RType[T]) extends Liftable[T, T] {
       def lift(x: T) = toRep(x)
@@ -284,7 +282,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   private[this] val entityObjects = AVHashMap[String, EntityObject](300)
 
-  def getEntityObject(name: String): Nullable[EntityObject] = {
+  @inline def getEntityObject(name: String): Nullable[EntityObject] = {
     entityObjects.get(name)
   }
 
@@ -292,10 +290,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
      assert(!entityObjects.containsKey(name), s"EntityObject for entity $name already registered")
      entityObjects.put(name, obj)
   }
-
-  // Allows using ConfigOps without importing com.github.kxbmap.configs.syntax._
-  implicit def ConfigOps(x: Config) = new ConfigOps(x)
-//  def config = Base.config
 
   val cacheElems = true
   val cachePairs = true
@@ -338,14 +332,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def transform(t: Transformer): Def[T] =
       !!!(s"Method transfrom should not be called on $this", self)
   }
-  def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](SingleSym.freshId)
+  @inline def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](SingleSym.freshId)
 
   /** Symbols may temporary refer to this node until their target node is updated. */
   case class Placeholder[T](eT: LElem[T]) extends Def[T] {
     def selfType: Elem[T] = eT.value
   }
 
-  def placeholder[T](implicit eT: LElem[T]): Rep[T] = SingleSym.freshSym[T](Placeholder[T](eT))
+  @inline def placeholder[T](implicit eT: LElem[T]): Rep[T] = SingleSym.freshSym[T](Placeholder[T](eT))
 
   abstract class Transformer {
     def apply[A](x: Rep[A]): Rep[A]
@@ -358,7 +352,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def apply[X,Y,A](f: (X,Y)=>Rep[A]): (X,Y)=>Rep[A] = (z1:X,z2:Y) => apply(f(z1,z2))
     def onlySyms[A](xs: List[Rep[A]]): List[Rep[A]] = xs map (e => apply(e)) collect { case e: Rep[A] => e }
   }
-  def IdTransformer = MapTransformer.Empty
 
   trait TransformerOps[Ctx <: Transformer] {
     def empty: Ctx
@@ -463,7 +456,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     toExp(obj, obj.self)
   }
 
-  def reifyEffects[A](block: => Exp[A]): Exp[A] = block
+  def reifyEffects[A](block: => Rep[A]): Rep[A] = block
 
   def toRep[A](x: A)(implicit eA: Elem[A]):Rep[A] = eA match {
     case _: BaseElem[_] => Const(x)

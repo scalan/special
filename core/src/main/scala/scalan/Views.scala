@@ -485,16 +485,16 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   def defaultUnpackTester(e: Elem[_]) = true //e match { case pe: PairElem[_,_] => false case _ => true }
 
   object HasViews {
-    def unapply[T](s: Exp[T]): Option[Unpacked[T]] =
+    def unapply[T](s: Rep[T]): Option[Unpacked[T]] =
       if (performViewsLifting)
         unapplyViews(s)
       else None
   }
 
   // for simplifying unapplyViews
-  protected def trivialUnapply[T](s: Exp[T]) = (s, identityIso(s.elem))
+  protected def trivialUnapply[T](s: Rep[T]) = (s, identityIso(s.elem))
 
-  def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
+  def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
     case Def(d: SLeft[l, r]) =>
       val left = d.left
       val eRight = d.eRight
@@ -530,7 +530,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   }
 
   object UnpackableExp {
-    def unapply[T](e: Exp[T]): Option[Unpacked[T]] =
+    def unapply[T](e: Rep[T]): Option[Unpacked[T]] =
       e match {
         case Def(UnpackableDef(source, iso: Iso[a, T] @unchecked)) =>
           Some((source.asInstanceOf[Rep[a]], iso))

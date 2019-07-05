@@ -8,7 +8,7 @@ trait Passes {
   import scalan._
 
   // to avoid need to import compiler.scalan.Exp in many places
-  type Exp[+T] = scalan.Exp[T]
+  type Rep[+T] = scalan.Rep[T]
 
   abstract class GraphPass extends Pass {
     def builder: PassBuilder[GraphPass]
@@ -46,49 +46,6 @@ trait Passes {
         a.backwardAnalyzeRec(g)
       }
     }
-
-//    def analyzeNestedLambdas(g: AstGraph) = {
-//      for (te @ TableEntry(s: Exp[t], d) <- g.schedule) {
-//        d match {
-//          case l: Lambda[a,b] =>
-//            for ((a: BackwardAnalyzer[m]) <- backwardAnalyses) {
-//              a.beforeAnalyze(l)
-//            }
-//            backwardAnalyzeRec(l)
-//          case _ =>
-//        }
-//      }
-//    }
-
-//    def backwardAnalyzeRec(g: AstGraph): Unit = {
-//      // first analyze nested lambdas
-//      analyzeNestedLambdas(g)
-//
-//      val revSchedule = g.schedule.reverseIterator
-//      for (te @ TableEntry(s: Exp[t], d) <- revSchedule) {
-//        // back-propagate analysis information (including from Lambda to Lambda.y, see LevelAnalyzer)
-//        for ((a: BackwardAnalyzer[m]) <- backwardAnalyses) {
-//          val outMark = a.getMark(s)
-//          val inMarks = a.getInboundMarkings(te, outMark)
-//          for ((s, mark) <- inMarks) {
-//            a.updateOutboundMarking(s, mark)
-//          }
-//        }
-//        d match {
-//          // additionally if it is Lambda
-//          case l: Lambda[a,b] =>
-//            // analize lambda after the markings were assigned to the l.y (this is second round)
-//            backwardAnalyzeRec(l)
-//            // assign marking to l if not identity
-//            for ((a: BackwardAnalyzer[m]) <- backwardAnalyses) {
-//              val argMark = a.getMark(l.x)
-//              val lMark = a.getLambdaMarking(l, argMark)
-//              a.updateOutboundMarking(l.self, lMark)
-//            }
-//          case _ =>
-//        }
-//      }
-//    }
   }
 
   class GraphPassBuilder[+P <: GraphPass](val name: String, createPass: (PassBuilder[P], PGraph) => P)
@@ -100,7 +57,7 @@ trait Passes {
       extends GraphPassBuilder[P](name, createPass)
 
   trait ExpPass extends Pass {
-    def apply[A](s: Exp[A]): Sym
+    def apply[A](s: Rep[A]): Sym
   }
 
   class GraphTransformPass(val builder: PassBuilder[GraphPass], val name: String, mirror: Mirror[MapTransformer], rewriter: Rewriter) extends GraphPass {

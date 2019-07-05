@@ -27,12 +27,7 @@ trait SlicingCompiler[+ScalanCake <: Scalan with Slicing] extends Compiler[Scala
             sliceAnalyzer.getMark(r)
           }
           val fm = sliceAnalyzer.analyzeFunc(asRep[a => b](f), rm)
-        //            sliceAnalyzer.updateOutboundMarking(f, fm)
-
-        //          case r: Exp[a] =>
-        //            sliceAnalyzer.updateOutboundMarking(r, r.elem.toMarking)
       }
-      //      super.backwardAnalyse(graph)
     }
     def apply(graph: PGraph): PGraph = {
       val rw = new SlicingRewriter(sliceAnalyzer, graph)

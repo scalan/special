@@ -1196,7 +1196,7 @@ implicit val eV = proj.elem.eRange
     }
   }
 
-  override def unapplyViews[T](s: Exp[T]): Option[Unpacked[T]] = (s match {
+  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewColl[_, _]) =>
       Some((view.source, view.iso))
     case UserTypeColl(iso: Iso[a, b]) =>

@@ -127,7 +127,7 @@ abstract class FileCodegen[+ScalanCake <: Scalan](val scalan: ScalanCake, val co
 
   def emitFunction(sym: Sym,
                    args: List[Sym],
-                   returnValue: Option[Exp[Any]],
+                   returnValue: Option[Rep[Any]],
                    lambdaOrThunk: AstGraph,
                    f: Schedule => Schedule = identity)(implicit stream: PrintWriter, indentLevel: IndentLevel): Unit = {
     emit(functionHeader(sym, args))

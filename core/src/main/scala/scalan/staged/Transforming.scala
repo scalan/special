@@ -76,7 +76,7 @@ trait Transforming { self: Scalan =>
     def this(substPairs: (Sym, Sym)*) {
       this(substPairs.toMap)
     }
-    def apply[A](x: Exp[A]): Exp[A] = subst.get(x) match {
+    def apply[A](x: Rep[A]): Rep[A] = subst.get(x) match {
       case Some(y) if y != x => apply(y.asInstanceOf[Rep[A]]) // transitive closure
       case _ => x
     }
@@ -97,15 +97,15 @@ trait Transforming { self: Scalan =>
   }
 
   implicit class PartialRewriter(pf: PartialFunction[Sym, Sym]) extends Rewriter {
-    def apply[T](x: Exp[T]): Exp[T] =
+    def apply[T](x: Rep[T]): Rep[T] =
       if (pf.isDefinedAt(x))
-        pf(x).asInstanceOf[Exp[T]]
+        pf(x).asInstanceOf[Rep[T]]
       else
         x
   }
 
   object DecomposeRewriter extends Rewriter {
-    def apply[T](x: Exp[T]): Exp[T] = x match {
+    def apply[T](x: Rep[T]): Rep[T] = x match {
       case Def(d) => decompose(d) match {
         case None => x
         case Some(y) => y
@@ -115,7 +115,7 @@ trait Transforming { self: Scalan =>
   }
 
   object InvokeRewriter extends Rewriter {
-    def apply[T](x: Exp[T]): Exp[T] = x match {
+    def apply[T](x: Rep[T]): Rep[T] = x match {
       case Def(call: MethodCall) =>
         call.tryInvoke match {
           case InvokeSuccess(res) =>
@@ -132,16 +132,16 @@ trait Transforming { self: Scalan =>
   }
 
   abstract class Rewriter { self =>
-    def apply[T](x: Exp[T]): Exp[T]
+    def apply[T](x: Rep[T]): Rep[T]
 
     def orElse(other: Rewriter): Rewriter = new Rewriter {
-      def apply[T](x: Exp[T]) = {
+      def apply[T](x: Rep[T]) = {
         val y = self(x)
         (x == y) match { case true => other(x) case _ => y }
       }
     }
     def andThen(other: Rewriter): Rewriter = new Rewriter {
-      def apply[T](x: Exp[T]) = {
+      def apply[T](x: Rep[T]) = {
         val y = self(x)
         val res = other(y)
         res
@@ -153,25 +153,25 @@ trait Transforming { self: Scalan =>
   }
 
   val NoRewriting: Rewriter = new Rewriter {
-    def apply[T](x: Exp[T]) = x
+    def apply[T](x: Rep[T]) = x
   }
 
   abstract class Mirror[Ctx <: Transformer : TransformerOps] {
-    def apply[A](t: Ctx, rewriter: Rewriter, node: Exp[A], d: Def[A]): (Ctx, Sym) = (t, transformDef(d, t))
+    def apply[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): (Ctx, Sym) = (t, transformDef(d, t))
 
     protected def mirrorElem(node: Sym): Elem[_] = node.elem
 
     // every mirrorXXX method should return a pair (t + (v -> v1), v1)
-    protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Exp[A]): (Ctx, Sym) = {
+    protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Rep[A]): (Ctx, Sym) = {
       val newVar = variable(Lazy(mirrorElem(v)))
       val (t1, mirroredMetadata) = mirrorMetadata(t, v, newVar)
       setAllMetadata(newVar, mirroredMetadata)
       (t1 + (v -> newVar), newVar)
     }
 
-    protected def rewriteUntilFixPoint[T](start: Exp[T], mn: MetaNode, rw: Rewriter): Exp[T] = {
+    protected def rewriteUntilFixPoint[T](start: Rep[T], mn: MetaNode, rw: Rewriter): Rep[T] = {
       var res = start
-      var curr: Exp[T] = res
+      var curr: Rep[T] = res
       do {
         curr = res
         setAllMetadata(curr, mn)
@@ -180,14 +180,14 @@ trait Transforming { self: Scalan =>
       res
     }
 
-    protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Exp[A], d: Def[A]): (Ctx, Sym) = {
+    protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): (Ctx, Sym) = {
       val (t1, mirrored) = apply(t, rewriter, node, d)
       val (t2, mirroredMetadata) = mirrorMetadata(t1, node, mirrored)
       val res = rewriteUntilFixPoint(mirrored, mirroredMetadata, rewriter)
       (t2 + (node -> res), res)
     }
 
-    protected def getMirroredLambdaSym[A, B](node: Exp[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
+    protected def getMirroredLambdaSym[A, B](node: Rep[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
 
     // require: should be called after oldlam.schedule is mirrored
     private def getMirroredLambdaDef(t: Ctx, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
@@ -196,7 +196,7 @@ trait Transforming { self: Scalan =>
       newLambdaDef
     }
 
-    protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Exp[A => B], lam: Lambda[A, B]): (Ctx, Sym) = {
+    protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Rep[A => B], lam: Lambda[A, B]): (Ctx, Sym) = {
       var tRes: Ctx = t
       val (t1, newVar) = mirrorNode(t, rewriter, lam, lam.x)
       val newLambdaSym = getMirroredLambdaSym(node)
@@ -233,7 +233,7 @@ trait Transforming { self: Scalan =>
       (t2, newRoot)
     }
 
-    protected def mirrorIfThenElse[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Exp[A], ite: IfThenElse[A]): (Ctx, Sym) = {
+    protected def mirrorIfThenElse[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Rep[A], ite: IfThenElse[A]): (Ctx, Sym) = {
       g.branches.ifBranches.get(node) match {
         case Some(branches) =>
           var tRes: Ctx = t
@@ -252,7 +252,7 @@ trait Transforming { self: Scalan =>
       }
     }
 
-    protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Exp[Thunk[A]], thunk: ThunkDef[A]): (Ctx, Sym) = {
+    protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Rep[Thunk[A]], thunk: ThunkDef[A]): (Ctx, Sym) = {
       var schedulePH: Schedule = null
       val newRootPH = placeholder(Lazy(node.elem.eItem))
       val newThunk = new ThunkDef(newRootPH, { assert(schedulePH != null); schedulePH })
@@ -274,7 +274,7 @@ trait Transforming { self: Scalan =>
       (t1 + (node -> newThunkSym), newThunkSym)
     }
 
-    protected def mirrorMetadata[A, B](t: Ctx, old: Exp[A], mirrored: Exp[B]) =
+    protected def mirrorMetadata[A, B](t: Ctx, old: Rep[A], mirrored: Rep[B]) =
       (t, allMetadataOf(old))
 
     protected def isMirrored(t: Ctx, node: Sym): Boolean = t.isDefinedAt(node)
@@ -285,7 +285,7 @@ trait Transforming { self: Scalan =>
       (t2, mirrored)
     }
 
-    def mirrorNode[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Exp[A]): (Ctx, Sym) = {
+    def mirrorNode[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Rep[A]): (Ctx, Sym) = {
       if (isMirrored(t, node)) {
         (t, t(node))
       } else {
@@ -331,7 +331,7 @@ trait Transforming { self: Scalan =>
   //  case object GoRight extends TupleStep("R")
   type TuplePath = List[Int]
 
-  def projectPath(x:Exp[Any], path: TuplePath) = {
+  def projectPath(x:Rep[Any], path: TuplePath) = {
     val res = path.foldLeft(x)((y,i) => TupleProjection(y.asInstanceOf[Rep[(Any,Any)]], i))
     res
   }
@@ -339,7 +339,7 @@ trait Transforming { self: Scalan =>
   // build projection from the root taking projection structure from the tree
   // assert(result.root == root)
   // NOTE: tree.root is not used
-  def projectTree(root:Exp[Any], tree: ProjectionTree): ProjectionTree = {
+  def projectTree(root:Rep[Any], tree: ProjectionTree): ProjectionTree = {
     val newChildren = tree.children.map(child => {
       val i = projectionIndex(child.root)
       val newChildRoot = TupleProjection(root.asInstanceOf[Rep[(Any,Any)]], i)
@@ -423,7 +423,7 @@ trait Transforming { self: Scalan =>
         TupleTree(newRoot, newChildren)
       }
 
-    def unapply[T](s: Exp[T]): Option[TupleTree] = {
+    def unapply[T](s: Rep[T]): Option[TupleTree] = {
       s match {
         case Def(Tup(TupleTree(l),TupleTree(r))) =>
           Some(TupleTree(s, List(l, r)))
@@ -444,14 +444,14 @@ trait Transforming { self: Scalan =>
   }
 
   trait BackwardAnalyzer[M[_]] extends Analyzer {
-    type MarkedSym = (Exp[T], M[T]) forSome {type T}
+    type MarkedSym = (Rep[T], M[T]) forSome {type T}
     type MarkedSyms = Seq[MarkedSym]
     def keyPrefix: String = name
 
     def lattice: Lattice[M]
     def defaultMarking[T:Elem]: M[T]
 
-    def updateMark[T](s: Exp[T], other: M[T]): (Exp[T], M[T]) = {
+    def updateMark[T](s: Rep[T], other: M[T]): (Rep[T], M[T]) = {
       s -> lattice.join(getMark(s), other)
     }
 
@@ -463,23 +463,23 @@ trait Transforming { self: Scalan =>
 
     def getMarkingKey[T](implicit eT:Elem[T]): MetaKey[M[T]] = markingKey[T](keyPrefix).asInstanceOf[MetaKey[M[T]]]
 
-    def clearMark[T](s: Exp[T]): Unit = {
+    def clearMark[T](s: Rep[T]): Unit = {
       implicit val eT = s.elem
       s.removeMetadata(getMarkingKey[T])
     }
 
-    def getMark[T](s: Exp[T]): M[T] = {
+    def getMark[T](s: Rep[T]): M[T] = {
       implicit val eT = s.elem
       val mark = s.getMetadata(getMarkingKey[T]).getOrElse(defaultMarking[T])
       mark
     }
 
-    def hasMark[T](s: Exp[T]): Boolean = {
+    def hasMark[T](s: Rep[T]): Boolean = {
       implicit val eT = s.elem
       s.getMetadata(getMarkingKey[T]).isDefined
     }
 
-    def updateOutboundMarking[T](s: Exp[T], mark: M[T]): Unit = {
+    def updateOutboundMarking[T](s: Rep[T], mark: M[T]): Unit = {
       implicit val eT = s.elem
       val current = getMark(s)
       val updated = lattice.join(current, mark)
@@ -526,7 +526,7 @@ trait Transforming { self: Scalan =>
     def nonEmpty = false
   }
 
-  type MarkedSym = (Exp[T], Marking[T]) forSome {type T}
+  type MarkedSym = (Rep[T], Marking[T]) forSome {type T}
   type MarkedSyms = Seq[MarkedSym]
 
   class MarkingElem[T:Elem] extends BaseElem[Marking[T]](new EmptyMarking[T](element[T]))

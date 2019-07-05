@@ -24,7 +24,7 @@ trait Analyzing { self: Scalan =>
     def defaultMarking[T:Elem] = LevelCount[T](0)
     def mkLevelMark[T](level: Int)(eT: Elem[T]) = LevelCount(level)(eT)
 
-    def updateMark[T](s: Exp[T], level: Int): (Exp[T], LevelCount[T]) = {
+    def updateMark[T](s: Rep[T], level: Int): (Rep[T], LevelCount[T]) = {
       updateMark(s, mkLevelMark(level)(s.elem))
     }
 
@@ -68,11 +68,11 @@ trait Analyzing { self: Scalan =>
     def defaultMarking[T:Elem] = UsageCount[T](Map())
     def mkUsageMark[T](counters: Map[Int,Seq[Sym]])(eT: Elem[T]) = UsageCount(counters)(eT)
 
-    def promoteMark[T](s: Exp[T], counters: Map[Int,Seq[Sym]]): (Exp[T], UsageCount[T]) = {
+    def promoteMark[T](s: Rep[T], counters: Map[Int,Seq[Sym]]): (Rep[T], UsageCount[T]) = {
       s -> mkUsageMark(counters)(s.elem)
     }
 
-    def getLevel[T](s: Exp[T]): Int = levelAnalyzer.getMark(s).level
+    def getLevel[T](s: Rep[T]): Int = levelAnalyzer.getMark(s).level
 
     def getLambdaMarking[A, B](lam: Lambda[A, B], mDom: UsageCount[A], mRange: UsageCount[B]): UsageCount[(A) => B] =
       mkUsageMark(Map())(lam.elem)

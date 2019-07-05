@@ -41,7 +41,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
   }
 
   object ProgramGraph {
-    def transform[A](s: Exp[A], rw: Rewriter = NoRewriting, t: MapTransformer = MapTransformer.Empty): Exp[A] = {
+    def transform[A](s: Rep[A], rw: Rewriter = NoRewriting, t: MapTransformer = MapTransformer.Empty): Rep[A] = {
       val g = ProgramGraph(List(s), t, Nullable.None)
       val g1 = g.transform(DefaultMirror, rw, t)
       g1.roots(0).asInstanceOf[Rep[A]]

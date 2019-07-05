@@ -61,7 +61,7 @@ trait NumericOps extends Base { self: Scalan =>
 
   case class IntegralMod[T](i: Integral[T])(implicit elem: Elem[T]) extends DivOp[T]("%", i.rem, i)
 
-  case class NumericRand[T](bound: Exp[T], id: Int = IdSupply.nextId)(implicit val eT: Elem[T]) extends BaseDef[T] {
+  case class NumericRand[T](bound: Rep[T], id: Int = IdSupply.nextId)(implicit val eT: Elem[T]) extends BaseDef[T] {
     override def transform(t: Transformer) = NumericRand(t(bound))
   }
 
@@ -74,7 +74,7 @@ trait NumericOps extends Base { self: Scalan =>
   override def rewriteDef[T](d: Def[T]) = d match {
     // scala has problems with type inference here
     // cast to BinOp[a, a] is safe because all matched cases have this type
-    case ApplyBinOp(op, x: Exp[a], y) => (op.asInstanceOf[BinOp[a, a]], x.asInstanceOf[Exp[a]], y.asInstanceOf[Exp[a]]) match {
+    case ApplyBinOp(op, x: Rep[a], y) => (op.asInstanceOf[BinOp[a, a]], x.asInstanceOf[Rep[a]], y.asInstanceOf[Rep[a]]) match {
       // x + 0 => x
       case (NumericPlus(n), x, Def(Const(zero))) if isZero(zero, n) => x
       // 0 + x => x
