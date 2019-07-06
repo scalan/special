@@ -34,6 +34,11 @@ trait Coll[@specialized A] {
     */
   def nonEmpty: Boolean
 
+  /** Returns true if the index in the valid range.
+    * @param  i  index of an element of this collection */
+  @NeverInline
+  final def isValidIndex(i: Int): Boolean = 0 <= i && i < this.length
+
   /** The element at given index.
     *  Indices start at `0`; `xs.apply(0)` is the first element of collection `xs`.
     *  Note the indexing syntax `xs(i)` is a shorthand for `xs.apply(i)`.

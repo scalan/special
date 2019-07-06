@@ -1,11 +1,9 @@
 package special.collections
 
-import special.collection.{ReplColl, PairOfCols, PairColl, CReplColl, Coll}
-import org.scalacheck.{Shrink, Gen}
+import special.collection.{Coll, PairOfCols, CollOverArray, CReplColl}
+import org.scalacheck.Gen
 import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
-import scalan.RType
-import scalan.RType.PairType
 
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
@@ -87,23 +85,25 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.updated") {
-    forAll(collGen, indexGen, valGen) { (col, index, elem) =>
+    forAll(collGen, indexGen, valGen, MinSuccessful(200)) { (col, index, elem) =>
       whenever(col.isValidIndex(index)) {
         val patchedC = col.updated(index, elem)
         val patched = col.toArray.updated(index, elem)
         patchedC.toArray shouldBe patched
       }
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updated(col.length, elem)
-      }
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updated(-1, elem)
+      whenever(col.isInstanceOf[CollOverArray[_]]) {
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updated(col.length, elem)
+        }
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updated(-1, elem)
+        }
       }
     }
   }
 
   property("Coll.updateMany") {
-    forAll(collGen, indexesGen) { (col, indexes) =>
+    forAll(collGen, indexesGen, MinSuccessful(200)) { (col, indexes) =>
       whenever(indexes.forall(col.isValidIndex(_))) {
         val updatedC = col.updateMany(indexes, indexes)
         val updated = col.toArray.clone()
@@ -111,11 +111,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
           updated.update(i, i)
         updatedC.toArray shouldBe updated
       }
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updateMany(builder.fromItems(col.length), builder.fromItems(0))
-      }      
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updateMany(builder.fromItems(-1), builder.fromItems(0))
+      whenever(col.isInstanceOf[CollOverArray[_]]) {
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updateMany(builder.fromItems(col.length), builder.fromItems(0))
+        }
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updateMany(builder.fromItems(-1), builder.fromItems(0))
+        }
       }
     }
   }

@@ -107,12 +107,14 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
 
   @NeverInline
   override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] = {
+    // TODO optimize: avoid using `patch` as it do boxing
     val res = toArray.patch(from, patch.toArray, replaced).toArray
     builder.fromArray(res)
   }
 
   @NeverInline
   override def updated(index: Int, elem: A): Coll[A] = {
+    // TODO optimize: avoid using `updated` as it do boxing
     val res = toArray.updated(index, elem)
     builder.fromArray(res)
   }
@@ -699,6 +701,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def updated(index: Int, elem: A): Coll[A] = {
     if (elem == value) this
     else {
+      // TODO optimize: avoid using `updated` as it do boxing
       val res = toArray.updated(index, elem)
       builder.fromArray(res)
     }
