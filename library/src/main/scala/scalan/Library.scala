@@ -1,11 +1,8 @@
 package scalan
 
-import java.lang.reflect.Method
-import java.util.Objects
-
 import special.collection._
 import special.wrappers.{WrappersSpecModule, WrappersModule}
-import scalan.util.{ReflectionUtil, MemoizedFunc}
+import scalan.util.{MemoizedFunc}
 
 trait Library extends Scalan
   with WrappersModule
@@ -19,10 +16,9 @@ trait Library extends Scalan
   with MonoidsModule
   with MonoidInstancesModule
   with CostedOptionsModule {
-  import WArray._; import WOption._
+  import WOption._
   import WRType._
   import Coll._; import CollBuilder._;
-  import CReplColl._
   import Size._
   import Costed._; import CostedBuilder._
   import CostedFunc._;
@@ -39,11 +35,6 @@ trait Library extends Scalan
   })
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
     _liftElemMemo(eT).asInstanceOf[Rep[WRType[T]]]  // asRep cannot be used for AnyRef
-  }
-
-  override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
-    case ea: WArrayElem[_,_] => Objects.deepEquals(x, y)
-    case _ => super.equalValues[A](x, y)
   }
 
   private val _specialPredef: LazyRep[WSpecialPredefCompanionCtor] = MutableLazy(RWSpecialPredef)
@@ -65,7 +56,7 @@ trait Library extends Scalan
     case _ => !!!(s"Cannot create zeroSize($eVal)")
   })
 
-  private val WA = WArrayMethods
+//  private val WA = WArrayMethods
   private val CM = CollMethods
   private val CBM = CollBuilderMethods
   private val WOptionM = WOptionMethods
@@ -105,12 +96,11 @@ trait Library extends Scalan
   val longPlusMonoidValue = new special.collection.MonoidBuilderInst().longPlusMonoid
 
   override def rewriteDef[T](d: Def[T]) = d match {
-    case WA.length(WA.map(xs, _)) => xs.length
     case CM.length(CM.map(xs, _)) => xs.length
 
     case CM.length(CBM.replicate(_, len, _)) => len
     case CM.length(Def(CollConst(coll, _))) => coll.length
-    case CM.length(CBM.fromArray(_, arr)) => arr.length
+//    case CM.length(CBM.fromArray(_, arr)) => arr.length
     case CM.length(CBM.fromItems(_, items, _)) => items.length
 
     // Rule: replicate(l, x).zip(replicate(l, y)) ==> replicate(l, (x,y))
@@ -162,13 +152,13 @@ trait Library extends Scalan
   }
 
   override def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef = e match {
-    case _: CollBuilderElem[_] => mc match {
-      case CollBuilderMethods.fromArray(b, xs) =>
-        val newMC = mc.copy(args = mc.args :+ xs.elem.eItem)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(e, newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(e, mc, dataEnv)
-    }
+//    case _: CollBuilderElem[_] => mc match {
+//      case CollBuilderMethods.fromArray(b, xs) =>
+//        val newMC = mc.copy(args = mc.args :+ xs.elem.eItem)(mc.selfType, mc.isAdapterCall)
+//        super.invokeUnlifted(e, newMC, dataEnv)
+//      case _ =>
+//        super.invokeUnlifted(e, mc, dataEnv)
+//    }
     case _: CollElem[_,_] => mc match {
       case CollMethods.map(xs, f) =>
         val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
@@ -176,13 +166,13 @@ trait Library extends Scalan
       case _ =>
         super.invokeUnlifted(e, mc, dataEnv)
     }
-    case _: WArrayElem[_,_] => mc match {
-      case WArrayMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(e, newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(e, mc, dataEnv)
-    }
+//    case _: WArrayElem[_,_] => mc match {
+//      case WArrayMethods.map(xs, f) =>
+//        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
+//        super.invokeUnlifted(e, newMC, dataEnv)
+//      case _ =>
+//        super.invokeUnlifted(e, mc, dataEnv)
+//    }
     case _ =>
       super.invokeUnlifted(e, mc, dataEnv)
   }
