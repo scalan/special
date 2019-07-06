@@ -38,7 +38,7 @@ trait Library extends Scalan
       liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
   })
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
-    asRep[WRType[T]](_liftElemMemo(eT))
+    _liftElemMemo(eT).asInstanceOf[Rep[WRType[T]]]  // asRep cannot be used for AnyRef
   }
 
   override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
