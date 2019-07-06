@@ -606,7 +606,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     * Two symbols are equal if they refer to the nodes with the same id,
     * which is due to Def unification means equal symbols refer to the same instance of Def.
     * */
-  class SingleSym[+T] private (private var _rhs: Def[T @uncheckedVariance]) extends Exp[T] {
+  class SingleSym[+T] private[Base] (private var _rhs: Def[T @uncheckedVariance]) extends Exp[T] {
     override def elem: Elem[T @uncheckedVariance] = _rhs.selfType
     def rhs: Def[T] = _rhs
 
@@ -654,30 +654,39 @@ trait Base extends LazyLogging { scalan: Scalan =>
     @inline def freshId: Int = { currId += 1; currId }
 
     @inline def freshSym[T](d: Def[T]): Rep[T] = {
-      val s = new SingleSym(d)
-      updateSymbolTable(s, d)
-      s
+      updateSymbolTable(null, d)
     }
 
     def resetIdCounter() = { currId = 0 }
   }
 
-  def updateSymbolTable[T](s: Exp[T], d: Def[T]) = {
+  /** Create or find symbol in the table which refers to the given node.
+    * The d.nodeId is the index in the _symbolTable which is DBuffer (backed by Array)
+    * @return   new of existing symbol
+    * @hotspot  the method should be allocation-free (make it sure by examining the generated Java code)
+    */
+  final def updateSymbolTable[T](s: Exp[T], d: Def[T]): Exp[T] = {
     val id = d.nodeId
     val tab = _symbolTable  // perf optimization
     val delta = id - tab.length
     if (delta < 0) {
-      val sym = tab(id)
+      val sym = tab.apply(id)
       if (sym == null) {
-        tab.update(id, s)
+        val newSym = if (s == null) new SingleSym(d) else s  // we really want this allocation to happen only when necessary
+        tab.update(id, newSym)
+        newSym
       } else {
+        // don't create new symbol, but check invariant condition on existing one
         assert(sym.rhs.nodeId == id, s"Each symbol should refer to correct node, but was $sym -> ${sym.rhs}")
+        sym.asInstanceOf[Exp[T]]
       }
     } else {
       // grow table
       cfor(0)(_ < delta, _ + 1) { _ => tab.append(null) }
-      tab += s
+      val sym = if (s == null) new SingleSym(d) else s
+      tab += sym
       assert(tab.length == id + 1)
+      sym
     }
   }
 
