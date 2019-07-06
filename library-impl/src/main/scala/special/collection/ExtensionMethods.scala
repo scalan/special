@@ -6,6 +6,10 @@ object ExtensionMethods {
 
   implicit class CollOps[A](val source: Coll[A]) extends AnyVal {
 
+    /** Returns true if the index in the valid range.
+      * @param  i  index of an element of this collection */
+    def isValidIndex(i: Int): Boolean = 0 <= i && i < source.length
+
     /** Tests whether every element of this $coll relates to the
       *  corresponding element of another sequence by satisfying a test predicate.
       *

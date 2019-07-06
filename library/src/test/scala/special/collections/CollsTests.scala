@@ -78,7 +78,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.patch") {
     forAll(collGen, choose(-100, 100), collGen, replacedGen) { (col, from, patch, replaced) =>
-      whenever(from < col.length ) {
+      whenever(col.isValidIndex(from)) {
         val patchedC = col.patch(from, patch, replaced)
         val patched = col.toArray.patch(from, patch.toArray, replaced)
         patchedC.toArray shouldBe patched
@@ -88,7 +88,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.updated") {
     forAll(collGen, indexGen, valGen) { (col, index, elem) =>
-      whenever(index < col.length ) {
+      whenever(col.isValidIndex(index)) {
         val patchedC = col.updated(index, elem)
         val patched = col.toArray.updated(index, elem)
         patchedC.toArray shouldBe patched
@@ -104,7 +104,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.updateMany") {
     forAll(collGen, indexesGen) { (col, indexes) =>
-      whenever(indexes.forall(_ < col.length)) {
+      whenever(indexes.forall(col.isValidIndex(_))) {
         val updatedC = col.updateMany(indexes, indexes)
         val updated = col.toArray.clone()
         for (i <- indexes)
@@ -159,7 +159,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val op = (in: (Int,(Int,Int))) => in._1 + in._2._1 + in._2._2
         pairs.foldLeft(0, op) shouldBe pairs.toArray.foldLeft(0)((b,a) => op((b,a)))
       }
-      whenever(index < col.length) {
+      whenever(col.isValidIndex(index)) {
         val res = col(index)
         res shouldBe col.toArray(index)
 
@@ -171,7 +171,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       col.getOrElse(-1, index) shouldBe index
     }
     forAll(superGen, indexGen) { (col, index) =>
-      whenever(index < col.length) {
+      whenever(col.isValidIndex(index)) {
         val res = col(index)
         res shouldBe col.toArray(index)
       }
@@ -180,14 +180,14 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.slice") {
     forAll(collGen, indexGen, indexGen) { (col, from, until) =>
-      whenever(until < col.length) {
+      whenever(col.isValidIndex(until)) {
         val res = col.slice(from, until)
         res.toArray shouldBe col.toArray.slice(from, until)
       }
     }
 
     forAll(superGen, indexGen, indexGen) { (col, from, until) =>
-      whenever(until < col.length) {
+      whenever(col.isValidIndex(until)) {
         val res = col.slice(from, until)
         res.toArray shouldBe col.toArray.slice(from, until)
       }

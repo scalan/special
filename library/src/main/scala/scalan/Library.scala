@@ -34,11 +34,11 @@ trait Library extends Scalan
 
   private val _liftElemMemo = new MemoizedFunc({
     case eT: Elem[t] =>
-      val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, t]]
+      val lT = Liftables.asLiftable[Any, t](eT.liftable)
       liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
   })
   implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
-    _liftElemMemo(eT).asInstanceOf[Rep[WRType[T]]]
+    asRep[WRType[T]](_liftElemMemo(eT))
   }
 
   override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
