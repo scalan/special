@@ -2,7 +2,6 @@ package scalan
 
 import java.lang.reflect.Field
 import java.util.regex.Pattern
-
 import scala.annotation.tailrec
 import scala.util.control.NonFatal
 
@@ -12,7 +11,7 @@ import scala.util.control.NonFatal
  * stored in fields whose names start with (or contain) "debug$".
  */
 trait Debugging { self: Scalan =>
-
+  lazy val isDebug: Boolean = Plugins.configWithPlugins.getBoolean("debug")
 
   private lazy val fields = {
     val buffer = scala.collection.mutable.ArrayBuffer.empty[Field]
@@ -32,7 +31,7 @@ trait Debugging { self: Scalan =>
    * Print all collected debug data.
    */
   def printDebugData(cond: String => Boolean): Unit = {
-    if (Base.isDebug) {
+    if (isDebug) {
       println("Debug data:")
       fields.foreach { f =>
         val name = f.getName.substring(f.getName.indexOf("debug$") + "debug$".length)
@@ -51,8 +50,8 @@ trait Debugging { self: Scalan =>
 
   def printDebugData(): Unit = printDebugData(_ => true)
 
-  def printDebugData(nameRegexes: String*): Unit = printDebugData {
-    name => nameRegexes.exists(Pattern.matches(_, name))
+  def printDebugData(nameRegexes: String*): Unit = printDebugData { name =>
+    nameRegexes.exists(Pattern.matches(_, name))
   }
 
   def counter[A] = collection.mutable.Map.empty[A, Int].withDefaultValue(0)

@@ -7,22 +7,23 @@ import configs.Configs
 import configs.syntax._
 import com.typesafe.config.{ConfigUtil, Config}
 import configs.Result.{Success, Failure}
-import scalan.{Base, Scalan, TypeDesc}
+import scalan.{TypeDesc, Scalan, Plugins}
 import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
+
 import scala.collection.immutable.StringOps
 
-case class GraphFile(file: File, fileType: String) {
-  def open() = {
-    Base.config.get[String](ConfigUtil.joinPath("graphviz", "viewer", fileType)) match {
-      case Failure(_) =>
-        Desktop.getDesktop.open(file)
-      case Success(command) =>
-        ProcessUtil.launch(Seq(command, file.getAbsolutePath))
+trait GraphVizExport { self: Scalan =>
+
+  case class GraphFile(file: File, fileType: String) {
+    def open() = {
+      Plugins.configWithPlugins.get[String](ConfigUtil.joinPath("graphviz", "viewer", fileType)) match {
+        case Failure(_) =>
+          Desktop.getDesktop.open(file)
+        case Success(command) =>
+          ProcessUtil.launch(Seq(command, file.getAbsolutePath))
+      }
     }
   }
-}
-
-trait GraphVizExport { self: Scalan =>
 
   // TODO it would be better to have nodeColor(elem: Elem[_], optDef: Option[Def[_]]) to
   // avoid looking up definition, but this leads to ClassFormatError (likely Scala bug)
@@ -535,7 +536,7 @@ case class GraphVizConfig(emitGraphs: Boolean,
 }
 
 object GraphVizConfig {
-  val config = Base.config.getConfig("graphviz")
+  lazy val config = Plugins.configWithPlugins.getConfig("graphviz")
   // not made implicit because it would be too easy to use
   // it accidentally instead of passing up
   // For some reason, return type has to be given explicitly

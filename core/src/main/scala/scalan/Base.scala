@@ -801,15 +801,9 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
   }
 }
+
 object Base {
   object NodeId extends TaggedType[Int]
   type NodeId = NodeId.Type
-
-  // Hacky way to make plugin config avaialable here. It probably shouldn't be, but
-  // for now Gcc's initialization fails without it. If we decide it is, move logic from
-  // Plugins to here.
-  private[scalan] val config0 = ConfigFactory.load().getConfig("scalan")
-  val config = Plugins.configWithPlugins
-  var isDebug: Boolean = config.getBoolean("debug")
 }
 

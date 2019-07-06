@@ -7,9 +7,11 @@ import scalan.util.ClassLoaderUtil
 object Plugins {
   val extraClassPathKey = "plugins.extraClassPath"
 
-  val pluginClassLoader = {
+  lazy val config0 = ConfigFactory.load().getConfig("scalan")
+  lazy val pluginClassLoader = {
     val thisClassLoader = getClass.getClassLoader
-    Base.config0.getString(extraClassPathKey) match {
+
+    config0.getString(extraClassPathKey) match {
       case "" =>
         thisClassLoader
       case path =>
@@ -17,7 +19,7 @@ object Plugins {
         ClassLoaderUtil.URLClassLoader(files, thisClassLoader)
     }
   }
-  val configWithPlugins = ConfigFactory.load(pluginClassLoader).getConfig("scalan")
+  lazy val configWithPlugins = ConfigFactory.load(pluginClassLoader).getConfig("scalan")
 
   def loadClass(name: String) = pluginClassLoader.loadClass(name)
 }
