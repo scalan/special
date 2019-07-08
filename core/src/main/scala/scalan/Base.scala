@@ -772,16 +772,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
         te.rhs.tableEntry = te
         defToGlobalDefs.put(te.rhs, te)
     }
-//    addVarDependant(d)
     te
-  }
-
-  def addVarDependant(d: Def[_]) = {
-    val stack = lambdaStack
-    if (!(stack.isEmpty || d.isInstanceOf[Variable[_]])) {
-      val lam = stack.head
-      lam.addVarDependant(d)
-    }
   }
 
   /**
