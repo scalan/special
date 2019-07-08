@@ -119,7 +119,18 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         val currSch = g.getRootsIfEmpty(sch)
         currSch
       }
-//      assert(sch == scheduleFast)
+      if (sch != scheduleFast) {
+        val s1 = sch.mkString("\n")
+        val s2 = scheduleFast.mkString("\n")
+        val msg =
+          s""" WARNING: different schedules
+            | schedule 1:
+            | $s1
+            | schedule 2:
+            | $s2
+           """.stripMargin
+        println(msg)
+      }
       sch
     }
 
