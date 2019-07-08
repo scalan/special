@@ -198,30 +198,41 @@ trait Transforming { self: Scalan =>
 
     protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Rep[A => B], lam: Lambda[A, B]): (Ctx, Sym) = {
       var tRes: Ctx = t
-      val (t1, newVar) = mirrorNode(t, rewriter, lam, lam.x)
-      val newLambdaSym = getMirroredLambdaSym(node)
+      val (t1, _) = mirrorNode(t, rewriter, lam, lam.x)
 
       // original root
       val originalRoot = lam.y
 
-      // new effects may appear during body mirroring (i.e. new Reflect nodes)
+      // ySym will be assigned after f is executed
+      val ySym = placeholder(Lazy(lam.y.elem))
+      val newLambdaCandidate = getMirroredLambdaDef(t1, lam, ySym)
+      val newLambdaSym = newLambdaCandidate.self
+
+      // new effects may appear during body mirroring
       // thus we need to forget original Reify node and create a new one
-      val newRoot = reifyEffects({
-        val schedule = lam.scheduleSingleLevel
-        val (t2, _) = mirrorSymbols(t1, rewriter, lam, schedule)
-        tRes = t2
-        tRes(originalRoot) // this will be a new root (wrapped in Reify if needed)
-      })
+      val oldStack = lambdaStack
+      try {
+        lambdaStack = newLambdaCandidate :: lambdaStack
+        val newRoot = reifyEffects({
+          val schedule = lam.scheduleSingleLevel
+          val (t2, _) = mirrorSymbols(t1, rewriter, lam, schedule)
+          tRes = t2
+          tRes(originalRoot) // this will be a new root
+        })
+        ySym.assignDefFrom(newRoot)
+      }
+      finally {
+        lambdaStack = oldStack
+      }
 
-      val newLambda = getMirroredLambdaDef(tRes, lam, newRoot)
-      newLambdaSym.assignDef(newLambda)
-      createDefinition(newLambdaSym, newLambda)
-      val newLambdaExp = toExp(newLambda, newLambdaSym)
+      // we don't use toExp here to avoid rewriting pass for new Lambda
+      val resLam = findOrCreateDefinition(newLambdaCandidate, newLambdaSym)
 
-      val (tRes2, mirroredMetadata) = mirrorMetadata(tRes, node, newLambdaExp)
-      val resLam = rewriteUntilFixPoint(newLambdaExp, mirroredMetadata, rewriter)
+// TODO metadata is not processed (for performance, since we don't need it yet)
+//      val (tRes2, mirroredMetadata) = mirrorMetadata(tRes, node, newLambdaExp)
+//      val resLam = rewriteUntilFixPoint(newLambdaExp, mirroredMetadata, rewriter)
 
-      (tRes2 + (node -> resLam), resLam)
+      (tRes + (node -> resLam), resLam)
     }
 
     protected def mirrorBranch[A](t: Ctx, rewriter: Rewriter, g: AstGraph, branch: ThunkDef[A]): (Ctx, Sym) = {

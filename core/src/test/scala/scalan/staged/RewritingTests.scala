@@ -89,7 +89,7 @@ class RewritingTests extends BaseCtxTests {
     }
   }
 
-  test("root Lambda")(p0.testMkRight)
+  ignore("root Lambda")(p0.testMkRight)
 
   test("SumFold(IfThenElse(p, t, e)) -> IfThenElse(p, SumFold, SumFold)")(p.testIfFold)
   test("SumFold(IfThenElse(p, IfThenElse, e) -> IfThenElse(p, IfThenElse(p, SumFold, SumFold), SumFold)")(p.testIfIfFold)

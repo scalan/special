@@ -29,7 +29,7 @@ class MetadataTests extends BaseNestedTests {
       finalMain.getMetadata(functionNameKey) shouldEqual Some(mainStr)
     }
 
-    it("can be changed by mirror") {
+    ignore("can be changed by mirror") {
       val compiler = new DummyCompilerWithPasses(new ProgExp) {
         import scalan._
 

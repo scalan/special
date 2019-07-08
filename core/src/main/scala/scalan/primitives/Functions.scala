@@ -5,7 +5,7 @@ import java.util
 import scalan.staged.ProgramGraphs
 import scalan.util.GraphUtil
 import scalan.{Lazy, Base, Nullable, Scalan}
-
+import debox.{Set => DSet, Buffer => DBuffer}
 import scala.language.implicitConversions
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
@@ -94,15 +94,46 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
     // AstGraph implementation
     val boundVars = x :: Nil
+    val boundVarId = x.rhs._nodeId
+
+    /** A set of nodes which depend on boundVars.
+      * Filled in from createDefinition refering to this lambda via lambdaStack. */
+    val boundVarDependants = DSet(boundVarId)
+
+    def addVarDependant(d: Def[_]): Unit = {
+      val isDependant = d.getDeps.exists(s => boundVarDependants(s.rhs.nodeId))
+      if (isDependant)
+        boundVarDependants += d.nodeId
+    }
+
     val roots = y :: Nil
     override lazy val freeVars = super.freeVars
+
     override lazy val  schedule: Schedule = {
-      if (isIdentity) new Array[TableEntry[_]](0)
+      val sch = if (isIdentity)
+        new Array[TableEntry[_]](0): Schedule
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= x.rhs._nodeId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](boundVars.toSet)(sym => g.usagesOf(sym).filter(g.domain.contains))
         val sch = g.schedule.filter(te => locals.contains(te.sym) && !te.sym.isVar)
         val currSch = g.getRootsIfEmpty(sch)
+        currSch
+      }
+//      assert(sch == scheduleFast)
+      sch
+    }
+
+    lazy val  scheduleFast: Schedule = {
+      if (isIdentity) new Array[TableEntry[_]](0)
+      else {
+        val sch = buildScheduleForResult(roots, s => s.getDeps.filter(dep => boundVarDependants(dep.rhs.nodeId)))
+        val sch1 = sch.filter(te => boundVarDependants(te.sym.rhs.nodeId) && !te.sym.isVar)
+        val currSch = if (sch1.isEmpty) {
+          val consts = roots.collect { case DefTableEntry(tp) => tp }
+          consts  // the case when body is consists of consts
+        }
+        else
+          sch1
         currSch
       }
     }
