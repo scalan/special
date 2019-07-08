@@ -2,21 +2,37 @@ package scalan.util
 
 import scala.collection.mutable.{Buffer, ArrayBuffer}
 import scalan.{Nullable, AVHashMap}
+import debox.{Set => DSet, Buffer => DBuffer}
+
+import scala.reflect.ClassTag
+
+trait NeighbourFunc[@specialized(Int) A] {
+  def get(x: A, res: DBuffer[A]): Unit
+}
+case class Neighbours[A](f: A => TraversableOnce[A]) extends NeighbourFunc[A] {
+  override def get(x: A, res: DBuffer[A]): Unit = {
+    val ns = f(x)
+    ns foreach (res.+=)
+  }
+}
 
 object GraphUtil {
-   def depthFirstSetFrom[A](starts: Set[A])(neighbours: A => TraversableOnce[A]): Set[A] = {
-     var visited = Set[A]()
 
-     def visit(s: A): Unit = {
-       if (!(visited contains s)) {
-         visited += s
-         neighbours(s) foreach visit
-       }
-     }
+  def depthFirstSetFrom[@specialized(Int) A: ClassTag](starts: DBuffer[A])(neighbours: NeighbourFunc[A]): DSet[A] = {
+    val visited = DSet.ofSize[A](starts.length)
 
-     starts foreach visit
-     visited
-   }
+    def visit(s: A): Unit = {
+      if (!(visited(s))) {
+        visited += s
+        val ns = DBuffer.ofSize[A](16)
+        neighbours.get(s, ns)
+        ns foreach visit
+      }
+    }
+
+   starts foreach visit
+   visited
+ }
 
   /**
    * Returns the strongly connected components

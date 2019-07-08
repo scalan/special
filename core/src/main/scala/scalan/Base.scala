@@ -692,7 +692,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   @inline final def getSym(id: Int): Sym = _symbolTable(id)
 
-  @inline def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
+  @inline final def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
 
   case class TableEntrySingle[T](sym: Rep[T], rhs: Def[T], lambda: Option[Rep[_]]) extends TableEntry[T]
 
@@ -811,10 +811,5 @@ trait Base extends LazyLogging { scalan: Scalan =>
       _nextId
     }
   }
-}
-
-object Base {
-  object NodeId extends TaggedType[Int]
-  type NodeId = NodeId.Type
 }
 

@@ -1,6 +1,7 @@
 package scalan.util
 
 import scalan.BaseNestedTests
+import debox.{Set => DSet, Buffer => DBuffer}
 
 class GraphUtilTests extends BaseNestedTests {
   import GraphUtil._
@@ -16,14 +17,18 @@ class GraphUtilTests extends BaseNestedTests {
       List()      // 6
     )
 
-    def neighbours(node: Int): List[Int] = graph(node)
+    object neighbours extends NeighbourFunc[Int] {
+      def get(node: Int, ns: DBuffer[Int]): Unit = {
+        graph(node) foreach (ns.+=)
+      }
+    }
 
     it("depthFirstSetFrom") {
-      depthFirstSetFrom(Set(6))(neighbours) shouldBe (Set(6))
-      depthFirstSetFrom(Set(5))(neighbours) shouldBe (Set(5, 6))
-      depthFirstSetFrom(Set(3))(neighbours) shouldBe (Set(3, 5, 6))
-      depthFirstSetFrom(Set(2))(neighbours) shouldBe (Set(2, 4, 6))
-      depthFirstSetFrom(Set(0))(neighbours) shouldBe (Set(0, 1, 2, 3, 4, 5, 6))
+      depthFirstSetFrom(DBuffer(6))(neighbours) shouldBe (DSet(6))
+      depthFirstSetFrom(DBuffer(5))(neighbours) shouldBe (DSet(5, 6))
+      depthFirstSetFrom(DBuffer(3))(neighbours) shouldBe (DSet(3, 5, 6))
+      depthFirstSetFrom(DBuffer(2))(neighbours) shouldBe (DSet(2, 4, 6))
+      depthFirstSetFrom(DBuffer(0))(neighbours) shouldBe (DSet(0, 1, 2, 3, 4, 5, 6))
     }
   }
   describe("StronglyConnectedComponents") {

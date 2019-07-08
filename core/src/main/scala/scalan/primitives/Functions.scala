@@ -3,7 +3,7 @@ package scalan.primitives
 import java.util
 
 import scalan.staged.ProgramGraphs
-import scalan.util.GraphUtil
+import scalan.util.{GraphUtil, NeighbourFunc}
 import scalan.{Lazy, Base, Nullable, Scalan}
 import debox.{Set => DSet, Buffer => DBuffer}
 import scala.language.implicitConversions
@@ -103,8 +103,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         new Array[TableEntry[_]](0): Schedule
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= boundVarId))
-        val locals = GraphUtil.depthFirstSetFrom[Sym](boundVars.toSet)(sym => g.usagesOf(sym).filter(g.domain.contains))
-        val sch = g.schedule.filter(te => locals.contains(te.sym) && !te.sym.isVar)
+        val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(scalan.util.Neighbours(sym => g.usagesOf(sym).filter(g.domain.contains)))
+        val sch = g.schedule.filter(te => locals(te.sym) && !te.sym.isVar)
         val currSch = g.getRootsIfEmpty(sch)
         currSch
       }
@@ -173,10 +173,6 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     override def transform(t: Transformer) = Apply(t(f), t(arg), mayInline)
   }
 
-  implicit class LambdaExtensions[A, B](lam: Lambda[A,B]) {
-    def argsTree: ProjectionTree = lam.projectionTreeFrom(lam.x)
-  }
-
   implicit class FuncExtensions[A, B](f: Rep[A=>B]) {
     implicit def eA = f.elem.eDom
     def getLambda: Lambda[A,B] = f match {
@@ -189,8 +185,6 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       implicit val eC = g.elem.eRange
       fun { (x: Rep[A]) => Pair(f(x), g(x)) }
     }
-
-    def argsTree = getLambda.argsTree
   }
 
   type Subst = java.util.HashMap[Sym, Sym]

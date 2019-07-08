@@ -71,6 +71,7 @@ lazy val common = Project("common", file("common"))
       libraryDependencies ++= Seq(
         "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+        "org.spire-math" %% "debox" % "0.8.0",
         "commons-io" % "commons-io" % "2.5"
       ))
 

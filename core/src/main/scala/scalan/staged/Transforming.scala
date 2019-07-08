@@ -321,12 +321,12 @@ trait Transforming { self: Scalan =>
     }
 
     /** @hotspot */
-    def mirrorSymbols(t0: Ctx, rewriter: Rewriter, g: AstGraph, nodes: Seq[Sym]) = {
+    def mirrorSymbols(t0: Ctx, rewriter: Rewriter, g: AstGraph, nodes: Seq[Int]) = {
       val buf = scala.collection.mutable.ArrayBuilder.make[Sym]()
       buf.sizeHint(nodes.length)
       val t = nodes.foldLeft(t0) {
         case (t1, n) =>
-          val (t2, n1) = mirrorNode(t1, rewriter, g, n)
+          val (t2, n1) = mirrorNode(t1, rewriter, g, getSym(n))
           buf += n1
           t2
       }

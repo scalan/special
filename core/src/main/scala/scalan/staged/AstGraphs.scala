@@ -5,6 +5,8 @@ import scala.collection.mutable.ArrayBuffer
 import scalan.{Nullable, Scalan}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
+import spire.syntax.all.cfor
+import debox.{Set => DSet}
 
 trait AstGraphs extends Transforming { self: Scalan =>
 
@@ -31,12 +33,6 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
   implicit class ScheduleOps(sch: Schedule) {
     def symbols = sch.map(_.sym)
-  }
-
-  def getScope(g: PGraph, vars: List[Sym]): Schedule = {
-    val sch = g.scheduleFrom(vars.toSet)
-    val currSch = g.getRootsIfEmpty(sch)
-    currSch
   }
 
   trait AstGraph { thisGraph =>
@@ -67,18 +63,20 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def schedule: Schedule
 
-    def scheduleFrom(vars: immutable.Set[Sym]): Schedule = {
-      val locals = GraphUtil.depthFirstSetFrom[Sym](vars)(sym => usagesOf(sym).filter(domain.contains))
-      schedule.filter(te => locals.contains(te.sym) && !te.sym.isVar)
+    lazy val scheduleSyms: Seq[Int] = {
+      val len = schedule.length
+      val res = new Array[Int](len)
+      cfor(0)(_ < len, _ + 1) { i =>
+        res(i) = schedule(i).rhs.nodeId
+      }
+      res
     }
-
-    lazy val scheduleSyms = schedule.map { _.sym }
 
     def iterateIfs = schedule.iterator.filter(_.isIfThenElse)
 
     @inline def isIdentity: Boolean = boundVars == roots
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
-    @inline def isLocalDef(s: Sym): Boolean = scheduleSyms contains s
+    @inline def isLocalDef(s: Sym): Boolean = scheduleSyms contains (s.rhs.nodeId)
     @inline def isLocalDef[T](tp: TableEntry[T]): Boolean = isLocalDef(tp.sym)
     @inline def isRoot(s: Sym): Boolean = roots contains s
 
@@ -92,7 +90,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
     /**
      * Returns definitions which are not assigned to sub-branches
      */
-    def scheduleSingleLevel: Seq[Sym] = schedule.collect { case tp if !isAssignedToIfBranch(tp.sym) => tp.sym }
+    def scheduleSingleLevel: Seq[Int] = schedule.collect { case tp if !isAssignedToIfBranch(tp.sym) => tp.rhs.nodeId }
 
     /**
      * Symbol Usage information for this graph
@@ -132,7 +130,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       defMap
     }
 
-    lazy val domain: Set[Sym] = scheduleSyms.toSet
+    lazy val domain: Set[Sym] = scheduleSyms.map(getSym).toSet
 
     def node(s: Sym): Option[AstNode] = nodes.get(s)
 
@@ -166,13 +164,6 @@ trait AstGraphs extends Transforming { self: Scalan =>
       buildLocalScheduleFrom(List(sym), deps)
 
     def buildLocalScheduleFrom(sym: Sym): Schedule = buildLocalScheduleFrom(sym, (_: Sym).getDeps)
-
-    def projectionTreeFrom(root: Sym): ProjectionTree = {
-      ProjectionTree(root, s => {
-        val usages = usagesOf(s).collect { case u @ TupleProjection(i) => (i, u) }
-        usages.sortBy(_._1).map(_._2)
-      })
-    }
 
     /** Keeps immutable maps describing branching structure of this lambda
       */

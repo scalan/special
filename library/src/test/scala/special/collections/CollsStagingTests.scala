@@ -46,7 +46,8 @@ class CollsStagingTests extends WrappersTests {
     import CollOverArrayBuilder._
 
     var res: Sym = null
-    measure(10) { i =>
+    val nIters = 10
+    measure(nIters) { i =>
       var sum: Int = 0
       for (j <- 0 until 3000) {
         val colBuilder: Rep[CollBuilder] = RCollOverArrayBuilder()
@@ -55,9 +56,9 @@ class CollsStagingTests extends WrappersTests {
         sum += ctx.defCount
       }
       println(s"Defs: ${ctx.defCount}")
+      if (i == nIters - 1) emit("res", res)
       ctx.resetContext()
     }
-    emit("res", res)
   }
 
   test("measure: build graph with new context") {

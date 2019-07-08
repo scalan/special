@@ -3,10 +3,11 @@ package scalan.meta
 import java.io.File
 
 import com.trueaccord.lenses.Updatable
-import scalan.util.{FileUtil, GraphUtil}
+import scalan.util.{FileUtil, GraphUtil, Neighbours}
 import scalan.util.StringUtil._
 
 import scala.collection.mutable.{Map => MMap}
+import debox.{Buffer => DBuffer}
 import scalan.meta.ScalanAst.WrapperConf
 
 trait Conf {
@@ -59,7 +60,7 @@ abstract class ModuleConf extends Conf {
   def moduleDeps: ConfMap[ModuleConf]
 
   def dependsOnModules(): Set[ModuleConf] =
-    GraphUtil.depthFirstSetFrom(Set(this.dependencies.values.toSeq: _*))(m => m.dependencies.values)
+    GraphUtil.depthFirstSetFrom(DBuffer(this.dependencies.values.toSeq: _*))(Neighbours(m => m.dependencies.values)).toScalaSet()
 
   def getSourcesRootDir = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }"
 
