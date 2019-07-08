@@ -526,6 +526,11 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val mapped = coll.map(f)
       checkEquality(view, mapped)
     }
+    forAll (byteGen, doubleGen, intGen, indexGen) { (b, d, i, n) =>
+      val repl = builder.replicate(n, (b, i))
+      val view = builder.makeView(repl, (t: (Byte, Int)) => ((t._1 / 2).toByte, t._2 * 2))
+      view.equals(repl.map((t: (Byte, Int)) => ((t._1 / 2).toByte, t._2 * 2))) shouldBe true
+    }
   }
 
   property("Coll equality") {

@@ -305,6 +305,13 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   override def equals(obj: scala.Any): Boolean = obj match {
     case repl: CReplColl[B]@unchecked if repl.tItem == this.tItem =>
       isReplArray(repl.length, repl.value)
+    case pair: PairColl[a, b] if pair.tItem == this.tItem && this.length == pair.length =>
+      for (i <- 0 to length) {
+        val current = this(i).asInstanceOf[(a, b)]
+        if (pair.ls(i) != current._1 || pair.rs(i) != current._2)
+          return false
+      }
+      true
     case otherColl: Coll[B] if otherColl.tItem == this.tItem =>
       util.Objects.deepEquals(otherColl.toArray, toArray)
     case _ => false
