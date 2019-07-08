@@ -119,35 +119,49 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         val currSch = g.getRootsIfEmpty(sch)
         currSch
       }
-      if (sch != scheduleFast) {
-        val s1 = sch.mkString("\n")
-        val s2 = scheduleFast.mkString("\n")
-        val msg =
-          s""" WARNING: different schedules
-            | schedule 1:
-            | $s1
-            | schedule 2:
-            | $s2
-           """.stripMargin
-        println(msg)
-      }
+//      if (sch != scheduleFast) {
+//        val s1 = sch.mkString("\n")
+//        val s2 = scheduleFast.mkString("\n")
+//        val msg =
+//          s""" WARNING: different schedules
+//            | schedule 1:
+//            | $s1
+//            | schedule 2:
+//            | $s2
+//           """.stripMargin
+//        println(msg)
+//
+//        val set1 = sch.map(_.sym).toSet
+//        val set2 = scheduleFast.map(_.sym).toSet
+//        if (set1 == set2)
+//          println("Sets are the same")
+//        else
+//          println("Sets are different")
+//
+//        println(
+//          s"""$set1
+//            |
+//            | $set2
+//             """.stripMargin)
+//        throw new Exception("Schedule error")
+//      }
       sch
     }
 
-    lazy val  scheduleFast: Schedule = {
-      if (isIdentity) new Array[TableEntry[_]](0)
-      else {
-        val sch = buildScheduleForResult(roots, s => s.getDeps.filter(dep => boundVarDependants(dep.rhs.nodeId)))
-        val sch1 = sch.filter(te => boundVarDependants(te.sym.rhs.nodeId) && !te.sym.isVar)
-        val currSch = if (sch1.isEmpty) {
-          val consts = roots.collect { case DefTableEntry(tp) => tp }
-          consts  // the case when body is consists of consts
-        }
-        else
-          sch1
-        currSch
-      }
-    }
+//    lazy val  scheduleFast: Schedule = {
+//      if (isIdentity) new Array[TableEntry[_]](0)
+//      else {
+//        val sch = buildScheduleForResult(roots, s => s.getDeps.filter(dep => boundVarDependants(dep.rhs.nodeId)))
+//        val sch1 = sch.filter(te => boundVarDependants(te.sym.rhs.nodeId) && !te.sym.isVar)
+//        val currSch = if (sch1.isEmpty) {
+//          val consts = roots.collect { case DefTableEntry(tp) => tp }
+//          consts  // the case when body is consists of consts
+//        }
+//        else
+//          sch1
+//        currSch
+//      }
+//    }
 
     def isGlobalLambda: Boolean =
       freeVars.forall { x =>
