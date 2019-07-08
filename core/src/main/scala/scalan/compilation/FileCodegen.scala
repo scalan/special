@@ -2,7 +2,7 @@ package scalan.compilation
 
 import java.io.{PrintWriter, File}
 
-import scalan.Scalan
+import scalan.{ScalanEx}
 import scalan.meta.SSymName
 import scalan.util.FileUtil
 
@@ -11,7 +11,7 @@ case class IndentLevel(level: Int) {
 }
 
 /** Base class for code generators */
-abstract class FileCodegen[+ScalanCake <: Scalan](val scalan: ScalanCake, val config: CodegenConfig) {
+abstract class FileCodegen[+ScalanCake <: ScalanEx](val scalan: ScalanCake, val config: CodegenConfig) {
   import scalan._
 
   /** Codegen name (used in error messages) */

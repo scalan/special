@@ -1,9 +1,11 @@
 package scalan
 
 import java.lang.reflect.Field
-import java.util.regex.Pattern
-import scala.annotation.tailrec
+
 import scala.util.control.NonFatal
+import java.util.regex.Pattern
+
+import scala.annotation.tailrec
 
 /**
  * To collect debugging data, run with -Dscalan.debug=true or set scalan.debug to `true`

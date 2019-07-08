@@ -6,10 +6,10 @@ import scala.collection.JavaConverters._
 
 import com.typesafe.config.Config
 
-import scalan.Scalan
+import scalan.ScalanEx
 import scalan.util.ReflectionUtil
 
-abstract class Compiler[+ScalanCake <: Scalan](val scalan: ScalanCake) extends Passes {
+abstract class Compiler[+ScalanCake <: ScalanEx](val scalan: ScalanCake) extends Passes {
   import scalan._
 
   type CompilerConfig

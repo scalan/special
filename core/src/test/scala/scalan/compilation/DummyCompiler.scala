@@ -2,12 +2,12 @@ package scalan.compilation
 
 import java.io.File
 
-import scalan.Scalan
+import scalan.ScalanEx
 
 /**
  * Trivial compiler used for tests
  */
-class DummyCompiler[ScalanCake <: Scalan](_scalan: ScalanCake) extends Compiler(_scalan) {
+class DummyCompiler[ScalanCake <: ScalanEx](_scalan: ScalanCake) extends Compiler(_scalan) {
   import scalan._
 
   type CompilerConfig = Unit
@@ -28,6 +28,6 @@ class DummyCompiler[ScalanCake <: Scalan](_scalan: ScalanCake) extends Compiler(
 /**
  * Adds some passes to DummyCompiler
  */
-class DummyCompilerWithPasses[ScalanCake <: Scalan](scalan: ScalanCake) extends DummyCompiler(scalan) {
+class DummyCompilerWithPasses[ScalanCake <: ScalanEx](scalan: ScalanCake) extends DummyCompiler(scalan) {
   override def graphPasses(compilerConfig: CompilerConfig) = Seq(AllUnpackEnabler, AllInvokeEnabler)
 }

@@ -2,12 +2,12 @@ package scalan.compilation
 
 import java.io.PrintWriter
 
-import scalan.Scalan
+import scalan.ScalanEx
 
 /**
   * Created by slesarenko on 12/10/2017.
   */
-class MockFileCodegen[IR <: Scalan](ctx: IR, config: CodegenConfig) extends FileCodegen[IR](ctx, config) {
+class MockFileCodegen[IR <: ScalanEx](ctx: IR, config: CodegenConfig) extends FileCodegen[IR](ctx, config) {
   /** Name of language generated (used in error messages) */
   override def languageName: String = "mock"
 

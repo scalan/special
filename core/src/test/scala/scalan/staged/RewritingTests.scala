@@ -75,7 +75,7 @@ class RewritingTests extends BaseCtxTests {
   }
 
   val p = new TestCompilerContext("RewritingRules") {
-    val compiler = new DummyCompiler(new Scalan with Prog) with TestTransform
+    val compiler = new DummyCompiler(new ScalanEx with Prog) with TestTransform
     import compiler.scalan._
 
     def testIfFold(): Unit = {

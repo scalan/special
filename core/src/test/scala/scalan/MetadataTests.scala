@@ -6,7 +6,7 @@ import scalan.util.FileUtil
 class MetadataTests extends BaseNestedTests {
   private val mainStr = "main"
 
-  trait Prog extends Scalan {
+  trait Prog extends ScalanEx {
     val functionNameKey = MetaKey[String]("name")
 
     val main = fun { x: Rep[Int] => x + 1 }
@@ -14,7 +14,7 @@ class MetadataTests extends BaseNestedTests {
     main.setMetadata(functionNameKey)(mainStr)
   }
 
-  class ProgExp extends Scalan with Prog
+  class ProgExp extends ScalanEx with Prog
 
   describe("Metadata") {
     it("survives compilation passes") {
@@ -33,7 +33,7 @@ class MetadataTests extends BaseNestedTests {
       val compiler = new DummyCompilerWithPasses(new ProgExp) {
         import scalan._
 
-        val functionNameMirror = new Mirror[MapTransformer] {
+        val functionNameMirror = new MirrorEx[MapTransformer] {
           override protected def mirrorMetadata[A, B](t: MapTransformer, old: Rep[A], mirrored: Rep[B]) = {
             val newMeta = old.allMetadata.updateIfExists(functionNameKey)(_ + "1")
             (t, newMeta)

@@ -1,8 +1,8 @@
 package scalan.compilation
 
-import scalan.Scalan
+import scalan.ScalanEx
 
-abstract class ScalanCompiler[+ScalanCake <: Scalan, +Codegen <: FileCodegen[ScalanCake]](_scalan: ScalanCake)
+abstract class ScalanCompiler[+ScalanCake <: ScalanEx, +Codegen <: FileCodegen[ScalanCake]](_scalan: ScalanCake)
     extends Compiler[ScalanCake](_scalan) {
   def codegen: Codegen
 }

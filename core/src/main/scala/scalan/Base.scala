@@ -718,7 +718,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     _symbolTable.splice(0, DBuf.ofSize[Sym](nInitialDefs))
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
-    metadataPool = Map.empty[Sym, MetaNode]
     tuplesCache.clear()
     _intZero.reset()
     onReset()

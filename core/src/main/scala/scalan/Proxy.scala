@@ -14,7 +14,7 @@ import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
 
 import scala.collection.mutable.ArrayBuffer
 
-trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
+trait Proxy extends Base with GraphVizExport { self: Scalan =>
   import IsoUR._
   
   def getStagedFunc(name: String): Rep[_] = {
@@ -317,9 +317,6 @@ trait Proxy extends Base with Metadata with GraphVizExport { self: Scalan =>
         !!!(s"Failed to find method with name $methodName of object $obj")
     }
   }
-
-  lazy val externalClassNameMetaKey = MetaKey[String]("externalClassName")
-  lazy val externalMethodNameMetaKey = MetaKey[String]("externalMethodName")
 
   sealed trait InvokeResult
 

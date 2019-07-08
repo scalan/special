@@ -3,11 +3,11 @@ package scalan.compilation
 import java.io.PrintWriter
 
 import scalan.meta.SSymName
-import scalan.{BaseNestedTests, Scalan}
+import scalan.{BaseNestedTests, ScalanEx}
 
 class FileCodegenTests extends BaseNestedTests {
   val config = CodegenConfig("core/generated", Nil)
-  val gen = new MockFileCodegen(new Scalan, config)
+  val gen = new MockFileCodegen(new ScalanEx, config)
   val name = SSymName("scalan", "Scalan")
   val otherPackage = SSymName("scalan2", "Scalan2")
   import gen.importBuilder._

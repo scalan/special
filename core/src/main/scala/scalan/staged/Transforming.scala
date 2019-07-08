@@ -3,7 +3,7 @@ package scalan.staged
 import java.lang.reflect.Method
 
 import scala.collection.{Seq, mutable}
-import scalan.{Lazy, DelayInvokeException, Scalan, Nullable}
+import scalan.{Lazy, DelayInvokeException, Scalan, Nullable, ScalanEx}
 import scala.reflect.runtime.universe._
 
 trait Transforming { self: Scalan =>
@@ -164,27 +164,12 @@ trait Transforming { self: Scalan =>
     // every mirrorXXX method should return a pair (t + (v -> v1), v1)
     protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Rep[A]): (Ctx, Sym) = {
       val newVar = variable(Lazy(mirrorElem(v)))
-      val (t1, mirroredMetadata) = mirrorMetadata(t, v, newVar)
-      setAllMetadata(newVar, mirroredMetadata)
-      (t1 + (v -> newVar), newVar)
-    }
-
-    protected def rewriteUntilFixPoint[T](start: Rep[T], mn: MetaNode, rw: Rewriter): Rep[T] = {
-      var res = start
-      var curr: Rep[T] = res
-      do {
-        curr = res
-        setAllMetadata(curr, mn)
-        res = rw(curr)
-      } while (res != curr)
-      res
+      (t + (v -> newVar), newVar)
     }
 
     protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): (Ctx, Sym) = {
-      val (t1, mirrored) = apply(t, rewriter, node, d)
-      val (t2, mirroredMetadata) = mirrorMetadata(t1, node, mirrored)
-      val res = rewriteUntilFixPoint(mirrored, mirroredMetadata, rewriter)
-      (t2 + (node -> res), res)
+      val (t1, res) = apply(t, rewriter, node, d)
+      (t1 + (node -> res), res)
     }
 
     protected def getMirroredLambdaSym[A, B](node: Rep[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
@@ -285,16 +270,7 @@ trait Transforming { self: Scalan =>
       (t1 + (node -> newThunkSym), newThunkSym)
     }
 
-    protected def mirrorMetadata[A, B](t: Ctx, old: Rep[A], mirrored: Rep[B]) =
-      (t, allMetadataOf(old))
-
     protected def isMirrored(t: Ctx, node: Sym): Boolean = t.isDefinedAt(node)
-
-    private def setMirroredMetadata(t1: Ctx, node: Sym, mirrored: Sym): (Ctx, Sym) = {
-      val (t2, mirroredMetadata) = mirrorMetadata(t1, node, mirrored)
-      setAllMetadata(mirrored, mirroredMetadata.filterSinglePass)
-      (t2, mirrored)
-    }
 
     def mirrorNode[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Rep[A]): (Ctx, Sym) = {
       if (isMirrored(t, node)) {
@@ -305,14 +281,11 @@ trait Transforming { self: Scalan =>
             case v: Variable[_] =>
               mirrorVar(t, rewriter, node)
             case lam: Lambda[a, b] =>
-              val (t1, mirrored) = mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
-              setMirroredMetadata(t1, node, mirrored)
+              mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
             case th: ThunkDef[a] =>
-              val (t1, mirrored) = mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
-              setMirroredMetadata(t1, node, mirrored)
+              mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
             case ite: IfThenElse[a] =>
-              val (t1, mirrored) = mirrorIfThenElse(t, rewriter, g, node.asInstanceOf[Rep[a]], ite)
-              setMirroredMetadata(t1, node, mirrored)
+              mirrorIfThenElse(t, rewriter, g, node.asInstanceOf[Rep[a]], ite)
             case _ =>
               mirrorDef(t, rewriter, node, d)
           }
@@ -336,6 +309,23 @@ trait Transforming { self: Scalan =>
 
   def mirror[Ctx <: Transformer : TransformerOps] = new Mirror[Ctx] {}
   val DefaultMirror = mirror[MapTransformer]
+
+}
+
+trait TransformingEx { self: ScalanEx =>
+
+  abstract class MirrorEx[Ctx <: Transformer : TransformerOps] extends Mirror[Ctx] {
+
+    protected def mirrorMetadata[A, B](t: Ctx, old: Rep[A], mirrored: Rep[B]) =
+      (t, allMetadataOf(old))
+
+    private def setMirroredMetadata(t1: Ctx, node: Sym, mirrored: Sym): (Ctx, Sym) = {
+      val (t2, mirroredMetadata) = mirrorMetadata(t1, node, mirrored)
+      setAllMetadata(mirrored, mirroredMetadata.filterSinglePass)
+      (t2, mirrored)
+    }
+
+  }
 
   //  sealed abstract class TupleStep(val name: String)
   //  case object GoLeft extends TupleStep("L")
@@ -377,13 +367,13 @@ trait Transforming { self: Scalan =>
       if (isLeaf) List((Nil, root))
       else{
         for {
-            ch <- children
-            (p, s) <- ch.paths
-          } yield {
-            val i = projectionIndex(ch.root)
-            (i :: p, s)
-          }
-    }
+          ch <- children
+          (p, s) <- ch.paths
+        } yield {
+          val i = projectionIndex(ch.root)
+          (i :: p, s)
+        }
+      }
 
     def mkNewTree(r: Sym, cs: List[ProjectionTree]) = ProjectionTree(r, cs)
     def mirror(subst: Sym => Sym): ProjectionTree = {

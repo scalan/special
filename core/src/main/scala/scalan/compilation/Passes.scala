@@ -1,10 +1,11 @@
 package scalan.compilation
 
-import scalan.Scalan
+import scalan.ScalanEx
+
 import scala.collection._
 
 trait Passes {
-  val scalan: Scalan
+  val scalan: ScalanEx
   import scalan._
 
   // to avoid need to import compiler.scalan.Exp in many places

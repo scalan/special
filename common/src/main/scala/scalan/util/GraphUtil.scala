@@ -1,7 +1,7 @@
 package scalan.util
 
 import scala.collection.mutable.{Buffer, ArrayBuffer}
-import scalan.{Nullable, AVHashMap}
+import scalan.{AVHashMap, DFunc, Nullable, DFuncAdapter}
 import debox.{Set => DSet, Buffer => DBuffer}
 
 import scala.reflect.ClassTag
@@ -42,8 +42,8 @@ object GraphUtil {
    * The scc are returned in _reverse_ topological order.
    * Tarjan's algorithm (linear).
    */
-  def stronglyConnectedComponents[T](start: Seq[T])(succ: T => Seq[T]): Seq[Seq[T]] = {
-    val tarjan = new Tarjan(succ)
+  def stronglyConnectedComponents[@specialized(Int) T](start: Seq[T], succ: DFunc[T, Seq[T]]): Seq[Seq[T]] = {
+    val tarjan = new Tarjan[T](succ)
 
     for (node <- start)
       tarjan.visit(node)
@@ -51,52 +51,58 @@ object GraphUtil {
     tarjan.res
   }
 
+  def stronglyConnectedComponents[@specialized(Int) T](start: Seq[T])(succ: T => Seq[T]): Seq[Seq[T]] = {
+    stronglyConnectedComponents(start, new DFuncAdapter(succ))
+  }
+
   private final class IntRef(init: Int) {
     var value: Int = init
   }
 
-  private final class Tarjan[T](succ: T => Seq[T]) {
-    private var id = 0
-    private var stack: List[T] = Nil
-    private val mark = AVHashMap[T,Int](127)
+}
 
-    val res: Buffer[Seq[T]] = new ArrayBuffer()
 
-    def visit(node: T): Int = {
-      mark.get(node) match {
-        case Nullable(n) => n
-        case _ =>
-          id += 1
+final class Tarjan[@specialized(Int) T](neighbours: DFunc[T, Seq[T]]) {
+  private var id = 0
+  private var stack: List[T] = Nil
+  private val mark = AVHashMap[T,Int](127)
 
-          mark.put(node, id)
-          stack = node :: stack
-          //    println("push " + node)
+  val res: Buffer[Seq[T]] = new ArrayBuffer()
 
-          var min: Int = id
-          for (child <- succ(node)) {
-            val m = visit(child)
+  def visit(node: T): Int = {
+    mark.get(node) match {
+      case Nullable(n) => n
+      case _ =>
+        id += 1
 
-            if (m < min)
-              min = m
-          }
+        mark.put(node, id)
+        stack = node :: stack
+        //    println("push " + node)
 
-          if (min == mark(node)) {
-            val scc: Buffer[T] = new ArrayBuffer()
+        var min: Int = id
+        for (child <- neighbours(node)) {
+          val m = visit(child)
 
-            var loop: Boolean = true
-            do {
-              val element = stack.head
-              stack = stack.tail
-              //        println("appending " + element)
-              scc.append(element)
-              mark.put(element, Integer.MAX_VALUE)
-              loop = element != node
-            } while (loop)
+          if (m < min)
+            min = m
+        }
 
-            res.append(scc.toSeq)
-          }
-          min
-      }
+        if (min == mark(node)) {
+          val scc: Buffer[T] = new ArrayBuffer()
+
+          var loop: Boolean = true
+          do {
+            val element = stack.head
+            stack = stack.tail
+            //        println("appending " + element)
+            scc.append(element)
+            mark.put(element, Integer.MAX_VALUE)
+            loop = element != node
+          } while (loop)
+
+          res.append(scc.toSeq)
+        }
+        min
     }
   }
 }

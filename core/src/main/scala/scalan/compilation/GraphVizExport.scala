@@ -88,13 +88,7 @@ trait GraphVizExport { self: Scalan =>
     emitNode0(sym, Some(rhs), acc1)
   }
 
-  protected def formatMetadata(s: Sym): List[String] = {
-    val metadata = s.allMetadata.meta
-    if (metadata.nonEmpty)
-      "Metadata:" :: metadata.map { case (k, v) => s"$k:${formatConst(v.value)}" }.toList
-    else
-      Nil
-  }
+  protected def formatMetadata(s: Sym): List[String] = Nil
 
   protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
     case Const(x) =>

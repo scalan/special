@@ -33,7 +33,7 @@ trait TestContexts extends TestUtils {
     def emit(s1: => Sym): Unit
     def emit(s1: => Sym, s2: Sym*): Unit
   }
-  abstract class TestContext(val testName: String) extends Scalan with TestContextApi {
+  abstract class TestContext(val testName: String) extends ScalanEx with TestContextApi {
     def this() = this(currentTestNameAsFileName)
 
     override val invokeAll = true
@@ -51,7 +51,7 @@ trait TestContexts extends TestUtils {
       emitF(testName, Seq(() => s1) ++ s2.map((s: Rep[_]) => () => s): _*)
     }
   }
-
+  
   // TODO change API to use defaultCompilers here! See JNI_MsfItTests and others
   abstract class TestCompilerContext(testName: String) {
     def this() = this(currentTestNameAsFileName)

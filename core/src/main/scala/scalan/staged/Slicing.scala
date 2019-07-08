@@ -1,9 +1,9 @@
 package scalan.staged
 
 import scala.collection.mutable
-import scalan.{Scalan, Lazy}
+import scalan.{ScalanEx, Lazy}
 
-trait Slicing extends Scalan {
+trait Slicing extends ScalanEx {
 
   class SliceAnalyzer extends BackwardAnalyzer[SliceMarking] {
     val name = SliceMarking.KeyPrefix
