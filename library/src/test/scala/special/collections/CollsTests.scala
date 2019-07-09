@@ -1,6 +1,6 @@
 package special.collections
 
-import special.collection.{ReplColl, PairOfCols, PairColl, CReplColl, Coll}
+import special.collection.{CollOverArray, ReplColl, PairOfCols, PairColl, CReplColl, Coll}
 import org.scalacheck.{Shrink, Gen}
 import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
@@ -501,6 +501,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val view = builder.makeView(coll, complexFunction)
       val usual = coll.map(complexFunction)
       view.toArray shouldBe usual.toArray
+    }
+  }
+
+  property("Same coll inequality") {
+    forAll (intGen, indexGen) { (i, n) =>
+      val replArr = Array.fill(n)((i, i))
+      an [RuntimeException] should be thrownBy new CollOverArray(replArr)
     }
   }
 

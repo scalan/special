@@ -18,6 +18,17 @@ import scala.runtime.RichInt
 
 class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]) extends Coll[A] {
   @Internal
+  private def isPaired(): Boolean = {
+    tA match {
+      case pair: PairType[a, b] => true
+      case _ => false
+    }
+  }
+
+  // init
+  if (isPaired()) throw new RuntimeException("Use builders to create paired collections")
+
+  @Internal
   override def tItem: RType[A] = tA
   def builder: CollBuilder = new CollOverArrayBuilder
   @inline def length: Int = toArray.length
@@ -373,7 +384,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
     cfor(0)(_ < limit, _ + 1) { i =>
       res(i) = f((ls(i), rs(i)))
     }
-    new CollOverArray(res)
+    builder.fromArray(res)
   }
 
   @NeverInline
@@ -597,7 +608,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   def getOrElse(i: Int, default: A): A = if (i >= 0 && i < this.length) value else default
-  def map[@specialized B: RType](f: A => B): Coll[B] = new CReplColl(f(value), length)
+  def map[@specialized B: RType](f: A => B): Coll[B] = builder.replicate(length, f(value))
   @NeverInline
   def foreach(f: A => Unit): Unit = (0 until length).foreach(_ => f(value))
   @NeverInline
@@ -609,7 +620,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
     if (length == 0) this
     else
     if (p(value)) this
-    else new CReplColl(value, 0)
+    else builder.replicate(0, value)
 
   @NeverInline
   def foldLeft[B](zero: B, op: ((B, A)) => B): B =
@@ -625,13 +636,13 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
     val lo = math.max(from, 0)
     val hi = math.min(math.max(until, 0), length)
     val size = math.max(hi - lo, 0)
-    new CReplColl(value, size)
+    builder.replicate(size, value)
   }
 
   @NeverInline
   def append(other: Coll[A]): Coll[A] = other match {
     case repl: ReplColl[A@unchecked] if this.value == repl.value =>
-      new CReplColl(value, this.length + repl.length)
+      builder.replicate(this.length + repl.length, value)
     case _ =>
       builder.fromArray(toArray).append(builder.fromArray(other.toArray))
   }
@@ -679,7 +690,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
     if (n <= 0) builder.emptyColl
     else {
       val m = new RichInt(n).min(length)
-      new CReplColl(value, m)
+      builder.replicate(m, value)
     }
 
   @NeverInline
@@ -736,19 +747,19 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
         if (repl.length > 0) {
           if (value == repl.value) {
             // both replications have the same element `value`, just return it in a singleton set
-            new CReplColl(value, 1)
+            builder.replicate(1, value)
           }
           else {
             builder.fromItems(value, repl.value)
           }
         }
         else
-          new CReplColl(value, 1)
+          builder.replicate(1, value)
       } else {
         if (repl.length > 0) {
-          new CReplColl(repl.value, 1)
+          builder.replicate(1, repl.value)
         } else
-          new CReplColl(value, 0)  // empty set
+          builder.replicate(0, value) // empty set
       }
     case _ =>
       if (this.length > 0)
