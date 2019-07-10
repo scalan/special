@@ -287,17 +287,17 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   }
 
   /*
-   * We could just verify that source is repl array and match f(source(0)) == value, but
-   * there's no guarantee that f is deterministic. Thus, we need to compute the whole
-   * collection.
+   * We could just verify that source is repl array and match f(source(0)) == value,
+   * assuming that key functional programming principle is true: a function gives
+   * same result on same data every time
    */
   @Internal
   override def isReplArray(len: Int, value: B): Boolean = {
-    length == len && {
-      tItem match {
-        case prim: PrimitiveType[a] => isAllPrimValue(value)
-        case _ => isAllDeepEquals(value)
-      }
+    if (length != len) return false
+    if (length > 0) {
+      source.isReplArray(len, source(0)) && this(0) == value
+    } else {
+      true
     }
   }
 
