@@ -11,6 +11,12 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   import Gen._
   import special.collection.ExtensionMethods._
 
+  def checkEquality(left: Coll[_], right: Coll[_]) = {
+    left.equals(right) shouldBe true
+    right.equals(left) shouldBe true
+    right.hashCode() shouldBe left.hashCode()
+  }
+
   property("Coll.indices") {
     val minSuccess = MinSuccessful(30)
     forAll(collGen, collGen, minSuccess) { (col1: Coll[Int], col2: Coll[Int]) =>
@@ -511,12 +517,17 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
-  property("CViewColl.equality") {
-    def checkEquality(left: Coll[_], right: Coll[_]) = {
-      left.equals(right) shouldBe true
-      right.equals(left) shouldBe true
-      right.hashCode() shouldBe left.hashCode()
+  property("ViewColl vs CollOverArray complex equality") {
+    forAll(indexGen, intGen) { (n, item) =>
+      def f(i: Int): (Int, Int) = (i + 10, i - 10)
+      val view = builder.makeView(builder.replicate(n, item), f)
+      val repl = builder.replicate(n, item).map(f)
+
+      checkEquality(view, repl)
     }
+  }
+
+  property("CViewColl.equality") {
     forAll(indexGen, intGen) { (n, item) =>
       def f(i: Int): Int = i + 10
       val view = builder.makeView(builder.replicate(n, item), f)
