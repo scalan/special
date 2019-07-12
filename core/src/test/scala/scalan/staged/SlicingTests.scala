@@ -92,7 +92,7 @@ abstract class AbstractSlicingTests extends BaseTests with TestContexts {
       val Def(l: Lambda[_,_]) = fsliced
       ctx.emitF(name, () => f, () => fsliced)
       assertResult(mInitial.projectedElem)(l.eB)
-      assert(l.scheduleAll.collectFirst { case te: TableEntry[_] if te.rhs.isInstanceOf[Sliced[_,_]] => te.sym }.isEmpty)
+      assert(l.scheduleAll.collectFirst { case sym if sym.rhs.isInstanceOf[Sliced[_,_]] => sym }.isEmpty)
       typecheck(new PGraph(fsliced))
     }
 

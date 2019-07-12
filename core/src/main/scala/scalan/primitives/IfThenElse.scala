@@ -89,10 +89,8 @@ trait IfThenElse extends Base { self: Scalan =>
     IfThenElseLazy(cond, t, e)
   }
 
-  implicit class IfThenElseOps[T](tableEntry: TableEntry[T]) {
-    def isIfThenElse = tableEntry.rhs match { case IfThenElse(_,_,_) => true case _ => false }
-  }
-  
+  def isIfThenElse(s: Sym) = s.rhs match { case IfThenElse(_,_,_) => true case _ => false }
+
   def liftFromIfThenElse[A,B,C](cond: Rep[Boolean], a: Rep[A], b: Rep[B], iso1: Iso[A,C], iso2: Iso[B,C]): Rep[C] = {
     assertEqualElems(iso1.eTo, iso2.eTo, s"liftFromIfThenElse($cond, $a, $b, $iso1, $iso2)")
     val ea = iso1.eFrom

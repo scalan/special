@@ -458,7 +458,7 @@ trait TransformingEx { self: ScalanEx =>
 
     def beforeAnalyze[A,B](l: Lambda[A,B]): Unit = {}
 
-    def getInboundMarkings[T](te: TableEntry[T], outMark: M[T]): MarkedSyms
+    def getInboundMarkings[T](thisSym: Rep[T], outMark: M[T]): MarkedSyms
 
     def getLambdaMarking[A,B](lam: Lambda[A,B], mDom: M[A], mRange: M[B]): M[A => B]
 
@@ -490,12 +490,11 @@ trait TransformingEx { self: ScalanEx =>
 
     def backwardAnalyzeRec(g: AstGraph): Unit = {
       val revSchedule = g.schedule.reverseIterator
-      for (te <- revSchedule) te match { case te: TableEntry[t] =>
-        val s = te.sym
-        val d = te.rhs
+      for (sym <- revSchedule) sym match { case s: Rep[t] =>
+        val d = s.rhs
         // back-propagate analysis information (including from Lambda to Lambda.y, see LevelAnalyzer)
         val outMark = getMark(s)
-        val inMarks = getInboundMarkings[t](te, outMark)
+        val inMarks = getInboundMarkings[t](s, outMark)
         for ((s, mark) <- inMarks) {
           updateOutboundMarking(s, mark)
         }

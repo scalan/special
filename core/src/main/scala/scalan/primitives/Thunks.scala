@@ -126,10 +126,11 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case thunk: ThunkDef[a] =>
+      assert(false)
       implicit lazy val eA = thunk.eA
       val newSchedule = for {
-        tp <- thunk.schedule
-        res <- t(tp.sym) match {
+        sym <- thunk.schedule
+        res <- t(sym) match {
           case te: TableEntry[_] => List(te)
           case _ => Nil
         }
@@ -261,7 +262,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   override protected def matchDefs(d1: Def[_], d2: Def[_], allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] = d1 match {
     case ThunkDef(root1, sch1) => d2 match {
       case ThunkDef(root2, sch2) =>
-        var res = matchIterators(sch1.iterator.map(_.sym), sch2.iterator.map(_.sym), allowInexactMatch, subst)
+        var res = matchIterators(sch1.iterator, sch2.iterator, allowInexactMatch, subst)
         if (res.isDefined)
           res = matchExps(root1, root2, allowInexactMatch, res.get)
         res
@@ -273,7 +274,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   object ConstantThunk {
     def unapply(d: Def[_]): Option[Rep[_]] = d match {
-      case ThunkDef(root @ Def(Const(_)), sch) if sch.map(_.sym) == Seq(root) => Some(root)
+      case ThunkDef(root @ Def(Const(_)), sch) if sch == Seq(root) => Some(root)
       case _ => None
     }
     def unapply(s: Sym): Option[Rep[_]] = s match { case Def(d) => unapply(d) case _ => None }
@@ -301,7 +302,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   }
 
   override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
-    case ThunkDef(r, sch) => s"Thunk($r, [${sch.map(_.sym).mkString(",")}])"
+    case ThunkDef(r, sch) => s"Thunk($r, [${sch.mkString(",")}])"
     case _ => super.formatDef(d)
   }
 

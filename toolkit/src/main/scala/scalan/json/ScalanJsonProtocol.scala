@@ -113,11 +113,11 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
 
   implicit object LambdaFormat extends JsonFormat[Lambda[_, _]] {
     def write(lam: Lambda[_, _]) = {
-      val fields = lam.schedule.map { te => te.rhs match {
+      val fields = lam.schedule.map { sym => sym.rhs match {
         case Lambda(l, _, x, y) =>
-          (mapSym(te.sym), LambdaFormat.write(l))
+          (mapSym(sym), LambdaFormat.write(l))
         case _ =>
-          (mapSym(te.sym), SymFormat.write(te.sym))
+          (mapSym(sym), SymFormat.write(sym))
       }}
       JsObject(ListMap(Seq( // ListMap to preserve order
         ("type", JsString("Lambda")),
@@ -134,11 +134,11 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
 
   implicit object ProgramGraphFormat extends JsonFormat[PGraph] {
     def write(g: PGraph) = {
-      val fields = g.schedule.map { te => te.rhs match {
+      val fields = g.schedule.map { sym => sym.rhs match {
         case Lambda(l, _, x, y) =>
-          (mapSym(te.sym), LambdaFormat.write(l))
+          (mapSym(sym), LambdaFormat.write(l))
         case _ =>
-          (mapSym(te.sym), SymFormat.write(te.sym))
+          (mapSym(sym), SymFormat.write(sym))
       }}
       val roots = g.roots.map(mapSym(_))
       JsObject(ListMap( // ListMap to preserve order

@@ -247,7 +247,7 @@ trait GraphVizExport { self: Scalan =>
   }
 
   protected def clusterSchedule(g: AstGraph) = g match {
-    case lam: Lambda[_, _] => lam.schedule.filter(_.sym != lam.y)
+    case lam: Lambda[_, _] => lam.schedule.filter(_ != lam.y)
     case _ => g.schedule
   }
 
@@ -261,10 +261,9 @@ trait GraphVizExport { self: Scalan =>
   private def emitCluster(g: AstGraph, acc: GraphData)(implicit stream: PrintWriter, config: GraphVizConfig): GraphData = {
     val schedule = clusterSchedule(g)
 
-    schedule.foldLeft(acc) { case (acc1, te: TableEntry[_]) =>
-      val d = te.rhs
-      val s = te.sym
-      te.rhs match {
+    schedule.foldLeft(acc) { case (acc1, s) =>
+      val d = s.rhs
+      d match {
         case g: AstGraph if shouldEmitCluster(g) =>
           if (config.subgraphClusters) {
             stream.println(s"subgraph cluster_$s {")

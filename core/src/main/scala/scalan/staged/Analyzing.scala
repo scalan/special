@@ -31,13 +31,13 @@ trait Analyzing { self: ScalanEx =>
     def getLambdaMarking[A, B](lam: Lambda[A, B], mDom: LevelCount[A], mRange: LevelCount[B]): LevelCount[(A) => B] =
       mkLevelMark(0)(lam.elem)
 
-    def getInboundMarkings[T](te: TableEntry[T], outMark: LevelCount[T]): MarkedSyms = {
+    def getInboundMarkings[T](thisSym: Rep[T], outMark: LevelCount[T]): MarkedSyms = {
       val l = outMark.level
-      te.rhs match {
+      thisSym.rhs match {
         case lam: Lambda[a,b] =>
           Seq[MarkedSym](updateMark(lam.y, l))
         case _ =>
-          te.rhs.getDeps.toSeq.map(s => updateMark(s, l))
+          thisSym.rhs.getDeps.toSeq.map(s => updateMark(s, l))
       }
     }
   }
@@ -77,13 +77,13 @@ trait Analyzing { self: ScalanEx =>
     def getLambdaMarking[A, B](lam: Lambda[A, B], mDom: UsageCount[A], mRange: UsageCount[B]): UsageCount[(A) => B] =
       mkUsageMark(Map())(lam.elem)
 
-    def getInboundMarkings[T](te: TableEntry[T], outMark: UsageCount[T]): MarkedSyms = {
-      te.rhs match {
+    def getInboundMarkings[T](thisSym: Rep[T], outMark: UsageCount[T]): MarkedSyms = {
+      thisSym.rhs match {
         case l: Lambda[a,b] => Seq()
         case _ =>
-          val l = getLevel(te.sym)
-          te.rhs.getDeps.toSeq.map(s => {
-            promoteMark(s, Map(l -> Seq(te.sym)))
+          val l = getLevel(thisSym)
+          thisSym.rhs.getDeps.toSeq.map(s => {
+            promoteMark(s, Map(l -> Seq(thisSym)))
           })
       }
     }

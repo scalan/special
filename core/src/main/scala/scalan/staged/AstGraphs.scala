@@ -29,11 +29,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
     def addUsage(usage: Sym) = copy(usages = usage :: this.usages)
   }
 
-  type Schedule = Seq[TableEntry[_]]
-
-  implicit class ScheduleOps(sch: Schedule) {
-    def symbols = sch.map(_.sym)
-  }
+  type Schedule = Seq[Sym]
 
   trait AstGraph { thisGraph =>
     def boundVars: List[Sym]
@@ -56,8 +52,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def getRootsIfEmpty(sch: Schedule) =
       if (sch.isEmpty) {
-        val consts = roots.collect { case DefTableEntry(tp) => tp }
-        consts  // the case when body is consists of consts
+        roots // the case when body is consists of consts
       }
       else sch
 
@@ -72,33 +67,36 @@ trait AstGraphs extends Transforming { self: Scalan =>
       res
     }
 
-    def iterateIfs = schedule.iterator.filter(_.isIfThenElse)
+    def iterateIfs = schedule.iterator.filter(isIfThenElse(_))
 
     @inline def isIdentity: Boolean = boundVars == roots
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
+
+    // TODO use DSet for scheduleSyms
     @inline def isLocalDef(s: Sym): Boolean = scheduleSyms contains (s.rhs.nodeId)
-    @inline def isLocalDef[T](tp: TableEntry[T]): Boolean = isLocalDef(tp.sym)
+
     @inline def isRoot(s: Sym): Boolean = roots contains s
 
     lazy val scheduleAll: Schedule =
       schedule.flatMap {
-        case tp: TableEntry[_] if tp.rhs.isInstanceOf[AstGraph] =>
-          tp.rhs.asInstanceOf[AstGraph].scheduleAll :+ tp
-        case tp => List(tp)
+        case sym if sym.rhs.isInstanceOf[AstGraph] =>
+          sym.rhs.asInstanceOf[AstGraph].scheduleAll :+ sym
+        case tp =>
+          Array(tp)
       }
 
     /**
      * Returns definitions which are not assigned to sub-branches
      */
-    def scheduleSingleLevel: Seq[Int] = schedule.collect { case tp if !isAssignedToIfBranch(tp.sym) => tp.rhs.nodeId }
+    def scheduleSingleLevel: Seq[Int] = schedule.collect { case sym if !isAssignedToIfBranch(sym) => sym.rhs.nodeId }
 
     /**
      * Symbol Usage information for this graph
      * also contains lambda vars with definition = None
      */
     lazy val nodes: Map[Sym, GraphNode] = {
-      var defMap: Map[Sym, GraphNode] = (schedule.map { te =>
-        (te.sym, GraphNode(this, te.sym, Nullable(te.rhs), Nil))
+      var defMap: Map[Sym, GraphNode] = (schedule.map { sym =>
+        (sym, GraphNode(this, sym, Nullable(sym.rhs), Nil))
       }).toMap
 
       def addUsage(usedSym: Sym, referencingSym: Sym) = {
@@ -106,16 +104,16 @@ trait AstGraphs extends Transforming { self: Scalan =>
         defMap += usedSym -> newNode
       }
 
-      for (te <- schedule) {
-        val usedSymbols = te.rhs.getDeps
-        usedSymbols.foreach(us => addUsage(us, te.sym))
+      for (sym <- schedule) {
+        val usedSymbols = sym.rhs.getDeps
+        usedSymbols.foreach(us => addUsage(us, sym))
       }
       defMap
     }
 
     lazy val allNodes: Map[Sym, GraphNode] = {
-      var defMap: Map[Sym, GraphNode] = (scheduleAll.map { te =>
-        (te.sym, GraphNode(this, te.sym, Nullable(te.rhs), List.empty[Sym]))
+      var defMap: Map[Sym, GraphNode] = (scheduleAll.map { sym =>
+        (sym, GraphNode(this, sym, Nullable(sym.rhs), List.empty[Sym]))
       }).toMap
 
       def addUsage(usedSym: Sym, referencingSym: Sym) = {
@@ -123,9 +121,9 @@ trait AstGraphs extends Transforming { self: Scalan =>
         defMap += usedSym -> newNode
       }
 
-      for (te <- scheduleAll) {
-        val usedSymbols = syms(te.rhs)
-        usedSymbols.foreach(us => addUsage(us, te.sym))
+      for (sym <- scheduleAll) {
+        val usedSymbols = syms(sym.rhs)
+        usedSymbols.foreach(us => addUsage(us, sym))
       }
       defMap
     }
@@ -156,7 +154,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
     def buildLocalScheduleFrom(syms: Seq[Sym], deps: Sym => List[Sym]): Schedule =
       for {
         s <- syms if isLocalDef(s)
-        tp <- buildScheduleForResult(List(s), deps(_).filter(isLocalDef))
+        // TODO ensure deps return DBuffer
+        tp <- buildScheduleForResult(Array(s), sym => deps(sym).filter(isLocalDef))
       }
       yield tp
 
@@ -201,10 +200,9 @@ trait AstGraphs extends Transforming { self: Scalan =>
       }
 
 
-      def getTransitiveUsageInRevSchedule(revSchedule: List[TableEntry[_]]): mutable.Set[Sym] = {
+      def getTransitiveUsageInRevSchedule(revSchedule: List[Sym]): mutable.Set[Sym] = {
         val used = mutable.Set.empty[Sym]
-        for (te <- revSchedule) {
-          val s = te.sym
+        for (s <- revSchedule) {
           if (isUsed(s))
             used += s
 
@@ -215,7 +213,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       }
 
       // builds branches for the `cte`
-      def getIfBranches(ifSym: Sym, cte: IfThenElse[_], defsBeforeIfReversed: List[TableEntry[_]]) = {
+      def getIfBranches(ifSym: Sym, cte: IfThenElse[_], defsBeforeIfReversed: List[Sym]) = {
         val IfThenElse(c, t, e) = cte
 
         val cs = buildLocalScheduleFrom(c)
@@ -225,17 +223,17 @@ trait AstGraphs extends Transforming { self: Scalan =>
         val usedAfterIf = getTransitiveUsageInRevSchedule(defsBeforeIfReversed)
         def isUsedBeforeIf(s: Sym) = usedAfterIf.contains(s)
 
-        val cSet = cs.symbols.toSet
-        val tSet = ts.symbols.toSet
-        val eSet = es.symbols.toSet
+        val cSet = cs.toSet
+        val tSet = ts.toSet
+        val eSet = es.toSet
 
         // a symbol can be in a branch if all is true:
         // 1) the branch root depends on it
         // 2) the other branch doesn't depends on it
         // 3) the condition doesn't depend on it
         // 4) it is not marked as used after the If statement (transitively)
-        val tbody = ts.filter(tp => !(eSet.contains(tp.sym) || cSet.contains(tp.sym) || isUsedBeforeIf(tp.sym)))
-        val ebody = es.filter(tp => !(tSet.contains(tp.sym) || cSet.contains(tp.sym) || isUsedBeforeIf(tp.sym)))
+        val tbody = ts.filter(sym => !(eSet.contains(sym) || cSet.contains(sym) || isUsedBeforeIf(sym)))
+        val ebody = es.filter(sym => !(tSet.contains(sym) || cSet.contains(sym) || isUsedBeforeIf(sym)))
 
         IfBranches(thisGraph, ifSym, new ThunkDef(t, tbody), new ThunkDef(e, ebody))
       }
@@ -247,8 +245,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
       // traverse the lambda body from the results to the arguments
       var reversed = schedule.reverse.toList
       while (reversed.nonEmpty) {
-        val te = reversed.head
-        val s = te.sym; val d = te.rhs
+        val s = reversed.head
+        val d = s.rhs
         if (!isAssigned(s)) {
           // process current definition
           d match {
@@ -259,23 +257,23 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
               // assign symbols to this IF
               // put symbol to the current IF
-              for (tp <- bs.thenBody.schedule) {
-                assignBranch(tp.sym, ifSym, thenOrElse = true)
+              for (sym <- bs.thenBody.schedule) {
+                assignBranch(sym, ifSym, thenOrElse = true)
               }
-              for (tp <- bs.elseBody.schedule) {
-                assignBranch(tp.sym, ifSym, thenOrElse = false)
+              for (sym <- bs.elseBody.schedule) {
+                assignBranch(sym, ifSym, thenOrElse = false)
               }
 
               val tUsed = getLocalUnusedShallowSchedule(bs.thenBody.freeVars.toSeq)
               val eUsed = getLocalUnusedShallowSchedule(bs.elseBody.freeVars.toSeq)
-              usedSet ++= tUsed.symbols
-              usedSet ++= eUsed.symbols
+              usedSet ++= tUsed
+              usedSet ++= eUsed
             }
             case _ =>
           }
           val deps = s.getDeps       // for IfThenElse is gets the roots of each branch and condition
           val shallowDeps = getLocalUnusedShallowSchedule(deps)
-          usedSet ++= shallowDeps.symbols
+          usedSet ++= shallowDeps
         }
         reversed = reversed.tail
       }
@@ -314,8 +312,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
   {
     // filter out definitions from this branches that were reassigned to the deeper levels
     def cleanBranches(assignments: Map[Sym, BranchPath]) = {
-      val thenClean = thenBody.schedule.filter(tp => assignments(tp.sym).ifSym == ifSym)
-      val elseClean = elseBody.schedule.filter(tp => assignments(tp.sym).ifSym == ifSym)
+      val thenClean = thenBody.schedule.filter(sym => assignments(sym).ifSym == ifSym)
+      val elseClean = elseBody.schedule.filter(sym => assignments(sym).ifSym == ifSym)
       IfBranches(graph, ifSym,
         new ThunkDef(thenBody.root, thenClean),
         new ThunkDef(elseBody.root, elseClean))
@@ -324,9 +322,9 @@ trait AstGraphs extends Transforming { self: Scalan =>
       val Def(IfThenElse(cond,_,_)) = ifSym
       s"""
          |${ifSym} = if (${cond}) then
-         |  ${thenBody.schedule.map(tp => s"${tp.sym} -> ${tp.rhs}").mkString("\n")}
+         |  ${thenBody.schedule.map(sym => s"$sym -> ${sym.rhs}").mkString("\n")}
          |else
-         |  ${elseBody.schedule.map(tp => s"${tp.sym} -> ${tp.rhs}").mkString("\n")}
+         |  ${elseBody.schedule.map(sym => s"$sym -> ${sym.rhs}").mkString("\n")}
        """.stripMargin
     }
   }
@@ -335,23 +333,20 @@ trait AstGraphs extends Transforming { self: Scalan =>
     */
   case class LambdaBranches(ifBranches: Map[Sym, IfBranches], assignments: Map[Sym, BranchPath])
 
-  def buildScheduleForResult(st: Seq[Sym], neighbours: Sym => Seq[Sym]): Schedule = {
-    val startNodes = st.collect { case DefTableEntry(te) => te }
+  def buildScheduleForResult(startNodes: Seq[Sym], neighbours: Sym => Seq[Sym]): Schedule = {
 
-    def succ(tp: TableEntry[_]): Schedule = {
-      assert(tp != null, s"Null TableEntry when buildScheduleForResult($st)")
-      val res = new ArrayBuffer[TableEntry[_]](8)
-      for (n <- neighbours(tp.sym)) {
+    def succ(sym: Sym): Schedule = {
+      assert(sym != null, s"Null symbol when buildScheduleForResult($startNodes)")
+      val res = new ArrayBuffer[Sym](8)
+      for (n <- neighbours(sym)) {
         if (!n.isVar) {
-          val teOpt = findDefinition(n)
-          if (teOpt.isDefined)
-            res += teOpt.get
+          res += n
         }
       }
       res
     }
 
-    val components = GraphUtil.stronglyConnectedComponents[TableEntry[_]](startNodes)(succ)
+    val components = GraphUtil.stronglyConnectedComponents(startNodes)(succ)
     components.flatten
   }
 }

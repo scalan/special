@@ -6,6 +6,8 @@ import scalan.staged.ProgramGraphs
 import scalan.util.{GraphUtil, NeighbourFunc}
 import scalan.{Lazy, Base, Nullable, Scalan}
 import debox.{Set => DSet, Buffer => DBuffer}
+
+import scala.collection.mutable
 import scala.language.implicitConversions
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
@@ -100,11 +102,11 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
     override lazy val  schedule: Schedule = {
       val sch = if (isIdentity)
-        new Array[TableEntry[_]](0): Schedule
+        mutable.WrappedArray.empty[Sym]
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= boundVarId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(scalan.util.Neighbours(sym => g.usagesOf(sym).filter(g.domain.contains)))
-        val sch = g.schedule.filter(te => locals(te.sym) && !te.sym.isVar)
+        val sch = g.schedule.filter(sym => locals(sym) && !sym.isVar)
         val currSch = g.getRootsIfEmpty(sch)
         currSch
       }

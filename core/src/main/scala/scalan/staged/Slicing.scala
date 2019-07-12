@@ -18,16 +18,15 @@ trait Slicing extends ScalanEx {
 
     override def backwardAnalyzeRec(g: AstGraph): Unit = {
       val revSchedule = g.schedule.reverseIterator
-      for (te <- revSchedule) te match { case te: TableEntry[t] =>
-        val s = te.sym
-        val d = te.rhs
+      for (sym <- revSchedule) sym match { case s: Rep[t] =>
+        val d = s.rhs
         d match {
           case _: AstGraph =>
             // skip non root subgraphs as they are traversed recursively from rules in getInboundMarkings
           case _ =>
             // back-propagate analysis information
             val outMark = getMark(s)
-            val inMarks = getInboundMarkings[t](te, outMark)
+            val inMarks = getInboundMarkings[t](s, outMark)
             for ((s, mark) <- inMarks) {
               updateOutboundMarking(s, mark)
             }
@@ -65,9 +64,8 @@ trait Slicing extends ScalanEx {
       def marked(m: SliceMarking[T]): MarkedSym = (s, m).asInstanceOf[MarkedSym]
     }
 
-    def getInboundMarkings[T](te: TableEntry[T], outMark: SliceMarking[T]): MarkedSyms = {
-      val thisSym = te.sym
-      val d = te.rhs
+    def getInboundMarkings[T](thisSym: Rep[T], outMark: SliceMarking[T]): MarkedSyms = {
+      val d = thisSym.rhs
       d match {
         case SimpleStruct(tag, fields) =>
           outMark match {
@@ -107,7 +105,7 @@ trait Slicing extends ScalanEx {
         case _ if outMark.isEmpty =>
           Seq()
         case _ =>
-          val deps = te.rhs.getDeps
+          val deps = getDeps(thisSym.rhs)
           val res = deps.map { case s: Rep[a] => (s, AllMarking(s.elem)) }
           res
       }
@@ -740,8 +738,8 @@ trait Slicing extends ScalanEx {
     override def transform(t: Transformer): Def[(A, B)] = SlicedPair(t(source), mark)
   }
 
-  def getAllSliced[A,B](g: AstGraph): Seq[TableEntry[_]] = {
-    g.scheduleAll.collect { case te: TableEntry[_] if te.rhs.isInstanceOf[Sliced[_,_]] => te }
+  def getAllSliced[A,B](g: AstGraph): Seq[Sym] = {
+    g.scheduleAll.filter { sym => sym.rhs.isInstanceOf[Sliced[_,_]] }
   }
 
   type SliceInfo[A,B] = (Rep[B], SliceMarking[A])

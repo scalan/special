@@ -86,8 +86,8 @@ abstract class FileCodegen[+ScalanCake <: ScalanEx](val scalan: ScalanCake, val 
                   (implicit stream: PrintWriter, indentLevel: IndentLevel) = {
     val originalSchedule = graph.schedule
     val schedule = f(originalSchedule)
-    schedule.foreach { te =>
-      emitNode(te.sym, te.rhs, graph)
+    schedule.foreach { sym =>
+      emitNode(sym, sym.rhs, graph)
     }
   }
 
@@ -132,7 +132,7 @@ abstract class FileCodegen[+ScalanCake <: ScalanEx](val scalan: ScalanCake, val 
                    f: Schedule => Schedule = identity)(implicit stream: PrintWriter, indentLevel: IndentLevel): Unit = {
     emit(functionHeader(sym, args))
     indented { implicit indentLevel =>
-      emitSchedule(lambdaOrThunk, (s: Schedule) => f(s.filterNot(te => args.contains(te.sym))))
+      emitSchedule(lambdaOrThunk, (s: Schedule) => f(s.filterNot(sym => args.contains(sym))))
       returnValue.foreach(x => emit(functionReturn(x)))
     }
     functionFooter().foreach(emit(_))

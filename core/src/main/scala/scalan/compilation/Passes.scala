@@ -34,9 +34,9 @@ trait Passes {
 
     def clearMarkings(g: AstGraph): Unit = {
       // first clear markings for all analyzers
-      g.scheduleAll.foreach(te => {
+      g.scheduleAll.foreach(sym => {
         for ((a: BackwardAnalyzer[m]) <- backwardAnalyses) {
-          a.clearMark(te.sym)
+          a.clearMark(sym)
         }
       })
     }

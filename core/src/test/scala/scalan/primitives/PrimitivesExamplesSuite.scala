@@ -40,6 +40,6 @@ class PrimitivesExamplesSuite extends BaseShouldTests {
     import ctx._
     val lam = ifsWithCommonCond.getLambda
     lam.branches.ifBranches.foreach { println(_) }
-    lam.schedule.foreach { tp => println(s"${tp.sym} -> ${tp.rhs}") }
+    lam.schedule.foreach { sym => println(s"$sym -> ${sym.rhs}") }
   }
 }

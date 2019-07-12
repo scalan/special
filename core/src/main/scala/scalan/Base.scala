@@ -498,10 +498,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]): TableEntry[T]
   }
 
-  object DefTableEntry {
-    def unapply[T](e: Rep[T]): Nullable[TableEntry[T]] = new Nullable(e.rhs.tableEntry)
-  }
-
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
 
   def flatMapWithBuffer[A, T](iter: Iterator[A], f: A => TraversableOnce[T]): List[T] = {
@@ -728,9 +724,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
    * Don't forget to call super method in the beginning of your overriding method. */
   protected def onReset(): Unit = {
   }
-
-  def findDefinition[T](s: Rep[T]): Nullable[TableEntry[T]] =
-    Nullable(s.rhs.tableEntry)
 
   def findGlobalDefinition[T](d: Def[T]): TableEntry[T] =
     defToGlobalDefs(d).asInstanceOf[TableEntry[T]]
