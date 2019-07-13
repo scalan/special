@@ -479,19 +479,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def unapply[T](s: Rep[T]): Nullable[(Rep[T],Elem[T])] = Nullable((s, s.elem))
   }
 
-  abstract class Stm // statement (links syms and definitions)
-
-  trait TableEntry[+T] extends Stm {
-    def sym: Rep[T]
-    def rhs: Def[T]
-    def isLambda = rhs.isInstanceOf[Lambda[_, _]]
-  }
-
-  trait TableEntryCompanion {
-    def apply[T](sym: Rep[T], rhs: Def[T]): TableEntry[T]
-    def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]): TableEntry[T]
-  }
-
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
 
   def flatMapWithBuffer[A, T](iter: Iterator[A], f: A => TraversableOnce[T]): List[T] = {
@@ -683,13 +670,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
   @inline final def getSym(id: Int): Sym = _symbolTable(id)
 
   @inline final def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
-
-  case class TableEntrySingle[T](sym: Rep[T], rhs: Def[T], lambda: Option[Rep[_]]) extends TableEntry[T]
-
-  val TableEntry: TableEntryCompanion = new TableEntryCompanion {
-    def apply[T](sym: Rep[T], rhs: Def[T]) = new TableEntrySingle(sym, rhs, None)
-    def apply[T](sym: Rep[T], rhs: Def[T], lam: Rep[_]) = new TableEntrySingle(sym, rhs, Some(lam))
-  }
 
   val nInitialDefs = 10000
   private[this] val _symbolTable: DBuffer[Sym] = DBuffer.ofSize(nInitialDefs)

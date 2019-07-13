@@ -124,18 +124,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
   override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case thunk: ThunkDef[a] =>
-      assert(false)
-      implicit lazy val eA = thunk.eA
-      val newSchedule = for {
-        sym <- thunk.schedule
-        res <- t(sym) match {
-          case te: TableEntry[_] => List(te)
-          case _ => Nil
-        }
-      } yield res
-      val newThunk = new ThunkDef(t(thunk.root), newSchedule)
-      val newSym = newThunk.self
-      toExp(newThunk, newSym)
+      sys.error(s"Thunk should be transformed in mirrorThunk")
     case _ => super.transformDef(d, t)
   }
 
