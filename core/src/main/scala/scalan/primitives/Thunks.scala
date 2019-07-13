@@ -1,10 +1,8 @@
 package scalan.primitives
 
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.{Liftable => _, _}
-
+import debox.{Set => DSet}
 import scala.reflect.runtime.universe._
 import scalan.util.Covariant
 
@@ -153,20 +151,26 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   }).asInstanceOf[Option[Unpacked[T]]]
 
 
-  class ThunkScope(val parent: ThunkScope, val thunkSym: Rep[Any], val body: ListBuffer[TableEntry[Any]] = ListBuffer.empty) {
-    def +=(te: TableEntry[_]) =
-      body += te
+  class ThunkScope(val parent: ThunkScope, val thunkSym: Rep[Any]) {
+    private val bodyIds: DSet[Int] = DSet.ofSize(16)
+    private val bodyDefs: AVHashMap[Def[_], Def[_]] = AVHashMap(32)
+
+    @inline final def isEmptyBody: Boolean = bodyIds.isEmpty
+
+    def +=(sym: Sym): Unit = {
+      val d = sym.rhs
+      bodyIds += d.nodeId
+      bodyDefs.put(d, d)
+    }
 
     def scheduleForResult(root: Rep[Any]): Schedule = {
-      val bodySet = body.map(_.sym).toSet
-      buildScheduleForResult(Seq(root), _.getDeps.filter(s => bodySet.contains(s) && !s.isVar))
+      buildScheduleForResult(Array(root), _.getDeps.filter(s => bodyIds(s.rhs.nodeId) && !s.isVar))
     }
 
     // TODO optimize: this is performance hotspot (use ArrayBuilder instead of ListBuffer)
-    def findDef[T](d: Def[T]): TableEntry[T] = {
-      for (te <- body) {
-        if (te.rhs == d) return te.asInstanceOf[TableEntry[T]]
-      }
+    def findDef[T](d: Def[T]): Rep[T] = {
+      val existingOpt = bodyDefs.get(d)
+      if (existingOpt.isDefined) return existingOpt.get.self.asInstanceOf[Rep[T]]
       if (parent == null)
         findGlobalDefinition(d)
       else
@@ -213,7 +217,7 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     resPH.assignDefFrom(res)
     schedule =
       if (res.isVar) Nil
-      else if (newScope.body.isEmpty)  Nil
+      else if (newScope.isEmptyBody)  Nil
       else newScope.scheduleForResult(res)
 
     val sh = newThunk.schedule  // force lazy value in newThunk (see ThunkDef._schedule argument above)

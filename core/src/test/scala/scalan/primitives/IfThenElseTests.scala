@@ -6,6 +6,10 @@ import scalan.{BaseTests, Scalan}
 abstract class IfThenElseTests[A <: Scalan](val ctx: A) extends BaseTests {
   import ctx._
 
+  test("toRep") {
+    toRep(1) shouldEqual toRep(1)
+  }
+
   test("simpleIf") {
     val res = IFF (true) THEN 1 ELSE 0
     res shouldEqual toRep(1)

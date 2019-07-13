@@ -15,7 +15,7 @@ import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil}
-import debox.{Buffer => DBuf}
+import debox.{Buffer => DBuffer, Set => DSet}
 
 import scala.reflect.runtime.universe._
 import spire.syntax.all.cfor
@@ -60,16 +60,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
       * Doesn't participate in equality of this Def.
       * Use only to provide global Def numbering. */
     private[scalan] var _nodeId: Int = SingleSym.freshId
-
-    private[scalan] var _tableEntry: TableEntry[T @uncheckedVariance] = _
     @inline def nodeId: Int = _nodeId
-    @inline def tableEntry: TableEntry[T] = _tableEntry
-    @inline private[scalan] def tableEntry_=(te: TableEntry[T @uncheckedVariance]) = {
-      assert(_tableEntry == null, s"TableEntry already assigned for $this definition")
-      _tableEntry = te
-    }
 
     def selfType: Elem[T @uncheckedVariance]
+
     private var _self: Rep[T @uncheckedVariance] = _
     def self: Rep[T] = {
       if (_self == null) _self = symbolOf(this)
@@ -647,13 +641,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
     */
   object SingleSym {
     private var currId = 0
-    @inline def freshId: Int = { currId += 1; currId }
+    @inline final def freshId: Int = { currId += 1; currId }
 
-    @inline def freshSym[T](d: Def[T]): Rep[T] = {
+    @inline final def freshSym[T](d: Def[T]): Rep[T] = {
       updateSymbolTable(null, d)
     }
 
-    def resetIdCounter() = { currId = 0 }
+    final def resetIdCounter() = { currId = 0 }
   }
 
   /** Create or find symbol in the table which refers to the given node.
@@ -698,20 +692,21 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   val nInitialDefs = 10000
-  private[this] val _symbolTable: DBuf[Sym] = DBuf.ofSize(nInitialDefs)
-  private[this] val defToGlobalDefs = AVHashMap[Def[_], TableEntry[_]](nInitialDefs)
+  private[this] val _symbolTable: DBuffer[Sym] = DBuffer.ofSize(nInitialDefs)
+//  private[this] var defToGlobalDefs: java.util.HashSet[Def[_]] = new java.util.HashSet[Def[_]](nInitialDefs) //DSet.ofSize(nInitialDefs) //AVHashMap[Def[_], TableEntry[_]](nInitialDefs)
+  private[this] var defToGlobalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
 
   protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
-  def defCount = defToGlobalDefs.hashMap.size()
+  def defCount = defToGlobalDefs.hashMap.size
 
   private val _intZero = MutableLazy(0: Rep[Int])
   @inline final def IntZero = _intZero.value
 
   def resetContext() = {
-    defToGlobalDefs.clear()
+    defToGlobalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
     _symbolTable.clear()
-    _symbolTable.splice(0, DBuf.ofSize[Sym](nInitialDefs))
+    _symbolTable.splice(0, DBuffer.ofSize[Sym](nInitialDefs))
     SingleSym.resetIdCounter()
     globalThunkSym = placeholder[Int]
     tuplesCache.clear()
@@ -725,8 +720,13 @@ trait Base extends LazyLogging { scalan: Scalan =>
   protected def onReset(): Unit = {
   }
 
-  def findGlobalDefinition[T](d: Def[T]): TableEntry[T] =
-    defToGlobalDefs(d).asInstanceOf[TableEntry[T]]
+  def findGlobalDefinition[T](d: Def[T]): Rep[T] = {
+    val existingOpt = defToGlobalDefs.get(d)
+    if (existingOpt.isDefined)
+      existingOpt.get.self.asInstanceOf[Rep[T]]
+    else
+      null
+  }
 
   /** Lookup `d` in the heap of nodes. If the lookup is successfull, then `d.self`
     * reference is returned. If the node is not found in the heap, then it is added
@@ -737,34 +737,32 @@ trait Base extends LazyLogging { scalan: Scalan =>
     * @hotspot */
   def findOrCreateDefinition[T](d: Def[T], newSym: => Rep[T]): Rep[T] = {
     val optScope = thunkStack.top
-    var te = optScope match {
+    var sym = optScope match {
       case Nullable(scope) =>
         scope.findDef(d)
       case _ =>
         findGlobalDefinition(d)
     }
-    if (te == null) {
-      te = createDefinition(optScope, newSym, d)
+    if (sym == null) {
+      sym = createDefinition(optScope, newSym, d)
     }
 //    assert(te.rhs == d, s"${if (te !) "Found" else "Created"} unequal definition ${te.rhs} with symbol ${te.sym.toStringWithType} for $d")
-    te.sym
+    sym
   }
 
-  def createDefinition[T](s: Rep[T], d: Def[T]): TableEntry[T] =
+  def createDefinition[T](s: Rep[T], d: Def[T]): Rep[T] =
     createDefinition(thunkStack.top, s, d)
 
-  protected def createDefinition[T](optScope: Nullable[ThunkScope], s: Rep[T], d: Def[T]): TableEntry[T] = {
+  protected def createDefinition[T](optScope: Nullable[ThunkScope], s: Rep[T], d: Def[T]): Rep[T] = {
     assert(_symbolTable(d.nodeId).rhs.nodeId == d.nodeId)
-    val te = TableEntry(s, d)
+    assert(s.rhs eq d, s"Inconsistent Sym -> Def pair $s -> $d")
     optScope match {
       case Nullable(scope) =>
-        te.rhs.tableEntry = te
-        scope += te
+        scope += s
       case _ =>
-        te.rhs.tableEntry = te
-        defToGlobalDefs.put(te.rhs, te)
+        defToGlobalDefs.put(d, d)
     }
-    te
+    s
   }
 
   /**
