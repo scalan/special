@@ -3,10 +3,9 @@ package scalan.primitives
 import java.util
 
 import scalan.staged.ProgramGraphs
-import scalan.util.{GraphUtil, NeighbourFunc}
+import scalan.util.{GraphUtil, NeighbourFunc, Neighbours}
 import scalan.{Lazy, Base, Nullable, Scalan}
 import debox.{Set => DSet, Buffer => DBuffer}
-
 import scala.collection.mutable
 import scala.language.implicitConversions
 
@@ -105,7 +104,9 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         mutable.WrappedArray.empty[Sym]
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= boundVarId))
-        val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(scalan.util.Neighbours(sym => g.usagesOf(sym).filter(g.domain.contains)))
+        val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(
+          Neighbours(sym => g.usagesOf(sym).filter(g.domain.contains).toArray)
+        )
         val sch = g.schedule.filter(sym => locals(sym) && !sym.isVar)
         val currSch = g.getRootsIfEmpty(sch)
         currSch

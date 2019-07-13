@@ -60,7 +60,7 @@ abstract class ModuleConf extends Conf {
   def moduleDeps: ConfMap[ModuleConf]
 
   def dependsOnModules(): Set[ModuleConf] =
-    GraphUtil.depthFirstSetFrom(DBuffer(this.dependencies.values.toSeq: _*))(Neighbours(m => m.dependencies.values)).toScalaSet()
+    GraphUtil.depthFirstSetFrom(DBuffer(this.dependencies.values.toSeq: _*))(Neighbours(m => m.dependencies.values.toArray)).toScalaSet()
 
   def getSourcesRootDir = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }"
 

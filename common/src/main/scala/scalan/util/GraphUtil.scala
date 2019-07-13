@@ -2,17 +2,17 @@ package scalan.util
 
 import scala.collection.mutable.{Buffer, ArrayBuffer}
 import scalan.{AVHashMap, DFunc, Nullable, DFuncAdapter}
-import debox.{Set => DSet, Buffer => DBuffer}
-
+import debox.{Set => DSet, Buffer => DBuffer, Map => DMap}
+import spire.syntax.all.cfor
 import scala.reflect.ClassTag
 
 trait NeighbourFunc[@specialized(Int) A] {
   def get(x: A, res: DBuffer[A]): Unit
 }
-case class Neighbours[A](f: A => TraversableOnce[A]) extends NeighbourFunc[A] {
+case class Neighbours[@specialized(Int) A](f: A => Array[A]) extends NeighbourFunc[A] {
   override def get(x: A, res: DBuffer[A]): Unit = {
     val ns = f(x)
-    ns foreach (res.+=)
+    res ++= ns
   }
 }
 
@@ -26,11 +26,16 @@ object GraphUtil {
         visited += s
         val ns = DBuffer.ofSize[A](16)
         neighbours.get(s, ns)
-        ns foreach visit
+        cfor(0)(_ < ns.length, _ + 1) { i =>
+          visit(ns(i))
+        }
       }
     }
 
-   starts foreach visit
+   cfor(0)(_ < starts.length, _ + 1) { i =>
+     visit(starts(i))
+   }
+
    visited
  }
 
@@ -42,16 +47,18 @@ object GraphUtil {
    * The scc are returned in _reverse_ topological order.
    * Tarjan's algorithm (linear).
    */
-  def stronglyConnectedComponents[@specialized(Int) T](start: Seq[T], succ: DFunc[T, Seq[T]]): Seq[Seq[T]] = {
+  def stronglyConnectedComponents[@specialized(Int) T: ClassTag](startNodes: Array[T], succ: DFunc[T, Seq[T]]): DBuffer[DBuffer[T]] = {
     val tarjan = new Tarjan[T](succ)
 
-    for (node <- start)
+    cfor(0)(_ < startNodes.length, _ + 1) { i =>
+      val node = startNodes(i)
       tarjan.visit(node)
+    }
 
     tarjan.res
   }
 
-  def stronglyConnectedComponents[@specialized(Int) T](start: Seq[T])(succ: T => Seq[T]): Seq[Seq[T]] = {
+  def stronglyConnectedComponents[@specialized(Int) T: ClassTag](start: Array[T])(succ: T => Seq[T]): DBuffer[DBuffer[T]] = {
     stronglyConnectedComponents(start, new DFuncAdapter(succ))
   }
 
@@ -62,47 +69,45 @@ object GraphUtil {
 }
 
 
-final class Tarjan[@specialized(Int) T](neighbours: DFunc[T, Seq[T]]) {
+final class Tarjan[@specialized(Int) T: ClassTag](getNeighbours: DFunc[T, Seq[T]]) {
   private var id = 0
-  private var stack: List[T] = Nil
-  private val mark = AVHashMap[T,Int](127)
+  private var stack: DBuffer[T] = DBuffer.empty
+  private val mark = DMap.ofSize[T,Int](127)
 
-  val res: Buffer[Seq[T]] = new ArrayBuffer()
+  val res: DBuffer[DBuffer[T]] = DBuffer.empty
 
   def visit(node: T): Int = {
-    mark.get(node) match {
-      case Nullable(n) => n
-      case _ =>
-        id += 1
+    val n = mark.getOrElse(node, -1)
+    if (n >= 0) return n
 
-        mark.put(node, id)
-        stack = node :: stack
-        //    println("push " + node)
+    id += 1
 
-        var min: Int = id
-        for (child <- neighbours(node)) {
-          val m = visit(child)
+    mark.update(node, id)
+    stack += node
 
-          if (m < min)
-            min = m
-        }
+    var min: Int = id
+    val neighbours = getNeighbours(node)
+    cfor(0)(_ < neighbours.length, _ + 1) { i =>
+      val child = neighbours(i)
+      val m = visit(child)
 
-        if (min == mark(node)) {
-          val scc: Buffer[T] = new ArrayBuffer()
-
-          var loop: Boolean = true
-          do {
-            val element = stack.head
-            stack = stack.tail
-            //        println("appending " + element)
-            scc.append(element)
-            mark.put(element, Integer.MAX_VALUE)
-            loop = element != node
-          } while (loop)
-
-          res.append(scc.toSeq)
-        }
-        min
+      if (m < min)
+        min = m
     }
+
+    if (min == mark(node)) {
+      val scc = DBuffer.empty[T]
+
+      var loop: Boolean = true
+      do {
+        val element = stack.pop
+        scc += element
+        mark.update(element, Integer.MAX_VALUE)
+        loop = element != node
+      } while (loop)
+
+      res += scc
+    }
+    min
   }
 }

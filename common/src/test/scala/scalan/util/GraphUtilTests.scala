@@ -38,30 +38,34 @@ class GraphUtilTests extends BaseNestedTests {
       case "C" => List("A", "D")
       case "D" => Nil
     }
+    def test(startNodes: Array[String], graph: String => List[String]): Seq[Set[String]] = {
+      val result = stronglyConnectedComponents(startNodes)(graph).toArray.map(_.toIterable().toSet)
+      result
+    }
     it("accessAll") {
-      val result = stronglyConnectedComponents(List("A"))(graph).map(_.toSet)
       val expected = Seq(Set("D"), Set("A", "B", "C"))
+      val result = test(Array("A"), graph)
       result.shouldEqual(expected)
     }
     it("accessOne") {
-      val result = stronglyConnectedComponents(List("D"))(graph).map(_.toSet)
+      val result = test(Array("D"), graph)
       val expected = Seq(Set("D"))
       result.shouldEqual(expected)
     }
     it("accessAllByManyStarts") {
-      val result = stronglyConnectedComponents(List("A", "B", "C"))(graph).map(_.toSet)
+      val result = test(Array("A", "B", "C"), graph)
       val expected = Seq(Set("D"), Set("A", "B", "C"))
       result.shouldEqual(expected)
     }
     it("manyComponents") {
-      val result = stronglyConnectedComponents(List("D")) {
+      val result = test(Array("D"), {
         case "D" => List("A")
         case "A" => List("B", "C")
         case "B" => List("A", "C")
         case "C" => List("A", "B", "E")
         case "E" => List("F")
         case "F" => List("E")
-      }.map(_.toSet)
+      })
       val expected = Seq(Set("E", "F"), Set("A", "B", "C"), Set("D"))
       result.shouldEqual(expected)
     }
@@ -76,15 +80,15 @@ class GraphUtilTests extends BaseNestedTests {
       case "H" => Nil
     }
     it("topologicallySortDag") {
-      val result = stronglyConnectedComponents(List("A"))(dag)
+      val result = test(Array("A"), dag)
       result.flatten.shouldEqual(Seq("C", "B", "A"))
     }
     it("allRootsTopologicallySortDag") {
-      val result = stronglyConnectedComponents(List("A", "B", "C"))(dag)
+      val result = test(Array("A", "B", "C"), dag)
       result.flatten.shouldEqual(Seq("C", "B", "A"))
     }
     it("topologicallySortTree") {
-      val result = stronglyConnectedComponents(List("D"))(dag)
+      val result = test(Array("D"), dag)
       result.flatten.shouldEqual(Seq("G", "H", "E", "F", "D"))
     }
     val forest: String => List[String] = {
@@ -98,7 +102,7 @@ class GraphUtilTests extends BaseNestedTests {
       case "H" => List("G")
     }
     it("topologicallySortForest") {
-      val result = stronglyConnectedComponents(List("A", "B", "C", "D", "E", "F", "G", "H"))(forest)
+      val result = test(Array("A", "B", "C", "D", "E", "F", "G", "H"), forest)
       result.flatten.shouldEqual(Seq("C", "B", "A", "F", "D", "E", "G", "H"))
     }
   }

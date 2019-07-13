@@ -6,7 +6,7 @@ import scalan.{Nullable, Scalan}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
 import spire.syntax.all.cfor
-import debox.{Set => DSet}
+import debox.{Set => DSet, Buffer => DBuffer}
 
 trait AstGraphs extends Transforming { self: Scalan =>
 
@@ -346,7 +346,16 @@ trait AstGraphs extends Transforming { self: Scalan =>
       res
     }
 
-    val components = GraphUtil.stronglyConnectedComponents(startNodes)(succ)
-    components.flatten
+    val components = GraphUtil.stronglyConnectedComponents(startNodes.toArray)(succ)
+    val nComponents = components.length
+    if (nComponents == 1) {
+      components(0).toArray()
+    } else {
+      val res = DBuffer.ofSize[Sym](components(0).length)
+      cfor(0)(_ < nComponents, _ + 1) { i =>
+        res ++= components(i)
+      }
+      res.toArray()
+    }
   }
 }
