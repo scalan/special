@@ -346,62 +346,10 @@ trait TypeDescs extends Base { self: Scalan =>
     protected def getDefaultRep: Rep[A]
     lazy val defaultRepValue = getDefaultRep
 
-
-    def leastUpperBound(e: Elem[_]): Elem[_] =
-      commonBound(e, isUpper = true)
-
-    def greatestLowerBound(e: Elem[_]): Elem[_] =
-      commonBound(e, isUpper = false)
-
-    /**
-      * Helper for leastUpperBound and greatestLowerBound.
-      * Should be protected, but then it can't be accessed in subclasses, see
-      * http://stackoverflow.com/questions/4621853/protected-members-of-other-instances-in-scala
-      */
-    def commonBound(e: Elem[_], isUpper: Boolean): Elem[_] = {
-      if (this eq e)
-        this
-      else
-        _commonBound(e, isUpper).getOrElse {
-          if (isUpper) AnyElement else NothingElement
-        }
-    }
-
-    // overridden in BaseElem, EntityElem, StructElem
-    protected def _commonBound(other: Elem[_], isUpper: Boolean): Option[Elem[_]] = {
-      if (this.getClass == other.getClass) {
-        // empty type args case is covered too, since copyWithTypeArgs will return `this`
-        val newArgs = this.typeArgsIterator.zip(other.typeArgs.valuesIterator).map {
-          case (arg1: Elem[_], (arg2: Elem[_], variance)) if variance != Invariant =>
-            val isUpper1 = variance match {
-              case Covariant => isUpper
-              case Contravariant => !isUpper
-              case Invariant => !!!("variance can't be Invariant if we got here")
-            }
-            arg1.commonBound(arg2, isUpper1)
-          case (arg1, (arg2, _)) =>
-            if (arg1 == arg2)
-              arg1
-            else {
-              // return from the entire _commonBound method! This really throws an exception, but
-              // it works since the iterator will be consumed by copyWithTypeArgs below and the
-              // exception will get thrown there
-              return None
-            }
-        }
-        val newElem = copyWithTypeArgs(newArgs)
-        Some(newElem)
-      } else
-        None
-    }
-
     def <:<(e: Elem[_]) = tag.tpe <:< e.tag.tpe
     def >:>(e: Elem[_]) = e <:< this
-
-//    if (Base.isDebug) {
-//      debug$ElementCounter(this) += 1
-//    }
   }
+
   object Elem {
     implicit def rtypeToElem[SA, A](tSA: RType[SA])(implicit lA: Liftables.Liftable[SA,A]): Elem[A] = lA.eW
 
@@ -518,8 +466,6 @@ trait TypeDescs extends Base { self: Scalan =>
       assert(noTypeArgs)
       TypeArgs()
     }
-    override protected def _commonBound(other: Elem[_], isUpper: Boolean): Option[Elem[_]] =
-      if (this == other) Some(this) else None
 
     private[this] lazy val noTypeArgs =
       if (tag.tpe.typeArgs.isEmpty)

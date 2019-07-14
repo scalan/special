@@ -16,6 +16,7 @@ trait Entities extends TypeDescs { self: Scalan =>
     }
     def convert(x: Rep[Def[_]]): Rep[A] = !!!("should not be called")
     def canEqual(other: Any) = other.isInstanceOf[EntityElem[_]]
+
     override def equals(other: Any) = other match {
       case other: EntityElem[_] =>
         this.eq(other) ||
@@ -24,55 +25,8 @@ trait Entities extends TypeDescs { self: Scalan =>
             this.typeArgsIterator.sameElements(other.typeArgsIterator))
       case _ => false
     }
+
     override def hashCode = tag.tpe.hashCode
-    override protected def _commonBound(other: Elem[_], isUpper: Boolean) = other match {
-      case other: EntityElem[_] =>
-        val runtimeClass = this.runtimeClass
-
-        if (runtimeClass == other.runtimeClass) {
-          // recursion base
-          super._commonBound(other, isUpper)
-        } else if (isUpper) {
-          // Step 1:
-          // We find potential common ancestors which have the same class.
-          // 1.1: find the ancestor of `other` whose runtime class is a superclass of this (if one exists)
-          @tailrec
-          def findAncestor(e: EntityElem[_])(pred: Class[_] => Boolean): Option[EntityElem[_]] = {
-            if (pred(e.runtimeClass))
-              Some(e)
-            else
-              e.parent match {
-                case Some(parent: EntityElem[_]) =>
-                  findAncestor(parent)(pred)
-                case _ =>
-                  None
-              }
-          }
-
-          for {
-            potentialCommonAncestor2 <- findAncestor(other)(_.isAssignableFrom(runtimeClass))
-            runtimeClass2 = potentialCommonAncestor2.runtimeClass
-            potentialCommonAncestor1 <- findAncestor(EntityElem.this)(_ == runtimeClass2)
-          } yield {
-            // will hit the recursion base above
-            potentialCommonAncestor1.commonBound(potentialCommonAncestor2, isUpper)
-          }
-        } else {
-          // we are looking for lower bound and runtime classes are different
-          // just check if one is subtype of another, since we don't know how
-          // their type arguments are related
-
-          // TODO support cases like elem[Vector[String]].lowerBound(elem[DenseVector[Object]]) == DenseVector[String]
-          if (this <:< other)
-            Some(this)
-          else if (other <:< this)
-            Some(other)
-          else
-            None
-        }
-      case _ =>
-        None
-    }
   }
 
   abstract class EntityElem1[A, To, C[_]](val eItem: Elem[A], val cont: Cont[C])

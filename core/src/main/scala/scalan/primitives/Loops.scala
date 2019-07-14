@@ -99,7 +99,13 @@ trait Loops extends Base { self: Scalan =>
   def loopUntil[A](s1: Rep[A])(isMatch: Rep[A => Boolean], step: Rep[A => A]): Rep[A] = LoopUntil(s1, step, isMatch)
 
   case class LoopUntil[A](s1: Rep[A], step: Rep[A => A], isMatch: Rep[A => Boolean]) extends Def[A] {
-    lazy val selfType = s1.elem.leastUpperBound(step.elem.eRange).asElem[A]
+    lazy val selfType = {
+      val eState = s1.elem
+      val eRange = step.elem.eRange
+      assert(eState == eRange,
+        s"State type of the LoopUntil should be same as step result type, but was $eState and $eRange")
+      s1.elem
+    }
     override def productIterator = List(step, isMatch, s1).toIterator
     override def transform(t: Transformer) = LoopUntil(t(s1), t(step), t(isMatch))
   }

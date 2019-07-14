@@ -14,22 +14,6 @@ abstract class AbstractElemTests extends BaseNestedTests {
       assert(container[A] == container[B])
     def containersShouldNotBeEqual[A[_]: Cont, B[_]: Cont] =
       assert(container[A] != container[B])
-
-    def assertBounds[A, B, C, D](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D]) = {
-      def assertBound(isUpper: Boolean) = {
-        val (boundName, bound, expectedBound) =
-          if (isUpper)
-            ("Upper", eA.leastUpperBound(eB), eC)
-          else
-            ("Lower", eA.greatestLowerBound(eB), eD)
-        assert(bound == expectedBound, s"$boundName bound for ${eA.name} and ${eB.name} should be $expectedBound but was $bound")
-      }
-
-      it(s"Bounds for ${eA.name} and ${eB.name}") {
-        assertBound(true)
-        assertBound(false)
-      }
-    }
   }
 }
 

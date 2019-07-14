@@ -35,7 +35,8 @@ trait IfThenElse extends Base { self: Scalan =>
     lazy val selfType = {
       val eThen = thenp.elem.eItem
       val eElse = elsep.elem.eItem
-      eThen.leastUpperBound(eElse).asElem[T]
+      assert(eThen == eElse, s"Both branched of IfThenElseLazy should have the same type, but was $eThen and $eElse")
+      eThen
     }
     override def transform(t: Transformer) = IfThenElseLazy(t(cond), t(thenp), t(elsep))
   }

@@ -117,18 +117,6 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
       val fields1 = for ((name, elem) <- fields) yield (name, args.next().asInstanceOf[Elem[_]])
       structElement(structTag, fields1)
     }
-    override protected def _commonBound(other: Elem[_], isUpper: Boolean): Option[Elem[_]] = other match {
-      case StructElem(structTag1, fields1) if structTag1 == structTag =>
-        val resultFields = fields.zipAll(fields1, null, null).map {
-          case ((name1, e1), (name2, e2)) if name1 == name2 =>
-            (name1, e1.commonBound(e2, isUpper))
-          case _ =>
-            // non-local return
-            return None
-        }
-        Some(structElement(structTag, resultFields))
-      case _ => None
-    }
   }
   implicit def StructElemExtensions[T <: Struct](e: Elem[T]): StructElem[T] = e.asInstanceOf[StructElem[T]]
 
