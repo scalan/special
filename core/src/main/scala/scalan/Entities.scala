@@ -97,7 +97,6 @@ trait Entities extends TypeDescs { self: Scalan =>
   }
   trait CompanionElem[T] extends Elem[T] { _: scala.Equals =>
     override def buildTypeArgs = TypeArgs()
-    override protected def _copyWithTypeArgs(args: Iterator[TypeDesc]): Elem[_] = this
   }
 
   trait TypeFamily1[F[_]]

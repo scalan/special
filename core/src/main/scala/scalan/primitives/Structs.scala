@@ -113,10 +113,6 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     def findFieldIndex(fieldName: String): Int = fields.iterator.map(_._1).indexOf(fieldName)
 
     override def buildTypeArgs = TypeArgs()
-    override protected def _copyWithTypeArgs(args: Iterator[TypeDesc]) = {
-      val fields1 = for ((name, elem) <- fields) yield (name, args.next().asInstanceOf[Elem[_]])
-      structElement(structTag, fields1)
-    }
   }
   implicit def StructElemExtensions[T <: Struct](e: Elem[T]): StructElem[T] = e.asInstanceOf[StructElem[T]]
 

@@ -318,30 +318,6 @@ trait TypeDescs extends Base { self: Scalan =>
       if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
     }
 
-    final def copyWithTypeArgs(args: Iterator[TypeDesc]) = {
-      try {
-        val res = _copyWithTypeArgs(args)
-        assert(!args.hasNext)
-        res
-      } catch {
-        case e: NoSuchElementException =>
-          !!!(s"Not enough elements in the iterator supplied to $this._copyWithTypeArgs", e)
-      }
-    }
-    protected def _copyWithTypeArgs(args: Iterator[TypeDesc]): Elem[_] =
-      if (typeArgs.isEmpty)
-        this
-      else
-        cachedElemI(this.getClass, args)
-    def mapTypeArgs(f: Elem[_] => Elem[_]) = {
-      val newTypeArgs = typeArgsIterator.map {
-        case e: Elem[_] =>
-          f(e)
-        case x => x
-      }
-      copyWithTypeArgs(newTypeArgs)
-    }
-
     // should only be called by defaultRepValue
     protected def getDefaultRep: Rep[A]
     lazy val defaultRepValue = getDefaultRep
@@ -525,11 +501,6 @@ trait TypeDescs extends Base { self: Scalan =>
       assert(noTypeArgs)
       TypeArgs()
     }
-    override protected def _copyWithTypeArgs(args: Iterator[TypeDesc]): Elem[_] = {
-      assert(noTypeArgs)
-      this
-    }
-
     private[this] lazy val noTypeArgs =
       if (tag.tpe.typeArgs.isEmpty)
         true
@@ -638,9 +609,6 @@ trait TypeDescs extends Base { self: Scalan =>
   object TagImplicits {
     implicit def elemToClassTag[A](implicit elem: Elem[A]): ClassTag[A] = elem.classTag
   }
-
-  /** Returns the argument by default, can be overridden for specific types */
-  def concretizeElem(e: Elem[_]): Elem[_] = e.mapTypeArgs(concretizeElem)
 
   // can be removed and replaced with assert(value.elem == elem) after #72
   def assertElem(value: Rep[_], elem: Elem[_]): Unit = assertElem(value, elem, "")
