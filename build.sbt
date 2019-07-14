@@ -19,7 +19,7 @@ lazy val buildSettings = Seq(
     "-language:implicitConversions",
     "-language:existentials",
     "-language:experimental.macros",
-    "-opt:_"),
+    "-opt:l:inline"),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (version.value.trim.endsWith("SNAPSHOT"))

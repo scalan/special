@@ -136,7 +136,7 @@ object ScalanAstExtensions {
       def inherit(n: String) = {
         val e = unit.getEntity(n)
         val as = e.getAncestorTypeNames.filter(n => localEntityNames.contains(n))
-        as
+        as.toArray
       }
       val es = GraphUtil.stronglyConnectedComponents(unit.allEntities.map(_.name).toArray)(inherit)
         .toIterable()

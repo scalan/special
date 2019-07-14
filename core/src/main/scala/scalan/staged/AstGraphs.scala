@@ -155,7 +155,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       for {
         s <- syms if isLocalDef(s)
         // TODO ensure deps return DBuffer
-        tp <- buildScheduleForResult(Array(s), sym => deps(sym).filter(isLocalDef))
+        tp <- buildScheduleForResult(Array(s), sym => deps(sym).filter(dsym => isLocalDef(dsym) && !dsym.isVar).toArray)
       }
       yield tp
 
@@ -333,20 +333,20 @@ trait AstGraphs extends Transforming { self: Scalan =>
     */
   case class LambdaBranches(ifBranches: Map[Sym, IfBranches], assignments: Map[Sym, BranchPath])
 
-  def buildScheduleForResult(startNodes: Seq[Sym], neighbours: Sym => Seq[Sym]): Schedule = {
+  def buildScheduleForResult(startNodes: Seq[Sym], neighbours: Sym => Array[Sym]): Schedule = {
 
-    def succ(sym: Sym): Schedule = {
-      assert(sym != null, s"Null symbol when buildScheduleForResult($startNodes)")
-      val res = new ArrayBuffer[Sym](8)
-      for (n <- neighbours(sym)) {
-        if (!n.isVar) {
-          res += n
-        }
-      }
-      res
-    }
+//    def succ(sym: Sym): Schedule = {
+//      assert(sym != null, s"Null symbol when buildScheduleForResult($startNodes)")
+//      val res = new ArrayBuilder[Sym](8)
+//      for (n <- neighbours(sym)) {
+//        if (!n.isVar) {
+//          res += n
+//        }
+//      }
+//      res.toArray
+//    }
 
-    val components = GraphUtil.stronglyConnectedComponents(startNodes.toArray)(succ)
+    val components = GraphUtil.stronglyConnectedComponents(startNodes.toArray)(neighbours)
     val nComponents = components.length
     if (nComponents == 1) {
       components(0).toArray()

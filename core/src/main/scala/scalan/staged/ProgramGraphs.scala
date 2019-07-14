@@ -16,8 +16,8 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
     override def freeVars = Set()
     override lazy val schedule = {
       val neighbours = filterNode match {
-        case Nullable(pred) => (s: Sym) => s.getDeps.filter(pred)
-        case _ => (s: Sym) => s.getDeps
+        case Nullable(pred) => (s: Sym) => s.getDeps.filter(sym => pred(sym) && !sym.isVar).toArray
+        case _ => (s: Sym) => s.getDeps.filterNot(_.isVar).toArray
       }
       buildScheduleForResult(roots, neighbours)
     }
