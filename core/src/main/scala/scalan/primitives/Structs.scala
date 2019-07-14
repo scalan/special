@@ -1,7 +1,6 @@
 package scalan.primitives
 
-import scalan.{TypeDesc, _}
-
+import scalan._
 import scala.reflect.runtime.universe._
 import scalan.util.CollectionUtil
 import OverloadHack._

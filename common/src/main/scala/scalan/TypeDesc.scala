@@ -4,14 +4,6 @@ import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
 import scalan.util.ReflectionUtil.ClassOps
 
-trait TypeDesc extends Serializable {
-  def getName(f: TypeDesc => String): String
-  lazy val name: String = getName(_.name)
-
-  // <> to delimit because: [] is used inside name; {} looks bad with structs.
-  override def toString = s"${getClass.safeSimpleName}<$name>"
-}
-
 trait RType[A] {
   def classTag: ClassTag[A]
   def name: String = this.toString

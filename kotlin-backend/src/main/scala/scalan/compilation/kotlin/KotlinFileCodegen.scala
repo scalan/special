@@ -2,12 +2,11 @@ package scalan.compilation.kotlin
 
 import java.io.PrintWriter
 
-import scalan.{TypeDesc, Scalan, ScalanEx}
+import scalan.ScalanEx
 import scalan.compilation.{IndentLevel, FileCodegen, CodegenConfig}
 import scalan.meta.ScalanAst._
 import scalan.util.PrintExtensions._
 import scalan.meta.{SSymName, ScalanAstTransformers}
-import scalan.primitives.{Blocks, StringOps}
 
 case class GenCtx(module: SUnitDef, writer: PrintWriter)
 

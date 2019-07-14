@@ -1,7 +1,7 @@
 package scalan.universe.api
 
 import scala.language.reflectiveCalls
-import scalan.{TypeDesc, _}
+import scalan._
 import scalan.common.{SegmentsModule, KindsModule}
 import scalan.json.ParsedModules
 import scalan.universe.api.UniverseUtils._

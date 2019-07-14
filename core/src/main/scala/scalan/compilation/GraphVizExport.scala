@@ -7,7 +7,7 @@ import configs.Configs
 import configs.syntax._
 import com.typesafe.config.{ConfigUtil, Config}
 import configs.Result.{Success, Failure}
-import scalan.{TypeDesc, Scalan, Plugins}
+import scalan.{Scalan, Plugins}
 import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
 
 import scala.collection.immutable.StringOps

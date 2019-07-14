@@ -242,6 +242,14 @@ trait TypeDescs extends Base { self: Scalan =>
     res.result()
   }
 
+  trait TypeDesc extends Serializable {
+    def getName(f: TypeDesc => String): String
+    lazy val name: String = getName(_.name)
+
+    // <> to delimit because: [] is used inside name; {} looks bad with structs.
+    override def toString = s"${getClass.safeSimpleName}<$name>"
+  }
+
   /**
     * Reified type representation in Scalan.
     *
