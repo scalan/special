@@ -48,7 +48,7 @@ trait PatternMatching extends Base with GraphVizExport { _: Scalan =>
         }
         // cheap check compared to TypeTag.<:<, we don't care about type arguments
         case Branch(elem, guard, body) :: branchesTail if selector.elem <:< elem => //elem.runtimeClass.isAssignableFrom(selectorClass) =>
-          ifThenElse(guard(selector), {
+          ifThenElseLazy(guard(selector), {
             body(selector).asInstanceOf[Rep[A]]
           }, {
             implicit val eA = d.selfType

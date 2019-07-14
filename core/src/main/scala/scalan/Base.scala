@@ -523,12 +523,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
       case _ => this.inputs
     }
 
-    /** Shallow dependencies don't look into branches of IfThenElse  */
-    def getShallowDeps: List[Sym] = symbol match {
-      case Def(IfThenElse(c, _, _)) => new scala.collection.immutable.::(c, Nil)  // optimization of hot spot
-      case _ => getDeps
-    }
-
     def isLambda: Boolean = symbol match {
       case Def(_: Lambda[_, _]) => true
       case _ => false

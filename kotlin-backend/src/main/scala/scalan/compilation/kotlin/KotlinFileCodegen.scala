@@ -242,20 +242,6 @@ class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) ext
       //      case ArrayRangeFrom0(n) =>
       //        initSym()
       //        emit(src"for i = 1, $n do $sym[i] = i - 1 end")
-      case IfThenElse(c, t, e) =>
-        emit(src"local $sym")
-        val optBranches = graph.branches.ifBranches.get(sym)
-        emit(src"if $c then")
-        indented { implicit indentLevel =>
-          optBranches.foreach { branches => emitSchedule(branches.thenBody) }
-          emit(src"$sym = $t")
-        }
-        emit("else")
-        indented { implicit indentLevel =>
-          optBranches.foreach { branches => emitSchedule(branches.elseBody) }
-          emit(src"$sym = $e")
-        }
-        emit("end")
       case _ => super.emitNode(sym, d, graph)
     }
   }

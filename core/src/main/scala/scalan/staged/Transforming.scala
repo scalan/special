@@ -199,7 +199,7 @@ trait Transforming { self: Scalan =>
       try {
         lambdaStack = newLambdaCandidate :: lambdaStack
         val newRoot = reifyEffects({
-          val schedule = lam.scheduleSingleLevel
+          val schedule = lam.schedule.map(_.rhs.nodeId)
           val (t2, _) = mirrorSymbols(t1, rewriter, lam, schedule)
           tRes = t2
           tRes(originalRoot) // this will be a new root
@@ -218,34 +218,6 @@ trait Transforming { self: Scalan =>
 //      val resLam = rewriteUntilFixPoint(newLambdaExp, mirroredMetadata, rewriter)
 
       (tRes + (node -> resLam), resLam)
-    }
-
-    protected def mirrorBranch[A](t: Ctx, rewriter: Rewriter, g: AstGraph, branch: ThunkDef[A]): (Ctx, Sym) = {
-      // get original root unwrapping Reify nodes
-      val originalRoot = branch.root
-      val schedule = branch.scheduleSingleLevel
-      val (t2, _) = mirrorSymbols(t, rewriter, branch, schedule)
-      val newRoot = t2(originalRoot)
-      (t2, newRoot)
-    }
-
-    protected def mirrorIfThenElse[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Rep[A], ite: IfThenElse[A]): (Ctx, Sym) = {
-      g.branches.ifBranches.get(node) match {
-        case Some(branches) =>
-          var tRes: Ctx = t
-          val newIte = ifThenElse(t(ite.cond), {
-            val (t1, res) = mirrorBranch(t, rewriter, g, branches.thenBody)
-            tRes = t1
-            res
-          }, {
-            val (t2, res) = mirrorBranch(tRes, rewriter, g, branches.elseBody)
-            tRes = t2
-            res
-          })
-          (tRes + (node -> newIte), newIte)
-        case _ =>
-          mirrorDef(t, rewriter, node, ite)
-      }
     }
 
     protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Rep[Thunk[A]], thunk: ThunkDef[A]): (Ctx, Sym) = {
@@ -284,8 +256,6 @@ trait Transforming { self: Scalan =>
               mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
             case th: ThunkDef[a] =>
               mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
-            case ite: IfThenElse[a] =>
-              mirrorIfThenElse(t, rewriter, g, node.asInstanceOf[Rep[a]], ite)
             case _ =>
               mirrorDef(t, rewriter, node, d)
           }

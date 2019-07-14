@@ -67,8 +67,6 @@ trait AstGraphs extends Transforming { self: Scalan =>
       res
     }
 
-    def iterateIfs = schedule.iterator.filter(isIfThenElse(_))
-
     @inline def isIdentity: Boolean = boundVars == roots
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
 
@@ -84,11 +82,6 @@ trait AstGraphs extends Transforming { self: Scalan =>
         case tp =>
           Array(tp)
       }
-
-    /**
-     * Returns definitions which are not assigned to sub-branches
-     */
-    def scheduleSingleLevel: Seq[Int] = schedule.collect { case sym if !isAssignedToIfBranch(sym) => sym.rhs.nodeId }
 
     /**
      * Symbol Usage information for this graph
@@ -165,174 +158,10 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def buildLocalScheduleFrom(sym: Sym): Schedule = buildLocalScheduleFrom(sym, (_: Sym).getDeps)
 
-    /** Keeps immutable maps describing branching structure of this lambda
-      */
-    lazy val branches = {
-      // traverse the lambda body from the results to the arguments
-      // during the loop below, keep track of all the defs that `are used` below the current position in the `schedule`
-      val usedSet = mutable.Set.empty[Sym]
-
-      def isUsed(sym: Sym) = usedSet.contains(sym)
-
-      /** Keep the assignments of symbols to the branches of IfThenElse
-        if a definition is assigned to IF statement then it will be in either THEN or ELSE branch, according to flag
-        */
-      val assignments = mutable.Map.empty[Sym, BranchPath]
-      def isAssigned(sym: Sym) = assignments.contains(sym)
-
-      val ifBranches = mutable.Map.empty[Sym, IfBranches]
-
-      // should return definitions that are not in usedSet
-      def getLocalUnusedSchedule(s: Sym): Schedule = {
-        if (usedSet.contains(s)) Seq()
-        else {
-          val sch = buildLocalScheduleFrom(s, (_: Sym).getDeps.filterNot(usedSet.contains))
-          sch
-        }
-      }
-
-      /** Builds a schedule according to the current usedSet
-        * @param syms starting symbols
-        * @return sequence of symbols that 1) local 2) in shallow dependence relation 3) not yet marked
-        */
-      def getLocalUnusedShallowSchedule(syms: Seq[Sym]): Schedule = {
-        val sch = buildLocalScheduleFrom(syms, (_: Sym).getShallowDeps.filterNot(usedSet.contains))
-        sch
-      }
-
-
-      def getTransitiveUsageInRevSchedule(revSchedule: List[Sym]): mutable.Set[Sym] = {
-        val used = mutable.Set.empty[Sym]
-        for (s <- revSchedule) {
-          if (isUsed(s))
-            used += s
-
-          if (used.contains(s))
-            used ++= s.getDeps
-        }
-        used
-      }
-
-      // builds branches for the `cte`
-      def getIfBranches(ifSym: Sym, cte: IfThenElse[_], defsBeforeIfReversed: List[Sym]) = {
-        val IfThenElse(c, t, e) = cte
-
-        val cs = buildLocalScheduleFrom(c)
-        val ts = buildLocalScheduleFrom(t)
-        val es = buildLocalScheduleFrom(e)
-
-        val usedAfterIf = getTransitiveUsageInRevSchedule(defsBeforeIfReversed)
-        def isUsedBeforeIf(s: Sym) = usedAfterIf.contains(s)
-
-        val cSet = cs.toSet
-        val tSet = ts.toSet
-        val eSet = es.toSet
-
-        // a symbol can be in a branch if all is true:
-        // 1) the branch root depends on it
-        // 2) the other branch doesn't depends on it
-        // 3) the condition doesn't depend on it
-        // 4) it is not marked as used after the If statement (transitively)
-        val tbody = ts.filter(sym => !(eSet.contains(sym) || cSet.contains(sym) || isUsedBeforeIf(sym)))
-        val ebody = es.filter(sym => !(tSet.contains(sym) || cSet.contains(sym) || isUsedBeforeIf(sym)))
-
-        IfBranches(thisGraph, ifSym, new ThunkDef(t, tbody), new ThunkDef(e, ebody))
-      }
-
-      def assignBranch(sym: Sym, ifSym: Sym, thenOrElse: Boolean) = {
-        assignments(sym) = BranchPath(thisGraph, ifSym, thenOrElse)
-      }
-
-      // traverse the lambda body from the results to the arguments
-      var reversed = schedule.reverse.toList
-      while (reversed.nonEmpty) {
-        val s = reversed.head
-        val d = s.rhs
-        if (!isAssigned(s)) {
-          // process current definition
-          d match {
-            case cte@IfThenElse(c, t, e) => {
-              val ifSym = s
-              val bs = getIfBranches(ifSym, cte, reversed.tail)
-              ifBranches(ifSym) = bs
-
-              // assign symbols to this IF
-              // put symbol to the current IF
-              for (sym <- bs.thenBody.schedule) {
-                assignBranch(sym, ifSym, thenOrElse = true)
-              }
-              for (sym <- bs.elseBody.schedule) {
-                assignBranch(sym, ifSym, thenOrElse = false)
-              }
-
-              val tUsed = getLocalUnusedShallowSchedule(bs.thenBody.freeVars.toSeq)
-              val eUsed = getLocalUnusedShallowSchedule(bs.elseBody.freeVars.toSeq)
-              usedSet ++= tUsed
-              usedSet ++= eUsed
-            }
-            case _ =>
-          }
-          val deps = s.getDeps       // for IfThenElse is gets the roots of each branch and condition
-          val shallowDeps = getLocalUnusedShallowSchedule(deps)
-          usedSet ++= shallowDeps
-        }
-        reversed = reversed.tail
-      }
-
-
-      // create resulting immutable structures
-      val resAssignments = assignments.toMap
-      val resBranches = ifBranches.toMap
-      LambdaBranches(resBranches, resAssignments)
-    }
-
-    def isAssignedToIfBranch(sym: Sym) = branches.assignments.contains(sym)
-
     def show(): Unit = show(defaultGraphVizConfig)
     def show(emitMetadata: Boolean): Unit = show(defaultGraphVizConfig.copy(emitMetadata = emitMetadata))
     def show(config: GraphVizConfig): Unit = showGraphs(this)(config)
   }
-
-  /** When stored in Map, describes for each key the branch of the symbol
-    * @param ifSym      symbol of the related IfThenElse definition
-    * @param thenOrElse true if the symbol is assigned to then branch, false if to the else branch
-    */
-  case class BranchPath(graph: AstGraph, ifSym: Sym, thenOrElse: Boolean) {
-//    def parent: Option[BranchPath] = graph.assignments.get(ifSym)
-//    def pathToRoot: Iterator[BranchPath] =
-//      Iterator.iterate(Option(this))(p => p.flatMap { _.parent}).takeWhile(_.isDefined).map(_.get)
-  }
-
-  /** When stored in a Map, keeps for each IfThenElse schedule of the branches
-    * @param graph     the graph this IF branches belong to
-    * @param ifSym     symbol of the IfThenElse statement
-    * @param thenBody  schedule of `then` branch
-    * @param elseBody  schedule of `else` branch
-    */
-  case class  IfBranches(graph: AstGraph, ifSym: Sym, thenBody: ThunkDef[_], elseBody: ThunkDef[_])
-  {
-    // filter out definitions from this branches that were reassigned to the deeper levels
-    def cleanBranches(assignments: Map[Sym, BranchPath]) = {
-      val thenClean = thenBody.schedule.filter(sym => assignments(sym).ifSym == ifSym)
-      val elseClean = elseBody.schedule.filter(sym => assignments(sym).ifSym == ifSym)
-      IfBranches(graph, ifSym,
-        new ThunkDef(thenBody.root, thenClean),
-        new ThunkDef(elseBody.root, elseClean))
-    }
-    override def toString = {
-      val Def(IfThenElse(cond,_,_)) = ifSym
-      s"""
-         |${ifSym} = if (${cond}) then
-         |  ${thenBody.schedule.map(sym => s"$sym -> ${sym.rhs}").mkString("\n")}
-         |else
-         |  ${elseBody.schedule.map(sym => s"$sym -> ${sym.rhs}").mkString("\n")}
-       """.stripMargin
-    }
-  }
-
-  /** Keeps a branching structure of the Lambda
-    */
-  case class LambdaBranches(ifBranches: Map[Sym, IfBranches], assignments: Map[Sym, BranchPath])
 
   def buildScheduleForResult(startNodes: Array[Int], neighbours: DFunc[Int, Array[Int]]): Array[Int] = {
     val components = GraphUtil.stronglyConnectedComponents(startNodes, neighbours)

@@ -269,11 +269,11 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   }
 
   object ConstantThunk {
-    def unapply(d: Def[_]): Option[Rep[_]] = d match {
-      case ThunkDef(root @ Def(Const(_)), sch) if sch == Seq(root) => Some(root)
+    def unapply(d: Def[_]): Option[Const[_]] = d match {
+      case ThunkDef(root @ Def(c @Const(_)), Seq(s1)) if root == s1 => Some(c)
       case _ => None
     }
-    def unapply(s: Sym): Option[Rep[_]] = s match { case Def(d) => unapply(d) case _ => None }
+    def unapply(s: Sym): Option[Const[_]] = unapply(s.rhs)
   }
 
   override def rewriteViews[T](d: Def[T]) = d match {
@@ -292,8 +292,20 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
   }
 
   override def rewriteDef[T](d: Def[T]) = d match {
-    case ThunkForce(ConstantThunk(root)) => root
-    case ApplyBinOpLazy(op, l, ConstantThunk(root)) => op.apply(l, root)
+    case ThunkForce(th) =>
+      th.rhs match {
+        // empty Thunk
+        case ThunkDef(root, sch) if sch.isEmpty => root
+        // constant in Thunk
+        case ConstantThunk(rootConst) => rootConst
+        case _ => super.rewriteDef(d)
+      }
+//    case ApplyBinOpLazy(op, l, r) =>
+//      r.rhs match {
+//        case ThunkDef(root, sch) if sch.isEmpty => op.apply(l, root)
+//        case ConstantThunk(rootConst) => op.apply(l, rootConst)
+//        case _ => super.rewriteDef(d)
+//      }
     case _ => super.rewriteDef(d)
   }
 

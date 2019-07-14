@@ -17,11 +17,11 @@ class SumTests extends BaseCtxTests {
   test("constant propagation from If to SumFold") {
     val ctx = new TestContext("fromIfToSumFold") with SegmentsModule {
       lazy val t1 = fun { x: Rep[Int] =>
-        val s = IFF (x > 0) THEN { (x + 1).asLeft[Int] } ELSE { (x + 2).asRight[Int] }
+        val s = IF (x > 0) THEN { (x + 1).asLeft[Int] } ELSE { (x + 2).asRight[Int] }
         s.fold(l => l + 1, r => r - 2)
       }
       lazy val t2 = fun { x: Rep[Int] =>
-        val s = IFF (x > 0) THEN { (x + 1).asRight[Int] } ELSE { (x + 2).asLeft[Int] }
+        val s = IF (x > 0) THEN { (x + 1).asRight[Int] } ELSE { (x + 2).asLeft[Int] }
         s.fold(l => l + 1, r => r - 2)
       }
     }

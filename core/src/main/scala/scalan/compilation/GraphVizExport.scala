@@ -106,16 +106,10 @@ trait GraphVizExport { self: Scalan =>
         case _ => y.toString
       }
       s"${l.x} => $bodyStr"
-    /*case v: View[_,_] =>
-      val viewStr = d.toString
-      val isoStr = v.iso.toString
-      s"$viewStr (iso: $isoStr)" */
     case Apply(f, arg, _) => s"$f($arg)"
     case Tup(a, b) => s"($a, $b)"
     case First(pair) => s"$pair._1"
     case Second(pair) => s"$pair._2"
-    case IfThenElse(c, t, e) => s"if ($c) $t else $e"
-//    case LoopUntil(start, step, isMatch) => s"from $start do $step until $isMatch"
     case ApplyBinOp(op, lhs, rhs) => s"$lhs ${op.opName} $rhs"
     case ApplyUnOp(op, arg) => op match {
       case NumericToFloat(_) => s"$arg.toFloat"

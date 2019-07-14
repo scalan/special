@@ -131,16 +131,6 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   }
 
   override def rewriteDef[T](d: Def[T]): Sym = d match {
-    // Rule: (if(c) t else e).m(args) ==> if (c) t.m(args) else e.m(args)
-    case mc @ MethodCall(Def(IfThenElse(cond, t, e)), m, args, neverInvoke) =>
-      def copyMethodCall(newReceiver: Sym) =
-        mkMethodCall(newReceiver, m, args, neverInvoke, false, mc.selfType)
-
-      ifThenElse(cond,
-        copyMethodCall(t),
-        copyMethodCall(e)
-      )
-
     case call @ MethodCall(receiver, m, args, neverInvoke) =>
       call.tryInvoke match {
         // Rule: receiver.m(args) ==> body(m).subst{xs -> args}
@@ -153,8 +143,8 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
           else
             super.rewriteDef(d)
       }
-
-    case _ => super.rewriteDef(d)
+    case _ =>
+      super.rewriteDef(d)
   }
 
   /** This method is called for each MethodCall node which is about to be added to the graph.

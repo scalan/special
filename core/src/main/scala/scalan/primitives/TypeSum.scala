@@ -201,9 +201,6 @@ trait TypeSum extends Base { self: Scalan =>
       m.sum.foldBy(left << m.left, right << m.right)
 
     case foldD: SumFold[a, b, T] => foldD.sum match {
-      // Rule: fold(if (c) t else e, l, r) ==> if (c) fold(t, l, r) else fold(e, l, r)
-      case Def(IfThenElse(c, t: Rep[Either[_, _]] @unchecked, e: Rep[Either[_, _]] @unchecked)) =>
-        ifThenElse[T](c, SumFold(t, foldD.left, foldD.right), SumFold(e, foldD.left, foldD.right))
 
       // Rule: fold(SumView(source, iso1, iso2), l, r) ==> fold(source, iso1.to >> l, iso2.to >> r)
       case Def(view: SumView[a1, a2, b1, b2]) =>
