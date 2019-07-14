@@ -2,7 +2,7 @@ package scalan.staged
 
 import scala.collection.{mutable, _}
 import scala.collection.mutable.ArrayBuffer
-import scalan.{Nullable, Scalan}
+import scalan.{Nullable, Scalan, DFunc}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
 import spire.syntax.all.cfor
@@ -33,7 +33,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
   trait AstGraph { thisGraph =>
     def boundVars: List[Sym]
-    def roots: List[Sym]
+    def roots: Seq[Sym]
 
     /** @hotspot */
     def freeVars: Set[Sym] = {
@@ -155,9 +155,10 @@ trait AstGraphs extends Transforming { self: Scalan =>
       for {
         s <- syms if isLocalDef(s)
         // TODO ensure deps return DBuffer
-        tp <- buildScheduleForResult(Array(s), sym => deps(sym).filter(dsym => isLocalDef(dsym) && !dsym.isVar).toArray)
+        tp <- buildScheduleForResult(Array(s.rhs.nodeId),
+               id => deps(getSym(id)).collect { case dsym if isLocalDef(dsym) && !dsym.isVar => dsym.rhs.nodeId }.toArray)
       }
-      yield tp
+      yield getSym(tp)
 
     def buildLocalScheduleFrom(sym: Sym, deps: Sym => List[Sym]): Schedule =
       buildLocalScheduleFrom(List(sym), deps)
@@ -333,25 +334,13 @@ trait AstGraphs extends Transforming { self: Scalan =>
     */
   case class LambdaBranches(ifBranches: Map[Sym, IfBranches], assignments: Map[Sym, BranchPath])
 
-  def buildScheduleForResult(startNodes: Seq[Sym], neighbours: Sym => Array[Sym]): Schedule = {
-
-//    def succ(sym: Sym): Schedule = {
-//      assert(sym != null, s"Null symbol when buildScheduleForResult($startNodes)")
-//      val res = new ArrayBuilder[Sym](8)
-//      for (n <- neighbours(sym)) {
-//        if (!n.isVar) {
-//          res += n
-//        }
-//      }
-//      res.toArray
-//    }
-
-    val components = GraphUtil.stronglyConnectedComponents(startNodes.toArray)(neighbours)
+  def buildScheduleForResult(startNodes: Array[Int], neighbours: DFunc[Int, Array[Int]]): Array[Int] = {
+    val components = GraphUtil.stronglyConnectedComponents(startNodes, neighbours)
     val nComponents = components.length
     if (nComponents == 1) {
       components(0).toArray()
     } else {
-      val res = DBuffer.ofSize[Sym](components(0).length)
+      val res = DBuffer.ofSize[Int](components(0).length)
       cfor(0)(_ < nComponents, _ + 1) { i =>
         res ++= components(i)
       }

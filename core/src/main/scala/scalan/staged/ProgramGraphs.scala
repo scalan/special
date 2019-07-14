@@ -1,25 +1,27 @@
 package scalan.staged
 
-import scalan.{Scalan, Nullable}
+import scalan.{Nullable, Scalan, DFunc}
 
 trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
   type PGraph = ProgramGraph[MapTransformer]
 
   // immutable program graph
-  case class ProgramGraph[Ctx <: Transformer : TransformerOps](roots: List[Sym], mapping: Ctx, filterNode: Nullable[Sym => Boolean])
+  case class ProgramGraph[Ctx <: Transformer : TransformerOps](roots: Seq[Sym], mapping: Ctx, filterNode: Nullable[Sym => Boolean])
   	  extends AstGraph {
-    def this(roots: List[Sym], filterNode: Nullable[Sym => Boolean] = Nullable.None) { this(roots, implicitly[TransformerOps[Ctx]].empty, filterNode) }
+    def this(roots: Seq[Sym], filterNode: Nullable[Sym => Boolean] = Nullable.None) { this(roots, implicitly[TransformerOps[Ctx]].empty, filterNode) }
     def this(root: Sym) { this(List(root)) }
 
     override def boundVars = Nil
     override def freeVars = Set()
     override lazy val schedule = {
-      val neighbours = filterNode match {
-        case Nullable(pred) => (s: Sym) => s.getDeps.filter(sym => pred(sym) && !sym.isVar).toArray
-        case _ => (s: Sym) => s.getDeps.filterNot(_.isVar).toArray
+      val neighbours: DFunc[Int, Array[Int]] = filterNode match {
+        case Nullable(pred) =>
+          (id: Int) => getDeps(getSym(id).rhs).collect { case sym if pred(sym) && !sym.isVar => sym.rhs.nodeId }.toArray
+        case _ =>
+          (id: Int) => getDeps(getSym(id).rhs).collect { case sym if !sym.isVar => sym.rhs.nodeId }.toArray
       }
-      buildScheduleForResult(roots, neighbours)
+      buildScheduleForResult(roots.map(_.rhs.nodeId).toArray, neighbours).map(getSym(_))
     }
 
 

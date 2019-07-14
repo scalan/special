@@ -62,10 +62,11 @@ object GraphUtil {
     stronglyConnectedComponents(start, new DFuncAdapter(succ))
   }
 
+  val initTarjan = new Tarjan[Int](new DFuncAdapter((i: Int) => Array(i)))
 }
 
 
-final class Tarjan[@specialized(Int) T: ClassTag](getNeighbours: DFunc[T, Array[T]]) {
+final class Tarjan[@specialized(Int) T: ClassTag](private var getNeighbours: DFunc[T, Array[T]]) {
   private var id = 0
   private var stack: DBuffer[T] = DBuffer.empty
   private val mark = DMap.ofSize[T,Int](127)

@@ -153,7 +153,10 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     }
 
     def scheduleForResult(root: Rep[Any]): Schedule = {
-      buildScheduleForResult(Array(root), _.getDeps.filter(s => bodyIds(s.rhs.nodeId) && !s.isVar).toArray)
+      val sch = buildScheduleForResult(
+        Array(root.rhs.nodeId),
+        id => getDeps(getSym(id).rhs).collect { case s if bodyIds(s.rhs.nodeId) && !s.isVar => s.rhs.nodeId }.toArray)
+      sch.map(getSym)
     }
 
     // TODO optimize: this is performance hotspot (use ArrayBuilder instead of ListBuffer)
