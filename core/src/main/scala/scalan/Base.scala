@@ -14,7 +14,7 @@ import scala.collection.{mutable, TraversableOnce}
 import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
-import scalan.util.{ParamMirror, ReflectionUtil}
+import scalan.util.{ParamMirror, ReflectionUtil, NeighbourFunc, StringUtil}
 import debox.{Buffer => DBuffer, Set => DSet}
 
 import scala.reflect.runtime.universe._
@@ -69,6 +69,17 @@ trait Base extends LazyLogging { scalan: Scalan =>
       if (_self == null) _self = symbolOf(this)
       _self
     }
+
+    private var _deps: Array[Sym] = _
+    final def deps: Array[Sym] = {
+      if (_deps == null) {
+        _deps = getDeps
+      }
+      _deps
+    }
+
+    /** Override to redefine how dependencies are computed. */
+    protected def getDeps: Array[Sym] = syms(this).toArray
 
     def transform(t: Transformer): Def[T] =
       !!!(s"Cannot transfrom definition using transform($this)", self)
@@ -139,37 +150,16 @@ trait Base extends LazyLogging { scalan: Scalan =>
       sb.append("(")
       val iterator = productIterator
       if (iterator.hasNext) {
-        append(sb, iterator.next)
+        StringUtil.append(sb, iterator.next)
       }
       while (iterator.hasNext) {
         sb.append(", ")
-        append(sb, iterator.next)
+        StringUtil.append(sb, iterator.next)
       }
       sb.append(")")
       sb.toString
     }
 
-    private final def append(sb: StringBuilder, x: Any): Unit = {
-      x match {
-        case arr: Array[_] =>
-          sb.append("Array(")
-          if (arr.length > 0) {
-            append(sb, arr(0))
-            var i = 1
-            while (i < arr.length) {
-              sb.append(", ")
-              append(sb, arr(i))
-              i += 1
-            }
-          }
-          sb.append(")")
-        case s: String =>
-          sb.append("\"")
-          sb.append(s)
-          sb.append("\"")
-        case _ => sb.append(x)
-      }
-    }
   }
 
   object Def {
@@ -303,6 +293,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def isVar: Boolean = rhs.isInstanceOf[Variable[_]]
     def isConst: Boolean = rhs.isInstanceOf[Const[_]]
     def isCompanion: Boolean = elem.isInstanceOf[CompanionElem[_]]
+    def isLambda: Boolean = rhs.isInstanceOf[Lambda[_,_]]
 
     def toStringWithDefinition: String
     def toStringWithType = varName + ":" + elem.name
@@ -481,6 +472,19 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
 
+//  def flatMapWithBuffer[A](iter: Iterator[A], f: NeighbourFunc[A, Int], out: DBuffer[Int]): Unit = {
+//    while (iter.hasNext) {
+//      val e = iter.next()
+//      f.populate(e, out)
+//    }
+//  }
+//
+//  @inline def flatMapProduct(p: Product, f: NeighbourFunc[Any, Int], out: DBuffer[Int]): Unit = {
+//    val iter = p.productIterator
+//    flatMapWithBuffer(iter, f, out)
+//  }
+
+
   def flatMapWithBuffer[A, T](iter: Iterator[A], f: A => TraversableOnce[T]): List[T] = {
     // performance hotspot: this is the same as
     // iter.toList.flatMap(f(_)) but faster
@@ -509,48 +513,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     case p: Product =>
       flatMapProduct(p, syms)
     case _ => Nil
-  }
-  def dep(e: Rep[_]): List[Rep[_]] = e match {
-    case Def(d) => syms(d)
-    case _ => Nil
-  }
-  def dep(d: Def[_]): List[Rep[_]] = syms(d)
-
-  implicit class ExpForSomeOps(symbol: Rep[_]) {
-    def inputs: List[Rep[Any]] = dep(symbol)
-    def getDeps: List[Rep[_]] = symbol match {
-      case Def(g: AstGraph) => g.freeVars.toList
-      case _ => this.inputs
-    }
-
-    def isLambda: Boolean = symbol match {
-      case Def(_: Lambda[_, _]) => true
-      case _ => false
-    }
-  }
-
-  def getDeps(d: Def[_]): List[Rep[_]] = d match {
-    case g: AstGraph => g.freeVars.toList
-    case _ => syms(d)
-  }
-
-  implicit class DefForSomeOps(d: Def[_]) {
-    def getDeps: List[Rep[_]] = scalan.getDeps(d)
-    def asDef[T] = d.asInstanceOf[Def[T]]
-  }
-
-  case class HasArg(predicate: Rep[_] => Boolean) {
-    def unapply[T](d: Def[T]): Option[Def[T]] = {
-      val args = dep(d)
-      if (args.exists(predicate)) Some(d) else None
-    }
-  }
-
-  case class FindArg(predicate: Rep[_] => Boolean) {
-    def unapply[T](d: Def[T]): Option[Rep[_]] = {
-      val args = dep(d)
-      for { a <- args.find(predicate) } yield a
-    }
   }
 
   val performViewsLifting: Boolean = true
@@ -667,7 +629,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   val nInitialDefs = 10000
   private[this] val _symbolTable: DBuffer[Sym] = DBuffer.ofSize(nInitialDefs)
-//  private[this] var defToGlobalDefs: java.util.HashSet[Def[_]] = new java.util.HashSet[Def[_]](nInitialDefs) //DSet.ofSize(nInitialDefs) //AVHashMap[Def[_], TableEntry[_]](nInitialDefs)
   private[this] var defToGlobalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
 
   protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here

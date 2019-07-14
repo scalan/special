@@ -1,12 +1,34 @@
 package scalan.util
 
-object StringUtil {
-  def quote(x: Any) = "\"" + x + "\""
+import spire.syntax.all.cfor
 
-  def lowerCaseFirst(s: String) = if (s.isEmpty) {
+object StringUtil {
+  final def quote(x: Any) = "\"" + x + "\""
+
+  final def lowerCaseFirst(s: String) = if (s.isEmpty) {
     s
   } else {
     s.substring(0, 1).toLowerCase + s.substring(1)
+  }
+
+  final def append(sb: StringBuilder, x: Any): Unit = {
+    x match {
+      case arr: Array[_] =>
+        sb.append("Array(")
+        if (arr.length > 0) {
+          append(sb, arr(0))
+          cfor(1)(_ < arr.length, _ + 1) { i =>
+            sb.append(", ")
+            append(sb, arr(i))
+          }
+        }
+        sb.append(")")
+      case s: String =>
+        sb.append("\"")
+        sb.append(s)
+        sb.append("\"")
+      case _ => sb.append(x)
+    }
   }
 
   implicit class StringUtilExtensions(val str: String) extends AnyVal {

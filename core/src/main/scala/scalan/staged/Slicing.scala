@@ -105,7 +105,7 @@ trait Slicing extends ScalanEx {
         case _ if outMark.isEmpty =>
           Seq()
         case _ =>
-          val deps = getDeps(thisSym.rhs)
+          val deps = thisSym.rhs.deps
           val res = deps.map { case s: Rep[a] => (s, AllMarking(s.elem)) }
           res
       }

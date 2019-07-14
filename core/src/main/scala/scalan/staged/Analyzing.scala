@@ -37,7 +37,7 @@ trait Analyzing { self: ScalanEx =>
         case lam: Lambda[a,b] =>
           Seq[MarkedSym](updateMark(lam.y, l))
         case _ =>
-          thisSym.rhs.getDeps.toSeq.map(s => updateMark(s, l))
+          thisSym.rhs.deps.map(s => updateMark(s, l))
       }
     }
   }
@@ -82,7 +82,7 @@ trait Analyzing { self: ScalanEx =>
         case l: Lambda[a,b] => Seq()
         case _ =>
           val l = getLevel(thisSym)
-          thisSym.rhs.getDeps.toSeq.map(s => {
+          thisSym.rhs.deps.map(s => {
             promoteMark(s, Map(l -> Seq(thisSym)))
           })
       }

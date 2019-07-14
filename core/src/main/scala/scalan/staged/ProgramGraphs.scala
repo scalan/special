@@ -17,9 +17,9 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
     override lazy val schedule = {
       val neighbours: DFunc[Int, Array[Int]] = filterNode match {
         case Nullable(pred) =>
-          (id: Int) => getDeps(getSym(id).rhs).collect { case sym if pred(sym) && !sym.isVar => sym.rhs.nodeId }.toArray
+          (id: Int) => getSym(id).rhs.deps.collect { case sym if pred(sym) && !sym.isVar => sym.rhs.nodeId }.toArray
         case _ =>
-          (id: Int) => getDeps(getSym(id).rhs).collect { case sym if !sym.isVar => sym.rhs.nodeId }.toArray
+          (id: Int) => getSym(id).rhs.deps.collect { case sym if !sym.isVar => sym.rhs.nodeId }.toArray
       }
       buildScheduleForResult(roots.map(_.rhs.nodeId).toArray, neighbours).map(getSym(_))
     }

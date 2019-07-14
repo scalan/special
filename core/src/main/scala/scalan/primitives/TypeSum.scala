@@ -154,6 +154,20 @@ trait TypeSum extends Base { self: Scalan =>
     iso1.to(res)
   }
 
+  case class HasArg(predicate: Rep[_] => Boolean) {
+    def unapply[T](d: Def[T]): Option[Def[T]] = {
+      val args = d.deps
+      if (args.exists(predicate)) Some(d) else None
+    }
+  }
+
+  case class FindArg(predicate: Rep[_] => Boolean) {
+    def unapply[T](d: Def[T]): Option[Rep[_]] = {
+      val args = d.deps
+      for { a <- args.find(predicate) } yield a
+    }
+  }
+
   val FindFoldArg = FindArg {
     case Def(_: SumFold[_, _, _]) => true
     case _ => false

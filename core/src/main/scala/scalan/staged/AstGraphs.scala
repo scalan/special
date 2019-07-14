@@ -1,7 +1,6 @@
 package scalan.staged
 
 import scala.collection.{mutable, _}
-import scala.collection.mutable.ArrayBuffer
 import scalan.{Nullable, Scalan, DFunc}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
@@ -11,22 +10,16 @@ import debox.{Set => DSet, Buffer => DBuffer}
 trait AstGraphs extends Transforming { self: Scalan =>
 
   /**
-   * AstNode is created for each symbol of the AstGraph and represents graph linking structure
+   * GraphNode is created for each symbol of the AstGraph and represents graph linking structure
    */
-  abstract class AstNode(val graph: AstGraph) {
-    def sym: Sym
-    def inputSyms: List[Sym]
-    def outSyms: List[Sym]
-  }
-
   case class GraphNode(
-          override val graph: AstGraph,
+          graph: AstGraph,
           sym: Sym, // this symbol
           definition: Nullable[Def[_]], // definition
-          usages: List[Sym]) extends AstNode(graph) {
-    def inputSyms: List[Sym] = definition.toList.flatMap(_.getDeps)
-    def outSyms = usages
-    def addUsage(usage: Sym) = copy(usages = usage :: this.usages)
+          usages: List[Sym]) {
+    def inputSyms: Seq[Sym] = if (definition.isDefined) definition.get.deps else Nil
+    def outSyms: List[Sym] = usages
+    def addUsage(usage: Sym): GraphNode = copy(usages = usage :: this.usages)
   }
 
   type Schedule = Seq[Sym]
@@ -38,8 +31,11 @@ trait AstGraphs extends Transforming { self: Scalan =>
     /** @hotspot */
     def freeVars: Set[Sym] = {
       val res = mutable.HashSet.empty[Sym]
-      schedule.foreach { tp =>
-        for (s <- getDeps(tp.rhs)) {
+      cfor(0)(_ < schedule.length, _ + 1) { i =>
+        val sym = schedule(i)
+        val deps = sym.rhs.deps
+        cfor(0)(_ < deps.length, _ + 1) { j =>
+          val s = deps(j)
           if (!res.contains(s)) {
             if (!(isLocalDef(s) || isBoundVar(s))) {
               res += s
@@ -85,7 +81,6 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     /**
      * Symbol Usage information for this graph
-     * also contains lambda vars with definition = None
      */
     lazy val nodes: Map[Sym, GraphNode] = {
       var defMap: Map[Sym, GraphNode] = (schedule.map { sym =>
@@ -97,9 +92,14 @@ trait AstGraphs extends Transforming { self: Scalan =>
         defMap += usedSym -> newNode
       }
 
-      for (sym <- schedule) {
-        val usedSymbols = sym.rhs.getDeps
-        usedSymbols.foreach(us => addUsage(us, sym))
+
+      cfor(0)(_ < schedule.length, _ + 1) { i =>
+        val sym = schedule(i)
+        val usedSymbols = sym.rhs.deps
+        cfor(0)(_ < usedSymbols.length, _ + 1) { j =>
+          val us = usedSymbols(j)
+          addUsage(us, sym)
+        }
       }
       defMap
     }
@@ -123,7 +123,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     lazy val domain: Set[Sym] = scheduleSyms.map(getSym).toSet
 
-    def node(s: Sym): Option[AstNode] = nodes.get(s)
+    def node(s: Sym): Option[GraphNode] = nodes.get(s)
 
     def globalUsagesOf(s: Sym) = allNodes.get(s) match {
       case Some(node) => node.outSyms
@@ -139,29 +139,12 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def hasManyUsages(s: Sym): Boolean = usagesOf(s).lengthCompare(1) > 0
 
-    /** Builds a schedule starting from symbol `sym`  which consists only of local definitions.
-      *  @param syms   the roots of the schedule, it can be non-local itself
-      *  @param deps  dependence relation between a definition and symbols
-      *  @return      a `Seq` of local definitions on which `sym` depends or empty if `sym` is itself non-local
-      */
-    def buildLocalScheduleFrom(syms: Seq[Sym], deps: Sym => List[Sym]): Schedule =
-      for {
-        s <- syms if isLocalDef(s)
-        // TODO ensure deps return DBuffer
-        tp <- buildScheduleForResult(Array(s.rhs.nodeId),
-               id => deps(getSym(id)).collect { case dsym if isLocalDef(dsym) && !dsym.isVar => dsym.rhs.nodeId }.toArray)
-      }
-      yield getSym(tp)
-
-    def buildLocalScheduleFrom(sym: Sym, deps: Sym => List[Sym]): Schedule =
-      buildLocalScheduleFrom(List(sym), deps)
-
-    def buildLocalScheduleFrom(sym: Sym): Schedule = buildLocalScheduleFrom(sym, (_: Sym).getDeps)
-
     def show(): Unit = show(defaultGraphVizConfig)
     def show(emitMetadata: Boolean): Unit = show(defaultGraphVizConfig.copy(emitMetadata = emitMetadata))
     def show(config: GraphVizConfig): Unit = showGraphs(this)(config)
-  }
+
+  } // AstGraph
+
 
   def buildScheduleForResult(startNodes: Array[Int], neighbours: DFunc[Int, Array[Int]]): Array[Int] = {
     val components = GraphUtil.stronglyConnectedComponents(startNodes, neighbours)

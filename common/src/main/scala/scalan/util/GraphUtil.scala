@@ -6,11 +6,11 @@ import debox.{Set => DSet, Buffer => DBuffer, Map => DMap}
 import spire.syntax.all.cfor
 import scala.reflect.ClassTag
 
-trait NeighbourFunc[@specialized(Int) A] {
-  def get(x: A, res: DBuffer[A]): Unit
+trait NeighbourFunc[@specialized(Int) A, B] {
+  def populate(x: A, res: DBuffer[B]): Unit
 }
-case class Neighbours[@specialized(Int) A](f: A => Array[A]) extends NeighbourFunc[A] {
-  override def get(x: A, res: DBuffer[A]): Unit = {
+class Neighbours[@specialized(Int) A, B](f: A => Array[B]) extends NeighbourFunc[A, B] {
+  override def populate(x: A, res: DBuffer[B]): Unit = {
     val ns = f(x)
     res ++= ns
   }
@@ -18,14 +18,14 @@ case class Neighbours[@specialized(Int) A](f: A => Array[A]) extends NeighbourFu
 
 object GraphUtil {
 
-  def depthFirstSetFrom[@specialized(Int) A: ClassTag](starts: DBuffer[A])(neighbours: NeighbourFunc[A]): DSet[A] = {
+  def depthFirstSetFrom[@specialized(Int) A: ClassTag](starts: DBuffer[A])(neighbours: NeighbourFunc[A, A]): DSet[A] = {
     val visited = DSet.ofSize[A](starts.length)
 
     def visit(s: A): Unit = {
       if (!(visited(s))) {
         visited += s
         val ns = DBuffer.ofSize[A](16)
-        neighbours.get(s, ns)
+        neighbours.populate(s, ns)
         cfor(0)(_ < ns.length, _ + 1) { i =>
           visit(ns(i))
         }

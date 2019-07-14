@@ -51,14 +51,17 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     extends Def[A => B] with AstGraph with Product { thisLambda =>
     def eA = x.elem
     def eB = y.elem
+
     private var _selfType: Elem[A => B] = _
-    def selfType: Elem[A => B] =
+    def selfType: Elem[A => B] = {
       if (_selfType != null) _selfType
       else {
         val res = funcElement(eA, eB)
         if (!y.isPlaceholder) _selfType = res  // memoize once y is assigned
         res
       }
+    }
+
     // ensure all lambdas of the same type have the same hashcode,
     // so they are tested for alpha-equivalence using equals
     private var _hashCode: Int = 0
@@ -105,7 +108,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= boundVarId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(
-          Neighbours(sym => g.usagesOf(sym).filter(g.domain.contains).toArray)
+          new Neighbours(sym => g.usagesOf(sym).filter(g.domain.contains).toArray)
         )
         val sch = g.schedule.filter(sym => locals(sym) && !sym.isVar)
         val currSch = g.getRootsIfEmpty(sch)
@@ -114,11 +117,14 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       sch
     }
 
-    def isGlobalLambda: Boolean =
+    override protected def getDeps: Array[Sym] = freeVars.toArray
+
+    def isGlobalLambda: Boolean = {
       freeVars.forall { x =>
         val xIsGlobalLambda = x.isLambda && { val Def(lam: Lambda[_, _]) = x; lam.isGlobalLambda }
         x.isConst || xIsGlobalLambda
       }
+    }
   }
 
   type LambdaData[A,B] = (Lambda[A,B], Nullable[Rep[A] => Rep[B]], Rep[A], Rep[B])
@@ -149,7 +155,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     // if lam.y depends on lam.x indirectly, lam.schedule must contain the dependency path
     // and its length will be > 1
     def unapply[A,B](lam: Lambda[A, B]): Option[Rep[B]] =
-      if (lam.schedule.length <= 1 && !dep(lam.y).contains(lam.x) && lam.y != lam.x)
+      if (lam.schedule.length <= 1 && !lam.y.rhs.deps.contains(lam.x) && lam.y != lam.x)
         Some(lam.y)
       else
         None

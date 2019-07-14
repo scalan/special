@@ -113,6 +113,9 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
     override def boundVars = Nil
     override lazy val freeVars = if (schedule.isEmpty) Set(root) else super.freeVars
+
+    override protected def getDeps: Array[Sym] = freeVars.toArray
+
     val roots = new scala.collection.immutable.::(root, Nil) // optimization of hot spot
   }
   object ThunkDef {
@@ -155,7 +158,8 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     def scheduleForResult(root: Rep[Any]): Schedule = {
       val sch = buildScheduleForResult(
         Array(root.rhs.nodeId),
-        id => getDeps(getSym(id).rhs).collect { case s if bodyIds(s.rhs.nodeId) && !s.isVar => s.rhs.nodeId }.toArray)
+        id => getSym(id).rhs.deps.collect { case s if bodyIds(s.rhs.nodeId) && !s.isVar => s.rhs.nodeId }.toArray
+      )
       sch.map(getSym)
     }
 

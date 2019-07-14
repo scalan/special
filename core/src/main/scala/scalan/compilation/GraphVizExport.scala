@@ -149,7 +149,7 @@ trait GraphVizExport { self: Scalan =>
   private def emitDepEdges(sym: Sym, rhs: Def[_])(implicit stream: PrintWriter, config: GraphVizConfig) = {
     val (deps, lambdaVars) = rhs match {
       case l: Lambda[_, _] => lambdaDeps(l)
-      case _ => (dep(rhs), Nil)
+      case _ => (rhs.deps.toList, Nil)
     }
     emitEdges(lambdaVars, sym, "[style=dashed, color=lightgray, weight=0]")
     emitEdges(deps, sym, "[style=solid]")
@@ -166,7 +166,7 @@ trait GraphVizExport { self: Scalan =>
     GraphVizConfig.default
 
   def emitDepGraph(d: Def[_], directory: File, fileName: String)(implicit config: GraphVizConfig): Option[GraphFile] =
-    emitDepGraph(dep(d), directory, fileName)(config)
+    emitDepGraph(d.deps, directory, fileName)(config)
   def emitDepGraph(start: Sym, directory: File, fileName: String)(implicit config: GraphVizConfig): Option[GraphFile] =
     emitDepGraph(List(start), directory, fileName)(config)
   def emitDepGraph(ss: Seq[Sym], directory: File, fileName: String)(implicit config: GraphVizConfig): Option[GraphFile] =
@@ -230,7 +230,7 @@ trait GraphVizExport { self: Scalan =>
     case Def(l1: Lambda[_, _]) =>
       val (ds, vs) = lambdaDeps(l1)
       (ds, l.x :: vs)
-    case _ => (dep(l.y), List(l.x))
+    case _ => (l.y.rhs.deps.toList, List(l.x))
   }
 
   protected def clusterColor(g: AstGraph) = g match {

@@ -17,8 +17,8 @@ class GraphUtilTests extends BaseNestedTests {
       List()      // 6
     )
 
-    object neighbours extends NeighbourFunc[Int] {
-      def get(node: Int, ns: DBuffer[Int]): Unit = {
+    object neighbours extends NeighbourFunc[Int, Int] {
+      def populate(node: Int, ns: DBuffer[Int]): Unit = {
         graph(node) foreach (ns.+=)
       }
     }
