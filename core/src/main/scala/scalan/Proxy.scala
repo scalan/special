@@ -47,8 +47,8 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
         )
       }
 
+    //TODO optimize: override `Def.elements` then equals and hashCode can be removed
 
-    //TODO optimize
     import scalan.util.CollectionUtil.TraversableOps
     override def equals(other: Any): Boolean = (this eq other.asInstanceOf[AnyRef]) || {
       other match {

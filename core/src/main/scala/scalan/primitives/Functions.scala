@@ -97,10 +97,12 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def productArity: Int = 2
 
     // AstGraph implementation
-    val boundVars = x :: Nil
+    val boundVars = Array(x)
     val boundVarId = x.rhs._nodeId
     val roots = y :: Nil
     override lazy val freeVars = super.freeVars
+
+    @inline override def isBoundVar(s: Sym) = s.rhs.nodeId == boundVarId
 
     override lazy val  schedule: Schedule = {
       val sch = if (isIdentity)
@@ -108,10 +110,10 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= boundVarId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(
-          new Neighbours(sym => g.usagesOf(sym).filter(g.domain.contains).toArray)
+          new Neighbours(sym => g.usagesOf(sym).filter(s => g.domain(s.rhs.nodeId)).toArray)
         )
         val sch = g.schedule.filter(sym => locals(sym) && !sym.isVar)
-        val currSch = g.getRootsIfEmpty(sch)
+        val currSch = if (sch.isEmpty) g.roots else sch
         currSch
       }
       sch

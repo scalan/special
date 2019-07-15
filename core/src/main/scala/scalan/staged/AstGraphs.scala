@@ -25,7 +25,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
   type Schedule = Seq[Sym]
 
   trait AstGraph { thisGraph =>
-    def boundVars: List[Sym]
+    def boundVars: Seq[Sym]
     def roots: Seq[Sym]
 
     /** @hotspot */
@@ -46,12 +46,6 @@ trait AstGraphs extends Transforming { self: Scalan =>
       res
     }
 
-    def getRootsIfEmpty(sch: Schedule) =
-      if (sch.isEmpty) {
-        roots // the case when body is consists of consts
-      }
-      else sch
-
     def schedule: Schedule
 
     lazy val scheduleSyms: Seq[Int] = {
@@ -63,21 +57,28 @@ trait AstGraphs extends Transforming { self: Scalan =>
       res
     }
 
-    @inline def isIdentity: Boolean = boundVars == roots
+    /** Set of scheduleSyms */
+    lazy val domain: DSet[Int] = {
+      val res = DSet.ofSize[Int](scheduleSyms.length)
+      res ++= scheduleSyms.toArray
+      res
+    }
+
+    @inline final def isIdentity: Boolean = boundVars == roots
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
 
-    // TODO use DSet for scheduleSyms
-    @inline def isLocalDef(s: Sym): Boolean = scheduleSyms contains (s.rhs.nodeId)
+    @inline def isLocalDef(s: Sym): Boolean = domain(s.rhs.nodeId)
 
     @inline def isRoot(s: Sym): Boolean = roots contains s
 
-    lazy val scheduleAll: Schedule =
+    lazy val scheduleAll: Schedule = {
       schedule.flatMap {
         case sym if sym.rhs.isInstanceOf[AstGraph] =>
           sym.rhs.asInstanceOf[AstGraph].scheduleAll :+ sym
         case tp =>
           Array(tp)
       }
+    }
 
     /**
      * Symbol Usage information for this graph
@@ -120,8 +121,6 @@ trait AstGraphs extends Transforming { self: Scalan =>
       }
       defMap
     }
-
-    lazy val domain: Set[Sym] = scheduleSyms.map(getSym).toSet
 
     def node(s: Sym): Option[GraphNode] = nodes.get(s)
 
