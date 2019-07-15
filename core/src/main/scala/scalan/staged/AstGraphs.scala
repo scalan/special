@@ -5,7 +5,7 @@ import scalan.{Nullable, Scalan, DFunc}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
 import spire.syntax.all.cfor
-import debox.{Set => DSet, Buffer => DBuffer}
+import debox.{Set => DSet, Buffer => DBuffer, Map => DMap}
 
 trait AstGraphs extends Transforming { self: Scalan =>
 
@@ -13,13 +13,13 @@ trait AstGraphs extends Transforming { self: Scalan =>
    * GraphNode is created for each symbol of the AstGraph and represents graph linking structure
    */
   case class GraphNode(
-          graph: AstGraph,
           sym: Sym, // this symbol
-          definition: Nullable[Def[_]], // definition
-          usages: List[Sym]) {
-    def inputSyms: Seq[Sym] = if (definition.isDefined) definition.get.deps else Nil
-    def outSyms: List[Sym] = usages
-    def addUsage(usage: Sym): GraphNode = copy(usages = usage :: this.usages)
+          usages: DSet[Int]) {
+    def inputSyms: Seq[Sym] = sym.rhs.deps
+    def outSyms: DSet[Sym] = usages.map(getSym)
+    def addUsage(usage: Int): Unit = {
+      usages += usage
+    }
   }
 
   type Schedule = Seq[Sym]
@@ -75,68 +75,59 @@ trait AstGraphs extends Transforming { self: Scalan =>
       schedule.flatMap {
         case sym if sym.rhs.isInstanceOf[AstGraph] =>
           sym.rhs.asInstanceOf[AstGraph].scheduleAll :+ sym
-        case tp =>
-          Array(tp)
+        case sym =>
+          Array(sym)
       }
+    }
+
+    def buildUsageMap(schedule: Schedule): DMap[Int, GraphNode] = {
+      val len = schedule.length
+      val nodeMap = DMap.ofSize[Int, GraphNode](len)
+      cfor(0)(_ < schedule.length, _ + 1) { i =>
+        val sym = schedule(i)
+        val symId = sym.rhs.nodeId
+        nodeMap.update(symId, GraphNode(sym, DSet.empty[Int]))
+
+        val deps = sym.rhs.deps
+        cfor(0)(_ < deps.length, _ + 1) { j =>
+          val us = deps(j)           // used symbol
+        val usId = us.rhs.nodeId     // used symbol id
+        var node = nodeMap.getOrElse(usId, null)
+          if (null == node) {
+            node = GraphNode(us, DSet.empty[Int])
+            nodeMap.update(usId, node)
+          }
+          node.usages += symId
+        }
+
+      }
+      nodeMap
     }
 
     /**
      * Symbol Usage information for this graph
      */
-    lazy val nodes: Map[Sym, GraphNode] = {
-      var defMap: Map[Sym, GraphNode] = (schedule.map { sym =>
-        (sym, GraphNode(this, sym, Nullable(sym.rhs), Nil))
-      }).toMap
-
-      def addUsage(usedSym: Sym, referencingSym: Sym) = {
-        val newNode = defMap.getOrElse(usedSym, GraphNode(this, usedSym, Nullable.None, Nil)).addUsage(referencingSym)
-        defMap += usedSym -> newNode
-      }
-
-
-      cfor(0)(_ < schedule.length, _ + 1) { i =>
-        val sym = schedule(i)
-        val usedSymbols = sym.rhs.deps
-        cfor(0)(_ < usedSymbols.length, _ + 1) { j =>
-          val us = usedSymbols(j)
-          addUsage(us, sym)
-        }
-      }
-      defMap
+    lazy val nodes: DMap[Int, GraphNode] = {
+      buildUsageMap(schedule)
     }
 
-    lazy val allNodes: Map[Sym, GraphNode] = {
-      var defMap: Map[Sym, GraphNode] = (scheduleAll.map { sym =>
-        (sym, GraphNode(this, sym, Nullable(sym.rhs), List.empty[Sym]))
-      }).toMap
-
-      def addUsage(usedSym: Sym, referencingSym: Sym) = {
-        val newNode = defMap.getOrElse(usedSym, GraphNode(this, usedSym, Nullable.None, List.empty)).addUsage(referencingSym)
-        defMap += usedSym -> newNode
-      }
-
-      for (sym <- scheduleAll) {
-        val usedSymbols = sym.rhs.syms
-        usedSymbols.foreach(us => addUsage(us, sym))
-      }
-      defMap
+    lazy val allNodes: DMap[Int, GraphNode] = {
+      buildUsageMap(scheduleAll)
     }
 
-    def node(s: Sym): Option[GraphNode] = nodes.get(s)
-
-    def globalUsagesOf(s: Sym) = allNodes.get(s) match {
+    def globalUsagesOf(s: Sym): DSet[Sym] = allNodes.get(s.rhs.nodeId) match {
       case Some(node) => node.outSyms
-      case None => Nil
+      case None => DSet.empty[Sym]
     }
 
-    def hasManyUsagesGlobal(s: Sym): Boolean = globalUsagesOf(s).lengthCompare(1) > 0
+    def hasManyUsagesGlobal(s: Sym): Boolean = globalUsagesOf(s).size > 1
 
-    def usagesOf(s: Sym) = node(s) match {
+    def usagesOf(s: Sym): DSet[Sym] = nodes.get(s.rhs.nodeId) match {
       case Some(node) => node.outSyms
-      case None => Nil
+      case None => DSet.empty[Sym]
     }
 
-    def hasManyUsages(s: Sym): Boolean = usagesOf(s).lengthCompare(1) > 0
+    def hasManyUsages(s: Sym): Boolean = usagesOf(s).size > 1
 
     def show(): Unit = show(defaultGraphVizConfig)
     def show(emitMetadata: Boolean): Unit = show(defaultGraphVizConfig.copy(emitMetadata = emitMetadata))

@@ -110,7 +110,15 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       else {
         val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= boundVarId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(
-          new Neighbours(sym => g.usagesOf(sym).filter(s => g.domain(s.rhs.nodeId)).toArray)
+          new Neighbours({ sym =>
+            val usages = g.usagesOf(sym)
+            val buf = DBuffer.ofSize[Sym](usages.size)
+            usages.foreach { us =>
+              if (g.domain(us.rhs.nodeId))
+                buf += us
+            }
+            buf.toArray()
+          })
         )
         val sch = g.schedule.filter(sym => locals(sym) && !sym.isVar)
         val currSch = if (sch.isEmpty) g.roots else sch
