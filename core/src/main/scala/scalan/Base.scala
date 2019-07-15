@@ -80,9 +80,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     private var _syms: Array[Sym] = _
     private var _elements: Array[Any] = _
 
-
-
-    def initContent(): Unit = {
+    final def initContent(): Unit = {
       val len = productArity
       _elements = new Array[Any](len)
       val symsBuf = DBuffer.ofSize[Sym](len)
@@ -96,10 +94,12 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
     def syms: Array[Sym] = {
       if (null == _syms) initContent()
-      val xs = _syms.toSeq
-      val ys = scalan.syms(this).toSeq
-      assert(xs == ys, s"Non flat definition $this: $xs != $ys")
       _syms
+    }
+
+    def elements: Array[Any] = {
+      if (null == _elements) initContent()
+      _elements
     }
 
     def transform(t: Transformer): Def[T] =
@@ -139,28 +139,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     private var _hashCode: Int = 0
     override def hashCode = {
       if (_hashCode == 0) {
-        val len = productArity
-        var i = 0
-        var result = 1
-        while (i < len) {
-          val element = productElement(i)
-          val elementHashCode = element match {
-            case null => 0
-            case arr: Array[Object] => Arrays.deepHashCode(arr)
-            case arr: Array[Int] => Arrays.hashCode(arr)
-            case arr: Array[Long] => Arrays.hashCode(arr)
-            case arr: Array[Float] => Arrays.hashCode(arr)
-            case arr: Array[Double] => Arrays.hashCode(arr)
-            case arr: Array[Boolean] => Arrays.hashCode(arr)
-            case arr: Array[Byte] => Arrays.hashCode(arr)
-            case arr: Array[Short] => Arrays.hashCode(arr)
-            case arr: Array[Char] => Arrays.hashCode(arr)
-            case _ => element.hashCode
-          }
-          result = 41 * result + elementHashCode
-          i += 1
-        }
-        _hashCode = result
+        _hashCode = Arrays.deepHashCode(elements.asInstanceOf[Array[AnyRef]])
       }
       _hashCode
     }
@@ -506,33 +485,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
-
-  def flatMapWithBuffer[A, T](iter: Iterator[A], f: A => TraversableOnce[T]): List[T] = {
-    // performance hotspot: this is the same as
-    // iter.toList.flatMap(f(_)) but faster
-    val out = new ListBuffer[T]
-    while (iter.hasNext) {
-      val e = iter.next()
-      out ++= f(e)
-    }
-    out.result()
-  }
-
-  @inline def flatMapProduct[T](p: Product, f: Any => TraversableOnce[T]): List[T] = {
-    val iter = p.productIterator
-    flatMapWithBuffer(iter, f)
-  }
-
-  // regular data (and effect) dependencies
-  def syms(e: Any): List[Rep[_]] = e match {
-    case s: Rep[_] => new scala.collection.immutable.::(s, Nil)  // optimization of hot spot
-    case s: Iterable[_] =>
-      flatMapWithBuffer(s.iterator, syms)
-    // All case classes extend Product!
-    case p: Product =>
-      flatMapProduct(p, syms)
-    case _ => Nil
-  }
 
   val performViewsLifting: Boolean = true
 

@@ -546,17 +546,6 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   def updateField[S <: Struct](struct: Rep[S], fieldName: String, v: Rep[_]): Rep[S] = FieldUpdate[S,Any](struct, fieldName, v)
   def fields(struct: Rep[Struct], fields: Seq[String]): Rep[Struct] = ProjectionStruct(struct, fields)
 
-  override def syms(e: Any): List[Rep[Any]] = e match {
-    case s: ProjectionStruct =>
-      s.struct :: Nil
-    case FieldUpdate(s, _, v) =>
-      s :: v :: Nil
-    case s: AbstractStruct[_] =>
-      s.fields.map(e => e._2).toList
-    case _ =>
-      super.syms(e)
-  }
-
   override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
     case SimpleStruct(tag, fields) =>
       s"${baseStructName(tag)}{${fields.map { case (fn, s) => s"$fn:$s" }.mkString("; ")}}"
