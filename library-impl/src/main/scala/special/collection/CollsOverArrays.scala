@@ -26,7 +26,7 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
   }
 
   // init
-  if (isPaired()) throw new RuntimeException("Use builders to create paired collections")
+  if (isPaired()) throw new RuntimeException(s"Got paired type: ${tA}. Use builders to create paired collections")
 
   @Internal
   override def tItem: RType[A] = tA

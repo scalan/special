@@ -295,6 +295,10 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   override def isReplArray(len: Int, value: B): Boolean = {
     if (length != len) return false
     if (length > 0) {
+      /*
+       * Every calculation can take a long time. this(0) will return already calculated value.
+       * f(source(0)) will calculate value no matter if it was already done
+       */
       source.isReplArray(len, source(0)) && this(0) == value
     } else {
       true
@@ -306,7 +310,7 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
     case repl: CReplColl[B]@unchecked if repl.tItem == this.tItem =>
       isReplArray(repl.length, repl.value)
     case pair: PairColl[a, b] if pair.tItem == this.tItem && this.length == pair.length =>
-      for (i <- 0 until length) {
+      cfor(0)(_ < length, _ + 1) { i =>
         val current = this(i).asInstanceOf[(a, b)]
         if (pair.ls(i) != current._1 || pair.rs(i) != current._2)
           return false
