@@ -193,7 +193,7 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
        * element as source for all elements of patch. If there's no any source elements (collection is empty) then
        * current collection is converted to CollOverArray and patch of CollOverArray is called (else branch below)
        */
-      val patchColl = new CReplColl(source(0), patch.length)(source.tItem)
+      val patchColl = new CReplColl(patch.length, source(0))(source.tItem)
       builder.makePartialView(source.patch(start, patchColl, replaced), f, calcCopy, itemsCopy)(tItem)
     } else {
       builder.fromArray(toArray).patch(from, patch, replaced)
