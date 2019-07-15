@@ -15,7 +15,7 @@ trait StructKeys extends ViewsModule with Entities  { self: Structs with Scalan 
       (val index: Rep[Int])
       (implicit val eSchema: Elem[Schema]) extends StructKey[Schema] {
     def name: Rep[String] = {
-      val i = index.asValue
+      val i = valueFromRep(index)
       eSchema.fieldNames(i)
     }
     override def toString = s"${eSchema.fieldsString}[$index]"
@@ -25,7 +25,7 @@ trait StructKeys extends ViewsModule with Entities  { self: Structs with Scalan 
       (val name: Rep[String])
       (implicit val eSchema: Elem[Schema]) extends StructKey[Schema] {
     def index: Rep[Int] = {
-      val n = name.asValue
+      val n = valueFromRep(name)
       eSchema.findFieldIndex(n)
     }
     override def toString = s"${eSchema.fieldsString}.$name"

@@ -49,10 +49,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   @inline final def asRep[T](x: Rep[_]): Rep[T] = x.asInstanceOf[Rep[T]]
 
-  implicit class RepExtension[A](x: Rep[A]) {
-    def asValue: A = valueFromRep(x)
-  }
-
   @inline implicit def liftToRep[A:Elem](x: A): Rep[A] = toRep(x)
 
   trait Def[+T] extends Product {
@@ -213,7 +209,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
     class BaseLiftable[T](implicit val eW: Elem[T], override val sourceType: RType[T]) extends Liftable[T, T] {
       def lift(x: T) = toRep(x)
-      def unlift(w: Rep[T]) = w.asValue
+      def unlift(w: Rep[T]) = valueFromRep(w)
     }
 
     class PairLiftable[SA,SB,A,B](implicit lA: Liftable[SA, A], lB: Liftable[SB, B]) extends Liftable[(SA,SB), (A,B)] {
@@ -346,7 +342,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
   }
 
-  implicit class TransformerEx[Ctx <: Transformer](self: Ctx)(implicit ops: TransformerOps[Ctx]) {
+  implicit class TransformerExtensions[Ctx <: Transformer](self: Ctx)(implicit ops: TransformerOps[Ctx]) {
     def +[A](kv: (Rep[A], Rep[A])) = ops.add(self, kv)
     def ++(kvs: Map[Rep[A], Rep[A]] forSome {type A}) = kvs.foldLeft(self)((ctx, kv) => ops.add(ctx, kv))
     def merge(other: Ctx): Ctx = ops.merge(self, other)
@@ -376,8 +372,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
   case object NoOwner extends OwnerParameter
   case object ScalanOwner extends OwnerParameter
   case class  EntityObjectOwner(obj: EntityObject) extends OwnerParameter
-
-  private[this] case class ReflectedProductClass(constructor: Constr[_], paramMirrors: List[ParamMirror], hasScalanParameter: OwnerParameter)
 
   protected def getOwnerParameterType(constructor: Constr[_]): OwnerParameter = {
     val paramTypes = constructor.getParameterTypes

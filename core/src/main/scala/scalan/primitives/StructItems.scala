@@ -36,7 +36,7 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
   }
 
   def struct_setItem[S <: Struct](s: Rep[S], i: Rep[Int], v: Rep[_]): Rep[S] = {
-    updateField(s, s.elem.fieldNames(i.asValue), v)
+    updateField(s, s.elem.fieldNames(valueFromRep(i)), v)
   }
 
   trait StructItemFunctor[S <: Struct] extends Functor[({type f[x] = StructItem[x,S]})#f] {
