@@ -23,7 +23,7 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   import IsoUR._
   // TODO consider if T type parameter is needed here and for AbstractStruct
   // It's only useful if we'll have some static typing on structs later (Shapeless' records?)
-  abstract class StructTag[T <: Struct](implicit val typeTag: TypeTag[T]) {
+  abstract class StructTag[T <: Struct](implicit val typeTag: TypeTag[T]) extends Product {
     override def equals(other: Any): Boolean =
       !!!("StructTag.equals must be overridden so that the outer instances aren't compared")
   }
@@ -547,10 +547,14 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   def fields(struct: Rep[Struct], fields: Seq[String]): Rep[Struct] = ProjectionStruct(struct, fields)
 
   override def syms(e: Any): List[Rep[Any]] = e match {
-    case s: ProjectionStruct => syms(s.struct)
-    case FieldUpdate(s, _, v) => syms(s) :+ v
-    case s: AbstractStruct[_] => s.fields.flatMap(e => this.syms(e._2)).toList
-    case _ => super.syms(e)
+    case s: ProjectionStruct =>
+      s.struct :: Nil
+    case FieldUpdate(s, _, v) =>
+      s :: v :: Nil
+    case s: AbstractStruct[_] =>
+      s.fields.map(e => e._2).toList
+    case _ =>
+      super.syms(e)
   }
 
   override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {

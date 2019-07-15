@@ -75,7 +75,32 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
 
     /** Override to redefine how dependencies are computed. */
-    protected def getDeps: Array[Sym] = syms(this).toArray
+    protected def getDeps: Array[Sym] = syms
+
+    private var _syms: Array[Sym] = _
+    private var _elements: Array[Any] = _
+
+
+
+    def initContent(): Unit = {
+      val len = productArity
+      _elements = new Array[Any](len)
+      val symsBuf = DBuffer.ofSize[Sym](len)
+      cfor(0)(_ < len, _ + 1) { i =>
+        val element = productElement(i)
+        _elements(i) = element
+        Def.addSyms(element, symsBuf)
+      }
+      _syms = symsBuf.toArray()
+    }
+
+    def syms: Array[Sym] = {
+      if (null == _syms) initContent()
+      val xs = _syms.toSeq
+      val ys = scalan.syms(this).toSeq
+      assert(xs == ys, s"Non flat definition $this: $xs != $ys")
+      _syms
+    }
 
     def transform(t: Transformer): Def[T] =
       !!!(s"Cannot transfrom definition using transform($this)", self)
@@ -160,6 +185,22 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   object Def {
     def unapply[T](e: Rep[T]): Nullable[Def[T]] = def_unapply(e)
+
+    final def addSyms(element: Any, buf: DBuffer[Sym]): Unit = element match {
+      case s: Sym =>
+        buf += s
+      case p: Product =>
+        val len = p.productArity
+        cfor(0)(_ < len, _ + 1) { i =>
+          addSyms(p.productElement(i), buf)
+        }
+      case xs: Seq[_] =>
+        val len = xs.length
+        cfor(0)(_ < len, _ + 1) { i =>
+          addSyms(xs(i), buf)
+        }
+      case _ =>
+    }
   }
   object && {
     def unapply[T](x: T): Option[(T,T)] = Some((x, x))
@@ -466,19 +507,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
 
-//  def flatMapWithBuffer[A](iter: Iterator[A], f: NeighbourFunc[A, Int], out: DBuffer[Int]): Unit = {
-//    while (iter.hasNext) {
-//      val e = iter.next()
-//      f.populate(e, out)
-//    }
-//  }
-//
-//  @inline def flatMapProduct(p: Product, f: NeighbourFunc[Any, Int], out: DBuffer[Int]): Unit = {
-//    val iter = p.productIterator
-//    flatMapWithBuffer(iter, f, out)
-//  }
-
-
   def flatMapWithBuffer[A, T](iter: Iterator[A], f: A => TraversableOnce[T]): List[T] = {
     // performance hotspot: this is the same as
     // iter.toList.flatMap(f(_)) but faster
@@ -489,9 +517,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     }
     out.result()
   }
-
-  @inline def flatMapIterable[A, T](iterable: Iterable[A], f: A => TraversableOnce[T]) =
-    flatMapWithBuffer(iterable.iterator, f)
 
   @inline def flatMapProduct[T](p: Product, f: Any => TraversableOnce[T]): List[T] = {
     val iter = p.productIterator

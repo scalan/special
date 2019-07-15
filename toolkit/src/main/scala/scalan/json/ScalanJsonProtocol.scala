@@ -71,7 +71,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
         val str = s"${opName(d)}(s${id})"
         JsArray(JsString(str), elementFormat.write(d.selfType))
       case Def(d) =>
-        val args = syms(d).map(mapSym(_))
+        val args = d.syms.map(mapSym(_)).toSeq
         val str = s"${opName(d)}(${args.rep()})"
         JsArray(JsString(str), elementFormat.write(d.selfType))
     }

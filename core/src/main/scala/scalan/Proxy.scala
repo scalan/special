@@ -11,7 +11,7 @@ import org.objenesis.ObjenesisStd
 import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
-
+import debox.{Buffer => DBuffer}
 import scala.collection.mutable.ArrayBuffer
 
 trait Proxy extends Base with GraphVizExport { self: Scalan =>
@@ -331,7 +331,10 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   }
 
   def throwInvocationException(whatFailed: String, cause: Throwable, receiver: Sym, m: Method, args: Seq[Any]) = {
-    val deps = receiver +: args.flatMap(syms)
+    val buf = DBuffer.empty[Sym]
+    buf += receiver
+    Def.addSyms(args, buf)
+    val deps = buf.toArray()
     !!!(s"$whatFailed (${receiver.toStringWithType}).${m.getName}(${args.mkString(", ")}) failed", baseCause(cause), deps: _*)
   }
 }

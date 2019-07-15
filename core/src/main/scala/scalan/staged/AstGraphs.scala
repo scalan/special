@@ -115,7 +115,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       }
 
       for (sym <- scheduleAll) {
-        val usedSymbols = syms(sym.rhs)
+        val usedSymbols = sym.rhs.syms
         usedSymbols.foreach(us => addUsage(us, sym))
       }
       defMap
