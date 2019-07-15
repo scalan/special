@@ -69,17 +69,17 @@ trait TypeSum extends Base { self: Scalan =>
   // TODO used by generated code; ideally should be unnecessary
   def sOptionElement[A: Elem] = element[SOptional[A]]
 
-  case class SLeft[A, B](left: Rep[A])(implicit val eRight: Elem[B]) extends BaseDef[A | B]()(sumElement(left.elem, eRight)) {
-    override def transform(t: Transformer): Def[A | B] = SLeft(t(left))(eRight)
+  case class SLeft[A, B](left: Rep[A], eRight: Elem[B]) extends BaseDef[A | B]()(sumElement(left.elem, eRight)) {
+    override def transform(t: Transformer): Def[A | B] = SLeft(t(left), eRight)
   }
 
-  case class SRight[A, B](right: Rep[B])(implicit val eLeft: Elem[A]) extends BaseDef[A | B]()(sumElement(eLeft, right.elem)) {
-    override def transform(t: Transformer): Def[A | B] = SRight(t(right))(eLeft)
+  case class SRight[A, B](right: Rep[B], eLeft: Elem[A]) extends BaseDef[A | B]()(sumElement(eLeft, right.elem)) {
+    override def transform(t: Transformer): Def[A | B] = SRight(t(right), eLeft)
   }
 
-  def mkLeft[A, B: Elem](a: Rep[A]): Rep[A | B] = SLeft[A, B](a)(element[B])
+  def mkLeft[A, B: Elem](a: Rep[A]): Rep[A | B] = SLeft[A, B](a, element[B])
 
-  def mkRight[A: Elem, B](b: Rep[B]): Rep[A | B] = SRight[A, B](b)(element[A])
+  def mkRight[A: Elem, B](b: Rep[B]): Rep[A | B] = SRight[A, B](b, element[A])
 
   case class SumFold[A, B, R](sum: Rep[A | B], left: Rep[A => R], right: Rep[B => R])
     extends BaseDef[R]()(left.elem.eRange) {
@@ -178,7 +178,7 @@ trait TypeSum extends Base { self: Scalan =>
       val x1 = x.asInstanceOf[a | b]
       implicit val eA = se.eLeft
       implicit val eB = se.eRight
-      x1.fold(l => SLeft[a, b](l), r => SRight[a, b](r))
+      x1.fold(l => SLeft[a, b](l, eB), r => SRight[a, b](r, eA))
     case _ =>
       super.toRep(x)(eA)
   }
@@ -199,10 +199,10 @@ trait TypeSum extends Base { self: Scalan =>
       implicit val eT = eRes.eSnd
       foldD.sum.foldBy(foldD.left >> fun(_._2), foldD.right >> fun(_._2))
 
-    case SumMap(Def(SRight(x)), f: RFunc[_, b]@unchecked, g) =>
+    case SumMap(Def(SRight(x, _)), f: RFunc[_, b]@unchecked, g) =>
       g(x).asRight[b](f.elem.eRange)
 
-    case SumMap(Def(SLeft(x)), f, g: RFunc[_, d]@unchecked) =>
+    case SumMap(Def(SLeft(x, _)), f, g: RFunc[_, d]@unchecked) =>
       f(x).asLeft[d](g.elem.eRange)
 
     case m1@SumMap(Def(f: SumFold[a0, b0, _]), left, right) =>
@@ -229,12 +229,12 @@ trait TypeSum extends Base { self: Scalan =>
         source.foldBy(f1, f1)
 
       // Rule: fold(Left(left), l, r) ==> l(left)
-      case Def(SLeft(left: Rep[a])) =>
+      case Def(SLeft(left: Rep[a], _)) =>
         implicit val eLeft = left.elem
         foldD.left(left)
 
       // Rule: fold(Right(right), l, r) ==> r(right)
-      case Def(SRight(right: Rep[a])) =>
+      case Def(SRight(right: Rep[a], _)) =>
         implicit val eRight = right.elem
         foldD.right(right)
 
@@ -257,7 +257,7 @@ trait TypeSum extends Base { self: Scalan =>
 
   override def rewriteViews[T](d: Def[T]) = d match {
     // Rule: Left[A,B](V(a, iso)) ==> V(Left(a), SumIso(iso, iso[B]))
-    case l@SLeft(HasViews(a, iso: Iso[a1, b1])) =>
+    case l@SLeft(HasViews(a, iso: Iso[a1, b1]), _) =>
       val eR = l.eRight
       getIsoByElem(eR) match {
         case iso1: Iso[a2, b2] =>
@@ -265,7 +265,7 @@ trait TypeSum extends Base { self: Scalan =>
       }
 
     // Rule: Right[A,B](V(a, iso)) ==> V(Right(a), SumIso(iso[A], iso))
-    case r@SRight(HasViews(a, iso: Iso[a1, b1])) =>
+    case r@SRight(HasViews(a, iso: Iso[a1, b1]), _) =>
       val eL = r.eLeft
       getIsoByElem(eL) match {
         case iso1: Iso[a2, b2] =>

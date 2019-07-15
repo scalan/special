@@ -74,7 +74,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
       _deps
     }
 
-    /** Override to redefine how dependencies are computed. */
+    /** Override to redefine how dependencies are computed.
+      * In `core` implementation this is overriden in Lambda and ThunkDef using freeVars. */
     protected def getDeps: Array[Sym] = syms
 
     private var _syms: Array[Sym] = _
@@ -97,49 +98,57 @@ trait Base extends LazyLogging { scalan: Scalan =>
       _syms
     }
 
-    def elements: Array[Any] = {
+    def elements: Array[AnyRef] = {
       if (null == _elements) initContent()
-      _elements
+      _elements.asInstanceOf[Array[AnyRef]]
     }
 
     def transform(t: Transformer): Def[T] =
       !!!(s"Cannot transfrom definition using transform($this)", self)
 
-    override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || (other match {
-      // check that nodes correspond to same operation, have the same type, and the same arguments
-      // alternative would be to include Elem fields into case class
-      case other: Base#Def[_] =>
-        ({
-          val cls1 = getClass
-          val cls2 = other.getClass
-          cls1 == cls2 || {
-            def nameWithoutCGLib(clazz: Class[_]) = {
-              val name = clazz.getName
-              name.indexOf("$$EnhancerByCGLIB$$") match {
-                case -1 => name
-                case i => name.substring(0, i)
+    override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || {
+      val prev = (other match {
+        // check that nodes correspond to same operation, have the same type, and the same arguments
+        // alternative would be to include Elem fields into case class
+        case other: Base#Def[_] =>
+          ({
+            val cls1 = getClass
+            val cls2 = other.getClass
+            cls1 == cls2 || {
+              def nameWithoutCGLib(clazz: Class[_]) = {
+                val name = clazz.getName
+                name.indexOf("$$EnhancerByCGLIB$$") match {
+                  case -1 => name
+                  case i => name.substring(0, i)
+                }
               }
-            }
 
-            cls1.getClassLoader == cls2.getClassLoader && nameWithoutCGLib(cls1) == nameWithoutCGLib(cls2)
-          }
-        } && productArity == other.productArity && {
-          val len = productArity
-          var i = 0
-          var result = true
-          while (result && i < len) {
-            result = Objects.deepEquals(productElement(i), other.productElement(i))
-            i += 1
-          }
-          result
-        } && selfType.name == other.selfType.name)
-      case _ => false
-    })
+              cls1.getClassLoader == cls2.getClassLoader && nameWithoutCGLib(cls1) == nameWithoutCGLib(cls2)
+            }
+          } && productArity == other.productArity && {
+            val len = productArity
+            var i = 0
+            var result = true
+            while (result && i < len) {
+              result = Objects.deepEquals(productElement(i), other.productElement(i))
+              i += 1
+            }
+            result
+          } && selfType.name == other.selfType.name)
+        case _ => false
+      })
+      val that = other.asInstanceOf[Def[_]]
+      val next = canEqual(other) && Arrays.deepEquals(elements, that.elements) && getClass == that.getClass
+      assert(prev == next, {
+        s"Equals don't match for $this(element = ${elements.toSeq}) and $that(element=${that.elements.toSeq})"
+      })
+      next
+    }
 
     private var _hashCode: Int = 0
     override def hashCode = {
       if (_hashCode == 0) {
-        _hashCode = Arrays.deepHashCode(elements.asInstanceOf[Array[AnyRef]])
+        _hashCode = Arrays.deepHashCode(elements)
       }
       _hashCode
     }
