@@ -38,7 +38,7 @@ class RewritingTests extends BaseCtxTests {
     }
   }
 
-  val p0 = new TestContext("RewritingRootLambda") with Prog0 { p0 =>
+  val p0 = new TestContextEx("RewritingRootLambda") with Prog0 { p0 =>
     val passes = new TestTransform {
       val scalan: p0.type = p0
     }

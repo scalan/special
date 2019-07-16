@@ -6,7 +6,7 @@ import scalan.{BaseTests, Lazy, TestContexts, Scalan}
 
 abstract class AbstractSlicingTests extends BaseTests with TestContexts {
 
-  class Ctx extends TestContext with Slicing with StringOps {
+  class Ctx extends TestContextEx with Slicing with StringOps {
     def createSliceAnalyzer = new SliceAnalyzer
 
     val eInt = element[Int]

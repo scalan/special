@@ -19,7 +19,6 @@ class Scalan
   with Functions
   with IfThenElse
   with Transforming
-  with RewriteRules
   with GraphVizExport
   with ViewsModule
   with Thunks
@@ -31,6 +30,7 @@ class ScalanEx extends Scalan
   with Blocks
   with StringOps
   with Metadata
+  with RewriteRules
   with TransformingEx {
 
   override def resetContext() = {

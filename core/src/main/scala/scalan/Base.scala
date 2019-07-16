@@ -464,15 +464,10 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   val performViewsLifting: Boolean = true
 
-  def rewrite[T](s: Rep[T]): Rep[_] = s match {
-    case Def(d) =>
-      if (performViewsLifting) {
-        val v = rewriteViews(d)
-        val res = if (v != null) v else rewriteDef(d)
-        res
-      } else
-        rewriteDef(d)
-    case _ => rewriteVar(s)
+  /** This is default implementation which delegates to global rewrite rules.
+    * However, this can be overriden, as it is done in RewriteRules. */
+  protected def rewrite[T](s: Rep[T]): Rep[_] = {
+    rewriteDef(s.rhs)
   }
 
   def rewriteViews[T](d: Def[T]): Rep[_] = null

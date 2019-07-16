@@ -1,15 +1,14 @@
 package scalan.primitives
 
-import java.io.File
 import java.lang.reflect.Method
 
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{BaseShouldTests, Scalan, Nullable}
+import scalan.{BaseShouldTests, ScalanEx, Nullable}
 import scalan.util.CollectionUtil._
 
 class RewriteRulesSuite extends BaseShouldTests {
 
-  class Ctx extends Scalan with GraphVizExport {
+  class Ctx extends ScalanEx with GraphVizExport {
     override def isInvokeEnabled(d: Def[_], m: Method) = true
     lazy val testLemma = postulate[Int, Int, Int, Int]((x, y, z) => x * y + x * z <=> x * (y + z))
     lazy val rule = patternRewriteRule(testLemma)

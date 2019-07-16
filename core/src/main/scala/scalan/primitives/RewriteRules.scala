@@ -42,7 +42,15 @@ trait RewriteRules extends Base { self: Scalan =>
     if (rewriteRules.nonEmpty)
       result = rewriteWithRules(rewriteRules)(s)
     if (result != null) result
-    else super.rewrite(s)
+    else {
+      if (performViewsLifting) {
+        val d = s.rhs
+        val v = rewriteViews(d)
+        val res = if (v != null) v else rewriteDef(d)
+        res
+      } else
+        rewriteDef(s.rhs)
+    }
   }
 
   def rewriteWithRules[T](rules: List[RewriteRule[_]])(s: Rep[T]): Sym = {
