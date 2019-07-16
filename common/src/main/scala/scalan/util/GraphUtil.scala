@@ -9,7 +9,7 @@ import scala.reflect.ClassTag
 trait NeighbourFunc[@specialized(Int) A, B] {
   def populate(x: A, res: DBuffer[B]): Unit
 }
-class Neighbours[@specialized(Int) A, B](f: A => Array[B]) extends NeighbourFunc[A, B] {
+class Neighbours[@specialized(Int) A, B](f: DFunc[A, DBuffer[B]]) extends NeighbourFunc[A, B] {
   override def populate(x: A, res: DBuffer[B]): Unit = {
     val ns = f(x)
     res ++= ns

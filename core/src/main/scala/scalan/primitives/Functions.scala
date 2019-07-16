@@ -8,6 +8,7 @@ import scalan.{Lazy, Base, Nullable, Scalan}
 import debox.{Set => DSet, Buffer => DBuffer}
 import scala.collection.mutable
 import scala.language.implicitConversions
+import spire.syntax.all.cfor
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
@@ -114,20 +115,17 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         // 2) collect set of nodes, which depend on `x`
         val g = new PGraph(roots, filterNode = Nullable(s => s.rhs._nodeId >= boundVarId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(
-          new Neighbours({ sym =>
-            val usages = g.usagesOf(sym)
-            val buf = DBuffer.ofSize[Sym](usages.length)
-            usages.foreach { us =>
-              if (g.domain(us.rhs.nodeId))
-                buf += us
-              else
-                assert(false, s"Non-domain usage $us -> ${us.rhs} of definition $sym -> ${sym.rhs}")
-            }
-            buf.toArray()
-          })
+          new Neighbours({ sym => g.usagesOf(sym) })
         )
-        val sch = g.schedule.filter(sym => locals(sym) && !sym.isVar)
-        val currSch = if (sch.isEmpty) g.roots else sch
+        val gschedule = g.schedule.toArray
+        val len = gschedule.length
+        val sch = DBuffer.ofSize[Sym](len)
+        cfor(0)(_ < len, _ + 1) { i =>
+          val sym = gschedule(i)
+          if (locals(sym) && !sym.isVar)
+            sch += sym
+        }
+        val currSch: Seq[Sym] = if (sch.isEmpty) g.roots else sch.toArray
         currSch
       }
       sch
