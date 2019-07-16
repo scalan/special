@@ -108,14 +108,20 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       val sch = if (isIdentity)
         mutable.WrappedArray.empty[Sym]
       else {
-        val g = new PGraph(roots, Nullable(s => s.rhs._nodeId >= boundVarId))
+        // graph g will contain all Defs reified as part of this Lambda, (due to `filterNode`)
+        // BUT not all of them depend on boundVars, thus we need to filter them out
+        // 1) we build g.schedule and then g.usageMap
+        // 2) collect set of nodes, which depend on `x`
+        val g = new PGraph(roots, filterNode = Nullable(s => s.rhs._nodeId >= boundVarId))
         val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(
           new Neighbours({ sym =>
             val usages = g.usagesOf(sym)
-            val buf = DBuffer.ofSize[Sym](usages.size)
+            val buf = DBuffer.ofSize[Sym](usages.length)
             usages.foreach { us =>
               if (g.domain(us.rhs.nodeId))
                 buf += us
+              else
+                assert(false, s"Non-domain usage $us -> ${us.rhs} of definition $sym -> ${sym.rhs}")
             }
             buf.toArray()
           })

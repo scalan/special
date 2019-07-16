@@ -739,7 +739,7 @@ trait Slicing extends ScalanEx {
   }
 
   def getAllSliced[A,B](g: AstGraph): Seq[Sym] = {
-    g.scheduleAll.filter { sym => sym.rhs.isInstanceOf[Sliced[_,_]] }
+    g.flatSchedule.filter { sym => sym.rhs.isInstanceOf[Sliced[_,_]] }
   }
 
   type SliceInfo[A,B] = (Rep[B], SliceMarking[A])

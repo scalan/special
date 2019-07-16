@@ -85,7 +85,7 @@ class CollsStagingTests extends WrappersTests {
   def runMeasure(name: String, alphaEq: Boolean, keepOrig: Boolean, unfoldWithOrig: Boolean) = {
     println(s"runMeasure($name, alphaEq = $alphaEq, keepOrig = $keepOrig, unfoldWithOrig = $unfoldWithOrig)")
     val nIters = 10
-    val nRepeats = 10000
+    val nRepeats = 1000
     def warmUp(i: Int) = {
       val ctx = new Ctx {
         override val performViewsLifting = false

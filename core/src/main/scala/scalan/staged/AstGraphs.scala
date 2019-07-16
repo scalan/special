@@ -1,11 +1,13 @@
 package scalan.staged
 
 import scala.collection.{mutable, _}
-import scalan.{Nullable, Scalan, DFunc}
+import scalan.{DFunc, Nullable, Scalan}
 import scalan.compilation.GraphVizConfig
 import scalan.util.GraphUtil
 import spire.syntax.all.cfor
 import debox.{Set => DSet, Buffer => DBuffer, Map => DMap}
+
+import scala.annotation.tailrec
 
 trait AstGraphs extends Transforming { self: Scalan =>
 
@@ -14,11 +16,10 @@ trait AstGraphs extends Transforming { self: Scalan =>
    */
   case class GraphNode(
           sym: Sym, // this symbol
-          usages: DSet[Int]) {
+          usages: DBuffer[Int]) {
     def inputSyms: Seq[Sym] = sym.rhs.deps
-    def outSyms: DSet[Sym] = usages.map(getSym)
-    def addUsage(usage: Int): Unit = {
-      usages += usage
+    def outSyms: DBuffer[Sym] = {
+      usages.map(getSym)
     }
   }
 
@@ -71,30 +72,41 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     @inline def isRoot(s: Sym): Boolean = roots contains s
 
-    lazy val scheduleAll: Schedule = {
-      schedule.flatMap {
-        case sym if sym.rhs.isInstanceOf[AstGraph] =>
-          sym.rhs.asInstanceOf[AstGraph].scheduleAll :+ sym
-        case sym =>
-          Array(sym)
+    /** Flatten the given schedule into single sequence of non-AstGraph definitions.
+      * All scope forming definitions like Lambda and ThunkDef are recursively unfolded in the given buffer `flatBuf`.
+      * NOTE: The symbols of AstGraph-like definitions are added to `flatBuf` AFTER the unfolded body.
+      */
+    final def buildFlatSchedule(schedule: Schedule, flatBuf: DBuffer[Sym]): Unit = {
+      cfor(0)(_ < schedule.length, _ + 1) { i =>
+        val sym = schedule(i)
+        if (sym.rhs.isInstanceOf[AstGraph]) {
+          buildFlatSchedule(sym.rhs.asInstanceOf[AstGraph].schedule, flatBuf)
+        }
+        flatBuf += sym
       }
     }
 
-    def buildUsageMap(schedule: Schedule): DMap[Int, GraphNode] = {
+    lazy val flatSchedule: Schedule = {
+      val flatBuf = DBuffer.ofSize[Sym](schedule.length)
+      buildFlatSchedule(schedule, flatBuf)
+      flatBuf.toArray
+    }
+
+    def buildUsageMap(schedule: Schedule, usingDeps: Boolean): DMap[Int, GraphNode] = {
       val len = schedule.length
       val nodeMap = DMap.ofSize[Int, GraphNode](len)
-      cfor(0)(_ < schedule.length, _ + 1) { i =>
+      cfor(0)(_ < len, _ + 1) { i =>
         val sym = schedule(i)
         val symId = sym.rhs.nodeId
-        nodeMap.update(symId, GraphNode(sym, DSet.empty[Int]))
+        nodeMap.update(symId, GraphNode(sym, DBuffer.empty[Int]))
 
-        val deps = sym.rhs.deps
+        val deps = if (usingDeps) sym.rhs.deps else sym.rhs.syms
         cfor(0)(_ < deps.length, _ + 1) { j =>
-          val us = deps(j)           // used symbol
-        val usId = us.rhs.nodeId     // used symbol id
-        var node = nodeMap.getOrElse(usId, null)
+          val us = deps(j)             // used symbol
+          val usId = us.rhs.nodeId     // used symbol id
+          var node = nodeMap.getOrElse(usId, null)
           if (null == node) {
-            node = GraphNode(us, DSet.empty[Int])
+            node = GraphNode(us, DBuffer.empty[Int])
             nodeMap.update(usId, node)
           }
           node.usages += symId
@@ -107,27 +119,27 @@ trait AstGraphs extends Transforming { self: Scalan =>
     /**
      * Symbol Usage information for this graph
      */
-    lazy val nodes: DMap[Int, GraphNode] = {
-      buildUsageMap(schedule)
+    lazy val usageMap: DMap[Int, GraphNode] = {
+      buildUsageMap(schedule, usingDeps = true)
     }
 
     lazy val allNodes: DMap[Int, GraphNode] = {
-      buildUsageMap(scheduleAll)
+      buildUsageMap(flatSchedule, usingDeps = false) // using rhs.syms instead of rhs.deps
     }
 
-    def globalUsagesOf(s: Sym): DSet[Sym] = allNodes.get(s.rhs.nodeId) match {
+    def globalUsagesOf(s: Sym): DBuffer[Sym] = allNodes.get(s.rhs.nodeId) match {
       case Some(node) => node.outSyms
-      case None => DSet.empty[Sym]
+      case None => DBuffer.empty[Sym]
     }
 
-    def hasManyUsagesGlobal(s: Sym): Boolean = globalUsagesOf(s).size > 1
+    def hasManyUsagesGlobal(s: Sym): Boolean = globalUsagesOf(s).length > 1
 
-    def usagesOf(s: Sym): DSet[Sym] = nodes.get(s.rhs.nodeId) match {
+    def usagesOf(s: Sym): DBuffer[Sym] = usageMap.get(s.rhs.nodeId) match {
       case Some(node) => node.outSyms
-      case None => DSet.empty[Sym]
+      case None => DBuffer.empty[Sym]
     }
 
-    def hasManyUsages(s: Sym): Boolean = usagesOf(s).size > 1
+    def hasManyUsages(s: Sym): Boolean = usagesOf(s).length > 1
 
     def show(): Unit = show(defaultGraphVizConfig)
     def show(emitMetadata: Boolean): Unit = show(defaultGraphVizConfig.copy(emitMetadata = emitMetadata))
