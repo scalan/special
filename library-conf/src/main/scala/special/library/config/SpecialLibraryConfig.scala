@@ -19,11 +19,11 @@ class SpecialLibraryConfig extends LibraryConfig {
       name = "Option",
       annotations = List(classOf[ContainerType], classOf[FunctorType], classOf[Liftable]).map(_.getSimpleName)
     ),
-    WrapperConf(baseDir,
-      packageName = "scala.util",
-      name = "Either",
-      annotations = List(classOf[Liftable]).map(_.getSimpleName)
-    ),
+//    WrapperConf(baseDir,
+//      packageName = "scala.util",
+//      name = "Either",
+//      annotations = List(classOf[Liftable]).map(_.getSimpleName)
+//    ),
     WrapperConf(baseDir,
       packageName = "special",
       name = "SpecialPredef"

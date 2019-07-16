@@ -13,8 +13,6 @@ object SpecialPredef {
 
   def cast[T:ClassTag](v: Any): Option[T] = v match { case _: T => Some(v.asInstanceOf[T]) case _ =>  None }
 
-  def eitherMap[A,B,C,D](e: Either[A,B], fa: A => C, fb: B => D): Either[C,D] = e.right.map(fb).left.map(fa)
-
   def some[A](x: A): Option[A] = Some(x)
 
   @Reified("A") def none[A](implicit tA: RType[A]): Option[A] = Option.empty[A]

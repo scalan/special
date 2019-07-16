@@ -13,7 +13,6 @@ trait WSpecialPredefsDefs extends scalan.Scalan with WSpecialPredefs {
   self: WrappersModule =>
 import IsoUR._
 import Converter._
-import WEither._
 import WOption._
 import WSpecialPredef._
 
@@ -80,22 +79,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
         true, false, element[A]))
     }
 
-    def right[A, B](b: Rep[B])(implicit emA: Elem[A]): Rep[WEither[A, B]] = {
-      implicit val eB = b.elem
-      asRep[WEither[A, B]](mkMethodCall(self,
-        thisClass.getMethod("right", classOf[Sym], classOf[Elem[_]]),
-        List(b, emA),
-        true, false, element[WEither[A, B]]))
-    }
-
-    def left[A, B](a: Rep[A])(implicit emB: Elem[B]): Rep[WEither[A, B]] = {
-      implicit val eA = a.elem
-      asRep[WEither[A, B]](mkMethodCall(self,
-        thisClass.getMethod("left", classOf[Sym], classOf[Elem[_]]),
-        List(a, emB),
-        true, false, element[WEither[A, B]]))
-    }
-
     def none[A](implicit emA: Elem[A]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
         thisClass.getMethod("none", classOf[Elem[_]]),
@@ -109,17 +92,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
         thisClass.getMethod("some", classOf[Sym]),
         List(x),
         true, false, element[WOption[A]]))
-    }
-
-    def eitherMap[A, B, C, D](e: Rep[WEither[A, B]], fa: Rep[A => C], fb: Rep[B => D]): Rep[WEither[C, D]] = {
-      implicit val eA = e.eA
-implicit val eB = e.eB
-implicit val eC = fa.elem.eRange
-implicit val eD = fb.elem.eRange
-      asRep[WEither[C, D]](mkMethodCall(self,
-        thisClass.getMethod("eitherMap", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(e, fa, fb),
-        true, false, element[WEither[C, D]]))
     }
 
     def cast[T](v: Rep[Any])(implicit emT: Elem[T]): Rep[WOption[T]] = {
@@ -202,19 +174,6 @@ implicit val eD = fb.elem.eRange
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[Rep[A] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object eitherMap {
-      def unapply(d: Def[_]): Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "eitherMap" =>
-          val res = (args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[WEither[A, B]], Rep[A => C], Rep[B => D]) forSome {type A; type B; type C; type D}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }

@@ -3,7 +3,6 @@ package special.wrappers {
 
   trait WrappersSpec extends Base { self: WrappersSpecModule =>
     import WArray._;
-    import WEither._;
     import WOption._;
     import WRType._;
     import WSpecialPredef._;
@@ -32,18 +31,11 @@ package special.wrappers {
       def isEmpty[A](xs: Rep[WOption[A]]): Rep[Boolean] = xs.isEmpty;
       @NeverInline def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B] = delayInvoke
     };
-    trait EitherWrapSpec extends WrapSpecBase {
-      def fold[A, B, C](xs: Rep[WEither[A, B]], fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, C]]): Rep[C] = xs.fold[C](fa, fb);
-      def cond[A, B](c: Rep[Boolean], a: Rep[Thunk[A]], b: Rep[Thunk[B]]): Rep[WEither[A, B]] = RWEither.cond[A, B](c, b, a)
-    };
     trait SpecialPredefWrapSpec extends WrapSpecBase {
       def loopUntil[A](s1: Rep[A], isMatch: Rep[scala.Function1[A, Boolean]], step: Rep[scala.Function1[A, A]]): Rep[A] = RWSpecialPredef.loopUntil[A](s1, isMatch, step);
       def cast[A](v: Rep[Any])(implicit cA: Elem[A]): Rep[WOption[A]] = RWSpecialPredef.cast[A](v);
-      def mapSum[A, B, C, D](e: Rep[WEither[A, B]], fa: Rep[scala.Function1[A, C]], fb: Rep[scala.Function1[B, D]]): Rep[WEither[C, D]] = RWSpecialPredef.eitherMap[A, B, C, D](e, fa, fb);
       def some[A](x: Rep[A]): Rep[WOption[A]] = RWSpecialPredef.some[A](x);
       def none[A](implicit cA: Elem[A]): Rep[WOption[A]] = RWSpecialPredef.none[A];
-      def left[A, B](a: Rep[A])(implicit cB: Elem[B]): Rep[WEither[A, B]] = RWSpecialPredef.left[A, B](a);
-      def right[A, B](b: Rep[B])(implicit cA: Elem[A]): Rep[WEither[A, B]] = RWSpecialPredef.right[A, B](b);
       def optionGetOrElse[A](opt: Rep[WOption[A]], default: Rep[A]): Rep[A] = RWSpecialPredef.optionGetOrElse[A](opt, default)
     };
     trait RTypeWrapSpec extends WrapSpecBase {
@@ -52,7 +44,6 @@ package special.wrappers {
     trait WrapSpecBaseCompanion;
     trait ArrayWrapSpecCompanion;
     trait OptionWrapSpecCompanion;
-    trait EitherWrapSpecCompanion;
     trait SpecialPredefWrapSpecCompanion;
     trait RTypeWrapSpecCompanion
   }
