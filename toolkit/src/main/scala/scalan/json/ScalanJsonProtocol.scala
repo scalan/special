@@ -61,7 +61,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
         JsArray(JsString("Const"), JsString(c.toString), elementFormat.write(sym.elem))
       case Def(MethodCall(obj, m, args, neverInvoke)) =>
         val params = "MethodCall" :: mapSym(obj) :: m.getDeclaringClass.getName :: m.getName :: neverInvoke.toString ::
-              args.map(mapMCallArg(_)(mapSym(_)))
+            (args.toList).map(mapMCallArg(_)(mapSym(_)))
 //            args.map { _ match {
 //              case s: Sym => mapSym(s)
 //              case x => ctx.!!!(s"MethodCall with non-Sym argument $x is not supported for Json serialization of $d")

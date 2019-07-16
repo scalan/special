@@ -414,6 +414,7 @@ trait TypeDescs extends Base { self: Scalan =>
 
   protected val elemCache = AVHashMap[(Class[_], Seq[AnyRef]), AnyRef](1000)
 
+  // TODO optimize: avoid tuple key in map since Tuple2.hashCode and equals takes 95% of lookup time
   private def cachedElem0(clazz: Class[_], optConstructor: Option[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
     elemCache.getOrElseUpdate(
       (clazz, args), {

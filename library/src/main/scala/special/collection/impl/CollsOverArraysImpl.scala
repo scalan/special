@@ -694,7 +694,7 @@ object CollOverArrayBuilder extends EntityObject("CollOverArrayBuilder") {
       implicit val eT = v.elem
       asRep[Coll[T]](mkMethodCall(self,
         thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
-        List(n, v),
+        Array(n, v),
         true, false, element[Coll[T]]))
     }
 

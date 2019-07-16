@@ -12,6 +12,8 @@ import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
 import debox.{Buffer => DBuffer}
+import spire.syntax.all.cfor
+
 import scala.collection.mutable.ArrayBuffer
 
 trait Proxy extends Base with GraphVizExport { self: Scalan =>
@@ -26,7 +28,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   def delayInvoke = throw new DelayInvokeException
 
   // call mkMethodCall instead of constructor
-  case class MethodCall private[Proxy](receiver: Sym, method: Method, args: List[AnyRef], neverInvoke: Boolean)
+  case class MethodCall private[Proxy](receiver: Sym, method: Method, args: Seq[AnyRef], neverInvoke: Boolean)
                                       (val selfType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
 
     override def toString = {
@@ -47,7 +49,15 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
         )
       }
 
-    //TODO optimize: override `Def.elements` then equals and hashCode can be removed
+//    override protected def initContent(): Unit = {
+//      _elements = Array()
+//      val buf = DBuffer.ofSize[Sym](100)
+//      buf += receiver
+//      Def.addSyms(args, buf)
+//      _syms = buf.toArray()
+//    }
+//
+//    override def elements: Array[AnyRef] = !!!(s"MethodCall.elements is not defined and shouldn't be called")
 
     import scalan.util.CollectionUtil.TraversableOps
     override def equals(other: Any): Boolean = (this eq other.asInstanceOf[AnyRef]) || {
@@ -88,7 +98,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
     case _ => super.transformDef(d, t)
   }
 
-  def mkMethodCall(receiver: Sym, method: Method, args: List[AnyRef],
+  def mkMethodCall(receiver: Sym, method: Method, args: Seq[AnyRef],
                    neverInvoke: Boolean, isAdapterCall: Boolean, resultElem: Elem[_]): Sym = {
     reifyObject(MethodCall(receiver, method, args, neverInvoke)(resultElem.asElem[Any], isAdapterCall))
   }

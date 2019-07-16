@@ -136,6 +136,7 @@ class CollsStagingTests extends WrappersTests {
         emit(name, outGraph)
     }
     measure(nIters)(warmUp)
+    System.gc()
     measure(nIters)(measureUp)
   }
 
