@@ -1,6 +1,8 @@
 package scalan.staged
 
 import scalan.{Nullable, Scalan, DFunc}
+import debox.{Buffer => DBuffer}
+import spire.syntax.all.cfor
 
 trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
@@ -15,13 +17,38 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
     override def boundVars = Nil
     override def freeVars = Set()
     override lazy val schedule = {
-      val neighbours: DFunc[Int, Array[Int]] = filterNode match {
+      val neighbours: DFunc[Int, DBuffer[Int]] = filterNode match {
         case Nullable(pred) =>
-          (id: Int) => getSym(id).rhs.deps.collect { case sym if pred(sym) && !sym.isVar => sym.rhs.nodeId }.toArray
+          { (id: Int) =>
+            val deps = getSym(id).rhs.deps
+            val len = deps.length
+            val res = DBuffer.ofSize[Int](len)
+            cfor(0)(_ < len, _ + 1) { i =>
+              val sym = deps(i)
+              if (pred(sym) && !sym.isVar)
+                res += sym.rhs.nodeId
+            }
+            res
+          }
         case _ =>
-          (id: Int) => getSym(id).rhs.deps.collect { case sym if !sym.isVar => sym.rhs.nodeId }.toArray
+          { (id: Int) =>
+            val deps = getSym(id).rhs.deps
+            val len = deps.length
+            val res = DBuffer.ofSize[Int](len)
+            cfor(0)(_ < len, _ + 1) { i =>
+              val sym = deps(i)
+              if (!sym.isVar)
+                res += sym.rhs.nodeId
+            }
+            res
+          }
       }
-      buildScheduleForResult(roots.map(_.rhs.nodeId).toArray, neighbours).map(getSym(_))
+      val sch = buildScheduleForResult(DBuffer.fromIterable(roots.map(_.rhs.nodeId)), neighbours)
+      val res = new Array[Sym](sch.length)
+      cfor(0)(_ < res.length, _ + 1) { i =>
+        res(i) = getSym(sch(i))
+      }
+      res
     }
 
 

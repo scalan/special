@@ -7,6 +7,7 @@ import scalan.meta.ScalanAstTraversers.EntityUseTraverser
 import scalan.meta.ScalanAst._
 import scalan.util.PrintExtensions._
 import scalan.meta.AstLenses._
+import debox.{Buffer => DBuffer}
 
 object ScalanAstExtensions {
 
@@ -136,7 +137,7 @@ object ScalanAstExtensions {
       def inherit(n: String) = {
         val e = unit.getEntity(n)
         val as = e.getAncestorTypeNames.filter(n => localEntityNames.contains(n))
-        as.toArray
+        DBuffer.fromIterable(as)
       }
       val es = GraphUtil.stronglyConnectedComponents(unit.allEntities.map(_.name).toArray)(inherit)
         .toIterable()

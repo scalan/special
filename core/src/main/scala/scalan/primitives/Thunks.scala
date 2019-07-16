@@ -2,7 +2,8 @@ package scalan.primitives
 
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.{Liftable => _, _}
-import debox.{Set => DSet}
+import debox.{Set => DSet, Buffer => DBuffer}
+import spire.syntax.all.cfor
 import scala.reflect.runtime.universe._
 import scalan.util.Covariant
 
@@ -157,10 +158,25 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
 
     def scheduleForResult(root: Rep[Any]): Schedule = {
       val sch = buildScheduleForResult(
-        Array(root.rhs.nodeId),
-        id => getSym(id).rhs.deps.collect { case s if bodyIds(s.rhs.nodeId) && !s.isVar => s.rhs.nodeId }.toArray
+        DBuffer(root.rhs.nodeId),
+        { id =>
+          val deps = getSym(id).rhs.deps
+          val res = DBuffer.ofSize[Int](deps.length)
+          cfor(0)(_ < deps.length, _ + 1) { i =>
+            val s = deps(i)
+            val id = s.rhs.nodeId
+            if (bodyIds(id) && !s.isVar)
+              res += id
+          }
+          res
+        }
       )
-      sch.map(getSym)
+      val len = sch.length
+      val res = new Array[Sym](len)
+      cfor(0)(_ < len, _ + 1) { i =>
+        res(i) = getSym(sch(i))
+      }
+      res
     }
 
     // TODO optimize: this is performance hotspot (use ArrayBuilder instead of ListBuffer)

@@ -39,7 +39,7 @@ class GraphUtilTests extends BaseNestedTests {
       case "D" => Nil
     }
     def test(startNodes: Array[String], graph: String => List[String]): Seq[Set[String]] = {
-      val result = stronglyConnectedComponents(startNodes)(n => graph(n).toArray).toArray.map(_.toIterable().toSet)
+      val result = stronglyConnectedComponents(startNodes)(n => DBuffer.fromIterable(graph(n))).toArray.map(_.toIterable().toSet)
       result
     }
     it("accessAll") {

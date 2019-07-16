@@ -47,7 +47,7 @@ object GraphUtil {
    * The scc are returned in _reverse_ topological order.
    * Tarjan's algorithm (linear).
    */
-  def stronglyConnectedComponents[@specialized(Int) T: ClassTag](startNodes: Array[T], succ: DFunc[T, Array[T]]): DBuffer[DBuffer[T]] = {
+  def stronglyConnectedComponents[@specialized(Int) T: ClassTag](startNodes: DBuffer[T], succ: DFunc[T, DBuffer[T]]): DBuffer[DBuffer[T]] = {
     val tarjan = new Tarjan[T](succ)
 
     cfor(0)(_ < startNodes.length, _ + 1) { i =>
@@ -58,15 +58,15 @@ object GraphUtil {
     tarjan.res
   }
 
-  def stronglyConnectedComponents[@specialized(Int) T: ClassTag](start: Array[T])(succ: T => Array[T]): DBuffer[DBuffer[T]] = {
-    stronglyConnectedComponents(start, new DFuncAdapter(succ))
+  def stronglyConnectedComponents[@specialized(Int) T: ClassTag](start: Array[T])(succ: T => DBuffer[T]): DBuffer[DBuffer[T]] = {
+    stronglyConnectedComponents(DBuffer.fromArray(start), new DFuncAdapter(succ))
   }
 
-  val initTarjan = new Tarjan[Int](new DFuncAdapter((i: Int) => Array(i)))
+  val initTarjan = new Tarjan[Int](new DFuncAdapter((i: Int) => DBuffer(i)))
 }
 
 
-final class Tarjan[@specialized(Int) T: ClassTag](private var getNeighbours: DFunc[T, Array[T]]) {
+final class Tarjan[@specialized(Int) T: ClassTag](private var getNeighbours: DFunc[T, DBuffer[T]]) {
   private var id = 0
   private var stack: DBuffer[T] = DBuffer.empty
   private val mark = DMap.ofSize[T,Int](127)

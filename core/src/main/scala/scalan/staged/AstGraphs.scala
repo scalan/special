@@ -148,17 +148,17 @@ trait AstGraphs extends Transforming { self: Scalan =>
   } // AstGraph
 
 
-  def buildScheduleForResult(startNodes: Array[Int], neighbours: DFunc[Int, Array[Int]]): Array[Int] = {
+  def buildScheduleForResult(startNodes: DBuffer[Int], neighbours: DFunc[Int, DBuffer[Int]]): DBuffer[Int] = {
     val components = GraphUtil.stronglyConnectedComponents(startNodes, neighbours)
     val nComponents = components.length
     if (nComponents == 1) {
-      components(0).toArray()
+      components(0)
     } else {
       val res = DBuffer.ofSize[Int](components(0).length)
       cfor(0)(_ < nComponents, _ + 1) { i =>
         res ++= components(i)
       }
-      res.toArray()
+      res
     }
   }
 }
