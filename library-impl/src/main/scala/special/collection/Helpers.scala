@@ -23,9 +23,8 @@ object Helpers {
     val keyPositions = new java.util.HashMap[K, Int](32)
     val keys = mutable.ArrayBuilder.make[K]
     val values = Array.ofDim[V](arr.length)
-    var i = 0
     var nValues = 0
-    while (i < arr.length) {
+    cfor(0)(_ < arr.length, _ + 1) { i =>
       val (key, value) = m(arr(i))
       val pos = keyPositions.getOrDefault(key, 0)
       if (pos == 0) {
@@ -36,7 +35,6 @@ object Helpers {
       } else {
         values(pos - 1) = r((values(pos - 1), value))
       }
-      i += 1
     }
     val resValues = Array.ofDim[V](nValues)
     Array.copy(values, 0, resValues, 0, nValues)
