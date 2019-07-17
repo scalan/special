@@ -1715,10 +1715,6 @@ implicit val eB = p.innerIso.eTo
   registerModule(ViewsModule)
 }
 
-trait ViewsDefsEx extends ViewsDefs {
-  self: ViewsModule with ScalanEx =>
-}
-
 object ViewsModule extends scalan.ModuleInfo("scalan", "Views")
 }
 

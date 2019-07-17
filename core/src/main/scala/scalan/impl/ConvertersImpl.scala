@@ -1135,10 +1135,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   registerModule(ConvertersModule)
 }
 
-trait ConvertersDefsEx extends ConvertersDefs {
-  self: ScalanEx =>
-}
-
 object ConvertersModule extends scalan.ModuleInfo("scalan", "Converters")
 }
 

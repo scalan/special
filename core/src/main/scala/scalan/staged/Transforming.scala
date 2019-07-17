@@ -3,7 +3,7 @@ package scalan.staged
 import java.lang.reflect.Method
 
 import scala.collection.{Seq, mutable}
-import scalan.{Lazy, DelayInvokeException, Scalan, Nullable, ScalanEx}
+import scalan.{Lazy, DelayInvokeException, Scalan, Nullable}
 import scala.reflect.runtime.universe._
 
 trait Transforming { self: Scalan =>

@@ -1,6 +1,6 @@
 package scalan.primitives
 
-import scalan.{Base, BaseEx, Scalan, ScalanEx}
+import scalan.{Base, Scalan}
 
 trait TypeSum extends Base { self: Scalan =>
   import IsoUR._

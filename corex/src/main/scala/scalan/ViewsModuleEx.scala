@@ -1,6 +1,6 @@
 package scalan
 
-trait ViewsModuleEx extends ViewsModule with impl.ViewsDefsEx with BaseEx { self: ScalanEx =>
+trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
   import IsoUR._
 
   object HasViews {

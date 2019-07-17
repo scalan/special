@@ -2,7 +2,7 @@ package scalan
 
 import scalan.primitives.TypeSumEx
 
-trait ConvertersModuleEx extends ConvertersModule with impl.ConvertersDefsEx with TypeSumEx { self: ScalanEx =>
+trait ConvertersModuleEx extends ConvertersModule  with TypeSumEx { self: ScalanEx =>
   import IsoUR._
 
   override def rewriteViews[T](d: Def[T]) = d match {
