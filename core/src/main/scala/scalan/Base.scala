@@ -55,7 +55,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     /** Unique id of the node. Initially undefined, should be defined after Def is added to the graph.
       * Doesn't participate in equality of this Def.
       * Use only to provide global Def numbering. */
-    private[scalan] var _nodeId: Int = SingleSym.freshId
+    private[scalan] var _nodeId: Int = freshId
     @inline def nodeId: Int = _nodeId
 
     def selfType: Elem[T @uncheckedVariance]
@@ -309,14 +309,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
       !!!(s"Method transfrom should not be called on $this", self)
   }
 
-  @inline def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](SingleSym.freshId)
+  @inline def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](freshId)
 
   /** Symbols may temporary refer to this node until their target node is updated. */
   case class Placeholder[T](eT: LElem[T]) extends Def[T] {
     def selfType: Elem[T] = eT.value
   }
 
-  @inline def placeholder[T](implicit eT: LElem[T]): Rep[T] = SingleSym.freshSym[T](Placeholder[T](eT))
+  @inline def placeholder[T](implicit eT: LElem[T]): Rep[T] = freshSym[T](Placeholder[T](eT))
 
   abstract class Transformer {
     def apply[A](x: Rep[A]): Rep[A]
@@ -511,7 +511,8 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   def rewriteVar[T](s: Rep[T]): Rep[_] = null
 
-  /** Light weight stateless immutable reference to a graph node (Def[T]).
+  /** A Sym is a symbolic reference used internally to refer to graph nodes.
+    * Light weight stateless immutable reference to a graph node (Def[T]).
     * Two symbols are equal if they refer to the nodes with the same id,
     * which is due to Def unification means equal symbols refer to the same instance of Def.
     * */
@@ -555,19 +556,14 @@ trait Base extends LazyLogging { scalan: Scalan =>
     override def hashCode(): Int = _rhs._nodeId
   }
 
-  /**
-    * A Sym is a symbolic reference used internally to refer to graph nodes.
-    */
-  object SingleSym {
-    private var currId = 0
-    @inline final def freshId: Int = { currId += 1; currId }
+  private var currId: Int = 0
+  @inline final def freshId: Int = { currId += 1; currId }
 
-    @inline final def freshSym[T](d: Def[T]): Rep[T] = {
-      updateSymbolTable(null, d)
-    }
-
-    final def resetIdCounter() = { currId = 0 }
+  @inline final def freshSym[T](d: Def[T]): Rep[T] = {
+    updateSymbolTable(null, d)
   }
+
+  @inline final def resetIdCounter() = { currId = 0 }
 
   /** Create or find symbol in the table which refers to the given node.
     * The d.nodeId is the index in the _symbolTable which is DBuffer (backed by Array)
@@ -601,7 +597,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   @inline final def getSym(id: Int): Sym = _symbolTable(id)
 
-  @inline final def symbolOf[T](d: Def[T]): Rep[T] = SingleSym.freshSym[T](d)
+  @inline final def symbolOf[T](d: Def[T]): Rep[T] = freshSym[T](d)
 
   val nInitialDefs = 10000
   private[this] val _symbolTable: DBuffer[Sym] = DBuffer.ofSize(nInitialDefs)
@@ -618,7 +614,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
     defToGlobalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
     _symbolTable.clear()
     _symbolTable.splice(0, DBuffer.ofSize[Sym](nInitialDefs))
-    SingleSym.resetIdCounter()
+    resetIdCounter()
     globalThunkSym = placeholder[Int]
     tuplesCache.clear()
     _intZero.reset()
