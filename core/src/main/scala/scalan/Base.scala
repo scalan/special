@@ -16,10 +16,8 @@ import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
 import scalan.util.{ParamMirror, ReflectionUtil, NeighbourFunc, StringUtil}
 import debox.{Buffer => DBuffer, Set => DSet}
-
 import scala.reflect.runtime.universe._
 import spire.syntax.all.cfor
-import supertagged.TaggedType
 
 /**
   * The Base trait houses common AST nodes. It also manages a list of encountered Definitions which
@@ -62,7 +60,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
     private var _self: Rep[T @uncheckedVariance] = _
     def self: Rep[T] = {
-      if (_self == null) _self = symbolOf(this)
+      if (_self == null) _self = freshSym(this)
       _self
     }
 
@@ -597,21 +595,19 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   @inline final def getSym(id: Int): Sym = _symbolTable(id)
 
-  @inline final def symbolOf[T](d: Def[T]): Rep[T] = freshSym[T](d)
-
   val nInitialDefs = 10000
   private[this] val _symbolTable: DBuffer[Sym] = DBuffer.ofSize(nInitialDefs)
-  private[this] var defToGlobalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
+  private[this] var _globalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
 
   protected var globalThunkSym: Rep[_] = placeholder[Int] // we could use any type here
 
-  def defCount = defToGlobalDefs.hashMap.size
+  def defCount = _globalDefs.hashMap.size
 
   private val _intZero = MutableLazy(0: Rep[Int])
   @inline final def IntZero = _intZero.value
 
   def resetContext() = {
-    defToGlobalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
+    _globalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
     _symbolTable.clear()
     _symbolTable.splice(0, DBuffer.ofSize[Sym](nInitialDefs))
     resetIdCounter()
@@ -628,7 +624,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
   }
 
   def findGlobalDefinition[T](d: Def[T]): Rep[T] = {
-    val existingOpt = defToGlobalDefs.get(d)
+    val existingOpt = _globalDefs.get(d)
     if (existingOpt.isDefined)
       existingOpt.get.self.asInstanceOf[Rep[T]]
     else
@@ -667,7 +663,7 @@ trait Base extends LazyLogging { scalan: Scalan =>
       case Nullable(scope) =>
         scope += s
       case _ =>
-        defToGlobalDefs.put(d, d)
+        _globalDefs.put(d, d)
     }
     s
   }

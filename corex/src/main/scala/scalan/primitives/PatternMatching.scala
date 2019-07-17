@@ -1,7 +1,7 @@
 package scalan.primitives
 
+import scalan.{Base, DelayInvokeException, Scalan}
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.{Base, _}
 
 trait PatternMatching extends Base with GraphVizExport { _: Scalan =>
 
@@ -91,4 +91,3 @@ trait PatternMatching extends Base with GraphVizExport { _: Scalan =>
     case _ => super.formatDef(d)
   }
 }
-

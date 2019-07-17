@@ -115,10 +115,20 @@ lazy val core = Project("core", file("core"))
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.3",
-        "org.rudogma" % "supertagged_2.12" % "1.4",
         "org.objenesis" % "objenesis" % "2.4",
         "com.github.kxbmap" %% "configs" % "0.4.4",
         "com.trueaccord.lenses" %% "lenses" % "0.4.12",
+        "org.spire-math" %% "debox" % "0.8.0",
+      ))
+      
+lazy val corex = Project("corex", file("corex"))
+    .dependsOn(
+      common % allConfigDependency, ast % allConfigDependency, 
+      libraryapi % allConfigDependency, core % allConfigDependency, macros)
+    .settings(commonSettings,
+      libraryDependencies ++= Seq(
+        "cglib" % "cglib" % "3.2.3",
+        "com.github.kxbmap" %% "configs" % "0.4.4",
         "org.spire-math" %% "debox" % "0.8.0",
       ))
 
@@ -134,7 +144,7 @@ lazy val libraryimpl = Project("library-impl", file("library-impl"))
       ))
 
 lazy val library = Project("library", file("library"))
-    .dependsOn(common % allConfigDependency, core % allConfigDependency, libraryapi, libraryimpl)
+    .dependsOn(common % allConfigDependency, core % allConfigDependency, corex % allConfigDependency, libraryapi, libraryimpl)
     .settings(//commonSettings,
       libraryDefSettings,
       libraryDependencies ++= Seq(
@@ -160,19 +170,19 @@ lazy val scalanizer = Project("scalanizer", file("scalanizer"))
     )
 
 lazy val kotlinBackend = Project("kotlin-backend", file("kotlin-backend")).
-    dependsOn(common % allConfigDependency, core % allConfigDependency, library)
+    dependsOn(common % allConfigDependency, core % allConfigDependency, corex % allConfigDependency, library)
     .configs(IntegrationTest)
     .settings(itSettings)
 
 lazy val toolkit = Project("toolkit", file("toolkit")).
-    dependsOn(common % allConfigDependency, meta % allConfigDependency, core % allConfigDependency, library % allConfigDependency)
+    dependsOn(common % allConfigDependency, meta % allConfigDependency, core % allConfigDependency, corex % allConfigDependency, library % allConfigDependency)
     .settings(commonSettings)
     .settings(
       libraryDependencies ++= Seq("io.spray" %% "spray-json" % "1.3.3")
     )
 
 lazy val root = Project("special", file("."))
-    .aggregate(common, ast, meta, macros, core, plugin,
+    .aggregate(common, ast, meta, macros, core, corex, plugin,
     libraryapi, libraryimpl, library, libraryconf, scalanizer, kotlinBackend, toolkit)
     .settings(buildSettings, publishArtifact := false)
 
