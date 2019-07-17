@@ -22,16 +22,33 @@ class Scalan
   with GraphVizExport
   with ViewsModule
   with Thunks
+  with Entities
   with Structs
   with ConvertersModule
   with Modules
+
+trait BaseEx extends Base { self: ScalanEx =>
+  def decompose[T](d: Def[T]): Option[Rep[T]] = None
+
+  val performViewsLifting: Boolean = true
+
+  def rewriteViews[T](d: Def[T]): Rep[_] = null
+
+  def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = None
+}
 
 class ScalanEx extends Scalan
   with Blocks
   with StringOps
   with Metadata
   with RewriteRules
-  with TransformingEx {
+  with BaseEx
+  with TransformingEx
+  with ViewsModuleEx
+  with ThunksEx
+  with StructsEx
+  with ConvertersModuleEx
+{
 
   override def resetContext() = {
     super.resetContext()

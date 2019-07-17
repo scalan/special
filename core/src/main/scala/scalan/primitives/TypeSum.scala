@@ -1,6 +1,6 @@
 package scalan.primitives
 
-import scalan.{Base, Scalan}
+import scalan.{Base, BaseEx, Scalan, ScalanEx}
 
 trait TypeSum extends Base { self: Scalan =>
   import IsoUR._
@@ -173,6 +173,12 @@ trait TypeSum extends Base { self: Scalan =>
     case _ => false
   }
 
+
+}
+
+trait TypeSumEx extends BaseEx { self: ScalanEx =>
+  import IsoUR._
+   
   override def toRep[A](x: A)(implicit eA: Elem[A]):Rep[A] = eA match {
     case se: SumElem[a, b] =>
       val x1 = x.asInstanceOf[a | b]
@@ -214,7 +220,7 @@ trait TypeSum extends Base { self: Scalan =>
     case f@SumFold(Def(m: SumMap[a0, b0, a, b]), left, right) =>
       m.sum.foldBy(left << m.left, right << m.right)
 
-    case foldD: SumFold[a, b, T] => foldD.sum match {
+    case foldD: SumFold[a, b, T]@unchecked => foldD.sum match {
 
       // Rule: fold(SumView(source, iso1, iso2), l, r) ==> fold(source, iso1.to >> l, iso2.to >> r)
       case Def(view: SumView[a1, a2, b1, b2]) =>
@@ -273,16 +279,16 @@ trait TypeSum extends Base { self: Scalan =>
       }
 
     case foldD@SumFold(sum,
-          LambdaResultHasViews(left, iso1: Iso[a, c]),
-          LambdaResultHasViews(right, iso2: Iso[_, _])) if iso1 == iso2 =>
+    LambdaResultHasViews(left, iso1: Iso[a, c]),
+    LambdaResultHasViews(right, iso2: Iso[_, _])) if iso1 == iso2 =>
       val newFold = liftFromSumFold(sum, left, right, iso1)
       newFold
 
     // Rule:
     case call@MethodCall(
-          Def(foldD @ SumFold(sum,
-          LambdaResultHasViews(left, iso1: Iso[a, c]),
-          LambdaResultHasViews(right, iso2: Iso[_, _]))), m, args, neverInvoke) if iso1 == iso2 =>
+    Def(foldD @ SumFold(sum,
+    LambdaResultHasViews(left, iso1: Iso[a, c]),
+    LambdaResultHasViews(right, iso2: Iso[_, _]))), m, args, neverInvoke) if iso1 == iso2 =>
       val newFold = liftFromSumFold(foldD.sum, foldD.left, foldD.right, iso1.asIso[a,Any])
       mkMethodCall(newFold, m, args, neverInvoke, isAdapterCall = false, call.selfType)
 

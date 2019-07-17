@@ -460,11 +460,6 @@ trait Base extends LazyLogging { scalan: Scalan =>
     def unapply[T](s: Rep[T]): Nullable[(Rep[T],Elem[T])] = Nullable((s, s.elem))
   }
 
-  def decompose[T](d: Def[T]): Option[Rep[T]] = None
-
-  val performViewsLifting: Boolean = true
-
-  def rewriteViews[T](d: Def[T]): Rep[_] = null
 
   def rewriteDef[T](d: Def[T]): Rep[_] = d match {
     case First(p) if p.rhs.isInstanceOf[Tup[_,_]] => p.rhs.asInstanceOf[Tup[_,_]].a

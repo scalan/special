@@ -398,8 +398,8 @@ class StructTests extends BaseViewTests {
       val eDoubleBool = tuple2StructElement[Double, Boolean]
       val nested = tupleStructElement(eIntInt, eDoubleBool)
       val nested2 = tupleStructElement(nested, nested)
-      assertResult(nested)(element[((Int,Int),(Double,Boolean))].toStructElemShallow)
-      assertResult(nested2)(element[(((Int,Int),(Double,Boolean)),((Int,Int),(Double,Boolean)))].toStructElemShallow)
+      assertResult(nested)(toStructElemShallow(element[((Int,Int),(Double,Boolean))]))
+      assertResult(nested2)(toStructElemShallow(element[(((Int,Int),(Double,Boolean)),((Int,Int),(Double,Boolean)))]))
     }
   }
 

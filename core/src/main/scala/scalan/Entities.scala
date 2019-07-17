@@ -83,17 +83,6 @@ trait Entities extends TypeDescs { self: Scalan =>
   implicit class ElemOpsForEntities[T](e: Elem[T]) {
     def isConcrete = isConcreteElem(e)
     def getDataIso = getIsoByElem(e)
-
-    /**
-     * Replaces a root tree of [[PairElem]]s in the given element [[e]] with [[StructElem]]s.
-     * All other types are considered as leaves.
-     * @return new StructElem if [[e]] is [[PairElem]] otherwise returns [[e]].
-     */
-    def toStructElemShallow: Elem[_] = e match {
-      case pe: PairElem[a,b] =>
-        tupleStructElement(pe.eFst.toStructElemShallow, pe.eSnd.toStructElemShallow)
-      case _ => e
-    }
   }
   trait CompanionElem[T] extends Elem[T] { _: scala.Equals =>
     override def buildTypeArgs = TypeArgs()

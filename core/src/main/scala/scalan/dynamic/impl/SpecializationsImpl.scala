@@ -11,7 +11,7 @@ import scalan.meta.ScalanAst._
 package impl {
 // Abs -----------------------------------
 trait SpecializationsDefs extends Specializations {
-  self: Scalan =>
+  self: ScalanEx =>
 import IsoUR._
 import Converter._
 import IsoFunc._

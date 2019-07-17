@@ -31,7 +31,7 @@ class SumTests extends BaseCtxTests {
   }
 
   test("SumMap(Right(x)) rewriting") {
-    val ctx = new TestContext("SumMapRightRewriting") {
+    val ctx = new TestContextEx("SumMapRightRewriting") {
       lazy val t1 = fun { x: Rep[Int] =>
         x.asRight[Int].mapSum(_ + 1, _ - 1)
       }
@@ -43,7 +43,7 @@ class SumTests extends BaseCtxTests {
   }
 
   test("SumMap(Left(x)) rewriting") {
-    val ctx = new TestContext("SumMapLeftRewriting") {
+    val ctx = new TestContextEx("SumMapLeftRewriting") {
       lazy val t1 = fun { x: Rep[Int] =>
         x.asLeft[Int].mapSum(_ + 1, _ - 1)
       }
@@ -55,7 +55,7 @@ class SumTests extends BaseCtxTests {
   }
 
   test("isLeft and isRight work") {
-    val ctx = new TestContext() {
+    val ctx = new TestContextEx() {
       lazy val isLeftFun = fun { x: Rep[Int | Double] => x.isLeft }
       lazy val isRightFun = fun { x: Rep[Int | Double] => x.isRight }
 

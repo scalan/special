@@ -37,7 +37,6 @@ class CollsStagingTests extends WrappersTests {
 
   test("measure: build graph and resetContext") {
     val ctx = new Ctx {
-      override val performViewsLifting = false
       useAlphaEquality = false
     }
     import ctx._
@@ -66,7 +65,6 @@ class CollsStagingTests extends WrappersTests {
       var sum: Int = 0
       for (j <- 0 until 3000) {
         val ctx = new Ctx {
-          override val performViewsLifting = false
           useAlphaEquality = false
         }
         import ctx._
@@ -88,7 +86,6 @@ class CollsStagingTests extends WrappersTests {
     val nRepeats = 1000
     def warmUp(i: Int) = {
       val ctx = new Ctx {
-        override val performViewsLifting = false
         useAlphaEquality = alphaEq
         keepOriginalFunc = keepOrig
         unfoldWithOriginalFunc = unfoldWithOrig
@@ -110,7 +107,6 @@ class CollsStagingTests extends WrappersTests {
     }
     def measureUp(i: Int) = {
       val ctx = new Ctx {
-        override val performViewsLifting = false
         useAlphaEquality = alphaEq
         keepOriginalFunc = keepOrig
         unfoldWithOriginalFunc = unfoldWithOrig

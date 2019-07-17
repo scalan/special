@@ -464,73 +464,6 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
 
   def defaultUnpackTester(e: Elem[_]) = true //e match { case pe: PairElem[_,_] => false case _ => true }
 
-  object HasViews {
-    def unapply[T](s: Rep[T]): Option[Unpacked[T]] =
-      if (performViewsLifting)
-        unapplyViews(s)
-      else None
-  }
-
-  // for simplifying unapplyViews
-  protected def trivialUnapply[T](s: Rep[T]) = (s, identityIso(s.elem))
-
-  def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
-    case Def(d: SLeft[l, r]) =>
-      val left = d.left
-      val eRight = d.eRight
-      (unapplyViews(left), UnpackableElem.unapply(eRight)) match {
-        case (None, None) => None
-        case (opt1, opt2) =>
-          val (sv1, iso1) = opt1.getOrElse(trivialUnapply(left))
-          val iso2 = opt2.getOrElse(identityIso(eRight)).asInstanceOf[Iso[_, r]]
-          Some((sv1.asLeft(iso2.eFrom), sumIso(iso1, iso2)))
-      }
-    case Def(d: SRight[l, r]) =>
-      val eLeft = d.eLeft
-      val right = d.right
-      (UnpackableElem.unapply(eLeft), unapplyViews(right)) match {
-        case (None, None) => None
-        case (opt1, opt2) =>
-          val (sv2, iso2) = opt2.getOrElse(trivialUnapply(right))
-          val iso1 = opt1.getOrElse(identityIso(eLeft)).asInstanceOf[Iso[_, l]]
-          Some((sv2.asRight(iso1.eFrom), sumIso(iso1, iso2)))
-      }
-    case _ =>
-      UnpackableExp.unapply(s)
-  }).asInstanceOf[Option[Unpacked[T]]]
-
-  object UnpackableDef {
-    def unapply[T](d: Def[T]): Option[Unpacked[T]] =
-      d match {
-        case view: View[a, T] => Some((view.source, view.iso))
-        // TODO make UserTypeDef extend View with lazy iso0/source?
-        case _ =>
-          None
-      }
-  }
-
-  object UnpackableExp {
-    def unapply[T](e: Rep[T]): Option[Unpacked[T]] =
-      e match {
-        case Def(UnpackableDef(source, iso: Iso[a, T] @unchecked)) =>
-          Some((source.asInstanceOf[Rep[a]], iso))
-        case _ =>
-          val eT = e.elem
-          eT match {
-            case UnpackableElem(iso: Iso[a, T] @unchecked) =>
-              Some((iso.from(e), iso))
-            case _ => None
-          }
-      }
-  }
-
-  object LambdaResultHasViews {
-    def unapply[A,C](l: Rep[A => C]): Option[UnpackedLambdaResult[A,C]] = l match {
-      case Def(Lambda(_, _, _, HasViews(_, iso: Iso[b, C]@unchecked))) =>
-        Some((l, iso))
-      case _ => None
-    }
-  }
 
   abstract class View[From, To] extends Def[To] {
     def source: Rep[From]
@@ -558,6 +491,80 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   case class SumView[A1, A2, B1, B2](source: Rep[A1|A2])(implicit iso1: Iso[A1, B1], iso2: Iso[A2, B2]) extends View2[A1, A2, B1, B2, | ] {
     lazy val iso = sumIso(iso1, iso2)
     override def transform(t: Transformer) = SumView(t(source))(t(iso1), t(iso2))
+  }
+
+
+}
+
+trait ViewsModuleEx extends ViewsModule with impl.ViewsDefsEx with BaseEx { self: ScalanEx =>
+  import IsoUR._
+
+  object HasViews {
+    def unapply[T](s: Rep[T]): Option[Unpacked[T]] =
+      if (performViewsLifting)
+        unapplyViews(s)
+      else None
+  }
+
+  // for simplifying unapplyViews
+  protected def trivialUnapply[T](s: Rep[T]) = (s, identityIso(s.elem))
+
+  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
+    case Def(d: SLeft[l, r]) =>
+      val left = d.left
+      val eRight = d.eRight
+      (unapplyViews(left), UnpackableElem.unapply(eRight)) match {
+        case (None, None) => None
+        case (opt1, opt2) =>
+          val (sv1, iso1) = opt1.getOrElse(trivialUnapply(left))
+          val iso2 = opt2.getOrElse(identityIso(eRight)).asInstanceOf[Iso[_, r]]
+          Some((sv1.asLeft(iso2.eFrom), sumIso(iso1, iso2)))
+      }
+    case Def(d: SRight[l, r]) =>
+      val eLeft = d.eLeft
+      val right = d.right
+      (UnpackableElem.unapply(eLeft), unapplyViews(right)) match {
+        case (None, None) => None
+        case (opt1, opt2) =>
+          val (sv2, iso2) = opt2.getOrElse(trivialUnapply(right))
+          val iso1 = opt1.getOrElse(identityIso(eLeft)).asInstanceOf[Iso[_, l]]
+          Some((sv2.asRight(iso1.eFrom), sumIso(iso1, iso2)))
+      }
+    case _ =>
+      UnpackableExp.unapply(s)
+  }).asInstanceOf[Option[Unpacked[T]]]
+
+  object UnpackableDef {
+    def unapply[T](d: Def[T]): Option[Unpacked[T]] =
+      d match {
+        case view: View[a, T]@unchecked => Some((view.source, view.iso))
+        // TODO make UserTypeDef extend View with lazy iso0/source?
+        case _ =>
+          None
+      }
+  }
+
+  object UnpackableExp {
+    def unapply[T](e: Rep[T]): Option[Unpacked[T]] =
+      e match {
+        case Def(UnpackableDef(source, iso: Iso[a, T] @unchecked)) =>
+          Some((source.asInstanceOf[Rep[a]], iso))
+        case _ =>
+          val eT = e.elem
+          eT match {
+            case UnpackableElem(iso: Iso[a, T] @unchecked) =>
+              Some((iso.from(e), iso))
+            case _ => None
+          }
+      }
+  }
+
+  object LambdaResultHasViews {
+    def unapply[A,C](l: Rep[A => C]): Option[UnpackedLambdaResult[A,C]] = l match {
+      case Def(Lambda(_, _, _, HasViews(_, iso: Iso[b, C]@unchecked))) =>
+        Some((l, iso))
+      case _ => None
+    }
   }
 
   override def rewriteViews[T](d: Def[T]) = d match {
@@ -598,25 +605,24 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     //      ViewArray(parRes, iso)
 
     // Rule: loop(V(start, iso), step, isMatch) ==> iso.to(loop(start, iso.to >> step >> iso.from, iso.to >> isMatch))
-//    case LoopUntil(HasViews(startWithoutViews, iso: Iso[a, b]), step, isMatch) =>
-//      val start1 = startWithoutViews.asRep[a]
-//      implicit val eA = iso.eFrom
-//      implicit val eB = iso.eTo
-//      val step1 = fun { (x: Rep[a]) =>
-//        val x_viewed = iso.to(x)
-//        val res_viewed = step.asRep[b => b](x_viewed) // mirrorApply(step.asRep[b => b], x_viewed)
-//      val res = iso.from(res_viewed)
-//        res
-//      }
-//      val isMatch1 = fun { (x: Rep[a]) =>
-//        val x_viewed = iso.to(x)
-//        val res = isMatch.asRep[b => Boolean](x_viewed) // mirrorApply(isMatch.asRep[b => Boolean], x_viewed)
-//        res
-//      }
-//      val loopRes = LoopUntil(start1, step1, isMatch1)
-//      iso.to(loopRes)
+    //    case LoopUntil(HasViews(startWithoutViews, iso: Iso[a, b]), step, isMatch) =>
+    //      val start1 = startWithoutViews.asRep[a]
+    //      implicit val eA = iso.eFrom
+    //      implicit val eB = iso.eTo
+    //      val step1 = fun { (x: Rep[a]) =>
+    //        val x_viewed = iso.to(x)
+    //        val res_viewed = step.asRep[b => b](x_viewed) // mirrorApply(step.asRep[b => b], x_viewed)
+    //      val res = iso.from(res_viewed)
+    //        res
+    //      }
+    //      val isMatch1 = fun { (x: Rep[a]) =>
+    //        val x_viewed = iso.to(x)
+    //        val res = isMatch.asRep[b => Boolean](x_viewed) // mirrorApply(isMatch.asRep[b => Boolean], x_viewed)
+    //        res
+    //      }
+    //      val loopRes = LoopUntil(start1, step1, isMatch1)
+    //      iso.to(loopRes)
 
     case _ => super.rewriteViews(d)
   }
 }
-

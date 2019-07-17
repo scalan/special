@@ -1,9 +1,9 @@
 package scalan.primitives
 
 import scala.collection.mutable
-import scalan.{Scalan, Base}
+import scalan.{ScalanEx, BaseEx}
 
-trait Blocks extends Base { self: Scalan =>
+trait Blocks extends BaseEx { self: ScalanEx =>
   import IsoUR._
 
   implicit class RepBlock[A](left: Rep[A]) { 

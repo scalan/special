@@ -465,56 +465,10 @@ object WArray extends EntityObject("WArray") {
 } // of object WArray
   registerEntityObject("WArray", WArray)
 
-  object UserTypeWArray {
-    def unapply(s: Sym): Option[Iso[_, _]] = {
-      s.elem match {
-        case e: WArrayElem[a,to] => e.eItem match {
-          case UnpackableElem(iso) => Some(iso)
-          case _ => None
-        }
-        case _ => None
-      }
-    }
-  }
-
-  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
-    case Def(view: ViewWArray[_, _]) =>
-      Some((view.source, view.iso))
-    case UserTypeWArray(iso: Iso[a, b]) =>
-      val newIso = wArrayIso(iso)
-      val repr = reifyObject(UnpackView(asRep[WArray[b]](s), newIso))
-      Some((repr, newIso))
-    case _ =>
-      super.unapplyViews(s)
-  }).asInstanceOf[Option[Unpacked[T]]]
-
-  type RepWArray[T] = Rep[WArray[T]]
-
-  override def rewriteDef[T](d: Def[T]) = d match {
-//    case view1@ViewWArray(Def(view2@ViewWArray(arr, innerIso2)), innerIso1) =>
-//      val compIso = composeIso(innerIso1, innerIso2)
-//      implicit val eAB = compIso.eTo
-//      ViewWArray(arr, compIso)
-
-    case WArrayMethods.map(xs, f) => (xs, f) match {
-      case (_, Def(IdentityLambda())) =>
-        xs
-//      case (xs: RepWArray[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
-//        val f1 = asRep[a => c](f)
-//        implicit val eB = iso.eFrom
-//        val s = xs.map(f1 >> iso.fromFun)
-//        val res = ViewWArray(s, iso)
-//        res
-//      case (HasViews(source, Def(contIso: WArrayIso[a, b])), f: RFunc[_, c]@unchecked) =>
-//        val f1 = asRep[b => c](f)
-//        val iso = contIso.innerIso
-//        implicit val eC = f1.elem.eRange
-//        asRep[WArray[a]](source).map(iso.toFun >> f1)
-      case _ =>
-        super.rewriteDef(d)
-    }
-    case _ => super.rewriteDef(d)
-  }
+  // manual fix: UserTypeWArray removed
+  // manual fix: unapplyViews removed
+  // manual fix: RepWArray removed
+  // manual fix: rewriteDef removed
 
   registerModule(WArraysModule)
 }

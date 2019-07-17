@@ -393,57 +393,10 @@ object WOption extends EntityObject("WOption") {
 } // of object WOption
   registerEntityObject("WOption", WOption)
 
-  object UserTypeWOption {
-    def unapply(s: Sym): Option[Iso[_, _]] = {
-      s.elem match {
-        case e: WOptionElem[a,to] => e.eItem match {
-          case UnpackableElem(iso) => Some(iso)
-          case _ => None
-        }
-        case _ => None
-      }
-    }
-  }
-
-  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
-    case Def(view: ViewWOption[_, _]) =>
-      Some((view.source, view.iso))
-    case UserTypeWOption(iso: Iso[a, b]) =>
-      val newIso = wOptionIso(iso)
-      val repr = reifyObject(UnpackView(asRep[WOption[b]](s), newIso))
-      Some((repr, newIso))
-    case _ =>
-      super.unapplyViews(s)
-  }).asInstanceOf[Option[Unpacked[T]]]
-
-  type RepWOption[A] = Rep[WOption[A]]
-
-  // manual fix
-  override def rewriteDef[T](d: Def[T]) = d match {
-//    case view1@ViewWOption(Def(view2@ViewWOption(arr, innerIso2)), innerIso1) =>
-//      val compIso = composeIso(innerIso1, innerIso2)
-//      implicit val eAB = compIso.eTo
-//      ViewWOption(arr, compIso)
-
-    case WOptionMethods.map(xs, f) => (xs, f) match {
-      case (_, Def(IdentityLambda())) =>
-        xs
-//      case (xs: RepWOption[a] @unchecked, LambdaResultHasViews(f, iso: Iso[b, c])) =>
-//        val f1 = asRep[a => c](f)
-//        implicit val eB = iso.eFrom
-//        val s = xs.map(f1 >> iso.fromFun)
-//        val res = ViewWOption(s, iso)
-//        res
-//      case (HasViews(source, Def(contIso: WOptionIso[a, b])), f: RFunc[_, c]@unchecked) =>
-//        val f1 = asRep[b => c](f)
-//        val iso = contIso.innerIso
-//        implicit val eC = f1.elem.eRange
-//        asRep[WOption[a]](source).map(iso.toFun >> f1)
-      case _ =>
-        super.rewriteDef(d)
-    }
-    case _ => super.rewriteDef(d)
-  }
+  // manual fix: UserTypeWOption removed
+  // manual fix: unapplyViews removed
+  // manual fix: RepWOption removed
+  // manual fix: rewriteDef removed
 
   registerModule(WOptionsModule)
 }

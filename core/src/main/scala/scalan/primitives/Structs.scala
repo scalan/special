@@ -115,6 +115,16 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
   }
   implicit def StructElemExtensions[T <: Struct](e: Elem[T]): StructElem[T] = e.asInstanceOf[StructElem[T]]
 
+  /** Replaces a root tree of `PairElem`s in the given element `e` with `StructElem`s.
+    * All other types are considered as leaves.
+    * @return new StructElem if `e` is `PairElem` otherwise returns `e`.
+    */
+  def toStructElemShallow[T](e: Elem[T]): Elem[_] = e match {
+    case pe: PairElem[a,b] =>
+      tupleStructElement(toStructElemShallow(pe.eFst), toStructElemShallow(pe.eSnd))
+    case _ => e
+  }
+
   def structElement[T <: Struct](tag: StructTag[T], fields: Seq[(String, Elem[_])]): StructElem[T] =
     if (cacheElems)
       cachedElemByClass(tag, fields)(classOf[StructElem[T]])
@@ -565,12 +575,6 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
     }
   }
 
-  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
-    case Def(view: ViewStruct[a, b]) =>
-      Some((view.source, view.iso))
-    case _ =>
-      super.unapplyViews(s)
-  }).asInstanceOf[Option[Unpacked[T]]]
 
   object FieldGet {
     def unapply[T](d: FieldApply[T]): Option[Rep[T]] = d match {
@@ -618,5 +622,16 @@ trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
       case _ => x
     })
   }
+}
+
+trait StructsEx extends Structs with BaseEx { self: ScalanEx =>
+
+  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
+    case Def(view: ViewStruct[a, b]) =>
+      Some((view.source, view.iso))
+    case _ =>
+      super.unapplyViews(s)
+  }).asInstanceOf[Option[Unpacked[T]]]
+
 }
 

@@ -104,16 +104,6 @@ trait Transforming { self: Scalan =>
         x
   }
 
-  object DecomposeRewriter extends Rewriter {
-    def apply[T](x: Rep[T]): Rep[T] = x match {
-      case Def(d) => decompose(d) match {
-        case None => x
-        case Some(y) => y
-      }
-      case _ => x
-    }
-  }
-
   object InvokeRewriter extends Rewriter {
     def apply[T](x: Rep[T]): Rep[T] = x match {
       case Def(call: MethodCall) =>
@@ -283,6 +273,16 @@ trait Transforming { self: Scalan =>
 }
 
 trait TransformingEx { self: ScalanEx =>
+
+  object DecomposeRewriter extends Rewriter {
+    def apply[T](x: Rep[T]): Rep[T] = x match {
+      case Def(d) => decompose(d) match {
+        case None => x
+        case Some(y) => y
+      }
+      case _ => x
+    }
+  }
 
   abstract class MirrorEx[Ctx <: Transformer : TransformerOps] extends Mirror[Ctx] {
 

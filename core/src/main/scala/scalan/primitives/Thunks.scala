@@ -8,8 +8,7 @@ import scala.reflect.runtime.universe._
 import scalan.util.Covariant
 
 trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scalan =>
-  import IsoUR._
-  
+
   type Th[+T] = Rep[Thunk[T]]
   trait Thunk[+A] { def value: A }
   class ThunkCompanion {
@@ -136,12 +135,6 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     extends View1[A, B, Thunk](thunkIso(innerIso)) {
   }
 
-  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
-    case Def(view: ThunkView[_,_]) =>
-      Some((view.source, view.iso))
-    case _ =>
-      super.unapplyViews(s)
-  }).asInstanceOf[Option[Unpacked[T]]]
 
 
   class ThunkScope(val parent: ThunkScope, val thunkSym: Rep[Any]) {
@@ -296,6 +289,28 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     def unapply(s: Sym): Option[Const[_]] = unapply(s.rhs)
   }
 
+
+  override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
+    case ThunkDef(r, sch) => s"Thunk($r, [${sch.mkString(",")}])"
+    case _ => super.formatDef(d)
+  }
+
+  override protected def nodeColor(td: TypeDesc, d: Def[_])(implicit config: GraphVizConfig) = td match {
+    case _: ThunkElem[_] => "red"
+    case _ => super.nodeColor(td, d)
+  }
+}
+
+trait ThunksEx extends Thunks with BaseEx { self: ScalanEx =>
+  import IsoUR._
+  
+  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
+    case Def(view: ThunkView[_,_]) =>
+      Some((view.source, view.iso))
+    case _ =>
+      super.unapplyViews(s)
+  }).asInstanceOf[Option[Unpacked[T]]]
+
   override def rewriteViews[T](d: Def[T]) = d match {
     case th @ ThunkDef(HasViews(srcRes, iso: Iso[a,b]), _) => {
       implicit val eA = iso.eFrom
@@ -311,13 +326,4 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     case _ => super.rewriteViews(d)
   }
 
-  override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
-    case ThunkDef(r, sch) => s"Thunk($r, [${sch.mkString(",")}])"
-    case _ => super.formatDef(d)
-  }
-
-  override protected def nodeColor(td: TypeDesc, d: Def[_])(implicit config: GraphVizConfig) = td match {
-    case _: ThunkElem[_] => "red"
-    case _ => super.nodeColor(td, d)
-  }
 }
