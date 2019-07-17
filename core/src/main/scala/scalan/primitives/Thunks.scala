@@ -311,24 +311,6 @@ trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scal
     case _ => super.rewriteViews(d)
   }
 
-  override def rewriteDef[T](d: Def[T]) = d match {
-    case ThunkForce(th) =>
-      th.rhs match {
-        // empty Thunk
-        case ThunkDef(root, sch) if sch.isEmpty => root
-        // constant in Thunk
-        case ConstantThunk(rootConst) => rootConst
-        case _ => super.rewriteDef(d)
-      }
-//    case ApplyBinOpLazy(op, l, r) =>
-//      r.rhs match {
-//        case ThunkDef(root, sch) if sch.isEmpty => op.apply(l, root)
-//        case ConstantThunk(rootConst) => op.apply(l, rootConst)
-//        case _ => super.rewriteDef(d)
-//      }
-    case _ => super.rewriteDef(d)
-  }
-
   override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
     case ThunkDef(r, sch) => s"Thunk($r, [${sch.mkString(",")}])"
     case _ => super.formatDef(d)

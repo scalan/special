@@ -291,13 +291,14 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   //   Function application
 
   def mkApply[A,B](f: Rep[A => B], x: Rep[A]): Rep[B] = {
-    implicit val leB = Lazy(f.elem.eRange)
-    f match {
-      case Def(lam: Lambda[A, B] @unchecked) if lam.mayInline => // unfold initial non-recursive function
-        unfoldLambda(lam, x)
-      case _ => // unknown function
-        Apply(f, x, mayInline = false)
+    val d = f.rhs
+    if (d.isInstanceOf[Lambda[_, _]]) {
+      val lam = d.asInstanceOf[Lambda[A, B]]
+      if (lam.mayInline) {
+        return unfoldLambda(lam, x)
+      }
     }
+    Apply(f, x, mayInline = false)
   }
 
   def unfoldLambda[A,B](lam: Lambda[A,B], x: Rep[A]): Rep[B] = {
@@ -401,10 +402,4 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     fun { x => f(g(x)) }
   }
 
-  override def rewriteDef[T](d: Def[T]) = d match {
-    case Apply(f @ Def(l: Lambda[a,b]), x, mayInline) if mayInline && l.mayInline => {
-      f(x)
-    }
-    case _ => super.rewriteDef(d)
-  }
 }

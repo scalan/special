@@ -253,10 +253,4 @@ trait Tuples extends Base { self: Scalan =>
     case _ => !!!("tuple projection expected", p)
   }
 
-  override def rewriteDef[T](d: Def[T]) = d match {
-    case First(Def(Tup(a, b))) => a
-    case Second(Def(Tup(a, b))) => b
-    case Tup(Def(First(a)), Def(Second(b))) if a == b => a
-    case _ => super.rewriteDef(d)
-  }
 }

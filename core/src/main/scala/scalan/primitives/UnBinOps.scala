@@ -45,19 +45,6 @@ trait UnBinOps extends Base { self: Scalan =>
   def applyBinOp[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[A]): Rep[R] = ApplyBinOp(op, lhs, rhs)
   def applyBinOpLazy[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[Thunk[A]]): Rep[R] = ApplyBinOpLazy(op, lhs, rhs)
 
-  override def rewriteDef[T](d: Def[T]): Sym =
-    currentPass.config.constantPropagation match {
-      case false => super.rewriteDef(d)
-      case true =>
-        d match {
-          case ApplyUnOp(op: UnOp[a, T @unchecked], Def(Const(arg))) if op.shouldPropagate(arg) =>
-            toRep(op.applySeq(arg.asInstanceOf[a]))(d.selfType)
-          case ApplyBinOp(op: BinOp[a, T @unchecked], Def(Const(lhs)), Def(Const(rhs))) if op.shouldPropagate(lhs, rhs) =>
-            toRep(op.applySeq(lhs.asInstanceOf[a], rhs.asInstanceOf[a]))(d.selfType)
-          case _ => super.rewriteDef(d)
-        }
-    }
-
   // allows use of context bounds in classes extending UnOp/BinOp.
   // Note that this must be overridden if some transformation _is_ needed (i.e. if the class contains Rep[_] somewhere)
   override protected def transformProductParam(x: Any, t: Transformer) = x match {

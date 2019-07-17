@@ -140,23 +140,6 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
     case _ => super.formatDef(d)
   }
 
-  override def rewriteDef[T](d: Def[T]): Sym = d match {
-    case call @ MethodCall(receiver, m, args, neverInvoke) =>
-      call.tryInvoke match {
-        // Rule: receiver.m(args) ==> body(m).subst{xs -> args}
-        case InvokeSuccess(res) => res
-        case InvokeFailure(e) if !e.isInstanceOf[DelayInvokeException] =>
-          throwInvocationException("Method invocation in rewriteDef", e, receiver, m, args)
-        case InvokeImpossible =>
-          val res = rewriteNonInvokableMethodCall(call)
-          if (res != null) res
-          else
-            super.rewriteDef(d)
-      }
-    case _ =>
-      super.rewriteDef(d)
-  }
-
   /** This method is called for each MethodCall node which is about to be added to the graph.
     * This means `mc` has been examined by all the rewrite rules, but has not need rewritten.
     * Now, if this method returns null, then mc will be added to the graph.
