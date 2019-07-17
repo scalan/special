@@ -207,17 +207,6 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
     }
   }
 
-  case class Convert[From,To](eFrom: Elem[From], eTo: Elem[To], x: Rep[Def[_]], conv: Rep[From => To])
-    extends BaseDef[To]()(eTo) {
-    override def transform(t: Transformer) = Convert(eFrom, eTo, t(x), t(conv))
-  }
-
-  def tryConvert[From, To](eFrom: Elem[From], eTo: Elem[To], x: Rep[Def[_]], conv: Rep[From => To]): Rep[To] = {
-    if (x.elem <:< eFrom)
-      conv(asRep[From](x))
-    else
-      Convert(eFrom, eTo, x, conv)
-  }
 
   override def rewriteViews[T](d: Def[T]) = d match {
     case Convert(eFrom: Elem[from], eTo: Elem[to], HasViews(_x, _iso: Iso[Def[_], _] @unchecked),  _conv) =>
@@ -229,12 +218,5 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
     case _ => super.rewriteViews(d)
   }
 
-  override def rewriteDef[T](d: Def[T]) = d match {
-    // Rule: convert(eFrom, eTo, x, conv) if x.elem <:< eFrom  ==>  conv(x)
-    case Convert(eFrom: Elem[from], eTo: Elem[to], x,  conv) if x.elem <:< eFrom =>
-      conv(x)
-
-    case _ => super.rewriteDef(d)
-  }
 }
 

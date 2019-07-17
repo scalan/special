@@ -36,8 +36,11 @@ trait RewriteRules extends Base { self: Scalan =>
   def postulate[A:Elem, B:Elem, C:Elem, R](p: (Rep[A], Rep[B], Rep[C]) => RRewrite[R]): RRewrite[R] =
     p(variable[A], variable[B], variable[C])
 
-  //hotspot: need to avoid allocations
-  override def rewrite[T](s: Rep[T]): Sym = {
+  /** This is default implementation which delegates to global rewrite rules.
+    * However, this can be overriden, as it is done in RewriteRules.
+    * @hotspot: need to avoid allocations
+    */
+  def rewrite[T](s: Rep[T]): Sym = {
     var result: Sym = null
     if (rewriteRules.nonEmpty)
       result = rewriteWithRules(rewriteRules)(s)

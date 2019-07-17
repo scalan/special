@@ -34,6 +34,7 @@ class ScalanEx extends Scalan
   with TransformingEx {
 
   override def resetContext() = {
+    super.resetContext()
     metadataPool = Map.empty[Sym, MetaNode]
   }
 
@@ -56,4 +57,24 @@ class ScalanEx extends Scalan
     res
   }
 
+  override protected[scalan] def toExp[T](d: Def[T], newSym: => Rep[T]): Rep[T] = {
+    var res = findOrCreateDefinition(d, newSym)
+    var currSym = res
+    var currDef = d
+    do {
+      currSym = res
+      val ns = rewrite(currSym).asInstanceOf[Rep[T]]
+      ns match {
+        case null =>
+          currDef = null
+        case Def(someOtherD) =>
+          res = ns
+          currDef = someOtherD
+        case _ =>
+          res = ns
+          currDef = null
+      }
+    } while (res != currSym && currDef != null)
+    res
+  }
 }

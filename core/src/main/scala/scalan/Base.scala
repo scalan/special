@@ -464,18 +464,17 @@ trait Base extends LazyLogging { scalan: Scalan =>
 
   val performViewsLifting: Boolean = true
 
-  /** This is default implementation which delegates to global rewrite rules.
-    * However, this can be overriden, as it is done in RewriteRules. */
-  protected def rewrite[T](s: Rep[T]): Rep[_] = {
-    rewriteDef(s.rhs)
-  }
-
   def rewriteViews[T](d: Def[T]): Rep[_] = null
 
-  def rewriteDef[T](d: Def[T]): Rep[_] = null
+  def rewriteDef[T](d: Def[T]): Rep[_] = d match {
+    // Rule: convert(eFrom, eTo, x, conv) if x.elem <:< eFrom  ==>  conv(x)
+    case Convert(eFrom: Elem[from], eTo: Elem[to], x,  conv) if x.elem <:< eFrom =>
+      conv(x)
+
+    case _ => null
+  }
 
   def rewriteVar[T](s: Rep[T]): Rep[_] = null
-
 
   /** Light weight stateless immutable reference to a graph node (Def[T]).
     * Two symbols are equal if they refer to the nodes with the same id,
@@ -655,18 +654,11 @@ trait Base extends LazyLogging { scalan: Scalan =>
     var currDef = d
     do {
       currSym = res
-      val ns = rewrite(currSym).asInstanceOf[Rep[T]]
-      ns match {
-        case null =>
-          currDef = null
-        case Def(someOtherD) =>
-          res = ns
-          currDef = someOtherD
-        case _ =>
-          res = ns
-          currDef = null
-      }
-    } while (res != currSym && currDef != null)
+      val ns = rewriteDef(currSym.rhs).asInstanceOf[Rep[T]]
+      if (null == ns) return currSym
+      res = ns
+      currDef = ns.rhs
+    } while (res != currSym)
     res
   }
 

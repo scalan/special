@@ -72,8 +72,17 @@ trait UniversalOps extends Base { scalan: Scalan =>
     def hashCodeRep: Rep[Int] = HashCode[A]().apply(x)
     def toStringRep = ToString[A]().apply(x)
   }
-//  override def rewriteDef[T](d: Def[T]) = d match {
-//    case ApplyUnOp(ToString(), x) if x.elem == StringElement => x
-//    case _ => super.rewriteDef(d)
-//  }
+
+  case class Convert[From,To](eFrom: Elem[From], eTo: Elem[To], x: Rep[Def[_]], conv: Rep[From => To])
+      extends BaseDef[To]()(eTo) {
+    override def transform(t: Transformer) = Convert(eFrom, eTo, t(x), t(conv))
+  }
+
+  def tryConvert[From, To](eFrom: Elem[From], eTo: Elem[To], x: Rep[Def[_]], conv: Rep[From => To]): Rep[To] = {
+    if (x.elem <:< eFrom)
+      conv(asRep[From](x))
+    else
+      Convert(eFrom, eTo, x, conv)
+  }
+
 }
