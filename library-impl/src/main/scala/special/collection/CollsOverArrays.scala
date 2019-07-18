@@ -619,7 +619,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   def append(other: Coll[A]): Coll[A] = other match {
-    case repl: ReplColl[A@unchecked] if this.value == repl.value =>
+    case repl: ReplColl[A@unchecked] if this.value == repl.value && this.length > 0 && repl.length > 0 =>
       new CReplColl(value, this.length + repl.length)
     case _ =>
       builder.fromArray(toArray).append(builder.fromArray(other.toArray))
