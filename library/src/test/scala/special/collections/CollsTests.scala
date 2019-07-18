@@ -193,7 +193,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.append") {
-    forAll(collGen, collGen, valGen, MinSuccessful(50)) { (col1, col2, v) =>
+    forAll(collGen, collGen, valGen, MinSuccessful(100)) { (col1, col2, v) =>
 
       {
         val res = col1.append(col2)
@@ -208,7 +208,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val repl1 = builder.replicate(col1.length, v)
         val repl2 = builder.replicate(col2.length, v)
         val arepl = repl1.append(repl2)
-        assert(!(repl1.isEmpty || repl2.isEmpty) && arepl.isInstanceOf[CReplColl[Int]])
+
         arepl.toArray shouldBe (repl1.toArray ++ repl2.toArray)
         
         val pairs1 = repl1.zip(repl1)
@@ -216,13 +216,17 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val apairs = pairs1.append(pairs2)
         apairs.toArray shouldBe (pairs1.toArray ++ pairs2.toArray)
 
-        apairs match {
-          case ps: PairOfCols[_,_] =>
-            assert(ps.ls.isInstanceOf[CReplColl[Int]])
-            assert(ps.rs.isInstanceOf[CReplColl[Int]])
-          case _ =>
-            assert(false, "Invalid type")
+        if (repl1.nonEmpty && repl2.nonEmpty) {
+          assert(arepl.isInstanceOf[CReplColl[Int]])
+          apairs match {
+            case ps: PairOfCols[_,_] =>
+              assert(ps.ls.isInstanceOf[CReplColl[Int]])
+              assert(ps.rs.isInstanceOf[CReplColl[Int]])
+            case _ =>
+              assert(false, "Invalid type")
+          }
         }
+
       }
     }
   }
