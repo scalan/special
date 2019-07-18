@@ -208,7 +208,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val repl1 = builder.replicate(col1.length, v)
         val repl2 = builder.replicate(col2.length, v)
         val arepl = repl1.append(repl2)
-        assert(arepl.isInstanceOf[CReplColl[Int]])
+        assert(!(repl1.isEmpty || repl2.isEmpty) && arepl.isInstanceOf[CReplColl[Int]])
         arepl.toArray shouldBe (repl1.toArray ++ repl2.toArray)
         
         val pairs1 = repl1.zip(repl1)
