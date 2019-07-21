@@ -1,15 +1,21 @@
 package scalan
 
+import org.scalacheck.util.Buildable
 import org.scalacheck.{Arbitrary, Gen}
+
+class GenConfiguration() {
+  var maxLength: Int = 100
+  var maxOneTypeDepth: Int = 4
+}
 
 trait RTypeGens {
   import Gen._
   import RType._
 
-  val primitiveNonUnitTypeGen = Gen.oneOf[RType[_]](BooleanType, ByteType, ShortType,
+  val primitiveTypeGen = Gen.oneOf[RType[_]](BooleanType, ByteType, ShortType,
     IntType, LongType, CharType, FloatType, DoubleType)
 
-  val primitiveTypeGen = Gen.oneOf[RType[_]](primitiveNonUnitTypeGen, UnitType)
+  val primitiveTypeGenWithUnit = Gen.oneOf[RType[_]](primitiveTypeGen, UnitType)
 
   val dataTypeGen = Gen.oneOf[RType[_]](primitiveTypeGen, StringType)
 
@@ -60,7 +66,36 @@ trait RTypeGens {
     }
   }
 
-  val arrayPrimitiveTypeGen = arrayTypeGen(4, primitiveTypeGen)
-  val arrayDataTypeGen = arrayTypeGen(4, Gen.oneOf(dataTypeGen, pairDataTypeGen))
+  val arrayPrimitiveTypeGen = arrayTypeGen(1, primitiveTypeGen)
+  val arrayDataTypeGen = arrayTypeGen(1, Gen.oneOf(dataTypeGen, pairDataTypeGen))
   val fullDataTypeGen = Gen.oneOf(dataTypeGen, pairDataTypeGen, arrayDataTypeGen)
+
+  def primitiveValueGen[T](t: PrimitiveType[T]): Gen[_] = t match {
+    case ByteType => choose[Byte](Byte.MinValue, Byte.MaxValue)
+    case ShortType => choose[Short](Short.MinValue, Short.MaxValue)
+    case IntType => choose[Int](Int.MinValue, Int.MaxValue)
+    case CharType => choose[Char](Char.MinValue, Char.MaxValue)
+    case LongType => choose[Long](Long.MinValue, Long.MaxValue)
+    case FloatType => choose[Float](Float.MinValue, Float.MaxValue)
+    case DoubleType => choose[Double](Double.MinValue, Double.MaxValue)
+    case BooleanType => Gen.oneOf(true, false)
+    case _ => throw new NotImplementedError("Not supported")
+  }
+
+
+  def getArrayGen[T](valGen: Gen[T], count: Int)
+                    (implicit evb: Buildable[T,Array[T]], evt: Array[T] => Traversable[T]): Gen[Array[T]] = {
+    containerOfN[Array, T](count, valGen)
+  }
+
+  def rtypeValueGen[T](t: RType[T], conf: GenConfiguration = new GenConfiguration()): Gen[_] = t match {
+    case prim: PrimitiveType[a] => primitiveValueGen(prim)
+    case arrayType: ArrayType[a] =>
+      getArrayGen(rtypeValueGen(arrayType.tA, conf), conf.maxLength)
+    case pairType: PairType[a, b] =>
+      for { left <- rtypeValueGen(pairType.tFst); right <- rtypeValueGen(pairType.tSnd) } yield (left, right-)
+    case (stringType: RType[String]) =>
+      Gen.asciiPrintableStr
+    case _ => throw new NotImplementedError("Not supported")
+  }
 }
