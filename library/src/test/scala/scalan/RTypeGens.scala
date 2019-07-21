@@ -93,7 +93,7 @@ trait RTypeGens {
     case arrayType: ArrayType[a] =>
       getArrayGen(rtypeValueGen(arrayType.tA, conf), conf.maxLength)
     case pairType: PairType[a, b] =>
-      for { left <- rtypeValueGen(pairType.tFst); right <- rtypeValueGen(pairType.tSnd) } yield (left, right-)
+      for { left <- rtypeValueGen(pairType.tFst); right <- rtypeValueGen(pairType.tSnd) } yield (left, right)
     case (stringType: RType[String]) =>
       Gen.asciiPrintableStr
     case _ => throw new NotImplementedError("Not supported")
