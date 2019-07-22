@@ -1,16 +1,15 @@
 package scalan.json
 
 import special.wrappers.WrappersModule
-
-import scalan.Scalan
+import scalan.{Library, Scalan, TestLibrary}
 import spray.json._
-
 import scalan.util.FileUtil
+import special.collection.CollsModule
 
 class TransformJsonTests extends JsonTests {
   val transformDir = resourcesDir + "/transform"
 
-  class Ctx extends ToolkitScalan with WrappersModule
+  class Ctx extends ToolkitScalan with TestLibrary
 
   class PipelineTester[C <: ToolkitScalan](pipeline: TransformPipeline[C]) {
     val trans = new JsonTransformer(pipeline)

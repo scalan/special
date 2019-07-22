@@ -17,7 +17,6 @@ trait Library extends Scalan
   with CostedOptionsModule {
   import WOption._
   import WRType._
-  import WArray._
   import Coll._; import CollBuilder._;
   import Size._
   import Costed._; import CostedBuilder._
@@ -161,13 +160,6 @@ trait Library extends Scalan
 //    }
     case _: CollElem[_,_] => mc match {
       case CollMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(e, newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(e, mc, dataEnv)
-    }
-    case _: WArrayElem[_,_] => mc match {
-      case WArrayMethods.map(xs, f) =>
         val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
         super.invokeUnlifted(e, newMC, dataEnv)
       case _ =>

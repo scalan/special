@@ -157,7 +157,6 @@ class CollsStagingTests extends WrappersTests {
     val ctx = new WrappersCtx with Library
     import ctx._
     import Liftables._
-    import WArray._
     import Coll._
     import CollBuilder._
     import EnvRep._
@@ -184,7 +183,6 @@ class CollsStagingTests extends WrappersTests {
     val ctx = new WrappersCtx with Library
     import ctx._
     import Liftables._
-    import WArray._
     import Coll._
     import CollBuilder._
     import EnvRep._

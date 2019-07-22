@@ -15,7 +15,6 @@ import CollBuilder._
 import Monoid._
 import MonoidBuilder._
 import PairColl._
-import WArray._
 import WOption._
 import ReplColl._
 
@@ -44,13 +43,6 @@ object Coll extends EntityObject("Coll") {
         CollClass.getMethod("builder"),
         List(),
         true, false, element[CollBuilder]))
-    }
-
-    override def toArray: Rep[WArray[A]] = {
-      asRep[WArray[A]](mkMethodCall(self,
-        CollClass.getMethod("toArray"),
-        List(),
-        true, false, element[WArray[A]]))
     }
 
     override def length: Rep[Int] = {
@@ -332,13 +324,6 @@ implicit val eV = proj.elem.eRange
         thisClass.getMethod("builder"),
         List(),
         true, true, element[CollBuilder]))
-    }
-
-    def toArray: Rep[WArray[A]] = {
-      asRep[WArray[A]](mkMethodCall(source,
-        thisClass.getMethod("toArray"),
-        List(),
-        true, true, element[WArray[A]]))
     }
 
     def length: Rep[Int] = {
@@ -1237,13 +1222,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         true, true, element[CollBuilder]))
     }
 
-    def toArray: Rep[WArray[(L, R)]] = {
-      asRep[WArray[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("toArray"),
-        List(),
-        true, true, element[WArray[(L, R)]]))
-    }
-
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         thisClass.getMethod("length"),
@@ -1703,13 +1681,6 @@ object ReplColl extends EntityObject("ReplColl") {
         true, true, element[CollBuilder]))
     }
 
-    def toArray: Rep[WArray[A]] = {
-      asRep[WArray[A]](mkMethodCall(source,
-        thisClass.getMethod("toArray"),
-        List(),
-        true, true, element[WArray[A]]))
-    }
-
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         thisClass.getMethod("isEmpty"),
@@ -2106,14 +2077,6 @@ implicit val eB = xs.eA.eSnd
         true, false, element[Coll[Byte]]))
     }
 
-    override def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]] = {
-      implicit val eT = arr.eT
-      asRep[Coll[T]](mkMethodCall(self,
-        CollBuilderClass.getMethod("fromArray", classOf[Sym]),
-        List(arr),
-        true, false, element[Coll[T]]))
-    }
-
     override def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]] = {
       implicit val eT = v.elem
       asRep[Coll[T]](mkMethodCall(self,
@@ -2207,14 +2170,6 @@ implicit val eB = xs.eA.eSnd
         thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
         true, true, element[Coll[Byte]]))
-    }
-
-    def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]] = {
-      implicit val eT = arr.eT
-      asRep[Coll[T]](mkMethodCall(source,
-        thisClass.getMethod("fromArray", classOf[Sym]),
-        List(arr),
-        true, true, element[Coll[T]]))
     }
 
     def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]] = {
@@ -2377,19 +2332,6 @@ implicit val eO = l.elem.eRange
         case _ => Nullable.None
       }
       def unapply(exp: Sym): Nullable[(Rep[CollBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object fromArray {
-      def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[WArray[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "fromArray" =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[WArray[T]]) forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[CollBuilder], Rep[WArray[T]]) forSome {type T}] = exp match {
         case Def(d) => unapply(d)
         case _ => Nullable.None
       }
