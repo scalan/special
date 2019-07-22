@@ -69,7 +69,6 @@ cancelable in Global := true
 lazy val common = Project("common", file("common"))
     .settings(commonSettings,
       libraryDependencies ++= Seq(
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
         "org.spire-math" %% "debox" % "0.8.0",
         "commons-io" % "commons-io" % "2.5"
@@ -87,6 +86,7 @@ lazy val meta = Project("meta", file("meta"))
     .dependsOn(common % allConfigDependency, ast % allConfigDependency)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
         "org.scala-lang" % "scala-compiler" % scalaVersion.value,
         "com.github.kxbmap" %% "configs" % "0.4.4",
         "com.trueaccord.lenses" %% "lenses" % "0.4.12"
@@ -107,15 +107,14 @@ lazy val libraryapi = Project("library-api", file("library-api"))
     .dependsOn(common % allConfigDependency)
     .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
-        "org.typelevel" %% "macro-compat" % "1.1.1"
       ))
 
 lazy val core = Project("core", file("core"))
     .dependsOn(common % allConfigDependency, ast % allConfigDependency, libraryapi % allConfigDependency, macros)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
-        "cglib" % "cglib" % "3.2.3",
-        "org.objenesis" % "objenesis" % "2.4",
+        "cglib" % "cglib" % "3.2.12",
+        "org.objenesis" % "objenesis" % "3.0.1",
         "com.github.kxbmap" %% "configs" % "0.4.4",
         "com.trueaccord.lenses" %% "lenses" % "0.4.12",
         "org.spire-math" %% "debox" % "0.8.0",

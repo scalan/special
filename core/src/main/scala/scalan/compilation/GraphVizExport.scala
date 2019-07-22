@@ -200,7 +200,7 @@ trait GraphVizExport { self: Scalan =>
             GraphFile(new File(directory, convertedFileName), format)
           } catch {
             case e: Exception =>
-              logger.warn(s"Failed to convert ${dotFile.getAbsolutePath} to $format: ${e.getMessage}")
+              logWarn(s"Failed to convert ${dotFile.getAbsolutePath} to $format: ${e.getMessage}")
               dotGraphFile
           }
       })

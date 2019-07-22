@@ -5,7 +5,6 @@ import java.util.{HashMap, Objects, Arrays, function}
 
 import configs.syntax._
 import com.typesafe.config.{ConfigFactory, Config}
-import com.typesafe.scalalogging.LazyLogging
 import scalan.OverloadHack.Overloaded1
 
 import scala.annotation.implicitNotFound
@@ -23,7 +22,7 @@ import spire.syntax.all.cfor
   * The Base trait houses common AST nodes. It also manages a list of encountered Definitions which
   * allows for common sub-expression elimination (CSE).
   */
-trait Base extends LazyLogging { scalan: Scalan =>
+trait Base { scalan: Scalan =>
   type Rep[+A] = Exp[A]
   type |[+A, +B] = Either[A, B]
   type :=>[-A, +B] = PartialFunction[A, B]
@@ -44,6 +43,12 @@ trait Base extends LazyLogging { scalan: Scalan =>
   def !!! : Nothing = !!!("should not be called")
   def !!!(msg: String, syms: Rep[_]*): Nothing = throw new StagingException(msg, syms)
   def !!!(msg: String, e: Throwable, syms: Rep[_]*): Nothing = throw new StagingException(msg, e, syms)
+
+  /** Log warning message to the log.
+    * This is default and simple implementation, which can be overriden.*/
+  def logWarn(msg: => String): Unit = {
+    println(msg)
+  }
 
   @inline final def asRep[T](x: Rep[_]): Rep[T] = x.asInstanceOf[Rep[T]]
 
