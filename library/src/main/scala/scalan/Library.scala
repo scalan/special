@@ -8,7 +8,6 @@ trait Library extends Scalan
   with WrappersModule
   with WrappersSpecModule
   with CollsModule
-  with CollsOverArraysModule
   with SizesModule
   with CostsModule
   with ConcreteSizesModule

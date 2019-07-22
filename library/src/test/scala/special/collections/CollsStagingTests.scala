@@ -7,25 +7,26 @@ import scalan.util.BenchmarkUtil._
 
 class CollsStagingTests extends WrappersTests {
   class Ctx extends TestContext with TestLibrary {
-    import WArray._
-    import CollOverArray._
-    import CollOverArrayBuilder._
-    lazy val t2 = fun { (xs: Rep[WArray[Double]]) =>
-      val c = RCollOverArray(xs)
+    import Coll._
+    import CollBuilder._
+//    import WArray._
+//    import CollOverArray._
+//    import CollOverArrayBuilder._
+    lazy val t2 = fun { (c: Rep[Coll[Double]]) =>
       c.map(fun { x => x + 1.0 })
     }
     lazy val t3 = fun { (x: Rep[Int]) =>
-      val b = RCollOverArrayBuilder()
+      val b = colBuilder
       b.fromItems(x, x + 1, x + 2)
     }
   }
 
   test("Coll methods") {
     val ctx = new Ctx {
-      import WArray._
-      import CollOverArray._
-      import CollOverArrayBuilder._
-      val M = WArrayMethods; val C = WArrayCompanionMethods
+//      import WArray._
+//      import CollOverArray._
+//      import CollOverArrayBuilder._
+//      val M = WArrayMethods; val C = WArrayCompanionMethods
       def test() = {
 //        { val Def(Lambda(_, _, x, RColOverArray(M.map(in, _)))) = t2; assert(in == x) }
       }
@@ -42,14 +43,13 @@ class CollsStagingTests extends WrappersTests {
     import ctx._
     import Coll._
     import CollBuilder._
-    import CollOverArrayBuilder._
+//    import CollOverArrayBuilder._
 
     var res: Sym = null
     val nIters = 10
     measure(nIters) { i =>
       var sum: Int = 0
       for (j <- 0 until 3000) {
-        val colBuilder: Rep[CollBuilder] = RCollOverArrayBuilder()
         val col = colBuilder.replicate(i*j, 0)
         res = col.map(fun {x => x + 1})
         sum += ctx.defCount
@@ -70,8 +70,6 @@ class CollsStagingTests extends WrappersTests {
         import ctx._
         import Coll._
         import CollBuilder._
-        import CollOverArrayBuilder._
-        val colBuilder: Rep[CollBuilder] = RCollOverArrayBuilder()
         val col = colBuilder.replicate(i*j, 0)
         val res = col.map(fun {x => x + 1})
         sum += ctx.defCount
@@ -93,7 +91,6 @@ class CollsStagingTests extends WrappersTests {
       import ctx._
       import Coll._
       import CollBuilder._
-      import CollOverArrayBuilder._
       var outGraph: Sym = null
       for (j <- 0 until nRepeats) {
         val f = fun { in: Rep[(CollBuilder, Int)] =>
@@ -102,7 +99,7 @@ class CollsStagingTests extends WrappersTests {
           val res = col.map(fun {x => x + delta})
           res
         }
-        outGraph = Pair(f, f(Pair(RCollOverArrayBuilder(), 1)))
+        outGraph = Pair(f, f(Pair(colBuilder, 1)))
       }
     }
     def measureUp(i: Int) = {
@@ -114,7 +111,6 @@ class CollsStagingTests extends WrappersTests {
       import ctx._
       import Coll._
       import CollBuilder._
-      import CollOverArrayBuilder._
       var outGraph: Sym = null
       for (j <- 0 until nRepeats) {
         val f = fun { in: Rep[(CollBuilder, Int)] =>
@@ -124,7 +120,7 @@ class CollsStagingTests extends WrappersTests {
           val res = col.map(fun {x => x + delta}).zip(col2)
           res
         }
-        outGraph = Pair(f, f(Pair(RCollOverArrayBuilder(), 1)))
+        outGraph = Pair(f, f(Pair(colBuilder, 1)))
       }
       println(s"Defs: ${ctx.defCount}")
 
@@ -150,11 +146,9 @@ class CollsStagingTests extends WrappersTests {
     }
     import ctx._
     import Coll._
-    import WArray._
-    import CollOverArray._
     val f = fun { col: Rep[Coll[Int]] =>  col.length }
-    val g = fun { arr: Rep[WArray[Int]] => f(RCollOverArray(arr)) }
-    val exp = fun { arr: Rep[WArray[Int]] => arr.length }
+    val g = fun { col: Rep[Coll[Int]] => f(col) }
+    val exp = fun { col: Rep[Coll[Int]] => col.length }
     emit("graphs", f, g, exp)
     g shouldBe exp
   }
@@ -193,12 +187,11 @@ class CollsStagingTests extends WrappersTests {
     import WArray._
     import Coll._
     import CollBuilder._
-    import CReplColl._
     import EnvRep._
 
     val Cols: SCollBuilder = new special.collection.CollOverArrayBuilder
     val colData = Cols.replicate(10, 10)
-    val colSym = RCReplColl(10, 10)
+    val colSym = colBuilder.replicate(10, 10)
     val resSym = colSym.append(colSym)
     val resData = colData.append(colData)
     val env = Map[Sym, AnyRef]()
