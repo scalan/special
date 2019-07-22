@@ -5,7 +5,6 @@ import org.scalacheck.{Arbitrary, Gen}
 
 class GenConfiguration() {
   var maxLength: Int = 100
-  var maxOneTypeDepth: Int = 4
 }
 
 trait RTypeGens {
@@ -94,7 +93,7 @@ trait RTypeGens {
       getArrayGen(rtypeValueGen(arrayType.tA, conf), conf.maxLength)
     case pairType: PairType[a, b] =>
       for { left <- rtypeValueGen(pairType.tFst); right <- rtypeValueGen(pairType.tSnd) } yield (left, right)
-    case (stringType: RType[String]) =>
+    case (stringType: RType[String]@unchecked) =>
       Gen.asciiPrintableStr
     case _ => throw new NotImplementedError("Not supported")
   }
