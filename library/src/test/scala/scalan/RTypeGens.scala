@@ -3,9 +3,7 @@ package scalan
 import org.scalacheck.util.Buildable
 import org.scalacheck.{Arbitrary, Gen}
 
-class GenConfiguration() {
-  var maxLength: Int = 100
-}
+class GenConfiguration(val maxArrayLength: Int = 100) {}
 
 trait RTypeGens {
   import Gen._
@@ -90,7 +88,7 @@ trait RTypeGens {
   def rtypeValueGen[T](t: RType[T], conf: GenConfiguration = new GenConfiguration()): Gen[_] = t match {
     case prim: PrimitiveType[a] => primitiveValueGen(prim)
     case arrayType: ArrayType[a] =>
-      getArrayGen(rtypeValueGen(arrayType.tA, conf), conf.maxLength)
+      getArrayGen(rtypeValueGen(arrayType.tA, conf), conf.maxArrayLength)
     case pairType: PairType[a, b] =>
       for { left <- rtypeValueGen(pairType.tFst); right <- rtypeValueGen(pairType.tSnd) } yield (left, right)
     case (stringType: RType[String]@unchecked) =>
