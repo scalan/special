@@ -49,15 +49,11 @@ trait RTypeGens {
   def arrayTypeGen(depth: Int = 1, itemGen: Gen[RType[_]]): Gen[ArrayType[_]] = depth match {
     case 1 =>
       arrayTypeGenFinal(itemGen)
-    case _ => arrayTypeGen(depth - 1, itemGen) match {
-      case rg: Gen[PairType[_, _]]@unchecked => {
-        Gen.oneOf(
-          arrayTypeGenFinal(itemGen),
-          arrayTypeGenFinal(rg)
-        )
-      }
-      case _ => throw new RuntimeException("Invalid rGen")
-    }
+    case _ =>
+      Gen.oneOf(
+        arrayTypeGenFinal(itemGen),
+        arrayTypeGenFinal(arrayTypeGen(depth - 1, itemGen))
+      )
   }
 
   val arrayPrimitiveTypeGen = arrayTypeGen(4, primitiveTypeGen)
