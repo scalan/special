@@ -144,7 +144,7 @@ lazy val libraryimpl = Project("library-impl", file("library-impl"))
       ))
 
 lazy val library = Project("library", file("library"))
-    .dependsOn(common % allConfigDependency, core % allConfigDependency, corex % allConfigDependency, libraryapi, libraryimpl)
+    .dependsOn(common % allConfigDependency, core % allConfigDependency, libraryapi, libraryimpl)
     .settings(//commonSettings,
       libraryDefSettings,
       libraryDependencies ++= Seq(

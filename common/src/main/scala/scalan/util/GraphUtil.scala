@@ -1,9 +1,9 @@
 package scalan.util
 
-import scala.collection.mutable.{Buffer, ArrayBuffer}
-import scalan.{AVHashMap, DFunc, Nullable, DFuncAdapter}
+import scalan.{DFuncAdapter, DFunc}
 import debox.{Set => DSet, Buffer => DBuffer, Map => DMap}
 import spire.syntax.all.cfor
+
 import scala.reflect.ClassTag
 
 trait NeighbourFunc[@specialized(Int) A, B] {

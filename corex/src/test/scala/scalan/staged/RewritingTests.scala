@@ -4,7 +4,7 @@ package staged
 import scala.language.reflectiveCalls
 import scalan.compilation.{DummyCompiler, Passes}
 
-class RewritingTests extends BaseCtxTests {
+class RewritingTests extends BaseCtxTestsEx {
 
   trait TestTransform extends Passes {
     import scalan._

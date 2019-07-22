@@ -3,7 +3,7 @@ package scalan
 import scala.language.reflectiveCalls
 import scalan.common.{CommonExamples, MetaTestsModule, SegmentsModule, ViewExamples}
 
-abstract class BaseViewTests extends BaseCtxTests {
+abstract class BaseViewTests extends BaseCtxTestsEx {
   class ViewTestsCtx extends TestContextEx {
     import IsoUR._
     def testLambdaResultHasViewsWithDataType[A,B](msg: String, f: Rep[A => B], expectedDataElem: Elem[_]) =

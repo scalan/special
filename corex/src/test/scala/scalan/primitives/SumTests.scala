@@ -1,10 +1,10 @@
 package scalan.primitives
 
 import scala.language.reflectiveCalls
-import scalan.BaseCtxTests
-import scalan.common.{CommonExamples, SegmentsModule, ViewExamples}
+import scalan.{BaseCtxTests, BaseCtxTestsEx}
+import scalan.common.{SegmentsModule, CommonExamples, ViewExamples}
 
-class SumTests extends BaseCtxTests {
+class SumTests extends BaseCtxTestsEx {
 
   test("IsSumMapLambda") {
     val ctx = new TestContext with SegmentsModule {

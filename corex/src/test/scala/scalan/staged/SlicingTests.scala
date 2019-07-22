@@ -2,9 +2,9 @@ package scalan.staged
 
 import scalan.compilation.{SlicingCompiler, DummyCompiler}
 import scalan.primitives.StringOps
-import scalan.{BaseTests, Lazy, TestContexts, Scalan}
+import scalan.{TestContextsEx, BaseTests, Lazy}
 
-abstract class AbstractSlicingTests extends BaseTests with TestContexts {
+abstract class AbstractSlicingTests extends BaseTests with TestContextsEx {
 
   class Ctx extends TestContextEx with Slicing with StringOps {
     def createSliceAnalyzer = new SliceAnalyzer
