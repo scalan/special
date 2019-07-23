@@ -2,7 +2,7 @@ package scalan.primitives
 
 import scalan.{ScalanEx, BaseEx}
 
-trait StructsEx extends Structs with BaseEx { self: ScalanEx =>
+trait StructsEx extends Structs with StructItemsModule with StructKeysModule { self: ScalanEx =>
 
   override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewStruct[a, b]) =>

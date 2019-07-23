@@ -7,12 +7,11 @@ import configs.Configs
 import configs.syntax._
 import com.typesafe.config.{ConfigUtil, Config}
 import configs.Result.{Success, Failure}
-import scalan.{Scalan, Plugins}
+import scalan.{Plugins, Scalan, Base}
 import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
-
 import scala.collection.immutable.StringOps
 
-trait GraphVizExport { self: Scalan =>
+trait GraphVizExport extends Base { self: Scalan =>
 
   case class GraphFile(file: File, fileType: String) {
     def open() = {

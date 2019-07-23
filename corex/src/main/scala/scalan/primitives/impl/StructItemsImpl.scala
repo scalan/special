@@ -10,7 +10,7 @@ import scalan.meta.ScalanAst._
 package impl {
 // Abs -----------------------------------
 trait StructItemsDefs extends StructItems {
-  self: Structs with Scalan =>
+  self: Structs with ScalanEx =>
 import IsoUR._
 import Converter._
 import StructItem._

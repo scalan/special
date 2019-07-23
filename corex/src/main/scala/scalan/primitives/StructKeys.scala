@@ -2,7 +2,7 @@ package scalan.primitives
 
 import scalan._
 
-trait StructKeys extends ViewsModule with Entities  { self: Structs with Scalan =>
+trait StructKeys extends ViewsModule with Entities with BaseEx { self: Structs with ScalanEx =>
   import IsoUR._
   
   type SKey[S <: Struct] = Rep[StructKey[S]]
@@ -33,7 +33,7 @@ trait StructKeys extends ViewsModule with Entities  { self: Structs with Scalan 
 
 }
 
-trait StructKeysModule extends impl.StructKeysDefs {self: Structs with Scalan =>
+trait StructKeysModule extends impl.StructKeysDefs {self: Structs with ScalanEx =>
   type KSet = Rep[KeySet]
   trait KeySet {
     def keys: Seq[String]

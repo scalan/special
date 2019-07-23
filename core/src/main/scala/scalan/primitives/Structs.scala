@@ -4,7 +4,7 @@ import scalan._
 import scala.reflect.runtime.universe._
 import scalan.util.CollectionUtil
 import OverloadHack._
-import scalan.compilation.GraphVizConfig
+import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import special.Types
 
 /**
@@ -19,7 +19,7 @@ import special.Types
  - no SourceContext, withPos
  - mirroring implemented in Scalan way (though consistent with LMS)
  */
-trait Structs extends StructItemsModule with StructKeysModule { self: Scalan =>
+trait Structs extends GraphVizExport { self: Scalan =>
   import IsoUR._
   // TODO consider if T type parameter is needed here and for AbstractStruct
   // It's only useful if we'll have some static typing on structs later (Shapeless' records?)

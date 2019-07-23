@@ -5,7 +5,7 @@ import scalan._
 import scala.reflect.runtime.universe._
 import OverloadHack.{Overloaded2, Overloaded1}
 
-trait StructItems extends ViewsModule with Entities  { self: Structs with Scalan =>
+trait StructItems extends ViewsModule with Entities with BaseEx { self: Structs with ScalanEx =>
   import IsoUR._
   trait StructItem[@uncheckedVariance +Val, Schema <: Struct] extends Def[StructItem[Val @uncheckedVariance, Schema]] {
     def eVal: Elem[Val @uncheckedVariance]
@@ -20,7 +20,7 @@ trait StructItems extends ViewsModule with Entities  { self: Structs with Scalan
 
 }
 
-trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan =>
+trait StructItemsModule extends impl.StructItemsDefs { self: Structs with ScalanEx =>
   import StructKey._
   import IndexStructKey._
   import NameStructKey._

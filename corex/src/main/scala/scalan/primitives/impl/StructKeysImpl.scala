@@ -7,7 +7,7 @@ import scalan.meta.ScalanAst._
 package impl {
 // Abs -----------------------------------
 trait StructKeysDefs extends StructKeys {
-  self: Structs with Scalan =>
+  self: Structs with ScalanEx =>
 import IsoUR._
 import Converter._
 import IndexStructKey._
