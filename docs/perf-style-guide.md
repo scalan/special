@@ -84,3 +84,19 @@ Depending on xs.length it is 20-50x faster (see `BasicBenchmark.scala`)
 ### Sequences
 
 
+### Concluding remarks
+
+Program performance is the result of everyday work, rather than one time job.
+There is no *one size fits all* solution as there are many trade-offs along the way.
+You may find it useful to examine the References section for more detailed information.
+
+### References
+1. [Scala High Performance Programming](https://www.amazon.com/Scala-Performance-Programming-Vincent-Theron/dp/178646604X)
+2. [Optimizing Higher-Order Functions in Scala](https://infoscience.epfl.ch/record/128135/files/paper.pdf) (somewhat outdated)
+3. [Where to look first when optimizing Scala code?](https://stackoverflow.com/questions/15112604/where-to-look-first-when-optimizing-scala-code)
+4. [Scala for comprehension performance](https://stackoverflow.com/questions/15137360/scala-for-comprehension-performance)
+5. [Performance characteristics of Scala collections](https://docs.scala-lang.org/overviews/collections/performance-characteristics.html)
+6. [Java Performance: The Definitive Guide: Getting the Most Out of Your Code](https://www.amazon.com/Java-Performance-Definitive-Guide-Getting/dp/1449358454)
+7. [Scala library benchmarks](https://github.com/scala/scala/tree/2.13.x/test/benchmarks)
+8. [JITWatch](https://github.com/AdoptOpenJDK/jitwatch)
+9. [Parallel Collections: Measuring Performance](https://docs.scala-lang.org/overviews/parallel-collections/performance.html)
