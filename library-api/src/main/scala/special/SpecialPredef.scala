@@ -17,10 +17,6 @@ object SpecialPredef {
 
   @Reified("A") def none[A](implicit tA: RType[A]): Option[A] = Option.empty[A]
 
-  def left[A,B](a: A): Either[A,B] = Left(a)
-  
-  def right[A,B](b: B): Either[A,B] = Right(b)
-
   def optionGetOrElse[A](opt: Option[A], default: A): A = opt.getOrElse(default)
 
   def rewritableMethod =

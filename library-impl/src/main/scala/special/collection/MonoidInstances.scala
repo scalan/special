@@ -12,12 +12,6 @@ class MonoidBuilderInst extends MonoidBuilder {
   
   override def pairMonoid[@specialized(Int, Long) A, @specialized(Int, Long) B](m1: Monoid[A], m2: Monoid[B]): Monoid[(A, B)] =
     new PairMonoid(m1, m2)
-
-//  def sizePlusMonoid[A](mA: Monoid[A]): Monoid[Size[A]] = ???
-//
-//  def sizeMaxMonoid[A](mA: Monoid[A]): Monoid[Size[A]] = ???
-//
-//  def sizeMinMonoid[A](mA: Monoid[A]): Monoid[Size[A]] = ???
 }
 
 class IntPlusMonoid(val zero: Int) extends Monoid[Int] {

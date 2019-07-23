@@ -13,7 +13,6 @@ trait Library extends Scalan
   with ConcreteSizesModule
   with ConcreteCostsModule
   with MonoidsModule
-  with MonoidInstancesModule
   with CostedOptionsModule {
   import WOption._
   import WRType._
@@ -55,36 +54,10 @@ trait Library extends Scalan
     case _ => !!!(s"Cannot create zeroSize($eVal)")
   })
 
-//  private val WA = WArrayMethods
   private val CM = CollMethods
   private val CBM = CollBuilderMethods
   private val WOptionM = WOptionMethods
   private val SPCM = WSpecialPredefCompanionMethods
-
-  object IsProjectFirst {
-    def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-      case Def(Lambda(_,_,x, Def(First(p)))) if p == x => Some(asRep[A=>B](f))
-      case _ => None
-    }
-  }
-  object IsProjectSecond {
-    def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-      case Def(Lambda(_,_,x, Def(Second(p)))) if p == x => Some(asRep[A=>B](f))
-      case _ => None
-    }
-  }
-  object IsNumericToInt {
-    def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
-      case ApplyUnOp(_: NumericToInt[_], x) => Nullable(x.asInstanceOf[Rep[A] forSome {type A}])
-      case _ => Nullable.None
-    }
-  }
-  object IsNumericToLong {
-    def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
-      case ApplyUnOp(_: NumericToLong[_], x) => Nullable(x.asInstanceOf[Rep[A] forSome {type A}])
-      case _ => Nullable.None
-    }
-  }
 
   def colBuilder: Rep[CollBuilder]
   def costedBuilder: Rep[CostedBuilder]
@@ -99,7 +72,6 @@ trait Library extends Scalan
 
     case CM.length(CBM.replicate(_, len, _)) => len
     case CM.length(Def(CollConst(coll, _))) => coll.length
-//    case CM.length(CBM.fromArray(_, arr)) => arr.length
     case CM.length(CBM.fromItems(_, items, _)) => items.length
 
     // Rule: replicate(l, x).zip(replicate(l, y)) ==> replicate(l, (x,y))

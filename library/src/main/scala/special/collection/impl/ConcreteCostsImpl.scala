@@ -31,7 +31,6 @@ import CostedFunc._
 import CostedOption._
 import CostedPair._
 import CostedPrim._
-import MonoidBuilderInst._
 import Size._
 import SizeColl._
 import SizeFunc._

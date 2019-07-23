@@ -16,10 +16,6 @@ trait MonoidBuilder {
   def longMinMonoid: Monoid[Long]
 
   def pairMonoid[@specialized(Int, Long) A, @specialized(Int, Long) B](m1: Monoid[A], m2: Monoid[B]): Monoid[(A,B)]
-
-//  def sizePlusMonoid[A](mA: Monoid[A]): Monoid[Size[A]]
-//  def sizeMaxMonoid[A](mA: Monoid[A]): Monoid[Size[A]]
-//  def sizeMinMonoid[A](mA: Monoid[A]): Monoid[Size[A]]
 }
 
 

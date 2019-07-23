@@ -52,6 +52,7 @@ class CCostedColl[Item](
 }
 
 class CCostedBuilder extends CostedBuilder {
+  @NeverInline
   def monoidBuilder = new MonoidBuilderInst
 
   @NeverInline
