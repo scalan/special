@@ -9,9 +9,6 @@ class CollsStagingTests extends WrappersTests {
   class Ctx extends TestContext with TestLibrary {
     import Coll._
     import CollBuilder._
-//    import WArray._
-//    import CollOverArray._
-//    import CollOverArrayBuilder._
     lazy val t2 = fun { (c: Rep[Coll[Double]]) =>
       c.map(fun { x => x + 1.0 })
     }
@@ -23,10 +20,6 @@ class CollsStagingTests extends WrappersTests {
 
   test("Coll methods") {
     val ctx = new Ctx {
-//      import WArray._
-//      import CollOverArray._
-//      import CollOverArrayBuilder._
-//      val M = WArrayMethods; val C = WArrayCompanionMethods
       def test() = {
 //        { val Def(Lambda(_, _, x, RColOverArray(M.map(in, _)))) = t2; assert(in == x) }
       }

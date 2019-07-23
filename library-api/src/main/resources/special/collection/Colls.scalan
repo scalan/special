@@ -7,12 +7,10 @@ package special.collection {
     import Monoid._;
     import MonoidBuilder._;
     import PairColl._;
-    import WArray._;
     import WOption._;
     @ContainerType @FunctorType @Liftable trait Coll[A] extends Def[Coll[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[CollBuilder];
-      def toArray: Rep[WArray[A]];
       def length: Rep[Int];
       def size: Rep[Int] = this.length;
       def isEmpty: Rep[Boolean];
@@ -69,7 +67,6 @@ package special.collection {
       @Reified(value = "T") def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]];
       @NeverInline def unzip[A, B](xs: Rep[Coll[scala.Tuple2[A, B]]]): Rep[scala.Tuple2[Coll[A], Coll[B]]] = delayInvoke;
       def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]];
-      def fromArray[T](arr: Rep[WArray[T]]): Rep[Coll[T]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]];
       def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]];
       def outerJoin[K, L, R, O](left: Rep[Coll[scala.Tuple2[K, L]]], right: Rep[Coll[scala.Tuple2[K, R]]])(l: Rep[scala.Function1[scala.Tuple2[K, L], O]], r: Rep[scala.Function1[scala.Tuple2[K, R], O]], inner: Rep[scala.Function1[scala.Tuple2[K, scala.Tuple2[L, R]], O]]): Rep[Coll[scala.Tuple2[K, O]]];

@@ -11,19 +11,9 @@ class SpecialLibraryConfig extends LibraryConfig {
   def wrapperConfigs: Map[String, WrapperConf] = List(
     WrapperConf(baseDir,
       packageName = "scala",
-      name = "Array",
-      annotations = List(classOf[ContainerType], classOf[FunctorType], classOf[Liftable]).map(_.getSimpleName)
-    ),
-    WrapperConf(baseDir,
-      packageName = "scala",
       name = "Option",
       annotations = List(classOf[ContainerType], classOf[FunctorType], classOf[Liftable]).map(_.getSimpleName)
     ),
-//    WrapperConf(baseDir,
-//      packageName = "scala.util",
-//      name = "Either",
-//      annotations = List(classOf[Liftable]).map(_.getSimpleName)
-//    ),
     WrapperConf(baseDir,
       packageName = "special",
       name = "SpecialPredef"
@@ -45,7 +35,6 @@ class SpecialLibraryConfig extends LibraryConfig {
 
   val ImplModule = new SourceModuleConf(baseDir, "library-impl")
       .addUnit("special/collection/MonoidInstances.scala")
-      .addUnit("special/collection/CollsOverArrays.scala")
       .addUnit("special/collection/ConcreteCosts.scala")
       .addUnit("special/collection/ConcreteSizes.scala")
       .addUnit("special/collection/CostedOptions.scala")

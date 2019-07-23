@@ -111,24 +111,8 @@ trait Library extends Scalan
       val f = asRep[a => Any](_f)
       b.replicate(l, Apply(f, v, false))
 
-    // Rule: xs.map(_._1).zip(xs.map(_._2)) ==> xs
-//    case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
-//    case CM.zip(CM.map(xs, IsProjectFirst(_)), CM.map(ys, IsProjectSecond(_))) if xs == ys => xs
-
-//    case WA.map(WA.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
-//      implicit val ea = f.elem.eDom
-//      val xs = _xs.asRep[WArray[a]]
-//      val g  = _g.asRep[b => c]
-//      xs.map(fun { x: Rep[a] => g(f(x)) })
-//    case CM.map(CM.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
-//      implicit val ea = f.elem.eDom
-//      val xs = _xs.asRep[Coll[a]]
-//      val g  = _g.asRep[b => c]
-//      xs.map(fun { x: Rep[a] => g(f(x)) })
 
     case CM.map(xs, Def(IdentityLambda())) => xs
-//    case CM.map(xs, Def(ConstantLambda(res))) =>
-//      RCReplColl(ThunkForce(Thunk(res)), xs.length)
 
     case CM.sum(Def(CollConst(coll, lA)), Def(_: IntPlusMonoid)) if lA.eW == IntElement =>
       coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
@@ -151,13 +135,6 @@ trait Library extends Scalan
   }
 
   override def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef = e match {
-//    case _: CollBuilderElem[_] => mc match {
-//      case CollBuilderMethods.fromArray(b, xs) =>
-//        val newMC = mc.copy(args = mc.args :+ xs.elem.eItem)(mc.selfType, mc.isAdapterCall)
-//        super.invokeUnlifted(e, newMC, dataEnv)
-//      case _ =>
-//        super.invokeUnlifted(e, mc, dataEnv)
-//    }
     case _: CollElem[_,_] => mc match {
       case CollMethods.map(xs, f) =>
         val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)

@@ -12,7 +12,7 @@ trait AstContextBase extends Symbols {
   /** Mapping of external type names to their wrappers ("Array" -> WrapperDescr). */
   private[scalan] val wrappers = MMap[String, WrapperDescr]()
 
-  /** Mapping of W-entities to the corresponding wrapped type name ("WArray" -> "Array") */
+  /** Mapping of W-entities to the corresponding wrapped type name (e.g. "WArray" -> "Array") */
   private[scalan] val entityToWrapper = MMap[String, String]()
 
   /** Mapping of <packageName>.<moduleName> to unit configuration.

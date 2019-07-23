@@ -2,25 +2,11 @@ package special.wrappers {
   import scalan._
 
   trait WrappersSpec extends Base { self: WrappersSpecModule =>
-    import WArray._;
     import WOption._;
     import WRType._;
     import WSpecialPredef._;
     import WrapSpecBase._;
     trait WrapSpecBase extends Def[WrapSpecBase] with WrapSpec;
-    trait ArrayWrapSpec extends WrapSpecBase {
-      def zip[A, B](xs: Rep[WArray[A]], ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[A, B]]] = xs.zip(ys);
-      def map[A, B](xs: Rep[WArray[A]], f: Rep[scala.Function1[A, B]]): Rep[WArray[B]] = xs.map(f);
-      def length[A](xs: Rep[WArray[A]]): Rep[Int] = xs.length;
-      def fill[A](n: Rep[Int], elem: Rep[A]): Rep[WArray[A]] = RWArray.fill[A](n, Thunk(elem));
-      def slice[A](xs: Rep[WArray[A]], from: Rep[Int], until: Rep[Int]): Rep[WArray[A]] = xs.slice(from, until);
-      @NeverInline def foldLeft[A, B](xs: Rep[WArray[A]], zero: Rep[B], op: Rep[scala.Function1[scala.Tuple2[B, A], B]]): Rep[B] = delayInvoke;
-      def filter[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[WArray[A]] = xs.filter(p);
-      def forall[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = xs.forall(p);
-      def exists[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Boolean]]): Rep[Boolean] = xs.exists(p);
-      def foreach[A](xs: Rep[WArray[A]], p: Rep[scala.Function1[A, Unit]]): Rep[Unit] = xs.foreach(p);
-      def apply[A](xs: Rep[WArray[A]], i: Rep[Int]): Rep[A] = xs.apply(i)
-    };
     trait OptionWrapSpec extends WrapSpecBase {
       def get[A](xs: Rep[WOption[A]]): Rep[A] = xs.get;
       @NeverInline def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = delayInvoke;
