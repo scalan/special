@@ -2,14 +2,14 @@ package scalan.universe.api
 
 import scala.collection.mutable
 import scala.language.reflectiveCalls
-import scalan.Scalan
+import scalan.ScalanEx
 import scalan.OverloadHack.Overloaded1
 import scalan.meta.ScalanAst._
 import scalan.util.PrintExtensions._
 import scalan.util.StringUtil
 import scalan.util.CollectionUtil._
 
-trait TypesApi { self: Scalan =>
+trait TypesApi { self: ScalanEx =>
   import UniverseUtils._
   import IsoUR._
 
@@ -119,6 +119,55 @@ trait TypesApi { self: Scalan =>
     }
   }
 
+  def applySubst(d: TypeDesc, subst: TypeArgSubst): TypeDesc = d match {
+    case e: ArgElem => subst.getOrElse(e.argName, e)
+    //      case ae: ArrayElem[a] =>
+    //        arrayElement(ae.eItem.applySubst(subst).asElem)
+    //      case ae: ArrayBufferElem[a] =>
+    //      case ae: ListElem[a] =>
+    //      case ae: StructElem[a] =>
+    //        val tpes = (ae.fieldNames zip ae.fieldElems).map { case (name, el) =>
+    //          BaseType(name, List(Type(el)))
+    //        }
+    //        StructType(tpes.toList)
+    //      case ee: EntityElem[a] =>
+    //        val ent = Entity(entityDef(ee).name)
+    //        val elemSubst = ee.typeArgs
+    //        val subst = ent.typeArgs.map((a: ArgElem) => {
+    //          val el = elemSubst.getOrElse(a.name, a)
+    //          (a, el)
+    //        })
+    //        new EntityApply(ent, subst.toMap)
+    //      case be: BaseTypeElem1[a,tExt,cBase] =>
+    //        val a = Type(be.eItem)
+    //        BaseType(be.runtimeClass.getSimpleName, List(a))
+    //      case be: BaseTypeElem[tBase,tExt] =>
+    //        BaseType(be.runtimeClass.getSimpleName, Nil)
+    //      case _ if e == UnitElement => BaseType("Unit")
+    //      case _ if e == BooleanElement => BaseType("Boolean")
+    //      case _ if e == ByteElement => BaseType("Byte")
+    //      case _ if e == ShortElement => BaseType("Short")
+    //      case _ if e == IntElement => BaseType("Int")
+    //      case _ if e == LongElement => BaseType("Long")
+    //      case _ if e == FloatElement => BaseType("Float")
+    //      case _ if e == DoubleElement => BaseType("Double")
+    //      case _ if e == StringElement => BaseType("String")
+    //      case _ if e == CharElement => BaseType("Char")
+    //      case pe: PairElem[_,_] =>
+    //        val a = Type(pe.eFst)
+    //        val b = Type(pe.eSnd)
+    //        Tuple(List(a,b))
+    //      case pe: SumElem[_,_] =>
+    //        val a = Type(pe.eLeft)
+    //        val b = Type(pe.eRight)
+    //        Sum(List(a,b))
+    //      case pe: FuncElem[_,_] =>
+    //        val a = Type(pe.eDom)
+    //        val b = Type(pe.eRange)
+    //        Func(a,b)
+    case _ => d
+  }
+
   class Entity private (entityDef: SEntityDef, private[TypesApi] val module: SUnitDef) {
     def name = entityDef.name
     def isTrait = entityDef.isTrait
@@ -151,7 +200,7 @@ trait TypesApi { self: Scalan =>
     def subEntitiesIter: Iterator[Entity] = subEntities.values.iterator
 
     def toTraitCall(args: TypeArgSubst) = {
-      val tpeArgs = typeArgs.map(a => args.get(a.argName).map(e => e.toTpeExpr).getOrElse(a.tyArg.toTraitCall))
+      val tpeArgs = typeArgs.map(a => args.get(a.argName).map(e => toTpeExpr(e)).getOrElse(a.tyArg.toTraitCall))
       STraitCall(name, tpeArgs)
     }
     def asType: TypeDesc = applySubst(emptySubst)
@@ -166,7 +215,7 @@ trait TypesApi { self: Scalan =>
 
     def applySubst(subst: TypeArgSubst): TypeDesc = {
       val params = this.typeArgs.map(a => subst.getOrElse(a.argName, a))
-      val paramDescs = params.map(p => p.applySubst(subst))
+      val paramDescs = params.map(p => self.applySubst(p, subst))
       val descClasses = paramDescs.map {
         case e: Elem[_] => classOf[Elem[_]]
         case c: Cont[_] => classOf[Cont[Any]]
@@ -234,7 +283,7 @@ trait TypesApi { self: Scalan =>
 
   object BaseType {
     def apply(tyName: String) = STpePrimitives(tyName)
-    def apply(tyName: String, args: List[TypeDesc]) = STraitCall(tyName, args.map(_.toTpeExpr))
+    def apply(tyName: String, args: List[TypeDesc]) = STraitCall(tyName, args.map(td => toTpeExpr(td)))
   }
 
 //  def mkBaseConstructor1(name: String) = BaseType(STraitCall(name, Nil))

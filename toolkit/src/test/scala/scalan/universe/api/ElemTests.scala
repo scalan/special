@@ -6,8 +6,8 @@ import scalan.common.{SegmentsModule, KindsModule}
 import scalan.json.ParsedModules
 import scalan.universe.api.UniverseUtils._
 
-class ElemTests extends BaseCtxTests { suite =>
-  class Ctx extends TestContext with SegmentsModule with KindsModule with TypesApi with ParsedModules {
+class ElemTests extends BaseCtxTestsEx { suite =>
+  class Ctx extends TestContextEx with SegmentsModule with KindsModule with TypesApi with ParsedModules {
     import Segment._
     import Slice._
     import Interval._
