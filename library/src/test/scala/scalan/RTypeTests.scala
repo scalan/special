@@ -22,17 +22,13 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
     counter.isCovered(3) shouldBe true
   }
 
-  // TODO: make normal test
-  /*
   property("RType generate value by type") {
     import scala.runtime.ScalaRunTime._
     val minSuccess = MinSuccessful(30)
-    forAll(fullDataTypeGen, minSuccess) { t: RType[_] =>
+    forAll(getFullTypeGen(3), minSuccess) { t: RType[_] =>
       forAll(rtypeValueGen(t)) { value =>
-
-        println(stringOf(value))
+        RTypeUtil.valueMatchesRType(value, t)
       }
     }
   }
-  */
 }
