@@ -631,7 +631,6 @@ implicit val eV = proj.elem.eRange
         ))
     }
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagA = eA.tag
@@ -2227,7 +2226,6 @@ implicit val eO = l.elem.eRange
         ))
     }
 
-    lazy val parent: Option[Elem[_]] = None
     override lazy val tag = {
       weakTypeTag[CollBuilder].asInstanceOf[WeakTypeTag[To]]
     }

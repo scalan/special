@@ -36,7 +36,6 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   // familyElem
   class WrapSpecBaseElem[To <: WrapSpecBase]
     extends EntityElem[To] {
-    lazy val parent: Option[Elem[_]] = None
     override lazy val tag = {
       weakTypeTag[WrapSpecBase].asInstanceOf[WeakTypeTag[To]]
     }

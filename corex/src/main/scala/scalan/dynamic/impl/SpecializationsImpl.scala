@@ -65,7 +65,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     def eR = _eR
     def eM = _eM
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagT = eT.tag

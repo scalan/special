@@ -56,7 +56,6 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     def eVal = _eVal
     def eSchema = _eSchema
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Covariant), "Schema" -> (eSchema -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagVal = eVal.tag

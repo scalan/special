@@ -8,7 +8,7 @@ trait Entities extends TypeDescs { self: Scalan =>
   import BaseConverter._
   
   abstract class EntityElem[A] extends Elem[A] with scala.Equals {
-    def parent: Option[Elem[_]]
+    def parent: Option[Elem[_]] = None
     val entityName: String = {
       val elemClassSymbol = ReflectionUtil.classToSymbol(this.getClass)
       val n = elemClassSymbol.name.toString.stripSuffix("Elem")

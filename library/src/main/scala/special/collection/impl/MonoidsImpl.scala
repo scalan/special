@@ -57,7 +57,6 @@ object Monoid extends EntityObject("Monoid") {
     extends EntityElem[To] {
     def eT = _eT
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagT = eT.tag
@@ -210,7 +209,6 @@ implicit val eB = m2.eT
   // familyElem
   class MonoidBuilderElem[To <: MonoidBuilder]
     extends EntityElem[To] {
-    lazy val parent: Option[Elem[_]] = None
     override lazy val tag = {
       weakTypeTag[MonoidBuilder].asInstanceOf[WeakTypeTag[To]]
     }

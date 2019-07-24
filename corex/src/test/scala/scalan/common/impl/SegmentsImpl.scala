@@ -148,7 +148,6 @@ object Segment extends EntityObject("Segment") {
         ))
     }
 
-    lazy val parent: Option[Elem[_]] = None
     override lazy val tag = {
       weakTypeTag[Segment].asInstanceOf[WeakTypeTag[To]]
     }

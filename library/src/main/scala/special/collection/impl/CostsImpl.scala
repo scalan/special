@@ -79,7 +79,6 @@ object Costed extends EntityObject("Costed") {
     extends EntityElem[To] {
     def eVal = _eVal
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagVal = eVal.tag
@@ -1221,7 +1220,6 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   // familyElem
   class CostedBuilderElem[To <: CostedBuilder]
     extends EntityElem[To] {
-    lazy val parent: Option[Elem[_]] = None
     override lazy val tag = {
       weakTypeTag[CostedBuilder].asInstanceOf[WeakTypeTag[To]]
     }

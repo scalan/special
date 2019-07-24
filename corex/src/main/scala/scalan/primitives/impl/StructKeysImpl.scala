@@ -51,7 +51,6 @@ object StructKey extends EntityObject("StructKey") {
     extends EntityElem[To] {
     def eSchema = _eSchema
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagSchema = eSchema.tag

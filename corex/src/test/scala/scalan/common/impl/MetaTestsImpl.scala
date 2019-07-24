@@ -144,7 +144,6 @@ object MetaTest extends EntityObject("MetaTest") {
         ))
     }
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagT = eT.tag

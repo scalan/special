@@ -223,7 +223,6 @@ object WOption extends EntityObject("WOption") {
         ))
     }
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
     override lazy val tag = {
       implicit val tagA = eA.tag
