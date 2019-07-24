@@ -28,7 +28,6 @@ package special.wrappers {
       def name[T](d: Rep[WRType[T]]): Rep[String] = d.name
     };
     trait WrapSpecBaseCompanion;
-    trait ArrayWrapSpecCompanion;
     trait OptionWrapSpecCompanion;
     trait SpecialPredefWrapSpecCompanion;
     trait RTypeWrapSpecCompanion

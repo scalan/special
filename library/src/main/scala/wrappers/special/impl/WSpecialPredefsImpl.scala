@@ -123,32 +123,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       }
     }
 
-    object right {
-      def unapply(d: Def[_]): Nullable[(Rep[B], Elem[A]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "right" =>
-          val res = (args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[B], Elem[A]) forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[B], Elem[A]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object left {
-      def unapply(d: Def[_]): Nullable[(Rep[A], Elem[B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "left" =>
-          val res = (args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[A], Elem[B]) forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[A], Elem[B]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
     object none {
       def unapply(d: Def[_]): Nullable[Elem[A] forSome {type A}] = d match {
         case MethodCall(receiver, method, args, _) if receiver.elem == WSpecialPredefCompanionElem && method.getName == "none" =>

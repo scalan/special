@@ -605,17 +605,7 @@ implicit val eV = proj.elem.eRange
     def map[A,B](xs: Rep[Coll[A]])(f: Rep[A] => Rep[B]) = { implicit val eA = unlift(xs.elem); xs.map(fun(f))}
   }
 
-  case class CollIso[A, B](innerIso: Iso[A, B]) extends Iso1UR[A, B, Coll] {
-    lazy val selfType = new ConcreteIsoElem[Coll[A], Coll[B], CollIso[A, B]](eFrom, eTo).
-      asInstanceOf[Elem[IsoUR[Coll[A], Coll[B]]]]
-    def cC = container[Coll]
-    def from(x: Rep[Coll[B]]) = x.map(innerIso.fromFun)
-    def to(x: Rep[Coll[A]]) = x.map(innerIso.toFun)
-    override def transform(t: Transformer) = CollIso(t(innerIso))
-  }
-
-  def collIso[A, B](innerIso: Iso[A, B]) =
-    reifyObject(CollIso[A, B](innerIso)).asInstanceOf[Iso1[A, B, Coll]]
+  // manual fix: CollIso, collIso
 
   // familyElem
   class CollElem[A, To <: Coll[A]](implicit _eA: Elem[A])
@@ -668,33 +658,12 @@ implicit val eV = proj.elem.eRange
     private val thisClass = classOf[CollCompanion]
   }
 
-  case class ViewColl[A, B](source: Rep[Coll[A]], override val innerIso: Iso[A, B])
-    extends View1[A, B, Coll](collIso(innerIso)) {
-    override def transform(t: Transformer) = ViewColl(t(source), t(innerIso))
-    override def toString = s"ViewColl[${innerIso.eTo.name}]($source)"
-    override def equals(other: Any) = other match {
-      case v: ViewColl[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
-      case _ => false
-    }
-  }
+  // manual fix: ViewColl
 
   object CollMethods {
     object builder {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "builder" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[Coll[A]] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object toArray {
-      def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "toArray" =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
