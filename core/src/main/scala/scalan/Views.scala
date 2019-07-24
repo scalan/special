@@ -202,7 +202,6 @@ trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
     def cC = container[Thunk]
     def from(x: Th[B]) = x.map(innerIso.fromFun)
     def to(x: Th[A]) = x.map(innerIso.toFun)
-    lazy val defaultRepTo: Th[B] = Thunk(eB.defaultRepValue)
   }
 }
 

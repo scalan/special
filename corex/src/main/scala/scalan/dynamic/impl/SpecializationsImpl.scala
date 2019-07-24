@@ -84,7 +84,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
         case e => !!!(s"Expected $x to have IsoFuncElem[_, _, _, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def isoFuncElement[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Elem[IsoFunc[T, R, M]] =
@@ -92,7 +91,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
 
   implicit case object IsoFuncCompanionElem extends CompanionElem[IsoFuncCompanionCtor] {
     lazy val tag = weakTypeTag[IsoFuncCompanionCtor]
-    protected def getDefaultRep = RIsoFunc
   }
 
   abstract class IsoFuncCompanionCtor extends CompanionDef[IsoFuncCompanionCtor] {
@@ -166,7 +164,6 @@ implicit lazy val eM = metric.elem.eRange
     override lazy val parent: Option[Elem[_]] = Some(isoFuncElement(element[T], element[R], element[M]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
     override def convertIsoFunc(x: Rep[IsoFunc[T, R, M]]) = RIsoFuncBase(x.func, x.metric)
-    override def getDefaultRep = RIsoFuncBase(constFun[T, R](element[R].defaultRepValue), constFun[T, M](element[M].defaultRepValue))
     override lazy val tag = {
       implicit val tagT = eT.tag
       implicit val tagR = eR.tag
@@ -200,7 +197,6 @@ implicit lazy val eM = metric.elem.eRange
     }
   }
   case class IsoFuncBaseIsoElem[T, R, M](eT: Elem[T], eR: Elem[R], eM: Elem[M]) extends Elem[IsoFuncBaseIso[T, R, M]] {
-    def getDefaultRep = reifyObject(new IsoFuncBaseIso[T, R, M]()(eT, eR, eM))
     lazy val tag = {
       implicit val tagT = eT.tag
       implicit val tagR = eR.tag
@@ -238,7 +234,6 @@ implicit val eM = p._2.elem.eRange
 
   implicit case object IsoFuncBaseCompanionElem extends CompanionElem[IsoFuncBaseCompanionCtor] {
     lazy val tag = weakTypeTag[IsoFuncBaseCompanionCtor]
-    protected def getDefaultRep = IsoFuncBaseRep
   }
 
   implicit def proxyIsoFuncBase[T, R, M](p: Rep[IsoFuncBase[T, R, M]]): IsoFuncBase[T, R, M] =

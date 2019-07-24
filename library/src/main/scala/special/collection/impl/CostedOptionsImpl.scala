@@ -42,7 +42,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
     override lazy val parent: Option[Elem[_]] = Some(costedOptionElement(element[T]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override def convertCostedOption(x: Rep[CostedOption[T]]) = RCCostedOption(x.value, x.costOpt, x.sizeOpt, x.accumulatedCost)
-    override def getDefaultRep = RCCostedOption(element[WOption[T]].defaultRepValue, element[WOption[Int]].defaultRepValue, element[WOption[Size[T]]].defaultRepValue, 0)
     override lazy val tag = {
       implicit val tagT = eT.tag
       weakTypeTag[CCostedOption[T]]
@@ -70,7 +69,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
     def productElement(n: Int) = eT
   }
   case class CCostedOptionIsoElem[T](eT: Elem[T]) extends Elem[CCostedOptionIso[T]] {
-    def getDefaultRep = reifyObject(new CCostedOptionIso[T]()(eT))
     lazy val tag = {
       implicit val tagT = eT.tag
       weakTypeTag[CCostedOptionIso[T]]
@@ -107,7 +105,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
 
   implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor] {
     lazy val tag = weakTypeTag[CCostedOptionCompanionCtor]
-    protected def getDefaultRep = CCostedOptionRep
   }
 
   implicit def proxyCCostedOption[T](p: Rep[CCostedOption[T]]): CCostedOption[T] =

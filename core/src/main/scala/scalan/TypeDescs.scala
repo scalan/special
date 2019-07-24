@@ -326,10 +326,6 @@ trait TypeDescs extends Base { self: Scalan =>
       if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
     }
 
-    // should only be called by defaultRepValue
-    protected def getDefaultRep: Rep[A]
-    lazy val defaultRepValue = getDefaultRep
-
     def <:<(e: Elem[_]) = tag.tpe <:< e.tag.tpe
     def >:>(e: Elem[_]) = e <:< this
   }
@@ -436,7 +432,6 @@ trait TypeDescs extends Base { self: Scalan =>
   def element[A](implicit ea: Elem[A]): Elem[A] = ea
 
   class BaseElem[A](defaultValue: A)(implicit val tag: WeakTypeTag[A]) extends Elem[A] with Serializable with scala.Equals {
-    protected def getDefaultRep = toRep(defaultValue)(this)
     override def canEqual(other: Any) = other.isInstanceOf[BaseElem[_]]
     override def equals(other: Any) = other match {
       case other: BaseElem[_] =>
@@ -469,7 +464,6 @@ trait TypeDescs extends Base { self: Scalan =>
     }
     override def getName(f: TypeDesc => String) = s"(${f(eFst)}, ${f(eSnd)})"
     override def buildTypeArgs = ListMap("A" -> (eFst -> Covariant), "B" -> (eSnd -> Covariant))
-    protected def getDefaultRep = Pair(eFst.defaultRepValue, eSnd.defaultRepValue)
     override def liftable: Liftables.Liftable[_, (A, B)] =
       Liftables.asLiftable[(_,_), (A,B)](Liftables.PairIsLiftable(eFst.liftable, eSnd.liftable))
   }
@@ -482,7 +476,6 @@ trait TypeDescs extends Base { self: Scalan =>
     }
     override def getName(f: TypeDesc => String) = s"(${f(eLeft)} | ${f(eRight)})"
     override def buildTypeArgs = ListMap("A" -> (eLeft -> Covariant), "B" -> (eRight -> Covariant))
-    protected def getDefaultRep = mkLeft[A, B](eLeft.defaultRepValue)(eRight)
   }
 
   case class FuncElem[A, B](eDom: Elem[A], eRange: Elem[B]) extends Elem[A => B] {
@@ -494,16 +487,11 @@ trait TypeDescs extends Base { self: Scalan =>
     }
     override def getName(f: TypeDesc => String) = s"${f(eDom)} => ${f(eRange)}"
     override def buildTypeArgs = ListMap("A" -> (eDom -> Contravariant), "B" -> (eRange -> Covariant))
-    protected def getDefaultRep = {
-      val defaultB = eRange.defaultRepValue
-      fun[A, B](_ => defaultB)(Lazy(eDom))
-    }
     override def liftable: Liftable[_, A => B] =
       asLiftable[_ => _, A => B](FuncIsLiftable(eDom.liftable, eRange.liftable))
   }
 
   class ArgElem(val tyArg: STpeArg) extends Elem[Any] with Serializable with scala.Equals {
-    protected def getDefaultRep = toRep(null.asInstanceOf[Any])(this)
     val tag = ReflectionUtil.createArgTypeTag(tyArg.name).asInstanceOf[WeakTypeTag[Any]]
     def argName = tyArg.name
     override def buildTypeArgs = {

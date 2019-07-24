@@ -50,7 +50,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
         case e => !!!(s"Expected $x to have WSpecialPredefElem[_], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val wSpecialPredefElement: Elem[WSpecialPredef] =
@@ -58,7 +57,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
 
   implicit case object WSpecialPredefCompanionElem extends CompanionElem[WSpecialPredefCompanionCtor] {
     lazy val tag = weakTypeTag[WSpecialPredefCompanionCtor]
-    protected def getDefaultRep = RWSpecialPredef
   }
 
   abstract class WSpecialPredefCompanionCtor extends CompanionDef[WSpecialPredefCompanionCtor] with WSpecialPredefCompanion {

@@ -57,7 +57,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     override lazy val parent: Option[Elem[_]] = Some(costedPrimElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
     override def convertCostedPrim(x: Rep[CostedPrim[Val]]) = RCCostedPrim(x.value, x.cost, x.size)
-    override def getDefaultRep = RCCostedPrim(element[Val].defaultRepValue, 0, element[Size[Val]].defaultRepValue)
     override lazy val tag = {
       implicit val tagVal = eVal.tag
       weakTypeTag[CCostedPrim[Val]]
@@ -85,7 +84,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     def productElement(n: Int) = eVal
   }
   case class CCostedPrimIsoElem[Val](eVal: Elem[Val]) extends Elem[CCostedPrimIso[Val]] {
-    def getDefaultRep = reifyObject(new CCostedPrimIso[Val]()(eVal))
     lazy val tag = {
       implicit val tagVal = eVal.tag
       weakTypeTag[CCostedPrimIso[Val]]
@@ -122,7 +120,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
 
   implicit case object CCostedPrimCompanionElem extends CompanionElem[CCostedPrimCompanionCtor] {
     lazy val tag = weakTypeTag[CCostedPrimCompanionCtor]
-    protected def getDefaultRep = CCostedPrimRep
   }
 
   implicit def proxyCCostedPrim[Val](p: Rep[CCostedPrim[Val]]): CCostedPrim[Val] =
@@ -199,7 +196,6 @@ implicit lazy val eR = r.eVal
     override lazy val parent: Option[Elem[_]] = Some(costedPairElement(element[L], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
     override def convertCostedPair(x: Rep[CostedPair[L, R]]) = RCCostedPair(x.l, x.r, x.accCost)
-    override def getDefaultRep = RCCostedPair(element[Costed[L]].defaultRepValue, element[Costed[R]].defaultRepValue, 0)
     override lazy val tag = {
       implicit val tagL = eL.tag
       implicit val tagR = eR.tag
@@ -231,7 +227,6 @@ implicit lazy val eR = r.eVal
     }
   }
   case class CCostedPairIsoElem[L, R](eL: Elem[L], eR: Elem[R]) extends Elem[CCostedPairIso[L, R]] {
-    def getDefaultRep = reifyObject(new CCostedPairIso[L, R]()(eL, eR))
     lazy val tag = {
       implicit val tagL = eL.tag
       implicit val tagR = eR.tag
@@ -270,7 +265,6 @@ implicit val eR = p._2.eVal
 
   implicit case object CCostedPairCompanionElem extends CompanionElem[CCostedPairCompanionCtor] {
     lazy val tag = weakTypeTag[CCostedPairCompanionCtor]
-    protected def getDefaultRep = CCostedPairRep
   }
 
   implicit def proxyCCostedPair[L, R](p: Rep[CCostedPair[L, R]]): CCostedPair[L, R] =
@@ -384,7 +378,6 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override lazy val parent: Option[Elem[_]] = Some(costedFuncElement(element[Env], element[Arg], element[Res]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
     override def convertCostedFunc(x: Rep[CostedFunc[Env, Arg, Res]]) = RCCostedFunc(x.envCosted, x.func, x.cost, x.size)
-    override def getDefaultRep = RCCostedFunc(element[Costed[Env]].defaultRepValue, constFun[Costed[Arg], Costed[Res]](element[Costed[Res]].defaultRepValue), 0, element[Size[Arg => Res]].defaultRepValue)
     override lazy val tag = {
       implicit val tagEnv = eEnv.tag
       implicit val tagArg = eArg.tag
@@ -418,7 +411,6 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     }
   }
   case class CCostedFuncIsoElem[Env, Arg, Res](eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]) extends Elem[CCostedFuncIso[Env, Arg, Res]] {
-    def getDefaultRep = reifyObject(new CCostedFuncIso[Env, Arg, Res]()(eEnv, eArg, eRes))
     lazy val tag = {
       implicit val tagEnv = eEnv.tag
       implicit val tagArg = eArg.tag
@@ -456,7 +448,6 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
 
   implicit case object CCostedFuncCompanionElem extends CompanionElem[CCostedFuncCompanionCtor] {
     lazy val tag = weakTypeTag[CCostedFuncCompanionCtor]
-    protected def getDefaultRep = CCostedFuncRep
   }
 
   implicit def proxyCCostedFunc[Env, Arg, Res](p: Rep[CCostedFunc[Env, Arg, Res]]): CCostedFunc[Env, Arg, Res] =
@@ -618,7 +609,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
     override lazy val parent: Option[Elem[_]] = Some(costedCollElement(element[Item]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override def convertCostedColl(x: Rep[CostedColl[Item]]) = RCCostedColl(x.values, x.costs, x.sizes, x.valuesCost)
-    override def getDefaultRep = RCCostedColl(element[Coll[Item]].defaultRepValue, element[Coll[Int]].defaultRepValue, element[Coll[Size[Item]]].defaultRepValue, 0)
     override lazy val tag = {
       implicit val tagItem = eItem.tag
       weakTypeTag[CCostedColl[Item]]
@@ -646,7 +636,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
     def productElement(n: Int) = eItem
   }
   case class CCostedCollIsoElem[Item](eItem: Elem[Item]) extends Elem[CCostedCollIso[Item]] {
-    def getDefaultRep = reifyObject(new CCostedCollIso[Item]()(eItem))
     lazy val tag = {
       implicit val tagItem = eItem.tag
       weakTypeTag[CCostedCollIso[Item]]
@@ -683,7 +672,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
 
   implicit case object CCostedCollCompanionElem extends CompanionElem[CCostedCollCompanionCtor] {
     lazy val tag = weakTypeTag[CCostedCollCompanionCtor]
-    protected def getDefaultRep = CCostedCollRep
   }
 
   implicit def proxyCCostedColl[Item](p: Rep[CCostedColl[Item]]): CCostedColl[Item] =
@@ -840,7 +828,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     override lazy val parent: Option[Elem[_]] = Some(costedBuilderElement)
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override def convertCostedBuilder(x: Rep[CostedBuilder]) = RCCostedBuilder()
-    override def getDefaultRep = RCCostedBuilder()
     override lazy val tag = {
       weakTypeTag[CCostedBuilder]
     }
@@ -867,7 +854,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     def productElement(n: Int) = ???
   }
   case class CCostedBuilderIsoElem() extends Elem[CCostedBuilderIso] {
-    def getDefaultRep = reifyObject(new CCostedBuilderIso())
     lazy val tag = {
       weakTypeTag[CCostedBuilderIso]
     }
@@ -899,7 +885,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
 
   implicit case object CCostedBuilderCompanionElem extends CompanionElem[CCostedBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[CCostedBuilderCompanionCtor]
-    protected def getDefaultRep = CCostedBuilderRep
   }
 
   implicit def proxyCCostedBuilder(p: Rep[CCostedBuilder]): CCostedBuilder =

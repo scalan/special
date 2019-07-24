@@ -91,8 +91,6 @@ trait Structs extends GraphVizExport { self: Scalan =>
 
     override def liftable: Liftables.Liftable[_, T] = asLiftable[SStruct, T](liftableStruct(this))
 
-    protected def getDefaultRep =
-      struct(structTag, fields.map { case (fn,fe) => (fn, fe.defaultRepValue) }: _*)
     def get(fieldName: String): Option[Elem[_]] = fields.find(_._1 == fieldName).map(_._2)
     def apply(fieldIndex: Int): Elem[_] = fields(fieldIndex)._2
     def apply(fieldName: String): Elem[_] = get(fieldName).getOrElse {

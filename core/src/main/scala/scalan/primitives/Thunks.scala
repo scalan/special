@@ -71,7 +71,6 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       implicit val rt = eItem.tag
       weakTypeTag[Thunk[A]]
     }
-    protected def getDefaultRep = Thunk(eItem.defaultRepValue)
   }
 
   implicit def thunkElement[T](implicit eItem: Elem[T]): Elem[Thunk[T]] =

@@ -470,7 +470,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |        case e => !!!(s"Expected $$x to have $wildcardElem, but got $$e", x)
       |      }
       |    }
-      |    override def getDefaultRep: Rep[$toArgName] = ???
       |  }
       |$elemMethodDefinition
       |""".stripAndTrim
@@ -482,7 +481,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |  implicit case object ${e.companionName}Elem extends CompanionElem[${e.companionCtorName}] {
       |    lazy val tag = weakTypeTag[${e.companionCtorName}]
-      |    protected def getDefaultRep = R${e.name}
       |  }
       |
          |  abstract class ${e.companionCtorName} extends CompanionDef[${e.companionCtorName}]${hasCompanion.opt(s" with ${e.companionName}")} {
@@ -666,7 +664,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
         |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})
         |    override def convert${parent.name}(x: Rep[$parent]) = $converterBody
-        |    override def getDefaultRep = R$className(${fieldTypes.rep(zeroSExpr(e.entity)(_))})
         |    override lazy val tag = {
         |${implicitTagsFromElems(c)}
         |      weakTypeTag[${c.typeUse}]
@@ -694,7 +691,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    def productElement(n: Int) = $isoProductElementBody
         |  }
         |  case class ${className}IsoElem${tpeArgsDecl}(${c.implicitArgs.rep(a => s"${a.name}: ${a.tpe}")}) extends Elem[${className}Iso$tpeArgsUse] {
-        |    def getDefaultRep = reifyObject(new ${className}Iso${tpeArgsUse}()$implicitArgsUse)
         |    lazy val tag = {
         |${implicitTagsFromElems(c)}
         |      weakTypeTag[${className}Iso$tpeArgsUse]
@@ -735,7 +731,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |
         |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}] {
         |    lazy val tag = weakTypeTag[${c.companionCtorName}]
-        |    protected def getDefaultRep = ${className}Rep
         |  }
         |
         |  // private val ${c.name}Class = ${emitClassOf(c.name, c.tpeArgs.length)}

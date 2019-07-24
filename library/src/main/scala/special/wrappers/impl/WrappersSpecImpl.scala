@@ -52,7 +52,6 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
         case e => !!!(s"Expected $x to have WrapSpecBaseElem[_], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val wrapSpecBaseElement: Elem[WrapSpecBase] =
@@ -60,7 +59,6 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
 
   implicit case object WrapSpecBaseCompanionElem extends CompanionElem[WrapSpecBaseCompanionCtor] {
     lazy val tag = weakTypeTag[WrapSpecBaseCompanionCtor]
-    protected def getDefaultRep = RWrapSpecBase
   }
 
   abstract class WrapSpecBaseCompanionCtor extends CompanionDef[WrapSpecBaseCompanionCtor] with WrapSpecBaseCompanion {
@@ -134,7 +132,6 @@ implicit val eB = ifEmpty.elem.eItem
         case e => !!!(s"Expected $x to have OptionWrapSpecElem[_], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val optionWrapSpecElement: Elem[OptionWrapSpec] =
@@ -142,7 +139,6 @@ implicit val eB = ifEmpty.elem.eItem
 
   implicit case object OptionWrapSpecCompanionElem extends CompanionElem[OptionWrapSpecCompanionCtor] {
     lazy val tag = weakTypeTag[OptionWrapSpecCompanionCtor]
-    protected def getDefaultRep = ROptionWrapSpec
   }
 
   abstract class OptionWrapSpecCompanionCtor extends CompanionDef[OptionWrapSpecCompanionCtor] with OptionWrapSpecCompanion {
@@ -301,7 +297,6 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
         case e => !!!(s"Expected $x to have SpecialPredefWrapSpecElem[_], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val specialPredefWrapSpecElement: Elem[SpecialPredefWrapSpec] =
@@ -309,7 +304,6 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
   implicit case object SpecialPredefWrapSpecCompanionElem extends CompanionElem[SpecialPredefWrapSpecCompanionCtor] {
     lazy val tag = weakTypeTag[SpecialPredefWrapSpecCompanionCtor]
-    protected def getDefaultRep = RSpecialPredefWrapSpec
   }
 
   abstract class SpecialPredefWrapSpecCompanionCtor extends CompanionDef[SpecialPredefWrapSpecCompanionCtor] with SpecialPredefWrapSpecCompanion {
@@ -429,7 +423,6 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
         case e => !!!(s"Expected $x to have RTypeWrapSpecElem[_], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val rTypeWrapSpecElement: Elem[RTypeWrapSpec] =
@@ -437,7 +430,6 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
 
   implicit case object RTypeWrapSpecCompanionElem extends CompanionElem[RTypeWrapSpecCompanionCtor] {
     lazy val tag = weakTypeTag[RTypeWrapSpecCompanionCtor]
-    protected def getDefaultRep = RRTypeWrapSpec
   }
 
   abstract class RTypeWrapSpecCompanionCtor extends CompanionDef[RTypeWrapSpecCompanionCtor] with RTypeWrapSpecCompanion {

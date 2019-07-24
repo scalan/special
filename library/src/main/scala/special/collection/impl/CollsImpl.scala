@@ -648,7 +648,6 @@ implicit val eV = proj.elem.eRange
         case e => !!!(s"Expected $x to have CollElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   // manual fix (optimization)
@@ -657,7 +656,6 @@ implicit val eV = proj.elem.eRange
 
   implicit case object CollCompanionElem extends CompanionElem[CollCompanionCtor] {
     lazy val tag = weakTypeTag[CollCompanionCtor]
-    protected def getDefaultRep = RColl
   }
 
   abstract class CollCompanionCtor extends CompanionDef[CollCompanionCtor] with CollCompanion {
@@ -1504,7 +1502,6 @@ implicit val eV = proj.elem.eRange
         case e => !!!(s"Expected $x to have PairCollElem[_, _, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def pairCollElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[PairColl[L, R]] =
@@ -1512,7 +1509,6 @@ implicit val eV = proj.elem.eRange
 
   implicit case object PairCollCompanionElem extends CompanionElem[PairCollCompanionCtor] {
     lazy val tag = weakTypeTag[PairCollCompanionCtor]
-    protected def getDefaultRep = RPairColl
   }
 
   abstract class PairCollCompanionCtor extends CompanionDef[PairCollCompanionCtor] with PairCollCompanion {
@@ -1953,7 +1949,6 @@ implicit val eV = proj.elem.eRange
         case e => !!!(s"Expected $x to have ReplCollElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def replCollElement[A](implicit eA: Elem[A]): Elem[ReplColl[A]] =
@@ -1961,7 +1956,6 @@ implicit val eV = proj.elem.eRange
 
   implicit case object ReplCollCompanionElem extends CompanionElem[ReplCollCompanionCtor] {
     lazy val tag = weakTypeTag[ReplCollCompanionCtor]
-    protected def getDefaultRep = RReplColl
   }
 
   abstract class ReplCollCompanionCtor extends CompanionDef[ReplCollCompanionCtor] with ReplCollCompanion {
@@ -2249,7 +2243,6 @@ implicit val eO = l.elem.eRange
         case e => !!!(s"Expected $x to have CollBuilderElem[_], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val collBuilderElement: Elem[CollBuilder] =
@@ -2257,7 +2250,6 @@ implicit val eO = l.elem.eRange
 
   implicit case object CollBuilderCompanionElem extends CompanionElem[CollBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[CollBuilderCompanionCtor]
-    protected def getDefaultRep = RCollBuilder
   }
 
   abstract class CollBuilderCompanionCtor extends CompanionDef[CollBuilderCompanionCtor] with CollBuilderCompanion {

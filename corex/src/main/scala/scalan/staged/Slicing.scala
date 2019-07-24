@@ -512,7 +512,7 @@ trait Slicing extends ScalanEx {
         assert(xs.elem == this.elem)
         reifyObject(UnpackSliced(xs, this))
       case KeyPath.None =>
-        projectedElem.defaultRepValue
+        ??? // TODO implement an alternative for projectedElem.defaultRepValue
       case _ =>
         !!!(s"Expect itemsPath to be All or None, but got $itemsPath")
     }

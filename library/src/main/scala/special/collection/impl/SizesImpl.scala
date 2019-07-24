@@ -120,7 +120,6 @@ object Size extends EntityObject("Size") {
         case e => !!!(s"Expected $x to have SizeElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def sizeElement[Val](implicit eVal: Elem[Val]): Elem[Size[Val]] =
@@ -128,7 +127,6 @@ object Size extends EntityObject("Size") {
 
   implicit case object SizeCompanionElem extends CompanionElem[SizeCompanionCtor] {
     lazy val tag = weakTypeTag[SizeCompanionCtor]
-    protected def getDefaultRep = RSize
   }
 
   abstract class SizeCompanionCtor extends CompanionDef[SizeCompanionCtor] with SizeCompanion {
@@ -276,7 +274,6 @@ object SizePrim extends EntityObject("SizePrim") {
         case e => !!!(s"Expected $x to have SizePrimElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def sizePrimElement[Val](implicit eVal: Elem[Val]): Elem[SizePrim[Val]] =
@@ -284,7 +281,6 @@ object SizePrim extends EntityObject("SizePrim") {
 
   implicit case object SizePrimCompanionElem extends CompanionElem[SizePrimCompanionCtor] {
     lazy val tag = weakTypeTag[SizePrimCompanionCtor]
-    protected def getDefaultRep = RSizePrim
   }
 
   abstract class SizePrimCompanionCtor extends CompanionDef[SizePrimCompanionCtor] with SizePrimCompanion {
@@ -459,7 +455,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
         case e => !!!(s"Expected $x to have SizePairElem[_, _, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def sizePairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[SizePair[L, R]] =
@@ -467,7 +462,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
   implicit case object SizePairCompanionElem extends CompanionElem[SizePairCompanionCtor] {
     lazy val tag = weakTypeTag[SizePairCompanionCtor]
-    protected def getDefaultRep = RSizePair
   }
 
   abstract class SizePairCompanionCtor extends CompanionDef[SizePairCompanionCtor] with SizePairCompanion {
@@ -622,7 +616,6 @@ object SizeColl extends EntityObject("SizeColl") {
         case e => !!!(s"Expected $x to have SizeCollElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def sizeCollElement[Item](implicit eItem: Elem[Item]): Elem[SizeColl[Item]] =
@@ -630,7 +623,6 @@ object SizeColl extends EntityObject("SizeColl") {
 
   implicit case object SizeCollCompanionElem extends CompanionElem[SizeCollCompanionCtor] {
     lazy val tag = weakTypeTag[SizeCollCompanionCtor]
-    protected def getDefaultRep = RSizeColl
   }
 
   abstract class SizeCollCompanionCtor extends CompanionDef[SizeCollCompanionCtor] with SizeCollCompanion {
@@ -784,7 +776,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
         case e => !!!(s"Expected $x to have SizeFuncElem[_, _, _, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def sizeFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[SizeFunc[Env, Arg, Res]] =
@@ -792,7 +783,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
 
   implicit case object SizeFuncCompanionElem extends CompanionElem[SizeFuncCompanionCtor] {
     lazy val tag = weakTypeTag[SizeFuncCompanionCtor]
-    protected def getDefaultRep = RSizeFunc
   }
 
   abstract class SizeFuncCompanionCtor extends CompanionDef[SizeFuncCompanionCtor] with SizeFuncCompanion {
@@ -934,7 +924,6 @@ object SizeOption extends EntityObject("SizeOption") {
         case e => !!!(s"Expected $x to have SizeOptionElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def sizeOptionElement[T](implicit eT: Elem[T]): Elem[SizeOption[T]] =
@@ -942,7 +931,6 @@ object SizeOption extends EntityObject("SizeOption") {
 
   implicit case object SizeOptionCompanionElem extends CompanionElem[SizeOptionCompanionCtor] {
     lazy val tag = weakTypeTag[SizeOptionCompanionCtor]
-    protected def getDefaultRep = RSizeOption
   }
 
   abstract class SizeOptionCompanionCtor extends CompanionDef[SizeOptionCompanionCtor] with SizeOptionCompanion {

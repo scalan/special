@@ -250,7 +250,6 @@ object WOption extends EntityObject("WOption") {
         case e => !!!(s"Expected $x to have WOptionElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def wOptionElement[A](implicit eA: Elem[A]): Elem[WOption[A]] =
@@ -258,7 +257,6 @@ object WOption extends EntityObject("WOption") {
 
   implicit case object WOptionCompanionElem extends CompanionElem[WOptionCompanionCtor] {
     lazy val tag = weakTypeTag[WOptionCompanionCtor]
-    protected def getDefaultRep = RWOption
   }
 
   abstract class WOptionCompanionCtor extends CompanionDef[WOptionCompanionCtor] with WOptionCompanion {

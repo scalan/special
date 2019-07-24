@@ -117,7 +117,6 @@ object WRType extends EntityObject("WRType") {
         case e => !!!(s"Expected $x to have WRTypeElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   // manual fix (optimization)
@@ -126,7 +125,6 @@ object WRType extends EntityObject("WRType") {
 
   implicit case object WRTypeCompanionElem extends CompanionElem[WRTypeCompanionCtor] {
     lazy val tag = weakTypeTag[WRTypeCompanionCtor]
-    protected def getDefaultRep = RWRType
   }
 
   abstract class WRTypeCompanionCtor extends CompanionDef[WRTypeCompanionCtor] with WRTypeCompanion {

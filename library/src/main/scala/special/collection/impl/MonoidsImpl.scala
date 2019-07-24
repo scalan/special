@@ -74,7 +74,6 @@ object Monoid extends EntityObject("Monoid") {
         case e => !!!(s"Expected $x to have MonoidElem[_, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def monoidElement[T](implicit eT: Elem[T]): Elem[Monoid[T]] =
@@ -82,7 +81,6 @@ object Monoid extends EntityObject("Monoid") {
 
   implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor] {
     lazy val tag = weakTypeTag[MonoidCompanionCtor]
-    protected def getDefaultRep = RMonoid
   }
 
   abstract class MonoidCompanionCtor extends CompanionDef[MonoidCompanionCtor] with MonoidCompanion {
@@ -228,7 +226,6 @@ implicit val eB = m2.eT
         case e => !!!(s"Expected $x to have MonoidBuilderElem[_], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val monoidBuilderElement: Elem[MonoidBuilder] =
@@ -236,7 +233,6 @@ implicit val eB = m2.eT
 
   implicit case object MonoidBuilderCompanionElem extends CompanionElem[MonoidBuilderCompanionCtor] {
     lazy val tag = weakTypeTag[MonoidBuilderCompanionCtor]
-    protected def getDefaultRep = RMonoidBuilder
   }
 
   abstract class MonoidBuilderCompanionCtor extends CompanionDef[MonoidBuilderCompanionCtor] with MonoidBuilderCompanion {

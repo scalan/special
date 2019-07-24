@@ -74,7 +74,6 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
         case e => !!!(s"Expected $x to have StructItemElem[_, _, _], but got $e", x)
       }
     }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit def structItemElement[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema]): Elem[StructItem[Val, Schema]] =
@@ -82,7 +81,6 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
 
   implicit case object StructItemCompanionElem extends CompanionElem[StructItemCompanionCtor] {
     lazy val tag = weakTypeTag[StructItemCompanionCtor]
-    protected def getDefaultRep = RStructItem
   }
 
   abstract class StructItemCompanionCtor extends CompanionDef[StructItemCompanionCtor] {
@@ -142,7 +140,6 @@ implicit lazy val eSchema = key.eSchema
     override lazy val parent: Option[Elem[_]] = Some(structItemElement(element[Val], element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
     override def convertStructItem(x: Rep[StructItem[Val, Schema]]) = RStructItemBase(x.key, x.value)
-    override def getDefaultRep = RStructItemBase(element[StructKey[Schema]].defaultRepValue, element[Val].defaultRepValue)
     override lazy val tag = {
       implicit val tagVal = eVal.tag
       implicit val tagSchema = eSchema.tag
@@ -174,7 +171,6 @@ implicit lazy val eSchema = key.eSchema
     }
   }
   case class StructItemBaseIsoElem[Val, Schema <: Struct](eVal: Elem[Val], eSchema: Elem[Schema]) extends Elem[StructItemBaseIso[Val, Schema]] {
-    def getDefaultRep = reifyObject(new StructItemBaseIso[Val, Schema]()(eVal, eSchema))
     lazy val tag = {
       implicit val tagVal = eVal.tag
       implicit val tagSchema = eSchema.tag
@@ -210,7 +206,6 @@ implicit val eSchema = p._1.eSchema
 
   implicit case object StructItemBaseCompanionElem extends CompanionElem[StructItemBaseCompanionCtor] {
     lazy val tag = weakTypeTag[StructItemBaseCompanionCtor]
-    protected def getDefaultRep = StructItemBaseRep
   }
 
   implicit def proxyStructItemBase[Val, Schema <: Struct](p: Rep[StructItemBase[Val, Schema]]): StructItemBase[Val, Schema] =
