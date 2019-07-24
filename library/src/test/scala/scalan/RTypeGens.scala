@@ -20,27 +20,19 @@ trait RTypeGens {
   def pairTypeGen(depth: Int = 1, itemGen: Gen[RType[_]]): Gen[PairType[_, _]] = depth match {
     case 1 =>
       pairTypeGenFinal(itemGen, itemGen)
-    case _ => pairTypeGen(depth - 1, itemGen) match {
-      case lg: Gen[PairType[_, _]]@unchecked => {
-        pairTypeGen(depth - 1, itemGen) match {
-          case rg: Gen[PairType[_, _]]@unchecked => {
-            Gen.oneOf(
-              pairTypeGenFinal(itemGen, itemGen),
-              pairTypeGenFinal(lg, itemGen),
-              pairTypeGenFinal(itemGen, rg),
-              pairTypeGenFinal(lg, rg),
-            )
-          }
-          case _ => throw new RuntimeException("Invalid rGen")
-        }
-      }
-      case _ => throw new RuntimeException("Invalid lGen")
-    }
+    case _ =>
+      val lg = pairTypeGen(depth - 1, itemGen)
+      val rg = pairTypeGen(depth - 1, itemGen)
+      Gen.oneOf(
+        pairTypeGenFinal(itemGen, itemGen),
+        pairTypeGenFinal(lg, itemGen),
+        pairTypeGenFinal(itemGen, rg),
+        pairTypeGenFinal(lg, rg),
+      )
   }
 
-
-  val pairPrimitiveTypeGen = pairTypeGen(4, primitiveTypeGen)
-  val pairDataTypeGen = pairTypeGen(4, dataTypeGen)
+  def getPairGen(depth: Int = 4, gn: Gen[RType[_]]) = pairTypeGen(depth, gn)
+  def getPairDataTypeGen(depth: Int = 4) = pairTypeGen(depth, dataTypeGen)
 
   def arrayTypeGenFinal(itemGen: Gen[RType[_]]): Gen[ArrayType[_]] = {
     for { item <- itemGen } yield new ArrayType(item)
@@ -56,7 +48,7 @@ trait RTypeGens {
       )
   }
 
-  val arrayPrimitiveTypeGen = arrayTypeGen(4, primitiveTypeGen)
-  val arrayDataTypeGen = arrayTypeGen(4, Gen.oneOf(dataTypeGen, pairDataTypeGen))
-  val fullDataTypeGen = Gen.oneOf(dataTypeGen, pairDataTypeGen, arrayDataTypeGen)
+  val getArrayPrimitiveTypeGen = arrayTypeGen(4, primitiveTypeGen)
+  val arrayDataTypeGen = arrayTypeGen(4, Gen.oneOf(dataTypeGen, getPairDataTypeGen()))
+  val fullDataTypeGen = Gen.oneOf(dataTypeGen, getPairDataTypeGen(), arrayDataTypeGen)
 }
