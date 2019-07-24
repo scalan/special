@@ -38,4 +38,19 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
       }
     }
   }
+
+  property("RType clone value") {
+    import scala.runtime.ScalaRunTime._
+    val minSuccess = MinSuccessful(30)
+    def checkCopy[T](value: T)(implicit tA: RType[T]) = {
+      val copy: T = RTypeUtil.clone(tA, value)
+      copy == value shouldBe true
+      !(copy eq value) shouldBe true
+    }
+    forAll(getFullTypeGen(3), minSuccess) { t: RType[_] =>
+      forAll(rtypeValueGen(t), MinSuccessful(4)) { value =>
+        checkCopy(t, value)
+      }
+    }
+  }
 }
