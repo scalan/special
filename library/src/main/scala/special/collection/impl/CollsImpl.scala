@@ -2228,7 +2228,6 @@ implicit val eO = l.elem.eRange
     }
 
     lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[CollBuilder].asInstanceOf[WeakTypeTag[To]]
     }

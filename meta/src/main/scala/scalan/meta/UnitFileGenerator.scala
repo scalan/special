@@ -368,9 +368,9 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  implicit def cast${e.name}Element${e.tpeArgsDecl}(elem: Elem[${e.typeUse}]): $entityElem =
       |    elem.asInstanceOf[$entityElem]
       |
-        |  ${container(e.name, e.isFunctor)}
+      |  ${container(e.name, e.isFunctor)}
       |
-        |  case class ${e.name}Iso[A, B](innerIso: Iso[A, B]) extends Iso1UR[A, B, ${e.name}] {
+      |  case class ${e.name}Iso[A, B](innerIso: Iso[A, B]) extends Iso1UR[A, B, ${e.name}] {
       |    lazy val selfType = new ConcreteIsoElem[${e.name}[A], ${e.name}[B], ${e.name}Iso[A, B]](eFrom, eTo).
       |      asInstanceOf[Elem[IsoUR[${e.name}[A], ${e.name}[B]]]]
       |    def cC = container[${e.name}]
@@ -379,7 +379,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    override def transform(t: Transformer) = ${e.name}Iso(t(innerIso))
       |  }
       |
-        |  def ${StringUtil.lowerCaseFirst(e.name)}Iso[A, B](innerIso: Iso[A, B]) =
+      |  def ${StringUtil.lowerCaseFirst(e.name)}Iso[A, B](innerIso: Iso[A, B]) =
       |    reifyObject(${e.name}Iso[A, B](innerIso)).asInstanceOf[Iso1[A, B, ${e.name}]]
       |""".stripAndTrim
   }
@@ -454,7 +454,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${e.implicitArgs.rep(a => s"    ${(e.entity.isAbstractInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
       |${e.entity.isLiftable.opt(liftableSupport())}
       |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElemStr(p, e.tpeArgs)})", "None")}
-      |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})
+      |    ${e.emitTpeArgToDescPairs.isEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})")}
       |    override lazy val tag = {
       |${implicitTagsFromElems(e)}
       |      weakTypeTag[${e.typeUse}].asInstanceOf[WeakTypeTag[$toArgName]]

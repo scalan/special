@@ -1222,7 +1222,6 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   class CostedBuilderElem[To <: CostedBuilder]
     extends EntityElem[To] {
     lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[CostedBuilder].asInstanceOf[WeakTypeTag[To]]
     }

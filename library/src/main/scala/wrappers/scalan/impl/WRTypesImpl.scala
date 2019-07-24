@@ -141,7 +141,7 @@ object WRType extends EntityObject("WRType") {
   object WRTypeMethods {
     object name {
       def unapply(d: Def[_]): Nullable[Rep[WRType[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[WRTypeElem[_, _]] && method.getName == "name" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "name" && receiver.elem.isInstanceOf[WRTypeElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[WRType[A]] forSome {type A}]]
         case _ => Nullable.None

@@ -826,7 +826,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     extends CostedBuilderElem[CCostedBuilder]
     with ConcreteElem[CCostedBuilderData, CCostedBuilder] {
     override lazy val parent: Option[Elem[_]] = Some(costedBuilderElement)
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override def convertCostedBuilder(x: Rep[CostedBuilder]) = RCCostedBuilder()
     override lazy val tag = {
       weakTypeTag[CCostedBuilder]
@@ -857,7 +856,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     lazy val tag = {
       weakTypeTag[CCostedBuilderIso]
     }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
   }
   // 4) constructor and deconstructor
   class CCostedBuilderCompanionCtor extends CompanionDef[CCostedBuilderCompanionCtor] with CCostedBuilderCompanion {

@@ -473,7 +473,6 @@ object MT0 extends EntityObject("MT0") {
     extends MetaTestElem[Unit, MT0]
     with ConcreteElem[MT0Data, MT0] {
     override lazy val parent: Option[Elem[_]] = Some(metaTestElement(UnitElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override def convertMetaTest(x: Rep[MetaTest[Unit]]) = RMT0(x.size)
     override lazy val tag = {
       weakTypeTag[MT0]
@@ -504,7 +503,6 @@ object MT0 extends EntityObject("MT0") {
     lazy val tag = {
       weakTypeTag[MT0Iso]
     }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
   }
   // 4) constructor and deconstructor
   class MT0CompanionCtor extends CompanionDef[MT0CompanionCtor] with MT0Companion {

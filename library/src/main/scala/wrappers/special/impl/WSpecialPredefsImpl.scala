@@ -35,7 +35,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   class WSpecialPredefElem[To <: WSpecialPredef]
     extends EntityElem[To] {
     lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[WSpecialPredef].asInstanceOf[WeakTypeTag[To]]
     }

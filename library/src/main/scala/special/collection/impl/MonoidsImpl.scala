@@ -211,7 +211,6 @@ implicit val eB = m2.eT
   class MonoidBuilderElem[To <: MonoidBuilder]
     extends EntityElem[To] {
     lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[MonoidBuilder].asInstanceOf[WeakTypeTag[To]]
     }

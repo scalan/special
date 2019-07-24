@@ -37,7 +37,6 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   class WrapSpecBaseElem[To <: WrapSpecBase]
     extends EntityElem[To] {
     lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[WrapSpecBase].asInstanceOf[WeakTypeTag[To]]
     }
@@ -117,7 +116,6 @@ implicit val eB = ifEmpty.elem.eItem
   class OptionWrapSpecElem[To <: OptionWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[OptionWrapSpec].asInstanceOf[WeakTypeTag[To]]
     }
@@ -282,7 +280,6 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   class SpecialPredefWrapSpecElem[To <: SpecialPredefWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[SpecialPredefWrapSpec].asInstanceOf[WeakTypeTag[To]]
     }
@@ -408,7 +405,6 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   class RTypeWrapSpecElem[To <: RTypeWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
     override lazy val tag = {
       weakTypeTag[RTypeWrapSpec].asInstanceOf[WeakTypeTag[To]]
     }
