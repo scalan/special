@@ -3,7 +3,7 @@ package scalan
 import OverloadHack.Overloaded2
 import scalan.primitives.TypeSum
 
-trait Converters extends ViewsModule with TypeSum { self: Scalan =>
+trait Converters extends ViewsModule with TypeSum { self: Scalan with ConvertersModule =>
   import Converter._
   type Conv[T,R] = Rep[Converter[T,R]]
   trait Converter[T,R] extends Def[Converter[T,R]] {

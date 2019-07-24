@@ -17,8 +17,7 @@ import spire.syntax.all.cfor
 import scala.collection.mutable.ArrayBuffer
 
 trait Proxy extends Base with GraphVizExport { self: Scalan =>
-  import IsoUR._
-  
+
   def getStagedFunc(name: String): Rep[_] = {
     val clazz = this.getClass
     val f = clazz.getDeclaredMethod(name)

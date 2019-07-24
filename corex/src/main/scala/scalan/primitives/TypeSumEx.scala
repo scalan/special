@@ -4,6 +4,7 @@ import scalan.{ScalanEx, BaseEx}
 
 trait TypeSumEx extends BaseEx { self: ScalanEx =>
   import IsoUR._
+  import Converter._
 
   override def toRep[A](x: A)(implicit eA: Elem[A]):Rep[A] = eA match {
     case se: SumElem[a, b] =>
@@ -14,6 +15,69 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
     case _ =>
       super.toRep(x)(eA)
   }
+
+  object IsLeft {
+    def unapply(b: Def[_]): Option[Rep[_ | _]] = b match {
+      case SumFold(sum, Def(VeryConstantLambda(true)), Def(VeryConstantLambda(false))) => Some(sum)
+      case _ => None
+    }
+  }
+
+  object IsRight {
+    def unapply(b: Def[_]): Option[Rep[_ | _]] = b match {
+      case SumFold(sum, Def(VeryConstantLambda(false)), Def(VeryConstantLambda(true))) => Some(sum)
+      case _ => None
+    }
+  }
+
+  object IsJoinSum {
+    def unapply[T](d: Def[T]): Option[Rep[Source] forSome {type Source}] = d match {
+      case SumFold(source, Def(IdentityLambda()), Def(IdentityLambda())) => Some(source)
+      case _ => None
+    }
+  }
+
+  object IsSumMapLambda {
+    def unapply[A, B](lam: Lambda[A, B]): Option[SumMap[_, _, _, _]] = lam.y match {
+      case Def(m: SumMap[_, _, _, _]) if lam.x == m.sum => Some(m)
+      case _ => None
+    }
+  }
+
+  def liftFromSumFold[T1, T2, A, B](sum: Rep[T1 | T2], left: Rep[T1 => B], right: Rep[T2 => B],
+                                    iso: Iso[A, B]): Rep[B] = {
+    implicit val eA = iso.eFrom
+    val res = sum.foldBy(iso.fromFun << left, iso.fromFun << right)
+    iso.to(res)
+  }
+
+  def liftFromSumFold[T1, T2, A, B, C, D](sum: Rep[T1 | T2], left: Rep[T1 => C], right: Rep[T2 => D],
+                                          iso1: Iso[A, C], iso2: Iso[B, D],
+                                          toD: Conv[C, D], toC: Conv[D, C]): Rep[C] = {
+    implicit val eA = iso1.eFrom
+    val res = sum.foldBy(iso1.fromFun << left, iso1.fromFun << toC.convFun << right)
+    iso1.to(res)
+  }
+
+  case class HasArg(predicate: Rep[_] => Boolean) {
+    def unapply[T](d: Def[T]): Option[Def[T]] = {
+      val args = d.deps
+      if (args.exists(predicate)) Some(d) else None
+    }
+  }
+
+  case class FindArg(predicate: Rep[_] => Boolean) {
+    def unapply[T](d: Def[T]): Option[Rep[_]] = {
+      val args = d.deps
+      for { a <- args.find(predicate) } yield a
+    }
+  }
+
+  val FindFoldArg = FindArg {
+    case Def(_: SumFold[_, _, _]) => true
+    case _ => false
+  }
+
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case SumFold(sum, Def(ConstantLambda(l)), Def(ConstantLambda(r))) if l == r =>

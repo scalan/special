@@ -82,7 +82,6 @@ trait Entities extends TypeDescs { self: Scalan =>
 
   implicit class ElemOpsForEntities[T](e: Elem[T]) {
     def isConcrete = isConcreteElem(e)
-    def getDataIso = getIsoByElem(e)
   }
   trait CompanionElem[T] extends Elem[T] { _: scala.Equals =>
     override def buildTypeArgs = TypeArgs()

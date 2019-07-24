@@ -240,7 +240,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     implicit val ea1 = arg.elem
     implicit val eb = kernel.eB
     val iso = identityIso[A1]
-    ea1.getDataIso match {
+    getIsoByElem(ea1) match {
       case iso: Iso[c,A1] @unchecked =>
         // TODO: assert(filtered list is empty)
         val isoOut = kernel.outFormatIsos.filter({i => i.eFrom equals eOut}).head.asInstanceOf[Iso[B1,B]]
@@ -483,7 +483,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     case Apply(Def(k: DynKernel[a,b]), x: Rep[a1], _) =>
       implicit val ea1 = x.elem
       implicit val eb = k.eB
-      ea1.getDataIso match {
+      getIsoByElem(ea1) match {
         case iso: Iso[c,a1] @unchecked =>
           // If DynKernel is called directly - we suppose it's specialization number 0 is going to be called
           ApplyKernel(k.self, iso.from(x), iso, identityIso[b], 0)

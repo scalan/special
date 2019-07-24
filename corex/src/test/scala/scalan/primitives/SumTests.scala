@@ -7,7 +7,7 @@ import scalan.common.{SegmentsModule, CommonExamples, ViewExamples}
 class SumTests extends BaseCtxTestsEx {
 
   test("IsSumMapLambda") {
-    val ctx = new TestContext with SegmentsModule {
+    val ctx = new TestContextEx with SegmentsModule {
       lazy val t1 = fun { x: Rep[Int|Unit] => x.mapSum(l => l + 1, r => r) }
     }
     import ctx._

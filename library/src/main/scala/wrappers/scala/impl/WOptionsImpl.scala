@@ -272,15 +272,15 @@ object WOption extends EntityObject("WOption") {
     private val thisClass = classOf[WOptionCompanion]
   }
 
-  case class ViewWOption[A, B](source: Rep[WOption[A]], override val innerIso: Iso[A, B])
-    extends View1[A, B, WOption](wOptionIso(innerIso)) {
-    override def transform(t: Transformer) = ViewWOption(t(source), t(innerIso))
-    override def toString = s"ViewWOption[${innerIso.eTo.name}]($source)"
-    override def equals(other: Any) = other match {
-      case v: ViewWOption[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
-      case _ => false
-    }
-  }
+//  case class ViewWOption[A, B](source: Rep[WOption[A]], override val innerIso: Iso[A, B])
+//    extends View1[A, B, WOption](wOptionIso(innerIso)) {
+//    override def transform(t: Transformer) = ViewWOption(t(source), t(innerIso))
+//    override def toString = s"ViewWOption[${innerIso.eTo.name}]($source)"
+//    override def equals(other: Any) = other match {
+//      case v: ViewWOption[_, _] => source == v.source && innerIso.eTo == v.innerIso.eTo
+//      case _ => false
+//    }
+//  }
 
   object WOptionMethods {
     object fold {

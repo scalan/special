@@ -7,7 +7,7 @@ import spire.syntax.all.cfor
 import scala.reflect.runtime.universe._
 import scalan.util.Covariant
 
-trait Thunks extends Functions with ViewsModule with GraphVizExport { self: Scalan =>
+trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
   type Th[+T] = Rep[Thunk[T]]
   trait Thunk[+A] { def value: A }
