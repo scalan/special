@@ -22,7 +22,7 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
     counter.isCovered(3) shouldBe true
   }
 
-  /*property("RType generate value by type") {
+  property("RType generate value by type") {
     import scala.runtime.ScalaRunTime._
     val minSuccess = MinSuccessful(30)
     forAll(getFullTypeGen(3), minSuccess) { t: RType[_] =>
@@ -30,7 +30,7 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
         RTypeTestUtil.valueMatchesRType(value, t)
       }
     }
-  }*/
+  }
 
   property("RType clone value") {
     import scala.runtime.ScalaRunTime._
