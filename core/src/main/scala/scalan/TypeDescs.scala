@@ -1,6 +1,6 @@
 package scalan
 
-import java.lang.reflect.{Method, InvocationTargetException}
+import java.lang.reflect.{InvocationTargetException, Method}
 
 import scala.annotation.implicitNotFound
 import scala.collection.immutable.ListMap
@@ -121,7 +121,13 @@ trait TypeDescs extends Base { self: Scalan =>
     @inline final def runtimeClass: Class[_] = classTag.runtimeClass
     def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = EmptyTypeArgs
     lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
-    def typeArgsIterator = typeArgs.valuesIterator.map(_._1)
+    lazy val typeArgsDescs: Seq[TypeDesc] = {
+      val b = mutable.ArrayBuilder.make[TypeDesc]()
+      for (v <- typeArgs.valuesIterator) {
+        b += v._1
+      }
+      b.result()
+    }
 
     override def getName(f: TypeDesc => String) = {
       import ClassTag._
@@ -139,7 +145,7 @@ trait TypeDescs extends Base { self: Scalan =>
       if (typeArgs.isEmpty)
         className
       else {
-        val typeArgString = typeArgsIterator.map(f).mkString(", ")
+        val typeArgString = typeArgsDescs.map(f).mkString(", ")
         s"$className[$typeArgString]"
       }
     }

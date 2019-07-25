@@ -134,7 +134,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
         s"$obj.$className.$methodCallStr"
       }
     case NewObject(eA, args, _) =>
-      val className = ScalaNameUtil.cleanNestedClassName(eA.runtimeClass.getName)
+      val className = ScalaNameUtil.cleanNestedClassName(eA.sourceType.name)
       s"new $className(${args.mkString(", ")})"
     case _ => super.formatDef(d)
   }
@@ -224,7 +224,6 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   protected def initialInvokeTesters: ArrayBuffer[InvokeTester] = {
     val res = new ArrayBuffer[InvokeTester](16)
     res += isCompanionApply
-//    res += isFieldGetter
     res
   }
   private lazy val invokeTesters: ArrayBuffer[InvokeTester] = initialInvokeTesters
@@ -281,8 +280,6 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
 
   // stack of receivers for which MethodCall nodes should be created by InvocationHandler
   protected var methodCallReceivers: List[Sym] = Nil
-
-//  import Symbols._
 
   private def invokeMethod(obj: AnyRef, methodName: String): AnyRef = {
     try {

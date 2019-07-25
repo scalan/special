@@ -190,7 +190,7 @@ class ScalanEx extends Scalan
       if (typeArgs.isEmpty)
         tyArg.name
       else {
-        val typeArgString = typeArgsIterator.map(f).mkString(", ")
+        val typeArgString = typeArgsDescs.map(f).mkString(", ")
         s"${tyArg.name}[$typeArgString]"
       }
     }

@@ -364,7 +364,7 @@ trait GraphVizExport extends Base { self: Scalan =>
       case se: StructElem[_] =>
         se.fieldElems.iterator
       case e: Elem[_] =>
-        e.typeArgsIterator
+        e.typeArgsDescs
       case _: Cont[_] =>
         Iterator.empty
     }

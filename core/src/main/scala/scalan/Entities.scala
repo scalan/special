@@ -1,5 +1,7 @@
 package scalan
 
+import java.util.Objects
+
 import scala.annotation.tailrec
 import scala.language.higherKinds
 import scalan.util.ReflectionUtil
@@ -22,11 +24,11 @@ trait Entities extends TypeDescs { self: Scalan =>
         this.eq(other) ||
           (other.canEqual(this) &&
             this.runtimeClass == other.runtimeClass &&
-            this.typeArgsIterator.sameElements(other.typeArgsIterator))
+            this.typeArgsDescs == other.typeArgsDescs)
       case _ => false
     }
 
-    override def hashCode = tag.tpe.hashCode
+    override def hashCode = Objects.hash(runtimeClass, typeArgsDescs)
   }
 
   abstract class EntityElem1[A, To, C[_]](val eItem: Elem[A], val cont: Cont[C])
@@ -38,10 +40,11 @@ trait Entities extends TypeDescs { self: Scalan =>
       case _: EntityElem1[_, _, _] => true
       case _ => false
     }
-    override def equals(other: Any) = other match {
-      case other: EntityElem1[_,_,_] => other.canEqual(this) && cont == other.cont && eItem == other.eItem
+    override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || (other match {
+      case other: EntityElem1[_,_,_] =>
+        other.canEqual(this) && cont == other.cont && eItem == other.eItem
       case _ => false
-    }
+    })
     override def hashCode = eItem.hashCode * 41 + cont.hashCode
   }
   trait ConcreteElem[TData, TClass] extends EntityElem[TClass] with ViewElem[TData, TClass] { eClass =>
@@ -71,7 +74,7 @@ trait Entities extends TypeDescs { self: Scalan =>
     case e: EntityElem[_] if !isConcreteModuloTypeArgs(e) =>
       false
     case e: Elem[_] =>
-      e.typeArgsIterator.forall(isConcreteElem)
+      e.typeArgsDescs.forall(isConcreteElem)
     case _: Cont[_] => true
   }
 
