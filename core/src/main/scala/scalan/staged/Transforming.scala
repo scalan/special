@@ -4,7 +4,9 @@ import java.lang.reflect.Method
 
 import scala.collection.{Seq, mutable}
 import scalan.{Lazy, DelayInvokeException, Scalan, Nullable}
+import scala.reflect.{classTag, ClassTag}
 import scala.reflect.runtime.universe._
+import scalan.RType.SingletonType
 
 trait Transforming { self: Scalan =>
 
@@ -50,7 +52,8 @@ trait Transforming { self: Scalan =>
     _currentPass = Pass.defaultPass
   }
 
-  case class SingletonElem[T: WeakTypeTag](value: T) extends BaseElem[T](value)
+  case class SingletonElem[T: WeakTypeTag: ClassTag](value: T)
+    extends BaseElemLiftable[T](value, SingletonType(value, classTag[T]))
 
   sealed trait KeyPath {
     def isNone = this == KeyPath.None

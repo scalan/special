@@ -119,7 +119,7 @@ trait TypeDescs extends Base { self: Scalan =>
 
     // classTag.runtimeClass is cheap, no reason to make it lazy
     @inline final def runtimeClass: Class[_] = classTag.runtimeClass
-    def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap()
+    def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = EmptyTypeArgs
     lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
     def typeArgsIterator = typeArgs.valuesIterator.map(_._1)
 
@@ -286,28 +286,17 @@ trait TypeDescs extends Base { self: Scalan =>
 
   def element[A](implicit ea: Elem[A]): Elem[A] = ea
 
-  class BaseElem[A](defaultValue: A)(implicit val tag: WeakTypeTag[A]) extends Elem[A] with Serializable with scala.Equals {
-    override def canEqual(other: Any) = other.isInstanceOf[BaseElem[_]]
-    override def equals(other: Any) = other match {
-      case other: BaseElem[_] =>
-        this.eq(other) ||
-          (other.canEqual(this) &&
-            this.runtimeClass == other.runtimeClass &&
-            noTypeArgs)
+  abstract class BaseElem[A](defaultValue: A)(implicit val tag: WeakTypeTag[A]) extends Elem[A] with Serializable with scala.Equals
+
+  class BaseElemLiftable[A](defaultValue: A, val tA: RType[A])(implicit tag: WeakTypeTag[A]) extends BaseElem[A](defaultValue) {
+    override def buildTypeArgs = EmptyTypeArgs
+    override val liftable = new Liftables.BaseLiftable[A]()(this, tA)
+    override def canEqual(other: Any) = other.isInstanceOf[BaseElemLiftable[_]]
+    override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || (other match {
+      case other: BaseElemLiftable[_] => tA == other.tA
       case _ => false
-    }
-
-    override def buildTypeArgs = {
-      assert(noTypeArgs)
-      TypeArgs()
-    }
-
-    private[this] lazy val noTypeArgs =
-      if (tag.tpe.typeArgs.isEmpty)
-        true
-      else
-        !!!(s"${getClass.getSimpleName} is a BaseElem for a generic type, must override equals and typeArgs.")
-    override def hashCode = tag.tpe.hashCode
+    })
+    override val hashCode = tA.hashCode
   }
 
   case class PairElem[A, B](eFst: Elem[A], eSnd: Elem[B]) extends Elem[(A, B)] {
@@ -347,52 +336,29 @@ trait TypeDescs extends Base { self: Scalan =>
   }
 
 
-  val AnyElement: Elem[Any] = new BaseElem[Any](null) {
-    override def liftable = new Liftables.BaseLiftable()(this, AnyType)
-  }
+  val AnyElement: Elem[Any] = new BaseElemLiftable[Any](null, AnyType)
+
   val LazyAnyElement = Lazy(AnyElement)
 
-  val AnyRefElement: Elem[AnyRef] = new BaseElem[AnyRef](null) {
-    override def liftable = new Liftables.BaseLiftable()(this, AnyRefType)
-  }
+  val AnyRefElement: Elem[AnyRef] = new BaseElemLiftable[AnyRef](null, AnyRefType)
 
-  // very ugly casts but should be safe after type erasure
+  // somewhat ugly casts, but they completely disappear after type erasure
+  // (so not present in Java bytecode)
   val NothingElement: Elem[Nothing] =
-    new BaseElem[Null](null)(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]) {
-      override def liftable =
-        new Liftables.BaseLiftable()(this, NothingType.asInstanceOf[RType[Null]])
-    }.asElem[Nothing]
+    new BaseElemLiftable[Null](
+      null, NothingType.asInstanceOf[RType[Null]]
+    )(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]).asElem[Nothing]
 
-  implicit val BooleanElement: Elem[Boolean] = new BaseElem(false) {
-    override def liftable = new Liftables.BaseLiftable()(this, BooleanType)
-  }
-  implicit val ByteElement: Elem[Byte] = new BaseElem(0.toByte) {
-    override def liftable = new Liftables.BaseLiftable()(this, ByteType)
-  }
-  implicit val ShortElement: Elem[Short] = new BaseElem(0.toShort) {
-    override def liftable = new Liftables.BaseLiftable()(this, ShortType)
-  }
-  implicit val IntElement: Elem[Int] = new BaseElem(0) {
-    override def liftable = new Liftables.BaseLiftable()(this, IntType)
-  }
-  implicit val LongElement: Elem[Long] = new BaseElem(0L) {
-    override def liftable = new Liftables.BaseLiftable()(this, LongType)
-  }
-  implicit val FloatElement: Elem[Float] = new BaseElem(0.0F) {
-    override def liftable = new Liftables.BaseLiftable()(this, FloatType)
-  }
-  implicit val DoubleElement: Elem[Double] = new BaseElem(0.0) {
-    override def liftable = new Liftables.BaseLiftable()(this, DoubleType)
-  }
-  implicit val UnitElement: Elem[Unit] = new BaseElem(()) {
-    override def liftable = new Liftables.BaseLiftable()(this, UnitType)
-  }
-  implicit val StringElement: Elem[String] = new BaseElem("") {
-    override def liftable = new Liftables.BaseLiftable()(this, StringType)
-  }
-  implicit val CharElement: Elem[Char] = new BaseElem('\u0000') {
-    override def liftable = new Liftables.BaseLiftable()(this, CharType)
-  }
+  implicit val BooleanElement: Elem[Boolean] = new BaseElemLiftable(false, BooleanType)
+  implicit val ByteElement: Elem[Byte] = new BaseElemLiftable(0.toByte, ByteType)
+  implicit val ShortElement: Elem[Short] = new BaseElemLiftable(0.toShort, ShortType)
+  implicit val IntElement: Elem[Int] = new BaseElemLiftable(0, IntType)
+  implicit val LongElement: Elem[Long] = new BaseElemLiftable(0L, LongType)
+  implicit val FloatElement: Elem[Float] = new BaseElemLiftable(0.0F, FloatType)
+  implicit val DoubleElement: Elem[Double] = new BaseElemLiftable(0.0, DoubleType)
+  implicit val UnitElement: Elem[Unit] = new BaseElemLiftable((), UnitType)
+  implicit val StringElement: Elem[String] = new BaseElemLiftable("", StringType)
+  implicit val CharElement: Elem[Char] = new BaseElemLiftable('\u0000', CharType)
 
   implicit def pairElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[(A, B)] =
     cachedElemByClass[PairElem[A, B]](ea, eb)(classOf[PairElem[A, B]])
@@ -409,11 +375,9 @@ trait TypeDescs extends Base { self: Scalan =>
 
   implicit def toLazyElem[A](implicit eA: Elem[A]): LElem[A] = Lazy(eA)
 
-  def TypeArgs(descs: (String, (TypeDesc, Variance))*) = ListMap(descs: _*)
+  val EmptyTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap.empty
 
-  object TagImplicits {
-    implicit def elemToClassTag[A](implicit elem: Elem[A]): ClassTag[A] = elem.classTag
-  }
+  def TypeArgs(descs: (String, (TypeDesc, Variance))*) = ListMap(descs: _*)
 
   // can be removed and replaced with assert(value.elem == elem) after #72
   def assertElem(value: Rep[_], elem: Elem[_]): Unit = assertElem(value, elem, "")

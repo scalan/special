@@ -62,6 +62,10 @@ object RType {
   implicit val DoubleType  : RType[Double]   = PrimitiveType[Double]  (ClassTag.Double)
   implicit val UnitType    : RType[Unit]     = PrimitiveType[Unit]    (ClassTag.Unit)
 
+  case class SingletonType[A](value: A, classTag: ClassTag[A])() extends RType[A] {
+    override def isConstantSize: Boolean = true  // since the type has only one inhabitant
+  }
+
   implicit case object StringType extends RType[String] {
     override def classTag: ClassTag[String] = ClassTag[String](classOf[String])
     override def name: String = "String"

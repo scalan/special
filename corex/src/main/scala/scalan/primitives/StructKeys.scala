@@ -1,6 +1,7 @@
 package scalan.primitives
 
 import scalan._
+import scala.reflect.classTag
 
 trait StructKeys extends ViewsModule with Entities with BaseEx { self: Structs with ScalanEx =>
   import IsoUR._
@@ -45,10 +46,9 @@ trait StructKeysModule extends impl.StructKeysDefs {self: Structs with ScalanEx 
 
   case class KeySetSeq(keys: Seq[String]) extends KeySet
 
-  implicit class KeySetOps(ks: Rep[KeySet]) {
-    //    def apply(i: Rep[Int]) = keyset_getAt(ks, i)
-  }
-  class KeySetElem extends BaseElem[KeySet](KeySetSeq(Seq()))
+  val KeySetRType = RType.fromClassTag(classTag[KeySet])
+
+  class KeySetElem extends BaseElemLiftable[KeySet](KeySetSeq(Seq()), KeySetRType)
   implicit lazy val KeySetElement: Elem[KeySet] = new KeySetElem
   def keyset_create(keys: Seq[String]): Rep[KeySet] = KeySetDef(keys)
   case class KeySetDef(keys: Seq[String]) extends BaseDef[KeySet] {

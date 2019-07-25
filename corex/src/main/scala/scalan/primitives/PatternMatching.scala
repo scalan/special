@@ -40,7 +40,6 @@ trait PatternMatching extends Base with GraphVizExport { _: Scalan =>
 
   override def rewriteDef[A](d: Def[A]) = d match {
     case Match(selector: Rep[a], branches, defaultOpt) =>
-      val selectorClass = selector.elem.runtimeClass
       branches match {
         case Nil => defaultOpt match {
           case Some(default) => default(selector)

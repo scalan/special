@@ -1,7 +1,9 @@
 package scalan.staged
 
 import scala.collection.{Seq, mutable}
-import scalan.ScalanEx
+import scalan.{ScalanEx, RType}
+
+import scala.reflect.ClassTag
 
 trait TransformingEx { self: ScalanEx =>
 
@@ -230,7 +232,21 @@ trait TransformingEx { self: ScalanEx =>
   type MarkedSym = (Rep[T], Marking[T]) forSome {type T}
   type MarkedSyms = Seq[MarkedSym]
 
-  class MarkingElem[T:Elem] extends BaseElem[Marking[T]](new EmptyMarking[T](element[T]))
+  implicit def markingRType[A](implicit tA: RType[A]): RType[Marking[A]] = MarkingType(tA)
+
+  case class MarkingType[A](tA: RType[A]) extends RType[Marking[A]] {
+    val classTag: ClassTag[Marking[A]] = {
+      implicit val ctA: ClassTag[A] = tA.classTag
+      scala.reflect.classTag[Marking[A]]
+    }
+    override def name: String = s"Marking[${tA.name}]"
+    override def isConstantSize: Boolean = false
+  }
+
+  class MarkingElem[T](implicit eT: Elem[T])
+    extends BaseElemLiftable[Marking[T]](
+      new EmptyMarking[T](element[T]), markingRType(eT.sourceType.asInstanceOf[RType[T]]))
+
   implicit def markingElem[T:Elem] = new MarkingElem[T]
 
   private val markingKeys = mutable.Map.empty[(String, Elem[_]), MetaKey[_]]
