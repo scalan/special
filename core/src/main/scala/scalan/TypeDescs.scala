@@ -115,7 +115,6 @@ trait TypeDescs extends Base { self: Scalan =>
     import Liftables._
 
     def tag: WeakTypeTag[A]
-    final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
 
     def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = EmptyTypeArgs
     lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
@@ -128,17 +127,13 @@ trait TypeDescs extends Base { self: Scalan =>
     }
 
     override def getName(f: TypeDesc => String) = {
-      import ClassTag._
-      val className = try { classTag match {
-        case _: AnyValManifest[_] | Any | AnyVal | AnyRef | Object | Nothing | Null => classTag.toString
-        case objectTag =>
-          val cl = objectTag.runtimeClass
+      val className = this match {
+        case be: BaseElemLiftable[_] =>
+          be.sourceType.name
+        case e =>
+          val cl = e.getClass
           val name = cl.safeSimpleName
           name
-      }}
-      catch {
-        case t: Throwable =>
-          ???
       }
       if (typeArgs.isEmpty)
         className

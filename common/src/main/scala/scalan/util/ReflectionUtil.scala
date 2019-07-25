@@ -169,7 +169,7 @@ object ReflectionUtil {
     WeakTypeTag(javaMirror.asInstanceOf[scala.reflect.api.Mirror[scala.reflect.runtime.universe.type]], tc)
   }
 
-  implicit class ClassOps(cl: Class[_]) {
+  implicit class ClassOps(val cl: Class[_]) extends AnyVal {
     private def isSpecialChar(c: Char): Boolean = {
       ('0' <= c && c <= '9') || c == '$'
     }
