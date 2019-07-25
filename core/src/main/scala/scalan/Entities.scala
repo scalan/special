@@ -23,12 +23,12 @@ trait Entities extends TypeDescs { self: Scalan =>
       case other: EntityElem[_] =>
         this.eq(other) ||
           (other.canEqual(this) &&
-            this.runtimeClass == other.runtimeClass &&
+            this.getClass == other.getClass &&
             this.typeArgsDescs == other.typeArgsDescs)
       case _ => false
     }
 
-    override def hashCode = Objects.hash(runtimeClass, typeArgsDescs)
+    override def hashCode = Objects.hash(getClass, typeArgsDescs)
   }
 
   abstract class EntityElem1[A, To, C[_]](val eItem: Elem[A], val cont: Cont[C])

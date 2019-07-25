@@ -117,8 +117,6 @@ trait TypeDescs extends Base { self: Scalan =>
     def tag: WeakTypeTag[A]
     final lazy val classTag: ClassTag[A] = ReflectionUtil.typeTagToClassTag(tag)
 
-    // classTag.runtimeClass is cheap, no reason to make it lazy
-    @inline final def runtimeClass: Class[_] = classTag.runtimeClass
     def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = EmptyTypeArgs
     lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
     lazy val typeArgsDescs: Seq[TypeDesc] = {
