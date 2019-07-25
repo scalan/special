@@ -180,7 +180,7 @@ trait TypeDescs extends Base { self: Scalan =>
       if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
     }
 
-    def <:<(e: Elem[_]) = tag.tpe <:< e.tag.tpe
+    def <:<(e: Elem[_]) = e.getClass.isAssignableFrom(this.getClass)
     def >:>(e: Elem[_]) = e <:< this
   }
 

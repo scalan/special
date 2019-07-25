@@ -176,16 +176,6 @@ class ScalanEx extends Scalan
   class ArgElem(val tyArg: STpeArg) extends Elem[Any] with Serializable with scala.Equals {
     val tag = ReflectionUtil.createArgTypeTag(tyArg.name).asInstanceOf[WeakTypeTag[Any]]
     def argName = tyArg.name
-    override def buildTypeArgs = {
-      assert(noTypeArgs)
-      TypeArgs()
-    }
-    private[this] lazy val noTypeArgs =
-      if (tag.tpe.typeArgs.isEmpty)
-        true
-      else
-        !!!(s"${getClass.getSimpleName} is a ArgElem for a generic type, must override equals and typeArgs.")
-
     override def getName(f: TypeDesc => String) = {
       if (typeArgs.isEmpty)
         tyArg.name
@@ -204,7 +194,7 @@ class ScalanEx extends Scalan
         !!!(s"Don't know how to convert ArgElem $this to TypeDesc")
     }
 
-    override def <:<(e: Elem[_]) = if (this == e) true else super.<:<(e)
+    override def <:<(e: Elem[_]) = if (this == e) true else false
 
     override def canEqual(other: Any) = other.isInstanceOf[ArgElem]
     override def equals(other: Any) = other match {
@@ -213,7 +203,7 @@ class ScalanEx extends Scalan
             (other.canEqual(this) && this.tyArg == other.tyArg)
       case _ => false
     }
-    override def hashCode = tag.tpe.hashCode
+    override lazy val hashCode = tyArg.hashCode()
   }
   object ArgElem {
     def apply(name: String): ArgElem = new ArgElem(STpeArg(name, None, Nil))
