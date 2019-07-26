@@ -18,26 +18,28 @@ import StructItemBase._
 import StructKey._
 
 object StructItem extends EntityObject("StructItem") {
+  private val StructItemClass = classOf[StructItem[_, _]]
+
   // entityAdapter for StructItem trait
   case class StructItemAdapter[Val, Schema <: Struct](source: Rep[StructItem[Val, Schema]])
-      extends StructItem[Val, Schema] with Def[StructItem[Val, Schema]] {
+      extends StructItem[Val, Schema]
+      with Def[StructItem[Val, Schema]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val];
 implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
 
     val selfType: Elem[StructItem[Val, Schema]] = element[StructItem[Val, Schema]]
     override def transform(t: Transformer) = StructItemAdapter[Val, Schema](t(source))
-    private val thisClass = classOf[StructItem[Val, Schema]]
 
     def key: Rep[StructKey[Schema]] = {
       asRep[StructKey[Schema]](mkMethodCall(source,
-        thisClass.getMethod("key"),
+        StructItemClass.getMethod("key"),
         List(),
         true, true, element[StructKey[Schema]]))
     }
 
     def value: Rep[Val] = {
       asRep[Val](mkMethodCall(source,
-        thisClass.getMethod("value"),
+        StructItemClass.getMethod("value"),
         List(),
         true, true, element[Val]))
     }

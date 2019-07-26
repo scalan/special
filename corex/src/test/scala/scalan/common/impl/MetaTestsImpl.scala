@@ -92,7 +92,6 @@ object MetaTest extends EntityObject("MetaTest") {
 
     val selfType: Elem[MetaTest[T]] = element[MetaTest[T]]
     override def transform(t: Transformer) = MetaTestAdapter[T](t(source))
-    // private val thisClass = classOf[MetaTest[T]]
 
     def test: RMetaTest[T] = {
       asRep[MetaTest[T]](mkMethodCall(source,
@@ -313,7 +312,6 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
     val selfType: Elem[MetaPair[A, B]] = element[MetaPair[A, B]]
     override def transform(t: Transformer) = MetaPairAdapter[A, B](t(source))
-    // private val thisClass = classOf[MetaPair[A, B]]
 
     def indices: Rep[A] = {
       asRep[A](mkMethodCall(source,
@@ -472,6 +470,7 @@ object MT0 extends EntityObject("MT0") {
     extends MetaTestElem[Unit, MT0]
     with ConcreteElem[MT0Data, MT0] {
     override lazy val parent: Option[Elem[_]] = Some(metaTestElement(UnitElement))
+
     override def convertMetaTest(x: Rep[MetaTest[Unit]]) = RMT0(x.size)
     override lazy val tag = {
       weakTypeTag[MT0]
@@ -526,8 +525,6 @@ object MT0 extends EntityObject("MT0") {
   implicit case object MT0CompanionElem extends CompanionElem[MT0CompanionCtor] {
     lazy val tag = weakTypeTag[MT0CompanionCtor]
   }
-
-  // private val MT0Class = classOf[MT0]
 
   implicit def proxyMT0(p: Rep[MT0]): MT0 =
     proxyOps[MT0](p)
@@ -691,8 +688,6 @@ object MT1 extends EntityObject("MT1") {
     lazy val tag = weakTypeTag[MT1CompanionCtor]
   }
 
-  // private val MT1Class = classOf[MT1[_]]
-
   implicit def proxyMT1[T](p: Rep[MT1[T]]): MT1[T] =
     proxyOps[MT1[T]](p)
 
@@ -845,8 +840,6 @@ implicit val eB = p._2.elem
   implicit case object MT2CompanionElem extends CompanionElem[MT2CompanionCtor] {
     lazy val tag = weakTypeTag[MT2CompanionCtor]
   }
-
-  // private val MT2Class = classOf[MT2[_, _]]
 
   implicit def proxyMT2[A, B](p: Rep[MT2[A, B]]): MT2[A, B] =
     proxyOps[MT2[A, B]](p)

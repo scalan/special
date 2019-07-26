@@ -5,7 +5,7 @@ import scalan._
 import scala.reflect.runtime.universe._
 import OverloadHack.{Overloaded2, Overloaded1}
 
-trait StructItems extends ViewsModule with Entities  { self: Structs with Scalan =>
+trait StructItems extends ViewsModule with Entities with BaseEx { self: Structs with ScalanEx =>
   import IsoUR._
   trait StructItem[@uncheckedVariance +Val, Schema <: Struct] extends Def[StructItem[Val @uncheckedVariance, Schema]] {
     def eVal: Elem[Val @uncheckedVariance]
@@ -16,12 +16,11 @@ trait StructItems extends ViewsModule with Entities  { self: Structs with Scalan
 
   abstract class StructItemBase[Val, Schema <: Struct]
         (val key: Rep[StructKey[Schema]], val value: Rep[Val])
-//        (implicit val eVal: Elem[Val], val eSchema: Elem[Schema])
     extends StructItem[Val, Schema]
 
 }
 
-trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan =>
+trait StructItemsModule extends impl.StructItemsDefs { self: Structs with ScalanEx =>
   import StructKey._
   import IndexStructKey._
   import NameStructKey._
@@ -36,7 +35,7 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
   }
 
   def struct_setItem[S <: Struct](s: Rep[S], i: Rep[Int], v: Rep[_]): Rep[S] = {
-    updateField(s, s.elem.fieldNames(i.asValue), v)
+    updateField(s, s.elem.fieldNames(valueFromRep(i)), v)
   }
 
   trait StructItemFunctor[S <: Struct] extends Functor[({type f[x] = StructItem[x,S]})#f] {

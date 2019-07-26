@@ -2,12 +2,12 @@ package scalan.dynamic
 
 import java.lang.reflect.Method
 
-import scalan.{Lazy, TypeDesc, _}
+import scalan.{Lazy, _}
 import scalan.universe.api.TypesApi
 import scalan.universe.api.UniverseUtils._
 import scalan.util.CollectionUtil._
 
-trait Specializations extends Views with Converters { self: Scalan =>
+trait Specializations extends Views with Converters { self: ScalanEx =>
   import IsoUR._
   type RepIsoFunc[T,R,M] = Rep[IsoFunc[T,R,M]]
   trait IsoFunc[T,R,M] extends Def[IsoFunc[T,R,M]] {
@@ -36,7 +36,7 @@ trait Specializations extends Views with Converters { self: Scalan =>
   }
 }
 
-trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { scalan: Scalan =>
+trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { scalan: ScalanEx =>
   import IsoUR._
   import Converter._
   import BaseConverter._
@@ -56,7 +56,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       case (eB,eC) if (eB==eC) =>
         val k = fun { x: Rep[S] =>
           val a = isoA.to(x)
-          val b = f(a).asRep[C]
+          val b = asRep[C](f(a))
           isoC.from(b)
         }
         List(k)
@@ -163,7 +163,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
             implicit val et = outIso.eFrom
             implicit val eb = outIso.eTo
             for {
-              kernel <- scalan.composeKernel(inIso, f.asRep[a=>B], outIso)
+              kernel <- scalan.composeKernel(inIso, asRep[a=>B](f), outIso)
             }
             yield kernel
         }
@@ -240,7 +240,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     implicit val ea1 = arg.elem
     implicit val eb = kernel.eB
     val iso = identityIso[A1]
-    ea1.getDataIso match {
+    getIsoByElem(ea1) match {
       case iso: Iso[c,A1] @unchecked =>
         // TODO: assert(filtered list is empty)
         val isoOut = kernel.outFormatIsos.filter({i => i.eFrom equals eOut}).head.asInstanceOf[Iso[B1,B]]
@@ -305,7 +305,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         e1e2 <- matrix.keys.filter { case (e1, e2) => e1 == eFrom }
         cs   <- matrix.get(e1e2).toIterable
         c    <- cs
-      } yield c.asRep[Converter[A1,A2]]
+      } yield asRep[Converter[A1,A2]](c)
       res.toList
     }
     def getInputConvertersToElem[A1,A2](matrix: ConverterMatrix, eTo: Elem[A2]): List[Conv[A1,A2]] = {
@@ -313,7 +313,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         e1e2 <- matrix.keys.filter { case (e1, e2) => e2 == eTo }
         cs   <- matrix.get(e1e2).toIterable
         c    <- cs
-      } yield c.asRep[Converter[A1,A2]]
+      } yield asRep[Converter[A1,A2]](c)
       res.toList
     }
 
@@ -335,15 +335,15 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
               csym @ Def(c: Converter[_,_]) <- cs
               kernel <- {
                 val f = fun({ x: Rep[a] =>
-                  val a1 = csym.asRep[Converter[a,A]].apply(x)
+                  val a1 = asRep[Converter[a,A]](csym).apply(x)
                   val b = originalFunc(a1)
                   b
                 })(Lazy(ea))
-                composeKernel(inIso, f.asRep[a=>B], outIso)(es, et, ea, eB)
+                composeKernel(inIso, asRep[a=>B](f), outIso)(es, et, ea, eB)
               }
             }
             yield {
-              (SpecKey(es, et, c.eR, None), kernel.asRep[Any => Any])
+              (SpecKey(es, et, c.eR, None), asRep[Any => Any](kernel))
             }
             res
         }
@@ -483,7 +483,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     case Apply(Def(k: DynKernel[a,b]), x: Rep[a1], _) =>
       implicit val ea1 = x.elem
       implicit val eb = k.eB
-      ea1.getDataIso match {
+      getIsoByElem(ea1) match {
         case iso: Iso[c,a1] @unchecked =>
           // If DynKernel is called directly - we suppose it's specialization number 0 is going to be called
           ApplyKernel(k.self, iso.from(x), iso, identityIso[b], 0)
@@ -495,7 +495,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       implicit val eb = k.eB
       iso match {
         case iso: Iso[s, c] @unchecked =>
-          val x = _x.asRep[s]
+          val x = asRep[s](_x)
           ApplyKernel(k.self, x, composeIso(isoDom, iso), isoRange, specNum)
       }
     case NoFuse(Def(k@Tup(f,s))) => {

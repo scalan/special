@@ -669,7 +669,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    extends ${parent.name}Elem[${join(parentTpeArgsStr, c.typeUse)}]
         |    with $concreteElemSuperType {
         |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
-        |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})
+        |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
         |    override def convert${parent.name}(x: Rep[$parent]) = $converterBody
         |    override lazy val tag = {
         |${implicitTagsFromElems(c)}
@@ -702,7 +702,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |${implicitTagsFromElems(c)}
         |      weakTypeTag[${className}Iso$tpeArgsUse]
         |    }
-        |    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})
+        |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
         |  }
         |  // 4) constructor and deconstructor
         |  class ${c.companionCtorName} extends CompanionDef[${c.companionCtorName}]${hasCompanion.opt(s" with ${c.companionName}")} {

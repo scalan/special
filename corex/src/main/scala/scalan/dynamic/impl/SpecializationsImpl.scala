@@ -18,34 +18,36 @@ import IsoFunc._
 import IsoFuncBase._
 
 object IsoFunc extends EntityObject("IsoFunc") {
+  private val IsoFuncClass = classOf[IsoFunc[_, _, _]]
+
   // entityAdapter for IsoFunc trait
   case class IsoFuncAdapter[T, R, M](source: Rep[IsoFunc[T, R, M]])
-      extends IsoFunc[T, R, M] with Def[IsoFunc[T, R, M]] {
+      extends IsoFunc[T, R, M]
+      with Def[IsoFunc[T, R, M]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R];
 implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
 
     val selfType: Elem[IsoFunc[T, R, M]] = element[IsoFunc[T, R, M]]
     override def transform(t: Transformer) = IsoFuncAdapter[T, R, M](t(source))
-    private val thisClass = classOf[IsoFunc[T, R, M]]
 
     def func: Rep[T => R] = {
       asRep[T => R](mkMethodCall(source,
-        thisClass.getMethod("func"),
+        IsoFuncClass.getMethod("func"),
         List(),
         true, true, element[T => R]))
     }
 
     def metric: Rep[T => M] = {
       asRep[T => M](mkMethodCall(source,
-        thisClass.getMethod("metric"),
+        IsoFuncClass.getMethod("metric"),
         List(),
         true, true, element[T => M]))
     }
 
     def apply(x: Rep[T]): Rep[R] = {
       asRep[R](mkMethodCall(source,
-        thisClass.getMethod("apply", classOf[Sym]),
+        IsoFuncClass.getMethod("apply", classOf[Sym]),
         List(x),
         true, true, element[R]))
     }
@@ -86,7 +88,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
   }
 
   implicit def isoFuncElement[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Elem[IsoFunc[T, R, M]] =
-    cachedElemByClass(eT, eR, eM)(classOf[IsoFuncElem[T, R, M, IsoFunc[T, R, M]]])
+    cachedElem[IsoFuncElem[T, R, M, IsoFunc[T, R, M]]](eT, eR, eM)
 
   implicit case object IsoFuncCompanionElem extends CompanionElem[IsoFuncCompanionCtor] {
     lazy val tag = weakTypeTag[IsoFuncCompanionCtor]

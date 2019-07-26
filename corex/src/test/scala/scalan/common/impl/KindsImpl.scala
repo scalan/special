@@ -15,9 +15,12 @@ import Bind._
 import Return._
 
 object Kind extends EntityObject("Kind") {
+  private val KindClass = classOf[Kind[C, _] forSome {type C[_]}]
+
   // entityAdapter for Kind trait
   case class KindAdapter[F[_], A](source: Rep[Kind[F, A]])
-      extends Kind[F, A] with Def[Kind[F, A]] {
+      extends Kind[F, A]
+      with Def[Kind[F, A]] {
     implicit lazy val cF = source.elem.typeArgs("F")._1.asCont[F];
 implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 

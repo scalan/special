@@ -1,6 +1,7 @@
 package scalan.primitives
 
 import scalan._
+import scala.reflect.classTag
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
 
@@ -15,25 +16,27 @@ import NameStructKey._
 import StructKey._
 
 object StructKey extends EntityObject("StructKey") {
+  private val StructKeyClass = classOf[StructKey[_]]
+
   // entityAdapter for StructKey trait
   case class StructKeyAdapter[Schema <: Struct](source: Rep[StructKey[Schema]])
-      extends StructKey[Schema] with Def[StructKey[Schema]] {
+      extends StructKey[Schema]
+      with Def[StructKey[Schema]] {
     implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
 
     val selfType: Elem[StructKey[Schema]] = element[StructKey[Schema]]
     override def transform(t: Transformer) = StructKeyAdapter[Schema](t(source))
-    private val thisClass = classOf[StructKey[Schema]]
 
     def index: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("index"),
+        StructKeyClass.getMethod("index"),
         List(),
         true, true, element[Int]))
     }
 
     def name: Rep[String] = {
       asRep[String](mkMethodCall(source,
-        thisClass.getMethod("name"),
+        StructKeyClass.getMethod("name"),
         List(),
         true, true, element[String]))
     }
