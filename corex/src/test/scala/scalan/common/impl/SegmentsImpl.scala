@@ -184,7 +184,7 @@ object Segment extends EntityObject("Segment") {
   object SegmentMethods {
     object start {
       def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "start" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "start" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
         case _ => Nullable.None
@@ -197,7 +197,7 @@ object Segment extends EntityObject("Segment") {
 
     object length {
       def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "length" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
         case _ => Nullable.None
@@ -210,7 +210,7 @@ object Segment extends EntityObject("Segment") {
 
     object end {
       def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "end" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "end" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
         case _ => Nullable.None
@@ -223,7 +223,7 @@ object Segment extends EntityObject("Segment") {
 
     object shift {
       def unapply(d: Def[_]): Nullable[(Rep[Segment], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "shift" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Int])]]
         case _ => Nullable.None
@@ -236,7 +236,7 @@ object Segment extends EntityObject("Segment") {
 
     object attach {
       def unapply(d: Def[_]): Nullable[(Rep[Segment], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SegmentElem[_]] && method.getName == "attach" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Segment])]]
         case _ => Nullable.None
@@ -360,7 +360,7 @@ object Interval extends EntityObject("Interval") {
     object IntervalMethods {
     object length {
       def unapply(d: Def[_]): Nullable[Rep[Interval]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "length" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[IntervalElem] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Interval]]]
         case _ => Nullable.None
@@ -373,7 +373,7 @@ object Interval extends EntityObject("Interval") {
 
     object shift {
       def unapply(d: Def[_]): Nullable[(Rep[Interval], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "shift" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[IntervalElem] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Int])]]
         case _ => Nullable.None
@@ -386,7 +386,7 @@ object Interval extends EntityObject("Interval") {
 
     object attach {
       def unapply(d: Def[_]): Nullable[(Rep[Interval], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntervalElem] && method.getName == "attach" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[IntervalElem] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Segment])]]
         case _ => Nullable.None
@@ -502,7 +502,7 @@ object Slice extends EntityObject("Slice") {
     object SliceMethods {
     object end {
       def unapply(d: Def[_]): Nullable[Rep[Slice]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "end" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "end" && receiver.elem.isInstanceOf[SliceElem] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Slice]]]
         case _ => Nullable.None
@@ -515,7 +515,7 @@ object Slice extends EntityObject("Slice") {
 
     object shift {
       def unapply(d: Def[_]): Nullable[(Rep[Slice], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "shift" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[SliceElem] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Int])]]
         case _ => Nullable.None
@@ -528,7 +528,7 @@ object Slice extends EntityObject("Slice") {
 
     object attach {
       def unapply(d: Def[_]): Nullable[(Rep[Slice], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SliceElem] && method.getName == "attach" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[SliceElem] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Segment])]]
         case _ => Nullable.None
@@ -645,7 +645,7 @@ object Centered extends EntityObject("Centered") {
     object CenteredMethods {
     object start {
       def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "start" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "start" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
         case _ => Nullable.None
@@ -658,7 +658,7 @@ object Centered extends EntityObject("Centered") {
 
     object end {
       def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "end" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "end" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
         case _ => Nullable.None
@@ -671,7 +671,7 @@ object Centered extends EntityObject("Centered") {
 
     object length {
       def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "length" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
         case _ => Nullable.None
@@ -684,7 +684,7 @@ object Centered extends EntityObject("Centered") {
 
     object shift {
       def unapply(d: Def[_]): Nullable[(Rep[Centered], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "shift" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Int])]]
         case _ => Nullable.None
@@ -697,7 +697,7 @@ object Centered extends EntityObject("Centered") {
 
     object attach {
       def unapply(d: Def[_]): Nullable[(Rep[Centered], Rep[Segment])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CenteredElem] && method.getName == "attach" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Segment])]]
         case _ => Nullable.None

@@ -93,7 +93,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   object ConverterMethods {
     object convFun {
       def unapply(d: Def[_]): Nullable[Rep[Converter[T, R]] forSome {type T; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ConverterElem[_, _, _]] && method.getName == "convFun" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "convFun" && receiver.elem.isInstanceOf[ConverterElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Converter[T, R]] forSome {type T; type R}]]
         case _ => Nullable.None
@@ -106,7 +106,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[Converter[T, R]], Rep[T]) forSome {type T; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ConverterElem[_, _, _]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[ConverterElem[_, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Converter[T, R]], Rep[T]) forSome {type T; type R}]]
         case _ => Nullable.None
@@ -229,7 +229,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
     object IdentityConvMethods {
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IdentityConvElem[_]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[IdentityConvElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
@@ -242,7 +242,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
 
     object isIdentity {
       def unapply(d: Def[_]): Nullable[Rep[IdentityConv[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IdentityConvElem[_]] && method.getName == "isIdentity" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[IdentityConvElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[IdentityConv[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -366,7 +366,7 @@ implicit val eR = p.convFun.elem.eRange
     object BaseConverterMethods {
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[BaseConverterElem[_, _]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[BaseConverterElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}]]
         case _ => Nullable.None
@@ -513,7 +513,7 @@ implicit val eB2 = p.conv2.eR
     object PairConverterMethods {
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
@@ -526,7 +526,7 @@ implicit val eB2 = p.conv2.eR
 
     object isIdentity {
       def unapply(d: Def[_]): Nullable[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] && method.getName == "isIdentity" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
@@ -671,7 +671,7 @@ implicit val eB2 = p.conv2.eR
     object SumConverterMethods {
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
@@ -684,7 +684,7 @@ implicit val eB2 = p.conv2.eR
 
     object isIdentity {
       def unapply(d: Def[_]): Nullable[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] && method.getName == "isIdentity" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
@@ -822,7 +822,7 @@ implicit val eC = p.conv2.eR
     object ComposeConverterMethods {
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
@@ -835,7 +835,7 @@ implicit val eC = p.conv2.eR
 
     object isIdentity {
       def unapply(d: Def[_]): Nullable[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] && method.getName == "isIdentity" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}]]
         case _ => Nullable.None
@@ -961,7 +961,7 @@ implicit val eB = p.itemConv.eR
     object FunctorConverterMethods {
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = d match {
-        case MethodCall(receiver, method, args, _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}]]
         case _ => Nullable.None
@@ -974,7 +974,7 @@ implicit val eB = p.itemConv.eR
 
     object isIdentity {
       def unapply(d: Def[_]): Nullable[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = d match {
-        case MethodCall(receiver, method, _, _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) && method.getName == "isIdentity" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}]]
         case _ => Nullable.None
@@ -1095,7 +1095,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     object NaturalConverterMethods {
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}] = d match {
-        case MethodCall(receiver, method, args, _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: NaturalConverterElem[_, _, _] => true; case _ => false }) && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: NaturalConverterElem[_, _, _] => true; case _ => false }) =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}]]
         case _ => Nullable.None

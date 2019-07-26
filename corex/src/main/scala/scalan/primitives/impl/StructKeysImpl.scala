@@ -92,7 +92,7 @@ object StructKey extends EntityObject("StructKey") {
   object StructKeyMethods {
     object index {
       def unapply(d: Def[_]): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructKeyElem[_, _]] && method.getName == "index" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "index" && receiver.elem.isInstanceOf[StructKeyElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
@@ -105,7 +105,7 @@ object StructKey extends EntityObject("StructKey") {
 
     object name {
       def unapply(d: Def[_]): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructKeyElem[_, _]] && method.getName == "name" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "name" && receiver.elem.isInstanceOf[StructKeyElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
@@ -217,7 +217,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     object IndexStructKeyMethods {
     object name {
       def unapply(d: Def[_]): Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[IndexStructKeyElem[_]] && method.getName == "name" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "name" && receiver.elem.isInstanceOf[IndexStructKeyElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
@@ -331,7 +331,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
     object NameStructKeyMethods {
     object index {
       def unapply(d: Def[_]): Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[NameStructKeyElem[_]] && method.getName == "index" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "index" && receiver.elem.isInstanceOf[NameStructKeyElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None

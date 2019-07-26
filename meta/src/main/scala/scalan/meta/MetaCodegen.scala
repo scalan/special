@@ -304,7 +304,7 @@ class MetaCodegen {
               } else {
                 s"receiver.elem.isInstanceOf[$traitElem]"
               }
-              s"""MethodCall(receiver, method, $methodArgsPattern, _) if $elemCheck && method.getName == "${m.name}"$annotationCheck"""
+              s"""MethodCall(receiver, method, $methodArgsPattern, _) if method.getName == "${m.name}" && $elemCheck$annotationCheck"""
             }
             // TODO we can use name-based extractor to improve performance when we switch to Scala 2.11
             // See http://hseeberger.github.io/blog/2013/10/04/name-based-extractors-in-scala-2-dot-11/

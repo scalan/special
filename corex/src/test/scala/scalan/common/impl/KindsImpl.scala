@@ -82,7 +82,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
     object mapBy {
       def unapply(d: Def[_]): Nullable[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if (receiver.elem.asInstanceOf[Elem[_]] match { case _: KindElem[_, _, _] => true; case _ => false }) && method.getName == "mapBy" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "mapBy" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: KindElem[_, _, _] => true; case _ => false }) =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}]]
         case _ => Nullable.None

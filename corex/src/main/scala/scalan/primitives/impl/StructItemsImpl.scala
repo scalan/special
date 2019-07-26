@@ -97,7 +97,7 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
   object StructItemMethods {
     object key {
       def unapply(d: Def[_]): Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructItemElem[_, _, _]] && method.getName == "key" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "key" && receiver.elem.isInstanceOf[StructItemElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}]]
         case _ => Nullable.None
@@ -110,7 +110,7 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
 
     object value {
       def unapply(d: Def[_]): Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[StructItemElem[_, _, _]] && method.getName == "value" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "value" && receiver.elem.isInstanceOf[StructItemElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[StructItem[Val, Schema]] forSome {type Val; type Schema <: Struct}]]
         case _ => Nullable.None
