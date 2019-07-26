@@ -24,7 +24,7 @@ trait RTypeGens {
     for { left <- itemGenLeft; right <- itemGenRight } yield new PairType(left, right)
   }
 
-  def pairTypeGen(itemGen: Gen[RType[_]], depth: Int = 1): Gen[PairType[_, _]] = depth match {
+  def pairTypeGen(itemGen: Gen[RType[_]], depth: Int): Gen[PairType[_, _]] = depth match {
     case 1 =>
       pairTypeGenFinal(itemGen, itemGen)
     case _ =>
@@ -38,13 +38,13 @@ trait RTypeGens {
       )
   }
 
-  def getPairAnyTypeGen(gn: Gen[RType[_]], depth: Int = 4): Gen[RType[_]] = pairTypeGen(gn, depth)
+  def getPairAnyTypeGen(gn: Gen[RType[_]], depth: Int): Gen[RType[_]] = pairTypeGen(gn, depth)
 
   def arrayTypeGenFinal(itemGen: Gen[RType[_]]): Gen[ArrayType[_]] = {
     for { item <- itemGen } yield new ArrayType(item)
   }
 
-  def arrayTypeGen(itemGen: Gen[RType[_]], depth: Int = 1): Gen[ArrayType[_]] = depth match {
+  def arrayTypeGen(itemGen: Gen[RType[_]], depth: Int): Gen[ArrayType[_]] = depth match {
     case 1 =>
       arrayTypeGenFinal(itemGen)
     case _ =>
@@ -54,27 +54,20 @@ trait RTypeGens {
       )
   }
 
-  def getArrayAnyTypeGen(gn: Gen[RType[_]], depth: Int = 4): Gen[RType[_]] = arrayTypeGen(gn, depth)
+  def getAnyArrayGen(gn: Gen[RType[_]], depth: Int): Gen[RType[_]] = arrayTypeGen(gn, depth)
 
   /*
    * Full type generators
    */
-  def getFullTypeGen(depth: Int = 4): Gen[RType[_]] = depth match {
-    case 1 => Gen.oneOf(dataTypeGen, getPairAnyTypeGen(dataTypeGen, 1), getArrayAnyTypeGen(dataTypeGen, 1))
+  def getBasicTypeGen(depth: Int): Gen[RType[_]] = depth match {
+    case 1 => Gen.oneOf(dataTypeGen, getPairAnyTypeGen(dataTypeGen, 1), getAnyArrayGen(dataTypeGen, 1))
     case _ =>
-      Gen.oneOf(dataTypeGen, getPairAnyTypeGen(getFullTypeGen(depth - 1), 1), getArrayAnyTypeGen(getFullTypeGen(depth - 1), 1))
+      Gen.oneOf(dataTypeGen, getPairAnyTypeGen(getBasicTypeGen(depth - 1), 1), getAnyArrayGen(getBasicTypeGen(depth - 1), 1))
   }
 
-  val fullTypeGen = getFullTypeGen(3)
+  def getPrimitiveArrayGen(depth: Int) = getAnyArrayGen(primitiveTypeGen, depth)
+  def getArrayGen(depth: Int) = getAnyArrayGen(getBasicTypeGen(depth - 1), 1)
 
-  def getArrayPrimitiveTypeGen(depth: Int = 4) = getArrayAnyTypeGen(primitiveTypeGen, depth)
-  def getArrayTypeGen(depth: Int = 4) = getArrayAnyTypeGen(getFullTypeGen(depth - 1), 1)
-
-  def getPairPrimitiveTypeGen(depth: Int = 4) = getPairAnyTypeGen(primitiveTypeGen, depth)
-  def getPairTypeGen(depth: Int = 4) = getPairAnyTypeGen(getFullTypeGen(depth - 1), 1)
-
-  val arrayPrimitiveTypeGen = getArrayPrimitiveTypeGen()
-  val arrayTypeGen = getArrayTypeGen()
-  val pairPrimitiveTypeGen = getPairPrimitiveTypeGen()
-  val pairTypeGen = getPairTypeGen()
+  def getPrimitivePairGen(depth: Int) = getPairAnyTypeGen(primitiveTypeGen, depth)
+  def getPairGen(depth: Int) = getPairAnyTypeGen(getBasicTypeGen(depth - 1), 1)
 }
