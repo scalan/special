@@ -4,6 +4,7 @@ import scalan._
 import scala.reflect.classTag
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -30,14 +31,14 @@ object StructKey extends EntityObject("StructKey") {
     def index: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         StructKeyClass.getMethod("index"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def name: Rep[String] = {
       asRep[String](mkMethodCall(source,
         StructKeyClass.getMethod("name"),
-        List(),
+        WrappedArray.empty,
         true, true, element[String]))
     }
   }

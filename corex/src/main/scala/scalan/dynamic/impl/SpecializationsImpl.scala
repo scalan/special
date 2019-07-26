@@ -7,6 +7,7 @@ import scalan.universe.api.UniverseUtils._
 import scalan.util.CollectionUtil._
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -34,21 +35,21 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     def func: Rep[T => R] = {
       asRep[T => R](mkMethodCall(source,
         IsoFuncClass.getMethod("func"),
-        List(),
+        WrappedArray.empty,
         true, true, element[T => R]))
     }
 
     def metric: Rep[T => M] = {
       asRep[T => M](mkMethodCall(source,
         IsoFuncClass.getMethod("metric"),
-        List(),
+        WrappedArray.empty,
         true, true, element[T => M]))
     }
 
     def apply(x: Rep[T]): Rep[R] = {
       asRep[R](mkMethodCall(source,
         IsoFuncClass.getMethod("apply", classOf[Sym]),
-        List(x),
+        Array[AnyRef](x),
         true, true, element[R]))
     }
   }

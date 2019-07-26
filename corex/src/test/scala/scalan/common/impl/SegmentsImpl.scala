@@ -4,6 +4,7 @@ import scala.reflect.runtime.universe._
 import scalan._
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -36,35 +37,35 @@ object Segment extends EntityObject("Segment") {
     override def start: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         SegmentClass.getMethod("start"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
 
     override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         SegmentClass.getMethod("length"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
 
     override def end: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         SegmentClass.getMethod("end"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
 
     override def shift(ofs: Rep[Int]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
         SegmentClass.getMethod("shift", classOf[Sym]),
-        List(ofs),
+        Array[AnyRef](ofs),
         true, false, element[Segment]))
     }
 
     override def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
         SegmentClass.getMethod("attach", classOf[Sym]),
-        List(seg),
+        Array[AnyRef](seg),
         true, false, element[Segment]))
     }
   }
@@ -95,35 +96,35 @@ object Segment extends EntityObject("Segment") {
     def start: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         SegmentClass.getMethod("start"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         SegmentClass.getMethod("length"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def end: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         SegmentClass.getMethod("end"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def shift(ofs: Rep[Int]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(source,
         SegmentClass.getMethod("shift", classOf[Sym]),
-        List(ofs),
+        Array[AnyRef](ofs),
         true, true, element[Segment]))
     }
 
     def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(source,
         SegmentClass.getMethod("attach", classOf[Sym]),
-        List(seg),
+        Array[AnyRef](seg),
         true, true, element[Segment]))
     }
   }
@@ -264,7 +265,7 @@ object Interval extends EntityObject("Interval") {
     override def attach(seg: Rep[Segment]): Rep[Segment] = {
       asRep[Segment](mkMethodCall(self,
         thisClass.getMethod("attach", classOf[Sym]),
-        List(seg),
+        Array[AnyRef](seg),
         true, false, element[Segment]))
     }
   }

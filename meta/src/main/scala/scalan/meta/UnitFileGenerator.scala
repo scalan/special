@@ -55,7 +55,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |      ${elemDecls.rep({ case (ta, expr) => s"implicit val e${ta.name} = $expr" }, "\n")}
       |      asRep[$unreppedReturnType](mkMethodCall($receiverName,
       |        $thisClassField.getMethod("${md.name}"$finalArgClasses),
-      |        List($finalArgs),
+      |        ${if (finalArgs.isEmpty) "WrappedArray.empty" else s"Array[AnyRef]($finalArgs)"},
       |        true, $isAdapter, element[$unreppedReturnType]))
       |    }
       |""".stripMargin

@@ -4,6 +4,7 @@ import OverloadHack.Overloaded2
 import scalan.primitives.TypeSum
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -35,7 +36,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def apply(x: Rep[T]): Rep[R] = {
       asRep[R](mkMethodCall(source,
         ConverterClass.getMethod("apply", classOf[Sym]),
-        List(x),
+        Array[AnyRef](x),
         true, true, element[R]))
     }
   }

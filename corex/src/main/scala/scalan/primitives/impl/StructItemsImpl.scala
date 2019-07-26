@@ -6,6 +6,7 @@ import scala.reflect.runtime.universe._
 import OverloadHack.{Overloaded2, Overloaded1}
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -33,14 +34,14 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     def key: Rep[StructKey[Schema]] = {
       asRep[StructKey[Schema]](mkMethodCall(source,
         StructItemClass.getMethod("key"),
-        List(),
+        WrappedArray.empty,
         true, true, element[StructKey[Schema]]))
     }
 
     def value: Rep[Val] = {
       asRep[Val](mkMethodCall(source,
         StructItemClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Val]))
     }
   }

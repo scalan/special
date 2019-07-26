@@ -4,6 +4,7 @@ import java.lang.reflect.Method
 import scala.language.higherKinds
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -38,14 +39,14 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
     def from(p: Rep[To]): Rep[From] = {
       asRep[From](mkMethodCall(source,
         IsoURClass.getMethod("from", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[From]))
     }
 
     def to(p: Rep[From]): Rep[To] = {
       asRep[To](mkMethodCall(source,
         IsoURClass.getMethod("to", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[To]))
     }
   }
@@ -152,21 +153,21 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
     def innerIso: Iso[A, B] = {
       asRep[IsoUR[A, B]](mkMethodCall(source,
         Iso1URClass.getMethod("innerIso"),
-        List(),
+        WrappedArray.empty,
         true, true, element[IsoUR[A, B]]))
     }
 
     def from(p: Rep[C[B]]): Rep[C[A]] = {
       asRep[C[A]](mkMethodCall(source,
         Iso1URClass.getMethod("from", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[C[A]]))
     }
 
     def to(p: Rep[C[A]]): Rep[C[B]] = {
       asRep[C[B]](mkMethodCall(source,
         Iso1URClass.getMethod("to", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[C[B]]))
     }
   }

@@ -3,6 +3,7 @@ package scalan.common
 import scalan._
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -39,28 +40,28 @@ object MetaTest extends EntityObject("MetaTest") {
     override def test: RMetaTest[T] = {
       asRep[MetaTest[T]](mkMethodCall(self,
         MetaTestClass.getMethod("test"),
-        List(),
+        WrappedArray.empty,
         true, false, element[MetaTest[T]]))
     }
 
     override def give: Rep[T] = {
       asRep[T](mkMethodCall(self,
         MetaTestClass.getMethod("give"),
-        List(),
+        WrappedArray.empty,
         true, false, element[T]))
     }
 
     override def size: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         MetaTestClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
 
     override def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
       asRep[MetaTest[B]](mkMethodCall(self,
         MetaTestClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
-        List(items, cB),
+        Array[AnyRef](items, cB),
         true, false, element[MetaTest[B]]))
     }
   }
@@ -96,28 +97,28 @@ object MetaTest extends EntityObject("MetaTest") {
     def test: RMetaTest[T] = {
       asRep[MetaTest[T]](mkMethodCall(source,
         MetaTestClass.getMethod("test"),
-        List(),
+        WrappedArray.empty,
         true, true, element[MetaTest[T]]))
     }
 
     def give: Rep[T] = {
       asRep[T](mkMethodCall(source,
         MetaTestClass.getMethod("give"),
-        List(),
+        WrappedArray.empty,
         true, true, element[T]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         MetaTestClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = {
       asRep[MetaTest[B]](mkMethodCall(source,
         MetaTestClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
-        List(items, cB),
+        Array[AnyRef](items, cB),
         true, true, element[MetaTest[B]]))
     }
   }
@@ -264,21 +265,21 @@ object MetaPair extends EntityObject("MetaPair") {
     override def indices: Rep[A] = {
       asRep[A](mkMethodCall(self,
         MetaPairClass.getMethod("indices"),
-        List(),
+        WrappedArray.empty,
         true, false, element[A]))
     }
 
     override def values: Rep[B] = {
       asRep[B](mkMethodCall(self,
         MetaPairClass.getMethod("values"),
-        List(),
+        WrappedArray.empty,
         true, false, element[B]))
     }
 
     override def give: Rep[(A, B)] = {
       asRep[(A, B)](mkMethodCall(self,
         MetaPairClass.getMethod("give"),
-        List(),
+        WrappedArray.empty,
         true, false, element[(A, B)]))
     }
   }
@@ -316,42 +317,42 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     def indices: Rep[A] = {
       asRep[A](mkMethodCall(source,
         MetaPairClass.getMethod("indices"),
-        List(),
+        WrappedArray.empty,
         true, true, element[A]))
     }
 
     def values: Rep[B] = {
       asRep[B](mkMethodCall(source,
         MetaPairClass.getMethod("values"),
-        List(),
+        WrappedArray.empty,
         true, true, element[B]))
     }
 
     def give: Rep[(A, B)] = {
       asRep[(A, B)](mkMethodCall(source,
         MetaPairClass.getMethod("give"),
-        List(),
+        WrappedArray.empty,
         true, true, element[(A, B)]))
     }
 
     def test: RMetaTest[(A, B)] = {
       asRep[MetaTest[(A, B)]](mkMethodCall(source,
         MetaPairClass.getMethod("test"),
-        List(),
+        WrappedArray.empty,
         true, true, element[MetaTest[(A, B)]]))
     }
 
     def size: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         MetaPairClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def fromItems[B1](items: Rep[B1]*)(implicit cB: Elem[B1]): Rep[MetaTest[B1]] = {
       asRep[MetaTest[B1]](mkMethodCall(source,
         MetaPairClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
-        List(items, cB),
+        Array[AnyRef](items, cB),
         true, true, element[MetaTest[B1]]))
     }
   }
