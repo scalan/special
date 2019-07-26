@@ -73,7 +73,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   }
 
   implicit def converterElement[T, R](implicit eT: Elem[T], eR: Elem[R]): Elem[Converter[T, R]] =
-    cachedElem[ConverterElem[T, R, Converter[T, R]]](eT, eR)
+    cachedElemByClass(eT, eR)(classOf[ConverterElem[T, R, Converter[T, R]]])
 
   implicit case object ConverterCompanionElem extends CompanionElem[ConverterCompanionCtor] {
     lazy val tag = weakTypeTag[ConverterCompanionCtor]

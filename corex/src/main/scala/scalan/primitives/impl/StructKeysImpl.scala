@@ -73,7 +73,7 @@ object StructKey extends EntityObject("StructKey") {
   }
 
   implicit def structKeyElement[Schema <: Struct](implicit eSchema: Elem[Schema]): Elem[StructKey[Schema]] =
-    cachedElem[StructKeyElem[Schema, StructKey[Schema]]](eSchema)
+    cachedElemByClass(eSchema)(classOf[StructKeyElem[Schema, StructKey[Schema]]])
 
   implicit case object StructKeyCompanionElem extends CompanionElem[StructKeyCompanionCtor] {
     lazy val tag = weakTypeTag[StructKeyCompanionCtor]

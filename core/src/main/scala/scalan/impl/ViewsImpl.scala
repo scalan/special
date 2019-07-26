@@ -83,7 +83,7 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
   }
 
   implicit def isoURElement[From, To](implicit eFrom: Elem[From], eTo: Elem[To]): Elem[IsoUR[From, To]] =
-    cachedElem[IsoURElem[From, To, IsoUR[From, To]]](eFrom, eTo)
+    cachedElemByClass(eFrom, eTo)(classOf[IsoURElem[From, To, IsoUR[From, To]]])
 
   implicit case object IsoURCompanionElem extends CompanionElem[IsoURCompanionCtor] {
     lazy val tag = weakTypeTag[IsoURCompanionCtor]
@@ -206,7 +206,7 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
   }
 
   implicit def iso1URElement[A, B, C[_]](implicit eA: Elem[A], eB: Elem[B], cC: Cont[C]): Elem[Iso1UR[A, B, C]] =
-    cachedElem[Iso1URElem[A, B, C, Iso1UR[A, B, C]]](eA, eB, cC)
+    cachedElemByClass(eA, eB, cC)(classOf[Iso1URElem[A, B, C, Iso1UR[A, B, C]]])
 
   implicit case object Iso1URCompanionElem extends CompanionElem[Iso1URCompanionCtor] {
     lazy val tag = weakTypeTag[Iso1URCompanionCtor]

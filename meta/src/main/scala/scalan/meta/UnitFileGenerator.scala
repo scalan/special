@@ -427,7 +427,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         else
           s"""
             |  implicit def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
-            |    cachedElem[$elemType]${e.implicitArgsOrParens}
+            |    cachedElemByClass${e.implicitArgsOrParens}(classOf[$elemType])
             |""".stripMargin
       } else ""
     }

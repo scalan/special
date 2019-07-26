@@ -162,7 +162,7 @@ object MetaTest extends EntityObject("MetaTest") {
   }
 
   implicit def metaTestElement[T](implicit eT: Elem[T]): Elem[MetaTest[T]] =
-    cachedElem[MetaTestElem[T, MetaTest[T]]](eT)
+    cachedElemByClass(eT)(classOf[MetaTestElem[T, MetaTest[T]]])
 
   implicit case object MetaTestCompanionElem extends CompanionElem[MetaTestCompanionCtor] {
     lazy val tag = weakTypeTag[MetaTestCompanionCtor]
@@ -399,7 +399,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
   }
 
   implicit def metaPairElement[A, B](implicit eA: Elem[A], eB: Elem[B]): Elem[MetaPair[A, B]] =
-    cachedElem[MetaPairElem[A, B, MetaPair[A, B]]](eA, eB)
+    cachedElemByClass(eA, eB)(classOf[MetaPairElem[A, B, MetaPair[A, B]]])
 
   implicit case object MetaPairCompanionElem extends CompanionElem[MetaPairCompanionCtor] {
     lazy val tag = weakTypeTag[MetaPairCompanionCtor]

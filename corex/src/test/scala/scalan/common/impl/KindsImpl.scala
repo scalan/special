@@ -60,7 +60,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
   }
 
   implicit def kindElement[F[_], A](implicit cF: Cont[F], eA: Elem[A]): Elem[Kind[F, A]] =
-    cachedElem[KindElem[F, A, Kind[F, A]]](cF, eA)
+    cachedElemByClass(cF, eA)(classOf[KindElem[F, A, Kind[F, A]]])
 
   implicit case object KindCompanionElem extends CompanionElem[KindCompanionCtor] {
     lazy val tag = weakTypeTag[KindCompanionCtor]

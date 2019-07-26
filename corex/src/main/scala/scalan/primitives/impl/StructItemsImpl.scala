@@ -78,7 +78,7 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
   }
 
   implicit def structItemElement[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema]): Elem[StructItem[Val, Schema]] =
-    cachedElem[StructItemElem[Val, Schema, StructItem[Val, Schema]]](eVal, eSchema)
+    cachedElemByClass(eVal, eSchema)(classOf[StructItemElem[Val, Schema, StructItem[Val, Schema]]])
 
   implicit case object StructItemCompanionElem extends CompanionElem[StructItemCompanionCtor] {
     lazy val tag = weakTypeTag[StructItemCompanionCtor]
