@@ -20,16 +20,33 @@ class BoilerplateTool extends StrictLogging {
       resourcePath = "core/src/test/resources",
       baseContextTrait = "scalan.Scalan")
 
+  def corexMainConfig(name: String, entityFile: String) =
+    UnitConfig(
+      baseDir = "",
+      name = name, entityFile = entityFile,
+      srcPath = "corex/src/main/scala",
+      resourcePath = "corex/src/main/resources",
+      baseContextTrait = "" // used like this: trait ${module.name}Defs extends ${config.baseContextTrait.opt(t => s"$t with ")}${module.name} {
+    )
+
+  def corexTestConfig(name: String, entityFile: String) =
+    UnitConfig(
+      baseDir = "",
+      name = name, entityFile = entityFile,
+      srcPath = "corex/src/test/scala",
+      resourcePath = "corex/src/test/resources",
+      baseContextTrait = "scalan.Scalan")
+
   lazy val viewsConfig           = coreMainConfig("views", "scalan/Views.scala")
   lazy val convertersConfig      = coreMainConfig("converters", "scalan/Converters.scala")
-  lazy val specializationsConfig = coreMainConfig("specializations", "scalan/dynamic/Specializations.scala")
+  lazy val specializationsConfig = corexMainConfig("specializations", "scalan/dynamic/Specializations.scala")
 
-  lazy val structKeysConfig = coreMainConfig("structKeys", "scalan/primitives/StructKeys.scala")
-  lazy val structItemsConfig = coreMainConfig("structItems", "scalan/primitives/StructItems.scala")
+  lazy val structKeysConfig = corexMainConfig("structKeys", "scalan/primitives/StructKeys.scala")
+  lazy val structItemsConfig = corexMainConfig("structItems", "scalan/primitives/StructItems.scala")
 
-  lazy val segmentsConfig        = coreTestConfig("segments", "scalan/common/Segments.scala")
-  lazy val kindsConfig           = coreTestConfig("kinds", "scalan/common/Kinds.scala")
-  lazy val metatestsConfig       = coreTestConfig("metatests", "scalan/common/MetaTests.scala")
+  lazy val segmentsConfig        = corexTestConfig("segments", "scalan/common/Segments.scala")
+  lazy val kindsConfig           = corexTestConfig("kinds", "scalan/common/Kinds.scala")
+  lazy val metatestsConfig       = corexTestConfig("metatests", "scalan/common/MetaTests.scala")
 
   val allConfigs = List(
     viewsConfig, convertersConfig, specializationsConfig,

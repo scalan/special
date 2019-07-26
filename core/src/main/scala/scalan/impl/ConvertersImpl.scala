@@ -1,13 +1,14 @@
 package scalan
 
 import OverloadHack.Overloaded2
+import scalan.primitives.TypeSum
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
 
 package impl {
 // Abs -----------------------------------
 trait ConvertersDefs extends Converters {
-  self: Scalan =>
+  self: Scalan with ConvertersModule =>
 import IsoUR._
 import Converter._
 import BaseConverter._
@@ -19,19 +20,21 @@ import PairConverter._
 import SumConverter._
 
 object Converter extends EntityObject("Converter") {
+  private val ConverterClass = classOf[Converter[_, _]]
+
   // entityAdapter for Converter trait
   case class ConverterAdapter[T, R](source: Rep[Converter[T, R]])
-      extends Converter[T, R] with Def[Converter[T, R]] {
+      extends Converter[T, R]
+      with Def[Converter[T, R]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     val selfType: Elem[Converter[T, R]] = element[Converter[T, R]]
     override def transform(t: Transformer) = ConverterAdapter[T, R](t(source))
-    private val thisClass = classOf[Converter[T, R]]
 
     def apply(x: Rep[T]): Rep[R] = {
       asRep[R](mkMethodCall(source,
-        thisClass.getMethod("apply", classOf[Sym]),
+        ConverterClass.getMethod("apply", classOf[Sym]),
         List(x),
         true, true, element[R]))
     }

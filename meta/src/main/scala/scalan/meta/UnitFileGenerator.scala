@@ -227,7 +227,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    ${adapC.elemDefs}
       |    val selfType: Elem[${e.typeUse}] = element[${e.typeUse}]
       |    override def transform(t: Transformer) = ${entityName}Adapter$typesUse(t(source))
-      |    // ${methods.opt(_ => s"private val thisClass = classOf[${e.typeUse}]")}
       |    ${methods.rep({ m => s"""|    ${externalMethod("source", m, isAdapter = true, entityClassFieldName)}""".stripAndTrim },"\n")}
       |  }
       |""".stripAndTrim
@@ -453,8 +452,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    extends $parentElem {
       |${e.implicitArgs.rep(a => s"    ${(e.entity.isAbstractInAncestors(a.name)).opt("override ")}def ${a.name} = _${a.name}", "\n")}
       |${e.entity.isLiftable.opt(liftableSupport())}
-      |    ${overrideIfHasParent}lazy val parent: Option[Elem[_]] = ${optParent.opt(p => s"Some(${tpeToElemStr(p, e.tpeArgs)})", "None")}
-      |    ${e.emitTpeArgToDescPairs.isEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})")}
+      |    ${optParent.opt(p => s"override lazy val parent: Option[Elem[_]] = Some(${tpeToElemStr(p, e.tpeArgs)})")}
+      |    ${e.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})")}
       |    override lazy val tag = {
       |${implicitTagsFromElems(e)}
       |      weakTypeTag[${e.typeUse}].asInstanceOf[WeakTypeTag[$toArgName]]
@@ -518,7 +517,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |object $entityName extends EntityObject("$entityName") {
       |${e.entity.isLiftable.opt(entityConst(e))}
       |
-      |  private val ${e.name}Class = ${emitClassOf(e.name, e.tpeArgs.length)}
+      |  private val ${e.name}Class = ${emitClassOf(e.name, e.tpeArgs)}
       |
       |${entityAdapter(e)}
       |
@@ -544,6 +543,14 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
 
   def emitClassOf(className: String, nArgs: Int) = {
     s"classOf[$className${(nArgs > 0).opt(s"[${(1 to nArgs).rep(_ => "_")}]")}]"
+  }
+
+  def emitClassOf(className: String, args: Seq[STpeArg]) = {
+    val hasHighKind = args.exists(_.isHighKind)
+    s"classOf[$className${args.opt(args =>
+      s"[${args.rep(a => if (a.isHighKind) "C" else "_")}]" +
+          (if (hasHighKind) " forSome {type C[_]}" else "")
+    )}]"
   }
 
   def emitClasses = {
@@ -732,8 +739,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}] {
         |    lazy val tag = weakTypeTag[${c.companionCtorName}]
         |  }
-        |
-        |  // private val ${c.name}Class = ${emitClassOf(c.name, c.tpeArgs.length)}
         |
         |  implicit def proxy${c.typeDecl}(p: Rep[${c.typeUse}]): ${c.typeUse} =
         |    proxyOps[${c.typeUse}](p)

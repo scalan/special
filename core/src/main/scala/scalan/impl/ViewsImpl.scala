@@ -2,7 +2,6 @@ package scalan
 
 import java.lang.reflect.Method
 import scala.language.higherKinds
-import scala.collection.mutable.{Map=>MutMap}
 import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
 import scalan.meta.ScalanAst._
 
@@ -24,26 +23,28 @@ import SumIso._
 import ThunkIso._
 
 object IsoUR extends EntityObject("IsoUR") {
+  private val IsoURClass = classOf[IsoUR[_, _]]
+
   // entityAdapter for IsoUR trait
   case class IsoURAdapter[From, To](source: Rep[IsoUR[From, To]])
-      extends IsoUR[From, To] with Def[IsoUR[From, To]] {
+      extends IsoUR[From, To]
+      with Def[IsoUR[From, To]] {
     implicit lazy val eFrom = source.elem.typeArgs("From")._1.asElem[From];
 implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
 
     val selfType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
     override def transform(t: Transformer) = IsoURAdapter[From, To](t(source))
-    private val thisClass = classOf[IsoUR[From, To]]
 
     def from(p: Rep[To]): Rep[From] = {
       asRep[From](mkMethodCall(source,
-        thisClass.getMethod("from", classOf[Sym]),
+        IsoURClass.getMethod("from", classOf[Sym]),
         List(p),
         true, true, element[From]))
     }
 
     def to(p: Rep[From]): Rep[To] = {
       asRep[To](mkMethodCall(source,
-        thisClass.getMethod("to", classOf[Sym]),
+        IsoURClass.getMethod("to", classOf[Sym]),
         List(p),
         true, true, element[To]))
     }
@@ -82,7 +83,7 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
   }
 
   implicit def isoURElement[From, To](implicit eFrom: Elem[From], eTo: Elem[To]): Elem[IsoUR[From, To]] =
-    cachedElemByClass(eFrom, eTo)(classOf[IsoURElem[From, To, IsoUR[From, To]]])
+    cachedElem[IsoURElem[From, To, IsoUR[From, To]]](eFrom, eTo)
 
   implicit case object IsoURCompanionElem extends CompanionElem[IsoURCompanionCtor] {
     lazy val tag = weakTypeTag[IsoURCompanionCtor]
@@ -135,34 +136,36 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
   registerEntityObject("IsoUR", IsoUR)
 
 object Iso1UR extends EntityObject("Iso1UR") {
+  private val Iso1URClass = classOf[Iso1UR[_, _, C] forSome {type C[_]}]
+
   // entityAdapter for Iso1UR trait
   case class Iso1URAdapter[A, B, C[_]](source: Rep[Iso1UR[A, B, C]])
-      extends Iso1UR[A, B, C] with Def[Iso1UR[A, B, C]] {
+      extends Iso1UR[A, B, C]
+      with Def[Iso1UR[A, B, C]] {
     implicit override lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
 implicit override lazy val eB = source.elem.typeArgs("B")._1.asElem[B];
 implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
 
     val selfType: Elem[Iso1UR[A, B, C]] = element[Iso1UR[A, B, C]]
     override def transform(t: Transformer) = Iso1URAdapter[A, B, C](t(source))
-    private val thisClass = classOf[Iso1UR[A, B, C]]
 
     def innerIso: Iso[A, B] = {
       asRep[IsoUR[A, B]](mkMethodCall(source,
-        thisClass.getMethod("innerIso"),
+        Iso1URClass.getMethod("innerIso"),
         List(),
         true, true, element[IsoUR[A, B]]))
     }
 
     def from(p: Rep[C[B]]): Rep[C[A]] = {
       asRep[C[A]](mkMethodCall(source,
-        thisClass.getMethod("from", classOf[Sym]),
+        Iso1URClass.getMethod("from", classOf[Sym]),
         List(p),
         true, true, element[C[A]]))
     }
 
     def to(p: Rep[C[A]]): Rep[C[B]] = {
       asRep[C[B]](mkMethodCall(source,
-        thisClass.getMethod("to", classOf[Sym]),
+        Iso1URClass.getMethod("to", classOf[Sym]),
         List(p),
         true, true, element[C[B]]))
     }
@@ -203,7 +206,7 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
   }
 
   implicit def iso1URElement[A, B, C[_]](implicit eA: Elem[A], eB: Elem[B], cC: Cont[C]): Elem[Iso1UR[A, B, C]] =
-    cachedElemByClass(eA, eB, cC)(classOf[Iso1URElem[A, B, C, Iso1UR[A, B, C]]])
+    cachedElem[Iso1URElem[A, B, C, Iso1UR[A, B, C]]](eA, eB, cC)
 
   implicit case object Iso1URCompanionElem extends CompanionElem[Iso1URCompanionCtor] {
     lazy val tag = weakTypeTag[Iso1URCompanionCtor]
