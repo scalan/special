@@ -3,7 +3,7 @@ package scalan
 import org.scalacheck.util.Buildable
 import org.scalacheck.{Arbitrary, Gen}
 
-class GenConfiguration(val maxArrayLength: Int = 5) {}
+class GenConfiguration(val maxArrayLength: Int = 100) {}
 
 trait RTypeGens {
   import Gen._
@@ -57,22 +57,22 @@ trait RTypeGens {
       )
   }
 
-  def getArrayAnyTypeGen(gn: Gen[RType[_]], depth: Int): Gen[RType[_]] = arrayTypeGen(gn, depth)
+  def getAnyArrayGen(gn: Gen[RType[_]], depth: Int): Gen[RType[_]] = arrayTypeGen(gn, depth)
 
   /*
    * Full type generators
    */
-  def getFullTypeGen(depth: Int): Gen[RType[_]] = depth match {
-    case 1 => Gen.oneOf(dataTypeGen, getPairAnyTypeGen(dataTypeGen, 1), getArrayAnyTypeGen(dataTypeGen, 1))
+  def getBasicTypeGen(depth: Int): Gen[RType[_]] = depth match {
+    case 1 => Gen.oneOf(dataTypeGen, getPairAnyTypeGen(dataTypeGen, 1), getAnyArrayGen(dataTypeGen, 1))
     case _ =>
-      Gen.oneOf(dataTypeGen, getPairAnyTypeGen(getFullTypeGen(depth - 1), 1), getArrayAnyTypeGen(getFullTypeGen(depth - 1), 1))
+      Gen.oneOf(dataTypeGen, getPairAnyTypeGen(getBasicTypeGen(depth - 1), 1), getAnyArrayGen(getBasicTypeGen(depth - 1), 1))
   }
 
-  def getArrayPrimitiveTypeGen(depth: Int) = getArrayAnyTypeGen(primitiveTypeGen, depth)
-  def getArrayTypeGen(depth: Int) = getArrayAnyTypeGen(getFullTypeGen(depth - 1), 1)
+  def getPrimitiveArrayGen(depth: Int) = getAnyArrayGen(primitiveTypeGen, depth)
+  def getArrayGen(depth: Int) = getAnyArrayGen(getBasicTypeGen(depth - 1), 1)
 
-  def getPairPrimitiveTypeGen(depth: Int) = getPairAnyTypeGen(primitiveTypeGen, depth)
-  def getPairTypeGen(depth: Int) = getPairAnyTypeGen(getFullTypeGen(depth - 1), 1)
+  def getPrimitivePairGen(depth: Int) = getPairAnyTypeGen(primitiveTypeGen, depth)
+  def getPairGen(depth: Int) = getPairAnyTypeGen(getBasicTypeGen(depth - 1), 1)
 
   def primitiveValueGen[T](t: PrimitiveType[T]): Gen[_] = t match {
     case ByteType => choose[Byte](Byte.MinValue, Byte.MaxValue)
@@ -92,7 +92,8 @@ trait RTypeGens {
   }
 
   private def innerRTypePairValueGen[A, B](pairType: PairType[A, B], conf: GenConfiguration): Gen[(A, B)] = {
-    for { left <- innerRTypeValueGen(pairType.tFst, conf); right <- innerRTypeValueGen(pairType.tSnd, conf) } yield (left.asInstanceOf[A], right.asInstanceOf[B])
+    for { left <- innerRTypeValueGen(pairType.tFst, conf); right <- innerRTypeValueGen(pairType.tSnd, conf) }
+      yield (left.asInstanceOf[A], right.asInstanceOf[B])
   }
 
   private def innerRTypeValueGen[T](t: RType[T], conf: GenConfiguration): Gen[_] = t match {
