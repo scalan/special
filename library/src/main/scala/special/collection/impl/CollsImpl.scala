@@ -310,98 +310,99 @@ implicit val eV = proj.elem.eRange
   implicit def liftableColl[SA, A](implicit lA: Liftable[SA,A]): Liftable[SColl[SA], Coll[A]] =
     LiftableColl(lA)
 
+  private val CollClass = classOf[Coll[_]]
+
   // entityAdapter for Coll trait
   case class CollAdapter[A](source: Rep[Coll[A]])
-      extends Coll[A] with Def[Coll[A]] {
+      extends Coll[A]
+      with Def[Coll[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
     val selfType: Elem[Coll[A]] = element[Coll[A]]
     override def transform(t: Transformer) = CollAdapter[A](t(source))
-    private val thisClass = classOf[Coll[A]]
 
     def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
+        CollClass.getMethod("builder"),
         List(),
         true, true, element[CollBuilder]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("length"),
+        CollClass.getMethod("length"),
         List(),
         true, true, element[Int]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("isEmpty"),
+        CollClass.getMethod("isEmpty"),
         List(),
         true, true, element[Boolean]))
     }
 
     def nonEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("nonEmpty"),
+        CollClass.getMethod("nonEmpty"),
         List(),
         true, true, element[Boolean]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("apply", classOf[Sym]),
+        CollClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, true, element[A]))
     }
 
     def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        CollClass.getMethod("isDefinedAt", classOf[Sym]),
         List(idx),
         true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(index, default),
         true, true, element[A]))
     }
 
-    // manual fix (optimization)
     def map[B](f: Rep[A => B]): Rep[Coll[B]] = {
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(source,
-        thisClass.getMethod("map", classOf[Sym]),
-        f :: Nil,
+        CollClass.getMethod("map", classOf[Sym]),
+        List(f),
         true, true, element[Coll[B]]))
     }
 
     def zip[B](ys: Rep[Coll[B]]): Rep[Coll[(A, B)]] = {
       implicit val eB = ys.eA
       asRep[Coll[(A, B)]](mkMethodCall(source,
-        thisClass.getMethod("zip", classOf[Sym]),
+        CollClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, true, element[Coll[(A, B)]]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("exists", classOf[Sym]),
+        CollClass.getMethod("exists", classOf[Sym]),
         List(p),
         true, true, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("forall", classOf[Sym]),
+        CollClass.getMethod("forall", classOf[Sym]),
         List(p),
         true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("filter", classOf[Sym]),
+        CollClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, true, element[Coll[A]]))
     }
@@ -409,14 +410,14 @@ implicit val eV = proj.elem.eRange
     def foldLeft[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, true, element[B]))
     }
 
     def indices: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
-        thisClass.getMethod("indices"),
+        CollClass.getMethod("indices"),
         List(),
         true, true, element[Coll[Int]]))
     }
@@ -424,77 +425,77 @@ implicit val eV = proj.elem.eRange
     def flatMap[B](f: Rep[A => Coll[B]]): Rep[Coll[B]] = {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[Coll[B]](mkMethodCall(source,
-        thisClass.getMethod("flatMap", classOf[Sym]),
+        CollClass.getMethod("flatMap", classOf[Sym]),
         List(f),
         true, true, element[Coll[B]]))
     }
 
     def segmentLength(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
     }
 
     override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(source,
-        thisClass.getMethod("find", classOf[Sym]),
+        CollClass.getMethod("find", classOf[Sym]),
         List(p),
         true, true, element[WOption[A]]))
     }
 
     def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
     }
 
     override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
         List(elem, from),
         true, true, element[Int]))
     }
 
     def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, true, element[Int]))
     }
 
     def take(n: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("take", classOf[Sym]),
+        CollClass.getMethod("take", classOf[Sym]),
         List(n),
         true, true, element[Coll[A]]))
     }
 
     def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
       asRep[(Coll[A], Coll[A])](mkMethodCall(source,
-        thisClass.getMethod("partition", classOf[Sym]),
+        CollClass.getMethod("partition", classOf[Sym]),
         List(pred),
         true, true, element[(Coll[A], Coll[A])]))
     }
 
     def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(from, patch, replaced),
         true, true, element[Coll[A]]))
     }
 
     def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("updated", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("updated", classOf[Sym], classOf[Sym]),
         List(index, elem),
         true, true, element[Coll[A]]))
     }
 
     def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
         List(indexes, values),
         true, true, element[Coll[A]]))
     }
@@ -503,7 +504,7 @@ implicit val eV = proj.elem.eRange
       implicit val eK = m.elem.eRange.eFst
 implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(K, V)]](mkMethodCall(source,
-        thisClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
         List(m, r),
         true, true, element[Coll[(K, V)]]))
     }
@@ -511,7 +512,7 @@ implicit val eV = m.elem.eRange.eSnd
     override def groupBy[K](key: Rep[A => K]): Rep[Coll[(K, Coll[A])]] = {
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[A])]](mkMethodCall(source,
-        thisClass.getMethod("groupBy", classOf[Sym]),
+        CollClass.getMethod("groupBy", classOf[Sym]),
         List(key),
         true, true, element[Coll[(K, Coll[A])]]))
     }
@@ -520,56 +521,56 @@ implicit val eV = m.elem.eRange.eSnd
       implicit val eK = key.elem.eRange
 implicit val eV = proj.elem.eRange
       asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
-        thisClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
         List(key, proj),
         true, true, element[Coll[(K, Coll[V])]]))
     }
 
     def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("unionSet", classOf[Sym]),
+        CollClass.getMethod("unionSet", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
 
     override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("diff", classOf[Sym]),
+        CollClass.getMethod("diff", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
 
     override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("intersect", classOf[Sym]),
+        CollClass.getMethod("intersect", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("sum", classOf[Sym]),
+        CollClass.getMethod("sum", classOf[Sym]),
         List(m),
         true, true, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        CollClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
         true, true, element[Coll[A]]))
     }
 
     def append(other: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("append", classOf[Sym]),
+        CollClass.getMethod("append", classOf[Sym]),
         List(other),
         true, true, element[Coll[A]]))
     }
 
     def reverse: Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("reverse"),
+        CollClass.getMethod("reverse"),
         List(),
         true, true, element[Coll[A]]))
     }
@@ -617,7 +618,7 @@ implicit val eV = proj.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[Coll[A]], classOf[SColl[_]], Set(
-        "builder", "toArray", "length", "size", "isEmpty", "nonEmpty", "apply", "isDefinedAt", "getOrElse", "map", "zip", "exists", "forall", "filter", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "take", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
+        "builder", "length", "size", "isEmpty", "nonEmpty", "apply", "isDefinedAt", "getOrElse", "map", "zip", "exists", "forall", "filter", "foldLeft", "indices", "flatMap", "segmentLength", "find", "indexWhere", "indexOf", "lastIndexWhere", "take", "partition", "patch", "updated", "updateMany", "mapReduce", "groupBy", "groupByProjecting", "unionSet", "diff", "intersect", "sum", "slice", "append", "reverse"
         ))
     }
 
@@ -639,9 +640,8 @@ implicit val eV = proj.elem.eRange
     }
   }
 
-  // manual fix (optimization)
   implicit def collElement[A](implicit eA: Elem[A]): Elem[Coll[A]] =
-    cachedElemByClass[CollElem[A, Coll[A]]](eA)(classOf[CollElem[A, Coll[A]]])
+    cachedElemByClass(eA)(classOf[CollElem[A, Coll[A]]])
 
   implicit case object CollCompanionElem extends CompanionElem[CollCompanionCtor] {
     lazy val tag = weakTypeTag[CollCompanionCtor]
@@ -663,7 +663,7 @@ implicit val eV = proj.elem.eRange
   object CollMethods {
     object builder {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "builder" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "builder" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -689,7 +689,7 @@ implicit val eV = proj.elem.eRange
 
     object size {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "size" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "size" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -702,7 +702,7 @@ implicit val eV = proj.elem.eRange
 
     object isEmpty {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "isEmpty" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "isEmpty" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -715,7 +715,7 @@ implicit val eV = proj.elem.eRange
 
     object nonEmpty {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "nonEmpty" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "nonEmpty" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -728,7 +728,7 @@ implicit val eV = proj.elem.eRange
 
     object apply {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "apply" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -741,7 +741,7 @@ implicit val eV = proj.elem.eRange
 
     object isDefinedAt {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "isDefinedAt" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "isDefinedAt" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -754,7 +754,7 @@ implicit val eV = proj.elem.eRange
 
     object getOrElse {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "getOrElse" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "getOrElse" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
@@ -793,7 +793,7 @@ implicit val eV = proj.elem.eRange
 
     object exists {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "exists" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "exists" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
@@ -806,7 +806,7 @@ implicit val eV = proj.elem.eRange
 
     object forall {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "forall" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "forall" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
@@ -819,7 +819,7 @@ implicit val eV = proj.elem.eRange
 
     object filter {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "filter" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "filter" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
@@ -832,7 +832,7 @@ implicit val eV = proj.elem.eRange
 
     object foldLeft {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "foldLeft" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "foldLeft" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[B], Rep[((B, A)) => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -845,7 +845,7 @@ implicit val eV = proj.elem.eRange
 
     object indices {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "indices" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "indices" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -858,7 +858,7 @@ implicit val eV = proj.elem.eRange
 
     object flatMap {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Coll[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "flatMap" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "flatMap" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Coll[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -871,7 +871,7 @@ implicit val eV = proj.elem.eRange
 
     object segmentLength {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "segmentLength" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "segmentLength" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -884,7 +884,7 @@ implicit val eV = proj.elem.eRange
 
     object find {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "find" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "find" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
@@ -897,7 +897,7 @@ implicit val eV = proj.elem.eRange
 
     object indexWhere {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "indexWhere" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "indexWhere" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -910,7 +910,7 @@ implicit val eV = proj.elem.eRange
 
     object indexOf {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "indexOf" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "indexOf" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -923,7 +923,7 @@ implicit val eV = proj.elem.eRange
 
     object lastIndexWhere {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "lastIndexWhere" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "lastIndexWhere" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -936,7 +936,7 @@ implicit val eV = proj.elem.eRange
 
     object take {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "take" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "take" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -949,7 +949,7 @@ implicit val eV = proj.elem.eRange
 
     object partition {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "partition" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "partition" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
@@ -962,7 +962,7 @@ implicit val eV = proj.elem.eRange
 
     object patch {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int], Rep[Coll[A]], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "patch" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "patch" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1), args(2))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int], Rep[Coll[A]], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -975,7 +975,7 @@ implicit val eV = proj.elem.eRange
 
     object updated {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "updated" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "updated" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
@@ -988,7 +988,7 @@ implicit val eV = proj.elem.eRange
 
     object updateMany {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[Int]], Rep[Coll[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "updateMany" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "updateMany" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[Int]], Rep[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -1001,7 +1001,7 @@ implicit val eV = proj.elem.eRange
 
     object mapReduce {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => (K, V)], Rep[((V, V)) => V]) forSome {type A; type K; type V}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "mapReduce" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "mapReduce" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => (K, V)], Rep[((V, V)) => V]) forSome {type A; type K; type V}]]
         case _ => Nullable.None
@@ -1014,7 +1014,7 @@ implicit val eV = proj.elem.eRange
 
     object groupBy {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => K]) forSome {type A; type K}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "groupBy" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "groupBy" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => K]) forSome {type A; type K}]]
         case _ => Nullable.None
@@ -1027,7 +1027,7 @@ implicit val eV = proj.elem.eRange
 
     object groupByProjecting {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[A => K], Rep[A => V]) forSome {type A; type K; type V}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "groupByProjecting" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "groupByProjecting" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[A => K], Rep[A => V]) forSome {type A; type K; type V}]]
         case _ => Nullable.None
@@ -1040,7 +1040,7 @@ implicit val eV = proj.elem.eRange
 
     object unionSet {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "unionSet" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "unionSet" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -1053,7 +1053,7 @@ implicit val eV = proj.elem.eRange
 
     object diff {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "diff" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "diff" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -1066,7 +1066,7 @@ implicit val eV = proj.elem.eRange
 
     object intersect {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "intersect" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "intersect" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -1092,7 +1092,7 @@ implicit val eV = proj.elem.eRange
 
     object slice {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Int], Rep[Int]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "slice" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "slice" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Int], Rep[Int]) forSome {type A}]]
         case _ => Nullable.None
@@ -1105,7 +1105,7 @@ implicit val eV = proj.elem.eRange
 
     object append {
       def unapply(d: Def[_]): Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "append" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "append" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[Coll[A]], Rep[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -1118,7 +1118,7 @@ implicit val eV = proj.elem.eRange
 
     object reverse {
       def unapply(d: Def[_]): Nullable[Rep[Coll[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollElem[_, _]] && method.getName == "reverse" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "reverse" && receiver.elem.isInstanceOf[CollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -1141,26 +1141,28 @@ implicit val eV = proj.elem.eRange
   // manual fix: rewriteDef removed
 
 object PairColl extends EntityObject("PairColl") {
+  private val PairCollClass = classOf[PairColl[_, _]]
+
   // entityAdapter for PairColl trait
   case class PairCollAdapter[L, R](source: Rep[PairColl[L, R]])
-      extends PairColl[L, R] with Def[PairColl[L, R]] {
+      extends PairColl[L, R]
+      with Def[PairColl[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     val selfType: Elem[PairColl[L, R]] = element[PairColl[L, R]]
     override def transform(t: Transformer) = PairCollAdapter[L, R](t(source))
-    private val thisClass = classOf[PairColl[L, R]]
 
     def ls: Rep[Coll[L]] = {
       asRep[Coll[L]](mkMethodCall(source,
-        thisClass.getMethod("ls"),
+        PairCollClass.getMethod("ls"),
         List(),
         true, true, element[Coll[L]]))
     }
 
     def rs: Rep[Coll[R]] = {
       asRep[Coll[R]](mkMethodCall(source,
-        thisClass.getMethod("rs"),
+        PairCollClass.getMethod("rs"),
         List(),
         true, true, element[Coll[R]]))
     }
@@ -1168,7 +1170,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def mapFirst[T1](f: Rep[L => T1]): Rep[Coll[(T1, R)]] = {
       implicit val eT1 = f.elem.eRange
       asRep[Coll[(T1, R)]](mkMethodCall(source,
-        thisClass.getMethod("mapFirst", classOf[Sym]),
+        PairCollClass.getMethod("mapFirst", classOf[Sym]),
         List(f),
         true, true, element[Coll[(T1, R)]]))
     }
@@ -1176,56 +1178,56 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def mapSecond[T1](f: Rep[R => T1]): Rep[Coll[(L, T1)]] = {
       implicit val eT1 = f.elem.eRange
       asRep[Coll[(L, T1)]](mkMethodCall(source,
-        thisClass.getMethod("mapSecond", classOf[Sym]),
+        PairCollClass.getMethod("mapSecond", classOf[Sym]),
         List(f),
         true, true, element[Coll[(L, T1)]]))
     }
 
     def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
+        PairCollClass.getMethod("builder"),
         List(),
         true, true, element[CollBuilder]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("length"),
+        PairCollClass.getMethod("length"),
         List(),
         true, true, element[Int]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("isEmpty"),
+        PairCollClass.getMethod("isEmpty"),
         List(),
         true, true, element[Boolean]))
     }
 
     def nonEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("nonEmpty"),
+        PairCollClass.getMethod("nonEmpty"),
         List(),
         true, true, element[Boolean]))
     }
 
     def apply(i: Rep[Int]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
-        thisClass.getMethod("apply", classOf[Sym]),
+        PairCollClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, true, element[(L, R)]))
     }
 
     def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        PairCollClass.getMethod("isDefinedAt", classOf[Sym]),
         List(idx),
         true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
-        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(index, default),
         true, true, element[(L, R)]))
     }
@@ -1233,7 +1235,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def map[B](f: Rep[((L, R)) => B]): Rep[Coll[B]] = {
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(source,
-        thisClass.getMethod("map", classOf[Sym]),
+        PairCollClass.getMethod("map", classOf[Sym]),
         List(f),
         true, true, element[Coll[B]]))
     }
@@ -1242,28 +1244,28 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def zip[B](ys: Rep[Coll[B]]): Rep[Coll[((L, R), B)]] = {
       implicit val eB = ys.eA
       asRep[Coll[((L, R), B)]](mkMethodCall(source,
-        thisClass.getMethod("zip", classOf[Sym]),
+        PairCollClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, true, element[Coll[((L, R), B)]](collElement(pairElement(pairElement(eL, eR), eB)))))
     }
 
     def exists(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("exists", classOf[Sym]),
+        PairCollClass.getMethod("exists", classOf[Sym]),
         List(p),
         true, true, element[Boolean]))
     }
 
     def forall(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("forall", classOf[Sym]),
+        PairCollClass.getMethod("forall", classOf[Sym]),
         List(p),
         true, true, element[Boolean]))
     }
 
     def filter(p: Rep[((L, R)) => Boolean]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("filter", classOf[Sym]),
+        PairCollClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, true, element[Coll[(L, R)]]))
     }
@@ -1271,14 +1273,14 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def foldLeft[B](zero: Rep[B], op: Rep[((B, (L, R))) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, true, element[B]))
     }
 
     def indices: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
-        thisClass.getMethod("indices"),
+        PairCollClass.getMethod("indices"),
         List(),
         true, true, element[Coll[Int]]))
     }
@@ -1286,49 +1288,49 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def flatMap[B](f: Rep[((L, R)) => Coll[B]]): Rep[Coll[B]] = {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[Coll[B]](mkMethodCall(source,
-        thisClass.getMethod("flatMap", classOf[Sym]),
+        PairCollClass.getMethod("flatMap", classOf[Sym]),
         List(f),
         true, true, element[Coll[B]]))
     }
 
     def segmentLength(p: Rep[((L, R)) => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
     }
 
     override def find(p: Rep[((L, R)) => Boolean]): Rep[WOption[(L, R)]] = {
       asRep[WOption[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("find", classOf[Sym]),
+        PairCollClass.getMethod("find", classOf[Sym]),
         List(p),
         true, true, element[WOption[(L, R)]]))
     }
 
     def indexWhere(p: Rep[((L, R)) => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
     }
 
     override def indexOf(elem: Rep[(L, R)], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
         List(elem, from),
         true, true, element[Int]))
     }
 
     def lastIndexWhere(p: Rep[((L, R)) => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, true, element[Int]))
     }
 
     def take(n: Rep[Int]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("take", classOf[Sym]),
+        PairCollClass.getMethod("take", classOf[Sym]),
         List(n),
         true, true, element[Coll[(L, R)]]))
     }
@@ -1336,28 +1338,28 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     // manual fix
     def partition(pred: Rep[((L, R)) => Boolean]): Rep[(Coll[(L, R)], Coll[(L, R)])] = {
       asRep[(Coll[(L, R)], Coll[(L, R)])](mkMethodCall(source,
-        thisClass.getMethod("partition", classOf[Sym]),
+        PairCollClass.getMethod("partition", classOf[Sym]),
         List(pred),
         true, true, element[(Coll[(L, R)], Coll[(L, R)])](pairElement(collElement(pairElement(eL,eR)), collElement(pairElement(eL,eR))))))
     }
 
     def patch(from: Rep[Int], patch: Rep[Coll[(L, R)]], replaced: Rep[Int]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(from, patch, replaced),
         true, true, element[Coll[(L, R)]]))
     }
 
     def updated(index: Rep[Int], elem: Rep[(L, R)]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("updated", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("updated", classOf[Sym], classOf[Sym]),
         List(index, elem),
         true, true, element[Coll[(L, R)]]))
     }
 
     def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
         List(indexes, values),
         true, true, element[Coll[(L, R)]]))
     }
@@ -1366,7 +1368,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       implicit val eK = m.elem.eRange.eFst
 implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(K, V)]](mkMethodCall(source,
-        thisClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
         List(m, r),
         true, true, element[Coll[(K, V)]]))
     }
@@ -1375,7 +1377,7 @@ implicit val eV = m.elem.eRange.eSnd
     override def groupBy[K](key: Rep[((L, R)) => K]): Rep[Coll[(K, Coll[(L, R)])]] = {
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[(L, R)])]](mkMethodCall(source,
-        thisClass.getMethod("groupBy", classOf[Sym]),
+        PairCollClass.getMethod("groupBy", classOf[Sym]),
         List(key),
         true, true, element[Coll[(K, Coll[(L, R)])]](collElement(pairElement(eK, collElement(pairElement(eL, eR)))))))
     }
@@ -1384,56 +1386,56 @@ implicit val eV = m.elem.eRange.eSnd
       implicit val eK = key.elem.eRange
 implicit val eV = proj.elem.eRange
       asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
-        thisClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
         List(key, proj),
         true, true, element[Coll[(K, Coll[V])]]))
     }
 
     def unionSet(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("unionSet", classOf[Sym]),
+        PairCollClass.getMethod("unionSet", classOf[Sym]),
         List(that),
         true, true, element[Coll[(L, R)]]))
     }
 
     override def diff(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("diff", classOf[Sym]),
+        PairCollClass.getMethod("diff", classOf[Sym]),
         List(that),
         true, true, element[Coll[(L, R)]]))
     }
 
     override def intersect(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("intersect", classOf[Sym]),
+        PairCollClass.getMethod("intersect", classOf[Sym]),
         List(that),
         true, true, element[Coll[(L, R)]]))
     }
 
     def sum(m: Rep[Monoid[(L, R)]]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
-        thisClass.getMethod("sum", classOf[Sym]),
+        PairCollClass.getMethod("sum", classOf[Sym]),
         List(m),
         true, true, element[(L, R)]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        PairCollClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
         true, true, element[Coll[(L, R)]]))
     }
 
     def append(other: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("append", classOf[Sym]),
+        PairCollClass.getMethod("append", classOf[Sym]),
         List(other),
         true, true, element[Coll[(L, R)]]))
     }
 
     def reverse: Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("reverse"),
+        PairCollClass.getMethod("reverse"),
         List(),
         true, true, element[Coll[(L, R)]]))
     }
@@ -1493,7 +1495,7 @@ implicit val eV = proj.elem.eRange
   object PairCollMethods {
     object ls {
       def unapply(d: Def[_]): Nullable[Rep[PairColl[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairCollElem[_, _, _]] && method.getName == "ls" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "ls" && receiver.elem.isInstanceOf[PairCollElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[PairColl[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
@@ -1506,7 +1508,7 @@ implicit val eV = proj.elem.eRange
 
     object rs {
       def unapply(d: Def[_]): Nullable[Rep[PairColl[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairCollElem[_, _, _]] && method.getName == "rs" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "rs" && receiver.elem.isInstanceOf[PairCollElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[PairColl[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
@@ -1519,7 +1521,7 @@ implicit val eV = proj.elem.eRange
 
     object mapFirst {
       def unapply(d: Def[_]): Nullable[(Rep[PairColl[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairCollElem[_, _, _]] && method.getName == "mapFirst" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "mapFirst" && receiver.elem.isInstanceOf[PairCollElem[_, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[PairColl[L, R]], Rep[L => T1]) forSome {type L; type R; type T1}]]
         case _ => Nullable.None
@@ -1532,7 +1534,7 @@ implicit val eV = proj.elem.eRange
 
     object mapSecond {
       def unapply(d: Def[_]): Nullable[(Rep[PairColl[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairCollElem[_, _, _]] && method.getName == "mapSecond" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "mapSecond" && receiver.elem.isInstanceOf[PairCollElem[_, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[PairColl[L, R]], Rep[R => T1]) forSome {type L; type R; type T1}]]
         case _ => Nullable.None
@@ -1608,74 +1610,76 @@ object ReplColl extends EntityObject("ReplColl") {
   implicit def liftableReplColl[SA, A](implicit lA: Liftable[SA,A]): Liftable[SReplColl[SA], ReplColl[A]] =
     LiftableReplColl(lA)
 
+  private val ReplCollClass = classOf[ReplColl[_]]
+
   // entityAdapter for ReplColl trait
   case class ReplCollAdapter[A](source: Rep[ReplColl[A]])
-      extends ReplColl[A] with Def[ReplColl[A]] {
+      extends ReplColl[A]
+      with Def[ReplColl[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
     val selfType: Elem[ReplColl[A]] = element[ReplColl[A]]
     override def transform(t: Transformer) = ReplCollAdapter[A](t(source))
-    private val thisClass = classOf[ReplColl[A]]
 
     def value: Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("value"),
+        ReplCollClass.getMethod("value"),
         List(),
         true, true, element[A]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("length"),
+        ReplCollClass.getMethod("length"),
         List(),
         true, true, element[Int]))
     }
 
     def append(other: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("append", classOf[Sym]),
+        ReplCollClass.getMethod("append", classOf[Sym]),
         List(other),
         true, true, element[Coll[A]]))
     }
 
     def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
+        ReplCollClass.getMethod("builder"),
         List(),
         true, true, element[CollBuilder]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("isEmpty"),
+        ReplCollClass.getMethod("isEmpty"),
         List(),
         true, true, element[Boolean]))
     }
 
     def nonEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("nonEmpty"),
+        ReplCollClass.getMethod("nonEmpty"),
         List(),
         true, true, element[Boolean]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("apply", classOf[Sym]),
+        ReplCollClass.getMethod("apply", classOf[Sym]),
         List(i),
         true, true, element[A]))
     }
 
     def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("isDefinedAt", classOf[Sym]),
+        ReplCollClass.getMethod("isDefinedAt", classOf[Sym]),
         List(idx),
         true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(index, default),
         true, true, element[A]))
     }
@@ -1683,7 +1687,7 @@ object ReplColl extends EntityObject("ReplColl") {
     def map[B](f: Rep[A => B]): Rep[Coll[B]] = {
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(source,
-        thisClass.getMethod("map", classOf[Sym]),
+        ReplCollClass.getMethod("map", classOf[Sym]),
         List(f),
         true, true, element[Coll[B]]))
     }
@@ -1691,28 +1695,28 @@ object ReplColl extends EntityObject("ReplColl") {
     def zip[B](ys: Rep[Coll[B]]): Rep[Coll[(A, B)]] = {
       implicit val eB = ys.eA
       asRep[Coll[(A, B)]](mkMethodCall(source,
-        thisClass.getMethod("zip", classOf[Sym]),
+        ReplCollClass.getMethod("zip", classOf[Sym]),
         List(ys),
         true, true, element[Coll[(A, B)]]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("exists", classOf[Sym]),
+        ReplCollClass.getMethod("exists", classOf[Sym]),
         List(p),
         true, true, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
-        thisClass.getMethod("forall", classOf[Sym]),
+        ReplCollClass.getMethod("forall", classOf[Sym]),
         List(p),
         true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("filter", classOf[Sym]),
+        ReplCollClass.getMethod("filter", classOf[Sym]),
         List(p),
         true, true, element[Coll[A]]))
     }
@@ -1720,14 +1724,14 @@ object ReplColl extends EntityObject("ReplColl") {
     def foldLeft[B](zero: Rep[B], op: Rep[((B, A)) => B]): Rep[B] = {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
         List(zero, op),
         true, true, element[B]))
     }
 
     def indices: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
-        thisClass.getMethod("indices"),
+        ReplCollClass.getMethod("indices"),
         List(),
         true, true, element[Coll[Int]]))
     }
@@ -1735,77 +1739,77 @@ object ReplColl extends EntityObject("ReplColl") {
     def flatMap[B](f: Rep[A => Coll[B]]): Rep[Coll[B]] = {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[Coll[B]](mkMethodCall(source,
-        thisClass.getMethod("flatMap", classOf[Sym]),
+        ReplCollClass.getMethod("flatMap", classOf[Sym]),
         List(f),
         true, true, element[Coll[B]]))
     }
 
     def segmentLength(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
     }
 
     override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(source,
-        thisClass.getMethod("find", classOf[Sym]),
+        ReplCollClass.getMethod("find", classOf[Sym]),
         List(p),
         true, true, element[WOption[A]]))
     }
 
     def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
         List(p, from),
         true, true, element[Int]))
     }
 
     override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
         List(elem, from),
         true, true, element[Int]))
     }
 
     def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
         List(p, end),
         true, true, element[Int]))
     }
 
     def take(n: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("take", classOf[Sym]),
+        ReplCollClass.getMethod("take", classOf[Sym]),
         List(n),
         true, true, element[Coll[A]]))
     }
 
     def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
       asRep[(Coll[A], Coll[A])](mkMethodCall(source,
-        thisClass.getMethod("partition", classOf[Sym]),
+        ReplCollClass.getMethod("partition", classOf[Sym]),
         List(pred),
         true, true, element[(Coll[A], Coll[A])]))
     }
 
     def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(from, patch, replaced),
         true, true, element[Coll[A]]))
     }
 
     def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("updated", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("updated", classOf[Sym], classOf[Sym]),
         List(index, elem),
         true, true, element[Coll[A]]))
     }
 
     def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
         List(indexes, values),
         true, true, element[Coll[A]]))
     }
@@ -1814,7 +1818,7 @@ object ReplColl extends EntityObject("ReplColl") {
       implicit val eK = m.elem.eRange.eFst
 implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(K, V)]](mkMethodCall(source,
-        thisClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
         List(m, r),
         true, true, element[Coll[(K, V)]]))
     }
@@ -1822,7 +1826,7 @@ implicit val eV = m.elem.eRange.eSnd
     override def groupBy[K](key: Rep[A => K]): Rep[Coll[(K, Coll[A])]] = {
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[A])]](mkMethodCall(source,
-        thisClass.getMethod("groupBy", classOf[Sym]),
+        ReplCollClass.getMethod("groupBy", classOf[Sym]),
         List(key),
         true, true, element[Coll[(K, Coll[A])]]))
     }
@@ -1831,49 +1835,49 @@ implicit val eV = m.elem.eRange.eSnd
       implicit val eK = key.elem.eRange
 implicit val eV = proj.elem.eRange
       asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
-        thisClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
         List(key, proj),
         true, true, element[Coll[(K, Coll[V])]]))
     }
 
     def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("unionSet", classOf[Sym]),
+        ReplCollClass.getMethod("unionSet", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
 
     override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("diff", classOf[Sym]),
+        ReplCollClass.getMethod("diff", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
 
     override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("intersect", classOf[Sym]),
+        ReplCollClass.getMethod("intersect", classOf[Sym]),
         List(that),
         true, true, element[Coll[A]]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("sum", classOf[Sym]),
+        ReplCollClass.getMethod("sum", classOf[Sym]),
         List(m),
         true, true, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("slice", classOf[Sym], classOf[Sym]),
+        ReplCollClass.getMethod("slice", classOf[Sym], classOf[Sym]),
         List(from, until),
         true, true, element[Coll[A]]))
     }
 
     def reverse: Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("reverse"),
+        ReplCollClass.getMethod("reverse"),
         List(),
         true, true, element[Coll[A]]))
     }
@@ -1940,7 +1944,7 @@ implicit val eV = proj.elem.eRange
   object ReplCollMethods {
     object value {
       def unapply(d: Def[_]): Nullable[Rep[ReplColl[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ReplCollElem[_, _]] && method.getName == "value" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "value" && receiver.elem.isInstanceOf[ReplCollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[ReplColl[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -1953,7 +1957,7 @@ implicit val eV = proj.elem.eRange
 
     object length {
       def unapply(d: Def[_]): Nullable[Rep[ReplColl[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[ReplCollElem[_, _]] && method.getName == "length" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[ReplCollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[ReplColl[A]] forSome {type A}]]
         case _ => Nullable.None
@@ -1966,7 +1970,7 @@ implicit val eV = proj.elem.eRange
 
     object append {
       def unapply(d: Def[_]): Nullable[(Rep[ReplColl[A]], Rep[Coll[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[ReplCollElem[_, _]] && method.getName == "append" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "append" && receiver.elem.isInstanceOf[ReplCollElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[ReplColl[A]], Rep[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -2088,16 +2092,18 @@ implicit val eO = l.elem.eRange
     }
   }
 
+  private val CollBuilderClass = classOf[CollBuilder]
+
   // entityAdapter for CollBuilder trait
   case class CollBuilderAdapter(source: Rep[CollBuilder])
-      extends CollBuilder with Def[CollBuilder] {
+      extends CollBuilder
+      with Def[CollBuilder] {
     val selfType: Elem[CollBuilder] = element[CollBuilder]
     override def transform(t: Transformer) = CollBuilderAdapter(t(source))
-    private val thisClass = classOf[CollBuilder]
 
     def Monoids: Rep[MonoidBuilder] = {
       asRep[MonoidBuilder](mkMethodCall(source,
-        thisClass.getMethod("Monoids"),
+        CollBuilderClass.getMethod("Monoids"),
         List(),
         true, true, element[MonoidBuilder]))
     }
@@ -2106,30 +2112,30 @@ implicit val eO = l.elem.eRange
       implicit val eA = as.eA
 implicit val eB = bs.eA
       asRep[PairColl[A, B]](mkMethodCall(source,
-        thisClass.getMethod("pairColl", classOf[Sym], classOf[Sym]),
+        CollBuilderClass.getMethod("pairColl", classOf[Sym], classOf[Sym]),
         List(as, bs),
         true, true, element[PairColl[A, B]]))
     }
 
     def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(source,
-        thisClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
+        CollBuilderClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
         List(items, cT),
         true, true, element[Coll[T]]))
     }
 
-    override def unzip[A, B](xs: Rep[Coll[(A, B)]]): Rep[(Coll[A], Coll[B])] = {
+    def unzip[A, B](xs: Rep[Coll[(A, B)]]): Rep[(Coll[A], Coll[B])] = {
       implicit val eA = xs.eA.eFst
 implicit val eB = xs.eA.eSnd
       asRep[(Coll[A], Coll[B])](mkMethodCall(source,
-        thisClass.getMethod("unzip", classOf[Sym]),
+        CollBuilderClass.getMethod("unzip", classOf[Sym]),
         List(xs),
         true, true, element[(Coll[A], Coll[B])]))
     }
 
     def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = {
       asRep[Coll[Byte]](mkMethodCall(source,
-        thisClass.getMethod("xor", classOf[Sym], classOf[Sym]),
+        CollBuilderClass.getMethod("xor", classOf[Sym], classOf[Sym]),
         List(left, right),
         true, true, element[Coll[Byte]]))
     }
@@ -2137,14 +2143,14 @@ implicit val eB = xs.eA.eSnd
     def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]] = {
       implicit val eT = v.elem
       asRep[Coll[T]](mkMethodCall(source,
-        thisClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
+        CollBuilderClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
         List(n, v),
         true, true, element[Coll[T]]))
     }
 
     def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(source,
-        thisClass.getMethod("emptyColl", classOf[Elem[_]]),
+        CollBuilderClass.getMethod("emptyColl", classOf[Elem[_]]),
         List(tT),
         true, true, element[Coll[T]]))
     }
@@ -2155,7 +2161,7 @@ implicit val eL = left.eA.eSnd
 implicit val eR = right.eA.eSnd
 implicit val eO = l.elem.eRange
       asRep[Coll[(K, O)]](mkMethodCall(source,
-        thisClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        CollBuilderClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
         List(left, right, l, r, inner),
         true, true, element[Coll[(K, O)]]))
     }
@@ -2163,7 +2169,7 @@ implicit val eO = l.elem.eRange
     def flattenColl[A](coll: Rep[Coll[Coll[A]]]): Rep[Coll[A]] = {
       implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
       asRep[Coll[A]](mkMethodCall(source,
-        thisClass.getMethod("flattenColl", classOf[Sym]),
+        CollBuilderClass.getMethod("flattenColl", classOf[Sym]),
         List(coll),
         true, true, element[Coll[A]]))
     }
@@ -2191,7 +2197,7 @@ implicit val eO = l.elem.eRange
     override protected def collectMethods: Map[java.lang.reflect.Method, MethodDesc] = {
       super.collectMethods ++
         Elem.declaredMethods(classOf[CollBuilder], classOf[SCollBuilder], Set(
-        "Monoids", "pairColl", "fromItems", "unzip", "xor", "fromArray", "replicate", "emptyColl", "outerJoin", "flattenColl"
+        "Monoids", "pairColl", "fromItems", "unzip", "xor", "replicate", "emptyColl", "outerJoin", "flattenColl"
         ))
     }
 
@@ -2232,7 +2238,7 @@ implicit val eO = l.elem.eRange
   object CollBuilderMethods {
     object Monoids {
       def unapply(d: Def[_]): Nullable[Rep[CollBuilder]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "Monoids" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "Monoids" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CollBuilder]]]
         case _ => Nullable.None
@@ -2245,7 +2251,7 @@ implicit val eO = l.elem.eRange
 
     object pairColl {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "pairColl" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "pairColl" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Coll[A]], Rep[Coll[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -2258,7 +2264,7 @@ implicit val eO = l.elem.eRange
 
     object fromItems {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "fromItems" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "fromItems" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Seq[Rep[T]], Elem[T]) forSome {type T}]]
         case _ => Nullable.None
@@ -2271,7 +2277,7 @@ implicit val eO = l.elem.eRange
 
     object unzip {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Coll[(A, B)]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "unzip" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "unzip" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Coll[(A, B)]]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -2284,7 +2290,7 @@ implicit val eO = l.elem.eRange
 
     object xor {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "xor" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "xor" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Coll[Byte]], Rep[Coll[Byte]])]]
         case _ => Nullable.None
@@ -2295,7 +2301,6 @@ implicit val eO = l.elem.eRange
       }
     }
 
-    // manual fix (optimization)
     object replicate {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Int], Rep[T]) forSome {type T}] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "replicate" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
@@ -2311,7 +2316,7 @@ implicit val eO = l.elem.eRange
 
     object emptyColl {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Elem[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "emptyColl" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "emptyColl" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Elem[T]) forSome {type T}]]
         case _ => Nullable.None
@@ -2324,7 +2329,7 @@ implicit val eO = l.elem.eRange
 
     object outerJoin {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "outerJoin" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "outerJoin" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0), args(1), args(2), args(3), args(4))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Coll[(K, L)]], Rep[Coll[(K, R)]], Rep[((K, L)) => O], Rep[((K, R)) => O], Rep[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}]]
         case _ => Nullable.None
@@ -2337,7 +2342,7 @@ implicit val eO = l.elem.eRange
 
     object flattenColl {
       def unapply(d: Def[_]): Nullable[(Rep[CollBuilder], Rep[Coll[Coll[A]]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CollBuilderElem[_]] && method.getName == "flattenColl" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "flattenColl" && receiver.elem.isInstanceOf[CollBuilderElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[CollBuilder], Rep[Coll[Coll[A]]]) forSome {type A}]]
         case _ => Nullable.None

@@ -19,9 +19,12 @@ import RTypeWrapSpec._
 import SpecialPredefWrapSpec._
 
 object WrapSpecBase extends EntityObject("WrapSpecBase") {
+  private val WrapSpecBaseClass = classOf[WrapSpecBase]
+
   // entityAdapter for WrapSpecBase trait
   case class WrapSpecBaseAdapter(source: Rep[WrapSpecBase])
-      extends WrapSpecBase with Def[WrapSpecBase] {
+      extends WrapSpecBase
+      with Def[WrapSpecBase] {
     val selfType: Elem[WrapSpecBase] = element[WrapSpecBase]
     override def transform(t: Transformer) = WrapSpecBaseAdapter(t(source))
   }
@@ -79,17 +82,19 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   registerEntityObject("WrapSpecBase", WrapSpecBase)
 
 object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
+  private val OptionWrapSpecClass = classOf[OptionWrapSpec]
+
   // entityAdapter for OptionWrapSpec trait
   case class OptionWrapSpecAdapter(source: Rep[OptionWrapSpec])
-      extends OptionWrapSpec with Def[OptionWrapSpec] {
+      extends OptionWrapSpec
+      with Def[OptionWrapSpec] {
     val selfType: Elem[OptionWrapSpec] = element[OptionWrapSpec]
     override def transform(t: Transformer) = OptionWrapSpecAdapter(t(source))
-    private val thisClass = classOf[OptionWrapSpec]
 
     override def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = {
       implicit val eA = xs.eA
       asRep[A](mkMethodCall(source,
-        thisClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
+        OptionWrapSpecClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
         List(xs, default),
         true, true, element[A]))
     }
@@ -98,7 +103,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
       implicit val eA = xs.eA
 implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(source,
-        thisClass.getMethod("fold", classOf[Sym], classOf[Sym], classOf[Sym]),
+        OptionWrapSpecClass.getMethod("fold", classOf[Sym], classOf[Sym], classOf[Sym]),
         List(xs, ifEmpty, f),
         true, true, element[B]))
     }
@@ -115,6 +120,7 @@ implicit val eB = ifEmpty.elem.eItem
   class OptionWrapSpecElem[To <: OptionWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
+
     override lazy val tag = {
       weakTypeTag[OptionWrapSpec].asInstanceOf[WeakTypeTag[To]]
     }
@@ -152,7 +158,7 @@ implicit val eB = ifEmpty.elem.eItem
   object OptionWrapSpecMethods {
     object get {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "get" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "get" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -165,7 +171,7 @@ implicit val eB = ifEmpty.elem.eItem
 
     object getOrElse {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "getOrElse" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "getOrElse" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -178,7 +184,7 @@ implicit val eB = ifEmpty.elem.eItem
 
     object map {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "map" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "map" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -191,7 +197,7 @@ implicit val eB = ifEmpty.elem.eItem
 
     object flatMap {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "flatMap" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "flatMap" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -204,7 +210,7 @@ implicit val eB = ifEmpty.elem.eItem
 
     object filter {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "filter" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "filter" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
@@ -217,7 +223,7 @@ implicit val eB = ifEmpty.elem.eItem
 
     object isDefined {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "isDefined" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "isDefined" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -230,7 +236,7 @@ implicit val eB = ifEmpty.elem.eItem
 
     object isEmpty {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "isEmpty" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "isEmpty" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]]) forSome {type A}]]
         case _ => Nullable.None
@@ -243,7 +249,7 @@ implicit val eB = ifEmpty.elem.eItem
 
     object fold {
       def unapply(d: Def[_]): Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] && method.getName == "fold" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "fold" && receiver.elem.isInstanceOf[OptionWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1), args(2))
           Nullable(res).asInstanceOf[Nullable[(Rep[OptionWrapSpec], Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
@@ -261,9 +267,12 @@ implicit val eB = ifEmpty.elem.eItem
   registerEntityObject("OptionWrapSpec", OptionWrapSpec)
 
 object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
+  private val SpecialPredefWrapSpecClass = classOf[SpecialPredefWrapSpec]
+
   // entityAdapter for SpecialPredefWrapSpec trait
   case class SpecialPredefWrapSpecAdapter(source: Rep[SpecialPredefWrapSpec])
-      extends SpecialPredefWrapSpec with Def[SpecialPredefWrapSpec] {
+      extends SpecialPredefWrapSpec
+      with Def[SpecialPredefWrapSpec] {
     val selfType: Elem[SpecialPredefWrapSpec] = element[SpecialPredefWrapSpec]
     override def transform(t: Transformer) = SpecialPredefWrapSpecAdapter(t(source))
   }
@@ -279,6 +288,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   class SpecialPredefWrapSpecElem[To <: SpecialPredefWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
+
     override lazy val tag = {
       weakTypeTag[SpecialPredefWrapSpec].asInstanceOf[WeakTypeTag[To]]
     }
@@ -316,7 +326,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   object SpecialPredefWrapSpecMethods {
     object loopUntil {
       def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] && method.getName == "loopUntil" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "loopUntil" && receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1), args(2))
           Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}]]
         case _ => Nullable.None
@@ -329,7 +339,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
     object cast {
       def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] && method.getName == "cast" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "cast" && receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[Any], Elem[A]) forSome {type A}]]
         case _ => Nullable.None
@@ -342,7 +352,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
     object some {
       def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] && method.getName == "some" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "some" && receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
@@ -355,7 +365,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
     object none {
       def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] && method.getName == "none" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "none" && receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Elem[A]) forSome {type A}]]
         case _ => Nullable.None
@@ -368,7 +378,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
     object optionGetOrElse {
       def unapply(d: Def[_]): Nullable[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] && method.getName == "optionGetOrElse" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "optionGetOrElse" && receiver.elem.isInstanceOf[SpecialPredefWrapSpecElem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[SpecialPredefWrapSpec], Rep[WOption[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
@@ -386,9 +396,12 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   registerEntityObject("SpecialPredefWrapSpec", SpecialPredefWrapSpec)
 
 object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
+  private val RTypeWrapSpecClass = classOf[RTypeWrapSpec]
+
   // entityAdapter for RTypeWrapSpec trait
   case class RTypeWrapSpecAdapter(source: Rep[RTypeWrapSpec])
-      extends RTypeWrapSpec with Def[RTypeWrapSpec] {
+      extends RTypeWrapSpec
+      with Def[RTypeWrapSpec] {
     val selfType: Elem[RTypeWrapSpec] = element[RTypeWrapSpec]
     override def transform(t: Transformer) = RTypeWrapSpecAdapter(t(source))
   }
@@ -404,6 +417,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   class RTypeWrapSpecElem[To <: RTypeWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
+
     override lazy val tag = {
       weakTypeTag[RTypeWrapSpec].asInstanceOf[WeakTypeTag[To]]
     }
@@ -441,7 +455,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   object RTypeWrapSpecMethods {
     object name {
       def unapply(d: Def[_]): Nullable[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[RTypeWrapSpecElem[_]] && method.getName == "name" =>
+        case MethodCall(receiver, method, args, _) if method.getName == "name" && receiver.elem.isInstanceOf[RTypeWrapSpecElem[_]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[RTypeWrapSpec], Rep[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None

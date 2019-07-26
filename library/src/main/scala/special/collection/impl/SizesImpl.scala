@@ -65,18 +65,20 @@ object Size extends EntityObject("Size") {
   implicit def liftableSize[SVal, Val](implicit lVal: Liftable[SVal,Val]): Liftable[SSize[SVal], Size[Val]] =
     LiftableSize(lVal)
 
+  private val SizeClass = classOf[Size[_]]
+
   // entityAdapter for Size trait
   case class SizeAdapter[Val](source: Rep[Size[Val]])
-      extends Size[Val] with Def[Size[Val]] {
+      extends Size[Val]
+      with Def[Size[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
 
     val selfType: Elem[Size[Val]] = element[Size[Val]]
     override def transform(t: Transformer) = SizeAdapter[Val](t(source))
-    private val thisClass = classOf[Size[Val]]
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
-        thisClass.getMethod("dataSize"),
+        SizeClass.getMethod("dataSize"),
         List(),
         true, true, element[Long]))
     }
@@ -142,7 +144,7 @@ object Size extends EntityObject("Size") {
   object SizeMethods {
     object dataSize {
       def unapply(d: Def[_]): Nullable[Rep[Size[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizeElem[_, _]] && method.getName == "dataSize" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[SizeElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Size[Val]] forSome {type Val}]]
         case _ => Nullable.None
@@ -211,25 +213,27 @@ object SizePrim extends EntityObject("SizePrim") {
   implicit def liftableSizePrim[SVal, Val](implicit lVal: Liftable[SVal,Val]): Liftable[SSizePrim[SVal], SizePrim[Val]] =
     LiftableSizePrim(lVal)
 
+  private val SizePrimClass = classOf[SizePrim[_]]
+
   // entityAdapter for SizePrim trait
   case class SizePrimAdapter[Val](source: Rep[SizePrim[Val]])
-      extends SizePrim[Val] with Def[SizePrim[Val]] {
+      extends SizePrim[Val]
+      with Def[SizePrim[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
 
     val selfType: Elem[SizePrim[Val]] = element[SizePrim[Val]]
     override def transform(t: Transformer) = SizePrimAdapter[Val](t(source))
-    private val thisClass = classOf[SizePrim[Val]]
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
-        thisClass.getMethod("dataSize"),
+        SizePrimClass.getMethod("dataSize"),
         List(),
         true, true, element[Long]))
     }
 
     def tVal: Rep[WRType[Val]] = {
       asRep[WRType[Val]](mkMethodCall(source,
-        thisClass.getMethod("tVal"),
+        SizePrimClass.getMethod("tVal"),
         List(),
         true, true, element[WRType[Val]]))
     }
@@ -296,7 +300,7 @@ object SizePrim extends EntityObject("SizePrim") {
   object SizePrimMethods {
     object dataSize {
       def unapply(d: Def[_]): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizePrimElem[_, _]] && method.getName == "dataSize" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[SizePrimElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
         case _ => Nullable.None
@@ -309,7 +313,7 @@ object SizePrim extends EntityObject("SizePrim") {
 
     object tVal {
       def unapply(d: Def[_]): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizePrimElem[_, _]] && method.getName == "tVal" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "tVal" && receiver.elem.isInstanceOf[SizePrimElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
         case _ => Nullable.None
@@ -382,33 +386,35 @@ object SizePair extends EntityObject("SizePair") {
   implicit def liftableSizePair[SL, SR, L, R](implicit lL: Liftable[SL,L],lR: Liftable[SR,R]): Liftable[SSizePair[SL, SR], SizePair[L, R]] =
     LiftableSizePair(lL,lR)
 
+  private val SizePairClass = classOf[SizePair[_, _]]
+
   // entityAdapter for SizePair trait
   case class SizePairAdapter[L, R](source: Rep[SizePair[L, R]])
-      extends SizePair[L, R] with Def[SizePair[L, R]] {
+      extends SizePair[L, R]
+      with Def[SizePair[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     val selfType: Elem[SizePair[L, R]] = element[SizePair[L, R]]
     override def transform(t: Transformer) = SizePairAdapter[L, R](t(source))
-    private val thisClass = classOf[SizePair[L, R]]
 
     def l: Rep[Size[L]] = {
       asRep[Size[L]](mkMethodCall(source,
-        thisClass.getMethod("l"),
+        SizePairClass.getMethod("l"),
         List(),
         true, true, element[Size[L]]))
     }
 
     def r: Rep[Size[R]] = {
       asRep[Size[R]](mkMethodCall(source,
-        thisClass.getMethod("r"),
+        SizePairClass.getMethod("r"),
         List(),
         true, true, element[Size[R]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
-        thisClass.getMethod("dataSize"),
+        SizePairClass.getMethod("dataSize"),
         List(),
         true, true, element[Long]))
     }
@@ -477,7 +483,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   object SizePairMethods {
     object l {
       def unapply(d: Def[_]): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizePairElem[_, _, _]] && method.getName == "l" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "l" && receiver.elem.isInstanceOf[SizePairElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
@@ -490,7 +496,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     object r {
       def unapply(d: Def[_]): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizePairElem[_, _, _]] && method.getName == "r" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "r" && receiver.elem.isInstanceOf[SizePairElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
@@ -553,25 +559,27 @@ object SizeColl extends EntityObject("SizeColl") {
   implicit def liftableSizeColl[SItem, Item](implicit lItem: Liftable[SItem,Item]): Liftable[SSizeColl[SItem], SizeColl[Item]] =
     LiftableSizeColl(lItem)
 
+  private val SizeCollClass = classOf[SizeColl[_]]
+
   // entityAdapter for SizeColl trait
   case class SizeCollAdapter[Item](source: Rep[SizeColl[Item]])
-      extends SizeColl[Item] with Def[SizeColl[Item]] {
+      extends SizeColl[Item]
+      with Def[SizeColl[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
     val selfType: Elem[SizeColl[Item]] = element[SizeColl[Item]]
     override def transform(t: Transformer) = SizeCollAdapter[Item](t(source))
-    private val thisClass = classOf[SizeColl[Item]]
 
     def sizes: Rep[Coll[Size[Item]]] = {
       asRep[Coll[Size[Item]]](mkMethodCall(source,
-        thisClass.getMethod("sizes"),
+        SizeCollClass.getMethod("sizes"),
         List(),
         true, true, element[Coll[Size[Item]]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
-        thisClass.getMethod("dataSize"),
+        SizeCollClass.getMethod("dataSize"),
         List(),
         true, true, element[Long]))
     }
@@ -638,7 +646,7 @@ object SizeColl extends EntityObject("SizeColl") {
   object SizeCollMethods {
     object sizes {
       def unapply(d: Def[_]): Nullable[Rep[SizeColl[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizeCollElem[_, _]] && method.getName == "sizes" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "sizes" && receiver.elem.isInstanceOf[SizeCollElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizeColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
@@ -707,27 +715,29 @@ object SizeFunc extends EntityObject("SizeFunc") {
   implicit def liftableSizeFunc[SEnv, SArg, SRes, Env, Arg, Res](implicit lEnv: Liftable[SEnv,Env],lArg: Liftable[SArg,Arg],lRes: Liftable[SRes,Res]): Liftable[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]] =
     LiftableSizeFunc(lEnv,lArg,lRes)
 
+  private val SizeFuncClass = classOf[SizeFunc[_, _, _]]
+
   // entityAdapter for SizeFunc trait
   case class SizeFuncAdapter[Env, Arg, Res](source: Rep[SizeFunc[Env, Arg, Res]])
-      extends SizeFunc[Env, Arg, Res] with Def[SizeFunc[Env, Arg, Res]] {
+      extends SizeFunc[Env, Arg, Res]
+      with Def[SizeFunc[Env, Arg, Res]] {
     implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asElem[Env];
 implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asElem[Arg];
 implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     val selfType: Elem[SizeFunc[Env, Arg, Res]] = element[SizeFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = SizeFuncAdapter[Env, Arg, Res](t(source))
-    private val thisClass = classOf[SizeFunc[Env, Arg, Res]]
 
     def sizeEnv: Rep[Size[Env]] = {
       asRep[Size[Env]](mkMethodCall(source,
-        thisClass.getMethod("sizeEnv"),
+        SizeFuncClass.getMethod("sizeEnv"),
         List(),
         true, true, element[Size[Env]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
-        thisClass.getMethod("dataSize"),
+        SizeFuncClass.getMethod("dataSize"),
         List(),
         true, true, element[Long]))
     }
@@ -798,7 +808,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   object SizeFuncMethods {
     object sizeEnv {
       def unapply(d: Def[_]): Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizeFuncElem[_, _, _, _]] && method.getName == "sizeEnv" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "sizeEnv" && receiver.elem.isInstanceOf[SizeFuncElem[_, _, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
@@ -861,25 +871,27 @@ object SizeOption extends EntityObject("SizeOption") {
   implicit def liftableSizeOption[ST, T](implicit lT: Liftable[ST,T]): Liftable[SSizeOption[ST], SizeOption[T]] =
     LiftableSizeOption(lT)
 
+  private val SizeOptionClass = classOf[SizeOption[_]]
+
   // entityAdapter for SizeOption trait
   case class SizeOptionAdapter[T](source: Rep[SizeOption[T]])
-      extends SizeOption[T] with Def[SizeOption[T]] {
+      extends SizeOption[T]
+      with Def[SizeOption[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     val selfType: Elem[SizeOption[T]] = element[SizeOption[T]]
     override def transform(t: Transformer) = SizeOptionAdapter[T](t(source))
-    private val thisClass = classOf[SizeOption[T]]
 
     def sizeOpt: Rep[WOption[Size[T]]] = {
       asRep[WOption[Size[T]]](mkMethodCall(source,
-        thisClass.getMethod("sizeOpt"),
+        SizeOptionClass.getMethod("sizeOpt"),
         List(),
         true, true, element[WOption[Size[T]]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
-        thisClass.getMethod("dataSize"),
+        SizeOptionClass.getMethod("dataSize"),
         List(),
         true, true, element[Long]))
     }
@@ -946,7 +958,7 @@ object SizeOption extends EntityObject("SizeOption") {
   object SizeOptionMethods {
     object sizeOpt {
       def unapply(d: Def[_]): Nullable[Rep[SizeOption[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[SizeOptionElem[_, _]] && method.getName == "sizeOpt" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "sizeOpt" && receiver.elem.isInstanceOf[SizeOptionElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SizeOption[T]] forSome {type T}]]
         case _ => Nullable.None

@@ -62,18 +62,21 @@ object WRType extends EntityObject("WRType") {
     LiftableRType(lA)
 
   private val _RTypeWrapSpec = new RTypeWrapSpec {}
+
+  private val WRTypeClass = classOf[WRType[_]]
+
   // entityAdapter for WRType trait
   case class WRTypeAdapter[A](source: Rep[WRType[A]])
-      extends WRType[A] with Def[WRType[A]] {
+      extends WRType[A]
+      with Def[WRType[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
     val selfType: Elem[WRType[A]] = element[WRType[A]]
     override def transform(t: Transformer) = WRTypeAdapter[A](t(source))
-    private val thisClass = classOf[WRType[A]]
 
     def name: Rep[String] = {
       asRep[String](mkMethodCall(source,
-        thisClass.getMethod("name"),
+        WRTypeClass.getMethod("name"),
         List(),
         true, true, element[String]))
     }
@@ -118,7 +121,6 @@ object WRType extends EntityObject("WRType") {
     }
   }
 
-  // manual fix (optimization)
   implicit def wRTypeElement[A](implicit eA: Elem[A]): Elem[WRType[A]] =
     cachedElemByClass(eA)(classOf[WRTypeElem[A, WRType[A]]])
 

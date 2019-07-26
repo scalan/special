@@ -135,7 +135,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     object CCostedOptionMethods {
     object builder {
       def unapply(d: Def[_]): Nullable[Rep[CCostedOption[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedOptionElem[_]] && method.getName == "builder" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "builder" && receiver.elem.isInstanceOf[CCostedOptionElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedOption[T]] forSome {type T}]]
         case _ => Nullable.None
@@ -148,7 +148,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
 
     object cost {
       def unapply(d: Def[_]): Nullable[Rep[CCostedOption[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedOptionElem[_]] && method.getName == "cost" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "cost" && receiver.elem.isInstanceOf[CCostedOptionElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedOption[T]] forSome {type T}]]
         case _ => Nullable.None
@@ -161,7 +161,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
 
     object size {
       def unapply(d: Def[_]): Nullable[Rep[CCostedOption[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CCostedOptionElem[_]] && method.getName == "size" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "size" && receiver.elem.isInstanceOf[CCostedOptionElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedOption[T]] forSome {type T}]]
         case _ => Nullable.None

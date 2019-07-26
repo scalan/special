@@ -264,7 +264,7 @@ implicit val eR = p.r.eVal
     object CSizePairMethods {
     object dataSize {
       def unapply(d: Def[_]): Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CSizePairElem[_, _]] && method.getName == "dataSize" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizePairElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
@@ -390,7 +390,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     object CSizeCollMethods {
     object dataSize {
       def unapply(d: Def[_]): Nullable[Rep[CSizeColl[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CSizeCollElem[_]] && method.getName == "dataSize" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizeCollElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CSizeColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
@@ -536,7 +536,7 @@ implicit val eRes = p.tRes.eA
     object CSizeFuncMethods {
     object dataSize {
       def unapply(d: Def[_]): Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CSizeFuncElem[_, _, _]] && method.getName == "dataSize" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizeFuncElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
@@ -663,7 +663,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     object CSizeOptionMethods {
     object dataSize {
       def unapply(d: Def[_]): Nullable[Rep[CSizeOption[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CSizeOptionElem[_]] && method.getName == "dataSize" =>
+        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizeOptionElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[CSizeOption[Item]] forSome {type Item}]]
         case _ => Nullable.None
