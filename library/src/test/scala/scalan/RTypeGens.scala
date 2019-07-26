@@ -3,7 +3,7 @@ package scalan
 import org.scalacheck.util.Buildable
 import org.scalacheck.{Arbitrary, Gen}
 
-class GenConfiguration(val maxArrayLength: Int = 100) {}
+class GenConfiguration(val maxArrayLength: Int = 5) {}
 
 trait RTypeGens {
   import Gen._
@@ -27,7 +27,7 @@ trait RTypeGens {
     for { left <- itemGenLeft; right <- itemGenRight } yield new PairType(left, right)
   }
 
-  def pairTypeGen(itemGen: Gen[RType[_]], depth: Int = 1): Gen[PairType[_, _]] = depth match {
+  def pairTypeGen(itemGen: Gen[RType[_]], depth: Int): Gen[PairType[_, _]] = depth match {
     case 1 =>
       pairTypeGenFinal(itemGen, itemGen)
     case _ =>
@@ -41,13 +41,13 @@ trait RTypeGens {
       )
   }
 
-  def getPairAnyTypeGen(gn: Gen[RType[_]], depth: Int = 4): Gen[RType[_]] = pairTypeGen(gn, depth)
+  def getPairAnyTypeGen(gn: Gen[RType[_]], depth: Int): Gen[RType[_]] = pairTypeGen(gn, depth)
 
   def arrayTypeGenFinal(itemGen: Gen[RType[_]]): Gen[ArrayType[_]] = {
     for { item <- itemGen } yield new ArrayType(item)
   }
 
-  def arrayTypeGen(itemGen: Gen[RType[_]], depth: Int = 1): Gen[ArrayType[_]] = depth match {
+  def arrayTypeGen(itemGen: Gen[RType[_]], depth: Int): Gen[ArrayType[_]] = depth match {
     case 1 =>
       arrayTypeGenFinal(itemGen)
     case _ =>
@@ -57,29 +57,22 @@ trait RTypeGens {
       )
   }
 
-  def getArrayAnyTypeGen(gn: Gen[RType[_]], depth: Int = 4): Gen[RType[_]] = arrayTypeGen(gn, depth)
+  def getArrayAnyTypeGen(gn: Gen[RType[_]], depth: Int): Gen[RType[_]] = arrayTypeGen(gn, depth)
 
   /*
    * Full type generators
    */
-  def getFullTypeGen(depth: Int = 4): Gen[RType[_]] = depth match {
+  def getFullTypeGen(depth: Int): Gen[RType[_]] = depth match {
     case 1 => Gen.oneOf(dataTypeGen, getPairAnyTypeGen(dataTypeGen, 1), getArrayAnyTypeGen(dataTypeGen, 1))
     case _ =>
       Gen.oneOf(dataTypeGen, getPairAnyTypeGen(getFullTypeGen(depth - 1), 1), getArrayAnyTypeGen(getFullTypeGen(depth - 1), 1))
   }
 
-  val fullTypeGen = getFullTypeGen(3)
+  def getArrayPrimitiveTypeGen(depth: Int) = getArrayAnyTypeGen(primitiveTypeGen, depth)
+  def getArrayTypeGen(depth: Int) = getArrayAnyTypeGen(getFullTypeGen(depth - 1), 1)
 
-  def getArrayPrimitiveTypeGen(depth: Int = 4) = getArrayAnyTypeGen(primitiveTypeGen, depth)
-  def getArrayTypeGen(depth: Int = 4) = getArrayAnyTypeGen(getFullTypeGen(depth - 1), 1)
-
-  def getPairPrimitiveTypeGen(depth: Int = 4) = getPairAnyTypeGen(primitiveTypeGen, depth)
-  def getPairTypeGen(depth: Int = 4) = getPairAnyTypeGen(getFullTypeGen(depth - 1), 1)
-
-  val arrayPrimitiveTypeGen = getArrayPrimitiveTypeGen()
-  val arrayTypeGen = getArrayTypeGen()
-  val pairPrimitiveTypeGen = getPairPrimitiveTypeGen()
-  val pairTypeGen = getPairTypeGen()
+  def getPairPrimitiveTypeGen(depth: Int) = getPairAnyTypeGen(primitiveTypeGen, depth)
+  def getPairTypeGen(depth: Int) = getPairAnyTypeGen(getFullTypeGen(depth - 1), 1)
 
   def primitiveValueGen[T](t: PrimitiveType[T]): Gen[_] = t match {
     case ByteType => choose[Byte](Byte.MinValue, Byte.MaxValue)
@@ -98,14 +91,23 @@ trait RTypeGens {
     containerOfN[Array, T](count, valGen)
   }
 
-  def rtypeValueGen[T](t: RType[T], conf: GenConfiguration = new GenConfiguration()): Gen[_] = t match {
+  private def innerRTypePairValueGen[A, B](pairType: PairType[A, B], conf: GenConfiguration): Gen[(A, B)] = {
+    for { left <- innerRTypeValueGen(pairType.tFst, conf); right <- innerRTypeValueGen(pairType.tSnd, conf) } yield (left.asInstanceOf[A], right.asInstanceOf[B])
+  }
+
+  private def innerRTypeValueGen[T](t: RType[T], conf: GenConfiguration): Gen[_] = t match {
     case prim: PrimitiveType[a] => primitiveValueGen(prim)
     case arrayType: ArrayType[a] =>
-      getArrayGen(rtypeValueGen(arrayType.tA, conf), conf.maxArrayLength)
+      getArrayGen(innerRTypeValueGen(arrayType.tA, conf), conf.maxArrayLength)
     case pairType: PairType[a, b] =>
-      for { left <- rtypeValueGen(pairType.tFst); right <- rtypeValueGen(pairType.tSnd) } yield (left, right)
+      innerRTypePairValueGen(pairType, conf)
     case (stringType: RType[String]@unchecked) =>
       Gen.asciiPrintableStr
     case _ => throw new NotImplementedError("Not supported")
+  }
+
+  def rtypeValueGen[T](t: RType[T], conf: GenConfiguration = new GenConfiguration()): Gen[T] = {
+    val item = innerRTypeValueGen(t, conf)
+    return item.asInstanceOf[Gen[T]]
   }
 }
