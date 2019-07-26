@@ -16,6 +16,7 @@ import scala.collection.immutable
 @scalan.Liftable
 trait Coll[@specialized A] {
   def builder: CollBuilder
+  @Internal
   def toArray: Array[A]
 
   /** The length of the collection. */
@@ -36,7 +37,7 @@ trait Coll[@specialized A] {
 
   /** Returns true if the index in the valid range.
     * @param  i  index of an element of this collection */
-  @NeverInline
+  @Internal
   final def isValidIndex(i: Int): Boolean = 0 <= i && i < this.length
 
   /** The element at given index.
@@ -447,6 +448,7 @@ trait CollBuilder {
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
   /** Wrap array into collection. */
+  @Internal
   def fromArray[@specialized T: RType](arr: Array[T]): Coll[T]
 
   /** Creates a new collection by replicating value `v`.
@@ -462,10 +464,10 @@ trait CollBuilder {
     * This is O(1) operation, all executions of `f` are delayed until the corresponding
     * item of this collection is needed in some operation.
     */
-  @NeverInline
+  @Internal
   def makeView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B): Coll[B]
 
-  @NeverInline
+  @Internal
   def makePartialView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B, calculated: Array[Boolean], calculatedItems: Array[B]): Coll[B]
 
   /** Create an empty collection with items of the given type.

@@ -65,7 +65,7 @@ package special.collection {
       def Monoids: Rep[MonoidBuilder];
       def pairColl[A, B](as: Rep[Coll[A]], bs: Rep[Coll[B]]): Rep[PairColl[A, B]];
       @Reified(value = "T") def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]];
-      @NeverInline def unzip[A, B](xs: Rep[Coll[scala.Tuple2[A, B]]]): Rep[scala.Tuple2[Coll[A], Coll[B]]] = delayInvoke;
+      def unzip[A, B](xs: Rep[Coll[scala.Tuple2[A, B]]]): Rep[scala.Tuple2[Coll[A], Coll[B]]];
       def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]];
       def replicate[T](n: Rep[Int], v: Rep[T]): Rep[Coll[T]];
       def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]];
