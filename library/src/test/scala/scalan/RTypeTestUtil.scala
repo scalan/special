@@ -1,19 +1,21 @@
 package scalan
 
-import scalan.RType.{ArrayType, PairType, PrimitiveType}
+import spire.syntax.all._
 
-object RTypeUtil {
+object RTypeTestUtil {
+  import scalan.RType._
+
   def valueMatchesRType[T](value: T, tA: RType[_]): Boolean = tA match {
     case prim: PrimitiveType[a] => value match {
-      case b: Byte => true
-      case b: Short => true
-      case b: Int => true
-      case b: Long => true
-      case b: Char => true
-      case b: Float => true
-      case b: Double => true
-      case b: Boolean => true
-      case b: Unit => true
+      case b: Byte => prim == ByteType
+      case b: Short => prim == ShortType
+      case b: Int => prim == IntType
+      case b: Long => prim == LongType
+      case b: Char => prim == CharType
+      case b: Float => prim == FloatType
+      case b: Double => prim == DoubleType
+      case b: Boolean => prim == BooleanType
+      case b: Unit => prim == UnitType
       case _ => false
     }
     case arrayType: ArrayType[a] => value match {
