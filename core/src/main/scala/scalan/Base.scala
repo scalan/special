@@ -547,6 +547,17 @@ trait Base { scalan: Scalan =>
     def adapter: T @uncheckedVariance = _adapter
     def adapter_=(a: T @uncheckedVariance) = { _adapter = a }
 
+    final def getAdapter[S >: T](isInstanceOfT: Boolean, createAdapter: Rep[S] => T @uncheckedVariance): T = {
+      if (isInstanceOfT) _rhs.asInstanceOf[T]
+      else {
+        val adapter = _adapter
+        if (adapter == null) {
+          _adapter = createAdapter(this)
+        }
+        _adapter
+      }
+    }
+
     def varName = "s" + _rhs._nodeId
     override def toString = varName
     def toStringWithDefinition = toStringWithType + s" = ${_rhs}"

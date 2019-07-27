@@ -30,10 +30,13 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
   }
 
   // entityProxy: single proxy for each type family
+  val createKindAdapter = (x: Rep[Kind[Array, Any]]) => KindAdapter(x)
+
   implicit def proxyKind[F[_], A](p: Rep[Kind[F, A]]): Kind[F, A] = {
-    if (p.rhs.isInstanceOf[Kind[F, A]@unchecked]) p.rhs.asInstanceOf[Kind[F, A]]
-    else
-      KindAdapter(p)
+    val sym = p.asInstanceOf[SingleSym[Kind[F, A]]]
+    sym.getAdapter(
+      p.rhs.isInstanceOf[Kind[F, A]@unchecked],
+      createKindAdapter.asInstanceOf[Rep[Kind[F, A]] => Kind[F, A]])
   }
 
   // familyElem

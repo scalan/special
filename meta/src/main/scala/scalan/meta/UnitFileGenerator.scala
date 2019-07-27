@@ -237,6 +237,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val typesDecl = e.tpeArgsDecl
     s"""
       |  // entityProxy: single proxy for each type family
+      |  //val create${entityName}Adapter: Rep[Coll[Any]] => Coll[Any] = x => CollAdapter(x)
       |  implicit def proxy$entityName${typesDecl}(p: Rep[${e.typeUse}]): ${e.typeUse} = {
       |    if (p.rhs.isInstanceOf[${e.typeUse}@unchecked]) p.rhs.asInstanceOf[${e.typeUse}]
       |    else

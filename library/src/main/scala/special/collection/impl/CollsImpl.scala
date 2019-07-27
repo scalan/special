@@ -577,17 +577,13 @@ implicit val eV = proj.elem.eRange
   }
 
   // entityProxy: single proxy for each type family
+  val createCollAdapter: Rep[Coll[Any]] => Coll[Any] = x => CollAdapter(x)
+
   implicit def proxyColl[A](p: Rep[Coll[A]]): Coll[A] = {
-    if (p.rhs.isInstanceOf[Coll[A]@unchecked]) p.rhs.asInstanceOf[Coll[A]]
-    else {
-      val sym = p.asInstanceOf[SingleSym[Coll[A]]]
-      var adapter = sym.adapter
-      if (adapter == null) {
-        adapter = CollAdapter(p)
-        sym.adapter = adapter
-      }
-      adapter
-    }
+    val sym = p.asInstanceOf[SingleSym[Coll[A]]]
+    sym.getAdapter(
+      p.rhs.isInstanceOf[Coll[A]@unchecked],
+      createCollAdapter.asInstanceOf[Rep[Coll[A]] => Coll[A]])
   }
 
   implicit def castCollElement[A](elem: Elem[Coll[A]]): CollElem[A, Coll[A]] =
@@ -2176,18 +2172,12 @@ implicit val eO = l.elem.eRange
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyCollBuilder(p: Rep[CollBuilder]): CollBuilder = {
-    if (p.rhs.isInstanceOf[CollBuilder@unchecked]) p.rhs.asInstanceOf[CollBuilder]
-    else {
-      val sym = p.asInstanceOf[SingleSym[CollBuilder]]
-      var adapter = sym.adapter
-      if (adapter == null) {
-        adapter = CollBuilderAdapter(p)
-        sym.adapter = adapter
-      }
-      adapter
-    }
-  }
+  val createCollBuilderAdapter: Rep[CollBuilder] => CollBuilder = x => CollBuilderAdapter(x)
+
+  implicit def proxyCollBuilder(p: Rep[CollBuilder]): CollBuilder =
+    p.asInstanceOf[SingleSym[CollBuilder]].getAdapter(
+      p.rhs.isInstanceOf[CollBuilder],
+      createCollBuilderAdapter.asInstanceOf[Rep[CollBuilder] => CollBuilder])
 
   // familyElem
   class CollBuilderElem[To <: CollBuilder]
