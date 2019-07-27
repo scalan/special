@@ -103,7 +103,6 @@ object Costed extends EntityObject("Costed") {
     cachedElemByClass(eVal)(classOf[CostedElem[Val, Costed[Val]]])
 
   implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedCompanionCtor]
   }
 
   abstract class CostedCompanionCtor extends CompanionDef[CostedCompanionCtor] with CostedCompanion {
@@ -252,7 +251,6 @@ object CostedPrim extends EntityObject("CostedPrim") {
     cachedElemByClass(eVal)(classOf[CostedPrimElem[Val, CostedPrim[Val]]])
 
   implicit case object CostedPrimCompanionElem extends CompanionElem[CostedPrimCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedPrimCompanionCtor]
   }
 
   abstract class CostedPrimCompanionCtor extends CompanionDef[CostedPrimCompanionCtor] with CostedPrimCompanion {
@@ -412,7 +410,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     cachedElemByClass(eL, eR)(classOf[CostedPairElem[L, R, CostedPair[L, R]]])
 
   implicit case object CostedPairCompanionElem extends CompanionElem[CostedPairCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedPairCompanionCtor]
   }
 
   abstract class CostedPairCompanionCtor extends CompanionDef[CostedPairCompanionCtor] with CostedPairCompanion {
@@ -596,7 +593,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     cachedElemByClass(eEnv, eArg, eRes)(classOf[CostedFuncElem[Env, Arg, Res, CostedFunc[Env, Arg, Res]]])
 
   implicit case object CostedFuncCompanionElem extends CompanionElem[CostedFuncCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedFuncCompanionCtor]
   }
 
   abstract class CostedFuncCompanionCtor extends CompanionDef[CostedFuncCompanionCtor] with CostedFuncCompanion {
@@ -835,7 +831,6 @@ object CostedColl extends EntityObject("CostedColl") {
     cachedElemByClass(eItem)(classOf[CostedCollElem[Item, CostedColl[Item]]])
 
   implicit case object CostedCollCompanionElem extends CompanionElem[CostedCollCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedCollCompanionCtor]
   }
 
   abstract class CostedCollCompanionCtor extends CompanionDef[CostedCollCompanionCtor] with CostedCollCompanion {
@@ -1044,7 +1039,6 @@ object CostedOption extends EntityObject("CostedOption") {
     cachedElemByClass(eT)(classOf[CostedOptionElem[T, CostedOption[T]]])
 
   implicit case object CostedOptionCompanionElem extends CompanionElem[CostedOptionCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedOptionCompanionCtor]
   }
 
   abstract class CostedOptionCompanionCtor extends CompanionDef[CostedOptionCompanionCtor] with CostedOptionCompanion {
@@ -1254,7 +1248,6 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     new CostedBuilderElem[CostedBuilder]
 
   implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedBuilderCompanionCtor]
   }
 
   abstract class CostedBuilderCompanionCtor extends CompanionDef[CostedBuilderCompanionCtor] with CostedBuilderCompanion {

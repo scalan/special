@@ -114,7 +114,7 @@ trait TypeDescs extends Base { self: Scalan =>
   abstract class Elem[A] extends TypeDesc { _: scala.Equals =>
     import Liftables._
 
-    def tag: WeakTypeTag[A]
+    def tag: WeakTypeTag[A] = ???
 
     def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = EmptyTypeArgs
     lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
@@ -285,9 +285,9 @@ trait TypeDescs extends Base { self: Scalan =>
 
   def element[A](implicit ea: Elem[A]): Elem[A] = ea
 
-  abstract class BaseElem[A](defaultValue: A)(implicit val tag: WeakTypeTag[A]) extends Elem[A] with Serializable with scala.Equals
+  abstract class BaseElem[A](defaultValue: A) extends Elem[A] with Serializable with scala.Equals
 
-  class BaseElemLiftable[A](defaultValue: A, val tA: RType[A])(implicit tag: WeakTypeTag[A]) extends BaseElem[A](defaultValue) {
+  class BaseElemLiftable[A](defaultValue: A, val tA: RType[A]) extends BaseElem[A](defaultValue) {
     override def buildTypeArgs = EmptyTypeArgs
     override val liftable = new Liftables.BaseLiftable[A]()(this, tA)
     override def canEqual(other: Any) = other.isInstanceOf[BaseElemLiftable[_]]
@@ -300,11 +300,6 @@ trait TypeDescs extends Base { self: Scalan =>
 
   case class PairElem[A, B](eFst: Elem[A], eSnd: Elem[B]) extends Elem[(A, B)] {
     assert(eFst != null && eSnd != null)
-    lazy val tag = {
-      implicit val tA = eFst.tag
-      implicit val tB = eSnd.tag
-      weakTypeTag[(A, B)]
-    }
     override def getName(f: TypeDesc => String) = s"(${f(eFst)}, ${f(eSnd)})"
     override def buildTypeArgs = ListMap("A" -> (eFst -> Covariant), "B" -> (eSnd -> Covariant))
     override def liftable: Liftables.Liftable[_, (A, B)] =
@@ -312,22 +307,12 @@ trait TypeDescs extends Base { self: Scalan =>
   }
 
   case class SumElem[A, B](eLeft: Elem[A], eRight: Elem[B]) extends Elem[A | B] {
-    lazy val tag = {
-      implicit val tA = eLeft.tag
-      implicit val tB = eRight.tag
-      weakTypeTag[A | B]
-    }
     override def getName(f: TypeDesc => String) = s"(${f(eLeft)} | ${f(eRight)})"
     override def buildTypeArgs = ListMap("A" -> (eLeft -> Covariant), "B" -> (eRight -> Covariant))
   }
 
   case class FuncElem[A, B](eDom: Elem[A], eRange: Elem[B]) extends Elem[A => B] {
     import Liftables._
-    lazy val tag = {
-      implicit val tA = eDom.tag
-      implicit val tB = eRange.tag
-      weakTypeTag[A => B]
-    }
     override def getName(f: TypeDesc => String) = s"${f(eDom)} => ${f(eRange)}"
     override def buildTypeArgs = ListMap("A" -> (eDom -> Contravariant), "B" -> (eRange -> Covariant))
     override def liftable: Liftable[_, A => B] =
@@ -346,7 +331,7 @@ trait TypeDescs extends Base { self: Scalan =>
   val NothingElement: Elem[Nothing] =
     new BaseElemLiftable[Null](
       null, NothingType.asInstanceOf[RType[Null]]
-    )(weakTypeTag[Nothing].asInstanceOf[WeakTypeTag[Null]]).asElem[Nothing]
+    ).asElem[Nothing]
 
   implicit val BooleanElement: Elem[Boolean] = new BaseElemLiftable(false, BooleanType)
   implicit val ByteElement: Elem[Byte] = new BaseElemLiftable(0.toByte, ByteType)

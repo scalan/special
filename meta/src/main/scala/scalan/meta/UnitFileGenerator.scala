@@ -237,7 +237,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val typesDecl = e.tpeArgsDecl
     s"""
       |  // entityProxy: single proxy for each type family
-      |  //val create${entityName}Adapter: Rep[Coll[Any]] => Coll[Any] = x => CollAdapter(x)
       |  implicit def proxy$entityName${typesDecl}(p: Rep[${e.typeUse}]): ${e.typeUse} = {
       |    if (p.rhs.isInstanceOf[${e.typeUse}@unchecked]) p.rhs.asInstanceOf[${e.typeUse}]
       |    else
@@ -455,10 +454,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${e.entity.isLiftable.opt(liftableSupport())}
       |    ${optParent.opt(p => s"override lazy val parent: Option[Elem[_]] = Some(${tpeToElemStr(p, e.tpeArgs)})")}
       |    ${e.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})")}
-      |    override lazy val tag = {
-      |${implicitTagsFromElems(e)}
-      |      weakTypeTag[${e.typeUse}].asInstanceOf[WeakTypeTag[$toArgName]]
-      |    }
       |    override def convert(x: Rep[Def[_]]) = {
       |      val conv = fun {x: Rep[${e.typeUse}] => convert${e.name}(x) }
       |      tryConvert(element[${e.typeUse}], this, x, conv)
@@ -479,11 +474,9 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val entityCompOpt = e.entity.companion
     val hasCompanion = e.entity.companion.isDefined
     s"""
-      |  implicit case object ${e.companionName}Elem extends CompanionElem[${e.companionCtorName}] {
-      |    lazy val tag = weakTypeTag[${e.companionCtorName}]
-      |  }
+      |  implicit case object ${e.companionName}Elem extends CompanionElem[${e.companionCtorName}]
       |
-         |  abstract class ${e.companionCtorName} extends CompanionDef[${e.companionCtorName}]${hasCompanion.opt(s" with ${e.companionName}")} {
+      |  abstract class ${e.companionCtorName} extends CompanionDef[${e.companionCtorName}]${hasCompanion.opt(s" with ${e.companionName}")} {
       |    def selfType = ${e.companionName}Elem
       |    override def toString = "${e.name}"
       |    ${entityCompOpt.opt(_ => "")}
@@ -492,7 +485,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       hasCompanion.opt
       s"""
         |  implicit def proxy${e.companionCtorName}(p: Rep[${e.companionCtorName}]): ${e.companionCtorName} =
-        |    proxyOps[${e.companionCtorName}](p)
+        |    p.rhs.asInstanceOf[${e.companionCtorName}]
         |""".stripAndTrim
     }
       |""".stripAndTrim
@@ -672,10 +665,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
         |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
         |    override def convert${parent.name}(x: Rep[$parent]) = $converterBody
-        |    override lazy val tag = {
-        |${implicitTagsFromElems(c)}
-        |      weakTypeTag[${c.typeUse}]
-        |    }
         |  }
         |
         |  // state representation type
@@ -699,10 +688,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    def productElement(n: Int) = $isoProductElementBody
         |  }
         |  case class ${className}IsoElem${tpeArgsDecl}(${c.implicitArgs.rep(a => s"${a.name}: ${a.tpe}")}) extends Elem[${className}Iso$tpeArgsUse] {
-        |    lazy val tag = {
-        |${implicitTagsFromElems(c)}
-        |      weakTypeTag[${className}Iso$tpeArgsUse]
-        |    }
         |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
         |  }
         |  // 4) constructor and deconstructor
@@ -737,12 +722,14 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |      proxyOps[${c.companionCtorName}](p)
         |  }
         |
-        |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}] {
-        |    lazy val tag = weakTypeTag[${c.companionCtorName}]
-        |  }
+        |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}]
         |
-        |  implicit def proxy${c.typeDecl}(p: Rep[${c.typeUse}]): ${c.typeUse} =
-        |    proxyOps[${c.typeUse}](p)
+        |  implicit def proxy${c.typeDecl}(p: Rep[${c.typeUse}]): ${c.typeUse} = {
+        |    if (p.rhs.isInstanceOf[${c.typeUse}])
+        |      p.rhs.asInstanceOf[${c.typeUse}]
+        |    else
+        |      proxyOps[${c.typeUse}](p)
+        |  }
         |
         |  implicit class Extended${c.typeDecl}(p: Rep[${c.typeUse}])${c.optimizeImplicits().implicitArgsDecl()} {
         |    def toData: Rep[$dataTpe] = {

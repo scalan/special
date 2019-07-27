@@ -57,7 +57,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     new WSpecialPredefElem[WSpecialPredef]
 
   implicit case object WSpecialPredefCompanionElem extends CompanionElem[WSpecialPredefCompanionCtor] {
-    lazy val tag = weakTypeTag[WSpecialPredefCompanionCtor]
   }
 
   abstract class WSpecialPredefCompanionCtor extends CompanionDef[WSpecialPredefCompanionCtor] with WSpecialPredefCompanion {

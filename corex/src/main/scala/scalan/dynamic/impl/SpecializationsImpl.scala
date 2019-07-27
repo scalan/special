@@ -69,12 +69,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     def eM = _eM
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      implicit val tagR = eR.tag
-      implicit val tagM = eM.tag
-      weakTypeTag[IsoFunc[T, R, M]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[IsoFunc[T, R, M]] => convertIsoFunc(x) }
       tryConvert(element[IsoFunc[T, R, M]], this, x, conv)
@@ -91,16 +85,14 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
   implicit def isoFuncElement[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Elem[IsoFunc[T, R, M]] =
     cachedElemByClass(eT, eR, eM)(classOf[IsoFuncElem[T, R, M, IsoFunc[T, R, M]]])
 
-  implicit case object IsoFuncCompanionElem extends CompanionElem[IsoFuncCompanionCtor] {
-    lazy val tag = weakTypeTag[IsoFuncCompanionCtor]
-  }
+  implicit case object IsoFuncCompanionElem extends CompanionElem[IsoFuncCompanionCtor]
 
   abstract class IsoFuncCompanionCtor extends CompanionDef[IsoFuncCompanionCtor] {
     def selfType = IsoFuncCompanionElem
     override def toString = "IsoFunc"
   }
   implicit def proxyIsoFuncCompanionCtor(p: Rep[IsoFuncCompanionCtor]): IsoFuncCompanionCtor =
-    proxyOps[IsoFuncCompanionCtor](p)
+    p.rhs.asInstanceOf[IsoFuncCompanionCtor]
 
   lazy val RIsoFunc: Rep[IsoFuncCompanionCtor] = new IsoFuncCompanionCtor {
   }
@@ -166,12 +158,6 @@ implicit lazy val eM = metric.elem.eRange
     override lazy val parent: Option[Elem[_]] = Some(isoFuncElement(element[T], element[R], element[M]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
     override def convertIsoFunc(x: Rep[IsoFunc[T, R, M]]) = RIsoFuncBase(x.func, x.metric)
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      implicit val tagR = eR.tag
-      implicit val tagM = eM.tag
-      weakTypeTag[IsoFuncBase[T, R, M]]
-    }
   }
 
   // state representation type
@@ -199,12 +185,6 @@ implicit lazy val eM = metric.elem.eRange
     }
   }
   case class IsoFuncBaseIsoElem[T, R, M](eT: Elem[T], eR: Elem[R], eM: Elem[M]) extends Elem[IsoFuncBaseIso[T, R, M]] {
-    lazy val tag = {
-      implicit val tagT = eT.tag
-      implicit val tagR = eR.tag
-      implicit val tagM = eM.tag
-      weakTypeTag[IsoFuncBaseIso[T, R, M]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -234,12 +214,14 @@ implicit val eM = p._2.elem.eRange
       proxyOps[IsoFuncBaseCompanionCtor](p)
   }
 
-  implicit case object IsoFuncBaseCompanionElem extends CompanionElem[IsoFuncBaseCompanionCtor] {
-    lazy val tag = weakTypeTag[IsoFuncBaseCompanionCtor]
-  }
+  implicit case object IsoFuncBaseCompanionElem extends CompanionElem[IsoFuncBaseCompanionCtor]
 
-  implicit def proxyIsoFuncBase[T, R, M](p: Rep[IsoFuncBase[T, R, M]]): IsoFuncBase[T, R, M] =
-    proxyOps[IsoFuncBase[T, R, M]](p)
+  implicit def proxyIsoFuncBase[T, R, M](p: Rep[IsoFuncBase[T, R, M]]): IsoFuncBase[T, R, M] = {
+    if (p.rhs.isInstanceOf[IsoFuncBase[T, R, M]])
+      p.rhs.asInstanceOf[IsoFuncBase[T, R, M]]
+    else
+      proxyOps[IsoFuncBase[T, R, M]](p)
+  }
 
   implicit class ExtendedIsoFuncBase[T, R, M](p: Rep[IsoFuncBase[T, R, M]]) {
     def toData: Rep[IsoFuncBaseData[T, R, M]] = {

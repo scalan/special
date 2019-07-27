@@ -248,7 +248,6 @@ object WOption extends EntityObject("WOption") {
     cachedElemByClass(eA)(classOf[WOptionElem[A, WOption[A]]])
 
   implicit case object WOptionCompanionElem extends CompanionElem[WOptionCompanionCtor] {
-    lazy val tag = weakTypeTag[WOptionCompanionCtor]
   }
 
   abstract class WOptionCompanionCtor extends CompanionDef[WOptionCompanionCtor] with WOptionCompanion {

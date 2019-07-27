@@ -127,7 +127,6 @@ object Size extends EntityObject("Size") {
     cachedElemByClass(eVal)(classOf[SizeElem[Val, Size[Val]]])
 
   implicit case object SizeCompanionElem extends CompanionElem[SizeCompanionCtor] {
-    lazy val tag = weakTypeTag[SizeCompanionCtor]
   }
 
   abstract class SizeCompanionCtor extends CompanionDef[SizeCompanionCtor] with SizeCompanion {
@@ -283,7 +282,6 @@ object SizePrim extends EntityObject("SizePrim") {
     cachedElemByClass(eVal)(classOf[SizePrimElem[Val, SizePrim[Val]]])
 
   implicit case object SizePrimCompanionElem extends CompanionElem[SizePrimCompanionCtor] {
-    lazy val tag = weakTypeTag[SizePrimCompanionCtor]
   }
 
   abstract class SizePrimCompanionCtor extends CompanionDef[SizePrimCompanionCtor] with SizePrimCompanion {
@@ -466,7 +464,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     cachedElemByClass(eL, eR)(classOf[SizePairElem[L, R, SizePair[L, R]]])
 
   implicit case object SizePairCompanionElem extends CompanionElem[SizePairCompanionCtor] {
-    lazy val tag = weakTypeTag[SizePairCompanionCtor]
   }
 
   abstract class SizePairCompanionCtor extends CompanionDef[SizePairCompanionCtor] with SizePairCompanion {
@@ -629,7 +626,6 @@ object SizeColl extends EntityObject("SizeColl") {
     cachedElemByClass(eItem)(classOf[SizeCollElem[Item, SizeColl[Item]]])
 
   implicit case object SizeCollCompanionElem extends CompanionElem[SizeCollCompanionCtor] {
-    lazy val tag = weakTypeTag[SizeCollCompanionCtor]
   }
 
   abstract class SizeCollCompanionCtor extends CompanionDef[SizeCollCompanionCtor] with SizeCollCompanion {
@@ -791,7 +787,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     cachedElemByClass(eEnv, eArg, eRes)(classOf[SizeFuncElem[Env, Arg, Res, SizeFunc[Env, Arg, Res]]])
 
   implicit case object SizeFuncCompanionElem extends CompanionElem[SizeFuncCompanionCtor] {
-    lazy val tag = weakTypeTag[SizeFuncCompanionCtor]
   }
 
   abstract class SizeFuncCompanionCtor extends CompanionDef[SizeFuncCompanionCtor] with SizeFuncCompanion {
@@ -941,7 +936,6 @@ object SizeOption extends EntityObject("SizeOption") {
     cachedElemByClass(eT)(classOf[SizeOptionElem[T, SizeOption[T]]])
 
   implicit case object SizeOptionCompanionElem extends CompanionElem[SizeOptionCompanionCtor] {
-    lazy val tag = weakTypeTag[SizeOptionCompanionCtor]
   }
 
   abstract class SizeOptionCompanionCtor extends CompanionDef[SizeOptionCompanionCtor] with SizeOptionCompanion {

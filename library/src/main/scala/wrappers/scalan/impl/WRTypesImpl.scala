@@ -125,7 +125,6 @@ object WRType extends EntityObject("WRType") {
     cachedElemByClass(eA)(classOf[WRTypeElem[A, WRType[A]]])
 
   implicit case object WRTypeCompanionElem extends CompanionElem[WRTypeCompanionCtor] {
-    lazy val tag = weakTypeTag[WRTypeCompanionCtor]
   }
 
   abstract class WRTypeCompanionCtor extends CompanionDef[WRTypeCompanionCtor] with WRTypeCompanion {

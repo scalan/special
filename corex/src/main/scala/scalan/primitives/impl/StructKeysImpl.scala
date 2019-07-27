@@ -56,10 +56,6 @@ object StructKey extends EntityObject("StructKey") {
     def eSchema = _eSchema
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[StructKey[Schema]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[StructKey[Schema]] => convertStructKey(x) }
       tryConvert(element[StructKey[Schema]], this, x, conv)
@@ -76,16 +72,14 @@ object StructKey extends EntityObject("StructKey") {
   implicit def structKeyElement[Schema <: Struct](implicit eSchema: Elem[Schema]): Elem[StructKey[Schema]] =
     cachedElemByClass(eSchema)(classOf[StructKeyElem[Schema, StructKey[Schema]]])
 
-  implicit case object StructKeyCompanionElem extends CompanionElem[StructKeyCompanionCtor] {
-    lazy val tag = weakTypeTag[StructKeyCompanionCtor]
-  }
+  implicit case object StructKeyCompanionElem extends CompanionElem[StructKeyCompanionCtor]
 
   abstract class StructKeyCompanionCtor extends CompanionDef[StructKeyCompanionCtor] {
     def selfType = StructKeyCompanionElem
     override def toString = "StructKey"
   }
   implicit def proxyStructKeyCompanionCtor(p: Rep[StructKeyCompanionCtor]): StructKeyCompanionCtor =
-    proxyOps[StructKeyCompanionCtor](p)
+    p.rhs.asInstanceOf[StructKeyCompanionCtor]
 
   lazy val RStructKey: Rep[StructKeyCompanionCtor] = new StructKeyCompanionCtor {
   }
@@ -134,10 +128,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
     override def convertStructKey(x: Rep[StructKey[Schema]]) = RIndexStructKey(x.index)
-    override lazy val tag = {
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[IndexStructKey[Schema]]
-    }
   }
 
   // state representation type
@@ -161,10 +151,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     def productElement(n: Int) = eSchema
   }
   case class IndexStructKeyIsoElem[Schema <: Struct](eSchema: Elem[Schema]) extends Elem[IndexStructKeyIso[Schema]] {
-    lazy val tag = {
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[IndexStructKeyIso[Schema]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -187,12 +173,14 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
       proxyOps[IndexStructKeyCompanionCtor](p)
   }
 
-  implicit case object IndexStructKeyCompanionElem extends CompanionElem[IndexStructKeyCompanionCtor] {
-    lazy val tag = weakTypeTag[IndexStructKeyCompanionCtor]
-  }
+  implicit case object IndexStructKeyCompanionElem extends CompanionElem[IndexStructKeyCompanionCtor]
 
-  implicit def proxyIndexStructKey[Schema <: Struct](p: Rep[IndexStructKey[Schema]]): IndexStructKey[Schema] =
-    proxyOps[IndexStructKey[Schema]](p)
+  implicit def proxyIndexStructKey[Schema <: Struct](p: Rep[IndexStructKey[Schema]]): IndexStructKey[Schema] = {
+    if (p.rhs.isInstanceOf[IndexStructKey[Schema]])
+      p.rhs.asInstanceOf[IndexStructKey[Schema]]
+    else
+      proxyOps[IndexStructKey[Schema]](p)
+  }
 
   implicit class ExtendedIndexStructKey[Schema <: Struct](p: Rep[IndexStructKey[Schema]])(implicit eSchema: Elem[Schema]) {
     def toData: Rep[IndexStructKeyData[Schema]] = {
@@ -248,10 +236,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
     override def convertStructKey(x: Rep[StructKey[Schema]]) = RNameStructKey(x.name)
-    override lazy val tag = {
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[NameStructKey[Schema]]
-    }
   }
 
   // state representation type
@@ -275,10 +259,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
     def productElement(n: Int) = eSchema
   }
   case class NameStructKeyIsoElem[Schema <: Struct](eSchema: Elem[Schema]) extends Elem[NameStructKeyIso[Schema]] {
-    lazy val tag = {
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[NameStructKeyIso[Schema]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -301,12 +281,14 @@ object NameStructKey extends EntityObject("NameStructKey") {
       proxyOps[NameStructKeyCompanionCtor](p)
   }
 
-  implicit case object NameStructKeyCompanionElem extends CompanionElem[NameStructKeyCompanionCtor] {
-    lazy val tag = weakTypeTag[NameStructKeyCompanionCtor]
-  }
+  implicit case object NameStructKeyCompanionElem extends CompanionElem[NameStructKeyCompanionCtor]
 
-  implicit def proxyNameStructKey[Schema <: Struct](p: Rep[NameStructKey[Schema]]): NameStructKey[Schema] =
-    proxyOps[NameStructKey[Schema]](p)
+  implicit def proxyNameStructKey[Schema <: Struct](p: Rep[NameStructKey[Schema]]): NameStructKey[Schema] = {
+    if (p.rhs.isInstanceOf[NameStructKey[Schema]])
+      p.rhs.asInstanceOf[NameStructKey[Schema]]
+    else
+      proxyOps[NameStructKey[Schema]](p)
+  }
 
   implicit class ExtendedNameStructKey[Schema <: Struct](p: Rep[NameStructKey[Schema]])(implicit eSchema: Elem[Schema]) {
     def toData: Rep[NameStructKeyData[Schema]] = {

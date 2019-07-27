@@ -66,10 +66,6 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     extends EntityElem1[A, Thunk[A], Thunk](eItem, container[Thunk]) {
     override lazy val liftable = asLiftable[SThunk[_], Thunk[A]](liftableThunk(eItem.liftable))
     override lazy val typeArgs = TypeArgs("A" -> (eItem -> Covariant))
-    lazy val tag = {
-      implicit val rt = eItem.tag
-      weakTypeTag[Thunk[A]]
-    }
   }
 
   implicit def thunkElement[T](implicit eItem: Elem[T]): Elem[Thunk[T]] =

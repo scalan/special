@@ -640,7 +640,7 @@ implicit val eV = proj.elem.eRange
     cachedElemByClass(eA)(classOf[CollElem[A, Coll[A]]])
 
   implicit case object CollCompanionElem extends CompanionElem[CollCompanionCtor] {
-    lazy val tag = weakTypeTag[CollCompanionCtor]
+    override lazy val tag = weakTypeTag[CollCompanionCtor]
   }
 
   abstract class CollCompanionCtor extends CompanionDef[CollCompanionCtor] with CollCompanion {
@@ -1474,7 +1474,7 @@ implicit val eV = proj.elem.eRange
     cachedElemByClass(eL, eR)(classOf[PairCollElem[L, R, PairColl[L, R]]])
 
   implicit case object PairCollCompanionElem extends CompanionElem[PairCollCompanionCtor] {
-    lazy val tag = weakTypeTag[PairCollCompanionCtor]
+    override lazy val tag = weakTypeTag[PairCollCompanionCtor]
   }
 
   abstract class PairCollCompanionCtor extends CompanionDef[PairCollCompanionCtor] with PairCollCompanion {
@@ -1923,7 +1923,7 @@ implicit val eV = proj.elem.eRange
     cachedElemByClass(eA)(classOf[ReplCollElem[A, ReplColl[A]]])
 
   implicit case object ReplCollCompanionElem extends CompanionElem[ReplCollCompanionCtor] {
-    lazy val tag = weakTypeTag[ReplCollCompanionCtor]
+    override lazy val tag = weakTypeTag[ReplCollCompanionCtor]
   }
 
   abstract class ReplCollCompanionCtor extends CompanionDef[ReplCollCompanionCtor] with ReplCollCompanion {
@@ -2211,7 +2211,7 @@ implicit val eO = l.elem.eRange
     new CollBuilderElem[CollBuilder]
 
   implicit case object CollBuilderCompanionElem extends CompanionElem[CollBuilderCompanionCtor] {
-    lazy val tag = weakTypeTag[CollBuilderCompanionCtor]
+    override lazy val tag = weakTypeTag[CollBuilderCompanionCtor]
   }
 
   abstract class CollBuilderCompanionCtor extends CompanionDef[CollBuilderCompanionCtor] with CollBuilderCompanion {

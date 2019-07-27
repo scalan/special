@@ -55,11 +55,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def eR = _eR
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[Converter[T, R]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[Converter[T, R]] => convertConverter(x) }
       tryConvert(element[Converter[T, R]], this, x, conv)
@@ -76,16 +71,14 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   implicit def converterElement[T, R](implicit eT: Elem[T], eR: Elem[R]): Elem[Converter[T, R]] =
     cachedElemByClass(eT, eR)(classOf[ConverterElem[T, R, Converter[T, R]]])
 
-  implicit case object ConverterCompanionElem extends CompanionElem[ConverterCompanionCtor] {
-    lazy val tag = weakTypeTag[ConverterCompanionCtor]
-  }
+  implicit case object ConverterCompanionElem extends CompanionElem[ConverterCompanionCtor]
 
   abstract class ConverterCompanionCtor extends CompanionDef[ConverterCompanionCtor] with ConverterCompanion {
     def selfType = ConverterCompanionElem
     override def toString = "Converter"
   }
   implicit def proxyConverterCompanionCtor(p: Rep[ConverterCompanionCtor]): ConverterCompanionCtor =
-    proxyOps[ConverterCompanionCtor](p)
+    p.rhs.asInstanceOf[ConverterCompanionCtor]
 
   lazy val RConverter: Rep[ConverterCompanionCtor] = new ConverterCompanionCtor {
     private val thisClass = classOf[ConverterCompanion]
@@ -142,10 +135,6 @@ object IdentityConv extends EntityObject("IdentityConv") {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[A], element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eT -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[A, A]]) = RIdentityConv()
-    override lazy val tag = {
-      implicit val tagA = eT.tag
-      weakTypeTag[IdentityConv[A]]
-    }
   }
 
   // state representation type
@@ -169,10 +158,6 @@ object IdentityConv extends EntityObject("IdentityConv") {
     def productElement(n: Int) = eT
   }
   case class IdentityConvIsoElem[A](eT: Elem[A]) extends Elem[IdentityConvIso[A]] {
-    lazy val tag = {
-      implicit val tagA = eT.tag
-      weakTypeTag[IdentityConvIso[A]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eT -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -199,12 +184,14 @@ object IdentityConv extends EntityObject("IdentityConv") {
       proxyOps[IdentityConvCompanionCtor](p)
   }
 
-  implicit case object IdentityConvCompanionElem extends CompanionElem[IdentityConvCompanionCtor] {
-    lazy val tag = weakTypeTag[IdentityConvCompanionCtor]
-  }
+  implicit case object IdentityConvCompanionElem extends CompanionElem[IdentityConvCompanionCtor]
 
-  implicit def proxyIdentityConv[A](p: Rep[IdentityConv[A]]): IdentityConv[A] =
-    proxyOps[IdentityConv[A]](p)
+  implicit def proxyIdentityConv[A](p: Rep[IdentityConv[A]]): IdentityConv[A] = {
+    if (p.rhs.isInstanceOf[IdentityConv[A]])
+      p.rhs.asInstanceOf[IdentityConv[A]]
+    else
+      proxyOps[IdentityConv[A]](p)
+  }
 
   implicit class ExtendedIdentityConv[A](p: Rep[IdentityConv[A]])(implicit eT: Elem[A]) {
     def toData: Rep[IdentityConvData[A]] = {
@@ -276,11 +263,6 @@ implicit lazy val eR = convFun.elem.eRange
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[T], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[T, R]]) = RBaseConverter(x.convFun)
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[BaseConverter[T, R]]
-    }
   }
 
   // state representation type
@@ -307,11 +289,6 @@ implicit lazy val eR = convFun.elem.eRange
     }
   }
   case class BaseConverterIsoElem[T, R](eT: Elem[T], eR: Elem[R]) extends Elem[BaseConverterIso[T, R]] {
-    lazy val tag = {
-      implicit val tagT = eT.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[BaseConverterIso[T, R]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -334,12 +311,14 @@ implicit lazy val eR = convFun.elem.eRange
       proxyOps[BaseConverterCompanionCtor](p)
   }
 
-  implicit case object BaseConverterCompanionElem extends CompanionElem[BaseConverterCompanionCtor] {
-    lazy val tag = weakTypeTag[BaseConverterCompanionCtor]
-  }
+  implicit case object BaseConverterCompanionElem extends CompanionElem[BaseConverterCompanionCtor]
 
-  implicit def proxyBaseConverter[T, R](p: Rep[BaseConverter[T, R]]): BaseConverter[T, R] =
-    proxyOps[BaseConverter[T, R]](p)
+  implicit def proxyBaseConverter[T, R](p: Rep[BaseConverter[T, R]]): BaseConverter[T, R] = {
+    if (p.rhs.isInstanceOf[BaseConverter[T, R]])
+      p.rhs.asInstanceOf[BaseConverter[T, R]]
+    else
+      proxyOps[BaseConverter[T, R]](p)
+  }
 
   implicit class ExtendedBaseConverter[T, R](p: Rep[BaseConverter[T, R]]) {
     def toData: Rep[BaseConverterData[T, R]] = {
@@ -407,13 +386,6 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[(A1, A2), (B1, B2)]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to PairConverter: missing fields List(conv1, conv2)")
-    override lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[PairConverter[A1, A2, B1, B2]]
-    }
   }
 
   // state representation type
@@ -442,13 +414,6 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     }
   }
   case class PairConverterIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[PairConverterIso[A1, A2, B1, B2]] {
-    lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[PairConverterIso[A1, A2, B1, B2]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -479,12 +444,14 @@ implicit val eB2 = p._2.eR
       proxyOps[PairConverterCompanionCtor](p)
   }
 
-  implicit case object PairConverterCompanionElem extends CompanionElem[PairConverterCompanionCtor] {
-    lazy val tag = weakTypeTag[PairConverterCompanionCtor]
-  }
+  implicit case object PairConverterCompanionElem extends CompanionElem[PairConverterCompanionCtor]
 
-  implicit def proxyPairConverter[A1, A2, B1, B2](p: Rep[PairConverter[A1, A2, B1, B2]]): PairConverter[A1, A2, B1, B2] =
-    proxyOps[PairConverter[A1, A2, B1, B2]](p)
+  implicit def proxyPairConverter[A1, A2, B1, B2](p: Rep[PairConverter[A1, A2, B1, B2]]): PairConverter[A1, A2, B1, B2] = {
+    if (p.rhs.isInstanceOf[PairConverter[A1, A2, B1, B2]])
+      p.rhs.asInstanceOf[PairConverter[A1, A2, B1, B2]]
+    else
+      proxyOps[PairConverter[A1, A2, B1, B2]](p)
+  }
 
   implicit class ExtendedPairConverter[A1, A2, B1, B2](p: Rep[PairConverter[A1, A2, B1, B2]]) {
     def toData: Rep[PairConverterData[A1, A2, B1, B2]] = {
@@ -565,13 +532,6 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to SumConverter: missing fields List(conv1, conv2)")
-    override lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[SumConverter[A1, A2, B1, B2]]
-    }
   }
 
   // state representation type
@@ -600,13 +560,6 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     }
   }
   case class SumConverterIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[SumConverterIso[A1, A2, B1, B2]] {
-    lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[SumConverterIso[A1, A2, B1, B2]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -637,12 +590,14 @@ implicit val eB2 = p._2.eR
       proxyOps[SumConverterCompanionCtor](p)
   }
 
-  implicit case object SumConverterCompanionElem extends CompanionElem[SumConverterCompanionCtor] {
-    lazy val tag = weakTypeTag[SumConverterCompanionCtor]
-  }
+  implicit case object SumConverterCompanionElem extends CompanionElem[SumConverterCompanionCtor]
 
-  implicit def proxySumConverter[A1, A2, B1, B2](p: Rep[SumConverter[A1, A2, B1, B2]]): SumConverter[A1, A2, B1, B2] =
-    proxyOps[SumConverter[A1, A2, B1, B2]](p)
+  implicit def proxySumConverter[A1, A2, B1, B2](p: Rep[SumConverter[A1, A2, B1, B2]]): SumConverter[A1, A2, B1, B2] = {
+    if (p.rhs.isInstanceOf[SumConverter[A1, A2, B1, B2]])
+      p.rhs.asInstanceOf[SumConverter[A1, A2, B1, B2]]
+    else
+      proxyOps[SumConverter[A1, A2, B1, B2]](p)
+  }
 
   implicit class ExtendedSumConverter[A1, A2, B1, B2](p: Rep[SumConverter[A1, A2, B1, B2]]) {
     def toData: Rep[SumConverterData[A1, A2, B1, B2]] = {
@@ -721,12 +676,6 @@ implicit lazy val eC = conv2.eR
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[A, C]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to ComposeConverter: missing fields List(conv2, conv1)")
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      implicit val tagC = eC.tag
-      weakTypeTag[ComposeConverter[A, B, C]]
-    }
   }
 
   // state representation type
@@ -754,12 +703,6 @@ implicit lazy val eC = conv2.eR
     }
   }
   case class ComposeConverterIsoElem[A, B, C](eA: Elem[A], eB: Elem[B], eC: Elem[C]) extends Elem[ComposeConverterIso[A, B, C]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      implicit val tagC = eC.tag
-      weakTypeTag[ComposeConverterIso[A, B, C]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -789,12 +732,14 @@ implicit val eC = p._1.eR
       proxyOps[ComposeConverterCompanionCtor](p)
   }
 
-  implicit case object ComposeConverterCompanionElem extends CompanionElem[ComposeConverterCompanionCtor] {
-    lazy val tag = weakTypeTag[ComposeConverterCompanionCtor]
-  }
+  implicit case object ComposeConverterCompanionElem extends CompanionElem[ComposeConverterCompanionCtor]
 
-  implicit def proxyComposeConverter[A, B, C](p: Rep[ComposeConverter[A, B, C]]): ComposeConverter[A, B, C] =
-    proxyOps[ComposeConverter[A, B, C]](p)
+  implicit def proxyComposeConverter[A, B, C](p: Rep[ComposeConverter[A, B, C]]): ComposeConverter[A, B, C] = {
+    if (p.rhs.isInstanceOf[ComposeConverter[A, B, C]])
+      p.rhs.asInstanceOf[ComposeConverter[A, B, C]]
+    else
+      proxyOps[ComposeConverter[A, B, C]](p)
+  }
 
   implicit class ExtendedComposeConverter[A, B, C](p: Rep[ComposeConverter[A, B, C]]) {
     def toData: Rep[ComposeConverterData[A, B, C]] = {
@@ -870,11 +815,6 @@ implicit lazy val eB = itemConv.eR
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "F" -> (F -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[F[A], F[B]]]) = // Converter is not generated by meta
 !!!("Cannot convert from Converter to FunctorConverter: missing fields List(itemConv)")
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[FunctorConverter[A, B, F]]
-    }
   }
 
   // state representation type
@@ -902,11 +842,6 @@ implicit lazy val eB = itemConv.eR
     }
   }
   case class FunctorConverterIsoElem[A, B, F[_]](F: Functor[F], eA: Elem[A], eB: Elem[B]) extends Elem[FunctorConverterIso[A, B, F]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[FunctorConverterIso[A, B, F]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "F" -> (F -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -929,12 +864,14 @@ implicit lazy val eB = itemConv.eR
       proxyOps[FunctorConverterCompanionCtor](p)
   }
 
-  implicit case object FunctorConverterCompanionElem extends CompanionElem[FunctorConverterCompanionCtor] {
-    lazy val tag = weakTypeTag[FunctorConverterCompanionCtor]
-  }
+  implicit case object FunctorConverterCompanionElem extends CompanionElem[FunctorConverterCompanionCtor]
 
-  implicit def proxyFunctorConverter[A, B, F[_]](p: Rep[FunctorConverter[A, B, F]]): FunctorConverter[A, B, F] =
-    proxyOps[FunctorConverter[A, B, F]](p)
+  implicit def proxyFunctorConverter[A, B, F[_]](p: Rep[FunctorConverter[A, B, F]]): FunctorConverter[A, B, F] = {
+    if (p.rhs.isInstanceOf[FunctorConverter[A, B, F]])
+      p.rhs.asInstanceOf[FunctorConverter[A, B, F]]
+    else
+      proxyOps[FunctorConverter[A, B, F]](p)
+  }
 
   implicit class ExtendedFunctorConverter[A, B, F[_]](p: Rep[FunctorConverter[A, B, F]])(implicit F: Functor[F]) {
     def toData: Rep[FunctorConverterData[A, B, F]] = {
@@ -1008,10 +945,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[F[A]], element[G[A]]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "F" -> (cF -> scalan.util.Invariant), "G" -> (cG -> scalan.util.Invariant))
     override def convertConverter(x: Rep[Converter[F[A], G[A]]]) = RNaturalConverter(x.convFun)
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[NaturalConverter[A, F, G]]
-    }
   }
 
   // state representation type
@@ -1039,10 +972,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     }
   }
   case class NaturalConverterIsoElem[A, F[_], G[_]](eA: Elem[A], cF: Cont[F], cG: Cont[G]) extends Elem[NaturalConverterIso[A, F, G]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[NaturalConverterIso[A, F, G]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "F" -> (cF -> scalan.util.Invariant), "G" -> (cG -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -1065,12 +994,14 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
       proxyOps[NaturalConverterCompanionCtor](p)
   }
 
-  implicit case object NaturalConverterCompanionElem extends CompanionElem[NaturalConverterCompanionCtor] {
-    lazy val tag = weakTypeTag[NaturalConverterCompanionCtor]
-  }
+  implicit case object NaturalConverterCompanionElem extends CompanionElem[NaturalConverterCompanionCtor]
 
-  implicit def proxyNaturalConverter[A, F[_], G[_]](p: Rep[NaturalConverter[A, F, G]]): NaturalConverter[A, F, G] =
-    proxyOps[NaturalConverter[A, F, G]](p)
+  implicit def proxyNaturalConverter[A, F[_], G[_]](p: Rep[NaturalConverter[A, F, G]]): NaturalConverter[A, F, G] = {
+    if (p.rhs.isInstanceOf[NaturalConverter[A, F, G]])
+      p.rhs.asInstanceOf[NaturalConverter[A, F, G]]
+    else
+      proxyOps[NaturalConverter[A, F, G]](p)
+  }
 
   implicit class ExtendedNaturalConverter[A, F[_], G[_]](p: Rep[NaturalConverter[A, F, G]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]) {
     def toData: Rep[NaturalConverterData[A, F, G]] = {

@@ -87,8 +87,6 @@ trait Structs extends GraphVizExport { self: Scalan =>
   def liftStruct[T <: Struct](x: SStruct)(implicit eT: Elem[T]): Rep[T] = StructConst(x, eT)
 
   case class StructElem[T <: Struct](structTag: StructTag[T], fields: Seq[(String, Elem[_])]) extends Elem[T] {
-    lazy val tag = structTag.typeTag
-
     override def liftable: Liftables.Liftable[_, T] = asLiftable[SStruct, T](liftableStruct(this))
 
     def get(fieldName: String): Option[Elem[_]] = fields.find(_._1 == fieldName).map(_._2)

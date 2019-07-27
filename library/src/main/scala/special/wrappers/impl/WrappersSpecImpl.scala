@@ -59,7 +59,6 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     new WrapSpecBaseElem[WrapSpecBase]
 
   implicit case object WrapSpecBaseCompanionElem extends CompanionElem[WrapSpecBaseCompanionCtor] {
-    lazy val tag = weakTypeTag[WrapSpecBaseCompanionCtor]
   }
 
   abstract class WrapSpecBaseCompanionCtor extends CompanionDef[WrapSpecBaseCompanionCtor] with WrapSpecBaseCompanion {
@@ -141,7 +140,6 @@ implicit val eB = ifEmpty.elem.eItem
     new OptionWrapSpecElem[OptionWrapSpec]
 
   implicit case object OptionWrapSpecCompanionElem extends CompanionElem[OptionWrapSpecCompanionCtor] {
-    lazy val tag = weakTypeTag[OptionWrapSpecCompanionCtor]
   }
 
   abstract class OptionWrapSpecCompanionCtor extends CompanionDef[OptionWrapSpecCompanionCtor] with OptionWrapSpecCompanion {
@@ -309,7 +307,6 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     new SpecialPredefWrapSpecElem[SpecialPredefWrapSpec]
 
   implicit case object SpecialPredefWrapSpecCompanionElem extends CompanionElem[SpecialPredefWrapSpecCompanionCtor] {
-    lazy val tag = weakTypeTag[SpecialPredefWrapSpecCompanionCtor]
   }
 
   abstract class SpecialPredefWrapSpecCompanionCtor extends CompanionDef[SpecialPredefWrapSpecCompanionCtor] with SpecialPredefWrapSpecCompanion {
@@ -438,7 +435,6 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
     new RTypeWrapSpecElem[RTypeWrapSpec]
 
   implicit case object RTypeWrapSpecCompanionElem extends CompanionElem[RTypeWrapSpecCompanionCtor] {
-    lazy val tag = weakTypeTag[RTypeWrapSpecCompanionCtor]
   }
 
   abstract class RTypeWrapSpecCompanionCtor extends CompanionDef[RTypeWrapSpecCompanionCtor] with RTypeWrapSpecCompanion {

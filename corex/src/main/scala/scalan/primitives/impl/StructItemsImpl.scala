@@ -60,11 +60,6 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     def eSchema = _eSchema
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Covariant), "Schema" -> (eSchema -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[StructItem[Val, Schema]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[StructItem[Val, Schema]] => convertStructItem(x) }
       tryConvert(element[StructItem[Val, Schema]], this, x, conv)
@@ -81,16 +76,14 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
   implicit def structItemElement[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema]): Elem[StructItem[Val, Schema]] =
     cachedElemByClass(eVal, eSchema)(classOf[StructItemElem[Val, Schema, StructItem[Val, Schema]]])
 
-  implicit case object StructItemCompanionElem extends CompanionElem[StructItemCompanionCtor] {
-    lazy val tag = weakTypeTag[StructItemCompanionCtor]
-  }
+  implicit case object StructItemCompanionElem extends CompanionElem[StructItemCompanionCtor]
 
   abstract class StructItemCompanionCtor extends CompanionDef[StructItemCompanionCtor] {
     def selfType = StructItemCompanionElem
     override def toString = "StructItem"
   }
   implicit def proxyStructItemCompanionCtor(p: Rep[StructItemCompanionCtor]): StructItemCompanionCtor =
-    proxyOps[StructItemCompanionCtor](p)
+    p.rhs.asInstanceOf[StructItemCompanionCtor]
 
   lazy val RStructItem: Rep[StructItemCompanionCtor] = new StructItemCompanionCtor {
   }
@@ -142,11 +135,6 @@ implicit lazy val eSchema = key.eSchema
     override lazy val parent: Option[Elem[_]] = Some(structItemElement(element[Val], element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
     override def convertStructItem(x: Rep[StructItem[Val, Schema]]) = RStructItemBase(x.key, x.value)
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[StructItemBase[Val, Schema]]
-    }
   }
 
   // state representation type
@@ -173,11 +161,6 @@ implicit lazy val eSchema = key.eSchema
     }
   }
   case class StructItemBaseIsoElem[Val, Schema <: Struct](eVal: Elem[Val], eSchema: Elem[Schema]) extends Elem[StructItemBaseIso[Val, Schema]] {
-    lazy val tag = {
-      implicit val tagVal = eVal.tag
-      implicit val tagSchema = eSchema.tag
-      weakTypeTag[StructItemBaseIso[Val, Schema]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -206,12 +189,14 @@ implicit val eSchema = p._1.eSchema
       proxyOps[StructItemBaseCompanionCtor](p)
   }
 
-  implicit case object StructItemBaseCompanionElem extends CompanionElem[StructItemBaseCompanionCtor] {
-    lazy val tag = weakTypeTag[StructItemBaseCompanionCtor]
-  }
+  implicit case object StructItemBaseCompanionElem extends CompanionElem[StructItemBaseCompanionCtor]
 
-  implicit def proxyStructItemBase[Val, Schema <: Struct](p: Rep[StructItemBase[Val, Schema]]): StructItemBase[Val, Schema] =
-    proxyOps[StructItemBase[Val, Schema]](p)
+  implicit def proxyStructItemBase[Val, Schema <: Struct](p: Rep[StructItemBase[Val, Schema]]): StructItemBase[Val, Schema] = {
+    if (p.rhs.isInstanceOf[StructItemBase[Val, Schema]])
+      p.rhs.asInstanceOf[StructItemBase[Val, Schema]]
+    else
+      proxyOps[StructItemBase[Val, Schema]](p)
+  }
 
   implicit class ExtendedStructItemBase[Val, Schema <: Struct](p: Rep[StructItemBase[Val, Schema]]) {
     def toData: Rep[StructItemBaseData[Val, Schema]] = {

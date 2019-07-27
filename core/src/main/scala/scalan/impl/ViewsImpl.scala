@@ -65,11 +65,6 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
     def eTo = _eTo
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("From" -> (eFrom -> scalan.util.Invariant), "To" -> (eTo -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagFrom = eFrom.tag
-      implicit val tagTo = eTo.tag
-      weakTypeTag[IsoUR[From, To]].asInstanceOf[WeakTypeTag[To0]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[IsoUR[From, To]] => convertIsoUR(x) }
       tryConvert(element[IsoUR[From, To]], this, x, conv)
@@ -86,16 +81,14 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
   implicit def isoURElement[From, To](implicit eFrom: Elem[From], eTo: Elem[To]): Elem[IsoUR[From, To]] =
     cachedElemByClass(eFrom, eTo)(classOf[IsoURElem[From, To, IsoUR[From, To]]])
 
-  implicit case object IsoURCompanionElem extends CompanionElem[IsoURCompanionCtor] {
-    lazy val tag = weakTypeTag[IsoURCompanionCtor]
-  }
+  implicit case object IsoURCompanionElem extends CompanionElem[IsoURCompanionCtor]
 
   abstract class IsoURCompanionCtor extends CompanionDef[IsoURCompanionCtor] {
     def selfType = IsoURCompanionElem
     override def toString = "IsoUR"
   }
   implicit def proxyIsoURCompanionCtor(p: Rep[IsoURCompanionCtor]): IsoURCompanionCtor =
-    proxyOps[IsoURCompanionCtor](p)
+    p.rhs.asInstanceOf[IsoURCompanionCtor]
 
   lazy val RIsoUR: Rep[IsoURCompanionCtor] = new IsoURCompanionCtor {
   }
@@ -188,11 +181,6 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
 
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[C[A]], element[C[B]]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (cC -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[Iso1UR[A, B, C]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[Iso1UR[A, B, C]] => convertIso1UR(x) }
       tryConvert(element[Iso1UR[A, B, C]], this, x, conv)
@@ -209,16 +197,14 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
   implicit def iso1URElement[A, B, C[_]](implicit eA: Elem[A], eB: Elem[B], cC: Cont[C]): Elem[Iso1UR[A, B, C]] =
     cachedElemByClass(eA, eB, cC)(classOf[Iso1URElem[A, B, C, Iso1UR[A, B, C]]])
 
-  implicit case object Iso1URCompanionElem extends CompanionElem[Iso1URCompanionCtor] {
-    lazy val tag = weakTypeTag[Iso1URCompanionCtor]
-  }
+  implicit case object Iso1URCompanionElem extends CompanionElem[Iso1URCompanionCtor]
 
   abstract class Iso1URCompanionCtor extends CompanionDef[Iso1URCompanionCtor] {
     def selfType = Iso1URCompanionElem
     override def toString = "Iso1UR"
   }
   implicit def proxyIso1URCompanionCtor(p: Rep[Iso1URCompanionCtor]): Iso1URCompanionCtor =
-    proxyOps[Iso1URCompanionCtor](p)
+    p.rhs.asInstanceOf[Iso1URCompanionCtor]
 
   lazy val RIso1UR: Rep[Iso1URCompanionCtor] = new Iso1URCompanionCtor {
   }
@@ -269,10 +255,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A], element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[A, A]]) = RIdentityIso()
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[IdentityIso[A]]
-    }
   }
 
   // state representation type
@@ -296,10 +278,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
     def productElement(n: Int) = eA
   }
   case class IdentityIsoIsoElem[A](eA: Elem[A]) extends Elem[IdentityIsoIso[A]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[IdentityIsoIso[A]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -326,12 +304,14 @@ object IdentityIso extends EntityObject("IdentityIso") {
       proxyOps[IdentityIsoCompanionCtor](p)
   }
 
-  implicit case object IdentityIsoCompanionElem extends CompanionElem[IdentityIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[IdentityIsoCompanionCtor]
-  }
+  implicit case object IdentityIsoCompanionElem extends CompanionElem[IdentityIsoCompanionCtor]
 
-  implicit def proxyIdentityIso[A](p: Rep[IdentityIso[A]]): IdentityIso[A] =
-    proxyOps[IdentityIso[A]](p)
+  implicit def proxyIdentityIso[A](p: Rep[IdentityIso[A]]): IdentityIso[A] = {
+    if (p.rhs.isInstanceOf[IdentityIso[A]])
+      p.rhs.asInstanceOf[IdentityIso[A]]
+    else
+      proxyOps[IdentityIso[A]](p)
+  }
 
   implicit class ExtendedIdentityIso[A](p: Rep[IdentityIso[A]])(implicit eA: Elem[A]) {
     def toData: Rep[IdentityIsoData[A]] = {
@@ -420,13 +400,6 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[(A1, A2), (B1, B2)]]) = // Converter is not generated by meta
 !!!("Cannot convert from IsoUR to PairIso: missing fields List(iso1, iso2)")
-    override lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[PairIso[A1, A2, B1, B2]]
-    }
   }
 
   // state representation type
@@ -455,13 +428,6 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     }
   }
   case class PairIsoIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[PairIsoIso[A1, A2, B1, B2]] {
-    lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[PairIsoIso[A1, A2, B1, B2]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -492,12 +458,14 @@ implicit val eB2 = p._2.eTo
       proxyOps[PairIsoCompanionCtor](p)
   }
 
-  implicit case object PairIsoCompanionElem extends CompanionElem[PairIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[PairIsoCompanionCtor]
-  }
+  implicit case object PairIsoCompanionElem extends CompanionElem[PairIsoCompanionCtor]
 
-  implicit def proxyPairIso[A1, A2, B1, B2](p: Rep[PairIso[A1, A2, B1, B2]]): PairIso[A1, A2, B1, B2] =
-    proxyOps[PairIso[A1, A2, B1, B2]](p)
+  implicit def proxyPairIso[A1, A2, B1, B2](p: Rep[PairIso[A1, A2, B1, B2]]): PairIso[A1, A2, B1, B2] = {
+    if (p.rhs.isInstanceOf[PairIso[A1, A2, B1, B2]])
+      p.rhs.asInstanceOf[PairIso[A1, A2, B1, B2]]
+    else
+      proxyOps[PairIso[A1, A2, B1, B2]](p)
+  }
 
   implicit class ExtendedPairIso[A1, A2, B1, B2](p: Rep[PairIso[A1, A2, B1, B2]]) {
     def toData: Rep[PairIsoData[A1, A2, B1, B2]] = {
@@ -591,11 +559,6 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A2" -> (eA2 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[A2, (Unit, B2)]]) = // Converter is not generated by meta
 !!!("Cannot convert from IsoUR to AbsorbFirstUnitIso: missing fields List(iso2)")
-    override lazy val tag = {
-      implicit val tagA2 = eA2.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[AbsorbFirstUnitIso[A2, B2]]
-    }
   }
 
   // state representation type
@@ -622,11 +585,6 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     }
   }
   case class AbsorbFirstUnitIsoIsoElem[A2, B2](eA2: Elem[A2], eB2: Elem[B2]) extends Elem[AbsorbFirstUnitIsoIso[A2, B2]] {
-    lazy val tag = {
-      implicit val tagA2 = eA2.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[AbsorbFirstUnitIsoIso[A2, B2]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A2" -> (eA2 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -649,12 +607,14 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
       proxyOps[AbsorbFirstUnitIsoCompanionCtor](p)
   }
 
-  implicit case object AbsorbFirstUnitIsoCompanionElem extends CompanionElem[AbsorbFirstUnitIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[AbsorbFirstUnitIsoCompanionCtor]
-  }
+  implicit case object AbsorbFirstUnitIsoCompanionElem extends CompanionElem[AbsorbFirstUnitIsoCompanionCtor]
 
-  implicit def proxyAbsorbFirstUnitIso[A2, B2](p: Rep[AbsorbFirstUnitIso[A2, B2]]): AbsorbFirstUnitIso[A2, B2] =
-    proxyOps[AbsorbFirstUnitIso[A2, B2]](p)
+  implicit def proxyAbsorbFirstUnitIso[A2, B2](p: Rep[AbsorbFirstUnitIso[A2, B2]]): AbsorbFirstUnitIso[A2, B2] = {
+    if (p.rhs.isInstanceOf[AbsorbFirstUnitIso[A2, B2]])
+      p.rhs.asInstanceOf[AbsorbFirstUnitIso[A2, B2]]
+    else
+      proxyOps[AbsorbFirstUnitIso[A2, B2]](p)
+  }
 
   implicit class ExtendedAbsorbFirstUnitIso[A2, B2](p: Rep[AbsorbFirstUnitIso[A2, B2]]) {
     def toData: Rep[AbsorbFirstUnitIsoData[A2, B2]] = {
@@ -743,11 +703,6 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[A1, (B1, Unit)]]) = // Converter is not generated by meta
 !!!("Cannot convert from IsoUR to AbsorbSecondUnitIso: missing fields List(iso1)")
-    override lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagB1 = eB1.tag
-      weakTypeTag[AbsorbSecondUnitIso[A1, B1]]
-    }
   }
 
   // state representation type
@@ -774,11 +729,6 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     }
   }
   case class AbsorbSecondUnitIsoIsoElem[A1, B1](eA1: Elem[A1], eB1: Elem[B1]) extends Elem[AbsorbSecondUnitIsoIso[A1, B1]] {
-    lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagB1 = eB1.tag
-      weakTypeTag[AbsorbSecondUnitIsoIso[A1, B1]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -801,12 +751,14 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
       proxyOps[AbsorbSecondUnitIsoCompanionCtor](p)
   }
 
-  implicit case object AbsorbSecondUnitIsoCompanionElem extends CompanionElem[AbsorbSecondUnitIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[AbsorbSecondUnitIsoCompanionCtor]
-  }
+  implicit case object AbsorbSecondUnitIsoCompanionElem extends CompanionElem[AbsorbSecondUnitIsoCompanionCtor]
 
-  implicit def proxyAbsorbSecondUnitIso[A1, B1](p: Rep[AbsorbSecondUnitIso[A1, B1]]): AbsorbSecondUnitIso[A1, B1] =
-    proxyOps[AbsorbSecondUnitIso[A1, B1]](p)
+  implicit def proxyAbsorbSecondUnitIso[A1, B1](p: Rep[AbsorbSecondUnitIso[A1, B1]]): AbsorbSecondUnitIso[A1, B1] = {
+    if (p.rhs.isInstanceOf[AbsorbSecondUnitIso[A1, B1]])
+      p.rhs.asInstanceOf[AbsorbSecondUnitIso[A1, B1]]
+    else
+      proxyOps[AbsorbSecondUnitIso[A1, B1]](p)
+  }
 
   implicit class ExtendedAbsorbSecondUnitIso[A1, B1](p: Rep[AbsorbSecondUnitIso[A1, B1]]) {
     def toData: Rep[AbsorbSecondUnitIsoData[A1, B1]] = {
@@ -897,13 +849,6 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[$bar[A1, A2], $bar[B1, B2]]]) = // Converter is not generated by meta
 !!!("Cannot convert from IsoUR to SumIso: missing fields List(iso1, iso2)")
-    override lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[SumIso[A1, A2, B1, B2]]
-    }
   }
 
   // state representation type
@@ -932,13 +877,6 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     }
   }
   case class SumIsoIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[SumIsoIso[A1, A2, B1, B2]] {
-    lazy val tag = {
-      implicit val tagA1 = eA1.tag
-      implicit val tagA2 = eA2.tag
-      implicit val tagB1 = eB1.tag
-      implicit val tagB2 = eB2.tag
-      weakTypeTag[SumIsoIso[A1, A2, B1, B2]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -969,12 +907,14 @@ implicit val eB2 = p._2.eTo
       proxyOps[SumIsoCompanionCtor](p)
   }
 
-  implicit case object SumIsoCompanionElem extends CompanionElem[SumIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[SumIsoCompanionCtor]
-  }
+  implicit case object SumIsoCompanionElem extends CompanionElem[SumIsoCompanionCtor]
 
-  implicit def proxySumIso[A1, A2, B1, B2](p: Rep[SumIso[A1, A2, B1, B2]]): SumIso[A1, A2, B1, B2] =
-    proxyOps[SumIso[A1, A2, B1, B2]](p)
+  implicit def proxySumIso[A1, A2, B1, B2](p: Rep[SumIso[A1, A2, B1, B2]]): SumIso[A1, A2, B1, B2] = {
+    if (p.rhs.isInstanceOf[SumIso[A1, A2, B1, B2]])
+      p.rhs.asInstanceOf[SumIso[A1, A2, B1, B2]]
+    else
+      proxyOps[SumIso[A1, A2, B1, B2]](p)
+  }
 
   implicit class ExtendedSumIso[A1, A2, B1, B2](p: Rep[SumIso[A1, A2, B1, B2]]) {
     def toData: Rep[SumIsoData[A1, A2, B1, B2]] = {
@@ -1065,12 +1005,6 @@ implicit lazy val eC = iso2.eTo
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[A, C]]) = // Converter is not generated by meta
 !!!("Cannot convert from IsoUR to ComposeIso: missing fields List(iso2, iso1)")
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      implicit val tagC = eC.tag
-      weakTypeTag[ComposeIso[A, B, C]]
-    }
   }
 
   // state representation type
@@ -1098,12 +1032,6 @@ implicit lazy val eC = iso2.eTo
     }
   }
   case class ComposeIsoIsoElem[A, B, C](eA: Elem[A], eB: Elem[B], eC: Elem[C]) extends Elem[ComposeIsoIso[A, B, C]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      implicit val tagC = eC.tag
-      weakTypeTag[ComposeIsoIso[A, B, C]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -1133,12 +1061,14 @@ implicit val eC = p._1.eTo
       proxyOps[ComposeIsoCompanionCtor](p)
   }
 
-  implicit case object ComposeIsoCompanionElem extends CompanionElem[ComposeIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[ComposeIsoCompanionCtor]
-  }
+  implicit case object ComposeIsoCompanionElem extends CompanionElem[ComposeIsoCompanionCtor]
 
-  implicit def proxyComposeIso[A, B, C](p: Rep[ComposeIso[A, B, C]]): ComposeIso[A, B, C] =
-    proxyOps[ComposeIso[A, B, C]](p)
+  implicit def proxyComposeIso[A, B, C](p: Rep[ComposeIso[A, B, C]]): ComposeIso[A, B, C] = {
+    if (p.rhs.isInstanceOf[ComposeIso[A, B, C]])
+      p.rhs.asInstanceOf[ComposeIso[A, B, C]]
+    else
+      proxyOps[ComposeIso[A, B, C]](p)
+  }
 
   implicit class ExtendedComposeIso[A, B, C](p: Rep[ComposeIso[A, B, C]]) {
     def toData: Rep[ComposeIsoData[A, B, C]] = {
@@ -1230,13 +1160,6 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant), "D" -> (eD -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[A => C, B => D]]) = // Converter is not generated by meta
 !!!("Cannot convert from IsoUR to FuncIso: missing fields List(iso1, iso2)")
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      implicit val tagC = eC.tag
-      implicit val tagD = eD.tag
-      weakTypeTag[FuncIso[A, B, C, D]]
-    }
   }
 
   // state representation type
@@ -1265,13 +1188,6 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     }
   }
   case class FuncIsoIsoElem[A, B, C, D](eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D]) extends Elem[FuncIsoIso[A, B, C, D]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      implicit val tagC = eC.tag
-      implicit val tagD = eD.tag
-      weakTypeTag[FuncIsoIso[A, B, C, D]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant), "D" -> (eD -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -1302,12 +1218,14 @@ implicit val eD = p._2.eTo
       proxyOps[FuncIsoCompanionCtor](p)
   }
 
-  implicit case object FuncIsoCompanionElem extends CompanionElem[FuncIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[FuncIsoCompanionCtor]
-  }
+  implicit case object FuncIsoCompanionElem extends CompanionElem[FuncIsoCompanionCtor]
 
-  implicit def proxyFuncIso[A, B, C, D](p: Rep[FuncIso[A, B, C, D]]): FuncIso[A, B, C, D] =
-    proxyOps[FuncIso[A, B, C, D]](p)
+  implicit def proxyFuncIso[A, B, C, D](p: Rep[FuncIso[A, B, C, D]]): FuncIso[A, B, C, D] = {
+    if (p.rhs.isInstanceOf[FuncIso[A, B, C, D]])
+      p.rhs.asInstanceOf[FuncIso[A, B, C, D]]
+    else
+      proxyOps[FuncIso[A, B, C, D]](p)
+  }
 
   implicit class ExtendedFuncIso[A, B, C, D](p: Rep[FuncIso[A, B, C, D]]) {
     def toData: Rep[FuncIsoData[A, B, C, D]] = {
@@ -1397,11 +1315,6 @@ implicit lazy val eB = convTo.eR
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
     override def convertIsoUR(x: Rep[IsoUR[A, B]]) = // Converter is not generated by meta
 !!!("Cannot convert from IsoUR to ConverterIso: missing fields List(convTo, convFrom)")
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[ConverterIso[A, B]]
-    }
   }
 
   // state representation type
@@ -1428,11 +1341,6 @@ implicit lazy val eB = convTo.eR
     }
   }
   case class ConverterIsoIsoElem[A, B](eA: Elem[A], eB: Elem[B]) extends Elem[ConverterIsoIso[A, B]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[ConverterIsoIso[A, B]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -1461,12 +1369,14 @@ implicit val eB = p._1.eR
       proxyOps[ConverterIsoCompanionCtor](p)
   }
 
-  implicit case object ConverterIsoCompanionElem extends CompanionElem[ConverterIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[ConverterIsoCompanionCtor]
-  }
+  implicit case object ConverterIsoCompanionElem extends CompanionElem[ConverterIsoCompanionCtor]
 
-  implicit def proxyConverterIso[A, B](p: Rep[ConverterIso[A, B]]): ConverterIso[A, B] =
-    proxyOps[ConverterIso[A, B]](p)
+  implicit def proxyConverterIso[A, B](p: Rep[ConverterIso[A, B]]): ConverterIso[A, B] = {
+    if (p.rhs.isInstanceOf[ConverterIso[A, B]])
+      p.rhs.asInstanceOf[ConverterIso[A, B]]
+    else
+      proxyOps[ConverterIso[A, B]](p)
+  }
 
   implicit class ExtendedConverterIso[A, B](p: Rep[ConverterIso[A, B]]) {
     def toData: Rep[ConverterIsoData[A, B]] = {
@@ -1553,11 +1463,6 @@ implicit override lazy val eB = innerIso.eTo
     override lazy val parent: Option[Elem[_]] = Some(iso1URElement(element[A], element[B], container[Thunk]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
     override def convertIso1UR(x: Rep[Iso1UR[A, B, Thunk]]) = RThunkIso(x.innerIso)
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[ThunkIso[A, B]]
-    }
   }
 
   // state representation type
@@ -1584,11 +1489,6 @@ implicit override lazy val eB = innerIso.eTo
     }
   }
   case class ThunkIsoIsoElem[A, B](eA: Elem[A], eB: Elem[B]) extends Elem[ThunkIsoIso[A, B]] {
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[ThunkIsoIso[A, B]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -1611,12 +1511,14 @@ implicit override lazy val eB = innerIso.eTo
       proxyOps[ThunkIsoCompanionCtor](p)
   }
 
-  implicit case object ThunkIsoCompanionElem extends CompanionElem[ThunkIsoCompanionCtor] {
-    lazy val tag = weakTypeTag[ThunkIsoCompanionCtor]
-  }
+  implicit case object ThunkIsoCompanionElem extends CompanionElem[ThunkIsoCompanionCtor]
 
-  implicit def proxyThunkIso[A, B](p: Rep[ThunkIso[A, B]]): ThunkIso[A, B] =
-    proxyOps[ThunkIso[A, B]](p)
+  implicit def proxyThunkIso[A, B](p: Rep[ThunkIso[A, B]]): ThunkIso[A, B] = {
+    if (p.rhs.isInstanceOf[ThunkIso[A, B]])
+      p.rhs.asInstanceOf[ThunkIso[A, B]]
+    else
+      proxyOps[ThunkIso[A, B]](p)
+  }
 
   implicit class ExtendedThunkIso[A, B](p: Rep[ThunkIso[A, B]]) {
     def toData: Rep[ThunkIsoData[A, B]] = {

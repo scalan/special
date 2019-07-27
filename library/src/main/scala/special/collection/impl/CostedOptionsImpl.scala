@@ -69,10 +69,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
     def productElement(n: Int) = eT
   }
   case class CCostedOptionIsoElem[T](eT: Elem[T]) extends Elem[CCostedOptionIso[T]] {
-    lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CCostedOptionIso[T]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -104,7 +100,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
   }
 
   implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor] {
-    lazy val tag = weakTypeTag[CCostedOptionCompanionCtor]
   }
 
   implicit def proxyCCostedOption[T](p: Rep[CCostedOption[T]]): CCostedOption[T] =

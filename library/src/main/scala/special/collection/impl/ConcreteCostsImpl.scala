@@ -85,7 +85,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     def productElement(n: Int) = eVal
   }
   case class CCostedPrimIsoElem[Val](eVal: Elem[Val]) extends Elem[CCostedPrimIso[Val]] {
-    lazy val tag = {
+    override lazy val tag = {
       implicit val tagVal = eVal.tag
       weakTypeTag[CCostedPrimIso[Val]]
     }
@@ -120,7 +120,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
   }
 
   implicit case object CCostedPrimCompanionElem extends CompanionElem[CCostedPrimCompanionCtor] {
-    lazy val tag = weakTypeTag[CCostedPrimCompanionCtor]
   }
 
   implicit def proxyCCostedPrim[Val](p: Rep[CCostedPrim[Val]]): CCostedPrim[Val] =
@@ -228,11 +227,6 @@ implicit lazy val eR = r.eVal
     }
   }
   case class CCostedPairIsoElem[L, R](eL: Elem[L], eR: Elem[R]) extends Elem[CCostedPairIso[L, R]] {
-    lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[CCostedPairIso[L, R]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -265,7 +259,6 @@ implicit val eR = p._2.eVal
   }
 
   implicit case object CCostedPairCompanionElem extends CompanionElem[CCostedPairCompanionCtor] {
-    lazy val tag = weakTypeTag[CCostedPairCompanionCtor]
   }
 
   implicit def proxyCCostedPair[L, R](p: Rep[CCostedPair[L, R]]): CCostedPair[L, R] =
@@ -412,12 +405,6 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     }
   }
   case class CCostedFuncIsoElem[Env, Arg, Res](eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]) extends Elem[CCostedFuncIso[Env, Arg, Res]] {
-    lazy val tag = {
-      implicit val tagEnv = eEnv.tag
-      implicit val tagArg = eArg.tag
-      implicit val tagRes = eRes.tag
-      weakTypeTag[CCostedFuncIso[Env, Arg, Res]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -448,7 +435,6 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
   }
 
   implicit case object CCostedFuncCompanionElem extends CompanionElem[CCostedFuncCompanionCtor] {
-    lazy val tag = weakTypeTag[CCostedFuncCompanionCtor]
   }
 
   implicit def proxyCCostedFunc[Env, Arg, Res](p: Rep[CCostedFunc[Env, Arg, Res]]): CCostedFunc[Env, Arg, Res] =
@@ -637,10 +623,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
     def productElement(n: Int) = eItem
   }
   case class CCostedCollIsoElem[Item](eItem: Elem[Item]) extends Elem[CCostedCollIso[Item]] {
-    lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CCostedCollIso[Item]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -672,7 +654,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
   }
 
   implicit case object CCostedCollCompanionElem extends CompanionElem[CCostedCollCompanionCtor] {
-    lazy val tag = weakTypeTag[CCostedCollCompanionCtor]
   }
 
   implicit def proxyCCostedColl[Item](p: Rep[CCostedColl[Item]]): CCostedColl[Item] =
@@ -862,9 +843,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     def productElement(n: Int) = ???
   }
   case class CCostedBuilderIsoElem() extends Elem[CCostedBuilderIso] {
-    lazy val tag = {
-      weakTypeTag[CCostedBuilderIso]
-    }
   }
   // 4) constructor and deconstructor
   class CCostedBuilderCompanionCtor extends CompanionDef[CCostedBuilderCompanionCtor] with CCostedBuilderCompanion {
@@ -891,7 +869,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   }
 
   implicit case object CCostedBuilderCompanionElem extends CompanionElem[CCostedBuilderCompanionCtor] {
-    lazy val tag = weakTypeTag[CCostedBuilderCompanionCtor]
   }
 
   implicit def proxyCCostedBuilder(p: Rep[CCostedBuilder]): CCostedBuilder =

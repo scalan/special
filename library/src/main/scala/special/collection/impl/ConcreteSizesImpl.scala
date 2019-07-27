@@ -70,10 +70,6 @@ object CSizePrim extends EntityObject("CSizePrim") {
     def productElement(n: Int) = eVal
   }
   case class CSizePrimIsoElem[Val](eVal: Elem[Val]) extends Elem[CSizePrimIso[Val]] {
-    lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[CSizePrimIso[Val]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -102,7 +98,6 @@ object CSizePrim extends EntityObject("CSizePrim") {
   }
 
   implicit case object CSizePrimCompanionElem extends CompanionElem[CSizePrimCompanionCtor] {
-    lazy val tag = weakTypeTag[CSizePrimCompanionCtor]
   }
 
   implicit def proxyCSizePrim[Val](p: Rep[CSizePrim[Val]]): CSizePrim[Val] =
@@ -198,11 +193,6 @@ implicit lazy val eR = r.eVal
     }
   }
   case class CSizePairIsoElem[L, R](eL: Elem[L], eR: Elem[R]) extends Elem[CSizePairIso[L, R]] {
-    lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[CSizePairIso[L, R]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -232,7 +222,6 @@ implicit val eR = p._2.eVal
   }
 
   implicit case object CSizePairCompanionElem extends CompanionElem[CSizePairCompanionCtor] {
-    lazy val tag = weakTypeTag[CSizePairCompanionCtor]
   }
 
   implicit def proxyCSizePair[L, R](p: Rep[CSizePair[L, R]]): CSizePair[L, R] =
@@ -332,10 +321,6 @@ object CSizeColl extends EntityObject("CSizeColl") {
     def productElement(n: Int) = eItem
   }
   case class CSizeCollIsoElem[Item](eItem: Elem[Item]) extends Elem[CSizeCollIso[Item]] {
-    lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CSizeCollIso[Item]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -359,7 +344,6 @@ object CSizeColl extends EntityObject("CSizeColl") {
   }
 
   implicit case object CSizeCollCompanionElem extends CompanionElem[CSizeCollCompanionCtor] {
-    lazy val tag = weakTypeTag[CSizeCollCompanionCtor]
   }
 
   implicit def proxyCSizeColl[Item](p: Rep[CSizeColl[Item]]): CSizeColl[Item] =
@@ -467,12 +451,6 @@ implicit lazy val eRes = tRes.eA
     }
   }
   case class CSizeFuncIsoElem[Env, Arg, Res](eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]) extends Elem[CSizeFuncIso[Env, Arg, Res]] {
-    lazy val tag = {
-      implicit val tagEnv = eEnv.tag
-      implicit val tagArg = eArg.tag
-      implicit val tagRes = eRes.tag
-      weakTypeTag[CSizeFuncIso[Env, Arg, Res]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -503,7 +481,6 @@ implicit val eRes = p._4.eA
   }
 
   implicit case object CSizeFuncCompanionElem extends CompanionElem[CSizeFuncCompanionCtor] {
-    lazy val tag = weakTypeTag[CSizeFuncCompanionCtor]
   }
 
   implicit def proxyCSizeFunc[Env, Arg, Res](p: Rep[CSizeFunc[Env, Arg, Res]]): CSizeFunc[Env, Arg, Res] =
@@ -605,10 +582,6 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     def productElement(n: Int) = eItem
   }
   case class CSizeOptionIsoElem[Item](eItem: Elem[Item]) extends Elem[CSizeOptionIso[Item]] {
-    lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CSizeOptionIso[Item]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -632,7 +605,6 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
   }
 
   implicit case object CSizeOptionCompanionElem extends CompanionElem[CSizeOptionCompanionCtor] {
-    lazy val tag = weakTypeTag[CSizeOptionCompanionCtor]
   }
 
   implicit def proxyCSizeOption[Item](p: Rep[CSizeOption[Item]]): CSizeOption[Item] =

@@ -81,7 +81,6 @@ object Monoid extends EntityObject("Monoid") {
     cachedElemByClass(eT)(classOf[MonoidElem[T, Monoid[T]]])
 
   implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[MonoidCompanionCtor]
   }
 
   abstract class MonoidCompanionCtor extends CompanionDef[MonoidCompanionCtor] with MonoidCompanion {
@@ -233,7 +232,6 @@ implicit val eB = m2.eT
     new MonoidBuilderElem[MonoidBuilder]
 
   implicit case object MonoidBuilderCompanionElem extends CompanionElem[MonoidBuilderCompanionCtor] {
-    lazy val tag = weakTypeTag[MonoidBuilderCompanionCtor]
   }
 
   abstract class MonoidBuilderCompanionCtor extends CompanionDef[MonoidBuilderCompanionCtor] with MonoidBuilderCompanion {

@@ -11,10 +11,6 @@ trait RewriteRules extends Base { self: ScalanEx =>
   type RRewrite[A] = Rep[Rewrite[A]]
 
   case class RewriteElem[A](eA: Elem[A]) extends Elem[Rewrite[A]] {
-    lazy val tag = {
-      implicit val tag1 = eA.tag
-      implicitly[WeakTypeTag[Rewrite[A]]]
-    }
     override def buildTypeArgs = TypeArgs("A" -> (eA -> Invariant))
   }
 
