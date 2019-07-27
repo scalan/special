@@ -6,6 +6,7 @@ import special.wrappers.WrappersModule
 import special.wrappers.SpecialPredefWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -37,9 +38,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   // familyElem
   class WSpecialPredefElem[To <: WSpecialPredef]
     extends EntityElem[To] {
-    override lazy val tag = {
-      weakTypeTag[WSpecialPredef].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[WSpecialPredef] => convertWSpecialPredef(x) }
       tryConvert(element[WSpecialPredef], this, x, conv)
@@ -56,15 +54,14 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   implicit lazy val wSpecialPredefElement: Elem[WSpecialPredef] =
     new WSpecialPredefElem[WSpecialPredef]
 
-  implicit case object WSpecialPredefCompanionElem extends CompanionElem[WSpecialPredefCompanionCtor] {
-  }
+  implicit case object WSpecialPredefCompanionElem extends CompanionElem[WSpecialPredefCompanionCtor]
 
   abstract class WSpecialPredefCompanionCtor extends CompanionDef[WSpecialPredefCompanionCtor] with WSpecialPredefCompanion {
     def selfType = WSpecialPredefCompanionElem
     override def toString = "WSpecialPredef"
   }
   implicit def proxyWSpecialPredefCompanionCtor(p: Rep[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
-    proxyOps[WSpecialPredefCompanionCtor](p)
+    p.rhs.asInstanceOf[WSpecialPredefCompanionCtor]
 
   lazy val RWSpecialPredef: Rep[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
     private val thisClass = classOf[WSpecialPredefCompanion]
@@ -73,14 +70,14 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       implicit val eA = opt.eA
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("optionGetOrElse", classOf[Sym], classOf[Sym]),
-        List(opt, default),
+        Array[AnyRef](opt, default),
         true, false, element[A]))
     }
 
     def none[A](implicit emA: Elem[A]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
         thisClass.getMethod("none", classOf[Elem[_]]),
-        List(emA),
+        Array[AnyRef](emA),
         true, false, element[WOption[A]]))
     }
 
@@ -88,14 +85,14 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       implicit val eA = x.elem
       asRep[WOption[A]](mkMethodCall(self,
         thisClass.getMethod("some", classOf[Sym]),
-        List(x),
+        Array[AnyRef](x),
         true, false, element[WOption[A]]))
     }
 
     def cast[T](v: Rep[Any])(implicit emT: Elem[T]): Rep[WOption[T]] = {
       asRep[WOption[T]](mkMethodCall(self,
         thisClass.getMethod("cast", classOf[Sym], classOf[Elem[_]]),
-        List(v, emT),
+        Array[AnyRef](v, emT),
         true, false, element[WOption[T]]))
     }
 
@@ -103,7 +100,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
       implicit val eA = s1.elem
       asRep[A](mkMethodCall(self,
         thisClass.getMethod("loopUntil", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(s1, isMatch, step),
+        Array[AnyRef](s1, isMatch, step),
         true, false, element[A]))
     }
   }

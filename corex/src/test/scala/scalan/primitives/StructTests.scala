@@ -160,13 +160,6 @@ class StructTests extends BaseViewTests {
     val e3 = structElement(Seq("b" -> eInt))
     assert(e1 == e2, "should be equal")
     assert(e1 != e3, "should not be equal")
-    val t1 = e1.tag
-    val t2 = e2.tag
-    val t3 = e3.tag
-    assert(t1 == t2, "should be equal")
-
-    // NOTE: all StructElem instances are expected to have equal tags
-    assert(t1 == t3, "should be equal as well even though e1 != e3 !!!")
 
     assert(es1 == es1again)
     assert(es1 != es2)

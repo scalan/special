@@ -3,9 +3,10 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
-import scalan.util.MemoizedFunc
+import scalan.util.MemoizedFunc // manual fix
 
 // Abs -----------------------------------
 trait ConcreteCostsDefs extends scalan.Scalan with ConcreteCosts {
@@ -58,10 +59,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     override lazy val parent: Option[Elem[_]] = Some(costedPrimElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
     override def convertCostedPrim(x: Rep[CostedPrim[Val]]) = RCCostedPrim(x.value, x.cost, x.size)
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[CCostedPrim[Val]]
-    }
   }
 
   // state representation type
@@ -85,10 +82,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     def productElement(n: Int) = eVal
   }
   case class CCostedPrimIsoElem[Val](eVal: Elem[Val]) extends Elem[CCostedPrimIso[Val]] {
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[CCostedPrimIso[Val]]
-    }
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
   }
   // 4) constructor and deconstructor
@@ -119,11 +112,14 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
       proxyOps[CCostedPrimCompanionCtor](p)
   }
 
-  implicit case object CCostedPrimCompanionElem extends CompanionElem[CCostedPrimCompanionCtor] {
-  }
+  implicit case object CCostedPrimCompanionElem extends CompanionElem[CCostedPrimCompanionCtor]
 
-  implicit def proxyCCostedPrim[Val](p: Rep[CCostedPrim[Val]]): CCostedPrim[Val] =
-    proxyOps[CCostedPrim[Val]](p)
+  implicit def proxyCCostedPrim[Val](p: Rep[CCostedPrim[Val]]): CCostedPrim[Val] = {
+    if (p.rhs.isInstanceOf[CCostedPrim[Val]])
+      p.rhs.asInstanceOf[CCostedPrim[Val]]
+    else
+      proxyOps[CCostedPrim[Val]](p)
+  }
 
   implicit class ExtendedCCostedPrim[Val](p: Rep[CCostedPrim[Val]]) {
     def toData: Rep[CCostedPrimData[Val]] = {
@@ -185,7 +181,7 @@ implicit lazy val eR = r.eVal
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
   }
@@ -196,11 +192,6 @@ implicit lazy val eR = r.eVal
     override lazy val parent: Option[Elem[_]] = Some(costedPairElement(element[L], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
     override def convertCostedPair(x: Rep[CostedPair[L, R]]) = RCCostedPair(x.l, x.r, x.accCost)
-    override lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[CCostedPair[L, R]]
-    }
   }
 
   // state representation type
@@ -258,11 +249,14 @@ implicit val eR = p._2.eVal
       proxyOps[CCostedPairCompanionCtor](p)
   }
 
-  implicit case object CCostedPairCompanionElem extends CompanionElem[CCostedPairCompanionCtor] {
-  }
+  implicit case object CCostedPairCompanionElem extends CompanionElem[CCostedPairCompanionCtor]
 
-  implicit def proxyCCostedPair[L, R](p: Rep[CCostedPair[L, R]]): CCostedPair[L, R] =
-    proxyOps[CCostedPair[L, R]](p)
+  implicit def proxyCCostedPair[L, R](p: Rep[CCostedPair[L, R]]): CCostedPair[L, R] = {
+    if (p.rhs.isInstanceOf[CCostedPair[L, R]])
+      p.rhs.asInstanceOf[CCostedPair[L, R]]
+    else
+      proxyOps[CCostedPair[L, R]](p)
+  }
 
   implicit class ExtendedCCostedPair[L, R](p: Rep[CCostedPair[L, R]]) {
     def toData: Rep[CCostedPairData[L, R]] = {
@@ -361,7 +355,7 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override def value: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(self,
         thisClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Arg => Res]))
     }
   }
@@ -372,12 +366,6 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override lazy val parent: Option[Elem[_]] = Some(costedFuncElement(element[Env], element[Arg], element[Res]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
     override def convertCostedFunc(x: Rep[CostedFunc[Env, Arg, Res]]) = RCCostedFunc(x.envCosted, x.func, x.cost, x.size)
-    override lazy val tag = {
-      implicit val tagEnv = eEnv.tag
-      implicit val tagArg = eArg.tag
-      implicit val tagRes = eRes.tag
-      weakTypeTag[CCostedFunc[Env, Arg, Res]]
-    }
   }
 
   // state representation type
@@ -434,11 +422,14 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
       proxyOps[CCostedFuncCompanionCtor](p)
   }
 
-  implicit case object CCostedFuncCompanionElem extends CompanionElem[CCostedFuncCompanionCtor] {
-  }
+  implicit case object CCostedFuncCompanionElem extends CompanionElem[CCostedFuncCompanionCtor]
 
-  implicit def proxyCCostedFunc[Env, Arg, Res](p: Rep[CCostedFunc[Env, Arg, Res]]): CCostedFunc[Env, Arg, Res] =
-    proxyOps[CCostedFunc[Env, Arg, Res]](p)
+  implicit def proxyCCostedFunc[Env, Arg, Res](p: Rep[CCostedFunc[Env, Arg, Res]]): CCostedFunc[Env, Arg, Res] = {
+    if (p.rhs.isInstanceOf[CCostedFunc[Env, Arg, Res]])
+      p.rhs.asInstanceOf[CCostedFunc[Env, Arg, Res]]
+    else
+      proxyOps[CCostedFunc[Env, Arg, Res]](p)
+  }
 
   implicit class ExtendedCCostedFunc[Env, Arg, Res](p: Rep[CCostedFunc[Env, Arg, Res]]) {
     def toData: Rep[CCostedFuncData[Env, Arg, Res]] = {
@@ -562,7 +553,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
 
@@ -570,14 +561,14 @@ object CCostedColl extends EntityObject("CCostedColl") {
       implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
       asRep[CostedColl[Res]](mkMethodCall(self,
         thisClass.getMethod("mapCosted", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, false, element[CostedColl[Res]]))
     }
 
     override def filterCosted(f: Rep[Costed[Item] => Costed[Boolean]]): Rep[CostedColl[Item]] = {
       asRep[CostedColl[Item]](mkMethodCall(self,
         thisClass.getMethod("filterCosted", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, false, element[CostedColl[Item]]))
     }
 
@@ -585,7 +576,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
       implicit val eB = zero.eVal
       asRep[Costed[B]](mkMethodCall(self,
         thisClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
-        List(zero, op),
+        Array[AnyRef](zero, op),
         true, false, element[Costed[B]]))
     }
   }
@@ -596,10 +587,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
     override lazy val parent: Option[Elem[_]] = Some(costedCollElement(element[Item]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override def convertCostedColl(x: Rep[CostedColl[Item]]) = RCCostedColl(x.values, x.costs, x.sizes, x.valuesCost)
-    override lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CCostedColl[Item]]
-    }
   }
 
   // state representation type
@@ -653,11 +640,14 @@ object CCostedColl extends EntityObject("CCostedColl") {
       proxyOps[CCostedCollCompanionCtor](p)
   }
 
-  implicit case object CCostedCollCompanionElem extends CompanionElem[CCostedCollCompanionCtor] {
-  }
+  implicit case object CCostedCollCompanionElem extends CompanionElem[CCostedCollCompanionCtor]
 
-  implicit def proxyCCostedColl[Item](p: Rep[CCostedColl[Item]]): CCostedColl[Item] =
-    proxyOps[CCostedColl[Item]](p)
+  implicit def proxyCCostedColl[Item](p: Rep[CCostedColl[Item]]): CCostedColl[Item] = {
+    if (p.rhs.isInstanceOf[CCostedColl[Item]])
+      p.rhs.asInstanceOf[CCostedColl[Item]]
+    else
+      proxyOps[CCostedColl[Item]](p)
+  }
 
   implicit class ExtendedCCostedColl[Item](p: Rep[CCostedColl[Item]]) {
     def toData: Rep[CCostedCollData[Item]] = {
@@ -790,7 +780,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     override def monoidBuilder: Rep[MonoidBuilder] = {
       asRep[MonoidBuilder](mkMethodCall(self,
         thisClass.getMethod("monoidBuilder"),
-        List(),
+        WrappedArray.empty,
         true, false, element[MonoidBuilder]))
     }
 
@@ -798,7 +788,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       implicit val eT = x.elem
       asRep[Costed[T]](mkMethodCall(self,
         thisClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
-        List(x, optCost),
+        Array[AnyRef](x, optCost),
         true, false, element[Costed[T]]))
     }
 
@@ -806,7 +796,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       implicit val eT = valueType.eA
       asRep[T](mkMethodCall(self,
         thisClass.getMethod("defaultValue", classOf[Sym]),
-        List(valueType),
+        Array[AnyRef](valueType),
         true, false, element[T]))
     }
   }
@@ -817,9 +807,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     override lazy val parent: Option[Elem[_]] = Some(costedBuilderElement)
 
     override def convertCostedBuilder(x: Rep[CostedBuilder]) = RCCostedBuilder()
-    override lazy val tag = {
-      weakTypeTag[CCostedBuilder]
-    }
   }
 
   // state representation type
@@ -868,11 +855,14 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
       proxyOps[CCostedBuilderCompanionCtor](p)
   }
 
-  implicit case object CCostedBuilderCompanionElem extends CompanionElem[CCostedBuilderCompanionCtor] {
-  }
+  implicit case object CCostedBuilderCompanionElem extends CompanionElem[CCostedBuilderCompanionCtor]
 
-  implicit def proxyCCostedBuilder(p: Rep[CCostedBuilder]): CCostedBuilder =
-    proxyOps[CCostedBuilder](p)
+  implicit def proxyCCostedBuilder(p: Rep[CCostedBuilder]): CCostedBuilder = {
+    if (p.rhs.isInstanceOf[CCostedBuilder])
+      p.rhs.asInstanceOf[CCostedBuilder]
+    else
+      proxyOps[CCostedBuilder](p)
+  }
 
   implicit class ExtendedCCostedBuilder(p: Rep[CCostedBuilder]) {
     def toData: Rep[CCostedBuilderData] = {

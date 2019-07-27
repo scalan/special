@@ -149,7 +149,9 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           val wSpecPackageName = wrapspecUnit.map(_.packageName).getOrElse("wrappers")
           val wUnit = u.copy(imports = u.imports ++ wconfig.imports.map(SImportStat(_)) ++
             List(SImportStat(s"$wSpecPackageName.WrappersModule"),
-                 SImportStat(s"$wSpecPackageName.${wconfig.name}WrapSpec")))
+                 SImportStat(s"$wSpecPackageName.${wconfig.name}WrapSpec"),
+                 SImportStat("scala.collection.mutable.WrappedArray")
+                 ))
 
           /** Build source code of the wrapper unit and store it in a file */
           val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)

@@ -174,7 +174,6 @@ class ScalanEx extends Scalan
   }
 
   class ArgElem(val tyArg: STpeArg) extends Elem[Any] with Serializable with scala.Equals {
-    val tag = ReflectionUtil.createArgTypeTag(tyArg.name).asInstanceOf[WeakTypeTag[Any]]
     def argName = tyArg.name
     override def getName(f: TypeDesc => String) = {
       if (typeArgs.isEmpty)

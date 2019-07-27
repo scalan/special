@@ -3,6 +3,7 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -43,28 +44,28 @@ object Costed extends EntityObject("Costed") {
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         CostedClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Val] = {
       asRep[Val](mkMethodCall(source,
         CostedClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Val]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def size: Rep[Size[Val]] = {
       asRep[Size[Val]](mkMethodCall(source,
         CostedClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[Val]]))
     }
   }
@@ -82,10 +83,6 @@ object Costed extends EntityObject("Costed") {
     def eVal = _eVal
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[Costed[Val]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[Costed[Val]] => convertCosted(x) }
       tryConvert(element[Costed[Val]], this, x, conv)
@@ -102,15 +99,14 @@ object Costed extends EntityObject("Costed") {
   implicit def costedElement[Val](implicit eVal: Elem[Val]): Elem[Costed[Val]] =
     cachedElemByClass(eVal)(classOf[CostedElem[Val, Costed[Val]]])
 
-  implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor] {
-  }
+  implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor]
 
   abstract class CostedCompanionCtor extends CompanionDef[CostedCompanionCtor] with CostedCompanion {
     def selfType = CostedCompanionElem
     override def toString = "Costed"
   }
   implicit def proxyCostedCompanionCtor(p: Rep[CostedCompanionCtor]): CostedCompanionCtor =
-    proxyOps[CostedCompanionCtor](p)
+    p.rhs.asInstanceOf[CostedCompanionCtor]
 
   lazy val RCosted: Rep[CostedCompanionCtor] = new CostedCompanionCtor {
     private val thisClass = classOf[CostedCompanion]
@@ -190,28 +186,28 @@ object CostedPrim extends EntityObject("CostedPrim") {
     def value: Rep[Val] = {
       asRep[Val](mkMethodCall(source,
         CostedPrimClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Val]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedPrimClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def size: Rep[Size[Val]] = {
       asRep[Size[Val]](mkMethodCall(source,
         CostedPrimClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[Val]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         CostedPrimClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
   }
@@ -230,10 +226,6 @@ object CostedPrim extends EntityObject("CostedPrim") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[CostedPrim[Val]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[CostedPrim[Val]] => convertCostedPrim(x) }
       tryConvert(element[CostedPrim[Val]], this, x, conv)
@@ -250,15 +242,14 @@ object CostedPrim extends EntityObject("CostedPrim") {
   implicit def costedPrimElement[Val](implicit eVal: Elem[Val]): Elem[CostedPrim[Val]] =
     cachedElemByClass(eVal)(classOf[CostedPrimElem[Val, CostedPrim[Val]]])
 
-  implicit case object CostedPrimCompanionElem extends CompanionElem[CostedPrimCompanionCtor] {
-  }
+  implicit case object CostedPrimCompanionElem extends CompanionElem[CostedPrimCompanionCtor]
 
   abstract class CostedPrimCompanionCtor extends CompanionDef[CostedPrimCompanionCtor] with CostedPrimCompanion {
     def selfType = CostedPrimCompanionElem
     override def toString = "CostedPrim"
   }
   implicit def proxyCostedPrimCompanionCtor(p: Rep[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
-    proxyOps[CostedPrimCompanionCtor](p)
+    p.rhs.asInstanceOf[CostedPrimCompanionCtor]
 
   lazy val RCostedPrim: Rep[CostedPrimCompanionCtor] = new CostedPrimCompanionCtor {
     private val thisClass = classOf[CostedPrimCompanion]
@@ -326,49 +317,49 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def l: Rep[Costed[L]] = {
       asRep[Costed[L]](mkMethodCall(source,
         CostedPairClass.getMethod("l"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Costed[L]]))
     }
 
     def r: Rep[Costed[R]] = {
       asRep[Costed[R]](mkMethodCall(source,
         CostedPairClass.getMethod("r"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Costed[R]]))
     }
 
     def accCost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedPairClass.getMethod("accCost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         CostedPairClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
     def value: Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         CostedPairClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[(L, R)]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedPairClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def size: Rep[Size[(L, R)]] = {
       asRep[Size[(L, R)]](mkMethodCall(source,
         CostedPairClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[(L, R)]]))
     }
   }
@@ -388,11 +379,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[CostedPair[L, R]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[CostedPair[L, R]] => convertCostedPair(x) }
       tryConvert(element[CostedPair[L, R]], this, x, conv)
@@ -409,15 +395,14 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   implicit def costedPairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[CostedPair[L, R]] =
     cachedElemByClass(eL, eR)(classOf[CostedPairElem[L, R, CostedPair[L, R]]])
 
-  implicit case object CostedPairCompanionElem extends CompanionElem[CostedPairCompanionCtor] {
-  }
+  implicit case object CostedPairCompanionElem extends CompanionElem[CostedPairCompanionCtor]
 
   abstract class CostedPairCompanionCtor extends CompanionDef[CostedPairCompanionCtor] with CostedPairCompanion {
     def selfType = CostedPairCompanionElem
     override def toString = "CostedPair"
   }
   implicit def proxyCostedPairCompanionCtor(p: Rep[CostedPairCompanionCtor]): CostedPairCompanionCtor =
-    proxyOps[CostedPairCompanionCtor](p)
+    p.rhs.asInstanceOf[CostedPairCompanionCtor]
 
   lazy val RCostedPair: Rep[CostedPairCompanionCtor] = new CostedPairCompanionCtor {
     private val thisClass = classOf[CostedPairCompanion]
@@ -486,70 +471,70 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     def envCosted: Rep[Costed[Env]] = {
       asRep[Costed[Env]](mkMethodCall(source,
         CostedFuncClass.getMethod("envCosted"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Costed[Env]]))
     }
 
     def func: Rep[Costed[Arg] => Costed[Res]] = {
       asRep[Costed[Arg] => Costed[Res]](mkMethodCall(source,
         CostedFuncClass.getMethod("func"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Costed[Arg] => Costed[Res]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedFuncClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def sliceCalc: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(source,
         CostedFuncClass.getMethod("sliceCalc"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Arg => Res]))
     }
 
     def sliceCost: Rep[((Int, Size[Arg])) => Int] = {
       asRep[((Int, Size[Arg])) => Int](mkMethodCall(source,
         CostedFuncClass.getMethod("sliceCost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[((Int, Size[Arg])) => Int]))
     }
 
     def sliceCostEx: Rep[((Arg, (Int, Size[Arg]))) => Int] = {
       asRep[((Arg, (Int, Size[Arg]))) => Int](mkMethodCall(source,
         CostedFuncClass.getMethod("sliceCostEx"),
-        List(),
+        WrappedArray.empty,
         true, true, element[((Arg, (Int, Size[Arg]))) => Int]))
     }
 
     def sliceSize: Rep[Size[Arg] => Size[Res]] = {
       asRep[Size[Arg] => Size[Res]](mkMethodCall(source,
         CostedFuncClass.getMethod("sliceSize"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[Arg] => Size[Res]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         CostedFuncClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(source,
         CostedFuncClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Arg => Res]))
     }
 
     def size: Rep[Size[Arg => Res]] = {
       asRep[Size[Arg => Res]](mkMethodCall(source,
         CostedFuncClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[Arg => Res]]))
     }
   }
@@ -570,12 +555,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(funcElement(element[Arg],element[Res])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagEnv = eEnv.tag
-      implicit val tagArg = eArg.tag
-      implicit val tagRes = eRes.tag
-      weakTypeTag[CostedFunc[Env, Arg, Res]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[CostedFunc[Env, Arg, Res]] => convertCostedFunc(x) }
       tryConvert(element[CostedFunc[Env, Arg, Res]], this, x, conv)
@@ -592,15 +571,14 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   implicit def costedFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[CostedFunc[Env, Arg, Res]] =
     cachedElemByClass(eEnv, eArg, eRes)(classOf[CostedFuncElem[Env, Arg, Res, CostedFunc[Env, Arg, Res]]])
 
-  implicit case object CostedFuncCompanionElem extends CompanionElem[CostedFuncCompanionCtor] {
-  }
+  implicit case object CostedFuncCompanionElem extends CompanionElem[CostedFuncCompanionCtor]
 
   abstract class CostedFuncCompanionCtor extends CompanionDef[CostedFuncCompanionCtor] with CostedFuncCompanion {
     def selfType = CostedFuncCompanionElem
     override def toString = "CostedFunc"
   }
   implicit def proxyCostedFuncCompanionCtor(p: Rep[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
-    proxyOps[CostedFuncCompanionCtor](p)
+    p.rhs.asInstanceOf[CostedFuncCompanionCtor]
 
   lazy val RCostedFunc: Rep[CostedFuncCompanionCtor] = new CostedFuncCompanionCtor {
     private val thisClass = classOf[CostedFuncCompanion]
@@ -719,28 +697,28 @@ object CostedColl extends EntityObject("CostedColl") {
     def values: Rep[Coll[Item]] = {
       asRep[Coll[Item]](mkMethodCall(source,
         CostedCollClass.getMethod("values"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Item]]))
     }
 
     def costs: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
         CostedCollClass.getMethod("costs"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Int]]))
     }
 
     def sizes: Rep[Coll[Size[Item]]] = {
       asRep[Coll[Size[Item]]](mkMethodCall(source,
         CostedCollClass.getMethod("sizes"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Size[Item]]]))
     }
 
     def valuesCost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedCollClass.getMethod("valuesCost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
@@ -748,14 +726,14 @@ object CostedColl extends EntityObject("CostedColl") {
       implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
       asRep[CostedColl[Res]](mkMethodCall(source,
         CostedCollClass.getMethod("mapCosted", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[CostedColl[Res]]))
     }
 
     def filterCosted(f: Rep[Costed[Item] => Costed[Boolean]]): Rep[CostedColl[Item]] = {
       asRep[CostedColl[Item]](mkMethodCall(source,
         CostedCollClass.getMethod("filterCosted", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[CostedColl[Item]]))
     }
 
@@ -763,35 +741,35 @@ object CostedColl extends EntityObject("CostedColl") {
       implicit val eB = zero.eVal
       asRep[Costed[B]](mkMethodCall(source,
         CostedCollClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
-        List(zero, op),
+        Array[AnyRef](zero, op),
         true, true, element[Costed[B]]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         CostedCollClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
     def value: Rep[Coll[Item]] = {
       asRep[Coll[Item]](mkMethodCall(source,
         CostedCollClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Item]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedCollClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def size: Rep[Size[Coll[Item]]] = {
       asRep[Size[Coll[Item]]](mkMethodCall(source,
         CostedCollClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[Coll[Item]]]))
     }
   }
@@ -810,10 +788,6 @@ object CostedColl extends EntityObject("CostedColl") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(collElement(element[Item])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CostedColl[Item]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[CostedColl[Item]] => convertCostedColl(x) }
       tryConvert(element[CostedColl[Item]], this, x, conv)
@@ -830,15 +804,14 @@ object CostedColl extends EntityObject("CostedColl") {
   implicit def costedCollElement[Item](implicit eItem: Elem[Item]): Elem[CostedColl[Item]] =
     cachedElemByClass(eItem)(classOf[CostedCollElem[Item, CostedColl[Item]]])
 
-  implicit case object CostedCollCompanionElem extends CompanionElem[CostedCollCompanionCtor] {
-  }
+  implicit case object CostedCollCompanionElem extends CompanionElem[CostedCollCompanionCtor]
 
   abstract class CostedCollCompanionCtor extends CompanionDef[CostedCollCompanionCtor] with CostedCollCompanion {
     def selfType = CostedCollCompanionElem
     override def toString = "CostedColl"
   }
   implicit def proxyCostedCollCompanionCtor(p: Rep[CostedCollCompanionCtor]): CostedCollCompanionCtor =
-    proxyOps[CostedCollCompanionCtor](p)
+    p.rhs.asInstanceOf[CostedCollCompanionCtor]
 
   lazy val RCostedColl: Rep[CostedCollCompanionCtor] = new CostedCollCompanionCtor {
     private val thisClass = classOf[CostedCollCompanion]
@@ -957,49 +930,49 @@ object CostedOption extends EntityObject("CostedOption") {
     def costOpt: Rep[WOption[Int]] = {
       asRep[WOption[Int]](mkMethodCall(source,
         CostedOptionClass.getMethod("costOpt"),
-        List(),
+        WrappedArray.empty,
         true, true, element[WOption[Int]]))
     }
 
     def sizeOpt: Rep[WOption[Size[T]]] = {
       asRep[WOption[Size[T]]](mkMethodCall(source,
         CostedOptionClass.getMethod("sizeOpt"),
-        List(),
+        WrappedArray.empty,
         true, true, element[WOption[Size[T]]]))
     }
 
     def accumulatedCost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedOptionClass.getMethod("accumulatedCost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def builder: Rep[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
         CostedOptionClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
     def value: Rep[WOption[T]] = {
       asRep[WOption[T]](mkMethodCall(source,
         CostedOptionClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[WOption[T]]))
     }
 
     def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CostedOptionClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def size: Rep[Size[WOption[T]]] = {
       asRep[Size[WOption[T]]](mkMethodCall(source,
         CostedOptionClass.getMethod("size"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[WOption[T]]]))
     }
   }
@@ -1018,10 +991,6 @@ object CostedOption extends EntityObject("CostedOption") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(wOptionElement(element[T])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CostedOption[T]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[CostedOption[T]] => convertCostedOption(x) }
       tryConvert(element[CostedOption[T]], this, x, conv)
@@ -1038,15 +1007,14 @@ object CostedOption extends EntityObject("CostedOption") {
   implicit def costedOptionElement[T](implicit eT: Elem[T]): Elem[CostedOption[T]] =
     cachedElemByClass(eT)(classOf[CostedOptionElem[T, CostedOption[T]]])
 
-  implicit case object CostedOptionCompanionElem extends CompanionElem[CostedOptionCompanionCtor] {
-  }
+  implicit case object CostedOptionCompanionElem extends CompanionElem[CostedOptionCompanionCtor]
 
   abstract class CostedOptionCompanionCtor extends CompanionDef[CostedOptionCompanionCtor] with CostedOptionCompanion {
     def selfType = CostedOptionCompanionElem
     override def toString = "CostedOption"
   }
   implicit def proxyCostedOptionCompanionCtor(p: Rep[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
-    proxyOps[CostedOptionCompanionCtor](p)
+    p.rhs.asInstanceOf[CostedOptionCompanionCtor]
 
   lazy val RCostedOption: Rep[CostedOptionCompanionCtor] = new CostedOptionCompanionCtor {
     private val thisClass = classOf[CostedOptionCompanion]
@@ -1112,7 +1080,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
       implicit val eT = x.elem
       asRep[Costed[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
-        List(x, optCost),
+        Array[AnyRef](x, optCost),
         true, true, element[Costed[T]]))
     }
 
@@ -1120,14 +1088,14 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
       implicit val eT = valueType.eA
       asRep[T](mkMethodCall(source,
         CostedBuilderClass.getMethod("defaultValue", classOf[Sym]),
-        List(valueType),
+        Array[AnyRef](valueType),
         true, true, element[T]))
     }
 
     def monoidBuilder: Rep[MonoidBuilder] = {
       asRep[MonoidBuilder](mkMethodCall(source,
         CostedBuilderClass.getMethod("monoidBuilder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[MonoidBuilder]))
     }
 
@@ -1135,7 +1103,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
       implicit val eT = tT.eA
       asRep[SizePrim[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkSizePrim", classOf[Sym], classOf[Sym]),
-        List(dataSize, tT),
+        Array[AnyRef](dataSize, tT),
         true, true, element[SizePrim[T]]))
     }
 
@@ -1144,7 +1112,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
 implicit val eR = r.eVal
       asRep[SizePair[L, R]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkSizePair", classOf[Sym], classOf[Sym]),
-        List(l, r),
+        Array[AnyRef](l, r),
         true, true, element[SizePair[L, R]]))
     }
 
@@ -1152,7 +1120,7 @@ implicit val eR = r.eVal
       implicit val eT = sizes.eA.typeArgs("Val")._1.asElem[T]
       asRep[SizeColl[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkSizeColl", classOf[Sym]),
-        List(sizes),
+        Array[AnyRef](sizes),
         true, true, element[SizeColl[T]]))
     }
 
@@ -1162,7 +1130,7 @@ implicit val eA = tA.eA
 implicit val eR = tR.eA
       asRep[SizeFunc[E, A, R]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkSizeFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(sizeEnv, sizeFunc, tA, tR),
+        Array[AnyRef](sizeEnv, sizeFunc, tA, tR),
         true, true, element[SizeFunc[E, A, R]]))
     }
 
@@ -1170,7 +1138,7 @@ implicit val eR = tR.eA
       implicit val eT = sizeOpt.eA.typeArgs("Val")._1.asElem[T]
       asRep[SizeOption[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkSizeOption", classOf[Sym]),
-        List(sizeOpt),
+        Array[AnyRef](sizeOpt),
         true, true, element[SizeOption[T]]))
     }
 
@@ -1178,7 +1146,7 @@ implicit val eR = tR.eA
       implicit val eT = value.elem
       asRep[CostedPrim[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkCostedPrim", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(value, cost, size),
+        Array[AnyRef](value, cost, size),
         true, true, element[CostedPrim[T]]))
     }
 
@@ -1187,7 +1155,7 @@ implicit val eR = tR.eA
 implicit val eR = second.eVal
       asRep[CostedPair[L, R]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkCostedPair", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(first, second, accCost),
+        Array[AnyRef](first, second, accCost),
         true, true, element[CostedPair[L, R]]))
     }
 
@@ -1197,7 +1165,7 @@ implicit val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg]
 implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
       asRep[CostedFunc[Env, Arg, Res]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkCostedFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(envCosted, func, cost, size),
+        Array[AnyRef](envCosted, func, cost, size),
         true, true, element[CostedFunc[Env, Arg, Res]]))
     }
 
@@ -1205,7 +1173,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
       implicit val eT = values.eA
       asRep[CostedColl[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkCostedColl", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(values, costs, sizes, valuesCost),
+        Array[AnyRef](values, costs, sizes, valuesCost),
         true, true, element[CostedColl[T]]))
     }
 
@@ -1213,7 +1181,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
       implicit val eT = value.eA
       asRep[CostedOption[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkCostedOption", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(value, costOpt, sizeOpt, accumulatedCost),
+        Array[AnyRef](value, costOpt, sizeOpt, accumulatedCost),
         true, true, element[CostedOption[T]]))
     }
   }
@@ -1228,9 +1196,6 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   // familyElem
   class CostedBuilderElem[To <: CostedBuilder]
     extends EntityElem[To] {
-    override lazy val tag = {
-      weakTypeTag[CostedBuilder].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[CostedBuilder] => convertCostedBuilder(x) }
       tryConvert(element[CostedBuilder], this, x, conv)
@@ -1247,15 +1212,14 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   implicit lazy val costedBuilderElement: Elem[CostedBuilder] =
     new CostedBuilderElem[CostedBuilder]
 
-  implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor] {
-  }
+  implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor]
 
   abstract class CostedBuilderCompanionCtor extends CompanionDef[CostedBuilderCompanionCtor] with CostedBuilderCompanion {
     def selfType = CostedBuilderCompanionElem
     override def toString = "CostedBuilder"
   }
   implicit def proxyCostedBuilderCompanionCtor(p: Rep[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
-    proxyOps[CostedBuilderCompanionCtor](p)
+    p.rhs.asInstanceOf[CostedBuilderCompanionCtor]
 
   lazy val RCostedBuilder: Rep[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
     private val thisClass = classOf[CostedBuilderCompanion]

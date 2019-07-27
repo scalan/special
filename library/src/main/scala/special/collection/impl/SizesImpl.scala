@@ -3,6 +3,7 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -43,7 +44,7 @@ object Size extends EntityObject("Size") {
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         SizeClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Long]))
     }
   }
@@ -79,7 +80,7 @@ object Size extends EntityObject("Size") {
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Long]))
     }
   }
@@ -106,10 +107,6 @@ object Size extends EntityObject("Size") {
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[Size[Val]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[Size[Val]] => convertSize(x) }
       tryConvert(element[Size[Val]], this, x, conv)
@@ -126,15 +123,14 @@ object Size extends EntityObject("Size") {
   implicit def sizeElement[Val](implicit eVal: Elem[Val]): Elem[Size[Val]] =
     cachedElemByClass(eVal)(classOf[SizeElem[Val, Size[Val]]])
 
-  implicit case object SizeCompanionElem extends CompanionElem[SizeCompanionCtor] {
-  }
+  implicit case object SizeCompanionElem extends CompanionElem[SizeCompanionCtor]
 
   abstract class SizeCompanionCtor extends CompanionDef[SizeCompanionCtor] with SizeCompanion {
     def selfType = SizeCompanionElem
     override def toString = "Size"
   }
   implicit def proxySizeCompanionCtor(p: Rep[SizeCompanionCtor]): SizeCompanionCtor =
-    proxyOps[SizeCompanionCtor](p)
+    p.rhs.asInstanceOf[SizeCompanionCtor]
 
   lazy val RSize: Rep[SizeCompanionCtor] = new SizeCompanionCtor {
     private val thisClass = classOf[SizeCompanion]
@@ -183,14 +179,14 @@ object SizePrim extends EntityObject("SizePrim") {
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         SizePrimClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Long]))
     }
 
     override def tVal: Rep[WRType[Val]] = {
       asRep[WRType[Val]](mkMethodCall(self,
         SizePrimClass.getMethod("tVal"),
-        List(),
+        WrappedArray.empty,
         true, false, element[WRType[Val]]))
     }
   }
@@ -226,14 +222,14 @@ object SizePrim extends EntityObject("SizePrim") {
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         SizePrimClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Long]))
     }
 
     def tVal: Rep[WRType[Val]] = {
       asRep[WRType[Val]](mkMethodCall(source,
         SizePrimClass.getMethod("tVal"),
-        List(),
+        WrappedArray.empty,
         true, true, element[WRType[Val]]))
     }
   }
@@ -261,10 +257,6 @@ object SizePrim extends EntityObject("SizePrim") {
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[SizePrim[Val]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[SizePrim[Val]] => convertSizePrim(x) }
       tryConvert(element[SizePrim[Val]], this, x, conv)
@@ -281,15 +273,14 @@ object SizePrim extends EntityObject("SizePrim") {
   implicit def sizePrimElement[Val](implicit eVal: Elem[Val]): Elem[SizePrim[Val]] =
     cachedElemByClass(eVal)(classOf[SizePrimElem[Val, SizePrim[Val]]])
 
-  implicit case object SizePrimCompanionElem extends CompanionElem[SizePrimCompanionCtor] {
-  }
+  implicit case object SizePrimCompanionElem extends CompanionElem[SizePrimCompanionCtor]
 
   abstract class SizePrimCompanionCtor extends CompanionDef[SizePrimCompanionCtor] with SizePrimCompanion {
     def selfType = SizePrimCompanionElem
     override def toString = "SizePrim"
   }
   implicit def proxySizePrimCompanionCtor(p: Rep[SizePrimCompanionCtor]): SizePrimCompanionCtor =
-    proxyOps[SizePrimCompanionCtor](p)
+    p.rhs.asInstanceOf[SizePrimCompanionCtor]
 
   lazy val RSizePrim: Rep[SizePrimCompanionCtor] = new SizePrimCompanionCtor {
     private val thisClass = classOf[SizePrimCompanion]
@@ -354,14 +345,14 @@ object SizePair extends EntityObject("SizePair") {
     override def l: Rep[Size[L]] = {
       asRep[Size[L]](mkMethodCall(self,
         SizePairClass.getMethod("l"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Size[L]]))
     }
 
     override def r: Rep[Size[R]] = {
       asRep[Size[R]](mkMethodCall(self,
         SizePairClass.getMethod("r"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Size[R]]))
     }
   }
@@ -399,21 +390,21 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def l: Rep[Size[L]] = {
       asRep[Size[L]](mkMethodCall(source,
         SizePairClass.getMethod("l"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[L]]))
     }
 
     def r: Rep[Size[R]] = {
       asRep[Size[R]](mkMethodCall(source,
         SizePairClass.getMethod("r"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[R]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         SizePairClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Long]))
     }
   }
@@ -442,11 +433,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[SizePair[L, R]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[SizePair[L, R]] => convertSizePair(x) }
       tryConvert(element[SizePair[L, R]], this, x, conv)
@@ -463,15 +449,14 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   implicit def sizePairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[SizePair[L, R]] =
     cachedElemByClass(eL, eR)(classOf[SizePairElem[L, R, SizePair[L, R]]])
 
-  implicit case object SizePairCompanionElem extends CompanionElem[SizePairCompanionCtor] {
-  }
+  implicit case object SizePairCompanionElem extends CompanionElem[SizePairCompanionCtor]
 
   abstract class SizePairCompanionCtor extends CompanionDef[SizePairCompanionCtor] with SizePairCompanion {
     def selfType = SizePairCompanionElem
     override def toString = "SizePair"
   }
   implicit def proxySizePairCompanionCtor(p: Rep[SizePairCompanionCtor]): SizePairCompanionCtor =
-    proxyOps[SizePairCompanionCtor](p)
+    p.rhs.asInstanceOf[SizePairCompanionCtor]
 
   lazy val RSizePair: Rep[SizePairCompanionCtor] = new SizePairCompanionCtor {
     private val thisClass = classOf[SizePairCompanion]
@@ -534,7 +519,7 @@ object SizeColl extends EntityObject("SizeColl") {
     override def sizes: Rep[Coll[Size[Item]]] = {
       asRep[Coll[Size[Item]]](mkMethodCall(self,
         SizeCollClass.getMethod("sizes"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Coll[Size[Item]]]))
     }
   }
@@ -570,14 +555,14 @@ object SizeColl extends EntityObject("SizeColl") {
     def sizes: Rep[Coll[Size[Item]]] = {
       asRep[Coll[Size[Item]]](mkMethodCall(source,
         SizeCollClass.getMethod("sizes"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Size[Item]]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeCollClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Long]))
     }
   }
@@ -605,10 +590,6 @@ object SizeColl extends EntityObject("SizeColl") {
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(collElement(element[Item])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[SizeColl[Item]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[SizeColl[Item]] => convertSizeColl(x) }
       tryConvert(element[SizeColl[Item]], this, x, conv)
@@ -625,15 +606,14 @@ object SizeColl extends EntityObject("SizeColl") {
   implicit def sizeCollElement[Item](implicit eItem: Elem[Item]): Elem[SizeColl[Item]] =
     cachedElemByClass(eItem)(classOf[SizeCollElem[Item, SizeColl[Item]]])
 
-  implicit case object SizeCollCompanionElem extends CompanionElem[SizeCollCompanionCtor] {
-  }
+  implicit case object SizeCollCompanionElem extends CompanionElem[SizeCollCompanionCtor]
 
   abstract class SizeCollCompanionCtor extends CompanionDef[SizeCollCompanionCtor] with SizeCollCompanion {
     def selfType = SizeCollCompanionElem
     override def toString = "SizeColl"
   }
   implicit def proxySizeCollCompanionCtor(p: Rep[SizeCollCompanionCtor]): SizeCollCompanionCtor =
-    proxyOps[SizeCollCompanionCtor](p)
+    p.rhs.asInstanceOf[SizeCollCompanionCtor]
 
   lazy val RSizeColl: Rep[SizeCollCompanionCtor] = new SizeCollCompanionCtor {
     private val thisClass = classOf[SizeCollCompanion]
@@ -687,7 +667,7 @@ object SizeFunc extends EntityObject("SizeFunc") {
     override def sizeEnv: Rep[Size[Env]] = {
       asRep[Size[Env]](mkMethodCall(self,
         SizeFuncClass.getMethod("sizeEnv"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Size[Env]]))
     }
   }
@@ -727,14 +707,14 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     def sizeEnv: Rep[Size[Env]] = {
       asRep[Size[Env]](mkMethodCall(source,
         SizeFuncClass.getMethod("sizeEnv"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Size[Env]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeFuncClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Long]))
     }
   }
@@ -764,12 +744,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(funcElement(element[Arg],element[Res])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagEnv = eEnv.tag
-      implicit val tagArg = eArg.tag
-      implicit val tagRes = eRes.tag
-      weakTypeTag[SizeFunc[Env, Arg, Res]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[SizeFunc[Env, Arg, Res]] => convertSizeFunc(x) }
       tryConvert(element[SizeFunc[Env, Arg, Res]], this, x, conv)
@@ -786,15 +760,14 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   implicit def sizeFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[SizeFunc[Env, Arg, Res]] =
     cachedElemByClass(eEnv, eArg, eRes)(classOf[SizeFuncElem[Env, Arg, Res, SizeFunc[Env, Arg, Res]]])
 
-  implicit case object SizeFuncCompanionElem extends CompanionElem[SizeFuncCompanionCtor] {
-  }
+  implicit case object SizeFuncCompanionElem extends CompanionElem[SizeFuncCompanionCtor]
 
   abstract class SizeFuncCompanionCtor extends CompanionDef[SizeFuncCompanionCtor] with SizeFuncCompanion {
     def selfType = SizeFuncCompanionElem
     override def toString = "SizeFunc"
   }
   implicit def proxySizeFuncCompanionCtor(p: Rep[SizeFuncCompanionCtor]): SizeFuncCompanionCtor =
-    proxyOps[SizeFuncCompanionCtor](p)
+    p.rhs.asInstanceOf[SizeFuncCompanionCtor]
 
   lazy val RSizeFunc: Rep[SizeFuncCompanionCtor] = new SizeFuncCompanionCtor {
     private val thisClass = classOf[SizeFuncCompanion]
@@ -844,7 +817,7 @@ object SizeOption extends EntityObject("SizeOption") {
     override def sizeOpt: Rep[WOption[Size[T]]] = {
       asRep[WOption[Size[T]]](mkMethodCall(self,
         SizeOptionClass.getMethod("sizeOpt"),
-        List(),
+        WrappedArray.empty,
         true, false, element[WOption[Size[T]]]))
     }
   }
@@ -880,14 +853,14 @@ object SizeOption extends EntityObject("SizeOption") {
     def sizeOpt: Rep[WOption[Size[T]]] = {
       asRep[WOption[Size[T]]](mkMethodCall(source,
         SizeOptionClass.getMethod("sizeOpt"),
-        List(),
+        WrappedArray.empty,
         true, true, element[WOption[Size[T]]]))
     }
 
     def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeOptionClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Long]))
     }
   }
@@ -915,10 +888,6 @@ object SizeOption extends EntityObject("SizeOption") {
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(wOptionElement(element[T])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[SizeOption[T]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[SizeOption[T]] => convertSizeOption(x) }
       tryConvert(element[SizeOption[T]], this, x, conv)
@@ -935,15 +904,14 @@ object SizeOption extends EntityObject("SizeOption") {
   implicit def sizeOptionElement[T](implicit eT: Elem[T]): Elem[SizeOption[T]] =
     cachedElemByClass(eT)(classOf[SizeOptionElem[T, SizeOption[T]]])
 
-  implicit case object SizeOptionCompanionElem extends CompanionElem[SizeOptionCompanionCtor] {
-  }
+  implicit case object SizeOptionCompanionElem extends CompanionElem[SizeOptionCompanionCtor]
 
   abstract class SizeOptionCompanionCtor extends CompanionDef[SizeOptionCompanionCtor] with SizeOptionCompanion {
     def selfType = SizeOptionCompanionElem
     override def toString = "SizeOption"
   }
   implicit def proxySizeOptionCompanionCtor(p: Rep[SizeOptionCompanionCtor]): SizeOptionCompanionCtor =
-    proxyOps[SizeOptionCompanionCtor](p)
+    p.rhs.asInstanceOf[SizeOptionCompanionCtor]
 
   lazy val RSizeOption: Rep[SizeOptionCompanionCtor] = new SizeOptionCompanionCtor {
     private val thisClass = classOf[SizeOptionCompanion]

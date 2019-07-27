@@ -55,7 +55,7 @@ lazy val itSettings = commonSettings ++ Defaults.itSettings ++
 
 def libraryDefSettings = commonSettings ++ Seq(
   scalacOptions ++= Seq(
-    s"-Xplugin:${file(".").absolutePath }/scalanizer/target/scala-2.12/scalanizer-assembly-core-opt-d50e596f-SNAPSHOT.jar"
+//    s"-Xplugin:${file(".").absolutePath }/scalanizer/target/scala-2.12/scalanizer-assembly-core-opt-6681ca8e-SNAPSHOT.jar"
     //          , s"-P:scalanizer:module=$scalanizerOption"
     //    , "-Xgenerate-phase-graph"
   )

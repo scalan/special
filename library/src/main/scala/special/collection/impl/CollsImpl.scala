@@ -3,6 +3,7 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -41,49 +42,49 @@ object Coll extends EntityObject("Coll") {
     override def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(self,
         CollClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, false, element[CollBuilder]))
     }
 
     override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         CollClass.getMethod("length"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
 
     override def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         CollClass.getMethod("isEmpty"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Boolean]))
     }
 
     override def nonEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         CollClass.getMethod("nonEmpty"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Boolean]))
     }
 
     override def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        Array[AnyRef](i),
         true, false, element[A]))
     }
 
     override def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         CollClass.getMethod("isDefinedAt", classOf[Sym]),
-        List(idx),
+        Array[AnyRef](idx),
         true, false, element[Boolean]))
     }
 
     override def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(index, default),
+        Array[AnyRef](index, default),
         true, false, element[A]))
     }
 
@@ -91,7 +92,7 @@ object Coll extends EntityObject("Coll") {
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(self,
         CollClass.getMethod("map", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, false, element[Coll[B]]))
     }
 
@@ -99,28 +100,28 @@ object Coll extends EntityObject("Coll") {
       implicit val eB = ys.eA
       asRep[Coll[(A, B)]](mkMethodCall(self,
         CollClass.getMethod("zip", classOf[Sym]),
-        List(ys),
+        Array[AnyRef](ys),
         true, false, element[Coll[(A, B)]]))
     }
 
     override def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         CollClass.getMethod("exists", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, false, element[Boolean]))
     }
 
     override def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         CollClass.getMethod("forall", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, false, element[Boolean]))
     }
 
     override def filter(p: Rep[A => Boolean]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("filter", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, false, element[Coll[A]]))
     }
 
@@ -128,14 +129,14 @@ object Coll extends EntityObject("Coll") {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(self,
         CollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
-        List(zero, op),
+        Array[AnyRef](zero, op),
         true, false, element[B]))
     }
 
     override def indices: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(self,
         CollClass.getMethod("indices"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Coll[Int]]))
     }
 
@@ -143,77 +144,77 @@ object Coll extends EntityObject("Coll") {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[Coll[B]](mkMethodCall(self,
         CollClass.getMethod("flatMap", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, false, element[Coll[B]]))
     }
 
     override def segmentLength(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         CollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, false, element[Int]))
     }
 
     override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
         CollClass.getMethod("find", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, false, element[WOption[A]]))
     }
 
     override def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         CollClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, false, element[Int]))
     }
 
     override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         CollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
-        List(elem, from),
+        Array[AnyRef](elem, from),
         true, false, element[Int]))
     }
 
     override def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         CollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
-        List(p, end),
+        Array[AnyRef](p, end),
         true, false, element[Int]))
     }
 
     override def take(n: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("take", classOf[Sym]),
-        List(n),
+        Array[AnyRef](n),
         true, false, element[Coll[A]]))
     }
 
     override def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
       asRep[(Coll[A], Coll[A])](mkMethodCall(self,
         CollClass.getMethod("partition", classOf[Sym]),
-        List(pred),
+        Array[AnyRef](pred),
         true, false, element[(Coll[A], Coll[A])]))
     }
 
     override def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(from, patch, replaced),
+        Array[AnyRef](from, patch, replaced),
         true, false, element[Coll[A]]))
     }
 
     override def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("updated", classOf[Sym], classOf[Sym]),
-        List(index, elem),
+        Array[AnyRef](index, elem),
         true, false, element[Coll[A]]))
     }
 
     override def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
-        List(indexes, values),
+        Array[AnyRef](indexes, values),
         true, false, element[Coll[A]]))
     }
 
@@ -222,7 +223,7 @@ object Coll extends EntityObject("Coll") {
 implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(K, V)]](mkMethodCall(self,
         CollClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
-        List(m, r),
+        Array[AnyRef](m, r),
         true, false, element[Coll[(K, V)]]))
     }
 
@@ -230,7 +231,7 @@ implicit val eV = m.elem.eRange.eSnd
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[A])]](mkMethodCall(self,
         CollClass.getMethod("groupBy", classOf[Sym]),
-        List(key),
+        Array[AnyRef](key),
         true, false, element[Coll[(K, Coll[A])]]))
     }
 
@@ -239,56 +240,56 @@ implicit val eV = m.elem.eRange.eSnd
 implicit val eV = proj.elem.eRange
       asRep[Coll[(K, Coll[V])]](mkMethodCall(self,
         CollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
-        List(key, proj),
+        Array[AnyRef](key, proj),
         true, false, element[Coll[(K, Coll[V])]]))
     }
 
     override def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("unionSet", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, false, element[Coll[A]]))
     }
 
     override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("diff", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, false, element[Coll[A]]))
     }
 
     override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("intersect", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, false, element[Coll[A]]))
     }
 
     override def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(self,
         CollClass.getMethod("sum", classOf[Sym]),
-        List(m),
+        Array[AnyRef](m),
         true, false, element[A]))
     }
 
     override def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("slice", classOf[Sym], classOf[Sym]),
-        List(from, until),
+        Array[AnyRef](from, until),
         true, false, element[Coll[A]]))
     }
 
     override def append(other: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("append", classOf[Sym]),
-        List(other),
+        Array[AnyRef](other),
         true, false, element[Coll[A]]))
     }
 
     override def reverse: Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         CollClass.getMethod("reverse"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Coll[A]]))
     }
   }
@@ -324,49 +325,49 @@ implicit val eV = proj.elem.eRange
     def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(source,
         CollClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CollBuilder]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CollClass.getMethod("length"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         CollClass.getMethod("isEmpty"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def nonEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         CollClass.getMethod("nonEmpty"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         CollClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        Array[AnyRef](i),
         true, true, element[A]))
     }
 
     def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         CollClass.getMethod("isDefinedAt", classOf[Sym]),
-        List(idx),
+        Array[AnyRef](idx),
         true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         CollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(index, default),
+        Array[AnyRef](index, default),
         true, true, element[A]))
     }
 
@@ -374,7 +375,7 @@ implicit val eV = proj.elem.eRange
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(source,
         CollClass.getMethod("map", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[B]]))
     }
 
@@ -382,28 +383,28 @@ implicit val eV = proj.elem.eRange
       implicit val eB = ys.eA
       asRep[Coll[(A, B)]](mkMethodCall(source,
         CollClass.getMethod("zip", classOf[Sym]),
-        List(ys),
+        Array[AnyRef](ys),
         true, true, element[Coll[(A, B)]]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         CollClass.getMethod("exists", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         CollClass.getMethod("forall", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("filter", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Coll[A]]))
     }
 
@@ -411,14 +412,14 @@ implicit val eV = proj.elem.eRange
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
         CollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
-        List(zero, op),
+        Array[AnyRef](zero, op),
         true, true, element[B]))
     }
 
     def indices: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
         CollClass.getMethod("indices"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Int]]))
     }
 
@@ -426,77 +427,77 @@ implicit val eV = proj.elem.eRange
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[Coll[B]](mkMethodCall(source,
         CollClass.getMethod("flatMap", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[B]]))
     }
 
     def segmentLength(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, true, element[Int]))
     }
 
     override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(source,
         CollClass.getMethod("find", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[WOption[A]]))
     }
 
     def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CollClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, true, element[Int]))
     }
 
     override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
-        List(elem, from),
+        Array[AnyRef](elem, from),
         true, true, element[Int]))
     }
 
     def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         CollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
-        List(p, end),
+        Array[AnyRef](p, end),
         true, true, element[Int]))
     }
 
     def take(n: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("take", classOf[Sym]),
-        List(n),
+        Array[AnyRef](n),
         true, true, element[Coll[A]]))
     }
 
     def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
       asRep[(Coll[A], Coll[A])](mkMethodCall(source,
         CollClass.getMethod("partition", classOf[Sym]),
-        List(pred),
+        Array[AnyRef](pred),
         true, true, element[(Coll[A], Coll[A])]))
     }
 
     def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(from, patch, replaced),
+        Array[AnyRef](from, patch, replaced),
         true, true, element[Coll[A]]))
     }
 
     def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("updated", classOf[Sym], classOf[Sym]),
-        List(index, elem),
+        Array[AnyRef](index, elem),
         true, true, element[Coll[A]]))
     }
 
     def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
-        List(indexes, values),
+        Array[AnyRef](indexes, values),
         true, true, element[Coll[A]]))
     }
 
@@ -505,7 +506,7 @@ implicit val eV = proj.elem.eRange
 implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(K, V)]](mkMethodCall(source,
         CollClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
-        List(m, r),
+        Array[AnyRef](m, r),
         true, true, element[Coll[(K, V)]]))
     }
 
@@ -513,7 +514,7 @@ implicit val eV = m.elem.eRange.eSnd
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[A])]](mkMethodCall(source,
         CollClass.getMethod("groupBy", classOf[Sym]),
-        List(key),
+        Array[AnyRef](key),
         true, true, element[Coll[(K, Coll[A])]]))
     }
 
@@ -522,56 +523,56 @@ implicit val eV = m.elem.eRange.eSnd
 implicit val eV = proj.elem.eRange
       asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
         CollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
-        List(key, proj),
+        Array[AnyRef](key, proj),
         true, true, element[Coll[(K, Coll[V])]]))
     }
 
     def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("unionSet", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[A]]))
     }
 
     override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("diff", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[A]]))
     }
 
     override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("intersect", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[A]]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         CollClass.getMethod("sum", classOf[Sym]),
-        List(m),
+        Array[AnyRef](m),
         true, true, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("slice", classOf[Sym], classOf[Sym]),
-        List(from, until),
+        Array[AnyRef](from, until),
         true, true, element[Coll[A]]))
     }
 
     def append(other: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("append", classOf[Sym]),
-        List(other),
+        Array[AnyRef](other),
         true, true, element[Coll[A]]))
     }
 
     def reverse: Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         CollClass.getMethod("reverse"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[A]]))
     }
   }
@@ -619,10 +620,6 @@ implicit val eV = proj.elem.eRange
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[Coll[A]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[Coll[A]] => convertColl(x) }
       tryConvert(element[Coll[A]], this, x, conv)
@@ -639,16 +636,14 @@ implicit val eV = proj.elem.eRange
   implicit def collElement[A](implicit eA: Elem[A]): Elem[Coll[A]] =
     cachedElemByClass(eA)(classOf[CollElem[A, Coll[A]]])
 
-  implicit case object CollCompanionElem extends CompanionElem[CollCompanionCtor] {
-    override lazy val tag = weakTypeTag[CollCompanionCtor]
-  }
+  implicit case object CollCompanionElem extends CompanionElem[CollCompanionCtor]
 
   abstract class CollCompanionCtor extends CompanionDef[CollCompanionCtor] with CollCompanion {
     def selfType = CollCompanionElem
     override def toString = "Coll"
   }
   implicit def proxyCollCompanionCtor(p: Rep[CollCompanionCtor]): CollCompanionCtor =
-    proxyOps[CollCompanionCtor](p)
+    p.rhs.asInstanceOf[CollCompanionCtor]
 
   lazy val RColl: Rep[CollCompanionCtor] = new CollCompanionCtor {
     private val thisClass = classOf[CollCompanion]
@@ -1152,14 +1147,14 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def ls: Rep[Coll[L]] = {
       asRep[Coll[L]](mkMethodCall(source,
         PairCollClass.getMethod("ls"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[L]]))
     }
 
     def rs: Rep[Coll[R]] = {
       asRep[Coll[R]](mkMethodCall(source,
         PairCollClass.getMethod("rs"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[R]]))
     }
 
@@ -1167,7 +1162,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       implicit val eT1 = f.elem.eRange
       asRep[Coll[(T1, R)]](mkMethodCall(source,
         PairCollClass.getMethod("mapFirst", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[(T1, R)]]))
     }
 
@@ -1175,56 +1170,56 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       implicit val eT1 = f.elem.eRange
       asRep[Coll[(L, T1)]](mkMethodCall(source,
         PairCollClass.getMethod("mapSecond", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[(L, T1)]]))
     }
 
     def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(source,
         PairCollClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CollBuilder]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         PairCollClass.getMethod("length"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         PairCollClass.getMethod("isEmpty"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def nonEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         PairCollClass.getMethod("nonEmpty"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def apply(i: Rep[Int]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         PairCollClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        Array[AnyRef](i),
         true, true, element[(L, R)]))
     }
 
     def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         PairCollClass.getMethod("isDefinedAt", classOf[Sym]),
-        List(idx),
+        Array[AnyRef](idx),
         true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[(L, R)]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         PairCollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(index, default),
+        Array[AnyRef](index, default),
         true, true, element[(L, R)]))
     }
 
@@ -1232,7 +1227,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(source,
         PairCollClass.getMethod("map", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[B]]))
     }
 
@@ -1248,21 +1243,21 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def exists(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         PairCollClass.getMethod("exists", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Boolean]))
     }
 
     def forall(p: Rep[((L, R)) => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         PairCollClass.getMethod("forall", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Boolean]))
     }
 
     def filter(p: Rep[((L, R)) => Boolean]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("filter", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Coll[(L, R)]]))
     }
 
@@ -1270,14 +1265,14 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
         PairCollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
-        List(zero, op),
+        Array[AnyRef](zero, op),
         true, true, element[B]))
     }
 
     def indices: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
         PairCollClass.getMethod("indices"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Int]]))
     }
 
@@ -1285,49 +1280,49 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[Coll[B]](mkMethodCall(source,
         PairCollClass.getMethod("flatMap", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[B]]))
     }
 
     def segmentLength(p: Rep[((L, R)) => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         PairCollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, true, element[Int]))
     }
 
     override def find(p: Rep[((L, R)) => Boolean]): Rep[WOption[(L, R)]] = {
       asRep[WOption[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("find", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[WOption[(L, R)]]))
     }
 
     def indexWhere(p: Rep[((L, R)) => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         PairCollClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, true, element[Int]))
     }
 
     override def indexOf(elem: Rep[(L, R)], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         PairCollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
-        List(elem, from),
+        Array[AnyRef](elem, from),
         true, true, element[Int]))
     }
 
     def lastIndexWhere(p: Rep[((L, R)) => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         PairCollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
-        List(p, end),
+        Array[AnyRef](p, end),
         true, true, element[Int]))
     }
 
     def take(n: Rep[Int]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("take", classOf[Sym]),
-        List(n),
+        Array[AnyRef](n),
         true, true, element[Coll[(L, R)]]))
     }
 
@@ -1342,21 +1337,21 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def patch(from: Rep[Int], patch: Rep[Coll[(L, R)]], replaced: Rep[Int]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(from, patch, replaced),
+        Array[AnyRef](from, patch, replaced),
         true, true, element[Coll[(L, R)]]))
     }
 
     def updated(index: Rep[Int], elem: Rep[(L, R)]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("updated", classOf[Sym], classOf[Sym]),
-        List(index, elem),
+        Array[AnyRef](index, elem),
         true, true, element[Coll[(L, R)]]))
     }
 
     def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
-        List(indexes, values),
+        Array[AnyRef](indexes, values),
         true, true, element[Coll[(L, R)]]))
     }
 
@@ -1365,7 +1360,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(K, V)]](mkMethodCall(source,
         PairCollClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
-        List(m, r),
+        Array[AnyRef](m, r),
         true, true, element[Coll[(K, V)]]))
     }
 
@@ -1383,56 +1378,56 @@ implicit val eV = m.elem.eRange.eSnd
 implicit val eV = proj.elem.eRange
       asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
         PairCollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
-        List(key, proj),
+        Array[AnyRef](key, proj),
         true, true, element[Coll[(K, Coll[V])]]))
     }
 
     def unionSet(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("unionSet", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[(L, R)]]))
     }
 
     override def diff(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("diff", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[(L, R)]]))
     }
 
     override def intersect(that: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("intersect", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[(L, R)]]))
     }
 
     def sum(m: Rep[Monoid[(L, R)]]): Rep[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
         PairCollClass.getMethod("sum", classOf[Sym]),
-        List(m),
+        Array[AnyRef](m),
         true, true, element[(L, R)]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("slice", classOf[Sym], classOf[Sym]),
-        List(from, until),
+        Array[AnyRef](from, until),
         true, true, element[Coll[(L, R)]]))
     }
 
     def append(other: Rep[Coll[(L, R)]]): Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("append", classOf[Sym]),
-        List(other),
+        Array[AnyRef](other),
         true, true, element[Coll[(L, R)]]))
     }
 
     def reverse: Rep[Coll[(L, R)]] = {
       asRep[Coll[(L, R)]](mkMethodCall(source,
         PairCollClass.getMethod("reverse"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[(L, R)]]))
     }
   }
@@ -1452,11 +1447,6 @@ implicit val eV = proj.elem.eRange
 
     override lazy val parent: Option[Elem[_]] = Some(collElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[PairColl[L, R]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[PairColl[L, R]] => convertPairColl(x) }
       tryConvert(element[PairColl[L, R]], this, x, conv)
@@ -1473,16 +1463,14 @@ implicit val eV = proj.elem.eRange
   implicit def pairCollElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[PairColl[L, R]] =
     cachedElemByClass(eL, eR)(classOf[PairCollElem[L, R, PairColl[L, R]]])
 
-  implicit case object PairCollCompanionElem extends CompanionElem[PairCollCompanionCtor] {
-    override lazy val tag = weakTypeTag[PairCollCompanionCtor]
-  }
+  implicit case object PairCollCompanionElem extends CompanionElem[PairCollCompanionCtor]
 
   abstract class PairCollCompanionCtor extends CompanionDef[PairCollCompanionCtor] with PairCollCompanion {
     def selfType = PairCollCompanionElem
     override def toString = "PairColl"
   }
   implicit def proxyPairCollCompanionCtor(p: Rep[PairCollCompanionCtor]): PairCollCompanionCtor =
-    proxyOps[PairCollCompanionCtor](p)
+    p.rhs.asInstanceOf[PairCollCompanionCtor]
 
   lazy val RPairColl: Rep[PairCollCompanionCtor] = new PairCollCompanionCtor {
     private val thisClass = classOf[PairCollCompanion]
@@ -1570,21 +1558,21 @@ object ReplColl extends EntityObject("ReplColl") {
     override def value: Rep[A] = {
       asRep[A](mkMethodCall(self,
         ReplCollClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, false, element[A]))
     }
 
     override def length: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         ReplCollClass.getMethod("length"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
 
     override def append(other: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(self,
         ReplCollClass.getMethod("append", classOf[Sym]),
-        List(other),
+        Array[AnyRef](other),
         true, false, element[Coll[A]]))
     }
   }
@@ -1620,63 +1608,63 @@ object ReplColl extends EntityObject("ReplColl") {
     def value: Rep[A] = {
       asRep[A](mkMethodCall(source,
         ReplCollClass.getMethod("value"),
-        List(),
+        WrappedArray.empty,
         true, true, element[A]))
     }
 
     def length: Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         ReplCollClass.getMethod("length"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
     def append(other: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("append", classOf[Sym]),
-        List(other),
+        Array[AnyRef](other),
         true, true, element[Coll[A]]))
     }
 
     def builder: Rep[CollBuilder] = {
       asRep[CollBuilder](mkMethodCall(source,
         ReplCollClass.getMethod("builder"),
-        List(),
+        WrappedArray.empty,
         true, true, element[CollBuilder]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         ReplCollClass.getMethod("isEmpty"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def nonEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         ReplCollClass.getMethod("nonEmpty"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def apply(i: Rep[Int]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         ReplCollClass.getMethod("apply", classOf[Sym]),
-        List(i),
+        Array[AnyRef](i),
         true, true, element[A]))
     }
 
     def isDefinedAt(idx: Rep[Int]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         ReplCollClass.getMethod("isDefinedAt", classOf[Sym]),
-        List(idx),
+        Array[AnyRef](idx),
         true, true, element[Boolean]))
     }
 
     def getOrElse(index: Rep[Int], default: Rep[A]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         ReplCollClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
-        List(index, default),
+        Array[AnyRef](index, default),
         true, true, element[A]))
     }
 
@@ -1684,7 +1672,7 @@ object ReplColl extends EntityObject("ReplColl") {
       implicit val eB = f.elem.eRange
       asRep[Coll[B]](mkMethodCall(source,
         ReplCollClass.getMethod("map", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[B]]))
     }
 
@@ -1692,28 +1680,28 @@ object ReplColl extends EntityObject("ReplColl") {
       implicit val eB = ys.eA
       asRep[Coll[(A, B)]](mkMethodCall(source,
         ReplCollClass.getMethod("zip", classOf[Sym]),
-        List(ys),
+        Array[AnyRef](ys),
         true, true, element[Coll[(A, B)]]))
     }
 
     def exists(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         ReplCollClass.getMethod("exists", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Boolean]))
     }
 
     def forall(p: Rep[A => Boolean]): Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         ReplCollClass.getMethod("forall", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("filter", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[Coll[A]]))
     }
 
@@ -1721,14 +1709,14 @@ object ReplColl extends EntityObject("ReplColl") {
       implicit val eB = zero.elem
       asRep[B](mkMethodCall(source,
         ReplCollClass.getMethod("foldLeft", classOf[Sym], classOf[Sym]),
-        List(zero, op),
+        Array[AnyRef](zero, op),
         true, true, element[B]))
     }
 
     def indices: Rep[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
         ReplCollClass.getMethod("indices"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[Int]]))
     }
 
@@ -1736,77 +1724,77 @@ object ReplColl extends EntityObject("ReplColl") {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[Coll[B]](mkMethodCall(source,
         ReplCollClass.getMethod("flatMap", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[Coll[B]]))
     }
 
     def segmentLength(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         ReplCollClass.getMethod("segmentLength", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, true, element[Int]))
     }
 
     override def find(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(source,
         ReplCollClass.getMethod("find", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[WOption[A]]))
     }
 
     def indexWhere(p: Rep[A => Boolean], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         ReplCollClass.getMethod("indexWhere", classOf[Sym], classOf[Sym]),
-        List(p, from),
+        Array[AnyRef](p, from),
         true, true, element[Int]))
     }
 
     override def indexOf(elem: Rep[A], from: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         ReplCollClass.getMethod("indexOf", classOf[Sym], classOf[Sym]),
-        List(elem, from),
+        Array[AnyRef](elem, from),
         true, true, element[Int]))
     }
 
     def lastIndexWhere(p: Rep[A => Boolean], end: Rep[Int]): Rep[Int] = {
       asRep[Int](mkMethodCall(source,
         ReplCollClass.getMethod("lastIndexWhere", classOf[Sym], classOf[Sym]),
-        List(p, end),
+        Array[AnyRef](p, end),
         true, true, element[Int]))
     }
 
     def take(n: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("take", classOf[Sym]),
-        List(n),
+        Array[AnyRef](n),
         true, true, element[Coll[A]]))
     }
 
     def partition(pred: Rep[A => Boolean]): Rep[(Coll[A], Coll[A])] = {
       asRep[(Coll[A], Coll[A])](mkMethodCall(source,
         ReplCollClass.getMethod("partition", classOf[Sym]),
-        List(pred),
+        Array[AnyRef](pred),
         true, true, element[(Coll[A], Coll[A])]))
     }
 
     def patch(from: Rep[Int], patch: Rep[Coll[A]], replaced: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("patch", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(from, patch, replaced),
+        Array[AnyRef](from, patch, replaced),
         true, true, element[Coll[A]]))
     }
 
     def updated(index: Rep[Int], elem: Rep[A]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("updated", classOf[Sym], classOf[Sym]),
-        List(index, elem),
+        Array[AnyRef](index, elem),
         true, true, element[Coll[A]]))
     }
 
     def updateMany(indexes: Rep[Coll[Int]], values: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("updateMany", classOf[Sym], classOf[Sym]),
-        List(indexes, values),
+        Array[AnyRef](indexes, values),
         true, true, element[Coll[A]]))
     }
 
@@ -1815,7 +1803,7 @@ object ReplColl extends EntityObject("ReplColl") {
 implicit val eV = m.elem.eRange.eSnd
       asRep[Coll[(K, V)]](mkMethodCall(source,
         ReplCollClass.getMethod("mapReduce", classOf[Sym], classOf[Sym]),
-        List(m, r),
+        Array[AnyRef](m, r),
         true, true, element[Coll[(K, V)]]))
     }
 
@@ -1823,7 +1811,7 @@ implicit val eV = m.elem.eRange.eSnd
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[A])]](mkMethodCall(source,
         ReplCollClass.getMethod("groupBy", classOf[Sym]),
-        List(key),
+        Array[AnyRef](key),
         true, true, element[Coll[(K, Coll[A])]]))
     }
 
@@ -1832,49 +1820,49 @@ implicit val eV = m.elem.eRange.eSnd
 implicit val eV = proj.elem.eRange
       asRep[Coll[(K, Coll[V])]](mkMethodCall(source,
         ReplCollClass.getMethod("groupByProjecting", classOf[Sym], classOf[Sym]),
-        List(key, proj),
+        Array[AnyRef](key, proj),
         true, true, element[Coll[(K, Coll[V])]]))
     }
 
     def unionSet(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("unionSet", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[A]]))
     }
 
     override def diff(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("diff", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[A]]))
     }
 
     override def intersect(that: Rep[Coll[A]]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("intersect", classOf[Sym]),
-        List(that),
+        Array[AnyRef](that),
         true, true, element[Coll[A]]))
     }
 
     def sum(m: Rep[Monoid[A]]): Rep[A] = {
       asRep[A](mkMethodCall(source,
         ReplCollClass.getMethod("sum", classOf[Sym]),
-        List(m),
+        Array[AnyRef](m),
         true, true, element[A]))
     }
 
     def slice(from: Rep[Int], until: Rep[Int]): Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("slice", classOf[Sym], classOf[Sym]),
-        List(from, until),
+        Array[AnyRef](from, until),
         true, true, element[Coll[A]]))
     }
 
     def reverse: Rep[Coll[A]] = {
       asRep[Coll[A]](mkMethodCall(source,
         ReplCollClass.getMethod("reverse"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Coll[A]]))
     }
   }
@@ -1902,10 +1890,6 @@ implicit val eV = proj.elem.eRange
 
     override lazy val parent: Option[Elem[_]] = Some(collElement(element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[ReplColl[A]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[ReplColl[A]] => convertReplColl(x) }
       tryConvert(element[ReplColl[A]], this, x, conv)
@@ -1922,16 +1906,14 @@ implicit val eV = proj.elem.eRange
   implicit def replCollElement[A](implicit eA: Elem[A]): Elem[ReplColl[A]] =
     cachedElemByClass(eA)(classOf[ReplCollElem[A, ReplColl[A]]])
 
-  implicit case object ReplCollCompanionElem extends CompanionElem[ReplCollCompanionCtor] {
-    override lazy val tag = weakTypeTag[ReplCollCompanionCtor]
-  }
+  implicit case object ReplCollCompanionElem extends CompanionElem[ReplCollCompanionCtor]
 
   abstract class ReplCollCompanionCtor extends CompanionDef[ReplCollCompanionCtor] with ReplCollCompanion {
     def selfType = ReplCollCompanionElem
     override def toString = "ReplColl"
   }
   implicit def proxyReplCollCompanionCtor(p: Rep[ReplCollCompanionCtor]): ReplCollCompanionCtor =
-    proxyOps[ReplCollCompanionCtor](p)
+    p.rhs.asInstanceOf[ReplCollCompanionCtor]
 
   lazy val RReplColl: Rep[ReplCollCompanionCtor] = new ReplCollCompanionCtor {
     private val thisClass = classOf[ReplCollCompanion]
@@ -2003,7 +1985,7 @@ object CollBuilder extends EntityObject("CollBuilder") {
     override def Monoids: Rep[MonoidBuilder] = {
       asRep[MonoidBuilder](mkMethodCall(self,
         CollBuilderClass.getMethod("Monoids"),
-        List(),
+        WrappedArray.empty,
         true, false, element[MonoidBuilder]))
     }
 
@@ -2012,14 +1994,14 @@ object CollBuilder extends EntityObject("CollBuilder") {
 implicit val eB = bs.eA
       asRep[PairColl[A, B]](mkMethodCall(self,
         CollBuilderClass.getMethod("pairColl", classOf[Sym], classOf[Sym]),
-        List(as, bs),
+        Array[AnyRef](as, bs),
         true, false, element[PairColl[A, B]]))
     }
 
     override def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(self,
         CollBuilderClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
-        List(items, cT),
+        Array[AnyRef](items, cT),
         true, false, element[Coll[T]]))
     }
 
@@ -2028,14 +2010,14 @@ implicit val eB = bs.eA
 implicit val eB = xs.eA.eSnd
       asRep[(Coll[A], Coll[B])](mkMethodCall(self,
         CollBuilderClass.getMethod("unzip", classOf[Sym]),
-        List(xs),
+        Array[AnyRef](xs),
         true, false, element[(Coll[A], Coll[B])]))
     }
 
     override def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = {
       asRep[Coll[Byte]](mkMethodCall(self,
         CollBuilderClass.getMethod("xor", classOf[Sym], classOf[Sym]),
-        List(left, right),
+        Array[AnyRef](left, right),
         true, false, element[Coll[Byte]]))
     }
 
@@ -2043,14 +2025,14 @@ implicit val eB = xs.eA.eSnd
       implicit val eT = v.elem
       asRep[Coll[T]](mkMethodCall(self,
         CollBuilderClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
-        List(n, v),
+        Array[AnyRef](n, v),
         true, false, element[Coll[T]]))
     }
 
     override def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(self,
         CollBuilderClass.getMethod("emptyColl", classOf[Elem[_]]),
-        List(tT),
+        Array[AnyRef](tT),
         true, false, element[Coll[T]]))
     }
 
@@ -2061,7 +2043,7 @@ implicit val eR = right.eA.eSnd
 implicit val eO = l.elem.eRange
       asRep[Coll[(K, O)]](mkMethodCall(self,
         CollBuilderClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(left, right, l, r, inner),
+        Array[AnyRef](left, right, l, r, inner),
         true, false, element[Coll[(K, O)]]))
     }
 
@@ -2069,7 +2051,7 @@ implicit val eO = l.elem.eRange
       implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
       asRep[Coll[A]](mkMethodCall(self,
         CollBuilderClass.getMethod("flattenColl", classOf[Sym]),
-        List(coll),
+        Array[AnyRef](coll),
         true, false, element[Coll[A]]))
     }
   }
@@ -2100,7 +2082,7 @@ implicit val eO = l.elem.eRange
     def Monoids: Rep[MonoidBuilder] = {
       asRep[MonoidBuilder](mkMethodCall(source,
         CollBuilderClass.getMethod("Monoids"),
-        List(),
+        WrappedArray.empty,
         true, true, element[MonoidBuilder]))
     }
 
@@ -2109,14 +2091,14 @@ implicit val eO = l.elem.eRange
 implicit val eB = bs.eA
       asRep[PairColl[A, B]](mkMethodCall(source,
         CollBuilderClass.getMethod("pairColl", classOf[Sym], classOf[Sym]),
-        List(as, bs),
+        Array[AnyRef](as, bs),
         true, true, element[PairColl[A, B]]))
     }
 
     def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(source,
         CollBuilderClass.getMethod("fromItems", classOf[Seq[_]], classOf[Elem[_]]),
-        List(items, cT),
+        Array[AnyRef](items, cT),
         true, true, element[Coll[T]]))
     }
 
@@ -2125,14 +2107,14 @@ implicit val eB = bs.eA
 implicit val eB = xs.eA.eSnd
       asRep[(Coll[A], Coll[B])](mkMethodCall(source,
         CollBuilderClass.getMethod("unzip", classOf[Sym]),
-        List(xs),
+        Array[AnyRef](xs),
         true, true, element[(Coll[A], Coll[B])]))
     }
 
     def xor(left: Rep[Coll[Byte]], right: Rep[Coll[Byte]]): Rep[Coll[Byte]] = {
       asRep[Coll[Byte]](mkMethodCall(source,
         CollBuilderClass.getMethod("xor", classOf[Sym], classOf[Sym]),
-        List(left, right),
+        Array[AnyRef](left, right),
         true, true, element[Coll[Byte]]))
     }
 
@@ -2140,14 +2122,14 @@ implicit val eB = xs.eA.eSnd
       implicit val eT = v.elem
       asRep[Coll[T]](mkMethodCall(source,
         CollBuilderClass.getMethod("replicate", classOf[Sym], classOf[Sym]),
-        List(n, v),
+        Array[AnyRef](n, v),
         true, true, element[Coll[T]]))
     }
 
     def emptyColl[T](implicit tT: Elem[T]): Rep[Coll[T]] = {
       asRep[Coll[T]](mkMethodCall(source,
         CollBuilderClass.getMethod("emptyColl", classOf[Elem[_]]),
-        List(tT),
+        Array[AnyRef](tT),
         true, true, element[Coll[T]]))
     }
 
@@ -2158,7 +2140,7 @@ implicit val eR = right.eA.eSnd
 implicit val eO = l.elem.eRange
       asRep[Coll[(K, O)]](mkMethodCall(source,
         CollBuilderClass.getMethod("outerJoin", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(left, right, l, r, inner),
+        Array[AnyRef](left, right, l, r, inner),
         true, true, element[Coll[(K, O)]]))
     }
 
@@ -2166,7 +2148,7 @@ implicit val eO = l.elem.eRange
       implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
       asRep[Coll[A]](mkMethodCall(source,
         CollBuilderClass.getMethod("flattenColl", classOf[Sym]),
-        List(coll),
+        Array[AnyRef](coll),
         true, true, element[Coll[A]]))
     }
   }
@@ -2191,9 +2173,6 @@ implicit val eO = l.elem.eRange
         ))
     }
 
-    override lazy val tag = {
-      weakTypeTag[CollBuilder].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[CollBuilder] => convertCollBuilder(x) }
       tryConvert(element[CollBuilder], this, x, conv)
@@ -2210,16 +2189,14 @@ implicit val eO = l.elem.eRange
   implicit lazy val collBuilderElement: Elem[CollBuilder] =
     new CollBuilderElem[CollBuilder]
 
-  implicit case object CollBuilderCompanionElem extends CompanionElem[CollBuilderCompanionCtor] {
-    override lazy val tag = weakTypeTag[CollBuilderCompanionCtor]
-  }
+  implicit case object CollBuilderCompanionElem extends CompanionElem[CollBuilderCompanionCtor]
 
   abstract class CollBuilderCompanionCtor extends CompanionDef[CollBuilderCompanionCtor] with CollBuilderCompanion {
     def selfType = CollBuilderCompanionElem
     override def toString = "CollBuilder"
   }
   implicit def proxyCollBuilderCompanionCtor(p: Rep[CollBuilderCompanionCtor]): CollBuilderCompanionCtor =
-    proxyOps[CollBuilderCompanionCtor](p)
+    p.rhs.asInstanceOf[CollBuilderCompanionCtor]
 
   lazy val RCollBuilder: Rep[CollBuilderCompanionCtor] = new CollBuilderCompanionCtor {
     private val thisClass = classOf[CollBuilderCompanion]

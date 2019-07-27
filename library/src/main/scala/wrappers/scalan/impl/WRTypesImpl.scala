@@ -7,6 +7,7 @@ import special.wrappers.WrappersModule
 import special.wrappers.RTypeWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -39,7 +40,7 @@ object WRType extends EntityObject("WRType") {
     override def name: Rep[String] = {
       asRep[String](mkMethodCall(self,
         WRTypeClass.getMethod("name"),
-        List(),
+        WrappedArray.empty,
         true, false, element[String]))
     }
   }
@@ -77,7 +78,7 @@ object WRType extends EntityObject("WRType") {
     def name: Rep[String] = {
       asRep[String](mkMethodCall(source,
         WRTypeClass.getMethod("name"),
-        List(),
+        WrappedArray.empty,
         true, true, element[String]))
     }
   }
@@ -104,10 +105,6 @@ object WRType extends EntityObject("WRType") {
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[WRType[A]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[WRType[A]] => convertWRType(x) }
       tryConvert(element[WRType[A]], this, x, conv)
@@ -124,15 +121,14 @@ object WRType extends EntityObject("WRType") {
   implicit def wRTypeElement[A](implicit eA: Elem[A]): Elem[WRType[A]] =
     cachedElemByClass(eA)(classOf[WRTypeElem[A, WRType[A]]])
 
-  implicit case object WRTypeCompanionElem extends CompanionElem[WRTypeCompanionCtor] {
-  }
+  implicit case object WRTypeCompanionElem extends CompanionElem[WRTypeCompanionCtor]
 
   abstract class WRTypeCompanionCtor extends CompanionDef[WRTypeCompanionCtor] with WRTypeCompanion {
     def selfType = WRTypeCompanionElem
     override def toString = "WRType"
   }
   implicit def proxyWRTypeCompanionCtor(p: Rep[WRTypeCompanionCtor]): WRTypeCompanionCtor =
-    proxyOps[WRTypeCompanionCtor](p)
+    p.rhs.asInstanceOf[WRTypeCompanionCtor]
 
   lazy val RWRType: Rep[WRTypeCompanionCtor] = new WRTypeCompanionCtor {
     private val thisClass = classOf[WRTypeCompanion]

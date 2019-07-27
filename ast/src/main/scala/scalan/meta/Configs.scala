@@ -75,7 +75,8 @@ abstract class ModuleConf extends Conf {
       baseContextTrait = "scalan.Scalan", // used like this: trait ${module.name}Defs extends ${config.baseContextTrait.opt(t => s"$t with ")}${module.name} {
       extraImports = List(
         "scala.reflect.runtime.universe._",
-        "scala.reflect._"
+        "scala.reflect._",
+        "scala.collection.mutable.WrappedArray"
       ),
       isVirtualized = false
     )

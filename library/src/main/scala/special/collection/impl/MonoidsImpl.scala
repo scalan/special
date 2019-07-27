@@ -3,6 +3,7 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -28,21 +29,21 @@ object Monoid extends EntityObject("Monoid") {
     def zero: Rep[T] = {
       asRep[T](mkMethodCall(source,
         MonoidClass.getMethod("zero"),
-        List(),
+        WrappedArray.empty,
         true, true, element[T]))
     }
 
     def plus(x: Rep[T], y: Rep[T]): Rep[T] = {
       asRep[T](mkMethodCall(source,
         MonoidClass.getMethod("plus", classOf[Sym], classOf[Sym]),
-        List(x, y),
+        Array[AnyRef](x, y),
         true, true, element[T]))
     }
 
     def power(x: Rep[T], n: Rep[Int]): Rep[T] = {
       asRep[T](mkMethodCall(source,
         MonoidClass.getMethod("power", classOf[Sym], classOf[Sym]),
-        List(x, n),
+        Array[AnyRef](x, n),
         true, true, element[T]))
     }
   }
@@ -60,10 +61,6 @@ object Monoid extends EntityObject("Monoid") {
     def eT = _eT
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[Monoid[T]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[Monoid[T]] => convertMonoid(x) }
       tryConvert(element[Monoid[T]], this, x, conv)
@@ -80,15 +77,14 @@ object Monoid extends EntityObject("Monoid") {
   implicit def monoidElement[T](implicit eT: Elem[T]): Elem[Monoid[T]] =
     cachedElemByClass(eT)(classOf[MonoidElem[T, Monoid[T]]])
 
-  implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor] {
-  }
+  implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor]
 
   abstract class MonoidCompanionCtor extends CompanionDef[MonoidCompanionCtor] with MonoidCompanion {
     def selfType = MonoidCompanionElem
     override def toString = "Monoid"
   }
   implicit def proxyMonoidCompanionCtor(p: Rep[MonoidCompanionCtor]): MonoidCompanionCtor =
-    proxyOps[MonoidCompanionCtor](p)
+    p.rhs.asInstanceOf[MonoidCompanionCtor]
 
   lazy val RMonoid: Rep[MonoidCompanionCtor] = new MonoidCompanionCtor {
     private val thisClass = classOf[MonoidCompanion]
@@ -153,42 +149,42 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
     def intPlusMonoid: Rep[Monoid[Int]] = {
       asRep[Monoid[Int]](mkMethodCall(source,
         MonoidBuilderClass.getMethod("intPlusMonoid"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Monoid[Int]]))
     }
 
     def intMaxMonoid: Rep[Monoid[Int]] = {
       asRep[Monoid[Int]](mkMethodCall(source,
         MonoidBuilderClass.getMethod("intMaxMonoid"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Monoid[Int]]))
     }
 
     def intMinMonoid: Rep[Monoid[Int]] = {
       asRep[Monoid[Int]](mkMethodCall(source,
         MonoidBuilderClass.getMethod("intMinMonoid"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Monoid[Int]]))
     }
 
     def longPlusMonoid: Rep[Monoid[Long]] = {
       asRep[Monoid[Long]](mkMethodCall(source,
         MonoidBuilderClass.getMethod("longPlusMonoid"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Monoid[Long]]))
     }
 
     def longMaxMonoid: Rep[Monoid[Long]] = {
       asRep[Monoid[Long]](mkMethodCall(source,
         MonoidBuilderClass.getMethod("longMaxMonoid"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Monoid[Long]]))
     }
 
     def longMinMonoid: Rep[Monoid[Long]] = {
       asRep[Monoid[Long]](mkMethodCall(source,
         MonoidBuilderClass.getMethod("longMinMonoid"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Monoid[Long]]))
     }
 
@@ -197,7 +193,7 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
 implicit val eB = m2.eT
       asRep[Monoid[(A, B)]](mkMethodCall(source,
         MonoidBuilderClass.getMethod("pairMonoid", classOf[Sym], classOf[Sym]),
-        List(m1, m2),
+        Array[AnyRef](m1, m2),
         true, true, element[Monoid[(A, B)]]))
     }
   }
@@ -212,9 +208,6 @@ implicit val eB = m2.eT
   // familyElem
   class MonoidBuilderElem[To <: MonoidBuilder]
     extends EntityElem[To] {
-    override lazy val tag = {
-      weakTypeTag[MonoidBuilder].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[MonoidBuilder] => convertMonoidBuilder(x) }
       tryConvert(element[MonoidBuilder], this, x, conv)
@@ -231,15 +224,14 @@ implicit val eB = m2.eT
   implicit lazy val monoidBuilderElement: Elem[MonoidBuilder] =
     new MonoidBuilderElem[MonoidBuilder]
 
-  implicit case object MonoidBuilderCompanionElem extends CompanionElem[MonoidBuilderCompanionCtor] {
-  }
+  implicit case object MonoidBuilderCompanionElem extends CompanionElem[MonoidBuilderCompanionCtor]
 
   abstract class MonoidBuilderCompanionCtor extends CompanionDef[MonoidBuilderCompanionCtor] with MonoidBuilderCompanion {
     def selfType = MonoidBuilderCompanionElem
     override def toString = "MonoidBuilder"
   }
   implicit def proxyMonoidBuilderCompanionCtor(p: Rep[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
-    proxyOps[MonoidBuilderCompanionCtor](p)
+    p.rhs.asInstanceOf[MonoidBuilderCompanionCtor]
 
   lazy val RMonoidBuilder: Rep[MonoidBuilderCompanionCtor] = new MonoidBuilderCompanionCtor {
     private val thisClass = classOf[MonoidBuilderCompanion]

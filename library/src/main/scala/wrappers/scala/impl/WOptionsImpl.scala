@@ -6,6 +6,7 @@ import special.wrappers.WrappersModule
 import special.wrappers.OptionWrapSpec
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -39,28 +40,28 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(self,
         WOptionClass.getMethod("fold", classOf[Sym], classOf[Sym]),
-        List(ifEmpty, f),
+        Array[AnyRef](ifEmpty, f),
         true, false, element[B]))
     }
 
     override def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         WOptionClass.getMethod("isEmpty"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Boolean]))
     }
 
     override def isDefined: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(self,
         WOptionClass.getMethod("isDefined"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Boolean]))
     }
 
     override def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(self,
         WOptionClass.getMethod("filter", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, false, element[WOption[A]]))
     }
 
@@ -68,7 +69,7 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[WOption[B]](mkMethodCall(self,
         WOptionClass.getMethod("flatMap", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, false, element[WOption[B]]))
     }
 
@@ -76,7 +77,7 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = f.elem.eRange
       asRep[WOption[B]](mkMethodCall(self,
         WOptionClass.getMethod("map", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, false, element[WOption[B]]))
     }
 
@@ -84,14 +85,14 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = default.elem.eItem
       asRep[B](mkMethodCall(self,
         WOptionClass.getMethod("getOrElse", classOf[Sym]),
-        List(default),
+        Array[AnyRef](default),
         true, false, element[B]))
     }
 
     override def get: Rep[A] = {
       asRep[A](mkMethodCall(self,
         WOptionClass.getMethod("get"),
-        List(),
+        WrappedArray.empty,
         true, false, element[A]))
     }
   }
@@ -130,28 +131,28 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(source,
         WOptionClass.getMethod("fold", classOf[Sym], classOf[Sym]),
-        List(ifEmpty, f),
+        Array[AnyRef](ifEmpty, f),
         true, true, element[B]))
     }
 
     def isEmpty: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         WOptionClass.getMethod("isEmpty"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def isDefined: Rep[Boolean] = {
       asRep[Boolean](mkMethodCall(source,
         WOptionClass.getMethod("isDefined"),
-        List(),
+        WrappedArray.empty,
         true, true, element[Boolean]))
     }
 
     def filter(p: Rep[A => Boolean]): Rep[WOption[A]] = {
       asRep[WOption[A]](mkMethodCall(source,
         WOptionClass.getMethod("filter", classOf[Sym]),
-        List(p),
+        Array[AnyRef](p),
         true, true, element[WOption[A]]))
     }
 
@@ -159,7 +160,7 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
       asRep[WOption[B]](mkMethodCall(source,
         WOptionClass.getMethod("flatMap", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[WOption[B]]))
     }
 
@@ -167,7 +168,7 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = f.elem.eRange
       asRep[WOption[B]](mkMethodCall(source,
         WOptionClass.getMethod("map", classOf[Sym]),
-        List(f),
+        Array[AnyRef](f),
         true, true, element[WOption[B]]))
     }
 
@@ -175,14 +176,14 @@ object WOption extends EntityObject("WOption") {
       implicit val eB = default.elem.eItem
       asRep[B](mkMethodCall(source,
         WOptionClass.getMethod("getOrElse", classOf[Sym]),
-        List(default),
+        Array[AnyRef](default),
         true, true, element[B]))
     }
 
     def get: Rep[A] = {
       asRep[A](mkMethodCall(source,
         WOptionClass.getMethod("get"),
-        List(),
+        WrappedArray.empty,
         true, true, element[A]))
     }
   }
@@ -227,10 +228,6 @@ object WOption extends EntityObject("WOption") {
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      weakTypeTag[WOption[A]].asInstanceOf[WeakTypeTag[To]]
-    }
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[WOption[A]] => convertWOption(x) }
       tryConvert(element[WOption[A]], this, x, conv)
@@ -247,15 +244,14 @@ object WOption extends EntityObject("WOption") {
   implicit def wOptionElement[A](implicit eA: Elem[A]): Elem[WOption[A]] =
     cachedElemByClass(eA)(classOf[WOptionElem[A, WOption[A]]])
 
-  implicit case object WOptionCompanionElem extends CompanionElem[WOptionCompanionCtor] {
-  }
+  implicit case object WOptionCompanionElem extends CompanionElem[WOptionCompanionCtor]
 
   abstract class WOptionCompanionCtor extends CompanionDef[WOptionCompanionCtor] with WOptionCompanion {
     def selfType = WOptionCompanionElem
     override def toString = "WOption"
   }
   implicit def proxyWOptionCompanionCtor(p: Rep[WOptionCompanionCtor]): WOptionCompanionCtor =
-    proxyOps[WOptionCompanionCtor](p)
+    p.rhs.asInstanceOf[WOptionCompanionCtor]
 
   lazy val RWOption: Rep[WOptionCompanionCtor] = new WOptionCompanionCtor {
     private val thisClass = classOf[WOptionCompanion]

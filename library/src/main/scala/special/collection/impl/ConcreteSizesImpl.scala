@@ -3,9 +3,10 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
-  import scalan.util.MemoizedFunc
+  import scalan.util.MemoizedFunc // manual fix
 
   // Abs -----------------------------------
 trait ConcreteSizesDefs extends scalan.Scalan with ConcreteSizes {
@@ -43,10 +44,6 @@ object CSizePrim extends EntityObject("CSizePrim") {
     override lazy val parent: Option[Elem[_]] = Some(sizePrimElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
     override def convertSizePrim(x: Rep[SizePrim[Val]]) = RCSizePrim(x.dataSize, x.tVal)
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[CSizePrim[Val]]
-    }
   }
 
   // state representation type
@@ -97,11 +94,14 @@ object CSizePrim extends EntityObject("CSizePrim") {
       proxyOps[CSizePrimCompanionCtor](p)
   }
 
-  implicit case object CSizePrimCompanionElem extends CompanionElem[CSizePrimCompanionCtor] {
-  }
+  implicit case object CSizePrimCompanionElem extends CompanionElem[CSizePrimCompanionCtor]
 
-  implicit def proxyCSizePrim[Val](p: Rep[CSizePrim[Val]]): CSizePrim[Val] =
-    proxyOps[CSizePrim[Val]](p)
+  implicit def proxyCSizePrim[Val](p: Rep[CSizePrim[Val]]): CSizePrim[Val] = {
+    if (p.rhs.isInstanceOf[CSizePrim[Val]])
+      p.rhs.asInstanceOf[CSizePrim[Val]]
+    else
+      proxyOps[CSizePrim[Val]](p)
+  }
 
   implicit class ExtendedCSizePrim[Val](p: Rep[CSizePrim[Val]]) {
     def toData: Rep[CSizePrimData[Val]] = {
@@ -151,7 +151,7 @@ implicit lazy val eR = r.eVal
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Long]))
     }
   }
@@ -162,11 +162,6 @@ implicit lazy val eR = r.eVal
     override lazy val parent: Option[Elem[_]] = Some(sizePairElement(element[L], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
     override def convertSizePair(x: Rep[SizePair[L, R]]) = RCSizePair(x.l, x.r)
-    override lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[CSizePair[L, R]]
-    }
   }
 
   // state representation type
@@ -221,11 +216,14 @@ implicit val eR = p._2.eVal
       proxyOps[CSizePairCompanionCtor](p)
   }
 
-  implicit case object CSizePairCompanionElem extends CompanionElem[CSizePairCompanionCtor] {
-  }
+  implicit case object CSizePairCompanionElem extends CompanionElem[CSizePairCompanionCtor]
 
-  implicit def proxyCSizePair[L, R](p: Rep[CSizePair[L, R]]): CSizePair[L, R] =
-    proxyOps[CSizePair[L, R]](p)
+  implicit def proxyCSizePair[L, R](p: Rep[CSizePair[L, R]]): CSizePair[L, R] = {
+    if (p.rhs.isInstanceOf[CSizePair[L, R]])
+      p.rhs.asInstanceOf[CSizePair[L, R]]
+    else
+      proxyOps[CSizePair[L, R]](p)
+  }
 
   implicit class ExtendedCSizePair[L, R](p: Rep[CSizePair[L, R]]) {
     def toData: Rep[CSizePairData[L, R]] = {
@@ -283,7 +281,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Long]))
     }
   }
@@ -294,10 +292,6 @@ object CSizeColl extends EntityObject("CSizeColl") {
     override lazy val parent: Option[Elem[_]] = Some(sizeCollElement(element[Item]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override def convertSizeColl(x: Rep[SizeColl[Item]]) = RCSizeColl(x.sizes)
-    override lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CSizeColl[Item]]
-    }
   }
 
   // state representation type
@@ -343,11 +337,14 @@ object CSizeColl extends EntityObject("CSizeColl") {
       proxyOps[CSizeCollCompanionCtor](p)
   }
 
-  implicit case object CSizeCollCompanionElem extends CompanionElem[CSizeCollCompanionCtor] {
-  }
+  implicit case object CSizeCollCompanionElem extends CompanionElem[CSizeCollCompanionCtor]
 
-  implicit def proxyCSizeColl[Item](p: Rep[CSizeColl[Item]]): CSizeColl[Item] =
-    proxyOps[CSizeColl[Item]](p)
+  implicit def proxyCSizeColl[Item](p: Rep[CSizeColl[Item]]): CSizeColl[Item] = {
+    if (p.rhs.isInstanceOf[CSizeColl[Item]])
+      p.rhs.asInstanceOf[CSizeColl[Item]]
+    else
+      proxyOps[CSizeColl[Item]](p)
+  }
 
   implicit class ExtendedCSizeColl[Item](p: Rep[CSizeColl[Item]]) {
     def toData: Rep[CSizeCollData[Item]] = {
@@ -406,7 +403,7 @@ implicit lazy val eRes = tRes.eA
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Long]))
     }
   }
@@ -418,12 +415,6 @@ implicit lazy val eRes = tRes.eA
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
     override def convertSizeFunc(x: Rep[SizeFunc[Env, Arg, Res]]) = // Converter is not generated by meta
 !!!("Cannot convert from SizeFunc to CSizeFunc: missing fields List(sizeFunc, tArg, tRes)")
-    override lazy val tag = {
-      implicit val tagEnv = eEnv.tag
-      implicit val tagArg = eArg.tag
-      implicit val tagRes = eRes.tag
-      weakTypeTag[CSizeFunc[Env, Arg, Res]]
-    }
   }
 
   // state representation type
@@ -480,11 +471,14 @@ implicit val eRes = p._4.eA
       proxyOps[CSizeFuncCompanionCtor](p)
   }
 
-  implicit case object CSizeFuncCompanionElem extends CompanionElem[CSizeFuncCompanionCtor] {
-  }
+  implicit case object CSizeFuncCompanionElem extends CompanionElem[CSizeFuncCompanionCtor]
 
-  implicit def proxyCSizeFunc[Env, Arg, Res](p: Rep[CSizeFunc[Env, Arg, Res]]): CSizeFunc[Env, Arg, Res] =
-    proxyOps[CSizeFunc[Env, Arg, Res]](p)
+  implicit def proxyCSizeFunc[Env, Arg, Res](p: Rep[CSizeFunc[Env, Arg, Res]]): CSizeFunc[Env, Arg, Res] = {
+    if (p.rhs.isInstanceOf[CSizeFunc[Env, Arg, Res]])
+      p.rhs.asInstanceOf[CSizeFunc[Env, Arg, Res]]
+    else
+      proxyOps[CSizeFunc[Env, Arg, Res]](p)
+  }
 
   implicit class ExtendedCSizeFunc[Env, Arg, Res](p: Rep[CSizeFunc[Env, Arg, Res]]) {
     def toData: Rep[CSizeFuncData[Env, Arg, Res]] = {
@@ -544,7 +538,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     override def dataSize: Rep[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Long]))
     }
   }
@@ -555,10 +549,6 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     override lazy val parent: Option[Elem[_]] = Some(sizeOptionElement(element[Item]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
     override def convertSizeOption(x: Rep[SizeOption[Item]]) = RCSizeOption(x.sizeOpt)
-    override lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CSizeOption[Item]]
-    }
   }
 
   // state representation type
@@ -604,11 +594,14 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
       proxyOps[CSizeOptionCompanionCtor](p)
   }
 
-  implicit case object CSizeOptionCompanionElem extends CompanionElem[CSizeOptionCompanionCtor] {
-  }
+  implicit case object CSizeOptionCompanionElem extends CompanionElem[CSizeOptionCompanionCtor]
 
-  implicit def proxyCSizeOption[Item](p: Rep[CSizeOption[Item]]): CSizeOption[Item] =
-    proxyOps[CSizeOption[Item]](p)
+  implicit def proxyCSizeOption[Item](p: Rep[CSizeOption[Item]]): CSizeOption[Item] = {
+    if (p.rhs.isInstanceOf[CSizeOption[Item]])
+      p.rhs.asInstanceOf[CSizeOption[Item]]
+    else
+      proxyOps[CSizeOption[Item]](p)
+  }
 
   implicit class ExtendedCSizeOption[Item](p: Rep[CSizeOption[Item]]) {
     def toData: Rep[CSizeOptionData[Item]] = {

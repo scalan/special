@@ -113,9 +113,6 @@ trait TypeDescs extends Base { self: Scalan =>
   @implicitNotFound(msg = "No Elem available for ${A}.")
   abstract class Elem[A] extends TypeDesc { _: scala.Equals =>
     import Liftables._
-
-    def tag: WeakTypeTag[A] = ???
-
     def buildTypeArgs: ListMap[String, (TypeDesc, Variance)] = EmptyTypeArgs
     lazy val typeArgs: ListMap[String, (TypeDesc, Variance)] = buildTypeArgs
     lazy val typeArgsDescs: Seq[TypeDesc] = {

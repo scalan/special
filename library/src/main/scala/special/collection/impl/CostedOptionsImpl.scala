@@ -3,6 +3,7 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -31,7 +32,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     override def cost: Rep[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
-        List(),
+        WrappedArray.empty,
         true, false, element[Int]))
     }
   }
@@ -42,10 +43,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
     override lazy val parent: Option[Elem[_]] = Some(costedOptionElement(element[T]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
     override def convertCostedOption(x: Rep[CostedOption[T]]) = RCCostedOption(x.value, x.costOpt, x.sizeOpt, x.accumulatedCost)
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CCostedOption[T]]
-    }
   }
 
   // state representation type
@@ -99,11 +96,14 @@ object CCostedOption extends EntityObject("CCostedOption") {
       proxyOps[CCostedOptionCompanionCtor](p)
   }
 
-  implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor] {
-  }
+  implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor]
 
-  implicit def proxyCCostedOption[T](p: Rep[CCostedOption[T]]): CCostedOption[T] =
-    proxyOps[CCostedOption[T]](p)
+  implicit def proxyCCostedOption[T](p: Rep[CCostedOption[T]]): CCostedOption[T] = {
+    if (p.rhs.isInstanceOf[CCostedOption[T]])
+      p.rhs.asInstanceOf[CCostedOption[T]]
+    else
+      proxyOps[CCostedOption[T]](p)
+  }
 
   implicit class ExtendedCCostedOption[T](p: Rep[CCostedOption[T]]) {
     def toData: Rep[CCostedOptionData[T]] = {
