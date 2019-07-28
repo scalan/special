@@ -56,17 +56,6 @@ object StructKey extends EntityObject("StructKey") {
     def eSchema = _eSchema
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[StructKey[Schema]] => convertStructKey(x) }
-      tryConvert(element[StructKey[Schema]], this, x, conv)
-    }
-
-    def convertStructKey(x: Rep[StructKey[Schema]]): Rep[To] = {
-      x.elem match {
-        case _: StructKeyElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have StructKeyElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def structKeyElement[Schema <: Struct](implicit eSchema: Elem[Schema]): Elem[StructKey[Schema]] =
@@ -127,7 +116,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     with ConcreteElem[IndexStructKeyData[Schema], IndexStructKey[Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convertStructKey(x: Rep[StructKey[Schema]]) = RIndexStructKey(x.index)
   }
 
   // state representation type
@@ -176,7 +164,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   implicit case object IndexStructKeyCompanionElem extends CompanionElem[IndexStructKeyCompanionCtor]
 
   implicit def proxyIndexStructKey[Schema <: Struct](p: Rep[IndexStructKey[Schema]]): IndexStructKey[Schema] = {
-    if (p.rhs.isInstanceOf[IndexStructKey[Schema]])
+    if (p.rhs.isInstanceOf[IndexStructKey[Schema]@unchecked])
       p.rhs.asInstanceOf[IndexStructKey[Schema]]
     else
       proxyOps[IndexStructKey[Schema]](p)
@@ -235,7 +223,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
     with ConcreteElem[NameStructKeyData[Schema], NameStructKey[Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convertStructKey(x: Rep[StructKey[Schema]]) = RNameStructKey(x.name)
   }
 
   // state representation type
@@ -284,7 +271,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
   implicit case object NameStructKeyCompanionElem extends CompanionElem[NameStructKeyCompanionCtor]
 
   implicit def proxyNameStructKey[Schema <: Struct](p: Rep[NameStructKey[Schema]]): NameStructKey[Schema] = {
-    if (p.rhs.isInstanceOf[NameStructKey[Schema]])
+    if (p.rhs.isInstanceOf[NameStructKey[Schema]@unchecked])
       p.rhs.asInstanceOf[NameStructKey[Schema]]
     else
       proxyOps[NameStructKey[Schema]](p)

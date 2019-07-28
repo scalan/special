@@ -131,7 +131,7 @@ object Segment extends EntityObject("Segment") {
 
   // entityProxy: single proxy for each type family
   implicit def proxySegment(p: Rep[Segment]): Segment = {
-    if (p.rhs.isInstanceOf[Segment@unchecked]) p.rhs.asInstanceOf[Segment]
+    if (p.rhs.isInstanceOf[Segment]) p.rhs.asInstanceOf[Segment]
     else
       SegmentAdapter(p)
   }

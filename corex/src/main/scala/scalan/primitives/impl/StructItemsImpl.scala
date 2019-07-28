@@ -60,17 +60,6 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     def eSchema = _eSchema
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Covariant), "Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[StructItem[Val, Schema]] => convertStructItem(x) }
-      tryConvert(element[StructItem[Val, Schema]], this, x, conv)
-    }
-
-    def convertStructItem(x: Rep[StructItem[Val, Schema]]): Rep[To] = {
-      x.elem match {
-        case _: StructItemElem[_, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have StructItemElem[_, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def structItemElement[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema]): Elem[StructItem[Val, Schema]] =
@@ -134,7 +123,6 @@ implicit lazy val eSchema = key.eSchema
     with ConcreteElem[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structItemElement(element[Val], element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
-    override def convertStructItem(x: Rep[StructItem[Val, Schema]]) = RStructItemBase(x.key, x.value)
   }
 
   // state representation type
@@ -192,7 +180,7 @@ implicit val eSchema = p._1.eSchema
   implicit case object StructItemBaseCompanionElem extends CompanionElem[StructItemBaseCompanionCtor]
 
   implicit def proxyStructItemBase[Val, Schema <: Struct](p: Rep[StructItemBase[Val, Schema]]): StructItemBase[Val, Schema] = {
-    if (p.rhs.isInstanceOf[StructItemBase[Val, Schema]])
+    if (p.rhs.isInstanceOf[StructItemBase[Val, Schema]@unchecked])
       p.rhs.asInstanceOf[StructItemBase[Val, Schema]]
     else
       proxyOps[StructItemBase[Val, Schema]](p)

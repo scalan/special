@@ -46,6 +46,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
     def eA = _eA
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("F" -> (cF -> scalan.util.Invariant), "A" -> (eA -> scalan.util.Invariant))
+
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[Kind[F, A]] => convertKind(x) }
       tryConvert(element[Kind[F, A]], this, x, conv)
@@ -165,7 +166,7 @@ object Return extends EntityObject("Return") {
   implicit case object ReturnCompanionElem extends CompanionElem[ReturnCompanionCtor]
 
   implicit def proxyReturn[F[_], A](p: Rep[Return[F, A]]): Return[F, A] = {
-    if (p.rhs.isInstanceOf[Return[F, A]])
+    if (p.rhs.isInstanceOf[Return[F, A]@unchecked])
       p.rhs.asInstanceOf[Return[F, A]]
     else
       proxyOps[Return[F, A]](p)
@@ -280,7 +281,7 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
   implicit case object BindCompanionElem extends CompanionElem[BindCompanionCtor]
 
   implicit def proxyBind[F[_], S, B](p: Rep[Bind[F, S, B]]): Bind[F, S, B] = {
-    if (p.rhs.isInstanceOf[Bind[F, S, B]])
+    if (p.rhs.isInstanceOf[Bind[F, S, B]@unchecked])
       p.rhs.asInstanceOf[Bind[F, S, B]]
     else
       proxyOps[Bind[F, S, B]](p)

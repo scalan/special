@@ -5,6 +5,7 @@ import scalan._
 trait MetaTests { self: MetaTestsModule =>
   type RMetaTest[T] = Rep[MetaTest[T]]
   @scalan.Liftable
+  @scalan.Convertible
   trait MetaTest[T] extends Def[MetaTest[T]] { self =>
     def test: RMetaTest[T]
     def give: Rep[T]

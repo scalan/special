@@ -145,6 +145,7 @@ object MetaTest extends EntityObject("MetaTest") {
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
+
     override def convert(x: Rep[Def[_]]) = {
       val conv = fun {x: Rep[MetaTest[T]] => convertMetaTest(x) }
       tryConvert(element[MetaTest[T]], this, x, conv)
@@ -375,17 +376,6 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
 
     override lazy val parent: Option[Elem[_]] = Some(metaTestElement(pairElement(element[A],element[B])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[MetaPair[A, B]] => convertMetaPair(x) }
-      tryConvert(element[MetaPair[A, B]], this, x, conv)
-    }
-
-    def convertMetaPair(x: Rep[MetaPair[A, B]]): Rep[To] = {
-      x.elem match {
-        case _: MetaPairElem[_, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have MetaPairElem[_, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def metaPairElement[A, B](implicit eA: Elem[A], eB: Elem[B]): Elem[MetaPair[A, B]] =
@@ -663,7 +653,7 @@ object MT1 extends EntityObject("MT1") {
   implicit case object MT1CompanionElem extends CompanionElem[MT1CompanionCtor]
 
   implicit def proxyMT1[T](p: Rep[MT1[T]]): MT1[T] = {
-    if (p.rhs.isInstanceOf[MT1[T]])
+    if (p.rhs.isInstanceOf[MT1[T]@unchecked])
       p.rhs.asInstanceOf[MT1[T]]
     else
       proxyOps[MT1[T]](p)
@@ -750,7 +740,6 @@ implicit lazy val eB = values.elem
     with ConcreteElem[MT2Data[A, B], MT2[A, B]] {
     override lazy val parent: Option[Elem[_]] = Some(metaPairElement(element[A], element[B]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
-    override def convertMetaPair(x: Rep[MetaPair[A, B]]) = RMT2(x.indices, x.values, x.size)
   }
 
   // state representation type
@@ -808,7 +797,7 @@ implicit val eB = p._2.elem
   implicit case object MT2CompanionElem extends CompanionElem[MT2CompanionCtor]
 
   implicit def proxyMT2[A, B](p: Rep[MT2[A, B]]): MT2[A, B] = {
-    if (p.rhs.isInstanceOf[MT2[A, B]])
+    if (p.rhs.isInstanceOf[MT2[A, B]@unchecked])
       p.rhs.asInstanceOf[MT2[A, B]]
     else
       proxyOps[MT2[A, B]](p)

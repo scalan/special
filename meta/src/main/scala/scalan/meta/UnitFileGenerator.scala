@@ -235,10 +235,11 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
   def entityProxy(e: EntityTemplateData) = {
     val entityName = e.name
     val typesDecl = e.tpeArgsDecl
+    val uncheckedOpt = e.tpeArgs.nonEmpty.opt("@unchecked")
     s"""
       |  // entityProxy: single proxy for each type family
       |  implicit def proxy$entityName${typesDecl}(p: Rep[${e.typeUse}]): ${e.typeUse} = {
-      |    if (p.rhs.isInstanceOf[${e.typeUse}@unchecked]) p.rhs.asInstanceOf[${e.typeUse}]
+      |    if (p.rhs.isInstanceOf[${e.typeUse}$uncheckedOpt]) p.rhs.asInstanceOf[${e.typeUse}]
       |    else
       |      ${entityName}Adapter(p)
       |  }
@@ -446,6 +447,21 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    }
        """.stripMargin
     }
+    def convertMethods(): String = {
+      s"""
+        |    override def convert(x: Rep[Def[_]]) = {
+        |      val conv = fun {x: Rep[${e.typeUse}] => convert${e.name}(x) }
+        |      tryConvert(element[${e.typeUse}], this, x, conv)
+        |    }
+        |
+        |    def convert${e.name}(x: Rep[${e.typeUse}]): Rep[$toArgName] = {
+        |      x.elem${e.t.hasHighKindTpeArg.opt(".asInstanceOf[Elem[_]]")} match {
+        |        case _: $wildcardElem => asRep[$toArgName](x)
+        |        case e => !!!(s"Expected $$x to have $wildcardElem, but got $$e", x)
+        |      }
+        |    }
+       """.stripMargin
+    }
     s"""
       |  // familyElem
       |  class $elemTypeDecl${e.implicitArgsDecl("_")}
@@ -454,17 +470,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${e.entity.isLiftable.opt(liftableSupport())}
       |    ${optParent.opt(p => s"override lazy val parent: Option[Elem[_]] = Some(${tpeToElemStr(p, e.tpeArgs)})")}
       |    ${e.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})")}
-      |    override def convert(x: Rep[Def[_]]) = {
-      |      val conv = fun {x: Rep[${e.typeUse}] => convert${e.name}(x) }
-      |      tryConvert(element[${e.typeUse}], this, x, conv)
-      |    }
-      |
-         |    def convert${e.name}(x: Rep[${e.typeUse}]): Rep[$toArgName] = {
-      |      x.elem${e.t.hasHighKindTpeArg.opt(".asInstanceOf[Elem[_]]")} match {
-      |        case _: $wildcardElem => asRep[$toArgName](x)
-      |        case e => !!!(s"Expected $$x to have $wildcardElem, but got $$e", x)
-      |      }
-      |    }
+      ${e.entity.isConvertible.opt(convertMethods())}
       |  }
       |$elemMethodDefinition
       |""".stripAndTrim
@@ -632,6 +638,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       val optC = c.optimizeImplicits()
       val lin = clazz.linearizationWithSubst(Map())
       val liftableAnc = lin.tail.find { case (e, _) => e.isLiftable }
+      val uncheckedOpt = c.tpeArgs.nonEmpty.opt("@unchecked")
       s"""
         |object $className extends EntityObject("$className") {
         |  case class ${c.typeDecl("Ctor") }
@@ -664,7 +671,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    with $concreteElemSuperType {
         |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
         |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
-        |    override def convert${parent.name}(x: Rep[$parent]) = $converterBody
+        |    ${e.entity.isConvertible.opt(s"override def convert${parent.name}(x: Rep[$parent]) = $converterBody")}
         |  }
         |
         |  // state representation type
@@ -725,7 +732,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}]
         |
         |  implicit def proxy${c.typeDecl}(p: Rep[${c.typeUse}]): ${c.typeUse} = {
-        |    if (p.rhs.isInstanceOf[${c.typeUse}])
+        |    if (p.rhs.isInstanceOf[${c.typeUse}$uncheckedOpt])
         |      p.rhs.asInstanceOf[${c.typeUse}]
         |    else
         |      proxyOps[${c.typeUse}](p)

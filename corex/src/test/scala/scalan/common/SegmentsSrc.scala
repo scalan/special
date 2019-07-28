@@ -1,9 +1,11 @@
 package scalan.common
 
-import scalan.{Liftable, RType}
+import scalan.{Liftable, RType, Convertible}
+
 import scala.reflect.classTag
 
 @Liftable
+@Convertible
 trait Segment {
   def start: Int
   def length: Int

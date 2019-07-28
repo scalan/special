@@ -12,6 +12,7 @@ trait Segments { self: SegmentsModule =>
 
   type RSeg = Rep[Segment]
   @scalan.Liftable
+  @scalan.Convertible
   trait Segment extends Def[Segment] { self =>
     def start: Rep[Int]
     def length: Rep[Int]

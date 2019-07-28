@@ -4,13 +4,15 @@ import com.trueaccord.lenses.Updatable
 
 import scala.reflect.internal.ModifierFlags
 import java.util.Objects
+
 import scala.collection.immutable.{HashMap, HashSet}
-import scalan.{ArgList, Constructor, ContainerType, FunctorType, Liftable, Reified, NeverInline, External}
+import scalan.{ArgList, Constructor, ContainerType, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
 import scalan.meta.Symbols._
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
+
 import scala.collection.{mutable, GenIterable}
 import com.typesafe.config.ConfigUtil
-import scalan.util.{Covariant, Contravariant, Invariant, PrintExtensions}
+import scalan.util.{Covariant, Contravariant, PrintExtensions, Invariant}
 import PrintExtensions._
 import ScalanAstExtensions._
 import scalan.util.CollectionUtil._
@@ -333,6 +335,7 @@ object ScalanAst {
 
   final val EntityAnnotation         = classOf[scalan.Entity].getSimpleName
   final val LiftableAnnotation       = classOf[Liftable].getSimpleName
+  final val ConvertibleAnnotation    = classOf[Convertible].getSimpleName
   final val ConstructorAnnotation    = classOf[Constructor].getSimpleName
   final val ExternalAnnotation       = classOf[External].getSimpleName
   final val ArgListAnnotation        = classOf[ArgList].getSimpleName
@@ -781,6 +784,13 @@ object ScalanAst {
 
     def isLiftable(implicit ctx: AstContextBase): Boolean = {
       getAnnotation(LiftableAnnotation) match {
+        case Some(SEntityAnnotation(_,_,_)) => true
+        case _ => false
+      }
+    }
+
+    def isConvertible(implicit ctx: AstContextBase): Boolean = {
+      getAnnotation(ConvertibleAnnotation) match {
         case Some(SEntityAnnotation(_,_,_)) => true
         case _ => false
       }

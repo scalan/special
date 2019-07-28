@@ -69,17 +69,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     def eM = _eM
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[IsoFunc[T, R, M]] => convertIsoFunc(x) }
-      tryConvert(element[IsoFunc[T, R, M]], this, x, conv)
-    }
-
-    def convertIsoFunc(x: Rep[IsoFunc[T, R, M]]): Rep[To] = {
-      x.elem match {
-        case _: IsoFuncElem[_, _, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have IsoFuncElem[_, _, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def isoFuncElement[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Elem[IsoFunc[T, R, M]] =
@@ -157,7 +146,6 @@ implicit lazy val eM = metric.elem.eRange
     with ConcreteElem[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] {
     override lazy val parent: Option[Elem[_]] = Some(isoFuncElement(element[T], element[R], element[M]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
-    override def convertIsoFunc(x: Rep[IsoFunc[T, R, M]]) = RIsoFuncBase(x.func, x.metric)
   }
 
   // state representation type
@@ -217,7 +205,7 @@ implicit val eM = p._2.elem.eRange
   implicit case object IsoFuncBaseCompanionElem extends CompanionElem[IsoFuncBaseCompanionCtor]
 
   implicit def proxyIsoFuncBase[T, R, M](p: Rep[IsoFuncBase[T, R, M]]): IsoFuncBase[T, R, M] = {
-    if (p.rhs.isInstanceOf[IsoFuncBase[T, R, M]])
+    if (p.rhs.isInstanceOf[IsoFuncBase[T, R, M]@unchecked])
       p.rhs.asInstanceOf[IsoFuncBase[T, R, M]]
     else
       proxyOps[IsoFuncBase[T, R, M]](p)
