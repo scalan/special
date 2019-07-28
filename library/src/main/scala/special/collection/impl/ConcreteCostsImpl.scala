@@ -58,7 +58,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     with ConcreteElem[CCostedPrimData[Val], CCostedPrim[Val]] {
     override lazy val parent: Option[Elem[_]] = Some(costedPrimElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override def convertCostedPrim(x: Rep[CostedPrim[Val]]) = RCCostedPrim(x.value, x.cost, x.size)
   }
 
   // state representation type
@@ -115,7 +114,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
   implicit case object CCostedPrimCompanionElem extends CompanionElem[CCostedPrimCompanionCtor]
 
   implicit def proxyCCostedPrim[Val](p: Rep[CCostedPrim[Val]]): CCostedPrim[Val] = {
-    if (p.rhs.isInstanceOf[CCostedPrim[Val]])
+    if (p.rhs.isInstanceOf[CCostedPrim[Val]@unchecked])
       p.rhs.asInstanceOf[CCostedPrim[Val]]
     else
       proxyOps[CCostedPrim[Val]](p)
@@ -191,7 +190,6 @@ implicit lazy val eR = r.eVal
     with ConcreteElem[CCostedPairData[L, R], CCostedPair[L, R]] {
     override lazy val parent: Option[Elem[_]] = Some(costedPairElement(element[L], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override def convertCostedPair(x: Rep[CostedPair[L, R]]) = RCCostedPair(x.l, x.r, x.accCost)
   }
 
   // state representation type
@@ -252,7 +250,7 @@ implicit val eR = p._2.eVal
   implicit case object CCostedPairCompanionElem extends CompanionElem[CCostedPairCompanionCtor]
 
   implicit def proxyCCostedPair[L, R](p: Rep[CCostedPair[L, R]]): CCostedPair[L, R] = {
-    if (p.rhs.isInstanceOf[CCostedPair[L, R]])
+    if (p.rhs.isInstanceOf[CCostedPair[L, R]@unchecked])
       p.rhs.asInstanceOf[CCostedPair[L, R]]
     else
       proxyOps[CCostedPair[L, R]](p)
@@ -365,7 +363,6 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     with ConcreteElem[CCostedFuncData[Env, Arg, Res], CCostedFunc[Env, Arg, Res]] {
     override lazy val parent: Option[Elem[_]] = Some(costedFuncElement(element[Env], element[Arg], element[Res]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
-    override def convertCostedFunc(x: Rep[CostedFunc[Env, Arg, Res]]) = RCCostedFunc(x.envCosted, x.func, x.cost, x.size)
   }
 
   // state representation type
@@ -425,7 +422,7 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
   implicit case object CCostedFuncCompanionElem extends CompanionElem[CCostedFuncCompanionCtor]
 
   implicit def proxyCCostedFunc[Env, Arg, Res](p: Rep[CCostedFunc[Env, Arg, Res]]): CCostedFunc[Env, Arg, Res] = {
-    if (p.rhs.isInstanceOf[CCostedFunc[Env, Arg, Res]])
+    if (p.rhs.isInstanceOf[CCostedFunc[Env, Arg, Res]@unchecked])
       p.rhs.asInstanceOf[CCostedFunc[Env, Arg, Res]]
     else
       proxyOps[CCostedFunc[Env, Arg, Res]](p)
@@ -586,7 +583,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
     with ConcreteElem[CCostedCollData[Item], CCostedColl[Item]] {
     override lazy val parent: Option[Elem[_]] = Some(costedCollElement(element[Item]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
-    override def convertCostedColl(x: Rep[CostedColl[Item]]) = RCCostedColl(x.values, x.costs, x.sizes, x.valuesCost)
   }
 
   // state representation type
@@ -643,7 +639,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
   implicit case object CCostedCollCompanionElem extends CompanionElem[CCostedCollCompanionCtor]
 
   implicit def proxyCCostedColl[Item](p: Rep[CCostedColl[Item]]): CCostedColl[Item] = {
-    if (p.rhs.isInstanceOf[CCostedColl[Item]])
+    if (p.rhs.isInstanceOf[CCostedColl[Item]@unchecked])
       p.rhs.asInstanceOf[CCostedColl[Item]]
     else
       proxyOps[CCostedColl[Item]](p)
@@ -805,8 +801,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     extends CostedBuilderElem[CCostedBuilder]
     with ConcreteElem[CCostedBuilderData, CCostedBuilder] {
     override lazy val parent: Option[Elem[_]] = Some(costedBuilderElement)
-
-    override def convertCostedBuilder(x: Rep[CostedBuilder]) = RCCostedBuilder()
   }
 
   // state representation type

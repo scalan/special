@@ -5,9 +5,9 @@ import impl._
 import scalan.RType
 import special.wrappers.WrappersModule
 import special.wrappers.RTypeWrapSpec
+import scala.collection.mutable.WrappedArray
 import scala.reflect.runtime.universe._
 import scala.reflect._
-import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -105,17 +105,6 @@ object WRType extends EntityObject("WRType") {
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[WRType[A]] => convertWRType(x) }
-      tryConvert(element[WRType[A]], this, x, conv)
-    }
-
-    def convertWRType(x: Rep[WRType[A]]): Rep[To] = {
-      x.elem match {
-        case _: WRTypeElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have WRTypeElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def wRTypeElement[A](implicit eA: Elem[A]): Elem[WRType[A]] =

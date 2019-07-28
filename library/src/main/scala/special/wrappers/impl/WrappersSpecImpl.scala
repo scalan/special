@@ -32,7 +32,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
 
   // entityProxy: single proxy for each type family
   implicit def proxyWrapSpecBase(p: Rep[WrapSpecBase]): WrapSpecBase = {
-    if (p.rhs.isInstanceOf[WrapSpecBase@unchecked]) p.rhs.asInstanceOf[WrapSpecBase]
+    if (p.rhs.isInstanceOf[WrapSpecBase]) p.rhs.asInstanceOf[WrapSpecBase]
     else
       WrapSpecBaseAdapter(p)
   }
@@ -40,17 +40,6 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   // familyElem
   class WrapSpecBaseElem[To <: WrapSpecBase]
     extends EntityElem[To] {
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[WrapSpecBase] => convertWrapSpecBase(x) }
-      tryConvert(element[WrapSpecBase], this, x, conv)
-    }
-
-    def convertWrapSpecBase(x: Rep[WrapSpecBase]): Rep[To] = {
-      x.elem match {
-        case _: WrapSpecBaseElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have WrapSpecBaseElem[_], but got $e", x)
-      }
-    }
   }
 
   implicit lazy val wrapSpecBaseElement: Elem[WrapSpecBase] =
@@ -107,7 +96,7 @@ implicit val eB = ifEmpty.elem.eItem
 
   // entityProxy: single proxy for each type family
   implicit def proxyOptionWrapSpec(p: Rep[OptionWrapSpec]): OptionWrapSpec = {
-    if (p.rhs.isInstanceOf[OptionWrapSpec@unchecked]) p.rhs.asInstanceOf[OptionWrapSpec]
+    if (p.rhs.isInstanceOf[OptionWrapSpec]) p.rhs.asInstanceOf[OptionWrapSpec]
     else
       OptionWrapSpecAdapter(p)
   }
@@ -116,18 +105,6 @@ implicit val eB = ifEmpty.elem.eItem
   class OptionWrapSpecElem[To <: OptionWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
-
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[OptionWrapSpec] => convertOptionWrapSpec(x) }
-      tryConvert(element[OptionWrapSpec], this, x, conv)
-    }
-
-    def convertOptionWrapSpec(x: Rep[OptionWrapSpec]): Rep[To] = {
-      x.elem match {
-        case _: OptionWrapSpecElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have OptionWrapSpecElem[_], but got $e", x)
-      }
-    }
   }
 
   implicit lazy val optionWrapSpecElement: Elem[OptionWrapSpec] =
@@ -270,7 +247,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
   // entityProxy: single proxy for each type family
   implicit def proxySpecialPredefWrapSpec(p: Rep[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
-    if (p.rhs.isInstanceOf[SpecialPredefWrapSpec@unchecked]) p.rhs.asInstanceOf[SpecialPredefWrapSpec]
+    if (p.rhs.isInstanceOf[SpecialPredefWrapSpec]) p.rhs.asInstanceOf[SpecialPredefWrapSpec]
     else
       SpecialPredefWrapSpecAdapter(p)
   }
@@ -279,18 +256,6 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   class SpecialPredefWrapSpecElem[To <: SpecialPredefWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
-
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[SpecialPredefWrapSpec] => convertSpecialPredefWrapSpec(x) }
-      tryConvert(element[SpecialPredefWrapSpec], this, x, conv)
-    }
-
-    def convertSpecialPredefWrapSpec(x: Rep[SpecialPredefWrapSpec]): Rep[To] = {
-      x.elem match {
-        case _: SpecialPredefWrapSpecElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have SpecialPredefWrapSpecElem[_], but got $e", x)
-      }
-    }
   }
 
   implicit lazy val specialPredefWrapSpecElement: Elem[SpecialPredefWrapSpec] =
@@ -394,7 +359,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
 
   // entityProxy: single proxy for each type family
   implicit def proxyRTypeWrapSpec(p: Rep[RTypeWrapSpec]): RTypeWrapSpec = {
-    if (p.rhs.isInstanceOf[RTypeWrapSpec@unchecked]) p.rhs.asInstanceOf[RTypeWrapSpec]
+    if (p.rhs.isInstanceOf[RTypeWrapSpec]) p.rhs.asInstanceOf[RTypeWrapSpec]
     else
       RTypeWrapSpecAdapter(p)
   }
@@ -403,18 +368,6 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   class RTypeWrapSpecElem[To <: RTypeWrapSpec]
     extends WrapSpecBaseElem[To] {
     override lazy val parent: Option[Elem[_]] = Some(wrapSpecBaseElement)
-
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[RTypeWrapSpec] => convertRTypeWrapSpec(x) }
-      tryConvert(element[RTypeWrapSpec], this, x, conv)
-    }
-
-    def convertRTypeWrapSpec(x: Rep[RTypeWrapSpec]): Rep[To] = {
-      x.elem match {
-        case _: RTypeWrapSpecElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have RTypeWrapSpecElem[_], but got $e", x)
-      }
-    }
   }
 
   implicit lazy val rTypeWrapSpecElement: Elem[RTypeWrapSpec] =

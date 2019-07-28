@@ -42,7 +42,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
     with ConcreteElem[CCostedOptionData[T], CCostedOption[T]] {
     override lazy val parent: Option[Elem[_]] = Some(costedOptionElement(element[T]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override def convertCostedOption(x: Rep[CostedOption[T]]) = RCCostedOption(x.value, x.costOpt, x.sizeOpt, x.accumulatedCost)
   }
 
   // state representation type
@@ -99,7 +98,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
   implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor]
 
   implicit def proxyCCostedOption[T](p: Rep[CCostedOption[T]]): CCostedOption[T] = {
-    if (p.rhs.isInstanceOf[CCostedOption[T]])
+    if (p.rhs.isInstanceOf[CCostedOption[T]@unchecked])
       p.rhs.asInstanceOf[CCostedOption[T]]
     else
       proxyOps[CCostedOption[T]](p)

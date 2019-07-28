@@ -61,17 +61,6 @@ object Monoid extends EntityObject("Monoid") {
     def eT = _eT
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Monoid[T]] => convertMonoid(x) }
-      tryConvert(element[Monoid[T]], this, x, conv)
-    }
-
-    def convertMonoid(x: Rep[Monoid[T]]): Rep[To] = {
-      x.elem match {
-        case _: MonoidElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have MonoidElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def monoidElement[T](implicit eT: Elem[T]): Elem[Monoid[T]] =
@@ -200,7 +189,7 @@ implicit val eB = m2.eT
 
   // entityProxy: single proxy for each type family
   implicit def proxyMonoidBuilder(p: Rep[MonoidBuilder]): MonoidBuilder = {
-    if (p.rhs.isInstanceOf[MonoidBuilder@unchecked]) p.rhs.asInstanceOf[MonoidBuilder]
+    if (p.rhs.isInstanceOf[MonoidBuilder]) p.rhs.asInstanceOf[MonoidBuilder]
     else
       MonoidBuilderAdapter(p)
   }
@@ -208,17 +197,6 @@ implicit val eB = m2.eT
   // familyElem
   class MonoidBuilderElem[To <: MonoidBuilder]
     extends EntityElem[To] {
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[MonoidBuilder] => convertMonoidBuilder(x) }
-      tryConvert(element[MonoidBuilder], this, x, conv)
-    }
-
-    def convertMonoidBuilder(x: Rep[MonoidBuilder]): Rep[To] = {
-      x.elem match {
-        case _: MonoidBuilderElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have MonoidBuilderElem[_], but got $e", x)
-      }
-    }
   }
 
   implicit lazy val monoidBuilderElement: Elem[MonoidBuilder] =

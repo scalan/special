@@ -620,17 +620,6 @@ implicit val eV = proj.elem.eRange
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Coll[A]] => convertColl(x) }
-      tryConvert(element[Coll[A]], this, x, conv)
-    }
-
-    def convertColl(x: Rep[Coll[A]]): Rep[To] = {
-      x.elem match {
-        case _: CollElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CollElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def collElement[A](implicit eA: Elem[A]): Elem[Coll[A]] =
@@ -1236,7 +1225,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
       implicit val eB = ys.eA
       asRep[Coll[((L, R), B)]](mkMethodCall(source,
         PairCollClass.getMethod("zip", classOf[Sym]),
-        List(ys),
+        Array[AnyRef](ys),
         true, true, element[Coll[((L, R), B)]](collElement(pairElement(pairElement(eL, eR), eB)))))
     }
 
@@ -1330,7 +1319,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def partition(pred: Rep[((L, R)) => Boolean]): Rep[(Coll[(L, R)], Coll[(L, R)])] = {
       asRep[(Coll[(L, R)], Coll[(L, R)])](mkMethodCall(source,
         PairCollClass.getMethod("partition", classOf[Sym]),
-        List(pred),
+        Array[AnyRef](pred),
         true, true, element[(Coll[(L, R)], Coll[(L, R)])](pairElement(collElement(pairElement(eL,eR)), collElement(pairElement(eL,eR))))))
     }
 
@@ -1369,7 +1358,7 @@ implicit val eV = m.elem.eRange.eSnd
       implicit val eK = key.elem.eRange
       asRep[Coll[(K, Coll[(L, R)])]](mkMethodCall(source,
         PairCollClass.getMethod("groupBy", classOf[Sym]),
-        List(key),
+        Array[AnyRef](key),
         true, true, element[Coll[(K, Coll[(L, R)])]](collElement(pairElement(eK, collElement(pairElement(eL, eR)))))))
     }
 
@@ -1447,17 +1436,6 @@ implicit val eV = proj.elem.eRange
 
     override lazy val parent: Option[Elem[_]] = Some(collElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[PairColl[L, R]] => convertPairColl(x) }
-      tryConvert(element[PairColl[L, R]], this, x, conv)
-    }
-
-    def convertPairColl(x: Rep[PairColl[L, R]]): Rep[To] = {
-      x.elem match {
-        case _: PairCollElem[_, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have PairCollElem[_, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def pairCollElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[PairColl[L, R]] =
@@ -1890,17 +1868,6 @@ implicit val eV = proj.elem.eRange
 
     override lazy val parent: Option[Elem[_]] = Some(collElement(element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[ReplColl[A]] => convertReplColl(x) }
-      tryConvert(element[ReplColl[A]], this, x, conv)
-    }
-
-    def convertReplColl(x: Rep[ReplColl[A]]): Rep[To] = {
-      x.elem match {
-        case _: ReplCollElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have ReplCollElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def replCollElement[A](implicit eA: Elem[A]): Elem[ReplColl[A]] =
@@ -2171,18 +2138,6 @@ implicit val eO = l.elem.eRange
         Elem.declaredMethods(classOf[CollBuilder], classOf[SCollBuilder], Set(
         "Monoids", "pairColl", "fromItems", "unzip", "xor", "replicate", "emptyColl", "outerJoin", "flattenColl"
         ))
-    }
-
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CollBuilder] => convertCollBuilder(x) }
-      tryConvert(element[CollBuilder], this, x, conv)
-    }
-
-    def convertCollBuilder(x: Rep[CollBuilder]): Rep[To] = {
-      x.elem match {
-        case _: CollBuilderElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CollBuilderElem[_], but got $e", x)
-      }
     }
   }
 

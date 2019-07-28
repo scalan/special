@@ -4,9 +4,9 @@ import scalan._
 import impl._
 import special.wrappers.WrappersModule
 import special.wrappers.SpecialPredefWrapSpec
+import scala.collection.mutable.WrappedArray
 import scala.reflect.runtime.universe._
 import scala.reflect._
-import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -30,7 +30,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
 
   // entityProxy: single proxy for each type family
   implicit def proxyWSpecialPredef(p: Rep[WSpecialPredef]): WSpecialPredef = {
-    if (p.rhs.isInstanceOf[WSpecialPredef@unchecked]) p.rhs.asInstanceOf[WSpecialPredef]
+    if (p.rhs.isInstanceOf[WSpecialPredef]) p.rhs.asInstanceOf[WSpecialPredef]
     else
       WSpecialPredefAdapter(p)
   }
@@ -38,17 +38,6 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   // familyElem
   class WSpecialPredefElem[To <: WSpecialPredef]
     extends EntityElem[To] {
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[WSpecialPredef] => convertWSpecialPredef(x) }
-      tryConvert(element[WSpecialPredef], this, x, conv)
-    }
-
-    def convertWSpecialPredef(x: Rep[WSpecialPredef]): Rep[To] = {
-      x.elem match {
-        case _: WSpecialPredefElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have WSpecialPredefElem[_], but got $e", x)
-      }
-    }
   }
 
   implicit lazy val wSpecialPredefElement: Elem[WSpecialPredef] =

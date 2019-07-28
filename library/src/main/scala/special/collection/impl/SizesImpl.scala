@@ -107,17 +107,6 @@ object Size extends EntityObject("Size") {
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Size[Val]] => convertSize(x) }
-      tryConvert(element[Size[Val]], this, x, conv)
-    }
-
-    def convertSize(x: Rep[Size[Val]]): Rep[To] = {
-      x.elem match {
-        case _: SizeElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have SizeElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def sizeElement[Val](implicit eVal: Elem[Val]): Elem[Size[Val]] =
@@ -257,17 +246,6 @@ object SizePrim extends EntityObject("SizePrim") {
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[SizePrim[Val]] => convertSizePrim(x) }
-      tryConvert(element[SizePrim[Val]], this, x, conv)
-    }
-
-    def convertSizePrim(x: Rep[SizePrim[Val]]): Rep[To] = {
-      x.elem match {
-        case _: SizePrimElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have SizePrimElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def sizePrimElement[Val](implicit eVal: Elem[Val]): Elem[SizePrim[Val]] =
@@ -433,17 +411,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[SizePair[L, R]] => convertSizePair(x) }
-      tryConvert(element[SizePair[L, R]], this, x, conv)
-    }
-
-    def convertSizePair(x: Rep[SizePair[L, R]]): Rep[To] = {
-      x.elem match {
-        case _: SizePairElem[_, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have SizePairElem[_, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def sizePairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[SizePair[L, R]] =
@@ -590,17 +557,6 @@ object SizeColl extends EntityObject("SizeColl") {
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(collElement(element[Item])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[SizeColl[Item]] => convertSizeColl(x) }
-      tryConvert(element[SizeColl[Item]], this, x, conv)
-    }
-
-    def convertSizeColl(x: Rep[SizeColl[Item]]): Rep[To] = {
-      x.elem match {
-        case _: SizeCollElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have SizeCollElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def sizeCollElement[Item](implicit eItem: Elem[Item]): Elem[SizeColl[Item]] =
@@ -744,17 +700,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(funcElement(element[Arg],element[Res])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[SizeFunc[Env, Arg, Res]] => convertSizeFunc(x) }
-      tryConvert(element[SizeFunc[Env, Arg, Res]], this, x, conv)
-    }
-
-    def convertSizeFunc(x: Rep[SizeFunc[Env, Arg, Res]]): Rep[To] = {
-      x.elem match {
-        case _: SizeFuncElem[_, _, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have SizeFuncElem[_, _, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def sizeFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[SizeFunc[Env, Arg, Res]] =
@@ -888,17 +833,6 @@ object SizeOption extends EntityObject("SizeOption") {
 
     override lazy val parent: Option[Elem[_]] = Some(sizeElement(wOptionElement(element[T])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[SizeOption[T]] => convertSizeOption(x) }
-      tryConvert(element[SizeOption[T]], this, x, conv)
-    }
-
-    def convertSizeOption(x: Rep[SizeOption[T]]): Rep[To] = {
-      x.elem match {
-        case _: SizeOptionElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have SizeOptionElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def sizeOptionElement[T](implicit eT: Elem[T]): Elem[SizeOption[T]] =

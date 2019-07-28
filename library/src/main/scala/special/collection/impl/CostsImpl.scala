@@ -83,17 +83,6 @@ object Costed extends EntityObject("Costed") {
     def eVal = _eVal
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Costed[Val]] => convertCosted(x) }
-      tryConvert(element[Costed[Val]], this, x, conv)
-    }
-
-    def convertCosted(x: Rep[Costed[Val]]): Rep[To] = {
-      x.elem match {
-        case _: CostedElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def costedElement[Val](implicit eVal: Elem[Val]): Elem[Costed[Val]] =
@@ -226,17 +215,6 @@ object CostedPrim extends EntityObject("CostedPrim") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedPrim[Val]] => convertCostedPrim(x) }
-      tryConvert(element[CostedPrim[Val]], this, x, conv)
-    }
-
-    def convertCostedPrim(x: Rep[CostedPrim[Val]]): Rep[To] = {
-      x.elem match {
-        case _: CostedPrimElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedPrimElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def costedPrimElement[Val](implicit eVal: Elem[Val]): Elem[CostedPrim[Val]] =
@@ -379,17 +357,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedPair[L, R]] => convertCostedPair(x) }
-      tryConvert(element[CostedPair[L, R]], this, x, conv)
-    }
-
-    def convertCostedPair(x: Rep[CostedPair[L, R]]): Rep[To] = {
-      x.elem match {
-        case _: CostedPairElem[_, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedPairElem[_, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def costedPairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[CostedPair[L, R]] =
@@ -555,17 +522,6 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(funcElement(element[Arg],element[Res])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedFunc[Env, Arg, Res]] => convertCostedFunc(x) }
-      tryConvert(element[CostedFunc[Env, Arg, Res]], this, x, conv)
-    }
-
-    def convertCostedFunc(x: Rep[CostedFunc[Env, Arg, Res]]): Rep[To] = {
-      x.elem match {
-        case _: CostedFuncElem[_, _, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedFuncElem[_, _, _, _], but got $e", x)
-      }
-    }
   }
 
   implicit def costedFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[CostedFunc[Env, Arg, Res]] =
@@ -788,17 +744,6 @@ object CostedColl extends EntityObject("CostedColl") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(collElement(element[Item])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedColl[Item]] => convertCostedColl(x) }
-      tryConvert(element[CostedColl[Item]], this, x, conv)
-    }
-
-    def convertCostedColl(x: Rep[CostedColl[Item]]): Rep[To] = {
-      x.elem match {
-        case _: CostedCollElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedCollElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def costedCollElement[Item](implicit eItem: Elem[Item]): Elem[CostedColl[Item]] =
@@ -991,17 +936,6 @@ object CostedOption extends EntityObject("CostedOption") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(wOptionElement(element[T])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedOption[T]] => convertCostedOption(x) }
-      tryConvert(element[CostedOption[T]], this, x, conv)
-    }
-
-    def convertCostedOption(x: Rep[CostedOption[T]]): Rep[To] = {
-      x.elem match {
-        case _: CostedOptionElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedOptionElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def costedOptionElement[T](implicit eT: Elem[T]): Elem[CostedOption[T]] =
@@ -1188,7 +1122,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
 
   // entityProxy: single proxy for each type family
   implicit def proxyCostedBuilder(p: Rep[CostedBuilder]): CostedBuilder = {
-    if (p.rhs.isInstanceOf[CostedBuilder@unchecked]) p.rhs.asInstanceOf[CostedBuilder]
+    if (p.rhs.isInstanceOf[CostedBuilder]) p.rhs.asInstanceOf[CostedBuilder]
     else
       CostedBuilderAdapter(p)
   }
@@ -1196,17 +1130,6 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   // familyElem
   class CostedBuilderElem[To <: CostedBuilder]
     extends EntityElem[To] {
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedBuilder] => convertCostedBuilder(x) }
-      tryConvert(element[CostedBuilder], this, x, conv)
-    }
-
-    def convertCostedBuilder(x: Rep[CostedBuilder]): Rep[To] = {
-      x.elem match {
-        case _: CostedBuilderElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedBuilderElem[_], but got $e", x)
-      }
-    }
   }
 
   implicit lazy val costedBuilderElement: Elem[CostedBuilder] =

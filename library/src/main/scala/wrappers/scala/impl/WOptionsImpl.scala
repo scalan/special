@@ -4,9 +4,9 @@ import scalan._
 import impl._
 import special.wrappers.WrappersModule
 import special.wrappers.OptionWrapSpec
+import scala.collection.mutable.WrappedArray
 import scala.reflect.runtime.universe._
 import scala.reflect._
-import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
@@ -228,17 +228,6 @@ object WOption extends EntityObject("WOption") {
     }
 
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[WOption[A]] => convertWOption(x) }
-      tryConvert(element[WOption[A]], this, x, conv)
-    }
-
-    def convertWOption(x: Rep[WOption[A]]): Rep[To] = {
-      x.elem match {
-        case _: WOptionElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have WOptionElem[_, _], but got $e", x)
-      }
-    }
   }
 
   implicit def wOptionElement[A](implicit eA: Elem[A]): Elem[WOption[A]] =

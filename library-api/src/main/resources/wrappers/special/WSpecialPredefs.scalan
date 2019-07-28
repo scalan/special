@@ -7,6 +7,8 @@ package wrappers.special {
 
   import special.wrappers.SpecialPredefWrapSpec
 
+  import scala.collection.mutable.WrappedArray
+
   trait WSpecialPredefs extends Base { self: WrappersModule =>
     import WOption._;
     import WSpecialPredef._;

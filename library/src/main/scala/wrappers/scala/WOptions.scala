@@ -7,6 +7,8 @@ package wrappers.scala {
 
   import special.wrappers.OptionWrapSpec
 
+  import scala.collection.mutable.WrappedArray
+
   trait WOptions extends Base { self: WrappersModule =>
     import WOption._;
     @External("Option") @ContainerType @FunctorType @Liftable trait WOption[A] extends Def[WOption[A]] {
