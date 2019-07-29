@@ -45,9 +45,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
             res
           }
       }
-      val startNodes = DBuffer.ofSize[Int](roots.length)
-      cfor(0)(_ < roots.length, _ + 1) { i => startNodes += roots(i).rhs.nodeId }
-      val sch = buildScheduleForResult(startNodes, neighbours)
+      val sch = buildScheduleForResult(rootIds, neighbours)
       sch
     }
 

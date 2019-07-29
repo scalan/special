@@ -242,17 +242,15 @@ trait Transforming { self: Scalan =>
     def mirrorNode(t: Ctx, rewriter: Rewriter, g: AstGraph, node: Sym): Ctx = {
       if (isMirrored(t, node)) t
       else {
-        node match {
-          case Def(d) => d match {
-            case v: Variable[_] =>
-              mirrorVar(t, rewriter, node)
-            case lam: Lambda[a, b] =>
-              mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
-            case th: ThunkDef[a] =>
-              mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
-            case _ =>
-              mirrorDef(t, rewriter, node, d)
-          }
+        node.rhs match {
+          case v: Variable[_] =>
+            mirrorVar(t, rewriter, node)
+          case lam: Lambda[a, b] =>
+            mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
+          case th: ThunkDef[a] =>
+            mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
+          case d =>
+            mirrorDef(t, rewriter, node, d)
         }
       }
     }

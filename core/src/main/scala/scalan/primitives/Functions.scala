@@ -117,16 +117,17 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         // 1) we build g.schedule and then g.usageMap
         // 2) collect set of nodes, which depend on `x`
         val g = new PGraph(roots, filterNode = Nullable(s => s.rhs._nodeId >= boundVarId))
-        val locals = GraphUtil.depthFirstSetFrom[Sym](DBuffer(x))(
-          new Neighbours({ sym => g.usagesOf(sym) })
+        val locals = GraphUtil.depthFirstSetFrom[Int](DBuffer(boundVarId))(
+          new Neighbours({ id => g.usagesOf(id) })
         )
         val gschedule = g.schedule.toArray
         val len = gschedule.length
         val sch = DBuffer.ofSize[Int](len)
         cfor(0)(_ < len, _ + 1) { i =>
           val sym = gschedule(i)
-          if (locals(sym) && !sym.isVar)
-            sch += sym.rhs.nodeId
+          val id = sym.rhs.nodeId
+          if (locals(id) && !sym.isVar)
+            sch += id
         }
         val currSch = if (sch.isEmpty) g.rootIds else sch
         currSch

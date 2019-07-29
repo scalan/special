@@ -145,12 +145,13 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def hasManyUsagesGlobal(s: Sym): Boolean = globalUsagesOf(s).length > 1
 
-    def usagesOf(s: Sym): DBuffer[Sym] = usageMap.get(s.rhs.nodeId) match {
-      case Some(node) => node.outSyms
-      case None => DBuffer.empty[Sym]
+    def usagesOf(id: Int): DBuffer[Int] = {
+      val node = usageMap.getOrElse(id, null)
+      if (node == null) return DBuffer.empty[Int]
+      node.usages
     }
 
-    def hasManyUsages(s: Sym): Boolean = usagesOf(s).length > 1
+    def hasManyUsages(s: Sym): Boolean = usagesOf(s.rhs.nodeId).length > 1
 
     def show(): Unit = show(defaultGraphVizConfig)
     def show(emitMetadata: Boolean): Unit = show(defaultGraphVizConfig.copy(emitMetadata = emitMetadata))
