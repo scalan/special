@@ -6,7 +6,7 @@ import scala.reflect.internal.ModifierFlags
 import java.util.Objects
 
 import scala.collection.immutable.{HashMap, HashSet}
-import scalan.{ArgList, Constructor, ContainerType, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
+import scalan.{ArgList, Constructor, ContainerType, HasMethodCallRecognizer, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
 import scalan.meta.Symbols._
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
 
@@ -343,6 +343,7 @@ object ScalanAst {
   final val FunctorTypeAnnotation    = classOf[FunctorType].getSimpleName
   final val ReifiedTypeArgAnnotation = classOf[Reified].getSimpleName
   final val NeverInlineAnnotation    = classOf[NeverInline].getSimpleName
+  final val HasMethodCallRecognizerAnnotation = classOf[HasMethodCallRecognizer].getSimpleName
   final val SpecializedAnnotation    = classOf[specialized].getSimpleName
   final val InlineAnnotation         = classOf[inline].getSimpleName
 
@@ -469,6 +470,7 @@ object ScalanAst {
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
     def isNeverInline: Boolean = hasAnnotation(NeverInlineAnnotation)
+    def hasIRExtractor: Boolean = hasAnnotation(HasMethodCallRecognizerAnnotation)
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
     override def rhs: Option[SExpr] = body
     override def exprType = ??? // TODO build STpeFunc for this method type
