@@ -107,8 +107,8 @@ class CollsStagingTests extends WrappersTests {
       for (j <- 0 until nRepeats) {
         val f = fun { in: Rep[(CollBuilder, Int)] =>
           val Pair(colBuilder, delta) = in
-          val col = colBuilder.replicate(i*j, 0)
-          val col2 = colBuilder.replicate(j+i, 0)
+          val col = colBuilder.replicate(i*j, delta)
+          val col2 = colBuilder.replicate(j+i, delta)
           val res = col.map(fun {x => x + delta}).zip(col2)
           res
         }
@@ -126,8 +126,8 @@ class CollsStagingTests extends WrappersTests {
 
   test("measure: unfoldLambda") {
     val dummyCtx = new Ctx  // to force class loading
-    runMeasure(100, "default", true, true, true)
-    runMeasure(1000, "noAlpha", false, true, true)
+//    runMeasure(100, "default", true, true, true)
+//    runMeasure(1000, "noAlpha", false, true, true)
     runMeasure(1000, "noAlpha_noKeepOrig", false, false, true)
   }
 

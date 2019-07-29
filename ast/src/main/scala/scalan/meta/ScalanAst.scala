@@ -479,10 +479,6 @@ object ScalanAst {
     def getAnnotation(annotName: String): Option[SMethodAnnotation] = annotations.find(a => a.annotationClass == annotName)
     def hasAnnotation(annotName: String): Boolean = getAnnotation(annotName).isDefined
 
-//    def isExtractableArg(module: SModuleDef, tpeArg: STpeArg): Boolean = {
-//      allArgs.exists(a => STpePath.find(module, a.tpe, tpeArg.name).isDefined)
-//    }
-
     def explicitArgs: List[SMethodArg] = argSections.flatMap(_.args.filterNot(_.impFlag))
     def implicitArgs: List[SMethodArg] = argSections.flatMap(_.args.filter(_.impFlag))
 

@@ -72,7 +72,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     cachedElemByClass(eItem)(classOf[ThunkElem[T]])
   implicit def extendThunkElement[T](elem: Elem[Thunk[T]]): ThunkElem[T] = elem.asInstanceOf[ThunkElem[T]]
 
-  class ThunkDef[A](val root: Rep[A], _schedule: =>Schedule)
+  class ThunkDef[A](val root: Rep[A], _scheduleIds: =>ScheduleIds)
     extends Def[Thunk[A]] with AstGraph with Product {
 
     implicit def eA: Elem[A] = root.elem
@@ -85,25 +85,22 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
         res
       }
 
-    override lazy val schedule: Schedule = _schedule
+    override lazy val scheduleIds: ScheduleIds = _scheduleIds
 
-    override def scheduleIds: DBuffer[Int] = {
-      val sch = schedule
-      val len = sch.length
-      val res = new Array[Int](len)
-      cfor(0)(_ < len, _ + 1) { i => res(i) = sch(i).rhs.nodeId }
-      DBuffer.unsafe(res) // safe because arr is not accessible outside
-    }
-
-    // structural equality pattern implementation
+    /** NOTE on structural equality implementation
+      * Every Def is assigned fresh nodeId in the constructor. As result this ThunkDef
+      * instance will have unique nodeId. Thus, different ThunkDef instances will have
+      * different nodeIds and hence they are NOT equal.
+      * */
     override lazy val hashCode: Int = _nodeId //41 * (41 + root.hashCode) + schedule.hashCode
+    def canEqual(other: Any) = other.isInstanceOf[ThunkDef[_]]
     override def equals(other: Any) =
       other match {
         case that: ThunkDef[_] => _nodeId == that._nodeId
         case _ => false
       }
     override def toString = s"Th($root, [${scheduleIds.toArray.mkString(",")}])"
-    def canEqual(other: Any) = other.isInstanceOf[ThunkDef[_]]
+
 
     // Product implementation
     def productElement(n: Int): Any = n match {
@@ -151,7 +148,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       bodyDefs.put(d, d)
     }
 
-    def scheduleForResult(root: Rep[Any]): Schedule = {
+    def scheduleForResult(root: Rep[Any]): DBuffer[Int] = {
       val sch = buildScheduleForResult(
         DBuffer(root.rhs.nodeId),
         { id =>
@@ -166,12 +163,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
           res
         }
       )
-      val len = sch.length
-      val res = new Array[Sym](len)
-      cfor(0)(_ < len, _ + 1) { i =>
-        res(i) = getSym(sch(i))
-      }
-      res
+      sch
     }
 
     // TODO optimize: this is performance hotspot (use ArrayBuilder instead of ListBuffer)
@@ -212,9 +204,9 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
   implicit def repToThunk[A](block: Rep[A]): Rep[Thunk[A]] = thunk_create(block)
 
   def thunk_create[A](block: => Rep[A]): Rep[Thunk[A]] = {
-    var schedule: Schedule = null
+    var scheduleIds: ScheduleIds = null
     val resPH = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[A]] // will be known after block is evaluated
-    val newThunk = new ThunkDef(resPH, { assert(schedule != null); schedule })
+    val newThunk = new ThunkDef(resPH, { assert(scheduleIds != null); scheduleIds })
     val newThunkSym = newThunk.self
 
     val newScope = thunkStack.beginScope(newThunkSym)
@@ -222,12 +214,12 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     // reify all the effects during block execution
     val res = reifyEffects(block)
     resPH.assignDefFrom(res)
-    schedule =
-      if (res.isVar) Nil
-      else if (newScope.isEmptyBody)  Nil
+    scheduleIds =
+      if (res.isVar) DBuffer.ofSize(0)
+      else if (newScope.isEmptyBody) DBuffer.ofSize(0)
       else newScope.scheduleForResult(res)
 
-    val sh = newThunk.schedule  // force lazy value in newThunk (see ThunkDef._schedule argument above)
+    val sh = newThunk.scheduleIds  // force lazy value in newThunk (see ThunkDef._scheduleIds argument above)
     thunkStack.endScope()
     toExp(newThunk, newThunkSym)
   }

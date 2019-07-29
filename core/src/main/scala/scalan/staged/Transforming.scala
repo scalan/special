@@ -164,7 +164,7 @@ trait Transforming { self: Scalan =>
 
     protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): Ctx = {
       val (t1, res) = apply(t, rewriter, node, d)
-      t1 + (node -> res)
+      t1 + ((node, res))
     }
 
     protected def getMirroredLambdaSym[A, B](node: Rep[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
@@ -216,9 +216,9 @@ trait Transforming { self: Scalan =>
     }
 
     protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Rep[Thunk[A]], thunk: ThunkDef[A]): Ctx = {
-      var schedulePH: Schedule = null
+      var scheduleIdsPH: ScheduleIds = null
       val newRootPH = placeholder(Lazy(node.elem.eItem))
-      val newThunk = new ThunkDef(newRootPH, { assert(schedulePH != null); schedulePH })
+      val newThunk = new ThunkDef(newRootPH, { assert(scheduleIdsPH != null); scheduleIdsPH })
       val newThunkSym = newThunk.self
 
       val newScope = thunkStack.beginScope(newThunkSym)
@@ -228,9 +228,9 @@ trait Transforming { self: Scalan =>
 
       val newRoot = t1(thunk.root)
       newRootPH.assignDefFrom(newRoot)
-      schedulePH =
-          if (newRoot.isVar) Nil
-          else if (newScope.isEmptyBody)  Nil
+      scheduleIdsPH =
+          if (newRoot.isVar) DBuffer.ofSize(0)
+          else if (newScope.isEmptyBody) DBuffer.ofSize(0)
           else newScope.scheduleForResult(newRoot)
 
       createDefinition(newThunkSym, newThunk)
@@ -256,7 +256,6 @@ trait Transforming { self: Scalan =>
     }
 
     /** @hotspot */
-    // TODO optimize: don't return Array
     def mirrorSymbols(t0: Ctx, rewriter: Rewriter, g: AstGraph, nodes: DBuffer[Int]) = {
       var t: Ctx = t0
       cfor(0)(_ < nodes.length, _ + 1) { i =>

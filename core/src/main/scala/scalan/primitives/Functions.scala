@@ -159,9 +159,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
     case l: Lambda[a, b] =>
-      val newLam = new Lambda(Nullable.None, t(l.x), t(l.y), l.mayInline, l.alphaEquality)
-      val newSym = newLam.self
-      asRep[A](toExp(newLam, newSym))
+      sys.error(s"Thunk should be transformed in mirrorLambda")
     case _ => super.transformDef(d, t)
   }
 
