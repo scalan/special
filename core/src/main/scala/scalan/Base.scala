@@ -110,6 +110,16 @@ trait Base { scalan: Scalan =>
     def transform(t: Transformer): Def[T] =
       !!!(s"Cannot transfrom definition using transform($this)", self)
 
+    /** Clone this definition transforming all symbols using `t`.
+      * If new Def[A] is created, it is added to the graph with collapsing and rewriting.
+      * Can be overriden to implement node-specific mirroring (see MethodCall).
+      * @param  t  mapping of symbols to symbols
+      * @return  symbol of the logical clone. If `d` don't contain symbols, then d.self is returned. */
+    def mirror(t: Transformer): Rep[T] = {
+      val newD = transform(t)
+      reifyObject(newD)
+    }
+
     override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || {
       val eq = canEqual(other) && Arrays.deepEquals(elements, other.asInstanceOf[Def[_]].elements)
       eq
@@ -168,13 +178,14 @@ trait Base { scalan: Scalan =>
     override def productArity = 0
     override def productElement(n: Int) = !!!(s"productElement($n) called, but productArity = 0", self)
     override def canEqual(other: Any) = other.isInstanceOf[CompanionDef[_]]
-    override def transform(t: Transformer) = this
+    override def mirror(t: Transformer): Rep[T] = self
   }
 
   object Liftables {
     trait LiftedConst[ST, T] extends Def[T] {
       def constValue: ST
       def liftable: Liftable[ST, T]
+      override def mirror(t: Transformer): Rep[T] = self
     }
 
     /** Describes lifting data values of type ST (Source Type) to IR nodes of the correspoding staged type T.
@@ -302,14 +313,13 @@ trait Base { scalan: Scalan =>
   abstract class BaseDef[+T](implicit val selfType: Elem[T @uncheckedVariance]) extends Def[T]
 
   case class Const[T](x: T)(implicit val eT: Elem[T]) extends BaseDef[T] {
-    override def transform(t: Transformer) = this
+    override def mirror(t: Transformer): Rep[T] = self
   }
 
   /** @param varId   is independent from nodeId, shouldn't be used as node id.*/
   case class Variable[T](varId: Int)(implicit eT: LElem[T]) extends Def[T] {
     def selfType: Elem[T] = eT.value
-    override def transform(t: Transformer): Def[T] =
-      !!!(s"Method transfrom should not be called on $this", self)
+    override def mirror(t: Transformer): Rep[T] = self
   }
 
   @inline def variable[T](implicit eT: LElem[T]): Rep[T] = Variable[T](freshId)
@@ -397,27 +407,26 @@ trait Base { scalan: Scalan =>
 
   import Liftables.LiftedConst
 
-  /** Clone this definition transforming all symbols using `t`.
-    * If new Def[A] is created, it is added to the graph with collapsing and rewriting.
-    * Can be overriden following `stackable overrides` pattern (calling super at the end).
-    * @param  t  mapping of symbols to symbols
-    * @return  symbol of the logical clone. If `d` don't contain symbols, then d.self is returned. */
-  def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
-    case c: Const[_] => c.self
-    case v: Variable[_] => v.self
-    case comp: CompanionDef[_] => comp.self
-    case lc if lc.isInstanceOf[LiftedConst[_,_]] => lc.self
-    case _ =>
-      val newD = d.transform(t)
-      reifyObject(newD)
-  }
-
+  /** @hotspot don't beautify the code */
   protected def transformProductParam(x: Any, t: Transformer): Any = x match {
+    case (_: UnOp[_, _]) | (_: BinOp[_, _]) =>
+      // allows use of context bounds in classes extending UnOp/BinOp.
+      // Note that this must be overridden if some transformation _is_ needed (i.e. if the class contains Rep[_] somewhere)
+      x
     case e: Rep[_] => t(e)
-    case seq: Seq[_] => seq.map(transformProductParam(_, t))
-    case arr: Array[_] => arr.map(transformProductParam(_, t))
-    case opt: Option[_] => opt.map(transformProductParam(_, t))
-    case d: Def[_] => transformDef(d, t).rhs
+    case seq: Seq[_] =>
+      val len = seq.length
+      val res = new Array[AnyRef](len)
+      cfor(0)(_ < len, _ + 1) { i => res(i) = transformProductParam(seq(i), t).asInstanceOf[AnyRef] }
+      res: Seq[_]
+    case arr: Array[_] =>
+      val len = arr.length
+      val res = new Array[AnyRef](len)
+      cfor(0)(_ < len, _ + 1) { i => res(i) = transformProductParam(arr(i), t).asInstanceOf[AnyRef] }
+      res
+    case opt: Option[_] =>
+      if (opt.isEmpty) None else Some(transformProductParam(opt.get, t))
+    case d: Def[_] => d.mirror(t).rhs
     case x => x
   }
 

@@ -30,6 +30,15 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   case class MethodCall private[Proxy](receiver: Sym, method: Method, args: Seq[AnyRef], neverInvoke: Boolean)
                                       (val selfType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
 
+    override def mirror(t: Transformer): Rep[Any] = {
+      val len = args.length
+      val args1 = new Array[AnyRef](len)
+      cfor(0)(_ < len, _ + 1) { i => args1(i) = transformProductParam(args(i), t).asInstanceOf[AnyRef]}
+      val receiver1 = t(receiver)
+      // in the case neverInvoke is false, the method is invoked in rewriteDef
+      mkMethodCall(receiver1, method, args1, neverInvoke, isAdapterCall, selfType).asInstanceOf[Rep[Any]]
+    }
+
     override def toString = {
       val methodStr = method.toString.replace("java.lang.", "").
         replace("public ", "").replace("abstract ", "")
@@ -85,18 +94,6 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
 
   case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA) {
     override def transform(t: Transformer) = NewObject(eA, t(args).toList, neverInvoke)
-  }
-
-  override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
-    // not the same as super because mkMethodCall can produce a more precise return type
-    case mc @ MethodCall(receiver, method, args, neverInvoke) =>
-      val len = args.length
-      val args1 = new Array[AnyRef](len)
-      cfor(0)(_ < len, _ + 1) { i => args1(i) = transformProductParam(args(i), t).asInstanceOf[AnyRef]}
-      val receiver1 = t(receiver)
-      // in the case neverInvoke is false, the method is invoked in rewriteDef
-      mkMethodCall(receiver1, method, args1, neverInvoke, mc.isAdapterCall, mc.selfType).asInstanceOf[Rep[A]]
-    case _ => super.transformDef(d, t)
   }
 
   def mkMethodCall(receiver: Sym, method: Method, args: Seq[AnyRef],

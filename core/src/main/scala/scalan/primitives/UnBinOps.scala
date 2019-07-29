@@ -44,11 +44,4 @@ trait UnBinOps extends Base { self: Scalan =>
 
   def applyBinOp[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[A]): Rep[R] = ApplyBinOp(op, lhs, rhs)
   def applyBinOpLazy[A, R](op: BinOp[A, R], lhs: Rep[A], rhs: Rep[Thunk[A]]): Rep[R] = ApplyBinOpLazy(op, lhs, rhs)
-
-  // allows use of context bounds in classes extending UnOp/BinOp.
-  // Note that this must be overridden if some transformation _is_ needed (i.e. if the class contains Rep[_] somewhere)
-  override protected def transformProductParam(x: Any, t: Transformer) = x match {
-    case (_: UnOp[_, _]) | (_: BinOp[_, _]) => x
-    case _ => super.transformProductParam(x, t)
-  }
 }

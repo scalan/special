@@ -157,12 +157,6 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     }
   }
 
-  override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
-    case l: Lambda[a, b] =>
-      sys.error(s"Thunk should be transformed in mirrorLambda")
-    case _ => super.transformDef(d, t)
-  }
-
   /**
    * Matcher for lambdas which don't depend on their arguments
    * (but can close over other expressions, unlike VeryConstantLambda).

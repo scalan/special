@@ -124,17 +124,9 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     }
   }
 
-  override def transformDef[A](d: Def[A], t: Transformer): Rep[A] = d match {
-    case thunk: ThunkDef[a] =>
-      sys.error(s"Thunk should be transformed in mirrorThunk")
-    case _ => super.transformDef(d, t)
-  }
-
   case class ThunkView[A, B](source: Rep[Thunk[A]])(innerIso: Iso[A, B])
     extends View1[A, B, Thunk](thunkIso(innerIso)) {
   }
-
-
 
   class ThunkScope(val parent: ThunkScope, val thunkSym: Rep[Any]) {
     private val bodyIds: DSet[Int] = DSet.ofSize(16)

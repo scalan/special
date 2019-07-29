@@ -152,7 +152,7 @@ trait Transforming { self: Scalan =>
   }
 
   abstract class Mirror[Ctx <: Transformer : TransformerOps] {
-    def apply[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): (Ctx, Sym) = (t, transformDef(d, t))
+    def apply[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): (Ctx, Sym) = (t, d.mirror(t))
 
     protected def mirrorElem(node: Sym): Elem[_] = node.elem
 
