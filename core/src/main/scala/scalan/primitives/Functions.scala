@@ -101,13 +101,16 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     val boundVars = Array(x)
     val boundVarId = x.rhs._nodeId
     val roots = y :: Nil
+
+    override lazy val rootIds: DBuffer[Int] = super.rootIds
+
     override lazy val freeVars = super.freeVars
 
     @inline override def isBoundVar(s: Sym) = s.rhs.nodeId == boundVarId
 
-    override lazy val  schedule: Schedule = {
+    override lazy val  scheduleIds: DBuffer[Int] = {
       val sch = if (isIdentity)
-        mutable.WrappedArray.empty[Sym]
+        DBuffer.ofSize[Int](0)
       else {
         // graph g will contain all Defs reified as part of this Lambda, (due to `filterNode`)
         // BUT not all of them depend on boundVars, thus we need to filter them out
@@ -119,13 +122,13 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         )
         val gschedule = g.schedule.toArray
         val len = gschedule.length
-        val sch = DBuffer.ofSize[Sym](len)
+        val sch = DBuffer.ofSize[Int](len)
         cfor(0)(_ < len, _ + 1) { i =>
           val sym = gschedule(i)
           if (locals(sym) && !sym.isVar)
-            sch += sym
+            sch += sym.rhs.nodeId
         }
-        val currSch: Seq[Sym] = if (sch.isEmpty) g.roots else sch.toArray
+        val currSch = if (sch.isEmpty) g.rootIds else sch
         currSch
       }
       sch
@@ -314,8 +317,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   }
 
   def mirrorApply[A,B](lam: Lambda[A, B], s: Rep[A]): Rep[B] = {
-    val body = lam.scheduleSyms
-    val (t, _) = DefaultMirror.mirrorSymbols(new MapTransformer(lam.x -> s), NoRewriting, lam, body)
+    val body = lam.scheduleIds
+    val t = DefaultMirror.mirrorSymbols(new MapTransformer(lam.x -> s), NoRewriting, lam, body)
     t(lam.y).asInstanceOf[Rep[B]]
   }
 

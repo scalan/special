@@ -680,13 +680,13 @@ trait Slicing extends ScalanEx {
 //      (t1, metaNode)
 //    }
     override protected def mirrorLambda[A, B](
-        t: MapTransformer, rewriter: Rewriter, node: Rep[(A) => B], lam: Lambda[A, B]): (MapTransformer, Sym) = {
+        t: MapTransformer, rewriter: Rewriter, node: Rep[(A) => B], lam: Lambda[A, B]): MapTransformer = {
       if (graph.roots.contains(node)) {
         val fm = sliceAnalyzer.getMark(node)
         if (!fm.isIdentity) {
           val fs = sliceFunc(node, fm)
           val res = Sliced(fs, fm)
-          (t + (node -> res), res)
+          t + (node -> res)
         }
         else
           super.mirrorLambda(t, rewriter, node, lam)

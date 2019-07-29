@@ -14,9 +14,11 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
     def this(roots: Seq[Sym], filterNode: Nullable[Sym => Boolean] = Nullable.None) { this(roots, implicitly[TransformerOps[Ctx]].empty, filterNode) }
     def this(root: Sym) { this(List(root)) }
 
+    override lazy val rootIds: DBuffer[Int] = super.rootIds
+
     override def boundVars = Nil
     override def freeVars = Set()
-    override lazy val schedule = {
+    override lazy val scheduleIds = {
       val neighbours: DFunc[Int, DBuffer[Int]] = filterNode match {
         case Nullable(pred) =>
           { (id: Int) =>
@@ -43,18 +45,15 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
             res
           }
       }
-      val sch = buildScheduleForResult(DBuffer.fromIterable(roots.map(_.rhs.nodeId)), neighbours)
-      val res = new Array[Sym](sch.length)
-      cfor(0)(_ < res.length, _ + 1) { i =>
-        res(i) = getSym(sch(i))
-      }
-      res
+      val startNodes = DBuffer.ofSize[Int](roots.length)
+      cfor(0)(_ < roots.length, _ + 1) { i => startNodes += roots(i).rhs.nodeId }
+      val sch = buildScheduleForResult(startNodes, neighbours)
+      sch
     }
-
 
     def transform(m: Mirror[Ctx], rw: Rewriter, t: Ctx): ProgramGraph[Ctx] = {
       val t0 = t merge mapping
-      val (t1, _) = m.mirrorSymbols(t0, rw, this, scheduleSyms)
+      val t1 = m.mirrorSymbols(t0, rw, this, scheduleIds)
       val newRoots = roots map { t1(_) }
       new ProgramGraph(newRoots, t1, filterNode)
     }

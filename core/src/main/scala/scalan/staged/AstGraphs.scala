@@ -24,10 +24,19 @@ trait AstGraphs extends Transforming { self: Scalan =>
   }
 
   type Schedule = Seq[Sym]
+  type ScheduleIds = DBuffer[Int]
 
   trait AstGraph { thisGraph =>
     def boundVars: Seq[Sym]
     def roots: Seq[Sym]
+
+    def rootIds: DBuffer[Int] = {
+      val rs = roots.toArray
+      val len = rs.length
+      val res = new Array[Int](len)
+      cfor(0)(_ < len, _ + 1) { i => res(i) = rs(i).rhs.nodeId }
+      DBuffer.unsafe(res)
+    }
 
     /** @hotspot */
     def freeVars: Set[Sym] = {
@@ -47,30 +56,32 @@ trait AstGraphs extends Transforming { self: Scalan =>
       res
     }
 
-    def schedule: Schedule
+    def scheduleIds: DBuffer[Int]
 
-    lazy val scheduleSyms: Seq[Int] = {
-      val len = schedule.length
-      val res = new Array[Int](len)
+    lazy val schedule: Schedule = {
+      val len = scheduleIds.length
+      val res = new Array[Sym](len)
       cfor(0)(_ < len, _ + 1) { i =>
-        res(i) = schedule(i).rhs.nodeId
+        res(i) = getSym(scheduleIds(i))
       }
       res
     }
 
+
     /** Set of scheduleSyms */
     lazy val domain: DSet[Int] = {
-      val res = DSet.ofSize[Int](scheduleSyms.length)
-      res ++= scheduleSyms.toArray
+      val res = DSet.ofSize[Int](scheduleIds.length)
+      res ++= scheduleIds.toArray
       res
     }
 
     @inline final def isIdentity: Boolean = boundVars == roots
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
 
-    @inline def isLocalDef(s: Sym): Boolean = domain(s.rhs.nodeId)
+    @inline final def isLocalDef(s: Sym): Boolean = domain(s.rhs.nodeId)
+    @inline final def isLocalDefId(id: Int): Boolean = domain(id)
 
-    @inline def isRoot(s: Sym): Boolean = roots contains s
+    @inline final def isRoot(s: Sym): Boolean = roots.contains(s)
 
     /** Flatten the given schedule into single sequence of non-AstGraph definitions.
       * All scope forming definitions like Lambda and ThunkDef are recursively unfolded in the given buffer `flatBuf`.

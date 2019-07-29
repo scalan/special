@@ -7,6 +7,8 @@ import scalan.{Lazy, DelayInvokeException, Scalan, Nullable}
 import scala.reflect.{classTag, ClassTag}
 import scala.reflect.runtime.universe._
 import scalan.RType.SingletonType
+import debox.{Buffer => DBuffer}
+import spire.syntax.all.cfor
 
 trait Transforming { self: Scalan =>
 
@@ -155,14 +157,14 @@ trait Transforming { self: Scalan =>
     protected def mirrorElem(node: Sym): Elem[_] = node.elem
 
     // every mirrorXXX method should return a pair (t + (v -> v1), v1)
-    protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Rep[A]): (Ctx, Sym) = {
+    protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Rep[A]): Ctx = {
       val newVar = variable(Lazy(mirrorElem(v)))
-      (t + (v -> newVar), newVar)
+      t + (v -> newVar)
     }
 
-    protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): (Ctx, Sym) = {
+    protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): Ctx = {
       val (t1, res) = apply(t, rewriter, node, d)
-      (t1 + (node -> res), res)
+      t1 + (node -> res)
     }
 
     protected def getMirroredLambdaSym[A, B](node: Rep[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
@@ -174,9 +176,9 @@ trait Transforming { self: Scalan =>
       newLambdaDef
     }
 
-    protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Rep[A => B], lam: Lambda[A, B]): (Ctx, Sym) = {
+    protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Rep[A => B], lam: Lambda[A, B]): Ctx = {
       var tRes: Ctx = t
-      val (t1, _) = mirrorNode(t, rewriter, lam, lam.x)
+      val t1 = mirrorNode(t, rewriter, lam, lam.x)
 
       // original root
       val originalRoot = lam.y
@@ -192,8 +194,8 @@ trait Transforming { self: Scalan =>
       try {
         lambdaStack = newLambdaCandidate :: lambdaStack
         val newRoot = reifyEffects({
-          val schedule = lam.schedule.map(_.rhs.nodeId)
-          val (t2, _) = mirrorSymbols(t1, rewriter, lam, schedule)
+          val schedule = lam.scheduleIds
+          val t2 = mirrorSymbols(t1, rewriter, lam, schedule)
           tRes = t2
           tRes(originalRoot) // this will be a new root
         })
@@ -210,18 +212,18 @@ trait Transforming { self: Scalan =>
 //      val (tRes2, mirroredMetadata) = mirrorMetadata(tRes, node, newLambdaExp)
 //      val resLam = rewriteUntilFixPoint(newLambdaExp, mirroredMetadata, rewriter)
 
-      (tRes + (node -> resLam), resLam)
+      tRes + (node -> resLam)
     }
 
-    protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Rep[Thunk[A]], thunk: ThunkDef[A]): (Ctx, Sym) = {
+    protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Rep[Thunk[A]], thunk: ThunkDef[A]): Ctx = {
       var schedulePH: Schedule = null
       val newRootPH = placeholder(Lazy(node.elem.eItem))
       val newThunk = new ThunkDef(newRootPH, { assert(schedulePH != null); schedulePH })
       val newThunkSym = newThunk.self
 
       val newScope = thunkStack.beginScope(newThunkSym)
-      val schedule = thunk.scheduleSyms
-      val (t1, newSchedule) = mirrorSymbols(t, rewriter, thunk, schedule)
+      val schedule = thunk.scheduleIds
+      val t1 = mirrorSymbols(t, rewriter, thunk, schedule)
       thunkStack.endScope()
 
       val newRoot = t1(thunk.root)
@@ -232,15 +234,14 @@ trait Transforming { self: Scalan =>
           else newScope.scheduleForResult(newRoot)
 
       createDefinition(newThunkSym, newThunk)
-      (t1 + (node -> newThunkSym), newThunkSym)
+      t1 + (node -> newThunkSym)
     }
 
     protected def isMirrored(t: Ctx, node: Sym): Boolean = t.isDefinedAt(node)
 
-    def mirrorNode[A](t: Ctx, rewriter: Rewriter, g: AstGraph, node: Rep[A]): (Ctx, Sym) = {
-      if (isMirrored(t, node)) {
-        (t, t(node))
-      } else {
+    def mirrorNode(t: Ctx, rewriter: Rewriter, g: AstGraph, node: Sym): Ctx = {
+      if (isMirrored(t, node)) t
+      else {
         node match {
           case Def(d) => d match {
             case v: Variable[_] =>
@@ -257,16 +258,15 @@ trait Transforming { self: Scalan =>
     }
 
     /** @hotspot */
-    def mirrorSymbols(t0: Ctx, rewriter: Rewriter, g: AstGraph, nodes: Seq[Int]) = {
-      val buf = scala.collection.mutable.ArrayBuilder.make[Sym]()
-      buf.sizeHint(nodes.length)
-      val t = nodes.foldLeft(t0) {
-        case (t1, n) =>
-          val (t2, n1) = mirrorNode(t1, rewriter, g, getSym(n))
-          buf += n1
-          t2
+    // TODO optimize: don't return Array
+    def mirrorSymbols(t0: Ctx, rewriter: Rewriter, g: AstGraph, nodes: DBuffer[Int]) = {
+      var t: Ctx = t0
+      cfor(0)(_ < nodes.length, _ + 1) { i =>
+        val n = nodes(i)
+        val s = getSym(n)
+        t = mirrorNode(t, rewriter, g, s)
       }
-      (t, buf.result())
+      t
     }
   }
 

@@ -86,16 +86,23 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       }
 
     override lazy val schedule: Schedule = _schedule
+
+    override def scheduleIds: DBuffer[Int] = {
+      val sch = schedule
+      val len = sch.length
+      val res = new Array[Int](len)
+      cfor(0)(_ < len, _ + 1) { i => res(i) = sch(i).rhs.nodeId }
+      DBuffer.unsafe(res) // safe because arr is not accessible outside
+    }
+
     // structural equality pattern implementation
     override lazy val hashCode: Int = _nodeId //41 * (41 + root.hashCode) + schedule.hashCode
     override def equals(other: Any) =
       other match {
         case that: ThunkDef[_] => _nodeId == that._nodeId
-//            (this.root equals that.root) &&
-//            (this.schedule equals that.schedule)
         case _ => false
       }
-    override def toString = s"Th($root, [${scheduleSyms.mkString(",")}])"
+    override def toString = s"Th($root, [${scheduleIds.toArray.mkString(",")}])"
     def canEqual(other: Any) = other.isInstanceOf[ThunkDef[_]]
 
     // Product implementation
@@ -110,7 +117,8 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
     override protected def getDeps: Array[Sym] = freeVars.toArray
 
-    val roots = new scala.collection.immutable.::(root, Nil) // optimization of hot spot
+    val roots = Array(root)
+    override lazy val rootIds: DBuffer[Int] = super.rootIds
   }
   object ThunkDef {
     def unapply(d: ThunkDef[_]): Option[(Rep[T], Schedule) forSome {type T}] = d match {
@@ -242,8 +250,8 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     forceThunkDefByMirror(th, subst)
   }
   def forceThunkDefByMirror[A](th: ThunkDef[A], subst: MapTransformer = MapTransformer.Empty): Rep[A] = {
-    val body = th.scheduleSyms
-    val (t, _) = DefaultMirror.mirrorSymbols(subst, NoRewriting, th, body)
+    val body = th.scheduleIds
+    val t = DefaultMirror.mirrorSymbols(subst, NoRewriting, th, body)
     t(th.root).asInstanceOf[Rep[A]]
   }
 
