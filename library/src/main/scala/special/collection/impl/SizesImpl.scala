@@ -133,10 +133,7 @@ object Size extends EntityObject("Size") {
           Nullable(res).asInstanceOf[Nullable[Rep[Size[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Size[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[Size[Val]] forSome {type Val}] = unapply(exp.rhs)
     }
   }
 
@@ -272,10 +269,7 @@ object SizePrim extends EntityObject("SizePrim") {
           Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = unapply(exp.rhs)
     }
 
     object tVal {
@@ -285,10 +279,7 @@ object SizePrim extends EntityObject("SizePrim") {
           Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = unapply(exp.rhs)
     }
   }
 
@@ -437,10 +428,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
           Nullable(res).asInstanceOf[Nullable[Rep[SizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
 
     object r {
@@ -450,10 +438,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
           Nullable(res).asInstanceOf[Nullable[Rep[SizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
   }
 
@@ -583,10 +568,7 @@ object SizeColl extends EntityObject("SizeColl") {
           Nullable(res).asInstanceOf[Nullable[Rep[SizeColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizeColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[SizeColl[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
   }
 
@@ -726,10 +708,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
   }
 
@@ -859,10 +838,7 @@ object SizeOption extends EntityObject("SizeOption") {
           Nullable(res).asInstanceOf[Nullable[Rep[SizeOption[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizeOption[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[SizeOption[T]] forSome {type T}] = unapply(exp.rhs)
     }
   }
 

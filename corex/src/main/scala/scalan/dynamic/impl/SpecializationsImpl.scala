@@ -94,6 +94,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
           Nullable(res).asInstanceOf[Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = unapply(exp.rhs)
     }
 
     object metric {
@@ -103,6 +104,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
           Nullable(res).asInstanceOf[Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = unapply(exp.rhs)
     }
 
     object apply {
@@ -112,6 +114,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoFunc[T, R, M]], Rep[T]) forSome {type T; type R; type M}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[IsoFunc[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = unapply(exp.rhs)
     }
   }
 } // of object IsoFunc
@@ -231,6 +234,7 @@ implicit val eM = p.metric.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString

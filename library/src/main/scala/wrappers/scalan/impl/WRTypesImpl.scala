@@ -131,10 +131,7 @@ object WRType extends EntityObject("WRType") {
           Nullable(res).asInstanceOf[Nullable[Rep[WRType[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[WRType[A]] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[WRType[A]] forSome {type A}] = unapply(exp.rhs)
     }
   }
 

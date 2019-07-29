@@ -81,6 +81,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
           Nullable(res).asInstanceOf[Nullable[Rep[Converter[T, R]] forSome {type T; type R}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Converter[T, R]] forSome {type T; type R}] = unapply(exp.rhs)
     }
 
     object apply {
@@ -90,6 +91,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
           Nullable(res).asInstanceOf[Nullable[(Rep[Converter[T, R]], Rep[T]) forSome {type T; type R}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Converter[T, R]], Rep[T]) forSome {type T; type R}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `isIdentity`: Method's return type Boolean is not a Rep
@@ -202,6 +204,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
           Nullable(res).asInstanceOf[Nullable[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -211,6 +214,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
           Nullable(res).asInstanceOf[Nullable[Rep[IdentityConv[A]] forSome {type A}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[IdentityConv[A]] forSome {type A}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -322,6 +326,7 @@ implicit val eR = p.convFun.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -451,6 +456,7 @@ implicit val eB2 = p.conv2.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -460,6 +466,7 @@ implicit val eB2 = p.conv2.eR
           Nullable(res).asInstanceOf[Nullable[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
   }
 
@@ -587,6 +594,7 @@ implicit val eB2 = p.conv2.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -596,6 +604,7 @@ implicit val eB2 = p.conv2.eR
           Nullable(res).asInstanceOf[Nullable[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
   }
 
@@ -718,6 +727,7 @@ implicit val eC = p.conv2.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -727,6 +737,7 @@ implicit val eC = p.conv2.eR
           Nullable(res).asInstanceOf[Nullable[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -839,6 +850,7 @@ implicit val eB = p.itemConv.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -848,6 +860,7 @@ implicit val eB = p.itemConv.eR
           Nullable(res).asInstanceOf[Nullable[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -958,6 +971,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
           Nullable(res).asInstanceOf[Nullable[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals

@@ -134,10 +134,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedOption[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedOption[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedOption[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object cost {
@@ -147,10 +144,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedOption[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedOption[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedOption[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object size {
@@ -160,10 +154,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedOption[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedOption[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedOption[T]] forSome {type T}] = unapply(exp.rhs)
     }
   }
 

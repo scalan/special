@@ -183,6 +183,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object give {
@@ -192,6 +193,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object size {
@@ -201,6 +203,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object fromItems {
@@ -210,6 +213,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[(Rep[MetaTest[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[MetaTest[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = unapply(exp.rhs)
     }
   }
 
@@ -385,6 +389,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object values {
@@ -394,6 +399,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object give {
@@ -403,6 +409,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
     }
   }
 } // of object MetaPair
@@ -504,6 +511,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MT0]] = unapply(exp.rhs)
     }
 
     object give {
@@ -513,6 +521,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MT0]] = unapply(exp.rhs)
     }
 
     object eT {
@@ -522,6 +531,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MT0]] = unapply(exp.rhs)
     }
 
     object fromItems {
@@ -531,6 +541,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[(Rep[MT0], Seq[Rep[B]], Elem[B]) forSome {type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[MT0], Seq[Rep[B]], Elem[B]) forSome {type B}] = unapply(exp.rhs)
     }
   }
 
@@ -645,6 +656,7 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT1[T]] forSome {type T}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MT1[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object give {
@@ -654,6 +666,7 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT1[T]] forSome {type T}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MT1[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object fromItems {
@@ -663,6 +676,7 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[(Rep[MT1[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[MT1[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = unapply(exp.rhs)
     }
   }
 } // of object MT1
@@ -778,6 +792,7 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[Rep[MT2[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object give {
@@ -787,6 +802,7 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[Rep[MT2[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object fromItems {
@@ -796,6 +812,7 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[(Rep[MT2[A, B]], Seq[Rep[C]], Elem[C]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[MT2[A, B]], Seq[Rep[C]], Elem[C]) forSome {type A; type B; type C}] = unapply(exp.rhs)
     }
   }
 } // of object MT2

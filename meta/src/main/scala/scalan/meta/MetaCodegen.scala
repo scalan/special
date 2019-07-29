@@ -316,6 +316,7 @@ class MetaCodegen {
               |          Nullable(res).asInstanceOf[Nullable[$returnType]]
               |        case _ => Nullable.None
               |      }
+              |      def unapply(exp: Sym): Nullable[$returnType] = unapply(exp.rhs)
               |    }""".stripAndTrim
         }
       }

@@ -90,6 +90,7 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoUR[From, To]], Rep[To]) forSome {type From; type To}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[IsoUR[From, To]], Rep[To]) forSome {type From; type To}] = unapply(exp.rhs)
     }
 
     object to {
@@ -99,6 +100,7 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoUR[From, To]], Rep[From]) forSome {type From; type To}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[IsoUR[From, To]], Rep[From]) forSome {type From; type To}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
@@ -187,6 +189,7 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
           Nullable(res).asInstanceOf[Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -196,6 +199,7 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
           Nullable(res).asInstanceOf[Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -303,6 +307,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
           Nullable(res).asInstanceOf[Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}] = unapply(exp.rhs)
     }
 
     object to {
@@ -312,6 +317,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
           Nullable(res).asInstanceOf[Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -321,6 +327,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
           Nullable(res).asInstanceOf[Nullable[Rep[IdentityIso[A]] forSome {type A}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[IdentityIso[A]] forSome {type A}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -447,6 +454,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(B1, B2)]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(B1, B2)]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     object to {
@@ -456,6 +464,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -465,6 +474,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[PairIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[PairIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -580,6 +590,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[(Unit, B2)]) forSome {type A2; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[(Unit, B2)]) forSome {type A2; type B2}] = unapply(exp.rhs)
     }
 
     object to {
@@ -589,6 +600,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[A2]) forSome {type A2; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[A2]) forSome {type A2; type B2}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -598,6 +610,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[AbsorbFirstUnitIso[A2, B2]] forSome {type A2; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[AbsorbFirstUnitIso[A2, B2]] forSome {type A2; type B2}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -710,6 +723,7 @@ implicit val eB1 = p.iso1.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[(B1, Unit)]) forSome {type A1; type B1}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[(B1, Unit)]) forSome {type A1; type B1}] = unapply(exp.rhs)
     }
 
     object to {
@@ -719,6 +733,7 @@ implicit val eB1 = p.iso1.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[A1]) forSome {type A1; type B1}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[A1]) forSome {type A1; type B1}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -728,6 +743,7 @@ implicit val eB1 = p.iso1.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[AbsorbSecondUnitIso[A1, B1]] forSome {type A1; type B1}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[AbsorbSecondUnitIso[A1, B1]] forSome {type A1; type B1}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -854,6 +870,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[B1, B2]]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[B1, B2]]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     object to {
@@ -863,6 +880,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -872,6 +890,7 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[SumIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[SumIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -993,6 +1012,7 @@ implicit val eC = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[ComposeIso[A, B, C]], Rep[C]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[ComposeIso[A, B, C]], Rep[C]) forSome {type A; type B; type C}] = unapply(exp.rhs)
     }
 
     object to {
@@ -1002,6 +1022,7 @@ implicit val eC = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[ComposeIso[A, B, C]], Rep[A]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[ComposeIso[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -1011,6 +1032,7 @@ implicit val eC = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[ComposeIso[A, B, C]] forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[ComposeIso[A, B, C]] forSome {type A; type B; type C}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -1137,6 +1159,7 @@ implicit val eD = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[FuncIso[A, B, C, D]], Rep[B => D]) forSome {type A; type B; type C; type D}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[FuncIso[A, B, C, D]], Rep[B => D]) forSome {type A; type B; type C; type D}] = unapply(exp.rhs)
     }
 
     object to {
@@ -1146,6 +1169,7 @@ implicit val eD = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[FuncIso[A, B, C, D]], Rep[A => C]) forSome {type A; type B; type C; type D}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[FuncIso[A, B, C, D]], Rep[A => C]) forSome {type A; type B; type C; type D}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -1155,6 +1179,7 @@ implicit val eD = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[FuncIso[A, B, C, D]] forSome {type A; type B; type C; type D}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[FuncIso[A, B, C, D]] forSome {type A; type B; type C; type D}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -1272,6 +1297,7 @@ implicit val eB = p.convTo.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[ConverterIso[A, B]], Rep[A]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[ConverterIso[A, B]], Rep[A]) forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object from {
@@ -1281,6 +1307,7 @@ implicit val eB = p.convTo.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[ConverterIso[A, B]], Rep[B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[ConverterIso[A, B]], Rep[B]) forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object isIdentity {
@@ -1290,6 +1317,7 @@ implicit val eB = p.convTo.eR
           Nullable(res).asInstanceOf[Nullable[Rep[ConverterIso[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[ConverterIso[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
@@ -1401,6 +1429,7 @@ implicit val eB = p.innerIso.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[ThunkIso[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[ThunkIso[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object from {
@@ -1410,6 +1439,7 @@ implicit val eB = p.innerIso.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[ThunkIso[A, B]], Th[B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[ThunkIso[A, B]], Th[B]) forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object to {
@@ -1419,6 +1449,7 @@ implicit val eB = p.innerIso.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[ThunkIso[A, B]], Th[A]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[ThunkIso[A, B]], Th[A]) forSome {type A; type B}] = unapply(exp.rhs)
     }
   }
 } // of object ThunkIso

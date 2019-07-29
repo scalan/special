@@ -254,10 +254,7 @@ implicit val eR = p.r.eVal
           Nullable(res).asInstanceOf[Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
   }
 
@@ -373,10 +370,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
           Nullable(res).asInstanceOf[Nullable[Rep[CSizeColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CSizeColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CSizeColl[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
   }
 
@@ -507,10 +501,7 @@ implicit val eRes = p.tRes.eA
           Nullable(res).asInstanceOf[Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
   }
 
@@ -627,10 +618,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
           Nullable(res).asInstanceOf[Nullable[Rep[CSizeOption[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CSizeOption[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CSizeOption[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
   }
 

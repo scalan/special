@@ -87,10 +87,7 @@ object Monoid extends EntityObject("Monoid") {
           Nullable(res).asInstanceOf[Nullable[Rep[Monoid[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Monoid[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[Monoid[T]] forSome {type T}] = unapply(exp.rhs)
     }
 
     object plus {
@@ -100,10 +97,7 @@ object Monoid extends EntityObject("Monoid") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object power {
@@ -113,10 +107,7 @@ object Monoid extends EntityObject("Monoid") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = unapply(exp.rhs)
     }
   }
 
@@ -223,10 +214,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = unapply(exp.rhs)
     }
 
     object intMaxMonoid {
@@ -236,10 +224,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = unapply(exp.rhs)
     }
 
     object intMinMonoid {
@@ -249,10 +234,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = unapply(exp.rhs)
     }
 
     object longPlusMonoid {
@@ -262,10 +244,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = unapply(exp.rhs)
     }
 
     object longMaxMonoid {
@@ -275,10 +254,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = unapply(exp.rhs)
     }
 
     object longMinMonoid {
@@ -288,10 +264,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[MonoidBuilder]] = unapply(exp.rhs)
     }
 
     object pairMonoid {
@@ -301,10 +274,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[(Rep[MonoidBuilder], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[MonoidBuilder], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[MonoidBuilder], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}] = unapply(exp.rhs)
     }
   }
 

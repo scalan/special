@@ -81,6 +81,7 @@ object StructKey extends EntityObject("StructKey") {
           Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
     }
 
     object name {
@@ -90,6 +91,7 @@ object StructKey extends EntityObject("StructKey") {
           Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
     }
   }
 } // of object StructKey
@@ -191,6 +193,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
           Nullable(res).asInstanceOf[Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
@@ -294,6 +297,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
           Nullable(res).asInstanceOf[Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
     }
 
     // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString

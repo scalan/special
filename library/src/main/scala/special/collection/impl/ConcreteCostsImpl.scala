@@ -154,10 +154,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedPrim[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedPrim[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedPrim[Val]] forSome {type Val}] = unapply(exp.rhs)
     }
   }
 
@@ -287,10 +284,7 @@ implicit val eR = p.r.eVal
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
 
     object value {
@@ -300,10 +294,7 @@ implicit val eR = p.r.eVal
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
 
     object cost {
@@ -313,10 +304,7 @@ implicit val eR = p.r.eVal
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
 
     object size {
@@ -326,10 +314,7 @@ implicit val eR = p.r.eVal
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedPair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
   }
 
@@ -460,10 +445,7 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
 
     object value {
@@ -473,10 +455,7 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
 
     object sliceCalc {
@@ -486,10 +465,7 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
 
     object sliceCost {
@@ -499,10 +475,7 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
 
     object sliceCostEx {
@@ -512,10 +485,7 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
 
     object sliceSize {
@@ -525,10 +495,7 @@ implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
   }
 
@@ -675,10 +642,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
 
     object value {
@@ -688,10 +652,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
 
     object cost {
@@ -701,10 +662,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
 
     object size {
@@ -714,10 +672,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
 
     object mapCosted {
@@ -727,10 +682,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedColl[Item]], Rep[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedColl[Item]], Rep[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedColl[Item]], Rep[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = unapply(exp.rhs)
     }
 
     object filterCosted {
@@ -740,10 +692,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedColl[Item]], Rep[Costed[Item] => Costed[Boolean]]) forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedColl[Item]], Rep[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedColl[Item]], Rep[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = unapply(exp.rhs)
     }
 
     object foldCosted {
@@ -753,10 +702,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedColl[Item]], Rep[Costed[B]], Rep[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedColl[Item]], Rep[Costed[B]], Rep[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedColl[Item]], Rep[Costed[B]], Rep[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = unapply(exp.rhs)
     }
   }
 
@@ -887,10 +833,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[Rep[CCostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CCostedBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[CCostedBuilder]] = unapply(exp.rhs)
     }
 
     object costedValue {
@@ -900,10 +843,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object defaultValue {
@@ -913,10 +853,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[WRType[T]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[WRType[T]]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object mkSizePrim {
@@ -926,10 +863,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object mkSizePair {
@@ -939,10 +873,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Size[L]], Rep[Size[R]]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Size[L]], Rep[Size[R]]) forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Size[L]], Rep[Size[R]]) forSome {type L; type R}] = unapply(exp.rhs)
     }
 
     object mkSizeColl {
@@ -952,10 +883,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Coll[Size[T]]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Coll[Size[T]]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Coll[Size[T]]]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object mkSizeFunc {
@@ -965,10 +893,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = unapply(exp.rhs)
     }
 
     object mkSizeOption {
@@ -978,10 +903,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[WOption[Size[T]]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[WOption[Size[T]]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[WOption[Size[T]]]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object mkCostedPrim {
@@ -991,10 +913,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[T], Rep[Int], Rep[Size[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[T], Rep[Int], Rep[Size[T]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[T], Rep[Int], Rep[Size[T]]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object mkCostedPair {
@@ -1004,10 +923,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}] = unapply(exp.rhs)
     }
 
     object mkCostedFunc {
@@ -1017,10 +933,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Costed[Env]], Rep[Costed[Arg] => Costed[Res]], Rep[Int], Rep[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Costed[Env]], Rep[Costed[Arg] => Costed[Res]], Rep[Int], Rep[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Costed[Env]], Rep[Costed[Arg] => Costed[Res]], Rep[Int], Rep[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
 
     object mkCostedColl {
@@ -1030,10 +943,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Size[T]]], Rep[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Size[T]]], Rep[Int]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Size[T]]], Rep[Int]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object mkCostedOption {
@@ -1043,10 +953,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
           Nullable(res).asInstanceOf[Nullable[(Rep[CCostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Size[T]]], Rep[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Size[T]]], Rep[Int]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[CCostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Size[T]]], Rep[Int]) forSome {type T}] = unapply(exp.rhs)
     }
   }
 

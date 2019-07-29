@@ -256,10 +256,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[Thunk[B]], Rep[A => B]) forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object isEmpty {
@@ -269,10 +266,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[Rep[WOption[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = unapply(exp.rhs)
     }
 
     object isDefined {
@@ -282,10 +276,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[Rep[WOption[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = unapply(exp.rhs)
     }
 
     object filter {
@@ -295,10 +286,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => Boolean]) forSome {type A}] = unapply(exp.rhs)
     }
 
     object flatMap {
@@ -308,10 +296,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => WOption[B]]) forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object map {
@@ -321,10 +306,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A => B]) forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object getOrElse {
@@ -334,10 +316,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[Thunk[B]]) forSome {type A; type B}] = unapply(exp.rhs)
     }
 
     object get {
@@ -347,10 +326,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[Rep[WOption[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[WOption[A]] forSome {type A}] = unapply(exp.rhs)
     }
   }
 

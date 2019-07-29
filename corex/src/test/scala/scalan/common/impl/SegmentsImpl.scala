@@ -185,6 +185,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Segment]] = unapply(exp.rhs)
     }
 
     object length {
@@ -194,6 +195,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Segment]] = unapply(exp.rhs)
     }
 
     object end {
@@ -203,6 +205,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Segment]] = unapply(exp.rhs)
     }
 
     object shift {
@@ -212,6 +215,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Int])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Segment], Rep[Int])] = unapply(exp.rhs)
     }
 
     object attach {
@@ -221,6 +225,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Segment])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Segment], Rep[Segment])] = unapply(exp.rhs)
     }
   }
 
@@ -337,6 +342,7 @@ object Interval extends EntityObject("Interval") {
           Nullable(res).asInstanceOf[Nullable[Rep[Interval]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Interval]] = unapply(exp.rhs)
     }
 
     object shift {
@@ -346,6 +352,7 @@ object Interval extends EntityObject("Interval") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Int])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Interval], Rep[Int])] = unapply(exp.rhs)
     }
 
     object attach {
@@ -355,6 +362,7 @@ object Interval extends EntityObject("Interval") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Segment])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Interval], Rep[Segment])] = unapply(exp.rhs)
     }
   }
 
@@ -463,6 +471,7 @@ object Slice extends EntityObject("Slice") {
           Nullable(res).asInstanceOf[Nullable[Rep[Slice]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Slice]] = unapply(exp.rhs)
     }
 
     object shift {
@@ -472,6 +481,7 @@ object Slice extends EntityObject("Slice") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Int])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Slice], Rep[Int])] = unapply(exp.rhs)
     }
 
     object attach {
@@ -481,6 +491,7 @@ object Slice extends EntityObject("Slice") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Segment])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Slice], Rep[Segment])] = unapply(exp.rhs)
     }
   }
 
@@ -590,6 +601,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Centered]] = unapply(exp.rhs)
     }
 
     object end {
@@ -599,6 +611,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Centered]] = unapply(exp.rhs)
     }
 
     object length {
@@ -608,6 +621,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[Rep[Centered]] = unapply(exp.rhs)
     }
 
     object shift {
@@ -617,6 +631,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Int])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Centered], Rep[Int])] = unapply(exp.rhs)
     }
 
     object attach {
@@ -626,6 +641,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Segment])]]
         case _ => Nullable.None
       }
+      def unapply(exp: Sym): Nullable[(Rep[Centered], Rep[Segment])] = unapply(exp.rhs)
     }
   }
 

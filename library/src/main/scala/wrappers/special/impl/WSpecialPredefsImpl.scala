@@ -105,10 +105,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[(Rep[WOption[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[WOption[A]], Rep[A]) forSome {type A}] = unapply(exp.rhs)
     }
 
     object none {
@@ -118,10 +115,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[Elem[A] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Elem[A] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Elem[A] forSome {type A}] = unapply(exp.rhs)
     }
 
     object some {
@@ -131,10 +125,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[Rep[A] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[A] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Rep[A] forSome {type A}] = unapply(exp.rhs)
     }
 
     object cast {
@@ -144,10 +135,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[(Rep[Any], Elem[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Any], Elem[T]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[Any], Elem[T]) forSome {type T}] = unapply(exp.rhs)
     }
 
     object loopUntil {
@@ -157,10 +145,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Rep[A], Rep[A => Boolean], Rep[A => A]) forSome {type A}] = unapply(exp.rhs)
     }
   }
 } // of object WSpecialPredef
