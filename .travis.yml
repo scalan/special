@@ -29,5 +29,5 @@ script:
   - sbt -jvm-opts .travis.jvmopts coverage $TEST_SUITE
 
 after_success:
-  - sbt coverageReport coveralls
+  - sbt coverageReport coverageAggregate coveralls
   - sbt -jvm-opts .travis.jvmopts publish
