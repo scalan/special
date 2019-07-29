@@ -183,10 +183,6 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object give {
@@ -194,10 +190,6 @@ object MetaTest extends EntityObject("MetaTest") {
         case MethodCall(receiver, method, _, _) if method.getName == "give" && receiver.elem.isInstanceOf[MetaTestElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -209,10 +201,6 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Rep[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MetaTest[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object fromItems {
@@ -220,10 +208,6 @@ object MetaTest extends EntityObject("MetaTest") {
         case MethodCall(receiver, method, args, _) if method.getName == "fromItems" && receiver.elem.isInstanceOf[MetaTestElem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[MetaTest[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[MetaTest[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -401,10 +385,6 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object values {
@@ -414,10 +394,6 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object give {
@@ -425,10 +401,6 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
         case MethodCall(receiver, method, _, _) if method.getName == "give" && receiver.elem.isInstanceOf[MetaPairElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MetaPair[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -532,10 +504,6 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MT0]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object give {
@@ -543,10 +511,6 @@ object MT0 extends EntityObject("MT0") {
         case MethodCall(receiver, method, _, _) if method.getName == "give" && receiver.elem.isInstanceOf[MT0Elem] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MT0]] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -558,10 +522,6 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT0]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MT0]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object fromItems {
@@ -569,10 +529,6 @@ object MT0 extends EntityObject("MT0") {
         case MethodCall(receiver, method, args, _) if method.getName == "fromItems" && receiver.elem.isInstanceOf[MT0Elem] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[MT0], Seq[Rep[B]], Elem[B]) forSome {type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[MT0], Seq[Rep[B]], Elem[B]) forSome {type B}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -689,10 +645,6 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT1[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MT1[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object give {
@@ -702,10 +654,6 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[Rep[MT1[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MT1[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object fromItems {
@@ -713,10 +661,6 @@ object MT1 extends EntityObject("MT1") {
         case MethodCall(receiver, method, args, _) if method.getName == "fromItems" && receiver.elem.isInstanceOf[MT1Elem[_]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[MT1[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[MT1[T]], Seq[Rep[B]], Elem[B]) forSome {type T; type B}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -834,10 +778,6 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[Rep[MT2[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object give {
@@ -847,10 +787,6 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[Rep[MT2[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[MT2[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object fromItems {
@@ -858,10 +794,6 @@ implicit val eB = p.values.elem
         case MethodCall(receiver, method, args, _) if method.getName == "fromItems" && receiver.elem.isInstanceOf[MT2Elem[_, _]] =>
           val res = (receiver, args(0), args(1))
           Nullable(res).asInstanceOf[Nullable[(Rep[MT2[A, B]], Seq[Rep[C]], Elem[C]) forSome {type A; type B; type C}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[MT2[A, B]], Seq[Rep[C]], Elem[C]) forSome {type A; type B; type C}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }

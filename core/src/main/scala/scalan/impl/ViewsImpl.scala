@@ -90,10 +90,6 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoUR[From, To]], Rep[To]) forSome {type From; type To}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[IsoUR[From, To]], Rep[To]) forSome {type From; type To}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -101,10 +97,6 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
         case MethodCall(receiver, method, args, _) if method.getName == "to" && receiver.elem.isInstanceOf[IsoURElem[_, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoUR[From, To]], Rep[From]) forSome {type From; type To}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IsoUR[From, To]], Rep[From]) forSome {type From; type To}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -195,10 +187,6 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
           Nullable(res).asInstanceOf[Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -206,10 +194,6 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: Iso1URElem[_, _, _, _] => true; case _ => false }) =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[Iso1UR[A, B, C]] forSome {type A; type B; type C[_]}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -319,10 +303,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
           Nullable(res).asInstanceOf[Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -332,10 +312,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
           Nullable(res).asInstanceOf[Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[IdentityIso[A]], Rep[A]) forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -343,10 +319,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[IdentityIsoElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[IdentityIso[A]] forSome {type A}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[IdentityIso[A]] forSome {type A}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -475,10 +447,6 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(B1, B2)]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(B1, B2)]) forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -488,10 +456,6 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[PairIso[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -499,10 +463,6 @@ implicit val eB2 = p.iso2.eTo
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[PairIsoElem[_, _, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[PairIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[PairIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -620,10 +580,6 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[(Unit, B2)]) forSome {type A2; type B2}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[(Unit, B2)]) forSome {type A2; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -633,10 +589,6 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[A2]) forSome {type A2; type B2}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[AbsorbFirstUnitIso[A2, B2]], Rep[A2]) forSome {type A2; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -644,10 +596,6 @@ implicit val eB2 = p.iso2.eTo
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[AbsorbFirstUnitIsoElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[AbsorbFirstUnitIso[A2, B2]] forSome {type A2; type B2}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[AbsorbFirstUnitIso[A2, B2]] forSome {type A2; type B2}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -762,10 +710,6 @@ implicit val eB1 = p.iso1.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[(B1, Unit)]) forSome {type A1; type B1}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[(B1, Unit)]) forSome {type A1; type B1}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -775,10 +719,6 @@ implicit val eB1 = p.iso1.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[A1]) forSome {type A1; type B1}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[AbsorbSecondUnitIso[A1, B1]], Rep[A1]) forSome {type A1; type B1}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -786,10 +726,6 @@ implicit val eB1 = p.iso1.eTo
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[AbsorbSecondUnitIsoElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[AbsorbSecondUnitIso[A1, B1]] forSome {type A1; type B1}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[AbsorbSecondUnitIso[A1, B1]] forSome {type A1; type B1}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -918,10 +854,6 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[B1, B2]]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[B1, B2]]) forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -931,10 +863,6 @@ implicit val eB2 = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[SumIso[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -942,10 +870,6 @@ implicit val eB2 = p.iso2.eTo
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[SumIsoElem[_, _, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[SumIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[SumIso[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -1069,10 +993,6 @@ implicit val eC = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[ComposeIso[A, B, C]], Rep[C]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ComposeIso[A, B, C]], Rep[C]) forSome {type A; type B; type C}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -1082,10 +1002,6 @@ implicit val eC = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[ComposeIso[A, B, C]], Rep[A]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ComposeIso[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -1093,10 +1009,6 @@ implicit val eC = p.iso2.eTo
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[ComposeIsoElem[_, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[ComposeIso[A, B, C]] forSome {type A; type B; type C}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[ComposeIso[A, B, C]] forSome {type A; type B; type C}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -1225,10 +1137,6 @@ implicit val eD = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[FuncIso[A, B, C, D]], Rep[B => D]) forSome {type A; type B; type C; type D}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[FuncIso[A, B, C, D]], Rep[B => D]) forSome {type A; type B; type C; type D}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -1238,10 +1146,6 @@ implicit val eD = p.iso2.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[FuncIso[A, B, C, D]], Rep[A => C]) forSome {type A; type B; type C; type D}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[FuncIso[A, B, C, D]], Rep[A => C]) forSome {type A; type B; type C; type D}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -1249,10 +1153,6 @@ implicit val eD = p.iso2.eTo
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[FuncIsoElem[_, _, _, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[FuncIso[A, B, C, D]] forSome {type A; type B; type C; type D}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[FuncIso[A, B, C, D]] forSome {type A; type B; type C; type D}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -1372,10 +1272,6 @@ implicit val eB = p.convTo.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[ConverterIso[A, B]], Rep[A]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ConverterIso[A, B]], Rep[A]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object from {
@@ -1385,10 +1281,6 @@ implicit val eB = p.convTo.eR
           Nullable(res).asInstanceOf[Nullable[(Rep[ConverterIso[A, B]], Rep[B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ConverterIso[A, B]], Rep[B]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object isIdentity {
@@ -1396,10 +1288,6 @@ implicit val eB = p.convTo.eR
         case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[ConverterIsoElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[ConverterIso[A, B]] forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[ConverterIso[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -1513,10 +1401,6 @@ implicit val eB = p.innerIso.eTo
           Nullable(res).asInstanceOf[Nullable[Rep[ThunkIso[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[ThunkIso[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object from {
@@ -1526,10 +1410,6 @@ implicit val eB = p.innerIso.eTo
           Nullable(res).asInstanceOf[Nullable[(Rep[ThunkIso[A, B]], Th[B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[ThunkIso[A, B]], Th[B]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object to {
@@ -1537,10 +1417,6 @@ implicit val eB = p.innerIso.eTo
         case MethodCall(receiver, method, args, _) if method.getName == "to" && receiver.elem.isInstanceOf[ThunkIsoElem[_, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[ThunkIso[A, B]], Th[A]) forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[ThunkIso[A, B]], Th[A]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }

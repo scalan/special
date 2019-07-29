@@ -81,10 +81,6 @@ object StructKey extends EntityObject("StructKey") {
           Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object name {
@@ -92,10 +88,6 @@ object StructKey extends EntityObject("StructKey") {
         case MethodCall(receiver, method, _, _) if method.getName == "name" && receiver.elem.isInstanceOf[StructKeyElem[_, _]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -199,10 +191,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
           Nullable(res).asInstanceOf[Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
@@ -304,10 +292,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
         case MethodCall(receiver, method, _, _) if method.getName == "index" && receiver.elem.isInstanceOf[NameStructKeyElem[_]] =>
           val res = receiver
           Nullable(res).asInstanceOf[Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }

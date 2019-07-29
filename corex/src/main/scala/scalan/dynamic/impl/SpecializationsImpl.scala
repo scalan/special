@@ -94,10 +94,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
           Nullable(res).asInstanceOf[Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object metric {
@@ -107,10 +103,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
           Nullable(res).asInstanceOf[Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
 
     object apply {
@@ -118,10 +110,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
         case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[IsoFuncElem[_, _, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoFunc[T, R, M]], Rep[T]) forSome {type T; type R; type M}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IsoFunc[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }
@@ -241,10 +229,6 @@ implicit val eM = p.metric.elem.eRange
         case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[IsoFuncBaseElem[_, _, _]] =>
           val res = (receiver, args(0))
           Nullable(res).asInstanceOf[Nullable[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = exp match {
-        case Def(d) => unapply(d)
         case _ => Nullable.None
       }
     }

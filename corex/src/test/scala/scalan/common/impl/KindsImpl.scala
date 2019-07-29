@@ -86,10 +86,6 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
           Nullable(res).asInstanceOf[Nullable[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Kind[F, A]], Rep[A => B]) forSome {type F[_]; type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
     }
   }
 
