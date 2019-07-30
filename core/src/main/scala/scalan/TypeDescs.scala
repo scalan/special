@@ -69,28 +69,30 @@ trait TypeDescs extends Base { self: Scalan =>
   case class RMethodDesc(method: Method) extends MethodDesc
   case class WMethodDesc(wrapSpec: WrapSpec, method: Method) extends MethodDesc
 
-  // TODO optimize performance hot spot (45% of invokeUnlifted time)
-  def getSourceValues(dataEnv: DataEnv, forWrapper: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
+  def getSourceValues(dataEnv: DataEnv, forWrapper: Boolean, stagedValue: AnyRef, out: DBuffer[AnyRef]): Unit = {
     import OverloadHack._
+    stagedValue match {
+      case s: Sym =>
+        out += dataEnv(s)
+      case vec: Seq[AnyRef]@unchecked =>
+        val sub = DBuffer.ofSize[AnyRef](vec.length)
+        getSourceValues(dataEnv, forWrapper, vec, sub)
+        out += (sub.toArray: Seq[AnyRef])
+      case e: Elem[_] =>
+        val arg =
+          if (forWrapper) e.sourceType.classTag  // WrapSpec classes use ClassTag implicit arguments
+          else e.sourceType
+        out += arg
+      case _: Overloaded => // filter out special arguments
+    }
+  }
+
+  def getSourceValues(dataEnv: DataEnv, forWrapper: Boolean, stagedValues: Seq[AnyRef], out: DBuffer[AnyRef]): Unit = {
     val limit = stagedValues.length
-    val res = mutable.ArrayBuilder.make[AnyRef]()
-    res.sizeHint(limit)
     cfor(0)(_ < limit, _ + 1) { i =>
       val v = stagedValues.apply(i)
-      v match {
-        case s: Sym =>
-          res += dataEnv(s)
-        case vec: Seq[AnyRef]@unchecked =>
-          res += getSourceValues(dataEnv, forWrapper, vec:_*)
-        case e: Elem[_] =>
-          val arg =
-            if (forWrapper) e.sourceType.classTag  // WrapSpec classes use ClassTag implicit arguments
-            else e.sourceType
-          res += arg
-        case _: Overloaded => // filter out special arguments
-      }
+      getSourceValues(dataEnv, forWrapper, v, out)
     }
-    res.result()
   }
 
   trait TypeDesc extends Serializable {
@@ -144,23 +146,27 @@ trait TypeDescs extends Base { self: Scalan =>
     protected lazy val methods: Map[Method, MethodDesc] = collectMethods
 
     def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = {
+      val srcArgs = DBuffer.ofSize[AnyRef](mc.args.length + 10)  // with some spare space to have only single allocation
       val res = methods.get(mc.method) match {
         case Some(WMethodDesc(wrapSpec, method)) =>
-          val srcArgs = getSourceValues(dataEnv, true, mc.receiver +: mc.args:_*)
+          getSourceValues(dataEnv, true, mc.receiver, srcArgs)
+          getSourceValues(dataEnv, true, mc.args, srcArgs)
           def msg = s"Cannot invoke method $method on object $wrapSpec with arguments $srcArgs"
           val res =
-            try method.invoke(wrapSpec, srcArgs:_*)
+            try method.invoke(wrapSpec, srcArgs.toArray:_*)
             catch {
               case e: InvocationTargetException => !!!(msg, e.getTargetException)
               case t: Throwable => !!!(msg, t)
             }
           res
         case Some(RMethodDesc(method)) =>
-          val srcObj = getSourceValues(dataEnv, false, mc.receiver).head
-          val srcArgs = getSourceValues(dataEnv, false, mc.args:_*)
-          def msg = s"Cannot invoke method $method on object $srcObj with arguments $srcArgs"
+          getSourceValues(dataEnv, false, mc.receiver, srcArgs)
+          val srcObj = srcArgs(0)
+          srcArgs.pop()
+          getSourceValues(dataEnv, false, mc.args, srcArgs)
+          def msg = s"Cannot invoke method $method on object $srcObj with arguments ${srcArgs.toArray.toSeq}"
           val res =
-            try method.invoke(srcObj, srcArgs:_*)
+            try method.invoke(srcObj, srcArgs.toArray:_*)
             catch {
               case e: InvocationTargetException => !!!(msg, e.getTargetException)
               case t: Throwable => !!!(msg, t)
