@@ -42,8 +42,7 @@ trait Transforming { self: Scalan =>
 
   class DefaultPass(val name: String, override val config: PassConfig = PassConfig()) extends Pass
 
-  //TODO optimize: parallel execution of Compilers
-  // Current design doesn't allow to run through passes i two Compilers in parallel
+  //TODO Current design doesn't allow to run through passes in two Compilers in parallel
   var _currentPass: Pass = Pass.defaultPass
   def currentPass = _currentPass
 

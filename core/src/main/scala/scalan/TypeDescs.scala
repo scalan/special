@@ -11,7 +11,7 @@ import scalan.util._
 import scalan.RType._
 import scalan.util.ReflectionUtil.ClassOps
 import spire.syntax.all._
-
+import debox.{Buffer => DBuffer}
 import scala.collection.mutable
 
 trait TypeDescs extends Base { self: Scalan =>
@@ -82,10 +82,6 @@ trait TypeDescs extends Base { self: Scalan =>
           res += dataEnv(s)
         case vec: Seq[AnyRef]@unchecked =>
           res += getSourceValues(dataEnv, forWrapper, vec:_*)
-//        case se: StructElem[_] if se.fields.length == 2 =>
-//          val tA = se.fields(0)._2
-//          val tB = se.fields(1)._2
-//          PairType(tA, tB)
         case e: Elem[_] =>
           val arg =
             if (forWrapper) e.sourceType.classTag  // WrapSpec classes use ClassTag implicit arguments

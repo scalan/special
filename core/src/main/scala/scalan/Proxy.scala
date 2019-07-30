@@ -150,29 +150,44 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
     reifyObject(NewObject[A](eA, args.toList, true))
   }
 
-  private lazy val proxies = scala.collection.mutable.Map.empty[(Rep[_], ClassTag[_]), AnyRef]
+  def proxyOps[Ops <: AnyRef](x: Rep[Ops])(implicit ct: ClassTag[Ops]): Ops = {
+    val d = x.rhs
+    if (d.isInstanceOf[Const[_]])
+      d.asInstanceOf[Const[Ops]@unchecked].x
+    else
+      getProxy(x, ct)
+  }
+
+  /** Used to cache generated proxy classes along with instantiated instances of the class.*/
+  case class CachedProxyClass(proxyClass: Class[_ <: AnyRef], instances: AVHashMap[Sym, AnyRef])
+
+  private lazy val proxyCache = AVHashMap[ClassTag[_], CachedProxyClass](100)
   private lazy val objenesis = new ObjenesisStd
 
-  def proxyOps[Ops <: AnyRef](x: Rep[Ops])(implicit ct: ClassTag[Ops]): Ops =
-    x match {
-      case Def(Const(c)) => c
-      case _ => getProxy(x, ct)
-    }
-
-  // TODO optimize: call e.createClass only once per clazz
-  private def getProxy[Ops](x: Rep[Ops], ct: ClassTag[Ops]) = {
-    val proxy = proxies.getOrElseUpdate((x, ct), {
+  private def getProxy[Ops](x: Rep[Ops], ct: ClassTag[Ops]): Ops = {
+    val cachedOpt = proxyCache.get(ct)
+    val entry = if (cachedOpt.isEmpty) {
       val clazz = ct.runtimeClass
       val e = new Enhancer
       e.setClassLoader(clazz.getClassLoader)
       e.setSuperclass(clazz)
       e.setCallbackType(classOf[ExpInvocationHandler[_]])
       val proxyClass = e.createClass().asSubclass(classOf[AnyRef])
-      val proxyInstance = objenesis.newInstance(proxyClass).asInstanceOf[Factory]
+      val entry = CachedProxyClass(proxyClass, AVHashMap[Sym, AnyRef](100))
+      proxyCache.put(ct, entry)
+      entry
+    } else
+      cachedOpt.get
+
+    val proxyOpt = entry.instances.get(x)
+    if (proxyOpt.isEmpty) {
+      val proxyInstance = objenesis.newInstance(entry.proxyClass).asInstanceOf[Factory]
       proxyInstance.setCallback(0, new ExpInvocationHandler(x))
-      proxyInstance
-    })
-    proxy.asInstanceOf[Ops]
+      entry.instances.put(x, proxyInstance)
+      proxyInstance.asInstanceOf[Ops]
+    }
+    else
+      proxyOpt.get.asInstanceOf[Ops]
   }
 
   private def invokeMethod[A](receiver: Sym, m: Method, args: Array[AnyRef],

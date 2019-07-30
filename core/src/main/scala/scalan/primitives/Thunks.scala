@@ -158,7 +158,6 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       sch
     }
 
-    // TODO optimize: this is performance hotspot (use ArrayBuilder instead of ListBuffer)
     def findDef[T](d: Def[T]): Rep[T] = {
       val existingOpt = bodyDefs.get(d)
       if (existingOpt.isDefined) return existingOpt.get.self.asInstanceOf[Rep[T]]
