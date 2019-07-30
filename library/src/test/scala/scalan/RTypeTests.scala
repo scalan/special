@@ -12,13 +12,13 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
   import Gen._
   import RType._
 
-  val typeGenDepth = 3
+  val typeGenDepth = 10
 
   property("RType FullTypeGen coverage") {
     val minSuccess = MinSuccessful(300)
 
-    val typeCoverageChecker = new BasicTypeCoverageChecker()
-    forAll(getBasicTypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
+    val typeCoverageChecker = new FullTypeCoverageChecker()
+    forAll(extendedTypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
       typeCoverageChecker.consider(t)
     }
     typeCoverageChecker.isFullyCovered(typeGenDepth) shouldBe true
