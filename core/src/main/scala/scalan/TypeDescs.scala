@@ -317,17 +317,33 @@ trait TypeDescs extends Base { self: Scalan =>
     cachedElem0(clazz, Some(constructor), args)
   }
 
-  protected val elemCache = AVHashMap[(Class[_], Seq[AnyRef]), AnyRef](1000)
+  class ElemCacheEntry(
+    val constructor: java.lang.reflect.Constructor[_],
+    val ownerType: OwnerParameter,
+    val elements: AVHashMap[Seq[AnyRef], AnyRef])
+    
+  protected val elemCache = AVHashMap[Class[_], ElemCacheEntry](1000)
 
   // TODO optimize: avoid tuple key in map since Tuple2.hashCode and equals takes 95% of lookup time
   private def cachedElem0(clazz: Class[_], optConstructor: Option[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
-    elemCache.getOrElseUpdate(
-      (clazz, args), {
+    val entry = elemCache.get(clazz) match {
+      case Nullable(entry) => entry
+      case _ =>
         val constructor = if (optConstructor.isEmpty) getConstructor(clazz) else optConstructor.get
         val ownerType = getOwnerParameterType(constructor)
-        val constructorArgs = addOwnerParameter(ownerType, args)
-        constructor.newInstance(constructorArgs: _*).asInstanceOf[AnyRef]
-      }).asInstanceOf[Elem[_]]
+        val entry = new ElemCacheEntry(constructor, ownerType, AVHashMap(10))
+        elemCache.put(clazz, entry)
+        entry
+    }
+    val e = entry.elements.get(args) match {
+      case Nullable(e) => e
+      case _ =>
+        val constructorArgs = addOwnerParameter(entry.ownerType, args)
+        val e = entry.constructor.newInstance(constructorArgs: _*).asInstanceOf[AnyRef]
+        entry.elements.put(args, e)
+        e
+    }
+    e.asInstanceOf[Elem[_]]
   }
 
   def cleanUpTypeName(tpe: Type) = tpe.toString.
