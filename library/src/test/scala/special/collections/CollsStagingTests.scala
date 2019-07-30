@@ -164,11 +164,16 @@ class CollsStagingTests extends WrappersTests {
 
 //    check(Cols, { env: EnvRep[CollBuilder] => for { b <- env; arrL <- lifted(arr) } yield b.fromArray(arrL) }, Cols.fromArray(arr))
 
-    check(Cols,
-    {env: EnvRep[CollBuilder] => for {
-      b <- env; x1 <- lifted(1); x2 <- lifted(2); x3 <- lifted(3)
-    } yield b.fromItems(x1, x2, x3) },
-    Cols.fromItems(1, 2, 3))
+    measure(10) { i =>
+      (1 to 100).foreach { j =>
+        check(Cols,
+          {env: EnvRep[CollBuilder] => for {
+            b <- env; x1 <- lifted(1); x2 <- lifted(j); x3 <- lifted(i)
+          } yield b.fromItems(x1, x2, x3) },
+          Cols.fromItems(1, j, i))
+      }
+      println(s"Defs: ${ctx.defCount}")
+    }
   }
 
   test("invokeUnlifted for method of Ctor") {
