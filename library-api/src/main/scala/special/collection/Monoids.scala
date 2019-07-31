@@ -1,11 +1,14 @@
 package special.collection
 
+import scalan.WithMethodCallRecognizers
+
 trait Monoid[@specialized(Int, Long) T] {
   def zero: T
   def plus(x: T, y: T): T
   def power(x: T, n: Int): T
 }
 
+@WithMethodCallRecognizers
 trait MonoidBuilder {
   def intPlusMonoid: Monoid[Int]
   def intMaxMonoid: Monoid[Int]

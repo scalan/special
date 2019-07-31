@@ -2,6 +2,7 @@ package special.collection
 
 import scalan._
 
+@WithMethodCallRecognizers
 trait Costed[Val] {
   def builder: CostedBuilder
   def value: Val
@@ -31,6 +32,7 @@ trait CostedFunc[Env,Arg,Res] extends Costed[Arg => Res]  {
   def sliceSize: Size[Arg] => Size[Res]
 }
 
+@WithMethodCallRecognizers
 trait CostedColl[Item] extends Costed[Coll[Item]] {
   def values: Coll[Item]
   def costs: Coll[Int]
@@ -49,6 +51,7 @@ trait CostedOption[T] extends Costed[Option[T]] {
   def accumulatedCost: Int
 }
 
+@WithMethodCallRecognizers
 trait CostedBuilder {
   def ConstructTupleCost: Int = 1
   def ConstructSumCost: Int = 1

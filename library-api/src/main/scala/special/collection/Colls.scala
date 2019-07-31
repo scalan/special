@@ -14,6 +14,7 @@ import scala.collection.immutable
 @ContainerType
 @FunctorType
 @scalan.Liftable
+@WithMethodCallRecognizers
 trait Coll[@specialized A] {
   def builder: CollBuilder
   @Internal
@@ -407,6 +408,7 @@ trait Coll[@specialized A] {
   }
 }
 
+@WithMethodCallRecognizers
 trait PairColl[@specialized L, @specialized R] extends Coll[(L,R)] {
   def ls: Coll[L]
   def rs: Coll[R]
@@ -415,6 +417,7 @@ trait PairColl[@specialized L, @specialized R] extends Coll[(L,R)] {
 }
 
 @Liftable
+@WithMethodCallRecognizers
 trait ReplColl[@specialized A] extends Coll[A] {
   def value: A
   def length: Int
@@ -422,6 +425,7 @@ trait ReplColl[@specialized A] extends Coll[A] {
 }
 
 @scalan.Liftable
+@WithMethodCallRecognizers
 trait CollBuilder {
   def Monoids: MonoidBuilder
   def pairColl[@specialized A, @specialized B](as: Coll[A], bs: Coll[B]): PairColl[A,B]

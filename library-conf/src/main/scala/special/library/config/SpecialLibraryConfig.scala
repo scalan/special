@@ -1,6 +1,6 @@
 package special.library.config
 
-import scalan.{FunctorType, ContainerType, Liftable}
+import scalan.{FunctorType, Liftable, ContainerType, WithMethodCallRecognizers}
 import scalan.meta.ScalanAst.WrapperConf
 import scalan.meta.{LibraryConfig, TargetModuleConf, ConfMap, SourceModuleConf}
 
@@ -12,16 +12,19 @@ class SpecialLibraryConfig extends LibraryConfig {
     WrapperConf(baseDir,
       packageName = "scala",
       name = "Option",
-      annotations = List(classOf[ContainerType], classOf[FunctorType], classOf[Liftable]).map(_.getSimpleName)
+      annotations = List(
+        classOf[ContainerType], classOf[FunctorType], classOf[Liftable], classOf[WithMethodCallRecognizers])
+        .map(_.getSimpleName)
     ),
     WrapperConf(baseDir,
       packageName = "special",
-      name = "SpecialPredef"
+      name = "SpecialPredef",
+      annotations = List(classOf[WithMethodCallRecognizers]).map(_.getSimpleName)
     ),
     WrapperConf(baseDir,
       packageName = "scalan",
       name = "RType",
-      annotations = List(classOf[Liftable]).map(_.getSimpleName),
+      annotations = List(classOf[Liftable], classOf[WithMethodCallRecognizers]).map(_.getSimpleName),
       imports = List("scalan.RType")
     ),
   ).map(w => (w.name, w)).toMap
