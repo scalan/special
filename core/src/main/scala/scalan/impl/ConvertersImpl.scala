@@ -72,35 +72,6 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   lazy val RConverter: Rep[ConverterCompanionCtor] = new ConverterCompanionCtor {
     private val thisClass = classOf[ConverterCompanion]
   }
-
-  object ConverterMethods {
-    object convFun {
-      def unapply(d: Def[_]): Nullable[Rep[Converter[T, R]] forSome {type T; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "convFun" && receiver.elem.isInstanceOf[ConverterElem[_, _, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Converter[T, R]] forSome {type T; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[Converter[T, R]] forSome {type T; type R}] = unapply(exp.rhs)
-    }
-
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[Converter[T, R]], Rep[T]) forSome {type T; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[ConverterElem[_, _, _]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Converter[T, R]], Rep[T]) forSome {type T; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[Converter[T, R]], Rep[T]) forSome {type T; type R}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `isIdentity`: Method's return type Boolean is not a Rep
-
-    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
-  }
-
-  object ConverterCompanionMethods {
-  }
 } // of object Converter
   registerEntityObject("Converter", Converter)
 
@@ -194,30 +165,6 @@ object IdentityConv extends EntityObject("IdentityConv") {
       Some(())
     case _ =>
       None
-  }
-
-    object IdentityConvMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[IdentityConvElem[_]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IdentityConv[A]], Rep[A]) forSome {type A}] = unapply(exp.rhs)
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Nullable[Rep[IdentityConv[A]] forSome {type A}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[IdentityConvElem[_]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[IdentityConv[A]] forSome {type A}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[IdentityConv[A]] forSome {type A}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
   }
 } // of object IdentityConv
   registerEntityObject("IdentityConv", IdentityConv)
@@ -318,22 +265,6 @@ implicit val eR = p.convFun.elem.eRange
       None
   }
 
-    object BaseConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[BaseConverterElem[_, _]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[BaseConverter[T, R]], Rep[T]) forSome {type T; type R}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
-  }
-
-  object BaseConverterCompanionMethods {
-  }
 } // of object BaseConverter
   registerEntityObject("BaseConverter", BaseConverter)
 
@@ -448,30 +379,6 @@ implicit val eB2 = p.conv2.eR
       None
   }
 
-    object PairConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[PairConverter[A1, A2, B1, B2]], Rep[(A1, A2)]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Nullable[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[PairConverterElem[_, _, _, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[PairConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
-    }
-  }
-
-  object PairConverterCompanionMethods {
-  }
 } // of object PairConverter
   registerEntityObject("PairConverter", PairConverter)
 
@@ -586,30 +493,6 @@ implicit val eB2 = p.conv2.eR
       None
   }
 
-    object SumConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[SumConverter[A1, A2, B1, B2]], Rep[$bar[A1, A2]]) forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Nullable[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[SumConverterElem[_, _, _, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[SumConverter[A1, A2, B1, B2]] forSome {type A1; type A2; type B1; type B2}] = unapply(exp.rhs)
-    }
-  }
-
-  object SumConverterCompanionMethods {
-  }
 } // of object SumConverter
   registerEntityObject("SumConverter", SumConverter)
 
@@ -719,29 +602,6 @@ implicit val eC = p.conv2.eR
       None
   }
 
-    object ComposeConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[ComposeConverter[A, B, C]], Rep[A]) forSome {type A; type B; type C}] = unapply(exp.rhs)
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Nullable[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && receiver.elem.isInstanceOf[ComposeConverterElem[_, _, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[ComposeConverter[A, B, C]] forSome {type A; type B; type C}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
-  }
 } // of object ComposeConverter
   registerEntityObject("ComposeConverter", ComposeConverter)
 
@@ -842,32 +702,6 @@ implicit val eB = p.itemConv.eR
       None
   }
 
-    object FunctorConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[FunctorConverter[A, B, F]], Rep[F[A]]) forSome {type A; type B; type F[_]}] = unapply(exp.rhs)
-    }
-
-    object isIdentity {
-      def unapply(d: Def[_]): Nullable[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "isIdentity" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: FunctorConverterElem[_, _, _] => true; case _ => false }) =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[FunctorConverter[A, B, F]] forSome {type A; type B; type F[_]}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
-  }
-
-  object FunctorConverterCompanionMethods {
-  }
 } // of object FunctorConverter
   registerEntityObject("FunctorConverter", FunctorConverter)
 
@@ -963,19 +797,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
       None
   }
 
-    object NaturalConverterMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && (receiver.elem.asInstanceOf[Elem[_]] match { case _: NaturalConverterElem[_, _, _] => true; case _ => false }) =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[NaturalConverter[A, F, G]], Rep[F[A]]) forSome {type A; type F[_]; type G[_]}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
-  }
 } // of object NaturalConverter
   registerEntityObject("NaturalConverter", NaturalConverter)
 
