@@ -12,7 +12,7 @@ package wrappers.special {
   trait WSpecialPredefs extends Base { self: WrappersModule =>
     import WOption._;
     import WSpecialPredef._;
-    @External("SpecialPredef") trait WSpecialPredef extends Def[WSpecialPredef];
+    @External("SpecialPredef") @WithMethodCallRecognizers trait WSpecialPredef extends Def[WSpecialPredef];
     trait WSpecialPredefCompanion {
       @External def optionGetOrElse[A](opt: Rep[WOption[A]], default: Rep[A]): Rep[A];
       @External def none[@Reified A](implicit emA: Elem[A]): Rep[WOption[A]];

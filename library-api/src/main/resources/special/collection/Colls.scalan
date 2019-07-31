@@ -8,7 +8,7 @@ package special.collection {
     import MonoidBuilder._;
     import PairColl._;
     import WOption._;
-    @ContainerType @FunctorType @Liftable trait Coll[A] extends Def[Coll[A]] {
+    @ContainerType @FunctorType @Liftable @WithMethodCallRecognizers trait Coll[A] extends Def[Coll[A]] {
       implicit def eA: Elem[A];
       def builder: Rep[CollBuilder];
       def length: Rep[Int];
@@ -47,7 +47,7 @@ package special.collection {
       def append(other: Rep[Coll[A]]): Rep[Coll[A]];
       def reverse: Rep[Coll[A]]
     };
-    trait PairColl[L, R] extends Coll[scala.Tuple2[L, R]] {
+    @WithMethodCallRecognizers trait PairColl[L, R] extends Coll[scala.Tuple2[L, R]] {
       implicit def eL: Elem[L];
       implicit def eR: Elem[R];
       def ls: Rep[Coll[L]];
@@ -55,13 +55,13 @@ package special.collection {
       def mapFirst[T1](f: Rep[scala.Function1[L, T1]]): Rep[Coll[scala.Tuple2[T1, R]]];
       def mapSecond[T1](f: Rep[scala.Function1[R, T1]]): Rep[Coll[scala.Tuple2[L, T1]]]
     };
-    @Liftable trait ReplColl[A] extends Coll[A] {
+    @Liftable @WithMethodCallRecognizers trait ReplColl[A] extends Coll[A] {
       implicit def eA: Elem[A];
       def value: Rep[A];
       def length: Rep[Int];
       def append(other: Rep[Coll[A]]): Rep[Coll[A]]
     };
-    @Liftable trait CollBuilder extends Def[CollBuilder] {
+    @Liftable @WithMethodCallRecognizers trait CollBuilder extends Def[CollBuilder] {
       def Monoids: Rep[MonoidBuilder];
       def pairColl[A, B](as: Rep[Coll[A]], bs: Rep[Coll[B]]): Rep[PairColl[A, B]];
       @Reified(value = "T") def fromItems[T](items: Rep[T]*)(implicit cT: Elem[T]): Rep[Coll[T]];

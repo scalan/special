@@ -6,7 +6,7 @@ package special.collection {
     import Size._;
     import WOption._;
     import WRType._;
-    @Liftable trait Size[Val] extends Def[Size[Val]] {
+    @Liftable @WithMethodCallRecognizers trait Size[Val] extends Def[Size[Val]] {
       implicit def eVal: Elem[Val];
       def dataSize: Rep[Long]
     };
@@ -15,23 +15,23 @@ package special.collection {
       def dataSize: Rep[Long];
       def tVal: Rep[WRType[Val]]
     };
-    @Liftable trait SizePair[L, R] extends Size[scala.Tuple2[L, R]] {
+    @Liftable @WithMethodCallRecognizers trait SizePair[L, R] extends Size[scala.Tuple2[L, R]] {
       implicit def eL: Elem[L];
       implicit def eR: Elem[R];
       def l: Rep[Size[L]];
       def r: Rep[Size[R]]
     };
-    @Liftable trait SizeColl[Item] extends Size[Coll[Item]] {
+    @Liftable @WithMethodCallRecognizers trait SizeColl[Item] extends Size[Coll[Item]] {
       implicit def eItem: Elem[Item];
       def sizes: Rep[Coll[Size[Item]]]
     };
-    @Liftable trait SizeFunc[Env, Arg, Res] extends Size[scala.Function1[Arg, Res]] {
+    @Liftable @WithMethodCallRecognizers trait SizeFunc[Env, Arg, Res] extends Size[scala.Function1[Arg, Res]] {
       implicit def eEnv: Elem[Env];
       implicit def eArg: Elem[Arg];
       implicit def eRes: Elem[Res];
       def sizeEnv: Rep[Size[Env]]
     };
-    @Liftable trait SizeOption[T] extends Size[WOption[T]] {
+    @Liftable @WithMethodCallRecognizers trait SizeOption[T] extends Size[WOption[T]] {
       implicit def eT: Elem[T];
       def sizeOpt: Rep[WOption[Size[T]]]
     };

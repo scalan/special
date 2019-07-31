@@ -260,31 +260,6 @@ object SizePrim extends EntityObject("SizePrim") {
   lazy val RSizePrim: Rep[SizePrimCompanionCtor] = new SizePrimCompanionCtor {
     private val thisClass = classOf[SizePrimCompanion]
   }
-
-  object SizePrimMethods {
-    object dataSize {
-      def unapply(d: Def[_]): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[SizePrimElem[_, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = unapply(exp.rhs)
-    }
-
-    object tVal {
-      def unapply(d: Def[_]): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "tVal" && receiver.elem.isInstanceOf[SizePrimElem[_, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SizePrim[Val]] forSome {type Val}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[SizePrim[Val]] forSome {type Val}] = unapply(exp.rhs)
-    }
-  }
-
-  object SizePrimCompanionMethods {
-  }
 } // of object SizePrim
   registerEntityObject("SizePrim", SizePrim)
 

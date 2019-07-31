@@ -127,12 +127,6 @@ object CSizePrim extends EntityObject("CSizePrim") {
     case _ =>
       None
   }
-
-    object CSizePrimMethods {
-  }
-
-  object CSizePrimCompanionMethods {
-  }
 } // of object CSizePrim
   registerEntityObject("CSizePrim", CSizePrim)
 
@@ -245,21 +239,6 @@ implicit val eR = p.r.eVal
     case _ =>
       None
   }
-
-    object CSizePairMethods {
-    object dataSize {
-      def unapply(d: Def[_]): Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizePairElem[_, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CSizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
-    }
-  }
-
-  object CSizePairCompanionMethods {
-  }
 } // of object CSizePair
   registerEntityObject("CSizePair", CSizePair)
 
@@ -360,21 +339,6 @@ object CSizeColl extends EntityObject("CSizeColl") {
       Some((asRep[CSizeColl[Item]](p).sizes))
     case _ =>
       None
-  }
-
-    object CSizeCollMethods {
-    object dataSize {
-      def unapply(d: Def[_]): Nullable[Rep[CSizeColl[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizeCollElem[_]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CSizeColl[Item]] forSome {type Item}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CSizeColl[Item]] forSome {type Item}] = unapply(exp.rhs)
-    }
-  }
-
-  object CSizeCollCompanionMethods {
   }
 } // of object CSizeColl
   registerEntityObject("CSizeColl", CSizeColl)
@@ -492,21 +456,6 @@ implicit val eRes = p.tRes.eA
     case _ =>
       None
   }
-
-    object CSizeFuncMethods {
-    object dataSize {
-      def unapply(d: Def[_]): Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizeFuncElem[_, _, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CSizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
-    }
-  }
-
-  object CSizeFuncCompanionMethods {
-  }
 } // of object CSizeFunc
   registerEntityObject("CSizeFunc", CSizeFunc)
 
@@ -608,21 +557,6 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
       Some((asRep[CSizeOption[Item]](p).sizeOpt))
     case _ =>
       None
-  }
-
-    object CSizeOptionMethods {
-    object dataSize {
-      def unapply(d: Def[_]): Nullable[Rep[CSizeOption[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[CSizeOptionElem[_]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CSizeOption[Item]] forSome {type Item}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CSizeOption[Item]] forSome {type Item}] = unapply(exp.rhs)
-    }
-  }
-
-  object CSizeOptionCompanionMethods {
   }
 } // of object CSizeOption
   registerEntityObject("CSizeOption", CSizeOption)

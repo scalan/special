@@ -19,7 +19,7 @@ package special.collection {
     import SizePrim._;
     import WOption._;
     import WRType._;
-    trait Costed[Val] extends Def[Costed[Val]] {
+    @WithMethodCallRecognizers trait Costed[Val] extends Def[Costed[Val]] {
       implicit def eVal: Elem[Val];
       def builder: Rep[CostedBuilder];
       def value: Rep[Val];
@@ -51,7 +51,7 @@ package special.collection {
       def sliceCostEx: Rep[scala.Function1[scala.Tuple2[Arg, scala.Tuple2[Int, Size[Arg]]], Int]];
       def sliceSize: Rep[scala.Function1[Size[Arg], Size[Res]]]
     };
-    trait CostedColl[Item] extends Costed[Coll[Item]] {
+    @WithMethodCallRecognizers trait CostedColl[Item] extends Costed[Coll[Item]] {
       implicit def eItem: Elem[Item];
       def values: Rep[Coll[Item]];
       def costs: Rep[Coll[Int]];
@@ -67,7 +67,7 @@ package special.collection {
       def sizeOpt: Rep[WOption[Size[T]]];
       def accumulatedCost: Rep[Int]
     };
-    trait CostedBuilder extends Def[CostedBuilder] {
+    @WithMethodCallRecognizers trait CostedBuilder extends Def[CostedBuilder] {
       def ConstructTupleCost: Rep[Int] = toRep(1.asInstanceOf[Int]);
       def ConstructSumCost: Rep[Int] = toRep(1.asInstanceOf[Int]);
       def SelectFieldCost: Rep[Int] = toRep(1.asInstanceOf[Int]);

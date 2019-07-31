@@ -10,7 +10,7 @@ package special.collection {
       def plus(x: Rep[T], y: Rep[T]): Rep[T];
       def power(x: Rep[T], n: Rep[Int]): Rep[T]
     };
-    trait MonoidBuilder extends Def[MonoidBuilder] {
+    @WithMethodCallRecognizers trait MonoidBuilder extends Def[MonoidBuilder] {
       def intPlusMonoid: Rep[Monoid[Int]];
       def intMaxMonoid: Rep[Monoid[Int]];
       def intMinMonoid: Rep[Monoid[Int]];

@@ -78,41 +78,6 @@ object Monoid extends EntityObject("Monoid") {
   lazy val RMonoid: Rep[MonoidCompanionCtor] = new MonoidCompanionCtor {
     private val thisClass = classOf[MonoidCompanion]
   }
-
-  object MonoidMethods {
-    object zero {
-      def unapply(d: Def[_]): Nullable[Rep[Monoid[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "zero" && receiver.elem.isInstanceOf[MonoidElem[_, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Monoid[T]] forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[Monoid[T]] forSome {type T}] = unapply(exp.rhs)
-    }
-
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "plus" && receiver.elem.isInstanceOf[MonoidElem[_, _]] =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[T]) forSome {type T}] = unapply(exp.rhs)
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "power" && receiver.elem.isInstanceOf[MonoidElem[_, _]] =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[Monoid[T]], Rep[T], Rep[Int]) forSome {type T}] = unapply(exp.rhs)
-    }
-  }
-
-  object MonoidCompanionMethods {
-  }
 } // of object Monoid
   registerEntityObject("Monoid", Monoid)
 
