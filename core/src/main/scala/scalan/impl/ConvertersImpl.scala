@@ -264,7 +264,6 @@ implicit val eR = p.convFun.elem.eRange
     case _ =>
       None
   }
-
 } // of object BaseConverter
   registerEntityObject("BaseConverter", BaseConverter)
 
@@ -378,7 +377,6 @@ implicit val eB2 = p.conv2.eR
     case _ =>
       None
   }
-
 } // of object PairConverter
   registerEntityObject("PairConverter", PairConverter)
 
@@ -492,7 +490,6 @@ implicit val eB2 = p.conv2.eR
     case _ =>
       None
   }
-
 } // of object SumConverter
   registerEntityObject("SumConverter", SumConverter)
 
@@ -601,7 +598,6 @@ implicit val eC = p.conv2.eR
     case _ =>
       None
   }
-
 } // of object ComposeConverter
   registerEntityObject("ComposeConverter", ComposeConverter)
 
@@ -701,7 +697,6 @@ implicit val eB = p.itemConv.eR
     case _ =>
       None
   }
-
 } // of object FunctorConverter
   registerEntityObject("FunctorConverter", FunctorConverter)
 
@@ -796,7 +791,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     case _ =>
       None
   }
-
 } // of object NaturalConverter
   registerEntityObject("NaturalConverter", NaturalConverter)
 

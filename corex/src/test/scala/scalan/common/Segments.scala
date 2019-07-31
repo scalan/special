@@ -11,8 +11,9 @@ trait Segments { self: SegmentsModule =>
   import Centered._
 
   type RSeg = Rep[Segment]
-  @scalan.Liftable
-  @scalan.Convertible
+  @Liftable
+  @Convertible
+  @WithMethodCallRecognizers
   trait Segment extends Def[Segment] { self =>
     def start: Rep[Int]
     def length: Rep[Int]
@@ -22,6 +23,7 @@ trait Segments { self: SegmentsModule =>
   }
   trait SegmentCompanion
 
+  @WithMethodCallRecognizers
   abstract class Interval(val start: Rep[Int], val end: Rep[Int]) extends Segment {
     def length = end - start
     def shift(ofs: Rep[Int]) = RInterval(start + ofs, end + ofs)
@@ -38,6 +40,7 @@ trait Segments { self: SegmentsModule =>
   }
   trait IntervalCompanion
 
+  @WithMethodCallRecognizers
   abstract class Slice(val start: Rep[Int], val length: Rep[Int]) extends Segment {
     def end = start + length
     def shift(ofs: Rep[Int]) = RSlice(start + ofs, length)
@@ -45,6 +48,7 @@ trait Segments { self: SegmentsModule =>
   }
   trait SliceCompanion
 
+  @WithMethodCallRecognizers
   abstract class Centered(val center: Rep[Int], val radius: Rep[Int]) extends Segment {
     def start = center - radius
     def end = center + radius

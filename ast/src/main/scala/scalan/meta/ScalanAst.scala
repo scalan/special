@@ -6,7 +6,7 @@ import scala.reflect.internal.ModifierFlags
 import java.util.Objects
 
 import scala.collection.immutable.{HashMap, HashSet}
-import scalan.{ArgList, Constructor, ContainerType, HasMethodCallRecognizer, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
+import scalan.{ArgList, Constructor, ContainerType, WithMethodCallRecognizers, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
 import scalan.meta.Symbols._
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
 
@@ -343,7 +343,7 @@ object ScalanAst {
   final val FunctorTypeAnnotation    = classOf[FunctorType].getSimpleName
   final val ReifiedTypeArgAnnotation = classOf[Reified].getSimpleName
   final val NeverInlineAnnotation    = classOf[NeverInline].getSimpleName
-  final val HasMethodCallRecognizerAnnotation = classOf[HasMethodCallRecognizer].getSimpleName
+  final val WithMethodCallRecognizersAnnotation = classOf[WithMethodCallRecognizers].getSimpleName
   final val SpecializedAnnotation    = classOf[specialized].getSimpleName
   final val InlineAnnotation         = classOf[inline].getSimpleName
 
@@ -470,7 +470,7 @@ object ScalanAst {
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
     def isNeverInline: Boolean = hasAnnotation(NeverInlineAnnotation)
-    def hasIRExtractor: Boolean = hasAnnotation(HasMethodCallRecognizerAnnotation)
+    def withMethodCallRecognizers: Boolean = hasAnnotation(WithMethodCallRecognizersAnnotation)
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
     override def rhs: Option[SExpr] = body
     override def exprType = ??? // TODO build STpeFunc for this method type
@@ -780,18 +780,13 @@ object ScalanAst {
       case _ => false
     }
 
-    def isLiftable(implicit ctx: AstContextBase): Boolean = {
-      getAnnotation(LiftableAnnotation) match {
-        case Some(SEntityAnnotation(_,_,_)) => true
-        case _ => false
-      }
-    }
+    def isLiftable(implicit ctx: AstContextBase): Boolean = hasAnnotation(LiftableAnnotation)
 
-    def isConvertible(implicit ctx: AstContextBase): Boolean = {
-      getAnnotation(ConvertibleAnnotation) match {
-        case Some(SEntityAnnotation(_,_,_)) => true
-        case _ => false
-      }
+    def isConvertible(implicit ctx: AstContextBase): Boolean = hasAnnotation(ConvertibleAnnotation)
+
+    def hasMethodCallRecognizer: Boolean = {
+      val hasMethodRec =  body.collectFirst { case md: SMethodDef if md.withMethodCallRecognizers => md }.nonEmpty
+      hasMethodRec || hasAnnotation(WithMethodCallRecognizersAnnotation)
     }
 
     def asTrait: STraitDef = { assert(this.isInstanceOf[STraitDef], s"$this is not trait"); this.asInstanceOf[STraitDef] }

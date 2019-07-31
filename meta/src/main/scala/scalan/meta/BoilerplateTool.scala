@@ -37,15 +37,16 @@ class BoilerplateTool extends StrictLogging {
       resourcePath = "corex/src/test/resources",
       baseContextTrait = "scalan.Scalan")
 
-  lazy val viewsConfig           = coreMainConfig("views", "scalan/Views.scala")
+  lazy val viewsConfig           = coreMainConfig("views",      "scalan/Views.scala")
   lazy val convertersConfig      = coreMainConfig("converters", "scalan/Converters.scala")
+
   lazy val specializationsConfig = corexMainConfig("specializations", "scalan/dynamic/Specializations.scala")
 
-  lazy val structKeysConfig = corexMainConfig("structKeys", "scalan/primitives/StructKeys.scala")
+  lazy val structKeysConfig  = corexMainConfig("structKeys",  "scalan/primitives/StructKeys.scala")
   lazy val structItemsConfig = corexMainConfig("structItems", "scalan/primitives/StructItems.scala")
 
-  lazy val segmentsConfig        = corexTestConfig("segments", "scalan/common/Segments.scala")
-  lazy val kindsConfig           = corexTestConfig("kinds", "scalan/common/Kinds.scala")
+  lazy val segmentsConfig        = corexTestConfig("segments",  "scalan/common/Segments.scala")
+  lazy val kindsConfig           = corexTestConfig("kinds",     "scalan/common/Kinds.scala")
   lazy val metatestsConfig       = corexTestConfig("metatests", "scalan/common/MetaTests.scala")
 
   val allConfigs = List(

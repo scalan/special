@@ -4,8 +4,9 @@ import scalan._
 
 trait MetaTests { self: MetaTestsModule =>
   type RMetaTest[T] = Rep[MetaTest[T]]
-  @scalan.Liftable
-  @scalan.Convertible
+  @Liftable
+  @Convertible
+  @WithMethodCallRecognizers
   trait MetaTest[T] extends Def[MetaTest[T]] { self =>
     def test: RMetaTest[T]
     def give: Rep[T]
@@ -15,6 +16,7 @@ trait MetaTests { self: MetaTestsModule =>
   }
   trait MetaTestCompanion
 
+  @WithMethodCallRecognizers
   abstract class MT0(val size: Rep[Int]) extends MetaTest[Unit] {
 
     def test: RMetaTest[Unit] = ???
@@ -25,13 +27,15 @@ trait MetaTests { self: MetaTestsModule =>
   }
   trait MT0Companion
 
+  @WithMethodCallRecognizers
   abstract class MT1[T](val data: Rep[T], val size: Rep[Int]) extends MetaTest[T] {
     def test: RMetaTest[T] = ???
     def give: Rep[T] = ???
     def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = ???
   }
 
-  @scalan.Liftable
+  @Liftable
+  @WithMethodCallRecognizers
   trait MetaPair[A,B] extends MetaTest[(A,B)] {
     implicit def eA: Elem[A]
     implicit def eB: Elem[B]
@@ -40,6 +44,7 @@ trait MetaTests { self: MetaTestsModule =>
     def give: Rep[(A, B)]
   }
 
+  @WithMethodCallRecognizers
   abstract class MT2[A, B](val indices: Rep[A], val values: Rep[B], val size: Rep[Int])
     extends MetaPair[A, B] {
     implicit def eA: Elem[A]; implicit def eB: Elem[B]

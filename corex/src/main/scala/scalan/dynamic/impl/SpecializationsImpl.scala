@@ -85,38 +85,6 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
 
   lazy val RIsoFunc: Rep[IsoFuncCompanionCtor] = new IsoFuncCompanionCtor {
   }
-
-  object IsoFuncMethods {
-    object func {
-      def unapply(d: Def[_]): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "func" && receiver.elem.isInstanceOf[IsoFuncElem[_, _, _, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = unapply(exp.rhs)
-    }
-
-    object metric {
-      def unapply(d: Def[_]): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "metric" && receiver.elem.isInstanceOf[IsoFuncElem[_, _, _, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[IsoFunc[T, R, M]] forSome {type T; type R; type M}] = unapply(exp.rhs)
-    }
-
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[IsoFunc[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[IsoFuncElem[_, _, _, _]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IsoFunc[T, R, M]], Rep[T]) forSome {type T; type R; type M}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IsoFunc[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = unapply(exp.rhs)
-    }
-  }
 } // of object IsoFunc
   registerEntityObject("IsoFunc", IsoFunc)
 
@@ -224,22 +192,6 @@ implicit val eM = p.metric.elem.eRange
       Some((asRep[IsoFuncBase[T, R, M]](p).func, asRep[IsoFuncBase[T, R, M]](p).metric))
     case _ =>
       None
-  }
-
-    object IsoFuncBaseMethods {
-    object apply {
-      def unapply(d: Def[_]): Nullable[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = d match {
-        case MethodCall(receiver, method, args, _) if method.getName == "apply" && receiver.elem.isInstanceOf[IsoFuncBaseElem[_, _, _]] =>
-          val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IsoFuncBase[T, R, M]], Rep[T]) forSome {type T; type R; type M}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
-
-    // WARNING: Cannot generate matcher for method `equals`: Overrides Object method equals
   }
 } // of object IsoFuncBase
   registerEntityObject("IsoFuncBase", IsoFuncBase)

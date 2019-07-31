@@ -533,7 +533,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |
       |${e.when(_.isCont, familyView)}
       |
-      |${methodExtractorsString(unit, config, e.entity)}
+      |${e.entity.hasMethodCallRecognizer.opt(methodExtractorsString(unit, config, e.entity))}
       |
       |} // of object ${e.name}
       |  registerEntityObject("$entityName", $entityName)
@@ -760,7 +760,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |      None
         |  }
         |
-        |  ${methodExtractorsString(unit, config, clazz) }
+        |  ${clazz.hasMethodCallRecognizer.opt(methodExtractorsString(unit, config, clazz)) }
         |
         |} // of object $className
         |  registerEntityObject("$className", $className)
