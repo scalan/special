@@ -72,28 +72,6 @@ object StructKey extends EntityObject("StructKey") {
 
   lazy val RStructKey: Rep[StructKeyCompanionCtor] = new StructKeyCompanionCtor {
   }
-
-  object StructKeyMethods {
-    object index {
-      def unapply(d: Def[_]): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "index" && receiver.elem.isInstanceOf[StructKeyElem[_, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
-    }
-
-    object name {
-      def unapply(d: Def[_]): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "name" && receiver.elem.isInstanceOf[StructKeyElem[_, _]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[StructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
-    }
-  }
 } // of object StructKey
   registerEntityObject("StructKey", StructKey)
 
@@ -184,20 +162,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     case _ =>
       None
   }
-
-    object IndexStructKeyMethods {
-    object name {
-      def unapply(d: Def[_]): Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "name" && receiver.elem.isInstanceOf[IndexStructKeyElem[_]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[IndexStructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
-  }
 } // of object IndexStructKey
   registerEntityObject("IndexStructKey", IndexStructKey)
 
@@ -287,20 +251,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
       Some((asRep[NameStructKey[Schema]](p).name))
     case _ =>
       None
-  }
-
-    object NameStructKeyMethods {
-    object index {
-      def unapply(d: Def[_]): Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = d match {
-        case MethodCall(receiver, method, _, _) if method.getName == "index" && receiver.elem.isInstanceOf[NameStructKeyElem[_]] =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[NameStructKey[Schema]] forSome {type Schema <: Struct}] = unapply(exp.rhs)
-    }
-
-    // WARNING: Cannot generate matcher for method `toString`: Overrides Object method toString
   }
 } // of object NameStructKey
   registerEntityObject("NameStructKey", NameStructKey)

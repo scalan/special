@@ -11,7 +11,7 @@ trait Segments { self: SegmentsModule =>
   import Centered._
 
   type RSeg = Rep[Segment]
-  @Liftable
+  @scalan.Liftable
   @Convertible
   @WithMethodCallRecognizers
   trait Segment extends Def[Segment] { self =>
