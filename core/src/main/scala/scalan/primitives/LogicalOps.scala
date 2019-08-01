@@ -42,7 +42,7 @@ trait LogicalOps extends Base { self: Scalan =>
   }
 
   @inline
-  final def rewriteBoolConsts(d: Def[_], lhs: Sym, rhs: Sym, ifTrue: Sym => Sym, ifFalse: Sym => Sym, ifEqual: Sym => Sym, ifNegated: Sym => Sym): Sym =
+  final def rewriteBoolConsts(lhs: Sym, rhs: Sym, ifTrue: Sym => Sym, ifFalse: Sym => Sym, ifEqual: Sym => Sym, ifNegated: Sym => Sym): Sym =
     lhs match {
       // op(x, x)
       case `rhs` =>
