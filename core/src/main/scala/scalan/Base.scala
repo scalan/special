@@ -295,11 +295,11 @@ trait Base { scalan: Scalan =>
     private[scalan] def assignDef[B >: T](sym: Def[B]): Unit
     private[scalan] def assignDefFrom[B >: T](sym: Exp[B]): Unit
 
-    def isPlaceholder: Boolean = rhs.isInstanceOf[Placeholder[_]]
-    def isVar: Boolean = rhs.isInstanceOf[Variable[_]]
-    def isConst: Boolean = rhs.isInstanceOf[Const[_]]
-    def isCompanion: Boolean = elem.isInstanceOf[CompanionElem[_]]
-    def isLambda: Boolean = rhs.isInstanceOf[Lambda[_,_]]
+    @inline final def isPlaceholder: Boolean = rhs.isInstanceOf[Placeholder[_]]
+    @inline final def isVar: Boolean = rhs.isInstanceOf[Variable[_]]
+    @inline final def isConst: Boolean = rhs.isInstanceOf[Const[_]]
+    @inline final def isCompanion: Boolean = elem.isInstanceOf[CompanionElem[_]]
+    @inline final def isLambda: Boolean = rhs.isInstanceOf[Lambda[_,_]]
 
     def toStringWithDefinition: String
     def toStringWithType = varName + ":" + elem.name
@@ -461,8 +461,8 @@ trait Base { scalan: Scalan =>
       }
   }
 
-  def valueFromRep[A](x: Rep[A]): A = x match {
-    case Def(Const(x)) => x
+  @inline final def valueFromRep[A](x: Rep[A]): A = x.rhs match {
+    case Const(x) => x
     case _ => delayInvoke
   }
 
@@ -470,55 +470,6 @@ trait Base { scalan: Scalan =>
 
   object ExpWithElem {
     def unapply[T](s: Rep[T]): Nullable[(Rep[T],Elem[T])] = Nullable((s, s.elem))
-  }
-
-
-  def rewriteDef[T](d: Def[T]): Rep[_] = d match {
-    case First(p) if p.rhs.isInstanceOf[Tup[_,_]] => p.rhs.asInstanceOf[Tup[_,_]].a
-    case Second(p) if p.rhs.isInstanceOf[Tup[_,_]] => p.rhs.asInstanceOf[Tup[_,_]].b
-    case Tup(Def(First(a)), Def(Second(b))) if a == b => a
-
-    // Rule: convert(eFrom, eTo, x, conv) if x.elem <:< eFrom  ==>  conv(x)
-    case Convert(eFrom: Elem[from], eTo: Elem[to], x,  conv) if x.elem <:< eFrom =>
-      mkApply(conv, x)
-
-    case Apply(f @ Def(l: Lambda[a,b]), x, mayInline) if mayInline && l.mayInline =>
-      mkApply(f, x)
-
-    case call @ MethodCall(receiver, m, args, neverInvoke) =>
-      call.tryInvoke match {
-        // Rule: receiver.m(args) ==> body(m).subst{xs -> args}
-        case InvokeSuccess(res) => res
-        case InvokeFailure(e) if !e.isInstanceOf[DelayInvokeException] =>
-          throwInvocationException("Method invocation in rewriteDef", e, receiver, m, args)
-        case InvokeImpossible =>
-          val res = rewriteNonInvokableMethodCall(call)
-          if (res != null) res
-          else
-            null
-      }
-
-    case ThunkForce(th) =>
-      th.rhs match {
-        // empty Thunk
-        case ThunkDef(root, sch) if sch.isEmpty => root
-        // constant in Thunk
-        case ConstantThunk(rootConst) => rootConst
-        case _ => null
-      }
-
-    case _ =>
-      if (currentPass.config.constantPropagation) {
-        d match {
-          case ApplyUnOp(op: UnOp[a, T @unchecked], Def(Const(arg))) if op.shouldPropagate(arg) =>
-            toRep(op.applySeq(arg.asInstanceOf[a]))(d.selfType)
-          case ApplyBinOp(op: BinOp[a, T @unchecked], Def(Const(lhs)), Def(Const(rhs))) if op.shouldPropagate(lhs, rhs) =>
-            toRep(op.applySeq(lhs.asInstanceOf[a], rhs.asInstanceOf[a]))(d.selfType)
-          case _ => null
-        }
-      }
-      else
-        null
   }
 
   def rewriteVar[T](s: Rep[T]): Rep[_] = null

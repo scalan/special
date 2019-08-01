@@ -41,25 +41,8 @@ trait LogicalOps extends Base { self: Scalan =>
     def !!! = sameArgFun(f) { x => !f(x) }
   }
 
-  override def rewriteDef[A](d: Def[A]) = d match {
-    case ApplyBinOp(op, lhs, rhs) =>
-      op.asInstanceOf[BinOp[_, _]] match {
-        case _: Equals[_] if lhs.elem == BooleanElement && rhs.elem == BooleanElement =>
-          matchBoolConsts(d, lhs, rhs, x => x, x => !x.asInstanceOf[Rep[Boolean]], _ => true, _ => false)
-        case And =>
-          matchBoolConsts(d, lhs, rhs, x => x, _ => false, x => x, _ => false)
-        case Or =>
-          matchBoolConsts(d, lhs, rhs, _ => true, x => x, x => x, _ => true)
-        case BinaryXorOp =>
-          matchBoolConsts(d, lhs, rhs, x => !x.asInstanceOf[Rep[Boolean]], x => x.asInstanceOf[Rep[Boolean]], _ => false, _ => true)
-        case _ => super.rewriteDef(d)
-      }
-    case ApplyUnOp(o1, Def(ApplyUnOp(o2, x))) if o1 == Not && o2 == Not => x
-    case _ => super.rewriteDef(d)
-  }
-
   @inline
-  private def matchBoolConsts(d: Def[_], lhs: Sym, rhs: Sym, ifTrue: Sym => Sym, ifFalse: Sym => Sym, ifEqual: Sym => Sym, ifNegated: Sym => Sym): Sym =
+  final def rewriteBoolConsts(d: Def[_], lhs: Sym, rhs: Sym, ifTrue: Sym => Sym, ifFalse: Sym => Sym, ifEqual: Sym => Sym, ifNegated: Sym => Sym): Sym =
     lhs match {
       // op(x, x)
       case `rhs` =>
@@ -82,7 +65,7 @@ trait LogicalOps extends Base { self: Scalan =>
           // op(x, !x) => ifNegated(!x)
           case Def(ApplyUnOp(op, `lhs`)) if op == Not =>
             ifNegated(rhs)
-          case _ => super.rewriteDef(d)
+          case _ => null
         }
     }
 }

@@ -26,4 +26,5 @@ class Scalan
   with Structs
   with ConvertersModule
   with Modules
+  with DefRewriting
 

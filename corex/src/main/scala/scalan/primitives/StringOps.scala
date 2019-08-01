@@ -1,8 +1,8 @@
 package scalan.primitives
 
-import scalan.{Base, Scalan}
+import scalan.{ScalanEx, BaseEx}
 
-trait StringOps extends Base { self: Scalan =>
+trait StringOps extends BaseEx { self: ScalanEx =>
   implicit class StringOpsCls(lhs: Rep[String]) {
     def toInt = StringToInt(lhs)
     def toDouble = StringToDouble(lhs)

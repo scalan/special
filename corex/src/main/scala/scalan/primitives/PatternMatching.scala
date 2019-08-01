@@ -1,9 +1,9 @@
 package scalan.primitives
 
-import scalan.{Base, DelayInvokeException, Scalan}
+import scalan.{DelayInvokeException, ScalanEx, BaseEx}
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 
-trait PatternMatching extends Base with GraphVizExport { _: Scalan =>
+trait PatternMatching extends BaseEx with GraphVizExport { _: ScalanEx =>
 
 //  def MATCH[A, B: Elem](selector: Rep[A])(f: PartialFunction[Rep[A], Rep[B]]): Rep[B] =
 //  macro PatternMatchingMacro.patternMatchImpl[A, B]

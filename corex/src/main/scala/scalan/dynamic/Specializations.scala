@@ -7,7 +7,7 @@ import scalan.universe.api.TypesApi
 import scalan.universe.api.UniverseUtils._
 import scalan.util.CollectionUtil._
 
-trait Specializations extends Views with Converters { self: ScalanEx =>
+trait Specializations extends Views with Converters with DefRewriting { self: ScalanEx =>
   import IsoUR._
   type RepIsoFunc[T,R,M] = Rep[IsoFunc[T,R,M]]
   trait IsoFunc[T,R,M] extends Def[IsoFunc[T,R,M]] {

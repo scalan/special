@@ -68,50 +68,7 @@ trait NumericOps extends Base { self: Scalan =>
   def random[T](bound: Rep[T])(implicit n: Numeric[T]): Rep[T] =
     NumericRand(bound)(bound.elem)
 
-  private def isZero[T](x: T, n: Numeric[T]) = x == n.zero
-  private def isOne[T](x: T, n: Numeric[T]) = x == n.fromInt(1)
+  @inline final def isZero[T](x: T, n: Numeric[T]) = x == n.zero
+  @inline final def isOne[T](x: T, n: Numeric[T]) = x == n.fromInt(1)
   
-  override def rewriteDef[T](d: Def[T]) = d match {
-    // scala has problems with type inference here
-    // cast to BinOp[a, a] is safe because all matched cases have this type
-    case ApplyBinOp(op, x: Rep[a], y) => (op.asInstanceOf[BinOp[a, a]], x.asInstanceOf[Rep[a]], y.asInstanceOf[Rep[a]]) match {
-      // x + 0 => x
-      case (NumericPlus(n), x, Def(Const(zero))) if isZero(zero, n) => x
-      // 0 + x => x
-      case (NumericPlus(n), Def(Const(zero)), x) if isZero(zero, n) => x
-      // x - 0 => x
-      case (NumericMinus(n), x, Def(Const(zero))) if isZero(zero, n) => x
-      // 0 - x => -x
-      case (NumericMinus(n), Def(Const(zero)), x) if isZero(zero, n) =>
-        new NumericOpsCls(x)(n).unary_-
-      // _ * 0 => 0
-      case (NumericTimes(n), _, y@Def(Const(zero))) if isZero(zero, n) => y
-      // 0 * _ => 0
-      case (NumericTimes(n), y@Def(Const(zero)), _) if isZero(zero, n) => y
-      // x * 1 => x
-      case (NumericTimes(n), x, Def(Const(one))) if isOne(one, n) => x
-      // 1 * x => x
-      case (NumericTimes(n), Def(Const(one)), x) if isOne(one, n) => x
-      // 0 / _ => 0
-      case (FractionalDivide(n), x@Def(Const(zero)), _) if isZero(zero, n) => x
-      // x / 1 => x
-      case (FractionalDivide(n), x, Def(Const(one))) if isOne(one, n) => x
-      // 0 / _ => 0 (for ints)
-      case (IntegralDivide(n), x@Def(Const(zero)), _) if isZero(zero, n) => x
-      // x / 1 => x (for ints)
-      case (IntegralDivide(n), x, Def(Const(one))) if isOne(one, n) => x
-      case _ => super.rewriteDef(d)
-    }
-    // -(-x) => x
-    case ApplyUnOp(_: NumericNegate[_], Def(ApplyUnOp(_: NumericNegate[_], x))) => x
-    // (x: Int).toInt => x
-    case ApplyUnOp(NumericToInt(_), x) if x.elem == IntElement => x
-    // (x: Long).toLong => x
-    case ApplyUnOp(NumericToLong(_), x) if x.elem == LongElement => x
-    // (x: Float).toFloat => x
-    case ApplyUnOp(NumericToFloat(_), x) if x.elem == FloatElement => x
-    // (x: Double).toDouble => x
-    case ApplyUnOp(NumericToDouble(_), x) if x.elem == DoubleElement => x
-    case _ => super.rewriteDef(d)
-  }
 }

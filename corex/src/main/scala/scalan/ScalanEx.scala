@@ -6,7 +6,7 @@ import scalan.staged.TransformingEx
 import scalan.util.{StringUtil, ReflectionUtil}
 import scala.reflect.runtime.universe._
 
-trait BaseEx extends Base { self: ScalanEx =>
+trait BaseEx extends Base with DefRewriting { self: ScalanEx =>
   def decompose[T](d: Def[T]): Option[Rep[T]] = None
 
   val performViewsLifting: Boolean = true

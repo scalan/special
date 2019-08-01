@@ -68,40 +68,64 @@ trait Library extends Scalan
   val longPlusMonoidValue = new special.collection.MonoidBuilderInst().longPlusMonoid
 
   override def rewriteDef[T](d: Def[T]) = d match {
-    case CM.length(CM.map(xs, _)) => xs.length
-
-    case CM.length(CBM.replicate(_, len, _)) => len
-    case CM.length(Def(CollConst(coll, _))) => coll.length
-    case CM.length(CBM.fromItems(_, items, _)) => items.length
+    case CM.length(ys) => ys.rhs match {
+      // Rule: xs.map(f).length  ==> xs.length
+      case CM.map(xs, _) =>
+        xs.length
+      // Rule: replicate(len, v).length => len
+      case CBM.replicate(_, len, _) =>
+        len
+      // Rule: Const[Coll[T]](coll).length =>
+      case CollConst(coll, _) =>
+        coll.length
+      // Rule: Coll(items @ Seq(x1, x2, x3)).length => items.length
+      case CBM.fromItems(_, items, _) =>
+        items.length
+      case _ => super.rewriteDef(d)
+    }
 
     // Rule: replicate(l, x).zip(replicate(l, y)) ==> replicate(l, (x,y))
     case CM.zip(CBM.replicate(b1, l1, v1), CBM.replicate(b2, l2, v2)) if b1 == b2 && l1 == l2 =>
       b1.replicate(l1, Pair(v1, v2))
 
-    // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
-    case CM.map(CBM.replicate(b, l, v: Rep[a]), _f) =>
-      val f = asRep[a => Any](_f)
-      b.replicate(l, Apply(f, v, false))
+    case CM.map(xs, _f) => _f.rhs match {
+      case IdentityLambda() => xs
+      case _ => xs.rhs match {
+        // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
+        case CBM.replicate(b, l, v: Rep[a]) =>
+          val f = asRep[a => Any](_f)
+          b.replicate(l, Apply(f, v, false))
+        case _ => super.rewriteDef(d)
+      }
+    }
 
+    case CM.sum(xs, m) => m.rhs match {
+      case _: IntPlusMonoid => xs.rhs match {
+        case CollConst(coll, lA) if lA.eW == IntElement =>
+          coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
+        case CBM.replicate(_, n, x: Rep[Int] @unchecked) =>
+          x * n
+        case _ => super.rewriteDef(d)
+      }
+      case _: LongPlusMonoid => xs.rhs match {
+        case CollConst(coll, lA) if lA.eW == LongElement =>
+          coll.asInstanceOf[SColl[Long]].sum(longPlusMonoidValue)
+        case CBM.replicate(_, n, x: Rep[Long] @unchecked) =>
+          x * n.toLong
+        case _ => super.rewriteDef(d)
+      }
+      case _ => super.rewriteDef(d)
+    }
 
-    case CM.map(xs, Def(IdentityLambda())) => xs
-
-    case CM.sum(Def(CollConst(coll, lA)), Def(_: IntPlusMonoid)) if lA.eW == IntElement =>
-      coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
-    case CM.sum(Def(CollConst(coll, lA)), Def(_: LongPlusMonoid)) if lA.eW == LongElement =>
-      coll.asInstanceOf[SColl[Long]].sum(longPlusMonoidValue)
-
-    case CM.sum(CBM.replicate(_, n, x: Rep[Int] @unchecked), Def(_: IntPlusMonoid)) =>
-      x * n
-    case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>
-      x * n.toLong
-      
     // Rule: opt.fold(None, x => Some(x)) ==> opt
     case WOptionM.fold(opt, Def(ThunkDef(SPCM.none(_), _)), Def(Lambda(_, _, x, SPCM.some(y)))) if x == y => opt
 
-    // Rule: Some(x).getOrElse(_) ==> x
-    case WOptionM.getOrElse(SPCM.some(x), _) => x
-    case WOptionM.getOrElse(Def(WOptionConst(Some(x), lA)), _) => lA.lift(x)
+    case WOptionM.getOrElse(opt, _) => opt.rhs match {
+      // Rule: Some(x).getOrElse(_) ==> x
+      case SPCM.some(x) => x
+      case WOptionConst(Some(x), lA) => lA.lift(x)
+      case _ => super.rewriteDef(d)
+    }
 
     case _ => super.rewriteDef(d)
   }

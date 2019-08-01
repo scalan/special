@@ -1,7 +1,7 @@
 package scalan.primitives
 
 import scalan.common.MetaTestsModule
-import scalan.{BaseTests, Scalan, Base}
+import scalan.{BaseTests, Base, Scalan, DefRewriting}
 
 abstract class IfThenElseTests[A <: Scalan](val ctx: A) extends BaseTests {
   import ctx._
@@ -29,7 +29,7 @@ abstract class IfThenElseTests[A <: Scalan](val ctx: A) extends BaseTests {
   }
 }
 
-trait IfThenElseLazyRewrites extends Base { scalan: Scalan =>
+trait IfThenElseLazyRewrites extends Base with DefRewriting { scalan: Scalan =>
   override def rewriteDef[T](d: Def[T]): Rep[_] = d match {
     // Rule: if (true) t else e ==> t
     case IfThenElseLazy(Def(Const(true)), t, _) => reifyObject(ThunkForce(t))
