@@ -335,9 +335,17 @@ trait Base { scalan: Scalan =>
     def apply[A](x: Rep[A]): Rep[A]
     def isDefinedAt(x: Rep[_]): Boolean
     def domain: Set[Rep[_]]
-    def apply[A](xs: Seq[Rep[A]]): Seq[Rep[A]] = xs map (e => apply(e))
-    def apply(xs: Seq[Any])(implicit o: Overloaded1): Seq[Any] =
+    def apply[A](xs: Seq[Rep[A]]): Seq[Rep[A]] = {
+      val len = xs.length
+      val res = new Array[Rep[A]](len)
+      cfor(0)(_ < len, _ + 1) { i =>
+        res(i) = apply(xs(i))
+      }
+      res
+    }
+    def apply(xs: Seq[Any])(implicit o: Overloaded1): Seq[Any] = {
       xs map (e => e match { case s: Rep[_] => apply(s); case _ => e })
+    }
     def apply[X,A](f: X=>Rep[A]): X=>Rep[A] = (z:X) => apply(f(z))
     def apply[X,Y,A](f: (X,Y)=>Rep[A]): (X,Y)=>Rep[A] = (z1:X,z2:Y) => apply(f(z1,z2))
     def onlySyms[A](xs: List[Rep[A]]): List[Rep[A]] = xs map (e => apply(e)) collect { case e: Rep[A] => e }
