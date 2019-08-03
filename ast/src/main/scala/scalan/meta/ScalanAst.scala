@@ -6,7 +6,7 @@ import scala.reflect.internal.ModifierFlags
 import java.util.Objects
 
 import scala.collection.immutable.{HashMap, HashSet}
-import scalan.{ArgList, Constructor, ContainerType, WithMethodCallRecognizers, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
+import scalan.{Constructor, ContainerType, WithMethodCallRecognizers, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
 import scalan.meta.Symbols._
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
 
@@ -333,12 +333,10 @@ object ScalanAst {
       tpeArgs: List[STpeExpr],
       args: List[SExpr]) extends SAnnotation
 
-  final val EntityAnnotation         = classOf[scalan.Entity].getSimpleName
   final val LiftableAnnotation       = classOf[Liftable].getSimpleName
   final val ConvertibleAnnotation    = classOf[Convertible].getSimpleName
   final val ConstructorAnnotation    = classOf[Constructor].getSimpleName
   final val ExternalAnnotation       = classOf[External].getSimpleName
-  final val ArgListAnnotation        = classOf[ArgList].getSimpleName
   final val ContainerTypeAnnotation  = classOf[ContainerType].getSimpleName
   final val FunctorTypeAnnotation    = classOf[FunctorType].getSimpleName
   final val ReifiedTypeArgAnnotation = classOf[Reified].getSimpleName
@@ -626,7 +624,6 @@ object ScalanAst {
     def tpe: STpeExpr
     def default: Option[SExpr]
     def annotations: List[SArgAnnotation]
-    def isArgList = annotations.exists(a => a.annotationClass == ArgListAnnotation)
     def isTypeDesc: Boolean
   }
   object SMethodOrClassArg {

@@ -5,8 +5,7 @@ import java.lang.reflect.{InvocationTargetException, Method}
 import scala.annotation.implicitNotFound
 import scala.collection.immutable.ListMap
 import scala.reflect.runtime.universe._
-import scala.reflect.{AnyValManifest, ClassTag}
-import scalan.meta.ScalanAst._
+import scala.reflect.{ClassTag}
 import scalan.util._
 import scalan.RType._
 import scalan.util.ReflectionUtil.ClassOps

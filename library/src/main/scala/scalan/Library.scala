@@ -142,15 +142,15 @@ trait Library extends Scalan
       super.invokeUnlifted(e, mc, dataEnv)
   }
 
-  implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
-    def applyCosted(x: Rep[Costed[A]]): Rep[Costed[B]] = {
-      val fC_elem = fC.elem.asInstanceOf[CostedElem[A => B,_]].eVal
-      implicit val eA = fC_elem.eDom
-      implicit val eB = fC_elem.eRange
-      val res = tryConvert(
-            element[CostedFunc[Unit,A,B]], element[Costed[B]], fC,
-            fun { f: Rep[CostedFunc[Unit,A,B]] => f.func(x) })
-      res
-    }
-  }
+//  implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
+//    def applyCosted(x: Rep[Costed[A]]): Rep[Costed[B]] = {
+//      val fC_elem = fC.elem.asInstanceOf[CostedElem[A => B,_]].eVal
+//      implicit val eA = fC_elem.eDom
+//      implicit val eB = fC_elem.eRange
+//      val res = tryConvert(
+//            element[CostedFunc[Unit,A,B]], element[Costed[B]], fC,
+//            fun { f: Rep[CostedFunc[Unit,A,B]] => f.func(x) })
+//      res
+//    }
+//  }
 }

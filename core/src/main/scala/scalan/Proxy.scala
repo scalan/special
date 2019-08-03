@@ -92,8 +92,8 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
     }
   }
 
-  case class NewObject[A](eA: Elem[A], args: List[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA) {
-    override def transform(t: Transformer) = NewObject(eA, t(args).toList, neverInvoke)
+  case class NewObject[A](eA: Elem[A], args: Seq[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA) {
+    override def transform(t: Transformer) = NewObject(eA, t(args), neverInvoke)
   }
 
   def mkMethodCall(receiver: Sym, method: Method, args: Seq[AnyRef],
@@ -147,7 +147,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   def rewriteNonInvokableMethodCall(mc: MethodCall): Rep[_] = null
 
   def newObjEx[A](args: Any*)(implicit eA: Elem[A]): Rep[A] = {
-    reifyObject(NewObject[A](eA, args.toList, true))
+    reifyObject(NewObject[A](eA, args, true))
   }
 
   def proxyOps[Ops <: AnyRef](x: Rep[Ops])(implicit ct: ClassTag[Ops]): Ops = {
