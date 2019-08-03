@@ -110,13 +110,12 @@ lazy val libraryapi = Project("library-api", file("library-api"))
       ))
 
 lazy val core = Project("core", file("core"))
-    .dependsOn(common % allConfigDependency, ast % allConfigDependency, libraryapi % allConfigDependency, macros)
+    .dependsOn(common % allConfigDependency, libraryapi % allConfigDependency)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.12",
         "org.objenesis" % "objenesis" % "3.0.1",
         "com.github.kxbmap" %% "configs" % "0.4.4",
-        "com.trueaccord.lenses" %% "lenses" % "0.4.12",
         "org.spire-math" %% "debox" % "0.8.0",
       ))
       

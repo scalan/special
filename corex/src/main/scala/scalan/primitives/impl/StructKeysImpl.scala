@@ -2,8 +2,6 @@ package scalan.primitives
 
 import scalan._
 import scala.reflect.classTag
-import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
-import scalan.meta.ScalanAst._
 import scala.collection.mutable.WrappedArray
 
 package impl {

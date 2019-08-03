@@ -2,8 +2,6 @@ package scalan
 
 import OverloadHack.Overloaded2
 import scalan.primitives.TypeSum
-import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
-import scalan.meta.ScalanAst._
 import scala.collection.mutable.WrappedArray
 
 package impl {

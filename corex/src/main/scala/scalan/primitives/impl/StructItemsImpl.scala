@@ -4,8 +4,6 @@ import scala.annotation.unchecked.uncheckedVariance
 import scalan._
 import scala.reflect.runtime.universe._
 import OverloadHack.{Overloaded2, Overloaded1}
-import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
-import scalan.meta.ScalanAst._
 import scala.collection.mutable.WrappedArray
 
 package impl {

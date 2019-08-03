@@ -5,9 +5,9 @@ import scalan.meta.ScalanAst.SUnitDef
 import scalan.primitives.StringOps
 
 import scala.collection.mutable
-import scalan.{ModuleInfo, Modules, Scalan, ScalanEx}
+import scalan.{ScalanEx, ModuleInfo, ModulesEx}
 
-trait ParsedModules extends Modules { scalan: Scalan =>
+trait ParsedModules extends ModulesEx { scalan: ScalanEx =>
   lazy val parsers = {
     val parsers = new Parsers(configs)
     implicit val parseCtx = new parsers.context.parsers.ParseCtx(true)(parsers.context)

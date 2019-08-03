@@ -2,8 +2,6 @@ package scalan
 
 import java.lang.reflect.Method
 import scala.language.higherKinds
-import scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}
-import scalan.meta.ScalanAst._
 import scala.collection.mutable.WrappedArray
 
 package impl {
