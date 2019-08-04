@@ -7,8 +7,9 @@ trait RTypeGenCoverageChecker {
   def isFullyCovered(depth: Int): Boolean
 }
 
-class BasicTypeCoverageChecker extends RTypeGenCoverageChecker {
+class FullTypeCoverageChecker extends RTypeGenCoverageChecker {
   import RType._
+  import special.collection._
 
   private type TypePosition = (String, Int)
   private var typePositions: Set[TypePosition] = Set.empty
@@ -18,11 +19,15 @@ class BasicTypeCoverageChecker extends RTypeGenCoverageChecker {
   }
 
   override def isFullyCovered(depth: Int): Boolean = {
-    val names = Seq("PrimitiveType", "PairType", "ArrayType", "StringType")
+    val names = Seq("PrimitiveType", "PairType", "ArrayType", "StringType", "CollType", "ReplCollType", "OptionType")
     cfor(0)(_ < depth, _ + 1) { i =>
-      for (name <- names)
-        if (!typePositions.contains(new TypePosition(name, i)))
-          false
+      for (name <- names) {
+
+        if (!typePositions.contains(new TypePosition(name, i))) {
+          println(s"Type ${name} is not found at depth ${i}")
+          return false
+        }
+      }
     }
     true
   }
@@ -41,7 +46,16 @@ class BasicTypeCoverageChecker extends RTypeGenCoverageChecker {
     case array: ArrayType[a] =>
       attachResult("ArrayType", depth)
       decomposeValue(array.tA, depth + 1)
-    case (stringType: RType[String]@unchecked) => attachResult("StringType", depth)
+    case opt: OptionType[a] =>
+      attachResult("OptionType", depth)
+      decomposeValue(opt.tA, depth + 1)
+    case coll: CollType[a] =>
+      attachResult("CollType", depth)
+      decomposeValue(coll.tItem, depth + 1)
+    case replColl: ReplCollType[a] =>
+      attachResult("ReplCollType", depth)
+      decomposeValue(replColl.tItem, depth + 1)
+    case StringType => attachResult("StringType", depth)
     case _ => throw new RuntimeException(s"Unknown generated RType: ${item}")
   }
 }

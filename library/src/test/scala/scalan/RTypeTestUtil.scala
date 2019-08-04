@@ -26,7 +26,7 @@ object RTypeTestUtil {
       case pair: Tuple2[_, _] => valueMatchesRType(pair._1, pairType.tFst) && valueMatchesRType(pair._2, pairType.tSnd)
       case _ => false
     }
-    case (stringType: RType[String]@unchecked) => value match {
+    case StringType => value match {
       case str: String => true
       case _ => false
     }
