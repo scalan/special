@@ -5,21 +5,25 @@ import spire.syntax.all.cfor
 object StringUtil {
   final def quote(x: Any) = "\"" + x + "\""
 
+  /** Uppercase the first character. */
   final def lowerCaseFirst(s: String) = if (s.isEmpty) {
     s
   } else {
     s.substring(0, 1).toLowerCase + s.substring(1)
   }
 
-  final def append(sb: StringBuilder, x: Any): Unit = {
+  /** Emit string representation of `x` into given builder `sb`,
+    * recursively descending into Array structure of `x`.
+    */
+  final def deepAppend(sb: StringBuilder, x: Any): Unit = {
     x match {
       case arr: Array[_] =>
         sb.append("Array(")
         if (arr.length > 0) {
-          append(sb, arr(0))
+          deepAppend(sb, arr(0))
           cfor(1)(_ < arr.length, _ + 1) { i =>
             sb.append(", ")
-            append(sb, arr(i))
+            deepAppend(sb, arr(i))
           }
         }
         sb.append(")")

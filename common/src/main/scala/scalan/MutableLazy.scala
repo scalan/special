@@ -1,7 +1,7 @@
 package scalan
 
 /** Non-thread safe (but efficient on single thread) immutable lazy value with reset.
-  * The `block` may execute potentially many times, but only once after each reset. */
+  * The `block` may execute potentially many times, but only once before each reset. */
 class MutableLazy[A] private (block: => A) {
   @volatile private[this] var _isSet: Boolean = false
   private[this] var _value: A = _

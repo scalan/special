@@ -41,15 +41,15 @@ object GraphUtil {
 
   /**
    * Returns the strongly connected components
-   * of the graph rooted at the first argument,
-   * whose edges are given by the function argument.
+   * of the graph rooted at the startNodes argument,
+   * whose edges are given by the function argument `succ`.
    *
-   * The scc are returned in _reverse_ topological order.
-   * Tarjan's algorithm (linear).
+   * @see Tarjan, Robert E.. “Depth-First Search and Linear Graph Algorithms.” SIAM J. Comput. 1 (1972): 146-160.
    */
   def stronglyConnectedComponents[@specialized(Int) T: ClassTag](startNodes: DBuffer[T], succ: DFunc[T, DBuffer[T]]): DBuffer[DBuffer[T]] = {
     val tarjan = new Tarjan[T](succ)
 
+    // top level loop of the algorithm
     cfor(0)(_ < startNodes.length, _ + 1) { i =>
       val node = startNodes(i)
       tarjan.visit(node)
@@ -66,6 +66,7 @@ object GraphUtil {
 }
 
 
+/** Implementation of the SCC part of Tarjan algorithm. */
 final class Tarjan[@specialized(Int) T: ClassTag](private var getNeighbours: DFunc[T, DBuffer[T]]) {
   private var id = 0
   private var stack: DBuffer[T] = DBuffer.empty
@@ -73,6 +74,8 @@ final class Tarjan[@specialized(Int) T: ClassTag](private var getNeighbours: DFu
 
   val res: DBuffer[DBuffer[T]] = DBuffer.empty
 
+  /** Explore the next graph node. Returns quickly if the node is already marked.
+    * @return mark assigned to `node` */
   def visit(node: T): Int = {
     val n = mark.getOrElse(node, -1)
     if (n >= 0) return n

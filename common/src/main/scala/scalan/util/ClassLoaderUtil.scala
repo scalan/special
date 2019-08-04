@@ -11,8 +11,6 @@ object ClassLoaderUtil {
       Nil
   }
 
-  def URLClassLoader(files: Array[File], parent: ClassLoader): URLClassLoader =
-    new URLClassLoader(files.map(_.toURI.toURL), parent)
   def URLClassLoader(files: TraversableOnce[File], parent: ClassLoader): URLClassLoader =
-    URLClassLoader(files.toArray, parent)
+    new URLClassLoader(files.map(_.toURI.toURL).toArray, parent)
 }

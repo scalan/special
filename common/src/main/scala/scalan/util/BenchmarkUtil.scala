@@ -4,7 +4,11 @@ import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Await}
 import scala.concurrent.ExecutionContext.Implicits.global
 
+/** Helper classes for measuring time and printing timings. */
 object BenchmarkUtil {
+
+  /** Execute `action` given number of iterations printing time for each iteration
+    * and the total time. */
   def measure[T](nIters: Int, okShowIterTime: Boolean = true)(action: Int => Unit): Unit = {
     var sum = 0L
     for (i <- 0 until nIters) {
@@ -19,6 +23,7 @@ object BenchmarkUtil {
     println(s"Total time: $sum ms")
   }
 
+  /** Execute block and measure the time of its execution. */
   def measureTime[T](action: => T): (T, Long) = {
     val t0 = System.currentTimeMillis()
     val res = action

@@ -2,13 +2,8 @@ import scala.reflect.ClassTag
 
 package object scalan {
 
-  /** Can be used in definition of methods, when implementation of the method
-    * cannot be done directly and should be provided by compiler based on given
-    * class and method names.
-    * */
-  def externalMethod(className: String, methodName: String) = {
-    throw new ExternalMethodException(className, methodName)
-  }
-
+  /** Allows implicit resolution to find appropriate instance of ClassTag in
+    * the scope where RType is implicitly available. */
   implicit def rtypeToClassTag[A](implicit t: RType[A]): ClassTag[A] = t.classTag
+  
 }

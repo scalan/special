@@ -13,7 +13,7 @@ import scala.collection.{mutable, TraversableOnce}
 import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
-import scalan.util.{ParamMirror, ReflectionUtil, NeighbourFunc, StringUtil}
+import scalan.util.{ReflectionUtil, NeighbourFunc, StringUtil}
 import debox.{Buffer => DBuffer, Set => DSet}
 import scala.reflect.runtime.universe._
 import spire.syntax.all.cfor
@@ -139,11 +139,11 @@ trait Base { scalan: Scalan =>
       sb.append("(")
       val iterator = productIterator
       if (iterator.hasNext) {
-        StringUtil.append(sb, iterator.next)
+        StringUtil.deepAppend(sb, iterator.next)
       }
       while (iterator.hasNext) {
         sb.append(", ")
-        StringUtil.append(sb, iterator.next)
+        StringUtil.deepAppend(sb, iterator.next)
       }
       sb.append(")")
       sb.toString

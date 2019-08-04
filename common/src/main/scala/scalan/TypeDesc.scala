@@ -4,16 +4,25 @@ import scala.reflect.ClassTag
 import scalan.util.CollectionUtil
 import scalan.util.ReflectionUtil.ClassOps
 
+/** Base type for all runtime type descriptors. */
 trait RType[A] {
+  /** Class tag suitable for construct instances of Array[A]. */
   def classTag: ClassTag[A]
+
+  /** Syntactically correct type name (type expression as String) */
   def name: String = this.toString
+
   /** Returns true is data size of `x: A` is the same for all `x`.
     * This is useful optimizations of calculating sizes of collections. */
   def isConstantSize: Boolean
 }
 
 object RType {
+  /** Helper to request RType instances from an implicit scope.*/
   def apply[A](implicit t: RType[A]): RType[A] = t
+
+  /** Helper cast from untyped descriptor to the typed one. */
+  @inline def asType[T](t: RType[_]): RType[T] = t.asInstanceOf[RType[T]]
 
   def fromClassTag[A](ctA: ClassTag[A]): RType[A] = (ctA match {
     case ClassTag.Boolean => BooleanType
@@ -31,8 +40,11 @@ object RType {
   type SomeType = RType[_]
 
   /** Type descriptor for types with limited type information like Any, AnyRef, Nothing.
-    * It also used to wrap class tags which are GenericClassTag instances (also with limited information about type structure).
-    * To describe structure of the type more precisely use concrete classes in the hierarchy of RType. */
+    * It also used to wrap class tags which are GenericClassTag instances
+    * (also with limited information about type structure).
+    * To describe structure of the type more precisely use concrete classes
+    * in the hierarchy of RType.
+    */
   case class GeneralType[A](classTag: ClassTag[A]) extends RType[A] {
     override def name: String = classTag match {
       case ClassTag.Any => "Any"
@@ -43,8 +55,10 @@ object RType {
     override def isConstantSize: Boolean = false
   }
 
+  /** Descriptor used to represent primitive types. */
   case class PrimitiveType[A](classTag: ClassTag[A]) extends RType[A] {
     override def name: String = classTag.toString()
+    /** We assume all primitive types have inhabitants of the same size. */
     override def isConstantSize: Boolean = true
   }
 
@@ -62,6 +76,7 @@ object RType {
   implicit val DoubleType  : RType[Double]   = PrimitiveType[Double]  (ClassTag.Double)
   implicit val UnitType    : RType[Unit]     = PrimitiveType[Unit]    (ClassTag.Unit)
 
+  /** Descriptor of the type A narrowed to the single inhabitant `value`. */
   case class SingletonType[A](value: A, classTag: ClassTag[A])() extends RType[A] {
     override def isConstantSize: Boolean = true  // since the type has only one inhabitant
   }
@@ -72,11 +87,15 @@ object RType {
     override def isConstantSize: Boolean = false
   }
 
+  /** Descriptor of descriptor to represent type of RType[_] instances.
+    * This describes any possible descriptor, disregarding its underlying type.
+    * Thus the underlying type is assumed to be Any. */
   case object RTypeType extends RType[RType[_]] {
     val classTag: ClassTag[RType[_]] = ClassTag[RType[_]](classOf[RType[_]])
     override def name: String = s"RType[Any]"
     override def isConstantSize: Boolean = false  // since all type terms of different size
   }
+  /** Implicitly obtain the single RTypeType descriptor casted to the given type A. */
   implicit def rtypeRType[A]: RType[RType[A]] = asType[RType[A]](RTypeType)
 
   implicit def pairRType[A,B](implicit tA: RType[A], tB: RType[B]): RType[(A,B)] = PairType(tA, tB)
@@ -126,6 +145,7 @@ object RType {
     override def isConstantSize: Boolean = tA.isConstantSize
   }
 
+  /** Underlying type of Thunk[A] values (or by-name values of type A). */
   type ThunkData[A] = () => A
 
   implicit def thunkRType[A](implicit tA: RType[A]): RType[ThunkData[A]] = ThunkType(tA)
@@ -139,5 +159,4 @@ object RType {
     override def isConstantSize: Boolean = false
   }
 
-  @inline def asType[T](t: RType[_]): RType[T] = t.asInstanceOf[RType[T]]
 }
