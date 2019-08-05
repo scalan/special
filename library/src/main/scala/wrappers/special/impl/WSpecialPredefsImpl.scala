@@ -24,7 +24,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   case class WSpecialPredefAdapter(source: Rep[WSpecialPredef])
       extends WSpecialPredef
       with Def[WSpecialPredef] {
-    val selfType: Elem[WSpecialPredef] = element[WSpecialPredef]
+    val resultType: Elem[WSpecialPredef] = element[WSpecialPredef]
     override def transform(t: Transformer) = WSpecialPredefAdapter(t(source))
   }
 
@@ -46,7 +46,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   implicit case object WSpecialPredefCompanionElem extends CompanionElem[WSpecialPredefCompanionCtor]
 
   abstract class WSpecialPredefCompanionCtor extends CompanionDef[WSpecialPredefCompanionCtor] with WSpecialPredefCompanion {
-    def selfType = WSpecialPredefCompanionElem
+    def resultType = WSpecialPredefCompanionElem
     override def toString = "WSpecialPredef"
   }
   implicit def proxyWSpecialPredefCompanionCtor(p: Rep[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =

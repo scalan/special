@@ -8,17 +8,17 @@ import java.util.HashMap
   * 2) reading random memory location (where Some is stored) to access x
   **/
 class Nullable[+T](val x: T) extends AnyVal {
-  @inline def isEmpty = x == null
-  @inline def get: T = x
-  @inline def isDefined = x != null
-  @inline def getOrElse[B >: T](default: =>B): B = if (x != null) x else default
-  @inline def toList: List[T] = if (x == null) Nil else x :: Nil
-  @inline def toOption: Option[T] = if (x == null) None else Some(x)
+  @inline final def isEmpty = x == null
+  @inline final def get: T = x
+  @inline final def isDefined = x != null
+  @inline final def getOrElse[B >: T](default: =>B): B = if (x != null) x else default
+  @inline final def toList: List[T] = if (x == null) Nil else x :: Nil
+  @inline final def toOption: Option[T] = if (x == null) None else Some(x)
 }
 object Nullable {
-  val None: Nullable[Null] = new Nullable(null)
-  def apply[T](x: T): Nullable[T] = new Nullable(x)
-  def unapply[T](opt: Nullable[T]): Nullable[T] = opt
+  final val None: Nullable[Null] = new Nullable(null)
+  final def apply[T](x: T): Nullable[T] = new Nullable(x)
+  final def unapply[T](opt: Nullable[T]): Nullable[T] = opt
 }
 
 /** Allocation free alternative to scala.collection.mutable.Map with similar interface.

@@ -99,7 +99,7 @@ trait Loops extends Base { self: Scalan =>
   def loopUntil[A](s1: Rep[A])(isMatch: Rep[A => Boolean], step: Rep[A => A]): Rep[A] = LoopUntil(s1, step, isMatch)
 
   case class LoopUntil[A](s1: Rep[A], step: Rep[A => A], isMatch: Rep[A => Boolean]) extends Def[A] {
-    lazy val selfType = {
+    lazy val resultType = {
       val eState = s1.elem
       val eRange = step.elem.eRange
       assert(eState == eRange,

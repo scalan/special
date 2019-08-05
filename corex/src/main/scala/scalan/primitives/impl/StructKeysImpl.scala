@@ -23,7 +23,7 @@ object StructKey extends EntityObject("StructKey") {
       with Def[StructKey[Schema]] {
     implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
 
-    val selfType: Elem[StructKey[Schema]] = element[StructKey[Schema]]
+    val resultType: Elem[StructKey[Schema]] = element[StructKey[Schema]]
     override def transform(t: Transformer) = StructKeyAdapter[Schema](t(source))
 
     def index: Rep[Int] = {
@@ -62,7 +62,7 @@ object StructKey extends EntityObject("StructKey") {
   implicit case object StructKeyCompanionElem extends CompanionElem[StructKeyCompanionCtor]
 
   abstract class StructKeyCompanionCtor extends CompanionDef[StructKeyCompanionCtor] {
-    def selfType = StructKeyCompanionElem
+    def resultType = StructKeyCompanionElem
     override def toString = "StructKey"
   }
   implicit def proxyStructKeyCompanionCtor(p: Rep[StructKeyCompanionCtor]): StructKeyCompanionCtor =
@@ -77,7 +77,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   case class IndexStructKeyCtor[Schema <: Struct]
       (override val index: Rep[Int])(implicit eSchema: Elem[Schema])
     extends IndexStructKey[Schema](index) with Def[IndexStructKey[Schema]] {
-    lazy val selfType = element[IndexStructKey[Schema]]
+    lazy val resultType = element[IndexStructKey[Schema]]
     override def transform(t: Transformer) = IndexStructKeyCtor[Schema](t(index))(eSchema)
   }
   // elem for concrete class
@@ -104,7 +104,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     }
     lazy val eFrom = element[Int]
     lazy val eTo = new IndexStructKeyElem[Schema](self)
-    lazy val selfType = new IndexStructKeyIsoElem[Schema](eSchema)
+    lazy val resultType = new IndexStructKeyIsoElem[Schema](eSchema)
     def productArity = 1
     def productElement(n: Int) = eSchema
   }
@@ -113,7 +113,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   }
   // 4) constructor and deconstructor
   class IndexStructKeyCompanionCtor extends CompanionDef[IndexStructKeyCompanionCtor] {
-    def selfType = IndexStructKeyCompanionElem
+    def resultType = IndexStructKeyCompanionElem
     override def toString = "IndexStructKeyCompanion"
 
     @scalan.OverloadId("fromFields")
@@ -167,7 +167,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
   case class NameStructKeyCtor[Schema <: Struct]
       (override val name: Rep[String])(implicit eSchema: Elem[Schema])
     extends NameStructKey[Schema](name) with Def[NameStructKey[Schema]] {
-    lazy val selfType = element[NameStructKey[Schema]]
+    lazy val resultType = element[NameStructKey[Schema]]
     override def transform(t: Transformer) = NameStructKeyCtor[Schema](t(name))(eSchema)
   }
   // elem for concrete class
@@ -194,7 +194,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
     }
     lazy val eFrom = element[String]
     lazy val eTo = new NameStructKeyElem[Schema](self)
-    lazy val selfType = new NameStructKeyIsoElem[Schema](eSchema)
+    lazy val resultType = new NameStructKeyIsoElem[Schema](eSchema)
     def productArity = 1
     def productElement(n: Int) = eSchema
   }
@@ -203,7 +203,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
   }
   // 4) constructor and deconstructor
   class NameStructKeyCompanionCtor extends CompanionDef[NameStructKeyCompanionCtor] {
-    def selfType = NameStructKeyCompanionElem
+    def resultType = NameStructKeyCompanionElem
     override def toString = "NameStructKeyCompanion"
 
     @scalan.OverloadId("fromFields")

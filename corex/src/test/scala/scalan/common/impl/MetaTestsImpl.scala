@@ -28,7 +28,7 @@ object MetaTest extends EntityObject("MetaTest") {
     implicit def eT: Elem[T] = lT.eW
 
     val liftable: Liftable[SMetaTest[ST], MetaTest[T]] = liftableMetaTest(lT)
-    val selfType: Elem[MetaTest[T]] = liftable.eW
+    val resultType: Elem[MetaTest[T]] = liftable.eW
   }
 
   trait MetaTestConstMethods[T] extends MetaTest[T]  { thisConst: Def[_] =>
@@ -89,7 +89,7 @@ object MetaTest extends EntityObject("MetaTest") {
       with Def[MetaTest[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
 
-    val selfType: Elem[MetaTest[T]] = element[MetaTest[T]]
+    val resultType: Elem[MetaTest[T]] = element[MetaTest[T]]
     override def transform(t: Transformer) = MetaTestAdapter[T](t(source))
 
     def test: RMetaTest[T] = {
@@ -163,7 +163,7 @@ object MetaTest extends EntityObject("MetaTest") {
   implicit case object MetaTestCompanionElem extends CompanionElem[MetaTestCompanionCtor]
 
   abstract class MetaTestCompanionCtor extends CompanionDef[MetaTestCompanionCtor] with MetaTestCompanion {
-    def selfType = MetaTestCompanionElem
+    def resultType = MetaTestCompanionElem
     override def toString = "MetaTest"
   }
   implicit def proxyMetaTestCompanionCtor(p: Rep[MetaTestCompanionCtor]): MetaTestCompanionCtor =
@@ -235,7 +235,7 @@ object MetaPair extends EntityObject("MetaPair") {
     implicit def eT: Elem[(A, B)] = element[(A, B)]
 
     val liftable: Liftable[SMetaPair[SA, SB], MetaPair[A, B]] = liftableMetaPair(lA,lB)
-    val selfType: Elem[MetaPair[A, B]] = liftable.eW
+    val resultType: Elem[MetaPair[A, B]] = liftable.eW
   }
 
   trait MetaPairConstMethods[A, B] extends MetaPair[A, B] with MetaTestConstMethods[(A, B)] { thisConst: Def[_] =>
@@ -292,7 +292,7 @@ object MetaPair extends EntityObject("MetaPair") {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
 implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
-    val selfType: Elem[MetaPair[A, B]] = element[MetaPair[A, B]]
+    val resultType: Elem[MetaPair[A, B]] = element[MetaPair[A, B]]
     override def transform(t: Transformer) = MetaPairAdapter[A, B](t(source))
 
     def indices: Rep[A] = {
@@ -370,7 +370,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
   implicit case object MetaPairCompanionElem extends CompanionElem[MetaPairCompanionCtor]
 
   abstract class MetaPairCompanionCtor extends CompanionDef[MetaPairCompanionCtor] {
-    def selfType = MetaPairCompanionElem
+    def resultType = MetaPairCompanionElem
     override def toString = "MetaPair"
   }
   implicit def proxyMetaPairCompanionCtor(p: Rep[MetaPairCompanionCtor]): MetaPairCompanionCtor =
@@ -417,7 +417,7 @@ object MT0 extends EntityObject("MT0") {
   case class MT0Ctor
       (override val size: Rep[Int])
     extends MT0(size) with Def[MT0] {
-    lazy val selfType = element[MT0]
+    lazy val resultType = element[MT0]
     override def transform(t: Transformer) = MT0Ctor(t(size))
   }
   // elem for concrete class
@@ -445,7 +445,7 @@ object MT0 extends EntityObject("MT0") {
     }
     lazy val eFrom = element[Int]
     lazy val eTo = new MT0Elem(self)
-    lazy val selfType = new MT0IsoElem
+    lazy val resultType = new MT0IsoElem
     def productArity = 0
     def productElement(n: Int) = ???
   }
@@ -453,7 +453,7 @@ object MT0 extends EntityObject("MT0") {
   }
   // 4) constructor and deconstructor
   class MT0CompanionCtor extends CompanionDef[MT0CompanionCtor] with MT0Companion {
-    def selfType = MT0CompanionElem
+    def resultType = MT0CompanionElem
     override def toString = "MT0Companion"
 
     @scalan.OverloadId("fromFields")
@@ -554,7 +554,7 @@ object MT1 extends EntityObject("MT1") {
     extends MT1[T](data, size) with Def[MT1[T]] {
     implicit lazy val eT = data.elem
 
-    lazy val selfType = element[MT1[T]]
+    lazy val resultType = element[MT1[T]]
     override def transform(t: Transformer) = MT1Ctor[T](t(data), t(size))
   }
   // elem for concrete class
@@ -583,7 +583,7 @@ object MT1 extends EntityObject("MT1") {
     }
     lazy val eFrom = pairElement(element[T], element[Int])
     lazy val eTo = new MT1Elem[T](self)
-    lazy val selfType = new MT1IsoElem[T](eT)
+    lazy val resultType = new MT1IsoElem[T](eT)
     def productArity = 1
     def productElement(n: Int) = eT
   }
@@ -592,7 +592,7 @@ object MT1 extends EntityObject("MT1") {
   }
   // 4) constructor and deconstructor
   class MT1CompanionCtor extends CompanionDef[MT1CompanionCtor] {
-    def selfType = MT1CompanionElem
+    def resultType = MT1CompanionElem
     override def toString = "MT1Companion"
     @scalan.OverloadId("fromData")
     def apply[T](p: Rep[MT1Data[T]]): Rep[MT1[T]] = {
@@ -687,7 +687,7 @@ object MT2 extends EntityObject("MT2") {
     implicit lazy val eA = indices.elem;
 implicit lazy val eB = values.elem
     override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
-    lazy val selfType = element[MT2[A, B]]
+    lazy val resultType = element[MT2[A, B]]
     override def transform(t: Transformer) = MT2Ctor[A, B](t(indices), t(values), t(size))
   }
   // elem for concrete class
@@ -714,7 +714,7 @@ implicit lazy val eB = values.elem
     }
     lazy val eFrom = pairElement(element[A], pairElement(element[B], element[Int]))
     lazy val eTo = new MT2Elem[A, B](self)
-    lazy val selfType = new MT2IsoElem[A, B](eA, eB)
+    lazy val resultType = new MT2IsoElem[A, B](eA, eB)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eA
@@ -726,7 +726,7 @@ implicit lazy val eB = values.elem
   }
   // 4) constructor and deconstructor
   class MT2CompanionCtor extends CompanionDef[MT2CompanionCtor] {
-    def selfType = MT2CompanionElem
+    def resultType = MT2CompanionElem
     override def toString = "MT2Companion"
     @scalan.OverloadId("fromData")
     def apply[A, B](p: Rep[MT2Data[A, B]]): Rep[MT2[A, B]] = {

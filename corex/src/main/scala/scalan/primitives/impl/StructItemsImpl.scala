@@ -26,7 +26,7 @@ object StructItem extends EntityObject("StructItem") {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val];
 implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
 
-    val selfType: Elem[StructItem[Val, Schema]] = element[StructItem[Val, Schema]]
+    val resultType: Elem[StructItem[Val, Schema]] = element[StructItem[Val, Schema]]
     override def transform(t: Transformer) = StructItemAdapter[Val, Schema](t(source))
 
     def key: Rep[StructKey[Schema]] = {
@@ -66,7 +66,7 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
   implicit case object StructItemCompanionElem extends CompanionElem[StructItemCompanionCtor]
 
   abstract class StructItemCompanionCtor extends CompanionDef[StructItemCompanionCtor] {
-    def selfType = StructItemCompanionElem
+    def resultType = StructItemCompanionElem
     override def toString = "StructItem"
   }
   implicit def proxyStructItemCompanionCtor(p: Rep[StructItemCompanionCtor]): StructItemCompanionCtor =
@@ -84,7 +84,7 @@ object StructItemBase extends EntityObject("StructItemBase") {
     implicit lazy val eVal = value.elem;
 implicit lazy val eSchema = key.eSchema
 
-    lazy val selfType = element[StructItemBase[Val, Schema]]
+    lazy val resultType = element[StructItemBase[Val, Schema]]
     override def transform(t: Transformer) = StructItemBaseCtor[Val, Schema](t(key), t(value))
   }
   // elem for concrete class
@@ -111,7 +111,7 @@ implicit lazy val eSchema = key.eSchema
     }
     lazy val eFrom = pairElement(element[StructKey[Schema]], element[Val])
     lazy val eTo = new StructItemBaseElem[Val, Schema](self)
-    lazy val selfType = new StructItemBaseIsoElem[Val, Schema](eVal, eSchema)
+    lazy val resultType = new StructItemBaseIsoElem[Val, Schema](eVal, eSchema)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eVal
@@ -123,7 +123,7 @@ implicit lazy val eSchema = key.eSchema
   }
   // 4) constructor and deconstructor
   class StructItemBaseCompanionCtor extends CompanionDef[StructItemBaseCompanionCtor] {
-    def selfType = StructItemBaseCompanionElem
+    def resultType = StructItemBaseCompanionElem
     override def toString = "StructItemBaseCompanion"
     @scalan.OverloadId("fromData")
     def apply[Val, Schema <: Struct](p: Rep[StructItemBaseData[Val, Schema]]): Rep[StructItemBase[Val, Schema]] = {

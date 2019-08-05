@@ -32,7 +32,7 @@ trait IfThenElse extends Base { self: Scalan =>
   }
 
   case class IfThenElseLazy[T](cond: Rep[Boolean], thenp: Rep[Thunk[T]], elsep: Rep[Thunk[T]]) extends Def[T] {
-    lazy val selfType = {
+    lazy val resultType = {
       val eThen = thenp.elem.eItem
       val eElse = elsep.elem.eItem
       assert(eThen == eElse, s"Both branched of IfThenElseLazy should have the same type, but was $eThen and $eElse")

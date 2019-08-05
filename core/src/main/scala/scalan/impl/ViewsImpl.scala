@@ -31,7 +31,7 @@ object IsoUR extends EntityObject("IsoUR") {
     implicit lazy val eFrom = source.elem.typeArgs("From")._1.asElem[From];
 implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
 
-    val selfType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
+    val resultType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
     override def transform(t: Transformer) = IsoURAdapter[From, To](t(source))
 
     def from(p: Rep[To]): Rep[From] = {
@@ -71,7 +71,7 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
   implicit case object IsoURCompanionElem extends CompanionElem[IsoURCompanionCtor]
 
   abstract class IsoURCompanionCtor extends CompanionDef[IsoURCompanionCtor] {
-    def selfType = IsoURCompanionElem
+    def resultType = IsoURCompanionElem
     override def toString = "IsoUR"
   }
   implicit def proxyIsoURCompanionCtor(p: Rep[IsoURCompanionCtor]): IsoURCompanionCtor =
@@ -93,7 +93,7 @@ object Iso1UR extends EntityObject("Iso1UR") {
 implicit override lazy val eB = source.elem.typeArgs("B")._1.asElem[B];
 implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
 
-    val selfType: Elem[Iso1UR[A, B, C]] = element[Iso1UR[A, B, C]]
+    val resultType: Elem[Iso1UR[A, B, C]] = element[Iso1UR[A, B, C]]
     override def transform(t: Transformer) = Iso1URAdapter[A, B, C](t(source))
 
     def innerIso: Iso[A, B] = {
@@ -142,7 +142,7 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
   implicit case object Iso1URCompanionElem extends CompanionElem[Iso1URCompanionCtor]
 
   abstract class Iso1URCompanionCtor extends CompanionDef[Iso1URCompanionCtor] {
-    def selfType = Iso1URCompanionElem
+    def resultType = Iso1URCompanionElem
     override def toString = "Iso1UR"
   }
   implicit def proxyIso1URCompanionCtor(p: Rep[Iso1URCompanionCtor]): Iso1URCompanionCtor =
@@ -157,7 +157,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
   case class IdentityIsoCtor[A]
       ()(implicit eA: Elem[A])
     extends IdentityIso[A]() with Def[IdentityIso[A]] {
-    lazy val selfType = element[IdentityIso[A]]
+    lazy val resultType = element[IdentityIso[A]]
     override def transform(t: Transformer) = IdentityIsoCtor[A]()(eA)
   }
   // elem for concrete class
@@ -184,7 +184,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
     }
     lazy val eFrom = UnitElement
     lazy val eTo = new IdentityIsoElem[A](self)
-    lazy val selfType = new IdentityIsoIsoElem[A](eA)
+    lazy val resultType = new IdentityIsoIsoElem[A](eA)
     def productArity = 1
     def productElement(n: Int) = eA
   }
@@ -193,7 +193,7 @@ object IdentityIso extends EntityObject("IdentityIso") {
   }
   // 4) constructor and deconstructor
   class IdentityIsoCompanionCtor extends CompanionDef[IdentityIsoCompanionCtor] {
-    def selfType = IdentityIsoCompanionElem
+    def resultType = IdentityIsoCompanionElem
     override def toString = "IdentityIsoCompanion"
     @scalan.OverloadId("fromData")
     def apply[A](p: Rep[IdentityIsoData[A]])(implicit eA: Elem[A]): Rep[IdentityIso[A]] = {
@@ -257,7 +257,7 @@ implicit lazy val eB1 = iso1.eTo;
 implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[(A1, A2)] = implicitly[Elem[(A1, A2)]]
 override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
-    lazy val selfType = element[PairIso[A1, A2, B1, B2]]
+    lazy val resultType = element[PairIso[A1, A2, B1, B2]]
     override def transform(t: Transformer) = PairIsoCtor[A1, A2, B1, B2](t(iso1), t(iso2))
   }
   // elem for concrete class
@@ -284,7 +284,7 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     }
     lazy val eFrom = pairElement(element[IsoUR[A1, B1]], element[IsoUR[A2, B2]])
     lazy val eTo = new PairIsoElem[A1, A2, B1, B2](self)
-    lazy val selfType = new PairIsoIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
+    lazy val resultType = new PairIsoIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
     def productArity = 4
     def productElement(n: Int) = n match {
       case 0 => eA1
@@ -298,7 +298,7 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   }
   // 4) constructor and deconstructor
   class PairIsoCompanionCtor extends CompanionDef[PairIsoCompanionCtor] with PairIsoCompanion {
-    def selfType = PairIsoCompanionElem
+    def resultType = PairIsoCompanionElem
     override def toString = "PairIsoCompanion"
     @scalan.OverloadId("fromData")
     def apply[A1, A2, B1, B2](p: Rep[PairIsoData[A1, A2, B1, B2]]): Rep[PairIso[A1, A2, B1, B2]] = {
@@ -368,7 +368,7 @@ object AbsorbFirstUnitIso extends EntityObject("AbsorbFirstUnitIso") {
 implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[A2] = eA2
 override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
-    lazy val selfType = element[AbsorbFirstUnitIso[A2, B2]]
+    lazy val resultType = element[AbsorbFirstUnitIso[A2, B2]]
     override def transform(t: Transformer) = AbsorbFirstUnitIsoCtor[A2, B2](t(iso2))
   }
   // elem for concrete class
@@ -395,7 +395,7 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     }
     lazy val eFrom = element[IsoUR[A2, B2]]
     lazy val eTo = new AbsorbFirstUnitIsoElem[A2, B2](self)
-    lazy val selfType = new AbsorbFirstUnitIsoIsoElem[A2, B2](eA2, eB2)
+    lazy val resultType = new AbsorbFirstUnitIsoIsoElem[A2, B2](eA2, eB2)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eA2
@@ -407,7 +407,7 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
   }
   // 4) constructor and deconstructor
   class AbsorbFirstUnitIsoCompanionCtor extends CompanionDef[AbsorbFirstUnitIsoCompanionCtor] {
-    def selfType = AbsorbFirstUnitIsoCompanionElem
+    def resultType = AbsorbFirstUnitIsoCompanionElem
     override def toString = "AbsorbFirstUnitIsoCompanion"
 
     @scalan.OverloadId("fromFields")
@@ -467,7 +467,7 @@ object AbsorbSecondUnitIso extends EntityObject("AbsorbSecondUnitIso") {
 implicit lazy val eB1 = iso1.eTo
     override lazy val eFrom: Elem[A1] = eA1
 override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
-    lazy val selfType = element[AbsorbSecondUnitIso[A1, B1]]
+    lazy val resultType = element[AbsorbSecondUnitIso[A1, B1]]
     override def transform(t: Transformer) = AbsorbSecondUnitIsoCtor[A1, B1](t(iso1))
   }
   // elem for concrete class
@@ -494,7 +494,7 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     }
     lazy val eFrom = element[IsoUR[A1, B1]]
     lazy val eTo = new AbsorbSecondUnitIsoElem[A1, B1](self)
-    lazy val selfType = new AbsorbSecondUnitIsoIsoElem[A1, B1](eA1, eB1)
+    lazy val resultType = new AbsorbSecondUnitIsoIsoElem[A1, B1](eA1, eB1)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eA1
@@ -506,7 +506,7 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
   }
   // 4) constructor and deconstructor
   class AbsorbSecondUnitIsoCompanionCtor extends CompanionDef[AbsorbSecondUnitIsoCompanionCtor] {
-    def selfType = AbsorbSecondUnitIsoCompanionElem
+    def resultType = AbsorbSecondUnitIsoCompanionElem
     override def toString = "AbsorbSecondUnitIsoCompanion"
 
     @scalan.OverloadId("fromFields")
@@ -568,7 +568,7 @@ implicit lazy val eB1 = iso1.eTo;
 implicit lazy val eB2 = iso2.eTo
     override lazy val eFrom: Elem[$bar[A1, A2]] = implicitly[Elem[$bar[A1, A2]]]
 override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
-    lazy val selfType = element[SumIso[A1, A2, B1, B2]]
+    lazy val resultType = element[SumIso[A1, A2, B1, B2]]
     override def transform(t: Transformer) = SumIsoCtor[A1, A2, B1, B2](t(iso1), t(iso2))
   }
   // elem for concrete class
@@ -595,7 +595,7 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     }
     lazy val eFrom = pairElement(element[IsoUR[A1, B1]], element[IsoUR[A2, B2]])
     lazy val eTo = new SumIsoElem[A1, A2, B1, B2](self)
-    lazy val selfType = new SumIsoIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
+    lazy val resultType = new SumIsoIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
     def productArity = 4
     def productElement(n: Int) = n match {
       case 0 => eA1
@@ -609,7 +609,7 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   }
   // 4) constructor and deconstructor
   class SumIsoCompanionCtor extends CompanionDef[SumIsoCompanionCtor] {
-    def selfType = SumIsoCompanionElem
+    def resultType = SumIsoCompanionElem
     override def toString = "SumIsoCompanion"
     @scalan.OverloadId("fromData")
     def apply[A1, A2, B1, B2](p: Rep[SumIsoData[A1, A2, B1, B2]]): Rep[SumIso[A1, A2, B1, B2]] = {
@@ -679,7 +679,7 @@ object ComposeIso extends EntityObject("ComposeIso") {
 implicit lazy val eB = iso2.eFrom;
 implicit lazy val eC = iso2.eTo
 
-    lazy val selfType = element[ComposeIso[A, B, C]]
+    lazy val resultType = element[ComposeIso[A, B, C]]
     override def transform(t: Transformer) = ComposeIsoCtor[A, B, C](t(iso2), t(iso1))
   }
   // elem for concrete class
@@ -706,7 +706,7 @@ implicit lazy val eC = iso2.eTo
     }
     lazy val eFrom = pairElement(element[IsoUR[B, C]], element[IsoUR[A, B]])
     lazy val eTo = new ComposeIsoElem[A, B, C](self)
-    lazy val selfType = new ComposeIsoIsoElem[A, B, C](eA, eB, eC)
+    lazy val resultType = new ComposeIsoIsoElem[A, B, C](eA, eB, eC)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => eA
@@ -719,7 +719,7 @@ implicit lazy val eC = iso2.eTo
   }
   // 4) constructor and deconstructor
   class ComposeIsoCompanionCtor extends CompanionDef[ComposeIsoCompanionCtor] {
-    def selfType = ComposeIsoCompanionElem
+    def resultType = ComposeIsoCompanionElem
     override def toString = "ComposeIsoCompanion"
     @scalan.OverloadId("fromData")
     def apply[A, B, C](p: Rep[ComposeIsoData[A, B, C]]): Rep[ComposeIso[A, B, C]] = {
@@ -789,7 +789,7 @@ implicit lazy val eC = iso2.eFrom;
 implicit lazy val eD = iso2.eTo
     override lazy val eFrom: Elem[A => C] = implicitly[Elem[A => C]]
 override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
-    lazy val selfType = element[FuncIso[A, B, C, D]]
+    lazy val resultType = element[FuncIso[A, B, C, D]]
     override def transform(t: Transformer) = FuncIsoCtor[A, B, C, D](t(iso1), t(iso2))
   }
   // elem for concrete class
@@ -816,7 +816,7 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     }
     lazy val eFrom = pairElement(element[IsoUR[A, B]], element[IsoUR[C, D]])
     lazy val eTo = new FuncIsoElem[A, B, C, D](self)
-    lazy val selfType = new FuncIsoIsoElem[A, B, C, D](eA, eB, eC, eD)
+    lazy val resultType = new FuncIsoIsoElem[A, B, C, D](eA, eB, eC, eD)
     def productArity = 4
     def productElement(n: Int) = n match {
       case 0 => eA
@@ -830,7 +830,7 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
   }
   // 4) constructor and deconstructor
   class FuncIsoCompanionCtor extends CompanionDef[FuncIsoCompanionCtor] {
-    def selfType = FuncIsoCompanionElem
+    def resultType = FuncIsoCompanionElem
     override def toString = "FuncIsoCompanion"
     @scalan.OverloadId("fromData")
     def apply[A, B, C, D](p: Rep[FuncIsoData[A, B, C, D]]): Rep[FuncIso[A, B, C, D]] = {
@@ -899,7 +899,7 @@ object ConverterIso extends EntityObject("ConverterIso") {
     implicit lazy val eA = convTo.eT;
 implicit lazy val eB = convTo.eR
 
-    lazy val selfType = element[ConverterIso[A, B]]
+    lazy val resultType = element[ConverterIso[A, B]]
     override def transform(t: Transformer) = ConverterIsoCtor[A, B](t(convTo), t(convFrom))
   }
   // elem for concrete class
@@ -926,7 +926,7 @@ implicit lazy val eB = convTo.eR
     }
     lazy val eFrom = pairElement(element[Converter[A, B]], element[Converter[B, A]])
     lazy val eTo = new ConverterIsoElem[A, B](self)
-    lazy val selfType = new ConverterIsoIsoElem[A, B](eA, eB)
+    lazy val resultType = new ConverterIsoIsoElem[A, B](eA, eB)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eA
@@ -938,7 +938,7 @@ implicit lazy val eB = convTo.eR
   }
   // 4) constructor and deconstructor
   class ConverterIsoCompanionCtor extends CompanionDef[ConverterIsoCompanionCtor] {
-    def selfType = ConverterIsoCompanionElem
+    def resultType = ConverterIsoCompanionElem
     override def toString = "ConverterIsoCompanion"
     @scalan.OverloadId("fromData")
     def apply[A, B](p: Rep[ConverterIsoData[A, B]]): Rep[ConverterIso[A, B]] = {
@@ -1003,7 +1003,7 @@ object ThunkIso extends EntityObject("ThunkIso") {
     implicit override lazy val eA = innerIso.eFrom;
 implicit override lazy val eB = innerIso.eTo
 
-    lazy val selfType = element[ThunkIso[A, B]]
+    lazy val resultType = element[ThunkIso[A, B]]
     override def transform(t: Transformer) = ThunkIsoCtor[A, B](t(innerIso))
   }
   // elem for concrete class
@@ -1030,7 +1030,7 @@ implicit override lazy val eB = innerIso.eTo
     }
     lazy val eFrom = element[IsoUR[A, B]]
     lazy val eTo = new ThunkIsoElem[A, B](self)
-    lazy val selfType = new ThunkIsoIsoElem[A, B](eA, eB)
+    lazy val resultType = new ThunkIsoIsoElem[A, B](eA, eB)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eA
@@ -1042,7 +1042,7 @@ implicit override lazy val eB = innerIso.eTo
   }
   // 4) constructor and deconstructor
   class ThunkIsoCompanionCtor extends CompanionDef[ThunkIsoCompanionCtor] {
-    def selfType = ThunkIsoCompanionElem
+    def resultType = ThunkIsoCompanionElem
     override def toString = "ThunkIsoCompanion"
 
     @scalan.OverloadId("fromFields")

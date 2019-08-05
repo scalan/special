@@ -46,7 +46,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
   }
 
   case class NoFuse[A:Elem](arg: Rep[A]) extends Def[A] {
-    def selfType = element[A]
+    def resultType = element[A]
     override def transform(t: Transformer) = NoFuse(t(arg))
   }
   def no_fuse[A:Elem](arg: Rep[A]) = NoFuse(arg)
@@ -426,7 +426,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     extends Def[D]
   {
     // TODO assert(A1 isSpecialOf A && B1 isSpecialOf B)
-    def selfType = isoRange.eFrom
+    def resultType = isoRange.eFrom
     override def transform(t: Transformer) = ApplyKernel(t(kernel), t(arg), t(isoDom), t(isoRange), t(specNum))
   }
 
@@ -499,7 +499,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
           ApplyKernel(k.self, x, composeIso(isoDom, iso), isoRange, specNum)
       }
     case NoFuse(Def(k@Tup(f,s))) => {
-      k.selfType match {
+      k.resultType match {
         case e: PairElem[_, _] => Pair(no_fuse(f)(e.eFst), no_fuse(s)(e.eSnd))
       }
     }

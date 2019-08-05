@@ -13,6 +13,6 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface InlineAt {
-    public static String Never = "";
+    String Never = "";
     String value() default Never;
 }

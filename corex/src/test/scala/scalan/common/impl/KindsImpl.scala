@@ -23,7 +23,7 @@ object Kind extends EntityObject("Kind") {
     implicit lazy val cF = source.elem.typeArgs("F")._1.asCont[F];
 implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
-    val selfType: Elem[Kind[F, A]] = element[Kind[F, A]]
+    val resultType: Elem[Kind[F, A]] = element[Kind[F, A]]
     override def transform(t: Transformer) = KindAdapter[F, A](t(source))
   }
 
@@ -31,7 +31,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
   val createKindAdapter = (x: Rep[Kind[Array, Any]]) => KindAdapter(x)
 
   implicit def proxyKind[F[_], A](p: Rep[Kind[F, A]]): Kind[F, A] = {
-    val sym = p.asInstanceOf[SingleSym[Kind[F, A]]]
+    val sym = p.asInstanceOf[SingleRep[Kind[F, A]]]
     sym.getAdapter(
       p.rhs.isInstanceOf[Kind[F, A]@unchecked],
       createKindAdapter.asInstanceOf[Rep[Kind[F, A]] => Kind[F, A]])
@@ -64,7 +64,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
   implicit case object KindCompanionElem extends CompanionElem[KindCompanionCtor]
 
   abstract class KindCompanionCtor extends CompanionDef[KindCompanionCtor] with KindCompanion {
-    def selfType = KindCompanionElem
+    def resultType = KindCompanionElem
     override def toString = "Kind"
   }
   implicit def proxyKindCompanionCtor(p: Rep[KindCompanionCtor]): KindCompanionCtor =
@@ -99,7 +99,7 @@ object Return extends EntityObject("Return") {
     extends Return[F, A](a) with Def[Return[F, A]] {
     implicit lazy val eA = a.elem
 
-    lazy val selfType = element[Return[F, A]]
+    lazy val resultType = element[Return[F, A]]
     override def transform(t: Transformer) = ReturnCtor[F, A](t(a))(cF)
   }
   // elem for concrete class
@@ -128,7 +128,7 @@ object Return extends EntityObject("Return") {
     }
     lazy val eFrom = element[A]
     lazy val eTo = new ReturnElem[F, A](self)
-    lazy val selfType = new ReturnIsoElem[F, A](cF, eA)
+    lazy val resultType = new ReturnIsoElem[F, A](cF, eA)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => cF
@@ -140,7 +140,7 @@ object Return extends EntityObject("Return") {
   }
   // 4) constructor and deconstructor
   class ReturnCompanionCtor extends CompanionDef[ReturnCompanionCtor] with ReturnCompanion {
-    def selfType = ReturnCompanionElem
+    def resultType = ReturnCompanionElem
     override def toString = "ReturnCompanion"
 
     @scalan.OverloadId("fromFields")
@@ -206,7 +206,7 @@ object Bind extends EntityObject("Bind") {
 implicit lazy val eS = a.eA;
 implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
     override lazy val eA: Elem[B] = eB
-    lazy val selfType = element[Bind[F, S, B]]
+    lazy val resultType = element[Bind[F, S, B]]
     override def transform(t: Transformer) = BindCtor[F, S, B](t(a), t(f))
   }
   // elem for concrete class
@@ -235,7 +235,7 @@ implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
     }
     lazy val eFrom = pairElement(element[Kind[F, S]], element[S => Kind[F, B]])
     lazy val eTo = new BindElem[F, S, B](self)
-    lazy val selfType = new BindIsoElem[F, S, B](cF, eS, eB)
+    lazy val resultType = new BindIsoElem[F, S, B](cF, eS, eB)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => cF
@@ -248,7 +248,7 @@ implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
   }
   // 4) constructor and deconstructor
   class BindCompanionCtor extends CompanionDef[BindCompanionCtor] with BindCompanion {
-    def selfType = BindCompanionElem
+    def resultType = BindCompanionElem
     override def toString = "BindCompanion"
     @scalan.OverloadId("fromData")
     def apply[F[_], S, B](p: Rep[BindData[F, S, B]]): Rep[Bind[F, S, B]] = {

@@ -25,7 +25,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     extends CCostedOption[T](value, costOpt, sizeOpt, accumulatedCost) with Def[CCostedOption[T]] {
     implicit lazy val eT = value.eA
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
-    lazy val selfType = element[CCostedOption[T]]
+    lazy val resultType = element[CCostedOption[T]]
     override def transform(t: Transformer) = CCostedOptionCtor[T](t(value), t(costOpt), t(sizeOpt), t(accumulatedCost))
     private val thisClass = classOf[CostedOption[_]]
 
@@ -60,7 +60,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     }
     lazy val eFrom = pairElement(element[WOption[T]], pairElement(element[WOption[Int]], pairElement(element[WOption[Size[T]]], element[Int])))
     lazy val eTo = new CCostedOptionElem[T](self)
-    lazy val selfType = new CCostedOptionIsoElem[T](eT)
+    lazy val resultType = new CCostedOptionIsoElem[T](eT)
     def productArity = 1
     def productElement(n: Int) = eT
   }
@@ -69,7 +69,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
   }
   // 4) constructor and deconstructor
   class CCostedOptionCompanionCtor extends CompanionDef[CCostedOptionCompanionCtor] with CCostedOptionCompanion {
-    def selfType = CCostedOptionCompanionElem
+    def resultType = CCostedOptionCompanionElem
     override def toString = "CCostedOptionCompanion"
     @scalan.OverloadId("fromData")
     def apply[T](p: Rep[CCostedOptionData[T]]): Rep[CCostedOption[T]] = {

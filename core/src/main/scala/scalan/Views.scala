@@ -336,11 +336,11 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   abstract class View[From, To] extends Def[To] {
     def source: Rep[From]
     def iso: Iso[From, To]
-    implicit lazy val selfType = iso.eTo
+    implicit lazy val resultType = iso.eTo
   }
 
   case class UnpackView[A, B](view: Rep[B], iso: Iso[A, B]) extends Def[A] {
-    implicit def selfType = iso.eFrom
+    implicit def resultType = iso.eFrom
     override def transform(t: Transformer) = UnpackView(t(view), t(iso))
   }
 

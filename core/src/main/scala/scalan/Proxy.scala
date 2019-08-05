@@ -28,15 +28,17 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
 
   // call mkMethodCall instead of constructor
   case class MethodCall private[Proxy](receiver: Sym, method: Method, args: Seq[AnyRef], neverInvoke: Boolean)
-                                      (val selfType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
+                                      (val resultType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
 
     override def mirror(t: Transformer): Rep[Any] = {
       val len = args.length
       val args1 = new Array[AnyRef](len)
-      cfor(0)(_ < len, _ + 1) { i => args1(i) = transformProductParam(args(i), t).asInstanceOf[AnyRef]}
+      cfor(0)(_ < len, _ + 1) { i =>
+        args1(i) = transformProductParam(args(i), t).asInstanceOf[AnyRef]
+      }
       val receiver1 = t(receiver)
       // in the case neverInvoke is false, the method is invoked in rewriteDef
-      mkMethodCall(receiver1, method, args1, neverInvoke, isAdapterCall, selfType).asInstanceOf[Rep[Any]]
+      mkMethodCall(receiver1, method, args1, neverInvoke, isAdapterCall, resultType).asInstanceOf[Rep[Any]]
     }
 
     override def toString = {
@@ -73,7 +75,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
         case other: MethodCall =>
           receiver == other.receiver &&
           method == other.method &&
-          selfType.name == other.selfType.name &&
+          resultType.name == other.resultType.name &&
           neverInvoke == other.neverInvoke &&
           isAdapterCall == other.isAdapterCall &&
           args.length == other.args.length &&
@@ -84,7 +86,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
 
     override lazy val hashCode: Int = {
       var h = receiver.hashCode() * 31 + method.hashCode()
-      h = h * 31 + selfType.name.hashCode
+      h = h * 31 + resultType.name.hashCode
       h = h * 31 + (if(neverInvoke) 1 else 0)
       h = h * 31 + (if(isAdapterCall) 1 else 0)
       h = h * 31 + args.hashCode()
@@ -126,7 +128,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
     case MethodCall(obj, method, args, _) =>
       val methodCallStr =
         s"${ScalaNameUtil.cleanScalaName(method.getName)}(${args.mkString(", ")})"
-      if (obj.isCompanion) {
+      if (obj.isCompanionType) {
         s"$obj.$methodCallStr"
       } else {
         val className = ScalaNameUtil.cleanNestedClassName(method.getDeclaringClass.getName)
@@ -336,8 +338,8 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   def throwInvocationException(whatFailed: String, cause: Throwable, receiver: Sym, m: Method, args: Seq[Any]) = {
     val buf = DBuffer.empty[Sym]
     buf += receiver
-    Def.addSyms(args, buf)
+    Def.extractSyms(args, buf)
     val deps = buf.toArray()
-    !!!(s"$whatFailed (${receiver.toStringWithType}).${m.getName}(${args.mkString(", ")}) failed", baseCause(cause), deps: _*)
+    !!!(s"$whatFailed (${receiver.varNameWithType}).${m.getName}(${args.mkString(", ")}) failed", baseCause(cause), deps: _*)
   }
 }

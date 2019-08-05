@@ -29,7 +29,7 @@ object WOption extends EntityObject("WOption") {
     implicit def eA: Elem[A] = lA.eW
 
     val liftable: Liftable[Option[SA], WOption[A]] = liftableOption(lA)
-    val selfType: Elem[WOption[A]] = liftable.eW
+    val resultType: Elem[WOption[A]] = liftable.eW
   }
 
   trait WOptionConstMethods[A] extends WOption[A]  { thisConst: Def[_] =>
@@ -124,7 +124,7 @@ object WOption extends EntityObject("WOption") {
       with Def[WOption[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
-    val selfType: Elem[WOption[A]] = element[WOption[A]]
+    val resultType: Elem[WOption[A]] = element[WOption[A]]
     override def transform(t: Transformer) = WOptionAdapter[A](t(source))
 
     def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
@@ -236,7 +236,7 @@ object WOption extends EntityObject("WOption") {
   implicit case object WOptionCompanionElem extends CompanionElem[WOptionCompanionCtor]
 
   abstract class WOptionCompanionCtor extends CompanionDef[WOptionCompanionCtor] with WOptionCompanion {
-    def selfType = WOptionCompanionElem
+    def resultType = WOptionCompanionElem
     override def toString = "WOption"
   }
   implicit def proxyWOptionCompanionCtor(p: Rep[WOptionCompanionCtor]): WOptionCompanionCtor =

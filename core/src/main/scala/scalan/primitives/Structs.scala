@@ -57,7 +57,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
 
   case class StructConst[T <: Struct](constValue: SStruct, _selfType: StructElem[T])
         extends AbstractStruct[T] with LiftedConst[SStruct, T] {
-    override lazy val selfType = _selfType
+    override lazy val resultType = _selfType
     def tag = _selfType.structTag
     val fields: Seq[(String, Rep[Any])] =
       constValue.toArray.zip(_selfType.fields).map { case (v, (fn, e)) => (fn, toRep(v)(e.asElem[Any])) }
@@ -187,7 +187,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
   abstract class AbstractStruct[T <: Struct] extends Def[T] {
     def tag: StructTag[T]
     def fields: Seq[StructField]
-    lazy val selfType = structElement(tag, fields.map { case (name, value) => (name, value.elem) })
+    lazy val resultType = structElement(tag, fields.map { case (name, value) => (name, value.elem) })
   }
 
   object Struct {
@@ -240,7 +240,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
         //        val fieldElem = se(field)
         FieldApply[a](struct, field)
       case _ =>
-        !!!(s"Attempt to get field $field from a non-struct ${struct.toStringWithType}", struct)
+        !!!(s"Attempt to get field $field from a non-struct ${struct.varNameWithType}", struct)
     }
   }
   def field(struct: Rep[Struct], fieldIndex: Int): Rep[_] = {

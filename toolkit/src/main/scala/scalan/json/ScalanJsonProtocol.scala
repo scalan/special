@@ -69,11 +69,11 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
         JsArray(params.map(JsString(_)) :+ elementFormat.write(sym.elem): _*)
       case Def(d @ Variable(id)) =>
         val str = s"${opName(d)}(s${id})"
-        JsArray(JsString(str), elementFormat.write(d.selfType))
+        JsArray(JsString(str), elementFormat.write(d.resultType))
       case Def(d) =>
         val args = d.syms.map(mapSym(_)).toSeq
         val str = s"${opName(d)}(${args.rep()})"
-        JsArray(JsString(str), elementFormat.write(d.selfType))
+        JsArray(JsString(str), elementFormat.write(d.resultType))
     }
 
     def readDefs(defs: Seq[(Int, JsValue)]): Unit =

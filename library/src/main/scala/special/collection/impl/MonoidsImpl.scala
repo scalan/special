@@ -23,7 +23,7 @@ object Monoid extends EntityObject("Monoid") {
       with Def[Monoid[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
 
-    val selfType: Elem[Monoid[T]] = element[Monoid[T]]
+    val resultType: Elem[Monoid[T]] = element[Monoid[T]]
     override def transform(t: Transformer) = MonoidAdapter[T](t(source))
 
     def zero: Rep[T] = {
@@ -69,7 +69,7 @@ object Monoid extends EntityObject("Monoid") {
   implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor]
 
   abstract class MonoidCompanionCtor extends CompanionDef[MonoidCompanionCtor] with MonoidCompanion {
-    def selfType = MonoidCompanionElem
+    def resultType = MonoidCompanionElem
     override def toString = "Monoid"
   }
   implicit def proxyMonoidCompanionCtor(p: Rep[MonoidCompanionCtor]): MonoidCompanionCtor =
@@ -88,7 +88,7 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
   case class MonoidBuilderAdapter(source: Rep[MonoidBuilder])
       extends MonoidBuilder
       with Def[MonoidBuilder] {
-    val selfType: Elem[MonoidBuilder] = element[MonoidBuilder]
+    val resultType: Elem[MonoidBuilder] = element[MonoidBuilder]
     override def transform(t: Transformer) = MonoidBuilderAdapter(t(source))
 
     def intPlusMonoid: Rep[Monoid[Int]] = {
@@ -161,7 +161,7 @@ implicit val eB = m2.eT
   implicit case object MonoidBuilderCompanionElem extends CompanionElem[MonoidBuilderCompanionCtor]
 
   abstract class MonoidBuilderCompanionCtor extends CompanionDef[MonoidBuilderCompanionCtor] with MonoidBuilderCompanion {
-    def selfType = MonoidBuilderCompanionElem
+    def resultType = MonoidBuilderCompanionElem
     override def toString = "MonoidBuilder"
   }
   implicit def proxyMonoidBuilderCompanionCtor(p: Rep[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =

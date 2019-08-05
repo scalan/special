@@ -54,7 +54,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def eB = y.elem
 
     private var _selfType: Elem[A => B] = _
-    def selfType: Elem[A => B] = {
+    def resultType: Elem[A => B] = {
       if (_selfType != null) _selfType
       else {
         val res = funcElement(eA, eB)
@@ -188,7 +188,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   }
 
   case class Apply[A,B](f: Rep[A => B], arg: Rep[A], mayInline: Boolean = true) extends Def[B] {
-    def selfType = f.elem.eRange
+    def resultType = f.elem.eRange
     override def transform(t: Transformer) = Apply(t(f), t(arg), mayInline)
   }
 
@@ -250,7 +250,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
       case _ => Nullable.None
     }
     case _ =>
-      if (d1.getClass == d2.getClass && d1.productArity == d2.productArity && d1.selfType.name == d2.selfType.name) {
+      if (d1.getClass == d2.getClass && d1.productArity == d2.productArity && d1.resultType.name == d2.resultType.name) {
         matchIterators(d1.productIterator, d2.productIterator, allowInexactMatch, subst)
       } else
         Nullable.None
@@ -362,7 +362,9 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     val oldStack = lambdaStack
     try {
       lambdaStack = lam :: lambdaStack
-      val y = reifyEffects(f(x))
+      val y = { // reifyEffects block
+        f(x)
+      }
       ySym.assignDefFrom(y)
     }
     finally {

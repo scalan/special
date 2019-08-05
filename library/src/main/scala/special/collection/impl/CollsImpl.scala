@@ -32,7 +32,7 @@ object Coll extends EntityObject("Coll") {
     implicit def eA: Elem[A] = lA.eW
 
     val liftable: Liftable[SColl[SA], Coll[A]] = liftableColl(lA)
-    val selfType: Elem[Coll[A]] = liftable.eW
+    val resultType: Elem[Coll[A]] = liftable.eW
   }
 
   trait CollConstMethods[A] extends Coll[A]  { thisConst: Def[_] =>
@@ -319,7 +319,7 @@ implicit val eV = proj.elem.eRange
       with Def[Coll[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
-    val selfType: Elem[Coll[A]] = element[Coll[A]]
+    val resultType: Elem[Coll[A]] = element[Coll[A]]
     override def transform(t: Transformer) = CollAdapter[A](t(source))
 
     def builder: Rep[CollBuilder] = {
@@ -581,7 +581,7 @@ implicit val eV = proj.elem.eRange
   val createCollAdapter: Rep[Coll[Any]] => Coll[Any] = x => CollAdapter(x)
 
   implicit def proxyColl[A](p: Rep[Coll[A]]): Coll[A] = {
-    val sym = p.asInstanceOf[SingleSym[Coll[A]]]
+    val sym = p.asInstanceOf[SingleRep[Coll[A]]]
     sym.getAdapter(
       p.rhs.isInstanceOf[Coll[A]@unchecked],
       createCollAdapter.asInstanceOf[Rep[Coll[A]] => Coll[A]])
@@ -628,7 +628,7 @@ implicit val eV = proj.elem.eRange
   implicit case object CollCompanionElem extends CompanionElem[CollCompanionCtor]
 
   abstract class CollCompanionCtor extends CompanionDef[CollCompanionCtor] with CollCompanion {
-    def selfType = CollCompanionElem
+    def resultType = CollCompanionElem
     override def toString = "Coll"
   }
   implicit def proxyCollCompanionCtor(p: Rep[CollCompanionCtor]): CollCompanionCtor =
@@ -1022,7 +1022,7 @@ object PairColl extends EntityObject("PairColl") {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
-    val selfType: Elem[PairColl[L, R]] = element[PairColl[L, R]]
+    val resultType: Elem[PairColl[L, R]] = element[PairColl[L, R]]
     override def transform(t: Transformer) = PairCollAdapter[L, R](t(source))
 
     def ls: Rep[Coll[L]] = {
@@ -1336,7 +1336,7 @@ implicit val eV = proj.elem.eRange
   implicit case object PairCollCompanionElem extends CompanionElem[PairCollCompanionCtor]
 
   abstract class PairCollCompanionCtor extends CompanionDef[PairCollCompanionCtor] with PairCollCompanion {
-    def selfType = PairCollCompanionElem
+    def resultType = PairCollCompanionElem
     override def toString = "PairColl"
   }
   implicit def proxyPairCollCompanionCtor(p: Rep[PairCollCompanionCtor]): PairCollCompanionCtor =
@@ -1406,7 +1406,7 @@ object ReplColl extends EntityObject("ReplColl") {
     implicit def eA: Elem[A] = lA.eW
 
     val liftable: Liftable[SReplColl[SA], ReplColl[A]] = liftableReplColl(lA)
-    val selfType: Elem[ReplColl[A]] = liftable.eW
+    val resultType: Elem[ReplColl[A]] = liftable.eW
   }
 
   trait ReplCollConstMethods[A] extends ReplColl[A] with CollConstMethods[A] { thisConst: Def[_] =>
@@ -1460,7 +1460,7 @@ object ReplColl extends EntityObject("ReplColl") {
       with Def[ReplColl[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
-    val selfType: Elem[ReplColl[A]] = element[ReplColl[A]]
+    val resultType: Elem[ReplColl[A]] = element[ReplColl[A]]
     override def transform(t: Transformer) = ReplCollAdapter[A](t(source))
 
     def value: Rep[A] = {
@@ -1756,7 +1756,7 @@ implicit val eV = proj.elem.eRange
   implicit case object ReplCollCompanionElem extends CompanionElem[ReplCollCompanionCtor]
 
   abstract class ReplCollCompanionCtor extends CompanionDef[ReplCollCompanionCtor] with ReplCollCompanion {
-    def selfType = ReplCollCompanionElem
+    def resultType = ReplCollCompanionElem
     override def toString = "ReplColl"
   }
   implicit def proxyReplCollCompanionCtor(p: Rep[ReplCollCompanionCtor]): ReplCollCompanionCtor =
@@ -1813,7 +1813,7 @@ object CollBuilder extends EntityObject("CollBuilder") {
       ) extends CollBuilder with LiftedConst[SCollBuilder, CollBuilder]
         with Def[CollBuilder] with CollBuilderConstMethods {
     val liftable: Liftable[SCollBuilder, CollBuilder] = LiftableCollBuilder
-    val selfType: Elem[CollBuilder] = liftable.eW
+    val resultType: Elem[CollBuilder] = liftable.eW
   }
 
   trait CollBuilderConstMethods extends CollBuilder  { thisConst: Def[_] =>
@@ -1914,7 +1914,7 @@ implicit val eO = l.elem.eRange
   case class CollBuilderAdapter(source: Rep[CollBuilder])
       extends CollBuilder
       with Def[CollBuilder] {
-    val selfType: Elem[CollBuilder] = element[CollBuilder]
+    val resultType: Elem[CollBuilder] = element[CollBuilder]
     override def transform(t: Transformer) = CollBuilderAdapter(t(source))
 
     def Monoids: Rep[MonoidBuilder] = {
@@ -1995,7 +1995,7 @@ implicit val eO = l.elem.eRange
   val createCollBuilderAdapter: Rep[CollBuilder] => CollBuilder = x => CollBuilderAdapter(x)
 
   implicit def proxyCollBuilder(p: Rep[CollBuilder]): CollBuilder =
-    p.asInstanceOf[SingleSym[CollBuilder]].getAdapter(
+    p.asInstanceOf[SingleRep[CollBuilder]].getAdapter(
       p.rhs.isInstanceOf[CollBuilder],
       createCollBuilderAdapter.asInstanceOf[Rep[CollBuilder] => CollBuilder])
 
@@ -2018,7 +2018,7 @@ implicit val eO = l.elem.eRange
   implicit case object CollBuilderCompanionElem extends CompanionElem[CollBuilderCompanionCtor]
 
   abstract class CollBuilderCompanionCtor extends CompanionDef[CollBuilderCompanionCtor] with CollBuilderCompanion {
-    def selfType = CollBuilderCompanionElem
+    def resultType = CollBuilderCompanionElem
     override def toString = "CollBuilder"
   }
   implicit def proxyCollBuilderCompanionCtor(p: Rep[CollBuilderCompanionCtor]): CollBuilderCompanionCtor =

@@ -192,12 +192,12 @@ trait Transforming { self: Scalan =>
       val oldStack = lambdaStack
       try {
         lambdaStack = newLambdaCandidate :: lambdaStack
-        val newRoot = reifyEffects({
+        val newRoot = { // reifyEffects block
           val schedule = lam.scheduleIds
           val t2 = mirrorSymbols(t1, rewriter, lam, schedule)
           tRes = t2
           tRes(originalRoot) // this will be a new root
-        })
+        }
         ySym.assignDefFrom(newRoot)
       }
       finally {

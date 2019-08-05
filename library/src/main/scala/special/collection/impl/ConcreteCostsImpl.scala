@@ -49,7 +49,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     extends CCostedPrim[Val](value, cost, size) with Def[CCostedPrim[Val]] {
     implicit lazy val eVal = value.elem
 
-    lazy val selfType = element[CCostedPrim[Val]]
+    lazy val resultType = element[CCostedPrim[Val]]
     override def transform(t: Transformer) = CCostedPrimCtor[Val](t(value), t(cost), t(size))
   }
   // elem for concrete class
@@ -76,7 +76,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     }
     lazy val eFrom = pairElement(element[Val], pairElement(element[Int], element[Size[Val]]))
     lazy val eTo = new CCostedPrimElem[Val](self)
-    lazy val selfType = new CCostedPrimIsoElem[Val](eVal)
+    lazy val resultType = new CCostedPrimIsoElem[Val](eVal)
     def productArity = 1
     def productElement(n: Int) = eVal
   }
@@ -85,7 +85,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
   }
   // 4) constructor and deconstructor
   class CCostedPrimCompanionCtor extends CompanionDef[CCostedPrimCompanionCtor] with CCostedPrimCompanion {
-    def selfType = CCostedPrimCompanionElem
+    def resultType = CCostedPrimCompanionElem
     override def toString = "CCostedPrimCompanion"
     @scalan.OverloadId("fromData")
     def apply[Val](p: Rep[CCostedPrimData[Val]]): Rep[CCostedPrim[Val]] = {
@@ -155,7 +155,7 @@ object CCostedPair extends EntityObject("CCostedPair") {
     implicit lazy val eL = l.eVal;
 implicit lazy val eR = r.eVal
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
-    lazy val selfType = element[CCostedPair[L, R]]
+    lazy val resultType = element[CCostedPair[L, R]]
     override def transform(t: Transformer) = CCostedPairCtor[L, R](t(l), t(r), t(accCost))
     private val thisClass = classOf[CostedPair[_, _]]
 
@@ -190,7 +190,7 @@ implicit lazy val eR = r.eVal
     }
     lazy val eFrom = pairElement(element[Costed[L]], pairElement(element[Costed[R]], element[Int]))
     lazy val eTo = new CCostedPairElem[L, R](self)
-    lazy val selfType = new CCostedPairIsoElem[L, R](eL, eR)
+    lazy val resultType = new CCostedPairIsoElem[L, R](eL, eR)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eL
@@ -202,7 +202,7 @@ implicit lazy val eR = r.eVal
   }
   // 4) constructor and deconstructor
   class CCostedPairCompanionCtor extends CompanionDef[CCostedPairCompanionCtor] with CCostedPairCompanion {
-    def selfType = CCostedPairCompanionElem
+    def resultType = CCostedPairCompanionElem
     override def toString = "CCostedPairCompanion"
     @scalan.OverloadId("fromData")
     def apply[L, R](p: Rep[CCostedPairData[L, R]]): Rep[CCostedPair[L, R]] = {
@@ -271,7 +271,7 @@ object CCostedFunc extends EntityObject("CCostedFunc") {
 implicit lazy val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg];
 implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
-    lazy val selfType = element[CCostedFunc[Env, Arg, Res]]
+    lazy val resultType = element[CCostedFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = CCostedFuncCtor[Env, Arg, Res](t(envCosted), t(func), t(cost), t(size))
     private val thisClass = classOf[CostedFunc[_, _, _]]
 
@@ -306,7 +306,7 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     }
     lazy val eFrom = pairElement(element[Costed[Env]], pairElement(element[Costed[Arg] => Costed[Res]], pairElement(element[Int], element[Size[Arg => Res]])))
     lazy val eTo = new CCostedFuncElem[Env, Arg, Res](self)
-    lazy val selfType = new CCostedFuncIsoElem[Env, Arg, Res](eEnv, eArg, eRes)
+    lazy val resultType = new CCostedFuncIsoElem[Env, Arg, Res](eEnv, eArg, eRes)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => eEnv
@@ -319,7 +319,7 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   }
   // 4) constructor and deconstructor
   class CCostedFuncCompanionCtor extends CompanionDef[CCostedFuncCompanionCtor] with CCostedFuncCompanion {
-    def selfType = CCostedFuncCompanionElem
+    def resultType = CCostedFuncCompanionElem
     override def toString = "CCostedFuncCompanion"
     @scalan.OverloadId("fromData")
     def apply[Env, Arg, Res](p: Rep[CCostedFuncData[Env, Arg, Res]]): Rep[CCostedFunc[Env, Arg, Res]] = {
@@ -385,7 +385,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     extends CCostedColl[Item](values, costs, sizes, valuesCost) with Def[CCostedColl[Item]] {
     implicit lazy val eItem = values.eA
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
-    lazy val selfType = element[CCostedColl[Item]]
+    lazy val resultType = element[CCostedColl[Item]]
     override def transform(t: Transformer) = CCostedCollCtor[Item](t(values), t(costs), t(sizes), t(valuesCost))
     private val thisClass = classOf[CostedColl[_]]
 
@@ -443,7 +443,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     }
     lazy val eFrom = pairElement(element[Coll[Item]], pairElement(element[Coll[Int]], pairElement(element[Coll[Size[Item]]], element[Int])))
     lazy val eTo = new CCostedCollElem[Item](self)
-    lazy val selfType = new CCostedCollIsoElem[Item](eItem)
+    lazy val resultType = new CCostedCollIsoElem[Item](eItem)
     def productArity = 1
     def productElement(n: Int) = eItem
   }
@@ -452,7 +452,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
   }
   // 4) constructor and deconstructor
   class CCostedCollCompanionCtor extends CompanionDef[CCostedCollCompanionCtor] with CCostedCollCompanion {
-    def selfType = CCostedCollCompanionElem
+    def resultType = CCostedCollCompanionElem
     override def toString = "CCostedCollCompanion"
     @scalan.OverloadId("fromData")
     def apply[Item](p: Rep[CCostedCollData[Item]]): Rep[CCostedColl[Item]] = {
@@ -515,7 +515,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   case class CCostedBuilderCtor
       ()
     extends CCostedBuilder() with Def[CCostedBuilder] {
-    lazy val selfType = element[CCostedBuilder]
+    lazy val resultType = element[CCostedBuilder]
     override def transform(t: Transformer) = CCostedBuilderCtor()
     private val thisClass = classOf[CostedBuilder]
 
@@ -565,7 +565,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     }
     lazy val eFrom = UnitElement
     lazy val eTo = new CCostedBuilderElem(self)
-    lazy val selfType = new CCostedBuilderIsoElem
+    lazy val resultType = new CCostedBuilderIsoElem
     def productArity = 0
     def productElement(n: Int) = ???
   }
@@ -573,7 +573,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   }
   // 4) constructor and deconstructor
   class CCostedBuilderCompanionCtor extends CompanionDef[CCostedBuilderCompanionCtor] with CCostedBuilderCompanion {
-    def selfType = CCostedBuilderCompanionElem
+    def resultType = CCostedBuilderCompanionElem
     override def toString = "CCostedBuilderCompanion"
     @scalan.OverloadId("fromData")
     def apply(p: Rep[CCostedBuilderData]): Rep[CCostedBuilder] = {

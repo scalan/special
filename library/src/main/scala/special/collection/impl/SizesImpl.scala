@@ -34,7 +34,7 @@ object Size extends EntityObject("Size") {
     implicit def eVal: Elem[Val] = lVal.eW
 
     val liftable: Liftable[SSize[SVal], Size[Val]] = liftableSize(lVal)
-    val selfType: Elem[Size[Val]] = liftable.eW
+    val resultType: Elem[Size[Val]] = liftable.eW
   }
 
   trait SizeConstMethods[Val] extends Size[Val]  { thisConst: Def[_] =>
@@ -74,7 +74,7 @@ object Size extends EntityObject("Size") {
       with Def[Size[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
 
-    val selfType: Elem[Size[Val]] = element[Size[Val]]
+    val resultType: Elem[Size[Val]] = element[Size[Val]]
     override def transform(t: Transformer) = SizeAdapter[Val](t(source))
 
     def dataSize: Rep[Long] = {
@@ -115,7 +115,7 @@ object Size extends EntityObject("Size") {
   implicit case object SizeCompanionElem extends CompanionElem[SizeCompanionCtor]
 
   abstract class SizeCompanionCtor extends CompanionDef[SizeCompanionCtor] with SizeCompanion {
-    def selfType = SizeCompanionElem
+    def resultType = SizeCompanionElem
     override def toString = "Size"
   }
   implicit def proxySizeCompanionCtor(p: Rep[SizeCompanionCtor]): SizeCompanionCtor =
@@ -155,7 +155,7 @@ object SizePrim extends EntityObject("SizePrim") {
     implicit def eVal: Elem[Val] = lVal.eW
 
     val liftable: Liftable[SSizePrim[SVal], SizePrim[Val]] = liftableSizePrim(lVal)
-    val selfType: Elem[SizePrim[Val]] = liftable.eW
+    val resultType: Elem[SizePrim[Val]] = liftable.eW
   }
 
   trait SizePrimConstMethods[Val] extends SizePrim[Val] with SizeConstMethods[Val] { thisConst: Def[_] =>
@@ -202,7 +202,7 @@ object SizePrim extends EntityObject("SizePrim") {
       with Def[SizePrim[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
 
-    val selfType: Elem[SizePrim[Val]] = element[SizePrim[Val]]
+    val resultType: Elem[SizePrim[Val]] = element[SizePrim[Val]]
     override def transform(t: Transformer) = SizePrimAdapter[Val](t(source))
 
     def dataSize: Rep[Long] = {
@@ -251,7 +251,7 @@ object SizePrim extends EntityObject("SizePrim") {
   implicit case object SizePrimCompanionElem extends CompanionElem[SizePrimCompanionCtor]
 
   abstract class SizePrimCompanionCtor extends CompanionDef[SizePrimCompanionCtor] with SizePrimCompanion {
-    def selfType = SizePrimCompanionElem
+    def resultType = SizePrimCompanionElem
     override def toString = "SizePrim"
   }
   implicit def proxySizePrimCompanionCtor(p: Rep[SizePrimCompanionCtor]): SizePrimCompanionCtor =
@@ -278,7 +278,7 @@ object SizePair extends EntityObject("SizePair") {
     implicit def eVal: Elem[(L, R)] = element[(L, R)]
 
     val liftable: Liftable[SSizePair[SL, SR], SizePair[L, R]] = liftableSizePair(lL,lR)
-    val selfType: Elem[SizePair[L, R]] = liftable.eW
+    val resultType: Elem[SizePair[L, R]] = liftable.eW
   }
 
   trait SizePairConstMethods[L, R] extends SizePair[L, R] with SizeConstMethods[(L, R)] { thisConst: Def[_] =>
@@ -328,7 +328,7 @@ object SizePair extends EntityObject("SizePair") {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
-    val selfType: Elem[SizePair[L, R]] = element[SizePair[L, R]]
+    val resultType: Elem[SizePair[L, R]] = element[SizePair[L, R]]
     override def transform(t: Transformer) = SizePairAdapter[L, R](t(source))
 
     def l: Rep[Size[L]] = {
@@ -385,7 +385,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   implicit case object SizePairCompanionElem extends CompanionElem[SizePairCompanionCtor]
 
   abstract class SizePairCompanionCtor extends CompanionDef[SizePairCompanionCtor] with SizePairCompanion {
-    def selfType = SizePairCompanionElem
+    def resultType = SizePairCompanionElem
     override def toString = "SizePair"
   }
   implicit def proxySizePairCompanionCtor(p: Rep[SizePairCompanionCtor]): SizePairCompanionCtor =
@@ -436,7 +436,7 @@ object SizeColl extends EntityObject("SizeColl") {
     implicit def eVal: Elem[Coll[Item]] = element[Coll[Item]]
 
     val liftable: Liftable[SSizeColl[SItem], SizeColl[Item]] = liftableSizeColl(lItem)
-    val selfType: Elem[SizeColl[Item]] = liftable.eW
+    val resultType: Elem[SizeColl[Item]] = liftable.eW
   }
 
   trait SizeCollConstMethods[Item] extends SizeColl[Item] with SizeConstMethods[Coll[Item]] { thisConst: Def[_] =>
@@ -476,7 +476,7 @@ object SizeColl extends EntityObject("SizeColl") {
       with Def[SizeColl[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
-    val selfType: Elem[SizeColl[Item]] = element[SizeColl[Item]]
+    val resultType: Elem[SizeColl[Item]] = element[SizeColl[Item]]
     override def transform(t: Transformer) = SizeCollAdapter[Item](t(source))
 
     def sizes: Rep[Coll[Size[Item]]] = {
@@ -525,7 +525,7 @@ object SizeColl extends EntityObject("SizeColl") {
   implicit case object SizeCollCompanionElem extends CompanionElem[SizeCollCompanionCtor]
 
   abstract class SizeCollCompanionCtor extends CompanionDef[SizeCollCompanionCtor] with SizeCollCompanion {
-    def selfType = SizeCollCompanionElem
+    def resultType = SizeCollCompanionElem
     override def toString = "SizeColl"
   }
   implicit def proxySizeCollCompanionCtor(p: Rep[SizeCollCompanionCtor]): SizeCollCompanionCtor =
@@ -568,7 +568,7 @@ object SizeFunc extends EntityObject("SizeFunc") {
     implicit def eVal: Elem[Arg => Res] = element[Arg => Res]
 
     val liftable: Liftable[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]] = liftableSizeFunc(lEnv,lArg,lRes)
-    val selfType: Elem[SizeFunc[Env, Arg, Res]] = liftable.eW
+    val resultType: Elem[SizeFunc[Env, Arg, Res]] = liftable.eW
   }
 
   trait SizeFuncConstMethods[Env, Arg, Res] extends SizeFunc[Env, Arg, Res] with SizeConstMethods[Arg => Res] { thisConst: Def[_] =>
@@ -614,7 +614,7 @@ object SizeFunc extends EntityObject("SizeFunc") {
 implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asElem[Arg];
 implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
-    val selfType: Elem[SizeFunc[Env, Arg, Res]] = element[SizeFunc[Env, Arg, Res]]
+    val resultType: Elem[SizeFunc[Env, Arg, Res]] = element[SizeFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = SizeFuncAdapter[Env, Arg, Res](t(source))
 
     def sizeEnv: Rep[Size[Env]] = {
@@ -665,7 +665,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   implicit case object SizeFuncCompanionElem extends CompanionElem[SizeFuncCompanionCtor]
 
   abstract class SizeFuncCompanionCtor extends CompanionDef[SizeFuncCompanionCtor] with SizeFuncCompanion {
-    def selfType = SizeFuncCompanionElem
+    def resultType = SizeFuncCompanionElem
     override def toString = "SizeFunc"
   }
   implicit def proxySizeFuncCompanionCtor(p: Rep[SizeFuncCompanionCtor]): SizeFuncCompanionCtor =
@@ -706,7 +706,7 @@ object SizeOption extends EntityObject("SizeOption") {
     implicit def eVal: Elem[WOption[T]] = element[WOption[T]]
 
     val liftable: Liftable[SSizeOption[ST], SizeOption[T]] = liftableSizeOption(lT)
-    val selfType: Elem[SizeOption[T]] = liftable.eW
+    val resultType: Elem[SizeOption[T]] = liftable.eW
   }
 
   trait SizeOptionConstMethods[T] extends SizeOption[T] with SizeConstMethods[WOption[T]] { thisConst: Def[_] =>
@@ -746,7 +746,7 @@ object SizeOption extends EntityObject("SizeOption") {
       with Def[SizeOption[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
-    val selfType: Elem[SizeOption[T]] = element[SizeOption[T]]
+    val resultType: Elem[SizeOption[T]] = element[SizeOption[T]]
     override def transform(t: Transformer) = SizeOptionAdapter[T](t(source))
 
     def sizeOpt: Rep[WOption[Size[T]]] = {
@@ -795,7 +795,7 @@ object SizeOption extends EntityObject("SizeOption") {
   implicit case object SizeOptionCompanionElem extends CompanionElem[SizeOptionCompanionCtor]
 
   abstract class SizeOptionCompanionCtor extends CompanionDef[SizeOptionCompanionCtor] with SizeOptionCompanion {
-    def selfType = SizeOptionCompanionElem
+    def resultType = SizeOptionCompanionElem
     override def toString = "SizeOption"
   }
   implicit def proxySizeOptionCompanionCtor(p: Rep[SizeOptionCompanionCtor]): SizeOptionCompanionCtor =

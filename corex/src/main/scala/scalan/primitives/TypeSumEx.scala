@@ -85,13 +85,13 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
 
     // Rule: fold(s, l, r)._1 ==> fold(s, x => l(x)._1, y => r(y)._1)
     case First(Def(foldD: SumFold[a, b, (T, r2)] @unchecked)) =>
-      implicit val eRes = foldD.selfType
+      implicit val eRes = foldD.resultType
       implicit val eT = eRes.eFst
       foldD.sum.foldBy(foldD.left >> fun(_._1), foldD.right >> fun(_._1))
 
     // Rule: fold(s, l, r)._2 ==> fold(s, x => l(x)._2, y => r(y)._2)
     case Second(Def(foldD: SumFold[a, b, (r1, T)] @unchecked)) =>
-      implicit val eRes = foldD.selfType
+      implicit val eRes = foldD.resultType
       implicit val eT = eRes.eSnd
       foldD.sum.foldBy(foldD.left >> fun(_._2), foldD.right >> fun(_._2))
 
@@ -138,7 +138,7 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
     }
 
     case call@MethodCall(Def(foldD@SumFold(sum, left, right)), m, args, neverInvoke) => {
-      implicit val resultElem: Elem[T] = d.selfType
+      implicit val resultElem: Elem[T] = d.resultType
       def copyMethodCall(newReceiver: Sym) =
         asRep[T](mkMethodCall(newReceiver, m, args, neverInvoke, isAdapterCall = false, resultElem))
 
@@ -180,7 +180,7 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
     LambdaResultHasViews(left, iso1: Iso[a, c]),
     LambdaResultHasViews(right, iso2: Iso[_, _]))), m, args, neverInvoke) if iso1 == iso2 =>
       val newFold = liftFromSumFold(foldD.sum, foldD.left, foldD.right, iso1.asIso[a,Any])
-      mkMethodCall(newFold, m, args, neverInvoke, isAdapterCall = false, call.selfType)
+      mkMethodCall(newFold, m, args, neverInvoke, isAdapterCall = false, call.resultType)
 
     case _ => super.rewriteViews(d)
   }

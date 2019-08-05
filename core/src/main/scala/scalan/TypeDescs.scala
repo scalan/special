@@ -230,7 +230,7 @@ trait TypeDescs extends Base { self: Scalan =>
           !!!(s"Cannot perform unliftedInvoke of $mc")
       }
       // this if is required because res == null in case of Unit return type
-      if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
+      if (mc.resultType == UnitElement) ().asInstanceOf[AnyRef] else res
     }
 
 
@@ -317,9 +317,9 @@ trait TypeDescs extends Base { self: Scalan =>
   }
 
   class ElemCacheEntry(
-    val constructor: java.lang.reflect.Constructor[_],
-    val ownerType: OwnerParameter,
-    val elements: AVHashMap[Seq[AnyRef], AnyRef])
+                          val constructor: java.lang.reflect.Constructor[_],
+                          val ownerType: OwnerKind,
+                          val elements: AVHashMap[Seq[AnyRef], AnyRef])
     
   protected val elemCache = AVHashMap[Class[_], ElemCacheEntry](1000)
 
@@ -329,7 +329,7 @@ trait TypeDescs extends Base { self: Scalan =>
       case Nullable(entry) => entry
       case _ =>
         val constructor = if (optConstructor.isEmpty) getConstructor(clazz) else optConstructor.get
-        val ownerType = getOwnerParameterType(constructor)
+        val ownerType = getOwnerKind(constructor)
         val entry = new ElemCacheEntry(constructor, ownerType, AVHashMap(10))
         elemCache.put(clazz, entry)
         entry
@@ -437,7 +437,7 @@ trait TypeDescs extends Base { self: Scalan =>
   def assertElem(value: Rep[_], elem: Elem[_]): Unit = assertElem(value, elem, "")
   def assertElem(value: Rep[_], elem: Elem[_], hint: => String): Unit = {
     assert(value.elem == elem,
-      s"${value.toStringWithType} doesn't have type ${elem.name}" + (if (hint.isEmpty) "" else s"; $hint"))
+      s"${value.varNameWithType} doesn't have type ${elem.name}" + (if (hint.isEmpty) "" else s"; $hint"))
   }
   def assertEqualElems[A](e1: Elem[A], e2: Elem[A], m: => String): Unit =
     assert(e1 == e2, s"Element $e1 != $e2: $m")

@@ -26,7 +26,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   case class WrapSpecBaseAdapter(source: Rep[WrapSpecBase])
       extends WrapSpecBase
       with Def[WrapSpecBase] {
-    val selfType: Elem[WrapSpecBase] = element[WrapSpecBase]
+    val resultType: Elem[WrapSpecBase] = element[WrapSpecBase]
     override def transform(t: Transformer) = WrapSpecBaseAdapter(t(source))
   }
 
@@ -48,7 +48,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   implicit case object WrapSpecBaseCompanionElem extends CompanionElem[WrapSpecBaseCompanionCtor]
 
   abstract class WrapSpecBaseCompanionCtor extends CompanionDef[WrapSpecBaseCompanionCtor] with WrapSpecBaseCompanion {
-    def selfType = WrapSpecBaseCompanionElem
+    def resultType = WrapSpecBaseCompanionElem
     override def toString = "WrapSpecBase"
   }
   implicit def proxyWrapSpecBaseCompanionCtor(p: Rep[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
@@ -67,7 +67,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
   case class OptionWrapSpecAdapter(source: Rep[OptionWrapSpec])
       extends OptionWrapSpec
       with Def[OptionWrapSpec] {
-    val selfType: Elem[OptionWrapSpec] = element[OptionWrapSpec]
+    val resultType: Elem[OptionWrapSpec] = element[OptionWrapSpec]
     override def transform(t: Transformer) = OptionWrapSpecAdapter(t(source))
 
     override def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = {
@@ -107,7 +107,7 @@ implicit val eB = ifEmpty.elem.eItem
   implicit case object OptionWrapSpecCompanionElem extends CompanionElem[OptionWrapSpecCompanionCtor]
 
   abstract class OptionWrapSpecCompanionCtor extends CompanionDef[OptionWrapSpecCompanionCtor] with OptionWrapSpecCompanion {
-    def selfType = OptionWrapSpecCompanionElem
+    def resultType = OptionWrapSpecCompanionElem
     override def toString = "OptionWrapSpec"
   }
   implicit def proxyOptionWrapSpecCompanionCtor(p: Rep[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
@@ -126,7 +126,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   case class SpecialPredefWrapSpecAdapter(source: Rep[SpecialPredefWrapSpec])
       extends SpecialPredefWrapSpec
       with Def[SpecialPredefWrapSpec] {
-    val selfType: Elem[SpecialPredefWrapSpec] = element[SpecialPredefWrapSpec]
+    val resultType: Elem[SpecialPredefWrapSpec] = element[SpecialPredefWrapSpec]
     override def transform(t: Transformer) = SpecialPredefWrapSpecAdapter(t(source))
   }
 
@@ -149,7 +149,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   implicit case object SpecialPredefWrapSpecCompanionElem extends CompanionElem[SpecialPredefWrapSpecCompanionCtor]
 
   abstract class SpecialPredefWrapSpecCompanionCtor extends CompanionDef[SpecialPredefWrapSpecCompanionCtor] with SpecialPredefWrapSpecCompanion {
-    def selfType = SpecialPredefWrapSpecCompanionElem
+    def resultType = SpecialPredefWrapSpecCompanionElem
     override def toString = "SpecialPredefWrapSpec"
   }
   implicit def proxySpecialPredefWrapSpecCompanionCtor(p: Rep[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
@@ -168,7 +168,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   case class RTypeWrapSpecAdapter(source: Rep[RTypeWrapSpec])
       extends RTypeWrapSpec
       with Def[RTypeWrapSpec] {
-    val selfType: Elem[RTypeWrapSpec] = element[RTypeWrapSpec]
+    val resultType: Elem[RTypeWrapSpec] = element[RTypeWrapSpec]
     override def transform(t: Transformer) = RTypeWrapSpecAdapter(t(source))
   }
 
@@ -191,7 +191,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   implicit case object RTypeWrapSpecCompanionElem extends CompanionElem[RTypeWrapSpecCompanionCtor]
 
   abstract class RTypeWrapSpecCompanionCtor extends CompanionDef[RTypeWrapSpecCompanionCtor] with RTypeWrapSpecCompanion {
-    def selfType = RTypeWrapSpecCompanionElem
+    def resultType = RTypeWrapSpecCompanionElem
     override def toString = "RTypeWrapSpec"
   }
   implicit def proxyRTypeWrapSpecCompanionCtor(p: Rep[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =

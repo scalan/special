@@ -28,7 +28,7 @@ object Converter extends EntityObject("Converter") {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
-    val selfType: Elem[Converter[T, R]] = element[Converter[T, R]]
+    val resultType: Elem[Converter[T, R]] = element[Converter[T, R]]
     override def transform(t: Transformer) = ConverterAdapter[T, R](t(source))
 
     def apply(x: Rep[T]): Rep[R] = {
@@ -61,7 +61,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   implicit case object ConverterCompanionElem extends CompanionElem[ConverterCompanionCtor]
 
   abstract class ConverterCompanionCtor extends CompanionDef[ConverterCompanionCtor] with ConverterCompanion {
-    def selfType = ConverterCompanionElem
+    def resultType = ConverterCompanionElem
     override def toString = "Converter"
   }
   implicit def proxyConverterCompanionCtor(p: Rep[ConverterCompanionCtor]): ConverterCompanionCtor =
@@ -77,7 +77,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
   case class IdentityConvCtor[A]
       ()(implicit eT: Elem[A])
     extends IdentityConv[A]() with Def[IdentityConv[A]] {
-    lazy val selfType = element[IdentityConv[A]]
+    lazy val resultType = element[IdentityConv[A]]
     override def transform(t: Transformer) = IdentityConvCtor[A]()(eT)
   }
   // elem for concrete class
@@ -104,7 +104,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
     }
     lazy val eFrom = UnitElement
     lazy val eTo = new IdentityConvElem[A](self)
-    lazy val selfType = new IdentityConvIsoElem[A](eT)
+    lazy val resultType = new IdentityConvIsoElem[A](eT)
     def productArity = 1
     def productElement(n: Int) = eT
   }
@@ -113,7 +113,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
   }
   // 4) constructor and deconstructor
   class IdentityConvCompanionCtor extends CompanionDef[IdentityConvCompanionCtor] {
-    def selfType = IdentityConvCompanionElem
+    def resultType = IdentityConvCompanionElem
     override def toString = "IdentityConvCompanion"
     @scalan.OverloadId("fromData")
     def apply[A](p: Rep[IdentityConvData[A]])(implicit eT: Elem[A]): Rep[IdentityConv[A]] = {
@@ -174,7 +174,7 @@ object BaseConverter extends EntityObject("BaseConverter") {
     implicit lazy val eT = convFun.elem.eDom;
 implicit lazy val eR = convFun.elem.eRange
 
-    lazy val selfType = element[BaseConverter[T, R]]
+    lazy val resultType = element[BaseConverter[T, R]]
     override def transform(t: Transformer) = BaseConverterCtor[T, R](t(convFun))
   }
   // elem for concrete class
@@ -201,7 +201,7 @@ implicit lazy val eR = convFun.elem.eRange
     }
     lazy val eFrom = element[T => R]
     lazy val eTo = new BaseConverterElem[T, R](self)
-    lazy val selfType = new BaseConverterIsoElem[T, R](eT, eR)
+    lazy val resultType = new BaseConverterIsoElem[T, R](eT, eR)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eT
@@ -213,7 +213,7 @@ implicit lazy val eR = convFun.elem.eRange
   }
   // 4) constructor and deconstructor
   class BaseConverterCompanionCtor extends CompanionDef[BaseConverterCompanionCtor] with BaseConverterCompanion {
-    def selfType = BaseConverterCompanionElem
+    def resultType = BaseConverterCompanionElem
     override def toString = "BaseConverterCompanion"
 
     @scalan.OverloadId("fromFields")
@@ -275,7 +275,7 @@ implicit lazy val eB1 = conv1.eR;
 implicit lazy val eB2 = conv2.eR
     override lazy val eT: Elem[(A1, A2)] = implicitly[Elem[(A1, A2)]]
 override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
-    lazy val selfType = element[PairConverter[A1, A2, B1, B2]]
+    lazy val resultType = element[PairConverter[A1, A2, B1, B2]]
     override def transform(t: Transformer) = PairConverterCtor[A1, A2, B1, B2](t(conv1), t(conv2))
   }
   // elem for concrete class
@@ -302,7 +302,7 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     }
     lazy val eFrom = pairElement(element[Converter[A1, B1]], element[Converter[A2, B2]])
     lazy val eTo = new PairConverterElem[A1, A2, B1, B2](self)
-    lazy val selfType = new PairConverterIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
+    lazy val resultType = new PairConverterIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
     def productArity = 4
     def productElement(n: Int) = n match {
       case 0 => eA1
@@ -316,7 +316,7 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   }
   // 4) constructor and deconstructor
   class PairConverterCompanionCtor extends CompanionDef[PairConverterCompanionCtor] with PairConverterCompanion {
-    def selfType = PairConverterCompanionElem
+    def resultType = PairConverterCompanionElem
     override def toString = "PairConverterCompanion"
     @scalan.OverloadId("fromData")
     def apply[A1, A2, B1, B2](p: Rep[PairConverterData[A1, A2, B1, B2]]): Rep[PairConverter[A1, A2, B1, B2]] = {
@@ -388,7 +388,7 @@ implicit lazy val eB1 = conv1.eR;
 implicit lazy val eB2 = conv2.eR
     override lazy val eT: Elem[$bar[A1, A2]] = implicitly[Elem[$bar[A1, A2]]]
 override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
-    lazy val selfType = element[SumConverter[A1, A2, B1, B2]]
+    lazy val resultType = element[SumConverter[A1, A2, B1, B2]]
     override def transform(t: Transformer) = SumConverterCtor[A1, A2, B1, B2](t(conv1), t(conv2))
   }
   // elem for concrete class
@@ -415,7 +415,7 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     }
     lazy val eFrom = pairElement(element[Converter[A1, B1]], element[Converter[A2, B2]])
     lazy val eTo = new SumConverterElem[A1, A2, B1, B2](self)
-    lazy val selfType = new SumConverterIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
+    lazy val resultType = new SumConverterIsoElem[A1, A2, B1, B2](eA1, eA2, eB1, eB2)
     def productArity = 4
     def productElement(n: Int) = n match {
       case 0 => eA1
@@ -429,7 +429,7 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   }
   // 4) constructor and deconstructor
   class SumConverterCompanionCtor extends CompanionDef[SumConverterCompanionCtor] with SumConverterCompanion {
-    def selfType = SumConverterCompanionElem
+    def resultType = SumConverterCompanionElem
     override def toString = "SumConverterCompanion"
     @scalan.OverloadId("fromData")
     def apply[A1, A2, B1, B2](p: Rep[SumConverterData[A1, A2, B1, B2]]): Rep[SumConverter[A1, A2, B1, B2]] = {
@@ -499,7 +499,7 @@ object ComposeConverter extends EntityObject("ComposeConverter") {
 implicit lazy val eB = conv2.eT;
 implicit lazy val eC = conv2.eR
 
-    lazy val selfType = element[ComposeConverter[A, B, C]]
+    lazy val resultType = element[ComposeConverter[A, B, C]]
     override def transform(t: Transformer) = ComposeConverterCtor[A, B, C](t(conv2), t(conv1))
   }
   // elem for concrete class
@@ -526,7 +526,7 @@ implicit lazy val eC = conv2.eR
     }
     lazy val eFrom = pairElement(element[Converter[B, C]], element[Converter[A, B]])
     lazy val eTo = new ComposeConverterElem[A, B, C](self)
-    lazy val selfType = new ComposeConverterIsoElem[A, B, C](eA, eB, eC)
+    lazy val resultType = new ComposeConverterIsoElem[A, B, C](eA, eB, eC)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => eA
@@ -539,7 +539,7 @@ implicit lazy val eC = conv2.eR
   }
   // 4) constructor and deconstructor
   class ComposeConverterCompanionCtor extends CompanionDef[ComposeConverterCompanionCtor] {
-    def selfType = ComposeConverterCompanionElem
+    def resultType = ComposeConverterCompanionElem
     override def toString = "ComposeConverterCompanion"
     @scalan.OverloadId("fromData")
     def apply[A, B, C](p: Rep[ComposeConverterData[A, B, C]]): Rep[ComposeConverter[A, B, C]] = {
@@ -606,7 +606,7 @@ object FunctorConverter extends EntityObject("FunctorConverter") {
     implicit lazy val eA = itemConv.eT;
 implicit lazy val eB = itemConv.eR
 
-    lazy val selfType = element[FunctorConverter[A, B, F]]
+    lazy val resultType = element[FunctorConverter[A, B, F]]
     override def transform(t: Transformer) = FunctorConverterCtor[A, B, F](t(itemConv))(F)
   }
   // elem for concrete class
@@ -633,7 +633,7 @@ implicit lazy val eB = itemConv.eR
     }
     lazy val eFrom = element[Converter[A, B]]
     lazy val eTo = new FunctorConverterElem[A, B, F](self)
-    lazy val selfType = new FunctorConverterIsoElem[A, B, F](F, eA, eB)
+    lazy val resultType = new FunctorConverterIsoElem[A, B, F](F, eA, eB)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => F
@@ -646,7 +646,7 @@ implicit lazy val eB = itemConv.eR
   }
   // 4) constructor and deconstructor
   class FunctorConverterCompanionCtor extends CompanionDef[FunctorConverterCompanionCtor] with FunctorConverterCompanion {
-    def selfType = FunctorConverterCompanionElem
+    def resultType = FunctorConverterCompanionElem
     override def toString = "FunctorConverterCompanion"
 
     @scalan.OverloadId("fromFields")
@@ -702,7 +702,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   case class NaturalConverterCtor[A, F[_], G[_]]
       (override val convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends NaturalConverter[A, F, G](convFun) with Def[NaturalConverter[A, F, G]] {
-    lazy val selfType = element[NaturalConverter[A, F, G]]
+    lazy val resultType = element[NaturalConverter[A, F, G]]
     override def transform(t: Transformer) = NaturalConverterCtor[A, F, G](t(convFun))(eA, cF, cG)
   }
   // elem for concrete class
@@ -729,7 +729,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     }
     lazy val eFrom = element[F[A] => G[A]]
     lazy val eTo = new NaturalConverterElem[A, F, G](self)
-    lazy val selfType = new NaturalConverterIsoElem[A, F, G](eA, cF, cG)
+    lazy val resultType = new NaturalConverterIsoElem[A, F, G](eA, cF, cG)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => eA
@@ -742,7 +742,7 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   }
   // 4) constructor and deconstructor
   class NaturalConverterCompanionCtor extends CompanionDef[NaturalConverterCompanionCtor] {
-    def selfType = NaturalConverterCompanionElem
+    def resultType = NaturalConverterCompanionElem
     override def toString = "NaturalConverterCompanion"
 
     @scalan.OverloadId("fromFields")

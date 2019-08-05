@@ -52,7 +52,7 @@ trait GraphVizExport extends Base { self: Scalan =>
       case Some(rhs) =>
         val lhsStr = s"$x: $label ="
         val rhsStr = formatDef(rhs)
-        val rhsElem = rhs.selfType
+        val rhsElem = rhs.resultType
         if (rhsElem != xElem) {
           List(lhsStr, s"$rhsStr:", acc1.typeString(rhsElem))
         } else {
@@ -72,7 +72,7 @@ trait GraphVizExport extends Base { self: Scalan =>
         ("oval", nodeColor(xElem))
     }
     // use full type name for the tooltip
-    stream.println(s"shape=$shape, color=$color, tooltip=${StringUtil.quote(x.toStringWithType)}, style=filled, fillcolor=white")
+    stream.println(s"shape=$shape, color=$color, tooltip=${StringUtil.quote(x.varNameWithType)}, style=filled, fillcolor=white")
     stream.println("]")
     acc1
   }
@@ -333,7 +333,7 @@ trait GraphVizExport extends Base { self: Scalan =>
     def addNode(s: Sym, d: Option[Def[_]]): GraphData = {
       val withType = config.maxTypeNameLength match {
         case Some(maxLength) =>
-          val elems = d.map(_.selfType).toSet + s.elem
+          val elems = d.map(_.resultType).toSet + s.elem
           elems.foldLeft(this)(_.registerType(_, maxLength))
         case None =>
           this

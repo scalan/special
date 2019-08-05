@@ -38,7 +38,7 @@ object Costed extends EntityObject("Costed") {
       with Def[Costed[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
 
-    val selfType: Elem[Costed[Val]] = element[Costed[Val]]
+    val resultType: Elem[Costed[Val]] = element[Costed[Val]]
     override def transform(t: Transformer) = CostedAdapter[Val](t(source))
 
     def builder: Rep[CostedBuilder] = {
@@ -91,7 +91,7 @@ object Costed extends EntityObject("Costed") {
   implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor]
 
   abstract class CostedCompanionCtor extends CompanionDef[CostedCompanionCtor] with CostedCompanion {
-    def selfType = CostedCompanionElem
+    def resultType = CostedCompanionElem
     override def toString = "Costed"
   }
   implicit def proxyCostedCompanionCtor(p: Rep[CostedCompanionCtor]): CostedCompanionCtor =
@@ -157,7 +157,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
       with Def[CostedPrim[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
 
-    val selfType: Elem[CostedPrim[Val]] = element[CostedPrim[Val]]
+    val resultType: Elem[CostedPrim[Val]] = element[CostedPrim[Val]]
     override def transform(t: Transformer) = CostedPrimAdapter[Val](t(source))
 
     def value: Rep[Val] = {
@@ -211,7 +211,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
   implicit case object CostedPrimCompanionElem extends CompanionElem[CostedPrimCompanionCtor]
 
   abstract class CostedPrimCompanionCtor extends CompanionDef[CostedPrimCompanionCtor] with CostedPrimCompanion {
-    def selfType = CostedPrimCompanionElem
+    def resultType = CostedPrimCompanionElem
     override def toString = "CostedPrim"
   }
   implicit def proxyCostedPrimCompanionCtor(p: Rep[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
@@ -233,7 +233,7 @@ object CostedPair extends EntityObject("CostedPair") {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
-    val selfType: Elem[CostedPair[L, R]] = element[CostedPair[L, R]]
+    val resultType: Elem[CostedPair[L, R]] = element[CostedPair[L, R]]
     override def transform(t: Transformer) = CostedPairAdapter[L, R](t(source))
 
     def l: Rep[Costed[L]] = {
@@ -309,7 +309,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   implicit case object CostedPairCompanionElem extends CompanionElem[CostedPairCompanionCtor]
 
   abstract class CostedPairCompanionCtor extends CompanionDef[CostedPairCompanionCtor] with CostedPairCompanion {
-    def selfType = CostedPairCompanionElem
+    def resultType = CostedPairCompanionElem
     override def toString = "CostedPair"
   }
   implicit def proxyCostedPairCompanionCtor(p: Rep[CostedPairCompanionCtor]): CostedPairCompanionCtor =
@@ -332,7 +332,7 @@ object CostedFunc extends EntityObject("CostedFunc") {
 implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asElem[Arg];
 implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
-    val selfType: Elem[CostedFunc[Env, Arg, Res]] = element[CostedFunc[Env, Arg, Res]]
+    val resultType: Elem[CostedFunc[Env, Arg, Res]] = element[CostedFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = CostedFuncAdapter[Env, Arg, Res](t(source))
 
     def envCosted: Rep[Costed[Env]] = {
@@ -430,7 +430,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   implicit case object CostedFuncCompanionElem extends CompanionElem[CostedFuncCompanionCtor]
 
   abstract class CostedFuncCompanionCtor extends CompanionDef[CostedFuncCompanionCtor] with CostedFuncCompanion {
-    def selfType = CostedFuncCompanionElem
+    def resultType = CostedFuncCompanionElem
     override def toString = "CostedFunc"
   }
   implicit def proxyCostedFuncCompanionCtor(p: Rep[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
@@ -451,7 +451,7 @@ object CostedColl extends EntityObject("CostedColl") {
       with Def[CostedColl[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
-    val selfType: Elem[CostedColl[Item]] = element[CostedColl[Item]]
+    val resultType: Elem[CostedColl[Item]] = element[CostedColl[Item]]
     override def transform(t: Transformer) = CostedCollAdapter[Item](t(source))
 
     def values: Rep[Coll[Item]] = {
@@ -556,7 +556,7 @@ object CostedColl extends EntityObject("CostedColl") {
   implicit case object CostedCollCompanionElem extends CompanionElem[CostedCollCompanionCtor]
 
   abstract class CostedCollCompanionCtor extends CompanionDef[CostedCollCompanionCtor] with CostedCollCompanion {
-    def selfType = CostedCollCompanionElem
+    def resultType = CostedCollCompanionElem
     override def toString = "CostedColl"
   }
   implicit def proxyCostedCollCompanionCtor(p: Rep[CostedCollCompanionCtor]): CostedCollCompanionCtor =
@@ -652,7 +652,7 @@ object CostedOption extends EntityObject("CostedOption") {
       with Def[CostedOption[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
-    val selfType: Elem[CostedOption[T]] = element[CostedOption[T]]
+    val resultType: Elem[CostedOption[T]] = element[CostedOption[T]]
     override def transform(t: Transformer) = CostedOptionAdapter[T](t(source))
 
     def costOpt: Rep[WOption[Int]] = {
@@ -727,7 +727,7 @@ object CostedOption extends EntityObject("CostedOption") {
   implicit case object CostedOptionCompanionElem extends CompanionElem[CostedOptionCompanionCtor]
 
   abstract class CostedOptionCompanionCtor extends CompanionDef[CostedOptionCompanionCtor] with CostedOptionCompanion {
-    def selfType = CostedOptionCompanionElem
+    def resultType = CostedOptionCompanionElem
     override def toString = "CostedOption"
   }
   implicit def proxyCostedOptionCompanionCtor(p: Rep[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
@@ -746,7 +746,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
   case class CostedBuilderAdapter(source: Rep[CostedBuilder])
       extends CostedBuilder
       with Def[CostedBuilder] {
-    val selfType: Elem[CostedBuilder] = element[CostedBuilder]
+    val resultType: Elem[CostedBuilder] = element[CostedBuilder]
     override def transform(t: Transformer) = CostedBuilderAdapter(t(source))
 
     def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = {
@@ -877,7 +877,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor]
 
   abstract class CostedBuilderCompanionCtor extends CompanionDef[CostedBuilderCompanionCtor] with CostedBuilderCompanion {
-    def selfType = CostedBuilderCompanionElem
+    def resultType = CostedBuilderCompanionElem
     override def toString = "CostedBuilder"
   }
   implicit def proxyCostedBuilderCompanionCtor(p: Rep[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =

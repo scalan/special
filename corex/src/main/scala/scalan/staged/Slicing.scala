@@ -52,7 +52,7 @@ trait Slicing extends ScalanEx {
 
     def analyzeThunk[A](thunk: Th[A], mRes: SliceMarking[A]): ThunkMarking[A] = {
       val Def(th: ThunkDef[A @unchecked]) = thunk
-      implicit val eA = th.selfType.eItem
+      implicit val eA = th.resultType.eItem
       updateOutboundMarking(th.root, mRes)
       backwardAnalyzeRec(th)
       val thunkMarking = ThunkMarking(mRes)
@@ -699,7 +699,7 @@ trait Slicing extends ScalanEx {
   abstract class Sliced[From, To] extends Def[From] {
     def source: Rep[To]
     def mark: SliceMarking[From]
-    implicit lazy val selfType = mark.elem
+    implicit lazy val resultType = mark.elem
   }
 
   case class SlicedFunc[AFrom, BFrom, ATo, BTo](source: Rep[ATo => BTo], mark: FuncMarking[AFrom, BFrom])
@@ -713,7 +713,7 @@ trait Slicing extends ScalanEx {
   }
 
   case class UnpackSliced[From, To](sliced: Rep[From], mark: SliceMarking[From]) extends Def[To] {
-    implicit def selfType = mark.projectedElem.asElem[To]
+    implicit def resultType = mark.projectedElem.asElem[To]
     override def transform(t: Transformer): Def[To] = UnpackSliced(t(sliced), mark)
   }
 

@@ -30,7 +30,7 @@ object WRType extends EntityObject("WRType") {
     implicit def eA: Elem[A] = lA.eW
 
     val liftable: Liftable[RType[SA], WRType[A]] = liftableRType(lA)
-    val selfType: Elem[WRType[A]] = liftable.eW
+    val resultType: Elem[WRType[A]] = liftable.eW
   }
 
   trait WRTypeConstMethods[A] extends WRType[A]  { thisConst: Def[_] =>
@@ -72,7 +72,7 @@ object WRType extends EntityObject("WRType") {
       with Def[WRType[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
-    val selfType: Elem[WRType[A]] = element[WRType[A]]
+    val resultType: Elem[WRType[A]] = element[WRType[A]]
     override def transform(t: Transformer) = WRTypeAdapter[A](t(source))
 
     def name: Rep[String] = {
@@ -113,7 +113,7 @@ object WRType extends EntityObject("WRType") {
   implicit case object WRTypeCompanionElem extends CompanionElem[WRTypeCompanionCtor]
 
   abstract class WRTypeCompanionCtor extends CompanionDef[WRTypeCompanionCtor] with WRTypeCompanion {
-    def selfType = WRTypeCompanionElem
+    def resultType = WRTypeCompanionElem
     override def toString = "WRType"
   }
   implicit def proxyWRTypeCompanionCtor(p: Rep[WRTypeCompanionCtor]): WRTypeCompanionCtor =

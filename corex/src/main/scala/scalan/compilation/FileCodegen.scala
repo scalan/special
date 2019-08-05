@@ -207,7 +207,7 @@ abstract class FileCodegen[+ScalanCake <: ScalanEx](val scalan: ScalanCake, val 
       applyFunction(f, args)
     case ThunkForce(th) =>
       applyFunction(th, Nil)
-    case _ => !!!(s"$codegenName can't translate definition $d (type ${d.selfType.name }) to $languageName")
+    case _ => !!!(s"$codegenName can't translate definition $d (type ${d.resultType.name }) to $languageName")
   }
 
   def applyFunction(f: Sym, args: Seq[Sym]): String = src"$f($args)"

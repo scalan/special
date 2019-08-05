@@ -27,7 +27,7 @@ object IsoFunc extends EntityObject("IsoFunc") {
 implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R];
 implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
 
-    val selfType: Elem[IsoFunc[T, R, M]] = element[IsoFunc[T, R, M]]
+    val resultType: Elem[IsoFunc[T, R, M]] = element[IsoFunc[T, R, M]]
     override def transform(t: Transformer) = IsoFuncAdapter[T, R, M](t(source))
 
     def func: Rep[T => R] = {
@@ -75,7 +75,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
   implicit case object IsoFuncCompanionElem extends CompanionElem[IsoFuncCompanionCtor]
 
   abstract class IsoFuncCompanionCtor extends CompanionDef[IsoFuncCompanionCtor] {
-    def selfType = IsoFuncCompanionElem
+    def resultType = IsoFuncCompanionElem
     override def toString = "IsoFunc"
   }
   implicit def proxyIsoFuncCompanionCtor(p: Rep[IsoFuncCompanionCtor]): IsoFuncCompanionCtor =
@@ -94,7 +94,7 @@ object IsoFuncBase extends EntityObject("IsoFuncBase") {
 implicit lazy val eR = func.elem.eRange;
 implicit lazy val eM = metric.elem.eRange
 
-    lazy val selfType = element[IsoFuncBase[T, R, M]]
+    lazy val resultType = element[IsoFuncBase[T, R, M]]
     override def transform(t: Transformer) = IsoFuncBaseCtor[T, R, M](t(func), t(metric))
   }
   // elem for concrete class
@@ -121,7 +121,7 @@ implicit lazy val eM = metric.elem.eRange
     }
     lazy val eFrom = pairElement(element[T => R], element[T => M])
     lazy val eTo = new IsoFuncBaseElem[T, R, M](self)
-    lazy val selfType = new IsoFuncBaseIsoElem[T, R, M](eT, eR, eM)
+    lazy val resultType = new IsoFuncBaseIsoElem[T, R, M](eT, eR, eM)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => eT
@@ -134,7 +134,7 @@ implicit lazy val eM = metric.elem.eRange
   }
   // 4) constructor and deconstructor
   class IsoFuncBaseCompanionCtor extends CompanionDef[IsoFuncBaseCompanionCtor] {
-    def selfType = IsoFuncBaseCompanionElem
+    def resultType = IsoFuncBaseCompanionElem
     override def toString = "IsoFuncBaseCompanion"
     @scalan.OverloadId("fromData")
     def apply[T, R, M](p: Rep[IsoFuncBaseData[T, R, M]]): Rep[IsoFuncBase[T, R, M]] = {

@@ -50,7 +50,7 @@ trait PatternMatching extends BaseEx with GraphVizExport { _: ScalanEx =>
           ifThenElseLazy(guard(selector), {
             body(selector).asInstanceOf[Rep[A]]
           }, {
-            implicit val eA = d.selfType
+            implicit val eA = d.resultType
             patternMatch(selector)(branchesTail.asInstanceOf[List[Branch[a, A]]]: _*)(defaultOpt.asInstanceOf[Option[Rep[a => A]]])
           })
         case _ if selector.elem.isInstanceOf[ConcreteElem[_, _]] =>
@@ -61,7 +61,7 @@ trait PatternMatching extends BaseEx with GraphVizExport { _: ScalanEx =>
             selector.elem <:< elem
           }
           if (possibleBranches.length < branches.length) {
-            implicit val eA = d.selfType
+            implicit val eA = d.resultType
             patternMatch(selector)(possibleBranches.asInstanceOf[List[Branch[a, A]]]: _*)(defaultOpt.asInstanceOf[Option[Rep[a => A]]])
           } else {
             super.rewriteDef(d)

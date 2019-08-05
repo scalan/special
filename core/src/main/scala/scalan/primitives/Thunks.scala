@@ -77,7 +77,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
     implicit def eA: Elem[A] = root.elem
     private var _selfType: Elem[Thunk[A]] = _
-    def selfType: Elem[Thunk[A]] =
+    def resultType: Elem[Thunk[A]] =
       if (_selfType != null) _selfType
       else {
         val res = thunkElement(eA)
@@ -203,7 +203,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     val newScope = thunkStack.beginScope(newThunkSym)
     // execute block and add all new definitions to the top scope (see createDefinition)
     // reify all the effects during block execution
-    val res = reifyEffects(block)
+    val res = block
     resPH.assignDefFrom(res)
     scheduleIds =
       if (res.isVar) DBuffer.ofSize(0)
@@ -249,7 +249,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       ThunkForce(t)
 
   case class ThunkForce[A](thunk: Rep[Thunk[A]]) extends Def[A] {
-    implicit def selfType = thunk.elem.eItem
+    implicit def resultType = thunk.elem.eItem
     override def transform(t: Transformer) = ThunkForce(t(thunk))
   }
 

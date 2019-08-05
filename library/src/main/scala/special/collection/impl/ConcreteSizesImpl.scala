@@ -34,7 +34,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
     extends CSizePrim[Val](dataSize, tVal) with Def[CSizePrim[Val]] {
     implicit lazy val eVal = tVal.eA
 
-    lazy val selfType = element[CSizePrim[Val]]
+    lazy val resultType = element[CSizePrim[Val]]
     override def transform(t: Transformer) = CSizePrimCtor[Val](t(dataSize), t(tVal))
   }
   // elem for concrete class
@@ -61,7 +61,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
     }
     lazy val eFrom = pairElement(element[Long], element[WRType[Val]])
     lazy val eTo = new CSizePrimElem[Val](self)
-    lazy val selfType = new CSizePrimIsoElem[Val](eVal)
+    lazy val resultType = new CSizePrimIsoElem[Val](eVal)
     def productArity = 1
     def productElement(n: Int) = eVal
   }
@@ -70,7 +70,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
   }
   // 4) constructor and deconstructor
   class CSizePrimCompanionCtor extends CompanionDef[CSizePrimCompanionCtor] with CSizePrimCompanion {
-    def selfType = CSizePrimCompanionElem
+    def resultType = CSizePrimCompanionElem
     override def toString = "CSizePrimCompanion"
     @scalan.OverloadId("fromData")
     def apply[Val](p: Rep[CSizePrimData[Val]]): Rep[CSizePrim[Val]] = {
@@ -137,7 +137,7 @@ object CSizePair extends EntityObject("CSizePair") {
     implicit lazy val eL = l.eVal;
 implicit lazy val eR = r.eVal
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
-    lazy val selfType = element[CSizePair[L, R]]
+    lazy val resultType = element[CSizePair[L, R]]
     override def transform(t: Transformer) = CSizePairCtor[L, R](t(l), t(r))
     private val thisClass = classOf[SizePair[_, _]]
 
@@ -172,7 +172,7 @@ implicit lazy val eR = r.eVal
     }
     lazy val eFrom = pairElement(element[Size[L]], element[Size[R]])
     lazy val eTo = new CSizePairElem[L, R](self)
-    lazy val selfType = new CSizePairIsoElem[L, R](eL, eR)
+    lazy val resultType = new CSizePairIsoElem[L, R](eL, eR)
     def productArity = 2
     def productElement(n: Int) = n match {
       case 0 => eL
@@ -184,7 +184,7 @@ implicit lazy val eR = r.eVal
   }
   // 4) constructor and deconstructor
   class CSizePairCompanionCtor extends CompanionDef[CSizePairCompanionCtor] with CSizePairCompanion {
-    def selfType = CSizePairCompanionElem
+    def resultType = CSizePairCompanionElem
     override def toString = "CSizePairCompanion"
     @scalan.OverloadId("fromData")
     def apply[L, R](p: Rep[CSizePairData[L, R]]): Rep[CSizePair[L, R]] = {
@@ -248,7 +248,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     extends CSizeColl[Item](sizes) with Def[CSizeColl[Item]] {
     implicit lazy val eItem = sizes.eA.typeArgs("Val")._1.asElem[Item]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
-    lazy val selfType = element[CSizeColl[Item]]
+    lazy val resultType = element[CSizeColl[Item]]
     override def transform(t: Transformer) = CSizeCollCtor[Item](t(sizes))
     private val thisClass = classOf[SizeColl[_]]
 
@@ -283,7 +283,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     }
     lazy val eFrom = element[Coll[Size[Item]]]
     lazy val eTo = new CSizeCollElem[Item](self)
-    lazy val selfType = new CSizeCollIsoElem[Item](eItem)
+    lazy val resultType = new CSizeCollIsoElem[Item](eItem)
     def productArity = 1
     def productElement(n: Int) = eItem
   }
@@ -292,7 +292,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
   }
   // 4) constructor and deconstructor
   class CSizeCollCompanionCtor extends CompanionDef[CSizeCollCompanionCtor] with CSizeCollCompanion {
-    def selfType = CSizeCollCompanionElem
+    def resultType = CSizeCollCompanionElem
     override def toString = "CSizeCollCompanion"
 
     @scalan.OverloadId("fromFields")
@@ -351,7 +351,7 @@ object CSizeFunc extends EntityObject("CSizeFunc") {
 implicit lazy val eArg = tArg.eA;
 implicit lazy val eRes = tRes.eA
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
-    lazy val selfType = element[CSizeFunc[Env, Arg, Res]]
+    lazy val resultType = element[CSizeFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = CSizeFuncCtor[Env, Arg, Res](t(sizeEnv), t(sizeFunc), t(tArg), t(tRes))
     private val thisClass = classOf[SizeFunc[_, _, _]]
 
@@ -386,7 +386,7 @@ implicit lazy val eRes = tRes.eA
     }
     lazy val eFrom = pairElement(element[Size[Env]], pairElement(element[Long], pairElement(element[WRType[Arg]], element[WRType[Res]])))
     lazy val eTo = new CSizeFuncElem[Env, Arg, Res](self)
-    lazy val selfType = new CSizeFuncIsoElem[Env, Arg, Res](eEnv, eArg, eRes)
+    lazy val resultType = new CSizeFuncIsoElem[Env, Arg, Res](eEnv, eArg, eRes)
     def productArity = 3
     def productElement(n: Int) = n match {
       case 0 => eEnv
@@ -399,7 +399,7 @@ implicit lazy val eRes = tRes.eA
   }
   // 4) constructor and deconstructor
   class CSizeFuncCompanionCtor extends CompanionDef[CSizeFuncCompanionCtor] with CSizeFuncCompanion {
-    def selfType = CSizeFuncCompanionElem
+    def resultType = CSizeFuncCompanionElem
     override def toString = "CSizeFuncCompanion"
     @scalan.OverloadId("fromData")
     def apply[Env, Arg, Res](p: Rep[CSizeFuncData[Env, Arg, Res]]): Rep[CSizeFunc[Env, Arg, Res]] = {
@@ -466,7 +466,7 @@ object CSizeOption extends EntityObject("CSizeOption") {
     implicit lazy val eItem = sizeOpt.eA.typeArgs("Val")._1.asElem[Item]
     override lazy val eT: Elem[Item] = eItem
 override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
-    lazy val selfType = element[CSizeOption[Item]]
+    lazy val resultType = element[CSizeOption[Item]]
     override def transform(t: Transformer) = CSizeOptionCtor[Item](t(sizeOpt))
     private val thisClass = classOf[SizeOption[_]]
 
@@ -501,7 +501,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     }
     lazy val eFrom = element[WOption[Size[Item]]]
     lazy val eTo = new CSizeOptionElem[Item](self)
-    lazy val selfType = new CSizeOptionIsoElem[Item](eItem)
+    lazy val resultType = new CSizeOptionIsoElem[Item](eItem)
     def productArity = 1
     def productElement(n: Int) = eItem
   }
@@ -510,7 +510,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
   }
   // 4) constructor and deconstructor
   class CSizeOptionCompanionCtor extends CompanionDef[CSizeOptionCompanionCtor] with CSizeOptionCompanion {
-    def selfType = CSizeOptionCompanionElem
+    def resultType = CSizeOptionCompanionElem
     override def toString = "CSizeOptionCompanion"
 
     @scalan.OverloadId("fromFields")

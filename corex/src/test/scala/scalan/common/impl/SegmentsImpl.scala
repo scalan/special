@@ -25,7 +25,7 @@ object Segment extends EntityObject("Segment") {
       ) extends Segment with LiftedConst[SSegment, Segment]
         with Def[Segment] with SegmentConstMethods {
     val liftable: Liftable[SSegment, Segment] = LiftableSegment
-    val selfType: Elem[Segment] = liftable.eW
+    val resultType: Elem[Segment] = liftable.eW
   }
 
   trait SegmentConstMethods extends Segment  { thisConst: Def[_] =>
@@ -88,7 +88,7 @@ object Segment extends EntityObject("Segment") {
   case class SegmentAdapter(source: Rep[Segment])
       extends Segment
       with Def[Segment] {
-    val selfType: Elem[Segment] = element[Segment]
+    val resultType: Elem[Segment] = element[Segment]
     override def transform(t: Transformer) = SegmentAdapter(t(source))
 
     def start: Rep[Int] = {
@@ -165,7 +165,7 @@ object Segment extends EntityObject("Segment") {
   implicit case object SegmentCompanionElem extends CompanionElem[SegmentCompanionCtor]
 
   abstract class SegmentCompanionCtor extends CompanionDef[SegmentCompanionCtor] with SegmentCompanion {
-    def selfType = SegmentCompanionElem
+    def resultType = SegmentCompanionElem
     override def toString = "Segment"
   }
   implicit def proxySegmentCompanionCtor(p: Rep[SegmentCompanionCtor]): SegmentCompanionCtor =
@@ -236,7 +236,7 @@ object Interval extends EntityObject("Interval") {
   case class IntervalCtor
       (override val start: Rep[Int], override val end: Rep[Int])
     extends Interval(start, end) with Def[Interval] {
-    lazy val selfType = element[Interval]
+    lazy val resultType = element[Interval]
     override def transform(t: Transformer) = IntervalCtor(t(start), t(end))
     private val thisClass = classOf[Segment]
 
@@ -272,7 +272,7 @@ object Interval extends EntityObject("Interval") {
     }
     lazy val eFrom = pairElement(element[Int], element[Int])
     lazy val eTo = new IntervalElem(self)
-    lazy val selfType = new IntervalIsoElem
+    lazy val resultType = new IntervalIsoElem
     def productArity = 0
     def productElement(n: Int) = ???
   }
@@ -280,7 +280,7 @@ object Interval extends EntityObject("Interval") {
   }
   // 4) constructor and deconstructor
   class IntervalCompanionCtor extends CompanionDef[IntervalCompanionCtor] with IntervalCompanion {
-    def selfType = IntervalCompanionElem
+    def resultType = IntervalCompanionElem
     override def toString = "IntervalCompanion"
     @scalan.OverloadId("fromData")
     def apply(p: Rep[IntervalData]): Rep[Interval] = {
@@ -373,7 +373,7 @@ object Slice extends EntityObject("Slice") {
   case class SliceCtor
       (override val start: Rep[Int], override val length: Rep[Int])
     extends Slice(start, length) with Def[Slice] {
-    lazy val selfType = element[Slice]
+    lazy val resultType = element[Slice]
     override def transform(t: Transformer) = SliceCtor(t(start), t(length))
   }
   // elem for concrete class
@@ -401,7 +401,7 @@ object Slice extends EntityObject("Slice") {
     }
     lazy val eFrom = pairElement(element[Int], element[Int])
     lazy val eTo = new SliceElem(self)
-    lazy val selfType = new SliceIsoElem
+    lazy val resultType = new SliceIsoElem
     def productArity = 0
     def productElement(n: Int) = ???
   }
@@ -409,7 +409,7 @@ object Slice extends EntityObject("Slice") {
   }
   // 4) constructor and deconstructor
   class SliceCompanionCtor extends CompanionDef[SliceCompanionCtor] with SliceCompanion {
-    def selfType = SliceCompanionElem
+    def resultType = SliceCompanionElem
     override def toString = "SliceCompanion"
     @scalan.OverloadId("fromData")
     def apply(p: Rep[SliceData]): Rep[Slice] = {
@@ -502,7 +502,7 @@ object Centered extends EntityObject("Centered") {
   case class CenteredCtor
       (override val center: Rep[Int], override val radius: Rep[Int])
     extends Centered(center, radius) with Def[Centered] {
-    lazy val selfType = element[Centered]
+    lazy val resultType = element[Centered]
     override def transform(t: Transformer) = CenteredCtor(t(center), t(radius))
   }
   // elem for concrete class
@@ -531,7 +531,7 @@ object Centered extends EntityObject("Centered") {
     }
     lazy val eFrom = pairElement(element[Int], element[Int])
     lazy val eTo = new CenteredElem(self)
-    lazy val selfType = new CenteredIsoElem
+    lazy val resultType = new CenteredIsoElem
     def productArity = 0
     def productElement(n: Int) = ???
   }
@@ -539,7 +539,7 @@ object Centered extends EntityObject("Centered") {
   }
   // 4) constructor and deconstructor
   class CenteredCompanionCtor extends CompanionDef[CenteredCompanionCtor] with CenteredCompanion {
-    def selfType = CenteredCompanionElem
+    def resultType = CenteredCompanionElem
     override def toString = "CenteredCompanion"
     @scalan.OverloadId("fromData")
     def apply(p: Rep[CenteredData]): Rep[Centered] = {
