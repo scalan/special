@@ -1,9 +1,11 @@
 package scalan
 
+import special.collection.CollType
 import spire.syntax.all._
 
 object RTypeTestUtil {
   import scalan.RType._
+  import special.collection._
 
   def valueMatchesRType[T](value: T, tA: RType[_]): Boolean = tA match {
     case prim: PrimitiveType[a] => value match {
@@ -19,7 +21,7 @@ object RTypeTestUtil {
       case _ => false
     }
     case arrayType: ArrayType[a] => value match {
-      case arr: Array[_] => if (arr.length != 0) valueMatchesRType(arr(0), arrayType.tA) else true
+      case arr: Array[_] => arr.forall(item => valueMatchesRType(item, arrayType.tA))
       case _ => false
     }
     case pairType: PairType[a, b] => value match {
@@ -28,6 +30,18 @@ object RTypeTestUtil {
     }
     case StringType => value match {
       case str: String => true
+      case _ => false
+    }
+    case collType: CollType[a] => value match {
+      case coll: Coll[_] => coll.tItem == collType.tItem && coll.forall(item => valueMatchesRType(item, collType.tItem))
+      case _ => false
+    }
+    case replCollType: ReplCollType[a] => value match {
+      case coll: Coll[_] => coll.tItem == replCollType.tItem && coll.forall(item => valueMatchesRType(item, replCollType.tItem))
+      case _ => false
+    }
+    case optionType: OptionType[a] => value match {
+      case op: Option[_] => op.forall(item => valueMatchesRType(item, optionType.tA))
       case _ => false
     }
 

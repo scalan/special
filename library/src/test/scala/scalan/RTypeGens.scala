@@ -121,31 +121,64 @@ trait RTypeGens {
       )
   }
 
-  def primitiveValueGen[T](t: PrimitiveType[T]): Gen[_] = t match {
-    case ByteType => choose[Byte](Byte.MinValue, Byte.MaxValue)
-    case ShortType => choose[Short](Short.MinValue, Short.MaxValue)
-    case IntType => choose[Int](Int.MinValue, Int.MaxValue)
-    case CharType => choose[Char](Char.MinValue, Char.MaxValue)
-    case LongType => choose[Long](Long.MinValue, Long.MaxValue)
-    case FloatType => choose[Float](Float.MinValue, Float.MaxValue)
-    case DoubleType => choose[Double](Double.MinValue, Double.MaxValue)
-    case BooleanType => Gen.oneOf(true, false)
-    case _ => throw new NotImplementedError("Not supported")
+  def primitiveValueGen[T: RType](t: PrimitiveType[T]): Gen[T] = t match {
+    case ByteType => choose[Byte](Byte.MinValue, Byte.MaxValue).asInstanceOf[Gen[T]]
+    case ShortType => choose[Short](Short.MinValue, Short.MaxValue).asInstanceOf[Gen[T]]
+    case IntType => choose[Int](Int.MinValue, Int.MaxValue).asInstanceOf[Gen[T]]
+    case CharType => choose[Char](Char.MinValue, Char.MaxValue).asInstanceOf[Gen[T]]
+    case LongType => choose[Long](Long.MinValue, Long.MaxValue).asInstanceOf[Gen[T]]
+    case FloatType => choose[Float](Float.MinValue, Float.MaxValue).asInstanceOf[Gen[T]]
+    case DoubleType => choose[Double](Double.MinValue, Double.MaxValue).asInstanceOf[Gen[T]]
+    case BooleanType => Gen.oneOf(true, false).asInstanceOf[Gen[T]]
+    case _ => throw new RuntimeException(s"Can't interpret ${t} as non-unit primitive type.")
   }
 
-  def getArrayGen[T](valGen: Gen[T], count: Int)
-                    (implicit evb: Buildable[T,Array[T]], evt: Array[T] => Traversable[T]): Gen[Array[T]] = {
+  val builder: CollBuilder = new CollOverArrayBuilder
+
+  def getArrayGen[T](valGen: Gen[T], count: Int)(implicit t: RType[T]): Gen[Array[T]] = {
     containerOfN[Array, T](count, valGen)
   }
 
-  def rtypeValueGen[T](t: RType[T], conf: GenConfiguration = new GenConfiguration()): Gen[_] = t match {
-    case prim: PrimitiveType[a] => primitiveValueGen(prim)
+  def getCollOverArrayGen[T: RType](valGen: Gen[T], count: Int): Gen[Coll[T]] = {
+    getArrayGen(valGen, count).map(builder.fromArray(_))
+  }
+
+  def getCollReplGen[T: RType](valGen: Gen[T], count: Int): Gen[Coll[T]] = {
+    for { l <- choose(0, count); v <- valGen } yield new CReplColl(v, l)
+  }
+
+  def getCollViewGen[A: RType](valGen: Gen[Coll[A]]): Gen[Coll[A]] = {
+    valGen.map(builder.makeView(_, identity[A]))
+  }
+
+  def getCollViewGen[A, B: RType](valGen: Gen[Coll[A]], f: A => B): Gen[Coll[B]] = {
+    valGen.map(builder.makeView(_, f))
+  }
+
+  def rtypeValueGen[T](conf: GenConfiguration)(implicit t: RType[T]): Gen[T] = t match {
+    case prim: PrimitiveType[a] =>
+      primitiveValueGen(prim)(prim)
     case arrayType: ArrayType[a] =>
-      getArrayGen(rtypeValueGen(arrayType.tA, conf), conf.maxArrayLength)
+      getArrayGen(rtypeValueGen(conf)(arrayType.tA).asInstanceOf[Gen[a]], conf.maxArrayLength)(arrayType.tA)
     case pairType: PairType[a, b] =>
-      for { left <- rtypeValueGen(pairType.tFst); right <- rtypeValueGen(pairType.tSnd) } yield (left, right)
+      for { left <- rtypeValueGen(conf)(pairType.tFst); right <- rtypeValueGen(conf)(pairType.tSnd) }
+        yield (left.asInstanceOf[a], right.asInstanceOf[b])
     case StringType =>
       Gen.asciiPrintableStr
-    case _ => throw new NotImplementedError("Not supported")
+    case collType: CollType[a] => collType.tItem match {
+      case pairType: PairType[fst, snd] =>
+        val tA = pairType.tFst
+        val tB = pairType.tSnd
+        for {
+          left <- getCollOverArrayGen(rtypeValueGen(conf)(tA), conf.maxArrayLength)(tA);
+          right <- getCollOverArrayGen(rtypeValueGen(conf)(tB), conf.maxArrayLength)(tB)
+        } yield new PairOfCols(left, right)
+      case _ => getCollOverArrayGen(rtypeValueGen(conf)(collType.tItem), conf.maxArrayLength)(collType.tItem)
+    }
+    case replCollType: ReplCollType[a] =>
+      getCollReplGen(rtypeValueGen(conf)(replCollType.tItem), conf.maxArrayLength)(replCollType.tItem).asInstanceOf[Gen[T]]
+    case optionType: OptionType[a] =>
+      Gen.option(rtypeValueGen(conf)(optionType.tA))
+    case _ => throw new RuntimeException(s"Can't create generator for ${t}: this type is still not supported.")
   }
 }

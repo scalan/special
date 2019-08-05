@@ -1,6 +1,7 @@
 package scalan
 
 import org.scalacheck.Gen
+import org.scalactic.anyvals.PosInt
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.PropertyChecks
 
@@ -12,10 +13,14 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
   import Gen._
   import RType._
 
-  val typeGenDepth = 10
+  val typeGenDepth = 5
+  val coverageThreshold = 100
+
+  val testConfiguration = new GenConfiguration(maxArrayLength = 10)
+  def extendedValueGen[T](t: RType[T]): Gen[T] = rtypeValueGen(testConfiguration)(t)
 
   property("RType FullTypeGen coverage") {
-    val minSuccess = MinSuccessful(300)
+    val minSuccess = MinSuccessful(PosInt.from(coverageThreshold).get)
 
     val typeCoverageChecker = new FullTypeCoverageChecker()
     forAll(extendedTypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
@@ -26,11 +31,10 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
 
   property("RType generate value by type") {
     import scala.runtime.ScalaRunTime._
-    val minSuccess = MinSuccessful(10)
+    val minSuccess = MinSuccessful(PosInt.from(coverageThreshold).get)
     forAll(extendedTypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
-      println(t)
-      forAll(rtypeValueGen(t)) { value =>
-        RTypeTestUtil.valueMatchesRType(value, t)
+      forAll(extendedValueGen(t)) { value =>
+        RTypeTestUtil.valueMatchesRType(value, t) shouldBe true
       }
     }
   }
