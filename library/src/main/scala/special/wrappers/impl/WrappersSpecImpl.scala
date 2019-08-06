@@ -32,7 +32,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefWrapSpecBase(p: Ref[WrapSpecBase]): WrapSpecBase = {
-    if (p.rhs.isInstanceOf[WrapSpecBase]) p.rhs.asInstanceOf[WrapSpecBase]
+    if (p.node.isInstanceOf[WrapSpecBase]) p.node.asInstanceOf[WrapSpecBase]
     else
       WrapSpecBaseAdapter(p)
   }
@@ -52,7 +52,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     override def toString = "WrapSpecBase"
   }
   implicit def unrefWrapSpecBaseCompanionCtor(p: Ref[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
-    p.rhs.asInstanceOf[WrapSpecBaseCompanionCtor]
+    p.node.asInstanceOf[WrapSpecBaseCompanionCtor]
 
   lazy val RWrapSpecBase: Ref[WrapSpecBaseCompanionCtor] = new WrapSpecBaseCompanionCtor {
     private val thisClass = classOf[WrapSpecBaseCompanion]
@@ -90,7 +90,7 @@ implicit val eB = ifEmpty.elem.eItem
 
   // entityUnref: single unref method for each type family
   implicit def unrefOptionWrapSpec(p: Ref[OptionWrapSpec]): OptionWrapSpec = {
-    if (p.rhs.isInstanceOf[OptionWrapSpec]) p.rhs.asInstanceOf[OptionWrapSpec]
+    if (p.node.isInstanceOf[OptionWrapSpec]) p.node.asInstanceOf[OptionWrapSpec]
     else
       OptionWrapSpecAdapter(p)
   }
@@ -111,7 +111,7 @@ implicit val eB = ifEmpty.elem.eItem
     override def toString = "OptionWrapSpec"
   }
   implicit def unrefOptionWrapSpecCompanionCtor(p: Ref[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
-    p.rhs.asInstanceOf[OptionWrapSpecCompanionCtor]
+    p.node.asInstanceOf[OptionWrapSpecCompanionCtor]
 
   lazy val ROptionWrapSpec: Ref[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor {
     private val thisClass = classOf[OptionWrapSpecCompanion]
@@ -132,7 +132,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefSpecialPredefWrapSpec(p: Ref[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
-    if (p.rhs.isInstanceOf[SpecialPredefWrapSpec]) p.rhs.asInstanceOf[SpecialPredefWrapSpec]
+    if (p.node.isInstanceOf[SpecialPredefWrapSpec]) p.node.asInstanceOf[SpecialPredefWrapSpec]
     else
       SpecialPredefWrapSpecAdapter(p)
   }
@@ -153,7 +153,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     override def toString = "SpecialPredefWrapSpec"
   }
   implicit def unrefSpecialPredefWrapSpecCompanionCtor(p: Ref[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
-    p.rhs.asInstanceOf[SpecialPredefWrapSpecCompanionCtor]
+    p.node.asInstanceOf[SpecialPredefWrapSpecCompanionCtor]
 
   lazy val RSpecialPredefWrapSpec: Ref[SpecialPredefWrapSpecCompanionCtor] = new SpecialPredefWrapSpecCompanionCtor {
     private val thisClass = classOf[SpecialPredefWrapSpecCompanion]
@@ -174,7 +174,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefRTypeWrapSpec(p: Ref[RTypeWrapSpec]): RTypeWrapSpec = {
-    if (p.rhs.isInstanceOf[RTypeWrapSpec]) p.rhs.asInstanceOf[RTypeWrapSpec]
+    if (p.node.isInstanceOf[RTypeWrapSpec]) p.node.asInstanceOf[RTypeWrapSpec]
     else
       RTypeWrapSpecAdapter(p)
   }
@@ -195,7 +195,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
     override def toString = "RTypeWrapSpec"
   }
   implicit def unrefRTypeWrapSpecCompanionCtor(p: Ref[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
-    p.rhs.asInstanceOf[RTypeWrapSpecCompanionCtor]
+    p.node.asInstanceOf[RTypeWrapSpecCompanionCtor]
 
   lazy val RRTypeWrapSpec: Ref[RTypeWrapSpecCompanionCtor] = new RTypeWrapSpecCompanionCtor {
     private val thisClass = classOf[RTypeWrapSpecCompanion]

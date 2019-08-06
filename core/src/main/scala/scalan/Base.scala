@@ -19,7 +19,7 @@ import scala.reflect.runtime.universe._
 import spire.syntax.all.cfor
 
 /**
-  * The Base trait houses common AST nodes. It also manages a list of encountered Definitions which
+  * The Base trait houses common AST nodes. It also manages a list of encountered definitions which
   * allows for common sub-expression elimination (CSE).
   */
 trait Base { scalan: Scalan =>
@@ -49,13 +49,13 @@ trait Base { scalan: Scalan =>
     println(msg)
   }
 
-  /** Helper to type cast symbols. */
+  /** Helper to type cast node references. */
   @inline final def asRep[T](x: Ref[_]): Ref[T] = x.asInstanceOf[Ref[T]]
 
   @inline implicit def liftToRep[A:Elem](x: A): Ref[A] = toRep(x)
 
-  /** Base type for all graph nodes (aka symbol definitions). Each graph node or definition
-    * represent one operation node of the data flow graph.
+  /** Base type for all graph nodes (aka computable value definitions).
+    * Each graph node or definition represent one operation node of the data flow graph.
     */
   trait Def[+T] extends Product {
     private[scalan] var _nodeId: Int = freshId
@@ -67,14 +67,14 @@ trait Base { scalan: Scalan =>
       * Used to provide global Def numbering. */
     @inline def nodeId: Int = _nodeId
 
-    /** Type of a resuting value produced by the operation represented by this definition.
+    /** Type of a resulting value produced by the operation represented by this definition.
       * For example, if this definition represents application of `+: (Int, Int) => Int` operation
       * then the result type is Int and `resultType` should return IntElement. */
     def resultType: Elem[T @uncheckedVariance]
 
     private var _self: Ref[T @uncheckedVariance] = _
 
-    /** Reference to this definition created lazy on demand. */
+    /** Reference to this definition created lazily on demand. */
     def self: Ref[T] = {
       if (_self == null) _self = freshSym(this)
       _self
@@ -310,8 +310,8 @@ trait Base { scalan: Scalan =>
       val eW: Elem[A => B] = funcElement(lA.eW, lB.eW)
       override val sourceType = RType.funcRType(lA.sourceType, lB.sourceType)
       def lift(srcF: SA => SB): Ref[A => B] = FuncConst[SA,SB,A,B](srcF)
-      def unlift(f: Ref[A => B]): SA => SB = f match {
-        case Def(FuncConst(srcF)) => srcF.asInstanceOf[SA => SB]
+      def unlift(f: Ref[A => B]): SA => SB = f.node match {
+        case FuncConst(srcF) => srcF.asInstanceOf[SA => SB]
         case _ => unliftError(f)
       }
     }
@@ -374,22 +374,22 @@ trait Base { scalan: Scalan =>
     /** Unique name that can be used as variable name.*/
     def varName: String
 
-    /** Node of the graph refered by this rep. */
-    def rhs: Def[T]
+    /** Node of the graph refered by this Ref. */
+    def node: Def[T]
 
     /** Most of the references are initialized when created.
       * These methods are used in core to assign new value for the reference.*/
     private[scalan] def assignDef[B >: T](d: Def[B]): Unit
-    private[scalan] def assignDefFrom[B >: T](sym: Ref[B]): Unit
+    private[scalan] def assignDefFrom[B >: T](ref: Ref[B]): Unit
 
     /** Whether the underlying node is Placeholder. */
-    @inline final def isPlaceholder: Boolean = rhs.isInstanceOf[Placeholder[_]]
+    @inline final def isPlaceholder: Boolean = node.isInstanceOf[Placeholder[_]]
     /** Whether the underlying node is Variable. */
-    @inline final def isVar: Boolean = rhs.isInstanceOf[Variable[_]]
+    @inline final def isVar: Boolean = node.isInstanceOf[Variable[_]]
     /** Whether the underlying node is Const. */
-    @inline final def isConst: Boolean = rhs.isInstanceOf[Const[_]]
+    @inline final def isConst: Boolean = node.isInstanceOf[Const[_]]
     /** Whether the underlying node is Lambda. */
-    @inline final def isLambda: Boolean = rhs.isInstanceOf[Lambda[_,_]]
+    @inline final def isLambda: Boolean = node.isInstanceOf[Lambda[_,_]]
     /** Is this reference of Companion type */
     @inline final def isCompanionType: Boolean = elem.isInstanceOf[CompanionElem[_]]
 
@@ -404,7 +404,9 @@ trait Base { scalan: Scalan =>
     def show(config: GraphVizConfig): Unit = showGraphs(this)(config)
   }
 
-  /** Shortcut sinonim used as untyped reference to graph nodes (definitions). */
+  /** Untyped shortcut sinonim of Ref, which is used as untyped reference to graph nodes (definitions).
+    * Following a tradition in compiler engineering we call references to definitions as symbols.
+    */
   type Sym = Ref[_]
 
   /** Base class for most predefined operations. */
@@ -437,15 +439,16 @@ trait Base { scalan: Scalan =>
   @inline def placeholder[T](implicit eT: LElem[T]): Ref[T] = freshSym[T](Placeholder[T](eT))
 
   /** Base class for Ref to Ref transformations.
-    * Each transformer keeps a mapping data between original nodes and transformed nodes.
+    * Each transformer keeps a mapping data between references to original nodes
+    * and references to the corresponding transformed nodes.
     */
   abstract class Transformer {
     /** Apply transformation. */
     def apply[A](x: Ref[A]): Ref[A]
     /** Whether this transformer is defined for the given node. */
-    def isDefinedAt(x: Ref[_]): Boolean
+    def isDefinedAt(x: Sym): Boolean
     /** Set of nodes where this transformer is defined. */
-    def domain: Set[Ref[_]]
+    def domain: Set[Sym]
     /** Transform a sequence of nodes into new sequence of nodes. */
     def apply[A](xs: Seq[Ref[A]]): Seq[Ref[A]] = {
       val len = xs.length
@@ -553,7 +556,7 @@ trait Base { scalan: Scalan =>
       res
     case opt: Option[_] =>
       if (opt.isEmpty) None else Some(transformProductParam(opt.get, t))
-    case d: Def[_] => d.mirror(t).rhs
+    case d: Def[_] => d.mirror(t).node
     case x => x
   }
 
@@ -572,7 +575,8 @@ trait Base { scalan: Scalan =>
     * such that `obj equals n`, then the value of `n.self` is returned, i.e.
     * the new node `obj` is collapsed with already existing one.
     * This has an effect of Common Subexpression Elimination (CSE) when
-    * an expression tree is transformed to the graph.
+    * an expression tree is transformed to the graph and identical subtrees
+    * are collapsed.
     * After a reference to the node is obtained, global rewriting rules are
     * examined and the reference may be replaced with a new one.
     */
@@ -581,7 +585,7 @@ trait Base { scalan: Scalan =>
   }
 
   /** Lifting of data values to IR nodes. */
-  def toRep[A](x: A)(implicit eA: Elem[A]):Ref[A] = eA match {
+  def toRep[A](x: A)(implicit eA: Elem[A]): Ref[A] = eA match {
     case _: BaseElem[_] => Const(x)
     case _: FuncElem[_, _] => Const(x)
     case pe: PairElem[a, b] =>
@@ -598,12 +602,12 @@ trait Base { scalan: Scalan =>
   }
 
   /** Extract data value from Const node or throw an exception. */
-  @inline final def valueFromRep[A](x: Ref[A]): A = x.rhs match {
+  @inline final def valueFromRep[A](x: Ref[A]): A = x.node match {
     case Const(x) => x
     case _ => delayInvoke
   }
 
-  def def_unapply[T](e: Ref[T]): Nullable[Def[T]] = new Nullable(e.rhs)
+  def def_unapply[T](e: Ref[T]): Nullable[Def[T]] = new Nullable(e.node)
 
   object ExpWithElem {
     def unapply[T](s: Ref[T]): Nullable[(Ref[T],Elem[T])] = Nullable((s, s.elem))
@@ -616,7 +620,7 @@ trait Base { scalan: Scalan =>
     * */
   class SingleRef[+T] private[Base](private var _rhs: Def[T @uncheckedVariance]) extends Ref[T] {
     override def elem: Elem[T @uncheckedVariance] = _rhs.resultType
-    override def rhs: Def[T] = _rhs
+    override def node: Def[T] = _rhs
 
     private[scalan] def assignDefInternal[B >: T](d: Def[B]): Unit = {
       assert(_rhs.isInstanceOf[Placeholder[_]])
@@ -635,7 +639,7 @@ trait Base { scalan: Scalan =>
     }
 
     private[scalan] def assignDefFrom[B >: T](sym: Ref[B]): Unit = {
-      assignDefInternal(sym.rhs)
+      assignDefInternal(sym.node)
     }
 
     private var _adapter: T @uncheckedVariance = _
@@ -661,7 +665,7 @@ trait Base { scalan: Scalan =>
     override def toStringWithDefinition = varNameWithType + s" = ${_rhs}"
 
     override def equals(obj: scala.Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj match {
-      case other: SingleRef[_] => _rhs._nodeId == other.rhs._nodeId
+      case other: SingleRef[_] => _rhs._nodeId == other.node._nodeId
       case _ => false
     })
 
@@ -695,7 +699,7 @@ trait Base { scalan: Scalan =>
         newSym
       } else {
         // don't create new symbol, but check invariant condition on existing one
-        assert(sym.rhs.nodeId == id, s"Each symbol should refer to correct node, but was $sym -> ${sym.rhs}")
+        assert(sym.node.nodeId == id, s"Each symbol should refer to correct node, but was $sym -> ${sym.node}")
         sym.asInstanceOf[Ref[T]]
       }
     } else {
@@ -772,8 +776,8 @@ trait Base { scalan: Scalan =>
     createDefinition(thunkStack.top, s, d)
 
   protected def createDefinition[T](optScope: Nullable[ThunkScope], s: Ref[T], d: Def[T]): Ref[T] = {
-    assert(_symbolTable(d.nodeId).rhs.nodeId == d.nodeId)
-    assert(s.rhs eq d, s"Inconsistent Sym -> Def pair $s -> $d")
+    assert(_symbolTable(d.nodeId).node.nodeId == d.nodeId)
+    assert(s.node eq d, s"Inconsistent Sym -> Def pair $s -> $d")
     optScope match {
       case Nullable(scope) =>
         scope += s
@@ -796,10 +800,10 @@ trait Base { scalan: Scalan =>
     var currDef = d
     do {
       currSym = res
-      val ns = rewriteDef(currSym.rhs).asInstanceOf[Ref[T]]
+      val ns = rewriteDef(currSym.node).asInstanceOf[Ref[T]]
       if (null == ns) return currSym
       res = ns
-      currDef = ns.rhs
+      currDef = ns.node
     } while (res != currSym)
     res
   }

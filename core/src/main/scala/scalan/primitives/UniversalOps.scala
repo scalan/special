@@ -48,14 +48,14 @@ trait UniversalOps extends Base { scalan: Scalan =>
   }
 
   def opCost(costedValue: Sym, args: Seq[Ref[Int]], opCost: Ref[Int]): Ref[Int] = {
-    val id = costedValue.rhs.nodeId
+    val id = costedValue.node.nodeId
     val lamVar = lambdaStack.head.x
     OpCost(lamVar, id, args, opCost)
   }
 
   def assertValueIdForOpCost[A,B](value: Ref[A], cost: Ref[B]): Unit = {
-    assert(if (cost.rhs.isInstanceOf[OpCost]) value.rhs.nodeId == cost.rhs.asInstanceOf[OpCost].costedValueId else true,
-      s"${value.rhs} value node id (${value.rhs.nodeId}) is not equal to OpCost.costedValueId (${cost.rhs.asInstanceOf[OpCost].costedValueId})")
+    assert(if (cost.node.isInstanceOf[OpCost]) value.node.nodeId == cost.node.asInstanceOf[OpCost].costedValueId else true,
+      s"${value.node} value node id (${value.node.nodeId}) is not equal to OpCost.costedValueId (${cost.node.asInstanceOf[OpCost].costedValueId})")
   }
 
   case class Downcast[From, To](input: Ref[From], eTo: Elem[To]) extends BaseDef[To]()(eTo) {

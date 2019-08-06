@@ -68,7 +68,7 @@ trait Library extends Scalan
   val longPlusMonoidValue = new special.collection.MonoidBuilderInst().longPlusMonoid
 
   override def rewriteDef[T](d: Def[T]) = d match {
-    case CM.length(ys) => ys.rhs match {
+    case CM.length(ys) => ys.node match {
       // Rule: xs.map(f).length  ==> xs.length
       case CM.map(xs, _) =>
         xs.length
@@ -88,9 +88,9 @@ trait Library extends Scalan
     case CM.zip(CBM.replicate(b1, l1, v1), CBM.replicate(b2, l2, v2)) if b1 == b2 && l1 == l2 =>
       b1.replicate(l1, Pair(v1, v2))
 
-    case CM.map(xs, _f) => _f.rhs match {
+    case CM.map(xs, _f) => _f.node match {
       case IdentityLambda() => xs
-      case _ => xs.rhs match {
+      case _ => xs.node match {
         // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
         case CBM.replicate(b, l, v: Ref[a]) =>
           val f = asRep[a => Any](_f)
@@ -99,15 +99,15 @@ trait Library extends Scalan
       }
     }
 
-    case CM.sum(xs, m) => m.rhs match {
-      case _: IntPlusMonoid => xs.rhs match {
+    case CM.sum(xs, m) => m.node match {
+      case _: IntPlusMonoid => xs.node match {
         case CollConst(coll, lA) if lA.eW == IntElement =>
           coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
         case CBM.replicate(_, n, x: Ref[Int] @unchecked) =>
           x * n
         case _ => super.rewriteDef(d)
       }
-      case _: LongPlusMonoid => xs.rhs match {
+      case _: LongPlusMonoid => xs.node match {
         case CollConst(coll, lA) if lA.eW == LongElement =>
           coll.asInstanceOf[SColl[Long]].sum(longPlusMonoidValue)
         case CBM.replicate(_, n, x: Ref[Long] @unchecked) =>
@@ -120,7 +120,7 @@ trait Library extends Scalan
     // Rule: opt.fold(None, x => Some(x)) ==> opt
     case WOptionM.fold(opt, Def(ThunkDef(SPCM.none(_), _)), Def(Lambda(_, _, x, SPCM.some(y)))) if x == y => opt
 
-    case WOptionM.getOrElse(opt, _) => opt.rhs match {
+    case WOptionM.getOrElse(opt, _) => opt.node match {
       // Rule: Some(x).getOrElse(_) ==> x
       case SPCM.some(x) => x
       case WOptionConst(Some(x), lA) => lA.lift(x)

@@ -11,7 +11,7 @@ trait SymBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
   val ctx = new Ctx
   import ctx._
   val syms = arrays.map { case (arr, n) => arr.map(_ => placeholder[Int]) }
-  val symIds = syms.map { case arr => arr.map(s => s.rhs.nodeId) }
+  val symIds = syms.map { case arr => arr.map(s => s.node.nodeId) }
 
   performance of "Set[Sym] vs Set[Int]" in {
     measure method "of add(syms(i))" in {
@@ -26,7 +26,7 @@ trait SymBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
       using(syms) in { syms =>
         val set = DSet.ofSize[Int](0)
         cfor(0)(_ < syms.length, _ + 1) { i =>
-          set += syms(i).rhs.nodeId
+          set += syms(i).node.nodeId
         }
       }
     }
@@ -53,7 +53,7 @@ trait SymBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
       using(syms) in { syms =>
         val m = DMap.ofSize[Int, Object](0)
         cfor(0)(_ < syms.length, _ + 1) { i =>
-          m.update(syms(i).rhs.nodeId, obj)
+          m.update(syms(i).node.nodeId, obj)
         }
       }
     }

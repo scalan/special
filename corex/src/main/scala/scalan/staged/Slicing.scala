@@ -19,7 +19,7 @@ trait Slicing extends ScalanEx {
     override def backwardAnalyzeRec(g: AstGraph): Unit = {
       val revSchedule = g.schedule.reverseIterator
       for (sym <- revSchedule) sym match { case s: Ref[t] =>
-        val d = s.rhs
+        val d = s.node
         d match {
           case _: AstGraph =>
             // skip non root subgraphs as they are traversed recursively from rules in getInboundMarkings
@@ -65,7 +65,7 @@ trait Slicing extends ScalanEx {
     }
 
     def getInboundMarkings[T](thisSym: Ref[T], outMark: SliceMarking[T]): MarkedSyms = {
-      val d = thisSym.rhs
+      val d = thisSym.node
       d match {
         case SimpleStruct(tag, fields) =>
           outMark match {
@@ -105,7 +105,7 @@ trait Slicing extends ScalanEx {
         case _ if outMark.isEmpty =>
           Seq()
         case _ =>
-          val deps = thisSym.rhs.deps
+          val deps = thisSym.node.deps
           val res = deps.map { case s: Ref[a] => (s, AllMarking(s.elem)) }
           res
       }
@@ -739,7 +739,7 @@ trait Slicing extends ScalanEx {
   }
 
   def getAllSliced[A,B](g: AstGraph): Seq[Sym] = {
-    g.flatSchedule.filter { sym => sym.rhs.isInstanceOf[Sliced[_,_]] }
+    g.flatSchedule.filter { sym => sym.node.isInstanceOf[Sliced[_,_]] }
   }
 
   type SliceInfo[A,B] = (Ref[B], SliceMarking[A])

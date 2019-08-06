@@ -123,7 +123,7 @@ object MetaTest extends EntityObject("MetaTest") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefMetaTest[T](p: Ref[MetaTest[T]]): MetaTest[T] = {
-    if (p.rhs.isInstanceOf[MetaTest[T]@unchecked]) p.rhs.asInstanceOf[MetaTest[T]]
+    if (p.node.isInstanceOf[MetaTest[T]@unchecked]) p.node.asInstanceOf[MetaTest[T]]
     else
       MetaTestAdapter(p)
   }
@@ -167,7 +167,7 @@ object MetaTest extends EntityObject("MetaTest") {
     override def toString = "MetaTest"
   }
   implicit def unrefMetaTestCompanionCtor(p: Ref[MetaTestCompanionCtor]): MetaTestCompanionCtor =
-    p.rhs.asInstanceOf[MetaTestCompanionCtor]
+    p.node.asInstanceOf[MetaTestCompanionCtor]
 
   lazy val RMetaTest: Ref[MetaTestCompanionCtor] = new MetaTestCompanionCtor {
     private val thisClass = classOf[MetaTestCompanion]
@@ -181,7 +181,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Ref[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MetaTest[T]] forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MetaTest[T]] forSome {type T}] = unapply(exp.node)
     }
 
     object give {
@@ -191,7 +191,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Ref[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MetaTest[T]] forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MetaTest[T]] forSome {type T}] = unapply(exp.node)
     }
 
     object size {
@@ -201,7 +201,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[Ref[MetaTest[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MetaTest[T]] forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MetaTest[T]] forSome {type T}] = unapply(exp.node)
     }
 
     object fromItems {
@@ -211,7 +211,7 @@ object MetaTest extends EntityObject("MetaTest") {
           Nullable(res).asInstanceOf[Nullable[(Ref[MetaTest[T]], Seq[Ref[B]], Elem[B]) forSome {type T; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[MetaTest[T]], Seq[Ref[B]], Elem[B]) forSome {type T; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[MetaTest[T]], Seq[Ref[B]], Elem[B]) forSome {type T; type B}] = unapply(exp.node)
     }
   }
 
@@ -340,7 +340,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
 
   // entityUnref: single unref method for each type family
   implicit def unrefMetaPair[A, B](p: Ref[MetaPair[A, B]]): MetaPair[A, B] = {
-    if (p.rhs.isInstanceOf[MetaPair[A, B]@unchecked]) p.rhs.asInstanceOf[MetaPair[A, B]]
+    if (p.node.isInstanceOf[MetaPair[A, B]@unchecked]) p.node.asInstanceOf[MetaPair[A, B]]
     else
       MetaPairAdapter(p)
   }
@@ -374,7 +374,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     override def toString = "MetaPair"
   }
   implicit def unrefMetaPairCompanionCtor(p: Ref[MetaPairCompanionCtor]): MetaPairCompanionCtor =
-    p.rhs.asInstanceOf[MetaPairCompanionCtor]
+    p.node.asInstanceOf[MetaPairCompanionCtor]
 
   lazy val RMetaPair: Ref[MetaPairCompanionCtor] = new MetaPairCompanionCtor {
   }
@@ -387,7 +387,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.node)
     }
 
     object values {
@@ -397,7 +397,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.node)
     }
 
     object give {
@@ -407,7 +407,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
           Nullable(res).asInstanceOf[Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MetaPair[A, B]] forSome {type A; type B}] = unapply(exp.node)
     }
   }
 } // of object MetaPair
@@ -465,8 +465,8 @@ object MT0 extends EntityObject("MT0") {
   lazy val MT0Ref: Ref[MT0CompanionCtor] = new MT0CompanionCtor
   lazy val RMT0: MT0CompanionCtor = unrefMT0Companion(MT0Ref)
   implicit def unrefMT0Companion(p: Ref[MT0CompanionCtor]): MT0CompanionCtor = {
-    if (p.rhs.isInstanceOf[MT0CompanionCtor])
-      p.rhs.asInstanceOf[MT0CompanionCtor]
+    if (p.node.isInstanceOf[MT0CompanionCtor])
+      p.node.asInstanceOf[MT0CompanionCtor]
     else
       unrefDelegate[MT0CompanionCtor](p)
   }
@@ -474,8 +474,8 @@ object MT0 extends EntityObject("MT0") {
   implicit case object MT0CompanionElem extends CompanionElem[MT0CompanionCtor]
 
   implicit def unrefMT0(p: Ref[MT0]): MT0 = {
-    if (p.rhs.isInstanceOf[MT0])
-      p.rhs.asInstanceOf[MT0]
+    if (p.node.isInstanceOf[MT0])
+      p.node.asInstanceOf[MT0]
     else
       unrefDelegate[MT0](p)
   }
@@ -509,7 +509,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Ref[MT0]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MT0]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MT0]] = unapply(exp.node)
     }
 
     object give {
@@ -519,7 +519,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Ref[MT0]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MT0]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MT0]] = unapply(exp.node)
     }
 
     object eT {
@@ -529,7 +529,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[Ref[MT0]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MT0]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MT0]] = unapply(exp.node)
     }
 
     object fromItems {
@@ -539,7 +539,7 @@ object MT0 extends EntityObject("MT0") {
           Nullable(res).asInstanceOf[Nullable[(Ref[MT0], Seq[Ref[B]], Elem[B]) forSome {type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[MT0], Seq[Ref[B]], Elem[B]) forSome {type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[MT0], Seq[Ref[B]], Elem[B]) forSome {type B}] = unapply(exp.node)
     }
   }
 
@@ -609,8 +609,8 @@ object MT1 extends EntityObject("MT1") {
   lazy val MT1Ref: Ref[MT1CompanionCtor] = new MT1CompanionCtor
   lazy val RMT1: MT1CompanionCtor = unrefMT1Companion(MT1Ref)
   implicit def unrefMT1Companion(p: Ref[MT1CompanionCtor]): MT1CompanionCtor = {
-    if (p.rhs.isInstanceOf[MT1CompanionCtor])
-      p.rhs.asInstanceOf[MT1CompanionCtor]
+    if (p.node.isInstanceOf[MT1CompanionCtor])
+      p.node.asInstanceOf[MT1CompanionCtor]
     else
       unrefDelegate[MT1CompanionCtor](p)
   }
@@ -618,8 +618,8 @@ object MT1 extends EntityObject("MT1") {
   implicit case object MT1CompanionElem extends CompanionElem[MT1CompanionCtor]
 
   implicit def unrefMT1[T](p: Ref[MT1[T]]): MT1[T] = {
-    if (p.rhs.isInstanceOf[MT1[T]@unchecked])
-      p.rhs.asInstanceOf[MT1[T]]
+    if (p.node.isInstanceOf[MT1[T]@unchecked])
+      p.node.asInstanceOf[MT1[T]]
     else
       unrefDelegate[MT1[T]](p)
   }
@@ -654,7 +654,7 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[Ref[MT1[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MT1[T]] forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MT1[T]] forSome {type T}] = unapply(exp.node)
     }
 
     object give {
@@ -664,7 +664,7 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[Ref[MT1[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MT1[T]] forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MT1[T]] forSome {type T}] = unapply(exp.node)
     }
 
     object fromItems {
@@ -674,7 +674,7 @@ object MT1 extends EntityObject("MT1") {
           Nullable(res).asInstanceOf[Nullable[(Ref[MT1[T]], Seq[Ref[B]], Elem[B]) forSome {type T; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[MT1[T]], Seq[Ref[B]], Elem[B]) forSome {type T; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[MT1[T]], Seq[Ref[B]], Elem[B]) forSome {type T; type B}] = unapply(exp.node)
     }
   }
 } // of object MT1
@@ -744,8 +744,8 @@ implicit val eB = p._2.elem
   lazy val MT2Ref: Ref[MT2CompanionCtor] = new MT2CompanionCtor
   lazy val RMT2: MT2CompanionCtor = unrefMT2Companion(MT2Ref)
   implicit def unrefMT2Companion(p: Ref[MT2CompanionCtor]): MT2CompanionCtor = {
-    if (p.rhs.isInstanceOf[MT2CompanionCtor])
-      p.rhs.asInstanceOf[MT2CompanionCtor]
+    if (p.node.isInstanceOf[MT2CompanionCtor])
+      p.node.asInstanceOf[MT2CompanionCtor]
     else
       unrefDelegate[MT2CompanionCtor](p)
   }
@@ -753,8 +753,8 @@ implicit val eB = p._2.elem
   implicit case object MT2CompanionElem extends CompanionElem[MT2CompanionCtor]
 
   implicit def unrefMT2[A, B](p: Ref[MT2[A, B]]): MT2[A, B] = {
-    if (p.rhs.isInstanceOf[MT2[A, B]@unchecked])
-      p.rhs.asInstanceOf[MT2[A, B]]
+    if (p.node.isInstanceOf[MT2[A, B]@unchecked])
+      p.node.asInstanceOf[MT2[A, B]]
     else
       unrefDelegate[MT2[A, B]](p)
   }
@@ -790,7 +790,7 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[Ref[MT2[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MT2[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MT2[A, B]] forSome {type A; type B}] = unapply(exp.node)
     }
 
     object give {
@@ -800,7 +800,7 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[Ref[MT2[A, B]] forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MT2[A, B]] forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MT2[A, B]] forSome {type A; type B}] = unapply(exp.node)
     }
 
     object fromItems {
@@ -810,7 +810,7 @@ implicit val eB = p.values.elem
           Nullable(res).asInstanceOf[Nullable[(Ref[MT2[A, B]], Seq[Ref[C]], Elem[C]) forSome {type A; type B; type C}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[MT2[A, B]], Seq[Ref[C]], Elem[C]) forSome {type A; type B; type C}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[MT2[A, B]], Seq[Ref[C]], Elem[C]) forSome {type A; type B; type C}] = unapply(exp.node)
     }
   }
 } // of object MT2

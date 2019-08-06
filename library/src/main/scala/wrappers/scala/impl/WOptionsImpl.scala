@@ -190,7 +190,7 @@ object WOption extends EntityObject("WOption") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefWOption[A](p: Ref[WOption[A]]): WOption[A] = {
-    if (p.rhs.isInstanceOf[WOption[A]@unchecked]) p.rhs.asInstanceOf[WOption[A]]
+    if (p.node.isInstanceOf[WOption[A]@unchecked]) p.node.asInstanceOf[WOption[A]]
     else
       WOptionAdapter(p)
   }
@@ -240,7 +240,7 @@ object WOption extends EntityObject("WOption") {
     override def toString = "WOption"
   }
   implicit def unrefWOptionCompanionCtor(p: Ref[WOptionCompanionCtor]): WOptionCompanionCtor =
-    p.rhs.asInstanceOf[WOptionCompanionCtor]
+    p.node.asInstanceOf[WOptionCompanionCtor]
 
   lazy val RWOption: Ref[WOptionCompanionCtor] = new WOptionCompanionCtor {
     private val thisClass = classOf[WOptionCompanion]
@@ -256,7 +256,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Ref[WOption[A]], Ref[Thunk[B]], Ref[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[Thunk[B]], Ref[A => B]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[Thunk[B]], Ref[A => B]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object isEmpty {
@@ -266,7 +266,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[Ref[WOption[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[WOption[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[WOption[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object isDefined {
@@ -276,7 +276,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[Ref[WOption[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[WOption[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[WOption[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object filter {
@@ -286,7 +286,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Ref[WOption[A]], Ref[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.node)
     }
 
     object flatMap {
@@ -296,7 +296,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Ref[WOption[A]], Ref[A => WOption[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A => WOption[B]]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A => WOption[B]]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object map {
@@ -306,7 +306,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Ref[WOption[A]], Ref[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A => B]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A => B]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object getOrElse {
@@ -316,7 +316,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[(Ref[WOption[A]], Ref[Thunk[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[Thunk[B]]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[Thunk[B]]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object get {
@@ -326,7 +326,7 @@ object WOption extends EntityObject("WOption") {
           Nullable(res).asInstanceOf[Nullable[Ref[WOption[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[WOption[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[WOption[A]] forSome {type A}] = unapply(exp.node)
     }
   }
 

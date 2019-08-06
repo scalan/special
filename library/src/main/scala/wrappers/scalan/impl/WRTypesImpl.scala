@@ -85,7 +85,7 @@ object WRType extends EntityObject("WRType") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefWRType[A](p: Ref[WRType[A]]): WRType[A] = {
-    if (p.rhs.isInstanceOf[WRType[A]@unchecked]) p.rhs.asInstanceOf[WRType[A]]
+    if (p.node.isInstanceOf[WRType[A]@unchecked]) p.node.asInstanceOf[WRType[A]]
     else
       WRTypeAdapter(p)
   }
@@ -117,7 +117,7 @@ object WRType extends EntityObject("WRType") {
     override def toString = "WRType"
   }
   implicit def unrefWRTypeCompanionCtor(p: Ref[WRTypeCompanionCtor]): WRTypeCompanionCtor =
-    p.rhs.asInstanceOf[WRTypeCompanionCtor]
+    p.node.asInstanceOf[WRTypeCompanionCtor]
 
   lazy val RWRType: Ref[WRTypeCompanionCtor] = new WRTypeCompanionCtor {
     private val thisClass = classOf[WRTypeCompanion]
@@ -131,7 +131,7 @@ object WRType extends EntityObject("WRType") {
           Nullable(res).asInstanceOf[Nullable[Ref[WRType[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[WRType[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[WRType[A]] forSome {type A}] = unapply(exp.node)
     }
   }
 

@@ -129,7 +129,7 @@ object Segment extends EntityObject("Segment") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefSegment(p: Ref[Segment]): Segment = {
-    if (p.rhs.isInstanceOf[Segment]) p.rhs.asInstanceOf[Segment]
+    if (p.node.isInstanceOf[Segment]) p.node.asInstanceOf[Segment]
     else
       SegmentAdapter(p)
   }
@@ -169,7 +169,7 @@ object Segment extends EntityObject("Segment") {
     override def toString = "Segment"
   }
   implicit def unrefSegmentCompanionCtor(p: Ref[SegmentCompanionCtor]): SegmentCompanionCtor =
-    p.rhs.asInstanceOf[SegmentCompanionCtor]
+    p.node.asInstanceOf[SegmentCompanionCtor]
 
   lazy val RSegment: Ref[SegmentCompanionCtor] = new SegmentCompanionCtor {
     private val thisClass = classOf[SegmentCompanion]
@@ -183,7 +183,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[Ref[Segment]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.node)
     }
 
     object length {
@@ -193,7 +193,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[Ref[Segment]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.node)
     }
 
     object end {
@@ -203,7 +203,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[Ref[Segment]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.node)
     }
 
     object shift {
@@ -213,7 +213,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Segment], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Segment], Ref[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Segment], Ref[Int])] = unapply(exp.node)
     }
 
     object attach {
@@ -223,7 +223,7 @@ object Segment extends EntityObject("Segment") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Segment], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Segment], Ref[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Segment], Ref[Segment])] = unapply(exp.node)
     }
   }
 
@@ -296,8 +296,8 @@ object Interval extends EntityObject("Interval") {
   lazy val IntervalRef: Ref[IntervalCompanionCtor] = new IntervalCompanionCtor
   lazy val RInterval: IntervalCompanionCtor = unrefIntervalCompanion(IntervalRef)
   implicit def unrefIntervalCompanion(p: Ref[IntervalCompanionCtor]): IntervalCompanionCtor = {
-    if (p.rhs.isInstanceOf[IntervalCompanionCtor])
-      p.rhs.asInstanceOf[IntervalCompanionCtor]
+    if (p.node.isInstanceOf[IntervalCompanionCtor])
+      p.node.asInstanceOf[IntervalCompanionCtor]
     else
       unrefDelegate[IntervalCompanionCtor](p)
   }
@@ -305,8 +305,8 @@ object Interval extends EntityObject("Interval") {
   implicit case object IntervalCompanionElem extends CompanionElem[IntervalCompanionCtor]
 
   implicit def unrefInterval(p: Ref[Interval]): Interval = {
-    if (p.rhs.isInstanceOf[Interval])
-      p.rhs.asInstanceOf[Interval]
+    if (p.node.isInstanceOf[Interval])
+      p.node.asInstanceOf[Interval]
     else
       unrefDelegate[Interval](p)
   }
@@ -340,7 +340,7 @@ object Interval extends EntityObject("Interval") {
           Nullable(res).asInstanceOf[Nullable[Ref[Interval]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Interval]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Interval]] = unapply(exp.node)
     }
 
     object shift {
@@ -350,7 +350,7 @@ object Interval extends EntityObject("Interval") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Interval], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Interval], Ref[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Interval], Ref[Int])] = unapply(exp.node)
     }
 
     object attach {
@@ -360,7 +360,7 @@ object Interval extends EntityObject("Interval") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Interval], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Interval], Ref[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Interval], Ref[Segment])] = unapply(exp.node)
     }
   }
 
@@ -425,8 +425,8 @@ object Slice extends EntityObject("Slice") {
   lazy val SliceRef: Ref[SliceCompanionCtor] = new SliceCompanionCtor
   lazy val RSlice: SliceCompanionCtor = unrefSliceCompanion(SliceRef)
   implicit def unrefSliceCompanion(p: Ref[SliceCompanionCtor]): SliceCompanionCtor = {
-    if (p.rhs.isInstanceOf[SliceCompanionCtor])
-      p.rhs.asInstanceOf[SliceCompanionCtor]
+    if (p.node.isInstanceOf[SliceCompanionCtor])
+      p.node.asInstanceOf[SliceCompanionCtor]
     else
       unrefDelegate[SliceCompanionCtor](p)
   }
@@ -434,8 +434,8 @@ object Slice extends EntityObject("Slice") {
   implicit case object SliceCompanionElem extends CompanionElem[SliceCompanionCtor]
 
   implicit def unrefSlice(p: Ref[Slice]): Slice = {
-    if (p.rhs.isInstanceOf[Slice])
-      p.rhs.asInstanceOf[Slice]
+    if (p.node.isInstanceOf[Slice])
+      p.node.asInstanceOf[Slice]
     else
       unrefDelegate[Slice](p)
   }
@@ -469,7 +469,7 @@ object Slice extends EntityObject("Slice") {
           Nullable(res).asInstanceOf[Nullable[Ref[Slice]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Slice]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Slice]] = unapply(exp.node)
     }
 
     object shift {
@@ -479,7 +479,7 @@ object Slice extends EntityObject("Slice") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Slice], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Slice], Ref[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Slice], Ref[Int])] = unapply(exp.node)
     }
 
     object attach {
@@ -489,7 +489,7 @@ object Slice extends EntityObject("Slice") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Slice], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Slice], Ref[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Slice], Ref[Segment])] = unapply(exp.node)
     }
   }
 
@@ -555,8 +555,8 @@ object Centered extends EntityObject("Centered") {
   lazy val CenteredRef: Ref[CenteredCompanionCtor] = new CenteredCompanionCtor
   lazy val RCentered: CenteredCompanionCtor = unrefCenteredCompanion(CenteredRef)
   implicit def unrefCenteredCompanion(p: Ref[CenteredCompanionCtor]): CenteredCompanionCtor = {
-    if (p.rhs.isInstanceOf[CenteredCompanionCtor])
-      p.rhs.asInstanceOf[CenteredCompanionCtor]
+    if (p.node.isInstanceOf[CenteredCompanionCtor])
+      p.node.asInstanceOf[CenteredCompanionCtor]
     else
       unrefDelegate[CenteredCompanionCtor](p)
   }
@@ -564,8 +564,8 @@ object Centered extends EntityObject("Centered") {
   implicit case object CenteredCompanionElem extends CompanionElem[CenteredCompanionCtor]
 
   implicit def unrefCentered(p: Ref[Centered]): Centered = {
-    if (p.rhs.isInstanceOf[Centered])
-      p.rhs.asInstanceOf[Centered]
+    if (p.node.isInstanceOf[Centered])
+      p.node.asInstanceOf[Centered]
     else
       unrefDelegate[Centered](p)
   }
@@ -599,7 +599,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[Ref[Centered]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.node)
     }
 
     object end {
@@ -609,7 +609,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[Ref[Centered]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.node)
     }
 
     object length {
@@ -619,7 +619,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[Ref[Centered]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.node)
     }
 
     object shift {
@@ -629,7 +629,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Centered], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Centered], Ref[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Centered], Ref[Int])] = unapply(exp.node)
     }
 
     object attach {
@@ -639,7 +639,7 @@ object Centered extends EntityObject("Centered") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Centered], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Centered], Ref[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Centered], Ref[Segment])] = unapply(exp.node)
     }
   }
 

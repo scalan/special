@@ -114,7 +114,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
 
   def canBeInvoked(mc: MethodCall) = {
     val okFlags = !(mc.neverInvoke && !mc.isAdapterCall)
-    val should = shouldInvoke(mc.receiver.rhs, mc.method, mc.args.toArray)
+    val should = shouldInvoke(mc.receiver.node, mc.method, mc.args.toArray)
     okFlags && should
   }
 
@@ -153,7 +153,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
   }
 
   def unrefDelegate[T <: AnyRef](x: Ref[T])(implicit ct: ClassTag[T]): T = {
-    val d = x.rhs
+    val d = x.node
     if (d.isInstanceOf[Const[_]])
       d.asInstanceOf[Const[T]@unchecked].x
     else
@@ -204,7 +204,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
         case e: Exception => onInvokeException(baseCause(e))
       }
     }
-    val d = receiver.rhs
+    val d = receiver.node
     def findMethodLoop(m: Method): Option[Method] =
       if (shouldInvoke(d, m, args))
         Some(m)

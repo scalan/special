@@ -583,7 +583,7 @@ implicit val eV = proj.elem.eRange
   implicit def unrefColl[A](p: Ref[Coll[A]]): Coll[A] = {
     val sym = p.asInstanceOf[SingleRef[Coll[A]]]
     sym.getAdapter(
-      p.rhs.isInstanceOf[Coll[A]@unchecked],
+      p.node.isInstanceOf[Coll[A]@unchecked],
       createCollAdapter.asInstanceOf[Ref[Coll[A]] => Coll[A]])
   }
 
@@ -632,7 +632,7 @@ implicit val eV = proj.elem.eRange
     override def toString = "Coll"
   }
   implicit def unrefCollCompanionCtor(p: Ref[CollCompanionCtor]): CollCompanionCtor =
-    p.rhs.asInstanceOf[CollCompanionCtor]
+    p.node.asInstanceOf[CollCompanionCtor]
 
   lazy val RColl: Ref[CollCompanionCtor] = new CollCompanionCtor {
     private val thisClass = classOf[CollCompanion]
@@ -648,7 +648,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object length {
@@ -658,7 +658,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object size {
@@ -668,7 +668,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object isEmpty {
@@ -678,7 +678,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object nonEmpty {
@@ -688,7 +688,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object apply {
@@ -698,7 +698,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object isDefinedAt {
@@ -708,7 +708,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object getOrElse {
@@ -718,7 +718,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Int], Ref[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[A]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[A]) forSome {type A}] = unapply(exp.node)
     }
 
     object map {
@@ -728,7 +728,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => B]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => B]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object zip {
@@ -738,7 +738,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Coll[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[B]]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[B]]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object exists {
@@ -748,7 +748,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.node)
     }
 
     object forall {
@@ -758,7 +758,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.node)
     }
 
     object filter {
@@ -768,7 +768,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.node)
     }
 
     object foldLeft {
@@ -778,7 +778,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[B], Ref[((B, A)) => B]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[B], Ref[((B, A)) => B]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[B], Ref[((B, A)) => B]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object indices {
@@ -788,7 +788,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object flatMap {
@@ -798,7 +798,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Coll[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Coll[B]]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Coll[B]]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object segmentLength {
@@ -808,7 +808,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object find {
@@ -818,7 +818,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.node)
     }
 
     object indexWhere {
@@ -828,7 +828,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object indexOf {
@@ -838,7 +838,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object lastIndexWhere {
@@ -848,7 +848,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object take {
@@ -858,7 +858,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object partition {
@@ -868,7 +868,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => Boolean]) forSome {type A}] = unapply(exp.node)
     }
 
     object patch {
@@ -878,7 +878,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Int], Ref[Coll[A]], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[Coll[A]], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object updated {
@@ -888,7 +888,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Int], Ref[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[A]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[A]) forSome {type A}] = unapply(exp.node)
     }
 
     object updateMany {
@@ -898,7 +898,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Coll[Int]], Ref[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[Int]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[Int]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.node)
     }
 
     object mapReduce {
@@ -908,7 +908,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => (K, V)], Ref[((V, V)) => V]) forSome {type A; type K; type V}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => (K, V)], Ref[((V, V)) => V]) forSome {type A; type K; type V}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => (K, V)], Ref[((V, V)) => V]) forSome {type A; type K; type V}] = unapply(exp.node)
     }
 
     object groupBy {
@@ -918,7 +918,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => K]) forSome {type A; type K}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => K]) forSome {type A; type K}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => K]) forSome {type A; type K}] = unapply(exp.node)
     }
 
     object groupByProjecting {
@@ -928,7 +928,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[A => K], Ref[A => V]) forSome {type A; type K; type V}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => K], Ref[A => V]) forSome {type A; type K; type V}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[A => K], Ref[A => V]) forSome {type A; type K; type V}] = unapply(exp.node)
     }
 
     object unionSet {
@@ -938,7 +938,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.node)
     }
 
     object diff {
@@ -948,7 +948,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.node)
     }
 
     object intersect {
@@ -958,7 +958,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.node)
     }
 
     object sum {
@@ -968,7 +968,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Monoid[A]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Monoid[A]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Monoid[A]]) forSome {type A}] = unapply(exp.node)
     }
 
     object slice {
@@ -978,7 +978,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Int], Ref[Int]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[Int]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Int], Ref[Int]) forSome {type A}] = unapply(exp.node)
     }
 
     object append {
@@ -988,7 +988,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Coll[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.node)
     }
 
     object reverse {
@@ -998,7 +998,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[Coll[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Coll[A]] forSome {type A}] = unapply(exp.node)
     }
   }
 
@@ -1315,7 +1315,7 @@ implicit val eV = proj.elem.eRange
 
   // entityUnref: single unref method for each type family
   implicit def unrefPairColl[L, R](p: Ref[PairColl[L, R]]): PairColl[L, R] = {
-    if (p.rhs.isInstanceOf[PairColl[L, R]@unchecked]) p.rhs.asInstanceOf[PairColl[L, R]]
+    if (p.node.isInstanceOf[PairColl[L, R]@unchecked]) p.node.asInstanceOf[PairColl[L, R]]
     else
       PairCollAdapter(p)
   }
@@ -1340,7 +1340,7 @@ implicit val eV = proj.elem.eRange
     override def toString = "PairColl"
   }
   implicit def unrefPairCollCompanionCtor(p: Ref[PairCollCompanionCtor]): PairCollCompanionCtor =
-    p.rhs.asInstanceOf[PairCollCompanionCtor]
+    p.node.asInstanceOf[PairCollCompanionCtor]
 
   lazy val RPairColl: Ref[PairCollCompanionCtor] = new PairCollCompanionCtor {
     private val thisClass = classOf[PairCollCompanion]
@@ -1354,7 +1354,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[PairColl[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[PairColl[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[PairColl[L, R]] forSome {type L; type R}] = unapply(exp.node)
     }
 
     object rs {
@@ -1364,7 +1364,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[PairColl[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[PairColl[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[PairColl[L, R]] forSome {type L; type R}] = unapply(exp.node)
     }
 
     object mapFirst {
@@ -1374,7 +1374,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[PairColl[L, R]], Ref[L => T1]) forSome {type L; type R; type T1}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[PairColl[L, R]], Ref[L => T1]) forSome {type L; type R; type T1}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[PairColl[L, R]], Ref[L => T1]) forSome {type L; type R; type T1}] = unapply(exp.node)
     }
 
     object mapSecond {
@@ -1384,7 +1384,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[PairColl[L, R]], Ref[R => T1]) forSome {type L; type R; type T1}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[PairColl[L, R]], Ref[R => T1]) forSome {type L; type R; type T1}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[PairColl[L, R]], Ref[R => T1]) forSome {type L; type R; type T1}] = unapply(exp.node)
     }
   }
 
@@ -1727,7 +1727,7 @@ implicit val eV = proj.elem.eRange
 
   // entityUnref: single unref method for each type family
   implicit def unrefReplColl[A](p: Ref[ReplColl[A]]): ReplColl[A] = {
-    if (p.rhs.isInstanceOf[ReplColl[A]@unchecked]) p.rhs.asInstanceOf[ReplColl[A]]
+    if (p.node.isInstanceOf[ReplColl[A]@unchecked]) p.node.asInstanceOf[ReplColl[A]]
     else
       ReplCollAdapter(p)
   }
@@ -1760,7 +1760,7 @@ implicit val eV = proj.elem.eRange
     override def toString = "ReplColl"
   }
   implicit def unrefReplCollCompanionCtor(p: Ref[ReplCollCompanionCtor]): ReplCollCompanionCtor =
-    p.rhs.asInstanceOf[ReplCollCompanionCtor]
+    p.node.asInstanceOf[ReplCollCompanionCtor]
 
   lazy val RReplColl: Ref[ReplCollCompanionCtor] = new ReplCollCompanionCtor {
     private val thisClass = classOf[ReplCollCompanion]
@@ -1774,7 +1774,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[ReplColl[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[ReplColl[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[ReplColl[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object length {
@@ -1784,7 +1784,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[ReplColl[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[ReplColl[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[ReplColl[A]] forSome {type A}] = unapply(exp.node)
     }
 
     object append {
@@ -1794,7 +1794,7 @@ implicit val eV = proj.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[ReplColl[A]], Ref[Coll[A]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[ReplColl[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[ReplColl[A]], Ref[Coll[A]]) forSome {type A}] = unapply(exp.node)
     }
   }
 
@@ -1996,7 +1996,7 @@ implicit val eO = l.elem.eRange
 
   implicit def unrefCollBuilder(p: Ref[CollBuilder]): CollBuilder =
     p.asInstanceOf[SingleRef[CollBuilder]].getAdapter(
-      p.rhs.isInstanceOf[CollBuilder],
+      p.node.isInstanceOf[CollBuilder],
       createCollBuilderAdapter.asInstanceOf[Ref[CollBuilder] => CollBuilder])
 
   // familyElem
@@ -2022,7 +2022,7 @@ implicit val eO = l.elem.eRange
     override def toString = "CollBuilder"
   }
   implicit def unrefCollBuilderCompanionCtor(p: Ref[CollBuilderCompanionCtor]): CollBuilderCompanionCtor =
-    p.rhs.asInstanceOf[CollBuilderCompanionCtor]
+    p.node.asInstanceOf[CollBuilderCompanionCtor]
 
   lazy val RCollBuilder: Ref[CollBuilderCompanionCtor] = new CollBuilderCompanionCtor {
     private val thisClass = classOf[CollBuilderCompanion]
@@ -2036,7 +2036,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[Ref[CollBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CollBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CollBuilder]] = unapply(exp.node)
     }
 
     object pairColl {
@@ -2046,7 +2046,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Ref[Coll[A]], Ref[Coll[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[A]], Ref[Coll[B]]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[A]], Ref[Coll[B]]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object fromItems {
@@ -2056,7 +2056,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Seq[Ref[T]], Elem[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Seq[Ref[T]], Elem[T]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Seq[Ref[T]], Elem[T]) forSome {type T}] = unapply(exp.node)
     }
 
     object unzip {
@@ -2066,7 +2066,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Ref[Coll[(A, B)]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[(A, B)]]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[(A, B)]]) forSome {type A; type B}] = unapply(exp.node)
     }
 
     object xor {
@@ -2076,7 +2076,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Ref[Coll[Byte]], Ref[Coll[Byte]])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[Byte]], Ref[Coll[Byte]])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[Byte]], Ref[Coll[Byte]])] = unapply(exp.node)
     }
 
     object replicate {
@@ -2086,7 +2086,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Ref[Int], Ref[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Int], Ref[T]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Int], Ref[T]) forSome {type T}] = unapply(exp.node)
     }
 
     object emptyColl {
@@ -2096,7 +2096,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Elem[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Elem[T]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Elem[T]) forSome {type T}] = unapply(exp.node)
     }
 
     object outerJoin {
@@ -2106,7 +2106,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Ref[Coll[(K, L)]], Ref[Coll[(K, R)]], Ref[((K, L)) => O], Ref[((K, R)) => O], Ref[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[(K, L)]], Ref[Coll[(K, R)]], Ref[((K, L)) => O], Ref[((K, R)) => O], Ref[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[(K, L)]], Ref[Coll[(K, R)]], Ref[((K, L)) => O], Ref[((K, R)) => O], Ref[((K, (L, R))) => O]) forSome {type K; type L; type R; type O}] = unapply(exp.node)
     }
 
     object flattenColl {
@@ -2116,7 +2116,7 @@ implicit val eO = l.elem.eRange
           Nullable(res).asInstanceOf[Nullable[(Ref[CollBuilder], Ref[Coll[Coll[A]]]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[Coll[A]]]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CollBuilder], Ref[Coll[Coll[A]]]) forSome {type A}] = unapply(exp.node)
     }
   }
 

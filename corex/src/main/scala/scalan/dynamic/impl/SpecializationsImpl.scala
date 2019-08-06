@@ -54,7 +54,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
 
   // entityUnref: single unref method for each type family
   implicit def unrefIsoFunc[T, R, M](p: Ref[IsoFunc[T, R, M]]): IsoFunc[T, R, M] = {
-    if (p.rhs.isInstanceOf[IsoFunc[T, R, M]@unchecked]) p.rhs.asInstanceOf[IsoFunc[T, R, M]]
+    if (p.node.isInstanceOf[IsoFunc[T, R, M]@unchecked]) p.node.asInstanceOf[IsoFunc[T, R, M]]
     else
       IsoFuncAdapter(p)
   }
@@ -79,7 +79,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     override def toString = "IsoFunc"
   }
   implicit def unrefIsoFuncCompanionCtor(p: Ref[IsoFuncCompanionCtor]): IsoFuncCompanionCtor =
-    p.rhs.asInstanceOf[IsoFuncCompanionCtor]
+    p.node.asInstanceOf[IsoFuncCompanionCtor]
 
   lazy val RIsoFunc: Ref[IsoFuncCompanionCtor] = new IsoFuncCompanionCtor {
   }
@@ -153,8 +153,8 @@ implicit val eM = p._2.elem.eRange
   lazy val IsoFuncBaseRef: Ref[IsoFuncBaseCompanionCtor] = new IsoFuncBaseCompanionCtor
   lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = unrefIsoFuncBaseCompanion(IsoFuncBaseRef)
   implicit def unrefIsoFuncBaseCompanion(p: Ref[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
-    if (p.rhs.isInstanceOf[IsoFuncBaseCompanionCtor])
-      p.rhs.asInstanceOf[IsoFuncBaseCompanionCtor]
+    if (p.node.isInstanceOf[IsoFuncBaseCompanionCtor])
+      p.node.asInstanceOf[IsoFuncBaseCompanionCtor]
     else
       unrefDelegate[IsoFuncBaseCompanionCtor](p)
   }
@@ -162,8 +162,8 @@ implicit val eM = p._2.elem.eRange
   implicit case object IsoFuncBaseCompanionElem extends CompanionElem[IsoFuncBaseCompanionCtor]
 
   implicit def unrefIsoFuncBase[T, R, M](p: Ref[IsoFuncBase[T, R, M]]): IsoFuncBase[T, R, M] = {
-    if (p.rhs.isInstanceOf[IsoFuncBase[T, R, M]@unchecked])
-      p.rhs.asInstanceOf[IsoFuncBase[T, R, M]]
+    if (p.node.isInstanceOf[IsoFuncBase[T, R, M]@unchecked])
+      p.node.asInstanceOf[IsoFuncBase[T, R, M]]
     else
       unrefDelegate[IsoFuncBase[T, R, M]](p)
   }

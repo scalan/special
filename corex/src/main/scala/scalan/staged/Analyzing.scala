@@ -33,11 +33,11 @@ trait Analyzing { self: ScalanEx =>
 
     def getInboundMarkings[T](thisSym: Ref[T], outMark: LevelCount[T]): MarkedSyms = {
       val l = outMark.level
-      thisSym.rhs match {
+      thisSym.node match {
         case lam: Lambda[a,b] =>
           Seq[MarkedSym](updateMark(lam.y, l))
         case _ =>
-          thisSym.rhs.deps.map(s => updateMark(s, l))
+          thisSym.node.deps.map(s => updateMark(s, l))
       }
     }
   }
@@ -78,11 +78,11 @@ trait Analyzing { self: ScalanEx =>
       mkUsageMark(Map())(lam.elem)
 
     def getInboundMarkings[T](thisSym: Ref[T], outMark: UsageCount[T]): MarkedSyms = {
-      thisSym.rhs match {
+      thisSym.node match {
         case l: Lambda[a,b] => Seq()
         case _ =>
           val l = getLevel(thisSym)
-          thisSym.rhs.deps.map(s => {
+          thisSym.node.deps.map(s => {
             promoteMark(s, Map(l -> Seq(thisSym)))
           })
       }

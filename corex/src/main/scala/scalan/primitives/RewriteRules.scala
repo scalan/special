@@ -39,12 +39,12 @@ trait RewriteRules extends Base { self: ScalanEx =>
     if (result != null) result
     else {
       if (performViewsLifting) {
-        val d = s.rhs
+        val d = s.node
         val v = rewriteViews(d)
         val res = if (v != null) v else rewriteDef(d)
         res
       } else
-        rewriteDef(s.rhs)
+        rewriteDef(s.node)
     }
   }
 

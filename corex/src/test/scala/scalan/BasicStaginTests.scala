@@ -64,7 +64,7 @@ class BasicStaginTests extends BaseCtxTests {
     segSym1 shouldNot be(segSym2) // different constants
 
     // transform should preserve liftable constants
-    segSym1.rhs.mirror(MapTransformer.Empty) shouldBe segSym1
-    segSym1.rhs.mirror(new MapTransformer((segSym1 -> segSym2))) shouldBe segSym1
+    segSym1.node.mirror(MapTransformer.Empty) shouldBe segSym1
+    segSym1.node.mirror(new MapTransformer((segSym1 -> segSym2))) shouldBe segSym1
   }
 }

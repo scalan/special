@@ -113,7 +113,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
 
   implicit object LambdaFormat extends JsonFormat[Lambda[_, _]] {
     def write(lam: Lambda[_, _]) = {
-      val fields = lam.schedule.map { sym => sym.rhs match {
+      val fields = lam.schedule.map { sym => sym.node match {
         case Lambda(l, _, x, y) =>
           (mapSym(sym), LambdaFormat.write(l))
         case _ =>
@@ -134,7 +134,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
 
   implicit object ProgramGraphFormat extends JsonFormat[PGraph] {
     def write(g: PGraph) = {
-      val fields = g.schedule.map { sym => sym.rhs match {
+      val fields = g.schedule.map { sym => sym.node match {
         case Lambda(l, _, x, y) =>
           (mapSym(sym), LambdaFormat.write(l))
         case _ =>

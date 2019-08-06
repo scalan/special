@@ -229,7 +229,7 @@ trait GraphVizExport extends Base { self: Scalan =>
     case Def(l1: Lambda[_, _]) =>
       val (ds, vs) = lambdaDeps(l1)
       (ds, l.x :: vs)
-    case _ => (l.y.rhs.deps.toList, List(l.x))
+    case _ => (l.y.node.deps.toList, List(l.x))
   }
 
   protected def clusterColor(g: AstGraph) = g match {
@@ -255,7 +255,7 @@ trait GraphVizExport extends Base { self: Scalan =>
     val schedule = clusterSchedule(g)
 
     schedule.foldLeft(acc) { case (acc1, s) =>
-      val d = s.rhs
+      val d = s.node
       d match {
         case g: AstGraph if shouldEmitCluster(g) =>
           if (config.subgraphClusters) {

@@ -41,7 +41,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
   // entityUnref: single unref method for each type family
   implicit def unrefConverter[T, R](p: Ref[Converter[T, R]]): Converter[T, R] = {
-    if (p.rhs.isInstanceOf[Converter[T, R]@unchecked]) p.rhs.asInstanceOf[Converter[T, R]]
+    if (p.node.isInstanceOf[Converter[T, R]@unchecked]) p.node.asInstanceOf[Converter[T, R]]
     else
       ConverterAdapter(p)
   }
@@ -65,7 +65,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     override def toString = "Converter"
   }
   implicit def unrefConverterCompanionCtor(p: Ref[ConverterCompanionCtor]): ConverterCompanionCtor =
-    p.rhs.asInstanceOf[ConverterCompanionCtor]
+    p.node.asInstanceOf[ConverterCompanionCtor]
 
   lazy val RConverter: Ref[ConverterCompanionCtor] = new ConverterCompanionCtor {
     private val thisClass = classOf[ConverterCompanion]
@@ -129,8 +129,8 @@ object IdentityConv extends EntityObject("IdentityConv") {
   lazy val IdentityConvRef: Ref[IdentityConvCompanionCtor] = new IdentityConvCompanionCtor
   lazy val RIdentityConv: IdentityConvCompanionCtor = unrefIdentityConvCompanion(IdentityConvRef)
   implicit def unrefIdentityConvCompanion(p: Ref[IdentityConvCompanionCtor]): IdentityConvCompanionCtor = {
-    if (p.rhs.isInstanceOf[IdentityConvCompanionCtor])
-      p.rhs.asInstanceOf[IdentityConvCompanionCtor]
+    if (p.node.isInstanceOf[IdentityConvCompanionCtor])
+      p.node.asInstanceOf[IdentityConvCompanionCtor]
     else
       unrefDelegate[IdentityConvCompanionCtor](p)
   }
@@ -138,8 +138,8 @@ object IdentityConv extends EntityObject("IdentityConv") {
   implicit case object IdentityConvCompanionElem extends CompanionElem[IdentityConvCompanionCtor]
 
   implicit def unrefIdentityConv[A](p: Ref[IdentityConv[A]]): IdentityConv[A] = {
-    if (p.rhs.isInstanceOf[IdentityConv[A]@unchecked])
-      p.rhs.asInstanceOf[IdentityConv[A]]
+    if (p.node.isInstanceOf[IdentityConv[A]@unchecked])
+      p.node.asInstanceOf[IdentityConv[A]]
     else
       unrefDelegate[IdentityConv[A]](p)
   }
@@ -225,8 +225,8 @@ implicit lazy val eR = convFun.elem.eRange
   lazy val BaseConverterRef: Ref[BaseConverterCompanionCtor] = new BaseConverterCompanionCtor
   lazy val RBaseConverter: BaseConverterCompanionCtor = unrefBaseConverterCompanion(BaseConverterRef)
   implicit def unrefBaseConverterCompanion(p: Ref[BaseConverterCompanionCtor]): BaseConverterCompanionCtor = {
-    if (p.rhs.isInstanceOf[BaseConverterCompanionCtor])
-      p.rhs.asInstanceOf[BaseConverterCompanionCtor]
+    if (p.node.isInstanceOf[BaseConverterCompanionCtor])
+      p.node.asInstanceOf[BaseConverterCompanionCtor]
     else
       unrefDelegate[BaseConverterCompanionCtor](p)
   }
@@ -234,8 +234,8 @@ implicit lazy val eR = convFun.elem.eRange
   implicit case object BaseConverterCompanionElem extends CompanionElem[BaseConverterCompanionCtor]
 
   implicit def unrefBaseConverter[T, R](p: Ref[BaseConverter[T, R]]): BaseConverter[T, R] = {
-    if (p.rhs.isInstanceOf[BaseConverter[T, R]@unchecked])
-      p.rhs.asInstanceOf[BaseConverter[T, R]]
+    if (p.node.isInstanceOf[BaseConverter[T, R]@unchecked])
+      p.node.asInstanceOf[BaseConverter[T, R]]
     else
       unrefDelegate[BaseConverter[T, R]](p)
   }
@@ -336,8 +336,8 @@ implicit val eB2 = p._2.eR
   lazy val PairConverterRef: Ref[PairConverterCompanionCtor] = new PairConverterCompanionCtor
   lazy val RPairConverter: PairConverterCompanionCtor = unrefPairConverterCompanion(PairConverterRef)
   implicit def unrefPairConverterCompanion(p: Ref[PairConverterCompanionCtor]): PairConverterCompanionCtor = {
-    if (p.rhs.isInstanceOf[PairConverterCompanionCtor])
-      p.rhs.asInstanceOf[PairConverterCompanionCtor]
+    if (p.node.isInstanceOf[PairConverterCompanionCtor])
+      p.node.asInstanceOf[PairConverterCompanionCtor]
     else
       unrefDelegate[PairConverterCompanionCtor](p)
   }
@@ -345,8 +345,8 @@ implicit val eB2 = p._2.eR
   implicit case object PairConverterCompanionElem extends CompanionElem[PairConverterCompanionCtor]
 
   implicit def unrefPairConverter[A1, A2, B1, B2](p: Ref[PairConverter[A1, A2, B1, B2]]): PairConverter[A1, A2, B1, B2] = {
-    if (p.rhs.isInstanceOf[PairConverter[A1, A2, B1, B2]@unchecked])
-      p.rhs.asInstanceOf[PairConverter[A1, A2, B1, B2]]
+    if (p.node.isInstanceOf[PairConverter[A1, A2, B1, B2]@unchecked])
+      p.node.asInstanceOf[PairConverter[A1, A2, B1, B2]]
     else
       unrefDelegate[PairConverter[A1, A2, B1, B2]](p)
   }
@@ -449,8 +449,8 @@ implicit val eB2 = p._2.eR
   lazy val SumConverterRef: Ref[SumConverterCompanionCtor] = new SumConverterCompanionCtor
   lazy val RSumConverter: SumConverterCompanionCtor = unrefSumConverterCompanion(SumConverterRef)
   implicit def unrefSumConverterCompanion(p: Ref[SumConverterCompanionCtor]): SumConverterCompanionCtor = {
-    if (p.rhs.isInstanceOf[SumConverterCompanionCtor])
-      p.rhs.asInstanceOf[SumConverterCompanionCtor]
+    if (p.node.isInstanceOf[SumConverterCompanionCtor])
+      p.node.asInstanceOf[SumConverterCompanionCtor]
     else
       unrefDelegate[SumConverterCompanionCtor](p)
   }
@@ -458,8 +458,8 @@ implicit val eB2 = p._2.eR
   implicit case object SumConverterCompanionElem extends CompanionElem[SumConverterCompanionCtor]
 
   implicit def unrefSumConverter[A1, A2, B1, B2](p: Ref[SumConverter[A1, A2, B1, B2]]): SumConverter[A1, A2, B1, B2] = {
-    if (p.rhs.isInstanceOf[SumConverter[A1, A2, B1, B2]@unchecked])
-      p.rhs.asInstanceOf[SumConverter[A1, A2, B1, B2]]
+    if (p.node.isInstanceOf[SumConverter[A1, A2, B1, B2]@unchecked])
+      p.node.asInstanceOf[SumConverter[A1, A2, B1, B2]]
     else
       unrefDelegate[SumConverter[A1, A2, B1, B2]](p)
   }
@@ -558,8 +558,8 @@ implicit val eC = p._1.eR
   lazy val ComposeConverterRef: Ref[ComposeConverterCompanionCtor] = new ComposeConverterCompanionCtor
   lazy val RComposeConverter: ComposeConverterCompanionCtor = unrefComposeConverterCompanion(ComposeConverterRef)
   implicit def unrefComposeConverterCompanion(p: Ref[ComposeConverterCompanionCtor]): ComposeConverterCompanionCtor = {
-    if (p.rhs.isInstanceOf[ComposeConverterCompanionCtor])
-      p.rhs.asInstanceOf[ComposeConverterCompanionCtor]
+    if (p.node.isInstanceOf[ComposeConverterCompanionCtor])
+      p.node.asInstanceOf[ComposeConverterCompanionCtor]
     else
       unrefDelegate[ComposeConverterCompanionCtor](p)
   }
@@ -567,8 +567,8 @@ implicit val eC = p._1.eR
   implicit case object ComposeConverterCompanionElem extends CompanionElem[ComposeConverterCompanionCtor]
 
   implicit def unrefComposeConverter[A, B, C](p: Ref[ComposeConverter[A, B, C]]): ComposeConverter[A, B, C] = {
-    if (p.rhs.isInstanceOf[ComposeConverter[A, B, C]@unchecked])
-      p.rhs.asInstanceOf[ComposeConverter[A, B, C]]
+    if (p.node.isInstanceOf[ComposeConverter[A, B, C]@unchecked])
+      p.node.asInstanceOf[ComposeConverter[A, B, C]]
     else
       unrefDelegate[ComposeConverter[A, B, C]](p)
   }
@@ -658,8 +658,8 @@ implicit lazy val eB = itemConv.eR
   lazy val FunctorConverterRef: Ref[FunctorConverterCompanionCtor] = new FunctorConverterCompanionCtor
   lazy val RFunctorConverter: FunctorConverterCompanionCtor = unrefFunctorConverterCompanion(FunctorConverterRef)
   implicit def unrefFunctorConverterCompanion(p: Ref[FunctorConverterCompanionCtor]): FunctorConverterCompanionCtor = {
-    if (p.rhs.isInstanceOf[FunctorConverterCompanionCtor])
-      p.rhs.asInstanceOf[FunctorConverterCompanionCtor]
+    if (p.node.isInstanceOf[FunctorConverterCompanionCtor])
+      p.node.asInstanceOf[FunctorConverterCompanionCtor]
     else
       unrefDelegate[FunctorConverterCompanionCtor](p)
   }
@@ -667,8 +667,8 @@ implicit lazy val eB = itemConv.eR
   implicit case object FunctorConverterCompanionElem extends CompanionElem[FunctorConverterCompanionCtor]
 
   implicit def unrefFunctorConverter[A, B, F[_]](p: Ref[FunctorConverter[A, B, F]]): FunctorConverter[A, B, F] = {
-    if (p.rhs.isInstanceOf[FunctorConverter[A, B, F]@unchecked])
-      p.rhs.asInstanceOf[FunctorConverter[A, B, F]]
+    if (p.node.isInstanceOf[FunctorConverter[A, B, F]@unchecked])
+      p.node.asInstanceOf[FunctorConverter[A, B, F]]
     else
       unrefDelegate[FunctorConverter[A, B, F]](p)
   }
@@ -754,8 +754,8 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   lazy val NaturalConverterRef: Ref[NaturalConverterCompanionCtor] = new NaturalConverterCompanionCtor
   lazy val RNaturalConverter: NaturalConverterCompanionCtor = unrefNaturalConverterCompanion(NaturalConverterRef)
   implicit def unrefNaturalConverterCompanion(p: Ref[NaturalConverterCompanionCtor]): NaturalConverterCompanionCtor = {
-    if (p.rhs.isInstanceOf[NaturalConverterCompanionCtor])
-      p.rhs.asInstanceOf[NaturalConverterCompanionCtor]
+    if (p.node.isInstanceOf[NaturalConverterCompanionCtor])
+      p.node.asInstanceOf[NaturalConverterCompanionCtor]
     else
       unrefDelegate[NaturalConverterCompanionCtor](p)
   }
@@ -763,8 +763,8 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   implicit case object NaturalConverterCompanionElem extends CompanionElem[NaturalConverterCompanionCtor]
 
   implicit def unrefNaturalConverter[A, F[_], G[_]](p: Ref[NaturalConverter[A, F, G]]): NaturalConverter[A, F, G] = {
-    if (p.rhs.isInstanceOf[NaturalConverter[A, F, G]@unchecked])
-      p.rhs.asInstanceOf[NaturalConverter[A, F, G]]
+    if (p.node.isInstanceOf[NaturalConverter[A, F, G]@unchecked])
+      p.node.asInstanceOf[NaturalConverter[A, F, G]]
     else
       unrefDelegate[NaturalConverter[A, F, G]](p)
   }

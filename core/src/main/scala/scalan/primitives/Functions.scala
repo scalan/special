@@ -99,14 +99,14 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
     // AstGraph implementation
     val boundVars = Array(x)
-    val boundVarId = x.rhs._nodeId
+    val boundVarId = x.node._nodeId
     val roots = y :: Nil
 
     override lazy val rootIds: DBuffer[Int] = super.rootIds
 
     override lazy val freeVars = super.freeVars
 
-    @inline override def isBoundVar(s: Sym) = s.rhs.nodeId == boundVarId
+    @inline override def isBoundVar(s: Sym) = s.node.nodeId == boundVarId
 
     override lazy val  scheduleIds: DBuffer[Int] = {
       val sch = if (isIdentity)
@@ -116,7 +116,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         // BUT not all of them depend on boundVars, thus we need to filter them out
         // 1) we build g.schedule and then g.usageMap
         // 2) collect set of nodes, which depend on `x`
-        val g = new PGraph(roots, filterNode = Nullable(s => s.rhs._nodeId >= boundVarId))
+        val g = new PGraph(roots, filterNode = Nullable(s => s.node._nodeId >= boundVarId))
         val locals = GraphUtil.depthFirstSetFrom[Int](DBuffer(boundVarId))(
           new Neighbours({ id => g.usagesOf(id) })
         )
@@ -125,7 +125,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         val sch = DBuffer.ofSize[Int](len)
         cfor(0)(_ < len, _ + 1) { i =>
           val sym = gschedule(i)
-          val id = sym.rhs.nodeId
+          val id = sym.node.nodeId
           if (locals(id) && !sym.isVar)
             sch += id
         }
@@ -165,7 +165,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     // if lam.y depends on lam.x indirectly, lam.schedule must contain the dependency path
     // and its length will be > 1
     def unapply[A,B](lam: Lambda[A, B]): Option[Ref[B]] =
-      if (lam.schedule.length <= 1 && !lam.y.rhs.deps.contains(lam.x) && lam.y != lam.x)
+      if (lam.schedule.length <= 1 && !lam.y.node.deps.contains(lam.x) && lam.y != lam.x)
         Some(lam.y)
       else
         None
@@ -287,7 +287,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   //   Function application
 
   def mkApply[A,B](f: Ref[A => B], x: Ref[A]): Ref[B] = {
-    val d = f.rhs
+    val d = f.node
     if (d.isInstanceOf[Lambda[_, _]]) {
       val lam = d.asInstanceOf[Lambda[A, B]]
       if (lam.mayInline) {

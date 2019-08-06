@@ -50,7 +50,7 @@ object Monoid extends EntityObject("Monoid") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefMonoid[T](p: Ref[Monoid[T]]): Monoid[T] = {
-    if (p.rhs.isInstanceOf[Monoid[T]@unchecked]) p.rhs.asInstanceOf[Monoid[T]]
+    if (p.node.isInstanceOf[Monoid[T]@unchecked]) p.node.asInstanceOf[Monoid[T]]
     else
       MonoidAdapter(p)
   }
@@ -73,7 +73,7 @@ object Monoid extends EntityObject("Monoid") {
     override def toString = "Monoid"
   }
   implicit def unrefMonoidCompanionCtor(p: Ref[MonoidCompanionCtor]): MonoidCompanionCtor =
-    p.rhs.asInstanceOf[MonoidCompanionCtor]
+    p.node.asInstanceOf[MonoidCompanionCtor]
 
   lazy val RMonoid: Ref[MonoidCompanionCtor] = new MonoidCompanionCtor {
     private val thisClass = classOf[MonoidCompanion]
@@ -145,7 +145,7 @@ implicit val eB = m2.eT
 
   // entityUnref: single unref method for each type family
   implicit def unrefMonoidBuilder(p: Ref[MonoidBuilder]): MonoidBuilder = {
-    if (p.rhs.isInstanceOf[MonoidBuilder]) p.rhs.asInstanceOf[MonoidBuilder]
+    if (p.node.isInstanceOf[MonoidBuilder]) p.node.asInstanceOf[MonoidBuilder]
     else
       MonoidBuilderAdapter(p)
   }
@@ -165,7 +165,7 @@ implicit val eB = m2.eT
     override def toString = "MonoidBuilder"
   }
   implicit def unrefMonoidBuilderCompanionCtor(p: Ref[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
-    p.rhs.asInstanceOf[MonoidBuilderCompanionCtor]
+    p.node.asInstanceOf[MonoidBuilderCompanionCtor]
 
   lazy val RMonoidBuilder: Ref[MonoidBuilderCompanionCtor] = new MonoidBuilderCompanionCtor {
     private val thisClass = classOf[MonoidBuilderCompanion]
@@ -179,7 +179,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Ref[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.node)
     }
 
     object intMaxMonoid {
@@ -189,7 +189,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Ref[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.node)
     }
 
     object intMinMonoid {
@@ -199,7 +199,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Ref[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.node)
     }
 
     object longPlusMonoid {
@@ -209,7 +209,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Ref[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.node)
     }
 
     object longMaxMonoid {
@@ -219,7 +219,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Ref[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.node)
     }
 
     object longMinMonoid {
@@ -229,7 +229,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[Ref[MonoidBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[MonoidBuilder]] = unapply(exp.node)
     }
 
     object pairMonoid {
@@ -239,7 +239,7 @@ implicit val eB = m2.eT
           Nullable(res).asInstanceOf[Nullable[(Ref[MonoidBuilder], Ref[Monoid[A]], Ref[Monoid[B]]) forSome {type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[MonoidBuilder], Ref[Monoid[A]], Ref[Monoid[B]]) forSome {type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[MonoidBuilder], Ref[Monoid[A]], Ref[Monoid[B]]) forSome {type A; type B}] = unapply(exp.node)
     }
   }
 

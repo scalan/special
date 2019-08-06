@@ -72,7 +72,7 @@ object Costed extends EntityObject("Costed") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefCosted[Val](p: Ref[Costed[Val]]): Costed[Val] = {
-    if (p.rhs.isInstanceOf[Costed[Val]@unchecked]) p.rhs.asInstanceOf[Costed[Val]]
+    if (p.node.isInstanceOf[Costed[Val]@unchecked]) p.node.asInstanceOf[Costed[Val]]
     else
       CostedAdapter(p)
   }
@@ -95,7 +95,7 @@ object Costed extends EntityObject("Costed") {
     override def toString = "Costed"
   }
   implicit def unrefCostedCompanionCtor(p: Ref[CostedCompanionCtor]): CostedCompanionCtor =
-    p.rhs.asInstanceOf[CostedCompanionCtor]
+    p.node.asInstanceOf[CostedCompanionCtor]
 
   lazy val RCosted: Ref[CostedCompanionCtor] = new CostedCompanionCtor {
     private val thisClass = classOf[CostedCompanion]
@@ -109,7 +109,7 @@ object Costed extends EntityObject("Costed") {
           Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
 
     object value {
@@ -119,7 +119,7 @@ object Costed extends EntityObject("Costed") {
           Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
 
     object cost {
@@ -129,7 +129,7 @@ object Costed extends EntityObject("Costed") {
           Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
 
     object size {
@@ -139,7 +139,7 @@ object Costed extends EntityObject("Costed") {
           Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
   }
 
@@ -191,7 +191,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefCostedPrim[Val](p: Ref[CostedPrim[Val]]): CostedPrim[Val] = {
-    if (p.rhs.isInstanceOf[CostedPrim[Val]@unchecked]) p.rhs.asInstanceOf[CostedPrim[Val]]
+    if (p.node.isInstanceOf[CostedPrim[Val]@unchecked]) p.node.asInstanceOf[CostedPrim[Val]]
     else
       CostedPrimAdapter(p)
   }
@@ -215,7 +215,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
     override def toString = "CostedPrim"
   }
   implicit def unrefCostedPrimCompanionCtor(p: Ref[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
-    p.rhs.asInstanceOf[CostedPrimCompanionCtor]
+    p.node.asInstanceOf[CostedPrimCompanionCtor]
 
   lazy val RCostedPrim: Ref[CostedPrimCompanionCtor] = new CostedPrimCompanionCtor {
     private val thisClass = classOf[CostedPrimCompanion]
@@ -288,7 +288,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
   // entityUnref: single unref method for each type family
   implicit def unrefCostedPair[L, R](p: Ref[CostedPair[L, R]]): CostedPair[L, R] = {
-    if (p.rhs.isInstanceOf[CostedPair[L, R]@unchecked]) p.rhs.asInstanceOf[CostedPair[L, R]]
+    if (p.node.isInstanceOf[CostedPair[L, R]@unchecked]) p.node.asInstanceOf[CostedPair[L, R]]
     else
       CostedPairAdapter(p)
   }
@@ -313,7 +313,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     override def toString = "CostedPair"
   }
   implicit def unrefCostedPairCompanionCtor(p: Ref[CostedPairCompanionCtor]): CostedPairCompanionCtor =
-    p.rhs.asInstanceOf[CostedPairCompanionCtor]
+    p.node.asInstanceOf[CostedPairCompanionCtor]
 
   lazy val RCostedPair: Ref[CostedPairCompanionCtor] = new CostedPairCompanionCtor {
     private val thisClass = classOf[CostedPairCompanion]
@@ -408,7 +408,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
 
   // entityUnref: single unref method for each type family
   implicit def unrefCostedFunc[Env, Arg, Res](p: Ref[CostedFunc[Env, Arg, Res]]): CostedFunc[Env, Arg, Res] = {
-    if (p.rhs.isInstanceOf[CostedFunc[Env, Arg, Res]@unchecked]) p.rhs.asInstanceOf[CostedFunc[Env, Arg, Res]]
+    if (p.node.isInstanceOf[CostedFunc[Env, Arg, Res]@unchecked]) p.node.asInstanceOf[CostedFunc[Env, Arg, Res]]
     else
       CostedFuncAdapter(p)
   }
@@ -434,7 +434,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     override def toString = "CostedFunc"
   }
   implicit def unrefCostedFuncCompanionCtor(p: Ref[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
-    p.rhs.asInstanceOf[CostedFuncCompanionCtor]
+    p.node.asInstanceOf[CostedFuncCompanionCtor]
 
   lazy val RCostedFunc: Ref[CostedFuncCompanionCtor] = new CostedFuncCompanionCtor {
     private val thisClass = classOf[CostedFuncCompanion]
@@ -536,7 +536,7 @@ object CostedColl extends EntityObject("CostedColl") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefCostedColl[Item](p: Ref[CostedColl[Item]]): CostedColl[Item] = {
-    if (p.rhs.isInstanceOf[CostedColl[Item]@unchecked]) p.rhs.asInstanceOf[CostedColl[Item]]
+    if (p.node.isInstanceOf[CostedColl[Item]@unchecked]) p.node.asInstanceOf[CostedColl[Item]]
     else
       CostedCollAdapter(p)
   }
@@ -560,7 +560,7 @@ object CostedColl extends EntityObject("CostedColl") {
     override def toString = "CostedColl"
   }
   implicit def unrefCostedCollCompanionCtor(p: Ref[CostedCollCompanionCtor]): CostedCollCompanionCtor =
-    p.rhs.asInstanceOf[CostedCollCompanionCtor]
+    p.node.asInstanceOf[CostedCollCompanionCtor]
 
   lazy val RCostedColl: Ref[CostedCollCompanionCtor] = new CostedCollCompanionCtor {
     private val thisClass = classOf[CostedCollCompanion]
@@ -574,7 +574,7 @@ object CostedColl extends EntityObject("CostedColl") {
           Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object costs {
@@ -584,7 +584,7 @@ object CostedColl extends EntityObject("CostedColl") {
           Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object sizes {
@@ -594,7 +594,7 @@ object CostedColl extends EntityObject("CostedColl") {
           Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object valuesCost {
@@ -604,7 +604,7 @@ object CostedColl extends EntityObject("CostedColl") {
           Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object mapCosted {
@@ -614,7 +614,7 @@ object CostedColl extends EntityObject("CostedColl") {
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = unapply(exp.node)
     }
 
     object filterCosted {
@@ -624,7 +624,7 @@ object CostedColl extends EntityObject("CostedColl") {
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Boolean]]) forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = unapply(exp.node)
     }
 
     object foldCosted {
@@ -634,7 +634,7 @@ object CostedColl extends EntityObject("CostedColl") {
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedColl[Item]], Ref[Costed[B]], Ref[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[B]], Ref[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[B]], Ref[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = unapply(exp.node)
     }
   }
 
@@ -707,7 +707,7 @@ object CostedOption extends EntityObject("CostedOption") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefCostedOption[T](p: Ref[CostedOption[T]]): CostedOption[T] = {
-    if (p.rhs.isInstanceOf[CostedOption[T]@unchecked]) p.rhs.asInstanceOf[CostedOption[T]]
+    if (p.node.isInstanceOf[CostedOption[T]@unchecked]) p.node.asInstanceOf[CostedOption[T]]
     else
       CostedOptionAdapter(p)
   }
@@ -731,7 +731,7 @@ object CostedOption extends EntityObject("CostedOption") {
     override def toString = "CostedOption"
   }
   implicit def unrefCostedOptionCompanionCtor(p: Ref[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
-    p.rhs.asInstanceOf[CostedOptionCompanionCtor]
+    p.node.asInstanceOf[CostedOptionCompanionCtor]
 
   lazy val RCostedOption: Ref[CostedOptionCompanionCtor] = new CostedOptionCompanionCtor {
     private val thisClass = classOf[CostedOptionCompanion]
@@ -861,7 +861,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
 
   // entityUnref: single unref method for each type family
   implicit def unrefCostedBuilder(p: Ref[CostedBuilder]): CostedBuilder = {
-    if (p.rhs.isInstanceOf[CostedBuilder]) p.rhs.asInstanceOf[CostedBuilder]
+    if (p.node.isInstanceOf[CostedBuilder]) p.node.asInstanceOf[CostedBuilder]
     else
       CostedBuilderAdapter(p)
   }
@@ -881,7 +881,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     override def toString = "CostedBuilder"
   }
   implicit def unrefCostedBuilderCompanionCtor(p: Ref[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
-    p.rhs.asInstanceOf[CostedBuilderCompanionCtor]
+    p.node.asInstanceOf[CostedBuilderCompanionCtor]
 
   lazy val RCostedBuilder: Ref[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
     private val thisClass = classOf[CostedBuilderCompanion]
@@ -895,7 +895,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object ConstructSumCost {
@@ -905,7 +905,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object SelectFieldCost {
@@ -915,7 +915,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object SumTagSize {
@@ -925,7 +925,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object costedValue {
@@ -935,7 +935,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[T], Ref[WOption[Int]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[T], Ref[WOption[Int]]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[T], Ref[WOption[Int]]) forSome {type T}] = unapply(exp.node)
     }
 
     object defaultValue {
@@ -945,7 +945,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WRType[T]]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WRType[T]]) forSome {type T}] = unapply(exp.node)
     }
 
     object monoidBuilder {
@@ -955,7 +955,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object mkSizePrim {
@@ -965,7 +965,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Long], Ref[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Long], Ref[WRType[T]]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Long], Ref[WRType[T]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkSizePair {
@@ -975,7 +975,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Size[L]], Ref[Size[R]]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Size[L]], Ref[Size[R]]) forSome {type L; type R}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Size[L]], Ref[Size[R]]) forSome {type L; type R}] = unapply(exp.node)
     }
 
     object mkSizeColl {
@@ -985,7 +985,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Coll[Size[T]]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Coll[Size[T]]]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Coll[Size[T]]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkSizeFunc {
@@ -995,7 +995,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Size[E]], Ref[Long], Ref[WRType[A]], Ref[WRType[R]]) forSome {type E; type A; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Size[E]], Ref[Long], Ref[WRType[A]], Ref[WRType[R]]) forSome {type E; type A; type R}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Size[E]], Ref[Long], Ref[WRType[A]], Ref[WRType[R]]) forSome {type E; type A; type R}] = unapply(exp.node)
     }
 
     object mkSizeOption {
@@ -1005,7 +1005,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[WOption[Size[T]]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WOption[Size[T]]]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WOption[Size[T]]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkCostedPrim {
@@ -1015,7 +1015,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[T], Ref[Int], Ref[Size[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[T], Ref[Int], Ref[Size[T]]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[T], Ref[Int], Ref[Size[T]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkCostedPair {
@@ -1025,7 +1025,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Costed[L]], Ref[Costed[R]], Ref[Int]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Costed[L]], Ref[Costed[R]], Ref[Int]) forSome {type L; type R}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Costed[L]], Ref[Costed[R]], Ref[Int]) forSome {type L; type R}] = unapply(exp.node)
     }
 
     object mkCostedFunc {
@@ -1035,7 +1035,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Costed[Env]], Ref[Costed[Arg] => Costed[Res]], Ref[Int], Ref[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Costed[Env]], Ref[Costed[Arg] => Costed[Res]], Ref[Int], Ref[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Costed[Env]], Ref[Costed[Arg] => Costed[Res]], Ref[Int], Ref[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = unapply(exp.node)
     }
 
     object mkCostedColl {
@@ -1045,7 +1045,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Coll[T]], Ref[Coll[Int]], Ref[Coll[Size[T]]], Ref[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Coll[T]], Ref[Coll[Int]], Ref[Coll[Size[T]]], Ref[Int]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Coll[T]], Ref[Coll[Int]], Ref[Coll[Size[T]]], Ref[Int]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkCostedOption {
@@ -1055,7 +1055,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
           Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[WOption[T]], Ref[WOption[Int]], Ref[WOption[Size[T]]], Ref[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WOption[T]], Ref[WOption[Int]], Ref[WOption[Size[T]]], Ref[Int]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WOption[T]], Ref[WOption[Int]], Ref[WOption[Size[T]]], Ref[Int]) forSome {type T}] = unapply(exp.node)
     }
   }
 

@@ -105,8 +105,8 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
   lazy val CCostedPrimRef: Ref[CCostedPrimCompanionCtor] = new CCostedPrimCompanionCtor
   lazy val RCCostedPrim: CCostedPrimCompanionCtor = unrefCCostedPrimCompanion(CCostedPrimRef)
   implicit def unrefCCostedPrimCompanion(p: Ref[CCostedPrimCompanionCtor]): CCostedPrimCompanionCtor = {
-    if (p.rhs.isInstanceOf[CCostedPrimCompanionCtor])
-      p.rhs.asInstanceOf[CCostedPrimCompanionCtor]
+    if (p.node.isInstanceOf[CCostedPrimCompanionCtor])
+      p.node.asInstanceOf[CCostedPrimCompanionCtor]
     else
       unrefDelegate[CCostedPrimCompanionCtor](p)
   }
@@ -114,8 +114,8 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
   implicit case object CCostedPrimCompanionElem extends CompanionElem[CCostedPrimCompanionCtor]
 
   implicit def unrefCCostedPrim[Val](p: Ref[CCostedPrim[Val]]): CCostedPrim[Val] = {
-    if (p.rhs.isInstanceOf[CCostedPrim[Val]@unchecked])
-      p.rhs.asInstanceOf[CCostedPrim[Val]]
+    if (p.node.isInstanceOf[CCostedPrim[Val]@unchecked])
+      p.node.asInstanceOf[CCostedPrim[Val]]
     else
       unrefDelegate[CCostedPrim[Val]](p)
   }
@@ -223,8 +223,8 @@ implicit val eR = p._2.eVal
   lazy val CCostedPairRef: Ref[CCostedPairCompanionCtor] = new CCostedPairCompanionCtor
   lazy val RCCostedPair: CCostedPairCompanionCtor = unrefCCostedPairCompanion(CCostedPairRef)
   implicit def unrefCCostedPairCompanion(p: Ref[CCostedPairCompanionCtor]): CCostedPairCompanionCtor = {
-    if (p.rhs.isInstanceOf[CCostedPairCompanionCtor])
-      p.rhs.asInstanceOf[CCostedPairCompanionCtor]
+    if (p.node.isInstanceOf[CCostedPairCompanionCtor])
+      p.node.asInstanceOf[CCostedPairCompanionCtor]
     else
       unrefDelegate[CCostedPairCompanionCtor](p)
   }
@@ -232,8 +232,8 @@ implicit val eR = p._2.eVal
   implicit case object CCostedPairCompanionElem extends CompanionElem[CCostedPairCompanionCtor]
 
   implicit def unrefCCostedPair[L, R](p: Ref[CCostedPair[L, R]]): CCostedPair[L, R] = {
-    if (p.rhs.isInstanceOf[CCostedPair[L, R]@unchecked])
-      p.rhs.asInstanceOf[CCostedPair[L, R]]
+    if (p.node.isInstanceOf[CCostedPair[L, R]@unchecked])
+      p.node.asInstanceOf[CCostedPair[L, R]]
     else
       unrefDelegate[CCostedPair[L, R]](p)
   }
@@ -338,8 +338,8 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
   lazy val CCostedFuncRef: Ref[CCostedFuncCompanionCtor] = new CCostedFuncCompanionCtor
   lazy val RCCostedFunc: CCostedFuncCompanionCtor = unrefCCostedFuncCompanion(CCostedFuncRef)
   implicit def unrefCCostedFuncCompanion(p: Ref[CCostedFuncCompanionCtor]): CCostedFuncCompanionCtor = {
-    if (p.rhs.isInstanceOf[CCostedFuncCompanionCtor])
-      p.rhs.asInstanceOf[CCostedFuncCompanionCtor]
+    if (p.node.isInstanceOf[CCostedFuncCompanionCtor])
+      p.node.asInstanceOf[CCostedFuncCompanionCtor]
     else
       unrefDelegate[CCostedFuncCompanionCtor](p)
   }
@@ -347,8 +347,8 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
   implicit case object CCostedFuncCompanionElem extends CompanionElem[CCostedFuncCompanionCtor]
 
   implicit def unrefCCostedFunc[Env, Arg, Res](p: Ref[CCostedFunc[Env, Arg, Res]]): CCostedFunc[Env, Arg, Res] = {
-    if (p.rhs.isInstanceOf[CCostedFunc[Env, Arg, Res]@unchecked])
-      p.rhs.asInstanceOf[CCostedFunc[Env, Arg, Res]]
+    if (p.node.isInstanceOf[CCostedFunc[Env, Arg, Res]@unchecked])
+      p.node.asInstanceOf[CCostedFunc[Env, Arg, Res]]
     else
       unrefDelegate[CCostedFunc[Env, Arg, Res]](p)
   }
@@ -472,8 +472,8 @@ object CCostedColl extends EntityObject("CCostedColl") {
   lazy val CCostedCollRef: Ref[CCostedCollCompanionCtor] = new CCostedCollCompanionCtor
   lazy val RCCostedColl: CCostedCollCompanionCtor = unrefCCostedCollCompanion(CCostedCollRef)
   implicit def unrefCCostedCollCompanion(p: Ref[CCostedCollCompanionCtor]): CCostedCollCompanionCtor = {
-    if (p.rhs.isInstanceOf[CCostedCollCompanionCtor])
-      p.rhs.asInstanceOf[CCostedCollCompanionCtor]
+    if (p.node.isInstanceOf[CCostedCollCompanionCtor])
+      p.node.asInstanceOf[CCostedCollCompanionCtor]
     else
       unrefDelegate[CCostedCollCompanionCtor](p)
   }
@@ -481,8 +481,8 @@ object CCostedColl extends EntityObject("CCostedColl") {
   implicit case object CCostedCollCompanionElem extends CompanionElem[CCostedCollCompanionCtor]
 
   implicit def unrefCCostedColl[Item](p: Ref[CCostedColl[Item]]): CCostedColl[Item] = {
-    if (p.rhs.isInstanceOf[CCostedColl[Item]@unchecked])
-      p.rhs.asInstanceOf[CCostedColl[Item]]
+    if (p.node.isInstanceOf[CCostedColl[Item]@unchecked])
+      p.node.asInstanceOf[CCostedColl[Item]]
     else
       unrefDelegate[CCostedColl[Item]](p)
   }
@@ -589,8 +589,8 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   lazy val CCostedBuilderRef: Ref[CCostedBuilderCompanionCtor] = new CCostedBuilderCompanionCtor
   lazy val RCCostedBuilder: CCostedBuilderCompanionCtor = unrefCCostedBuilderCompanion(CCostedBuilderRef)
   implicit def unrefCCostedBuilderCompanion(p: Ref[CCostedBuilderCompanionCtor]): CCostedBuilderCompanionCtor = {
-    if (p.rhs.isInstanceOf[CCostedBuilderCompanionCtor])
-      p.rhs.asInstanceOf[CCostedBuilderCompanionCtor]
+    if (p.node.isInstanceOf[CCostedBuilderCompanionCtor])
+      p.node.asInstanceOf[CCostedBuilderCompanionCtor]
     else
       unrefDelegate[CCostedBuilderCompanionCtor](p)
   }
@@ -598,8 +598,8 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   implicit case object CCostedBuilderCompanionElem extends CompanionElem[CCostedBuilderCompanionCtor]
 
   implicit def unrefCCostedBuilder(p: Ref[CCostedBuilder]): CCostedBuilder = {
-    if (p.rhs.isInstanceOf[CCostedBuilder])
-      p.rhs.asInstanceOf[CCostedBuilder]
+    if (p.node.isInstanceOf[CCostedBuilder])
+      p.node.asInstanceOf[CCostedBuilder]
     else
       unrefDelegate[CCostedBuilder](p)
   }

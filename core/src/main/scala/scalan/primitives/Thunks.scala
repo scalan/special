@@ -135,20 +135,20 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     @inline final def isEmptyBody: Boolean = bodyIds.isEmpty
 
     def +=(sym: Sym): Unit = {
-      val d = sym.rhs
+      val d = sym.node
       bodyIds += d.nodeId
       bodyDefs.put(d, d)
     }
 
     def scheduleForResult(root: Ref[Any]): DBuffer[Int] = {
       val sch = buildScheduleForResult(
-        DBuffer(root.rhs.nodeId),
+        DBuffer(root.node.nodeId),
         { id =>
-          val deps = getSym(id).rhs.deps
+          val deps = getSym(id).node.deps
           val res = DBuffer.ofSize[Int](deps.length)
           cfor(0)(_ < deps.length, _ + 1) { i =>
             val s = deps(i)
-            val id = s.rhs.nodeId
+            val id = s.node.nodeId
             if (bodyIds(id) && !s.isVar)
               res += id
           }
@@ -271,7 +271,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       case ThunkDef(root @ Def(c @Const(_)), Seq(s1)) if root == s1 => Some(c)
       case _ => None
     }
-    def unapply(s: Sym): Option[Const[_]] = unapply(s.rhs)
+    def unapply(s: Sym): Option[Const[_]] = unapply(s.node)
   }
 
 

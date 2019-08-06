@@ -194,7 +194,7 @@ trait TransformingEx { self: ScalanEx =>
     def backwardAnalyzeRec(g: AstGraph): Unit = {
       val revSchedule = g.schedule.reverseIterator
       for (sym <- revSchedule) sym match { case s: Ref[t] =>
-        val d = s.rhs
+        val d = s.node
         // back-propagate analysis information (including from Lambda to Lambda.y, see LevelAnalyzer)
         val outMark = getMark(s)
         val inMarks = getInboundMarkings[t](s, outMark)

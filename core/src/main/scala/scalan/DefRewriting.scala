@@ -3,8 +3,8 @@ package scalan
 trait DefRewriting { scalan: Scalan =>
 
   def rewriteDef[T](d: Def[T]): Ref[_] = d match {
-    case First(p) if p.rhs.isInstanceOf[Tup[_,_]] => p.rhs.asInstanceOf[Tup[_,_]].a
-    case Second(p) if p.rhs.isInstanceOf[Tup[_,_]] => p.rhs.asInstanceOf[Tup[_,_]].b
+    case First(p) if p.node.isInstanceOf[Tup[_,_]] => p.node.asInstanceOf[Tup[_,_]].a
+    case Second(p) if p.node.isInstanceOf[Tup[_,_]] => p.node.asInstanceOf[Tup[_,_]].b
     case Tup(Def(First(a)), Def(Second(b))) if a == b => a
 
     // Rule: convert(eFrom, eTo, x, conv) if x.elem <:< eFrom  ==>  conv(x)
@@ -28,7 +28,7 @@ trait DefRewriting { scalan: Scalan =>
       }
 
     case ThunkForce(th) =>
-      th.rhs match {
+      th.node match {
         // empty Thunk
         case ThunkDef(root, sch) if sch.isEmpty => root
         // constant in Thunk
@@ -45,7 +45,7 @@ trait DefRewriting { scalan: Scalan =>
 
   final def rewriteUnOp[A,R](op: UnOp[A,R], x: Ref[A]): Ref[_] = {
     op match {
-      case _: NumericNegate[_] => x.rhs match {
+      case _: NumericNegate[_] => x.node match {
         // -(-x) => x
         case ApplyUnOp(_: NumericNegate[_], x) => x
         case _ => null
@@ -59,7 +59,7 @@ trait DefRewriting { scalan: Scalan =>
       // (x: Double).toDouble => x
       case NumericToDouble(_) if x.elem == DoubleElement => x
 
-      case _ if op == Not => x.rhs match {
+      case _ if op == Not => x.node match {
         // Rule: !(x op y) ==>
         case ApplyBinOp(op, x, y) => op.asInstanceOf[BinOp[_,_]] match {
           case OrderingLT(ord) =>

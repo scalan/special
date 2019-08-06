@@ -30,7 +30,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefWSpecialPredef(p: Ref[WSpecialPredef]): WSpecialPredef = {
-    if (p.rhs.isInstanceOf[WSpecialPredef]) p.rhs.asInstanceOf[WSpecialPredef]
+    if (p.node.isInstanceOf[WSpecialPredef]) p.node.asInstanceOf[WSpecialPredef]
     else
       WSpecialPredefAdapter(p)
   }
@@ -50,7 +50,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     override def toString = "WSpecialPredef"
   }
   implicit def unrefWSpecialPredefCompanionCtor(p: Ref[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
-    p.rhs.asInstanceOf[WSpecialPredefCompanionCtor]
+    p.node.asInstanceOf[WSpecialPredefCompanionCtor]
 
   lazy val RWSpecialPredef: Ref[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
     private val thisClass = classOf[WSpecialPredefCompanion]
@@ -105,7 +105,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[(Ref[WOption[A]], Ref[A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[WOption[A]], Ref[A]) forSome {type A}] = unapply(exp.node)
     }
 
     object none {
@@ -115,7 +115,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[Elem[A] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Elem[A] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Elem[A] forSome {type A}] = unapply(exp.node)
     }
 
     object some {
@@ -125,7 +125,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[Ref[A] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Ref[A] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[A] forSome {type A}] = unapply(exp.node)
     }
 
     object cast {
@@ -135,7 +135,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[(Ref[Any], Elem[T]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Any], Elem[T]) forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Any], Elem[T]) forSome {type T}] = unapply(exp.node)
     }
 
     object loopUntil {
@@ -145,7 +145,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
           Nullable(res).asInstanceOf[Nullable[(Ref[A], Ref[A => Boolean], Ref[A => A]) forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[A], Ref[A => Boolean], Ref[A => A]) forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[A], Ref[A => Boolean], Ref[A => A]) forSome {type A}] = unapply(exp.node)
     }
   }
 } // of object WSpecialPredef

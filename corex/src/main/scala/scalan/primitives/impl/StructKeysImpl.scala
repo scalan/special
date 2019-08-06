@@ -43,7 +43,7 @@ object StructKey extends EntityObject("StructKey") {
 
   // entityUnref: single unref method for each type family
   implicit def unrefStructKey[Schema <: Struct](p: Ref[StructKey[Schema]]): StructKey[Schema] = {
-    if (p.rhs.isInstanceOf[StructKey[Schema]@unchecked]) p.rhs.asInstanceOf[StructKey[Schema]]
+    if (p.node.isInstanceOf[StructKey[Schema]@unchecked]) p.node.asInstanceOf[StructKey[Schema]]
     else
       StructKeyAdapter(p)
   }
@@ -66,7 +66,7 @@ object StructKey extends EntityObject("StructKey") {
     override def toString = "StructKey"
   }
   implicit def unrefStructKeyCompanionCtor(p: Ref[StructKeyCompanionCtor]): StructKeyCompanionCtor =
-    p.rhs.asInstanceOf[StructKeyCompanionCtor]
+    p.node.asInstanceOf[StructKeyCompanionCtor]
 
   lazy val RStructKey: Ref[StructKeyCompanionCtor] = new StructKeyCompanionCtor {
   }
@@ -125,8 +125,8 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   lazy val IndexStructKeyRef: Ref[IndexStructKeyCompanionCtor] = new IndexStructKeyCompanionCtor
   lazy val RIndexStructKey: IndexStructKeyCompanionCtor = unrefIndexStructKeyCompanion(IndexStructKeyRef)
   implicit def unrefIndexStructKeyCompanion(p: Ref[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
-    if (p.rhs.isInstanceOf[IndexStructKeyCompanionCtor])
-      p.rhs.asInstanceOf[IndexStructKeyCompanionCtor]
+    if (p.node.isInstanceOf[IndexStructKeyCompanionCtor])
+      p.node.asInstanceOf[IndexStructKeyCompanionCtor]
     else
       unrefDelegate[IndexStructKeyCompanionCtor](p)
   }
@@ -134,8 +134,8 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   implicit case object IndexStructKeyCompanionElem extends CompanionElem[IndexStructKeyCompanionCtor]
 
   implicit def unrefIndexStructKey[Schema <: Struct](p: Ref[IndexStructKey[Schema]]): IndexStructKey[Schema] = {
-    if (p.rhs.isInstanceOf[IndexStructKey[Schema]@unchecked])
-      p.rhs.asInstanceOf[IndexStructKey[Schema]]
+    if (p.node.isInstanceOf[IndexStructKey[Schema]@unchecked])
+      p.node.asInstanceOf[IndexStructKey[Schema]]
     else
       unrefDelegate[IndexStructKey[Schema]](p)
   }
@@ -215,8 +215,8 @@ object NameStructKey extends EntityObject("NameStructKey") {
   lazy val NameStructKeyRef: Ref[NameStructKeyCompanionCtor] = new NameStructKeyCompanionCtor
   lazy val RNameStructKey: NameStructKeyCompanionCtor = unrefNameStructKeyCompanion(NameStructKeyRef)
   implicit def unrefNameStructKeyCompanion(p: Ref[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
-    if (p.rhs.isInstanceOf[NameStructKeyCompanionCtor])
-      p.rhs.asInstanceOf[NameStructKeyCompanionCtor]
+    if (p.node.isInstanceOf[NameStructKeyCompanionCtor])
+      p.node.asInstanceOf[NameStructKeyCompanionCtor]
     else
       unrefDelegate[NameStructKeyCompanionCtor](p)
   }
@@ -224,8 +224,8 @@ object NameStructKey extends EntityObject("NameStructKey") {
   implicit case object NameStructKeyCompanionElem extends CompanionElem[NameStructKeyCompanionCtor]
 
   implicit def unrefNameStructKey[Schema <: Struct](p: Ref[NameStructKey[Schema]]): NameStructKey[Schema] = {
-    if (p.rhs.isInstanceOf[NameStructKey[Schema]@unchecked])
-      p.rhs.asInstanceOf[NameStructKey[Schema]]
+    if (p.node.isInstanceOf[NameStructKey[Schema]@unchecked])
+      p.node.asInstanceOf[NameStructKey[Schema]]
     else
       unrefDelegate[NameStructKey[Schema]](p)
   }

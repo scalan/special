@@ -241,7 +241,7 @@ trait Transforming { self: Scalan =>
     def mirrorNode(t: Ctx, rewriter: Rewriter, g: AstGraph, node: Sym): Ctx = {
       if (isMirrored(t, node)) t
       else {
-        node.rhs match {
+        node.node match {
           case v: Variable[_] =>
             mirrorVar(t, rewriter, node)
           case lam: Lambda[a, b] =>

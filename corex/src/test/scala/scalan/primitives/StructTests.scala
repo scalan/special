@@ -120,7 +120,7 @@ class StructTests extends BaseViewTests {
     class ScalanCake extends ScalanEx with StructExamples with SegmentsModule with MetaTestsModule {
       import IsoUR._
       def containsTuples(g: PGraph): Boolean = {
-        g.flatSchedule.exists(tp => tp.rhs match {
+        g.flatSchedule.exists(tp => tp.node match {
           case First(_) => true
           case Second(_) => true
           case Tup(_,_) => true

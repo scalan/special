@@ -17,7 +17,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
   case class GraphNode(
           sym: Sym, // this symbol
           usages: DBuffer[Int]) {
-    def inputSyms: Seq[Sym] = sym.rhs.deps
+    def inputSyms: Seq[Sym] = sym.node.deps
     def outSyms: DBuffer[Sym] = {
       usages.map(getSym)
     }
@@ -34,7 +34,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       val rs = roots.toArray
       val len = rs.length
       val res = new Array[Int](len)
-      cfor(0)(_ < len, _ + 1) { i => res(i) = rs(i).rhs.nodeId }
+      cfor(0)(_ < len, _ + 1) { i => res(i) = rs(i).node.nodeId }
       DBuffer.unsafe(res)
     }
 
@@ -43,7 +43,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       val res = mutable.HashSet.empty[Sym]
       cfor(0)(_ < schedule.length, _ + 1) { i =>
         val sym = schedule(i)
-        val deps = sym.rhs.deps
+        val deps = sym.node.deps
         cfor(0)(_ < deps.length, _ + 1) { j =>
           val s = deps(j)
           if (!res.contains(s)) {
@@ -78,7 +78,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
     @inline final def isIdentity: Boolean = boundVars == roots
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
 
-    @inline final def isLocalDef(s: Sym): Boolean = domain(s.rhs.nodeId)
+    @inline final def isLocalDef(s: Sym): Boolean = domain(s.node.nodeId)
     @inline final def isLocalDefId(id: Int): Boolean = domain(id)
 
     @inline final def isRoot(s: Sym): Boolean = roots.contains(s)
@@ -90,8 +90,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
     final def buildFlatSchedule(schedule: Schedule, flatBuf: DBuffer[Sym]): Unit = {
       cfor(0)(_ < schedule.length, _ + 1) { i =>
         val sym = schedule(i)
-        if (sym.rhs.isInstanceOf[AstGraph]) {
-          buildFlatSchedule(sym.rhs.asInstanceOf[AstGraph].schedule, flatBuf)
+        if (sym.node.isInstanceOf[AstGraph]) {
+          buildFlatSchedule(sym.node.asInstanceOf[AstGraph].schedule, flatBuf)
         }
         flatBuf += sym
       }
@@ -108,13 +108,13 @@ trait AstGraphs extends Transforming { self: Scalan =>
       val nodeMap = DMap.ofSize[Int, GraphNode](len)
       cfor(0)(_ < len, _ + 1) { i =>
         val sym = schedule(i)
-        val symId = sym.rhs.nodeId
+        val symId = sym.node.nodeId
         nodeMap.update(symId, GraphNode(sym, DBuffer.empty[Int]))
 
-        val deps = if (usingDeps) sym.rhs.deps else sym.rhs.syms
+        val deps = if (usingDeps) sym.node.deps else sym.node.syms
         cfor(0)(_ < deps.length, _ + 1) { j =>
           val us = deps(j)             // used symbol
-          val usId = us.rhs.nodeId     // used symbol id
+          val usId = us.node.nodeId     // used symbol id
           var node = nodeMap.getOrElse(usId, null)
           if (null == node) {
             node = GraphNode(us, DBuffer.empty[Int])
@@ -138,7 +138,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       buildUsageMap(flatSchedule, usingDeps = false) // using rhs.syms instead of rhs.deps
     }
 
-    def globalUsagesOf(s: Sym): DBuffer[Sym] = allNodes.get(s.rhs.nodeId) match {
+    def globalUsagesOf(s: Sym): DBuffer[Sym] = allNodes.get(s.node.nodeId) match {
       case Some(node) => node.outSyms
       case None => DBuffer.empty[Sym]
     }
@@ -151,7 +151,7 @@ trait AstGraphs extends Transforming { self: Scalan =>
       node.usages
     }
 
-    def hasManyUsages(s: Sym): Boolean = usagesOf(s.rhs.nodeId).length > 1
+    def hasManyUsages(s: Sym): Boolean = usagesOf(s.node.nodeId).length > 1
 
     def show(): Unit = show(defaultGraphVizConfig)
     def show(emitMetadata: Boolean): Unit = show(defaultGraphVizConfig.copy(emitMetadata = emitMetadata))

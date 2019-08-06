@@ -22,25 +22,25 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
       val neighbours: DFunc[Int, DBuffer[Int]] = filterNode match {
         case Nullable(pred) =>
           { (id: Int) =>
-            val deps = getSym(id).rhs.deps
+            val deps = getSym(id).node.deps
             val len = deps.length
             val res = DBuffer.ofSize[Int](len)
             cfor(0)(_ < len, _ + 1) { i =>
               val sym = deps(i)
               if (pred(sym) && !sym.isVar)
-                res += sym.rhs.nodeId
+                res += sym.node.nodeId
             }
             res
           }
         case _ =>
           { (id: Int) =>
-            val deps = getSym(id).rhs.deps
+            val deps = getSym(id).node.deps
             val len = deps.length
             val res = DBuffer.ofSize[Int](len)
             cfor(0)(_ < len, _ + 1) { i =>
               val sym = deps(i)
               if (!sym.isVar)
-                res += sym.rhs.nodeId
+                res += sym.node.nodeId
             }
             res
           }

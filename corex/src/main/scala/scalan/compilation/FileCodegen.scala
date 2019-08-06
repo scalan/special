@@ -87,7 +87,7 @@ abstract class FileCodegen[+ScalanCake <: ScalanEx](val scalan: ScalanCake, val 
     val originalSchedule = graph.schedule
     val schedule = f(originalSchedule)
     schedule.foreach { sym =>
-      emitNode(sym, sym.rhs, graph)
+      emitNode(sym, sym.node, graph)
     }
   }
 

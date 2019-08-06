@@ -46,7 +46,7 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
 
   // entityUnref: single unref method for each type family
   implicit def unrefStructItem[Val, Schema <: Struct](p: Ref[StructItem[Val, Schema]]): StructItem[Val, Schema] = {
-    if (p.rhs.isInstanceOf[StructItem[Val, Schema]@unchecked]) p.rhs.asInstanceOf[StructItem[Val, Schema]]
+    if (p.node.isInstanceOf[StructItem[Val, Schema]@unchecked]) p.node.asInstanceOf[StructItem[Val, Schema]]
     else
       StructItemAdapter(p)
   }
@@ -70,7 +70,7 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     override def toString = "StructItem"
   }
   implicit def unrefStructItemCompanionCtor(p: Ref[StructItemCompanionCtor]): StructItemCompanionCtor =
-    p.rhs.asInstanceOf[StructItemCompanionCtor]
+    p.node.asInstanceOf[StructItemCompanionCtor]
 
   lazy val RStructItem: Ref[StructItemCompanionCtor] = new StructItemCompanionCtor {
   }
@@ -141,8 +141,8 @@ implicit val eSchema = p._1.eSchema
   lazy val StructItemBaseRef: Ref[StructItemBaseCompanionCtor] = new StructItemBaseCompanionCtor
   lazy val RStructItemBase: StructItemBaseCompanionCtor = unrefStructItemBaseCompanion(StructItemBaseRef)
   implicit def unrefStructItemBaseCompanion(p: Ref[StructItemBaseCompanionCtor]): StructItemBaseCompanionCtor = {
-    if (p.rhs.isInstanceOf[StructItemBaseCompanionCtor])
-      p.rhs.asInstanceOf[StructItemBaseCompanionCtor]
+    if (p.node.isInstanceOf[StructItemBaseCompanionCtor])
+      p.node.asInstanceOf[StructItemBaseCompanionCtor]
     else
       unrefDelegate[StructItemBaseCompanionCtor](p)
   }
@@ -150,8 +150,8 @@ implicit val eSchema = p._1.eSchema
   implicit case object StructItemBaseCompanionElem extends CompanionElem[StructItemBaseCompanionCtor]
 
   implicit def unrefStructItemBase[Val, Schema <: Struct](p: Ref[StructItemBase[Val, Schema]]): StructItemBase[Val, Schema] = {
-    if (p.rhs.isInstanceOf[StructItemBase[Val, Schema]@unchecked])
-      p.rhs.asInstanceOf[StructItemBase[Val, Schema]]
+    if (p.node.isInstanceOf[StructItemBase[Val, Schema]@unchecked])
+      p.node.asInstanceOf[StructItemBase[Val, Schema]]
     else
       unrefDelegate[StructItemBase[Val, Schema]](p)
   }

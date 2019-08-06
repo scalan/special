@@ -33,7 +33,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
   implicit def unrefKind[F[_], A](p: Ref[Kind[F, A]]): Kind[F, A] = {
     val sym = p.asInstanceOf[SingleRef[Kind[F, A]]]
     sym.getAdapter(
-      p.rhs.isInstanceOf[Kind[F, A]@unchecked],
+      p.node.isInstanceOf[Kind[F, A]@unchecked],
       createKindAdapter.asInstanceOf[Ref[Kind[F, A]] => Kind[F, A]])
   }
 
@@ -68,7 +68,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
     override def toString = "Kind"
   }
   implicit def unrefKindCompanionCtor(p: Ref[KindCompanionCtor]): KindCompanionCtor =
-    p.rhs.asInstanceOf[KindCompanionCtor]
+    p.node.asInstanceOf[KindCompanionCtor]
 
   lazy val RKind: Ref[KindCompanionCtor] = new KindCompanionCtor {
     private val thisClass = classOf[KindCompanion]
@@ -84,7 +84,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
           Nullable(res).asInstanceOf[Nullable[(Ref[Kind[F, A]], Ref[A => B]) forSome {type F[_]; type A; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Ref[Kind[F, A]], Ref[A => B]) forSome {type F[_]; type A; type B}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Kind[F, A]], Ref[A => B]) forSome {type F[_]; type A; type B}] = unapply(exp.node)
     }
   }
 
@@ -152,8 +152,8 @@ object Return extends EntityObject("Return") {
   lazy val ReturnRef: Ref[ReturnCompanionCtor] = new ReturnCompanionCtor
   lazy val RReturn: ReturnCompanionCtor = unrefReturnCompanion(ReturnRef)
   implicit def unrefReturnCompanion(p: Ref[ReturnCompanionCtor]): ReturnCompanionCtor = {
-    if (p.rhs.isInstanceOf[ReturnCompanionCtor])
-      p.rhs.asInstanceOf[ReturnCompanionCtor]
+    if (p.node.isInstanceOf[ReturnCompanionCtor])
+      p.node.asInstanceOf[ReturnCompanionCtor]
     else
       unrefDelegate[ReturnCompanionCtor](p)
   }
@@ -161,8 +161,8 @@ object Return extends EntityObject("Return") {
   implicit case object ReturnCompanionElem extends CompanionElem[ReturnCompanionCtor]
 
   implicit def unrefReturn[F[_], A](p: Ref[Return[F, A]]): Return[F, A] = {
-    if (p.rhs.isInstanceOf[Return[F, A]@unchecked])
-      p.rhs.asInstanceOf[Return[F, A]]
+    if (p.node.isInstanceOf[Return[F, A]@unchecked])
+      p.node.asInstanceOf[Return[F, A]]
     else
       unrefDelegate[Return[F, A]](p)
   }
@@ -267,8 +267,8 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
   lazy val BindRef: Ref[BindCompanionCtor] = new BindCompanionCtor
   lazy val RBind: BindCompanionCtor = unrefBindCompanion(BindRef)
   implicit def unrefBindCompanion(p: Ref[BindCompanionCtor]): BindCompanionCtor = {
-    if (p.rhs.isInstanceOf[BindCompanionCtor])
-      p.rhs.asInstanceOf[BindCompanionCtor]
+    if (p.node.isInstanceOf[BindCompanionCtor])
+      p.node.asInstanceOf[BindCompanionCtor]
     else
       unrefDelegate[BindCompanionCtor](p)
   }
@@ -276,8 +276,8 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
   implicit case object BindCompanionElem extends CompanionElem[BindCompanionCtor]
 
   implicit def unrefBind[F[_], S, B](p: Ref[Bind[F, S, B]]): Bind[F, S, B] = {
-    if (p.rhs.isInstanceOf[Bind[F, S, B]@unchecked])
-      p.rhs.asInstanceOf[Bind[F, S, B]]
+    if (p.node.isInstanceOf[Bind[F, S, B]@unchecked])
+      p.node.asInstanceOf[Bind[F, S, B]]
     else
       unrefDelegate[Bind[F, S, B]](p)
   }
