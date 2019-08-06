@@ -75,8 +75,8 @@ trait Structs extends GraphVizExport { self: Scalan =>
         !!!(s"Invalid argument of LiftableStruct($eW)")
     }
     def lift(x: SStruct): Ref[T] = StructConst(x, eW)
-    def unlift(w: Ref[T]): SStruct = w match {
-      case Def(StructConst(x: SStruct, _)) => x
+    def unlift(w: Ref[T]): SStruct = w.node match {
+      case StructConst(x: SStruct, _) => x
       case _ => unliftError(w)
     }
   }

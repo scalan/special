@@ -57,13 +57,13 @@ trait LogicalOps extends Base { self: Scalan =>
         if (b) ifTrue(rhs) else ifFalse(rhs)
 
       case _ =>
-        rhs match {
+        rhs.node match {
           // op(x, true) => ifTrue(x) | op(false, x) => ifFalse(x)
-          case Def(Const(b: Boolean)) =>
+          case Const(b: Boolean) =>
             if (b) ifTrue(lhs) else ifFalse(lhs)
 
           // op(x, !x) => ifNegated(!x)
-          case Def(ApplyUnOp(op, `lhs`)) if op == Not =>
+          case ApplyUnOp(op, `lhs`) if op == Not =>
             ifNegated(rhs)
           case _ => null
         }

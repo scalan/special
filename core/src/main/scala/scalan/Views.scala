@@ -246,8 +246,8 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
     else if (iso1.isIdentity)
       iso2
     else
-      (iso2, iso1) match {
-        case (Def(iso2d: PairIso[b1, b2, c1, c2]), Def(iso1d: PairIso[a1, a2, _, _])) =>
+      (iso2.node, iso1.node) match {
+        case (iso2d: PairIso[b1, b2, c1, c2], iso1d: PairIso[a1, a2, _, _]) =>
           val composedIso1 = composeIso(iso2d.iso1, iso1d.iso1.asInstanceOf[Iso[a1, b1]])
           val composedIso2 = composeIso(iso2d.iso2, iso1d.iso2.asInstanceOf[Iso[a2, b2]])
           pairIso(composedIso1, composedIso2)

@@ -52,8 +52,8 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       RType[SThunk[ST]]
     }
     def lift(x: SThunk[ST]): Ref[Thunk[T]] = ThunkConst(x, lT)
-    def unlift(w: Ref[Thunk[T]]): SThunk[ST] = w match {
-      case Def(ThunkConst(x: SThunk[_], l)) if l == lT => x.asInstanceOf[SThunk[ST]]
+    def unlift(w: Ref[Thunk[T]]): SThunk[ST] = w.node match {
+      case ThunkConst(x: SThunk[_], l) if l == lT => x.asInstanceOf[SThunk[ST]]
       case _ => unliftError(w)
     }
   }
@@ -229,7 +229,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
   var isInlineThunksOnForce = false
 
   def forceThunkByMirror[A](thunk: Th[A], subst: MapTransformer = MapTransformer.Empty): Ref[A] = {
-    val Def(th: ThunkDef[A]) = thunk
+    val th = thunk.node.asInstanceOf[ThunkDef[A]]
     forceThunkDefByMirror(th, subst)
   }
   def forceThunkDefByMirror[A](th: ThunkDef[A], subst: MapTransformer = MapTransformer.Empty): Ref[A] = {
@@ -240,8 +240,8 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
   def thunk_force[A](t: Th[A]): Ref[A] =
     if (isInlineThunksOnForce)
-      t match {
-        case Def(th@ThunkDef(_, _)) =>
+      t.node match {
+        case th @ ThunkDef(_, _) =>
           forceThunkByMirror(t)
         case _ => ThunkForce(t)
       }

@@ -87,12 +87,12 @@ trait DefRewriting { scalan: Scalan =>
       case _: Equals[_] =>
         if (x == y) Const(true)
         else {
-          y match {
-            case Def(Const(b: Boolean)) if x.elem == BooleanElement =>
+          y.node match {
+            case Const(b: Boolean) if x.elem == BooleanElement =>
               if (b) x else Not(asRep[Boolean](x))
             case _ =>
-              x match {
-                case Def(Const(b: Boolean)) if y.elem == BooleanElement =>
+              x.node match {
+                case Const(b: Boolean) if y.elem == BooleanElement =>
                   if (b) y else Not(asRep[Boolean](y))
                 case _ =>
                   null
@@ -102,12 +102,12 @@ trait DefRewriting { scalan: Scalan =>
       case _: NotEquals[_] =>
         if (x == y) Const(false)
         else {
-          y match {
-            case Def(Const(b: Boolean)) if x.elem == BooleanElement =>
+          y.node match {
+            case Const(b: Boolean) if x.elem == BooleanElement =>
               if (b) Not(asRep[Boolean](x)) else x
             case _ =>
-              x match {
-                case Def(Const(b: Boolean)) if y.elem == BooleanElement =>
+              x.node match {
+                case Const(b: Boolean) if y.elem == BooleanElement =>
                   if (b) Not(asRep[Boolean](y)) else y
                 case _ =>
                   null

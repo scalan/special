@@ -109,8 +109,8 @@ trait Transforming { self: Scalan =>
   }
 
   object InvokeRewriter extends Rewriter {
-    def apply[T](x: Ref[T]): Ref[T] = x match {
-      case Def(call: MethodCall) =>
+    def apply[T](x: Ref[T]): Ref[T] = x.node match {
+      case call: MethodCall =>
         call.tryInvoke match {
           case InvokeSuccess(res) =>
             res.asInstanceOf[Ref[T]]

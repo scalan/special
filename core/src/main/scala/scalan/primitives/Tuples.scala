@@ -192,8 +192,8 @@ trait Tuples extends Base { self: Scalan =>
 
   val tuplesCache = AVHashMap[Ref[_], (Ref[_], Ref[_])](1000)
 
-  def unzipPair[A, B](p: Ref[(A, B)]): (Ref[A], Ref[B]) = p match {
-    case Def(Tup(a, b)) => (a, b)
+  def unzipPair[A, B](p: Ref[(A, B)]): (Ref[A], Ref[B]) = p.node match {
+    case Tup(a, b) => (a, b)
     case _ => p.elem match {
       case pe: PairElem[_, _] =>
         implicit val eA = pe.eFst
@@ -241,9 +241,9 @@ trait Tuples extends Base { self: Scalan =>
       case 1 => t._1
       case 2 => t._2
     }
-    def unapply(p: Sym): Option[Int] = p match {
-      case Def(First(_)) => Some(1)
-      case Def(Second(_)) => Some(2)
+    def unapply(p: Sym): Option[Int] = p.node match {
+      case First(_) => Some(1)
+      case Second(_) => Some(2)
       case _ => None
     }
   }

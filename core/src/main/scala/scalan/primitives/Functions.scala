@@ -139,7 +139,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
     def isGlobalLambda: Boolean = {
       freeVars.forall { x =>
-        val xIsGlobalLambda = x.isLambda && { val Def(lam: Lambda[_, _]) = x; lam.isGlobalLambda }
+        val xIsGlobalLambda = x.isLambda && { val lam = x.node.asInstanceOf[Lambda[_, _]]; lam.isGlobalLambda }
         x.isConst || xIsGlobalLambda
       }
     }
@@ -176,8 +176,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
    * VeryConstantLambda(x) should be equivalent to ConstantLambda(Def(Const(x)))
    */
   object VeryConstantLambda {
-    def unapply[A,B](lam: Lambda[A, B]): Option[B] = lam.y match {
-      case Def(Const(y)) => Some(y)
+    def unapply[A,B](lam: Lambda[A, B]): Option[B] = lam.y.node match {
+      case Const(y) => Some(y)
       case _ => None
     }
   }
@@ -194,8 +194,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   implicit class FuncExtensions[A, B](f: Ref[A=>B]) {
     implicit def eA = f.elem.eDom
-    def getLambda: Lambda[A,B] = f match {
-      case Def(lam: Lambda[_,_]) => lam.asInstanceOf[Lambda[A,B]]
+    def getLambda: Lambda[A,B] = f.node match {
+      case lam: Lambda[_,_] => lam.asInstanceOf[Lambda[A,B]]
       case _ => !!!(s"Expected symbol of Lambda node but was $f", f)
     }
 
@@ -213,18 +213,16 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def patternMatch(s1: Sym, s2: Sym): Nullable[Subst] = matchExps(s1, s2, true, emptyMatchSubst)
 
-  protected def matchExps(s1: Sym, s2: Sym, allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] = s1 match {
+  protected def matchExps(s1: Sym, s2: Sym, allowInexactMatch: Boolean, subst: Subst): Nullable[Subst] = s1.node match {
     case _ if s1 == s2 || subst.get(s1) == s2 || subst.get(s2) == s1 =>
       Nullable(subst)
-    case Def(d1) if !d1.isInstanceOf[Variable[_]] => s2 match {
-      case Def(d2) =>
+    case d1 if !d1.isInstanceOf[Variable[_]] =>
+        val d2 = s2.node
         val res = matchDefs(d1, d2, allowInexactMatch, subst)
         if (res.isDefined) {
           res.get.put(s1, s2)
         }
         res
-      case _ => Nullable.None
-    }
     case _ =>
       if (allowInexactMatch && !subst.containsKey(s1)) {
         subst.put(s1, s2)
