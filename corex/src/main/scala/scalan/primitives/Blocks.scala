@@ -6,42 +6,42 @@ import scalan.{ScalanEx, BaseEx}
 trait Blocks extends BaseEx { self: ScalanEx =>
   import IsoUR._
 
-  implicit class RepBlock[A](left: Rep[A]) { 
-    def |[B](right: Rep[B]) = semicolon(left, right)
+  implicit class RepBlock[A](left: Ref[A]) {
+    def |[B](right: Ref[B]) = semicolon(left, right)
   }
 
-  case class Semicolon[A,B](left: Rep[A], right: Rep[B]) extends BaseDef[B]()(right.elem) {
+  case class Semicolon[A,B](left: Ref[A], right: Ref[B]) extends BaseDef[B]()(right.elem) {
     override def transform(t: Transformer) = Semicolon(t(left), t(right))
   }
-  case class SemicolonMulti[B](left: Seq[Rep[_]], right: Rep[B]) extends BaseDef[B]()(right.elem) {
-    override def transform(t: Transformer) = SemicolonMulti[B](t(left).asInstanceOf[Seq[Rep[_]]], t(right))
+  case class SemicolonMulti[B](left: Seq[Ref[_]], right: Ref[B]) extends BaseDef[B]()(right.elem) {
+    override def transform(t: Transformer) = SemicolonMulti[B](t(left).asInstanceOf[Seq[Ref[_]]], t(right))
   }
 
-  def semicolon[A,B](left: Rep[A], right: Rep[B]): Rep[B] = {
+  def semicolon[A,B](left: Ref[A], right: Ref[B]): Ref[B] = {
     Semicolon(left, right)
   }
-  def semicolonMulti[B](xs: Seq[Rep[_]], y: Rep[B]): Rep[B] = {
+  def semicolonMulti[B](xs: Seq[Ref[_]], y: Ref[B]): Ref[B] = {
     val peeled = xs.map(x => peelViews(x))
     val notPure = peeled.filterNot(isPureDataflow(_))
-    val res: Rep[B] =
+    val res: Ref[B] =
       if (notPure.isEmpty) y
       else SemicolonMulti(notPure, y)
     res
   }
 
-  def peelViews(x: Rep[_]): Rep[_] = x match {
+  def peelViews(x: Ref[_]): Ref[_] = x match {
     case Def(PairView(s,_,_)) => peelViews(s)
     case HasViews(s, _) => peelViews(s)
     case _ => x
   }
 
-  def isPureDataflow[A](x: Rep[A]): Boolean = x match {
+  def isPureDataflow[A](x: Ref[A]): Boolean = x match {
     case Def(Const(_)) => true
     case _ => false
   }
 
   object HasSemicolons {
-    def unapply(as: Seq[Rep[_]]): Option[Seq[Sym]] = {
+    def unapply(as: Seq[Ref[_]]): Option[Seq[Sym]] = {
       val res = as.filter(a => a match {
         case Def(Semicolon(_,_)) => true
         case Def(SemicolonMulti(_,_)) => true
@@ -51,7 +51,7 @@ trait Blocks extends BaseEx { self: ScalanEx =>
     }
   }
 
-  def addToSet[A](xs: Seq[Rep[A]], y: Rep[A]): Seq[Rep[A]] = {
+  def addToSet[A](xs: Seq[Ref[A]], y: Ref[A]): Seq[Ref[A]] = {
     if (xs.contains(y)) xs else (xs ++ List(y))
   }
 
@@ -61,11 +61,11 @@ trait Blocks extends BaseEx { self: ScalanEx =>
       iso2.to(Semicolon(asRep[a](a), asRep[b](b)))
 
     // Rule: a ; V(b, iso2)) ==> iso2.to(a ; b)
-    case block@Semicolon(a: Rep[a], HasViews(b, iso2: Iso[b, d])) =>
+    case block@Semicolon(a: Ref[a], HasViews(b, iso2: Iso[b, d])) =>
       iso2.to(Semicolon(a, asRep[b](b)))
 
     // Rule: V(a, iso1) ; b ==> a ; b
-    case block@Semicolon(HasViews(a, iso1: Iso[a, c]), b: Rep[b]) =>
+    case block@Semicolon(HasViews(a, iso1: Iso[a, c]), b: Ref[b]) =>
       Semicolon(asRep[a](a), b)
 
     // Rule: as ;; V(b, iso2)) ==> iso2.to(as ; b)
@@ -90,9 +90,9 @@ trait Blocks extends BaseEx { self: ScalanEx =>
     case Semicolon(Def(Semicolon(a,b)), c) => semicolonMulti(Seq(a,b), c)
     case Semicolon(Def(Semicolon(a,b)), Def(Semicolon(c,d))) => semicolonMulti(Seq(a,b,c), d)
     case Semicolon(Def(SemicolonMulti(as,b)), c) =>
-      semicolonMulti(addToSet(as.asInstanceOf[Seq[Rep[Any]]], b), c)
+      semicolonMulti(addToSet(as.asInstanceOf[Seq[Ref[Any]]], b), c)
     case semi @ SemicolonMulti(HasSemicolons(semicols), d) =>
-      val res = mutable.ArrayBuilder.make[Rep[Any]]()
+      val res = mutable.ArrayBuilder.make[Ref[Any]]()
       for (a <- semi.left) {
         if (semicols.contains(a)) {
           a match {

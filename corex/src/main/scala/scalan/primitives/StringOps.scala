@@ -3,17 +3,17 @@ package scalan.primitives
 import scalan.{ScalanEx, BaseEx}
 
 trait StringOps extends BaseEx { self: ScalanEx =>
-  implicit class StringOpsCls(lhs: Rep[String]) {
+  implicit class StringOpsCls(lhs: Ref[String]) {
     def toInt = StringToInt(lhs)
     def toDouble = StringToDouble(lhs)
     def length = StringLength(lhs)
-    def apply(index: Rep[Int]) = string_apply(lhs, index)
-    def substring(start: Rep[Int], end: Rep[Int]) = string_substring(lhs, start, end)
-    def +(rhs: Rep[String]) = StringConcat(lhs, rhs)
-    def startsWith(rhs: Rep[String]) = StringStartsWith(lhs, rhs)
-    def endsWith(rhs: Rep[String]) = StringEndsWith(lhs, rhs)
-    def contains(rhs: Rep[String]) = StringContains(lhs, rhs)
-    def matches(rhs: Rep[String]) = StringMatches(lhs, rhs)
+    def apply(index: Ref[Int]) = string_apply(lhs, index)
+    def substring(start: Ref[Int], end: Ref[Int]) = string_substring(lhs, start, end)
+    def +(rhs: Ref[String]) = StringConcat(lhs, rhs)
+    def startsWith(rhs: Ref[String]) = StringStartsWith(lhs, rhs)
+    def endsWith(rhs: Ref[String]) = StringEndsWith(lhs, rhs)
+    def contains(rhs: Ref[String]) = StringContains(lhs, rhs)
+    def matches(rhs: Ref[String]) = StringMatches(lhs, rhs)
   }
 
   object StringObject {
@@ -30,15 +30,15 @@ trait StringOps extends BaseEx { self: ScalanEx =>
   val StringEndsWith = new BinOp[String, Boolean]("endsWith", _.endsWith(_))
   val StringMatches = new BinOp[String, Boolean]("matches", _.matches(_))
 
-  case class StringSubstring(str: Rep[String], start: Rep[Int], end: Rep[Int]) extends BaseDef[String] {
+  case class StringSubstring(str: Ref[String], start: Ref[Int], end: Ref[Int]) extends BaseDef[String] {
     override def transform(t: Transformer) = StringSubstring(t(str), t(start), t(end))
   }
-  case class StringCharAt(str: Rep[String], index: Rep[Int]) extends BaseDef[Char] {
+  case class StringCharAt(str: Ref[String], index: Ref[Int]) extends BaseDef[Char] {
     override def transform(t: Transformer) = StringCharAt(t(str), t(index))
   }
 
-  def string_substring(str: Rep[String], start: Rep[Int], end: Rep[Int]): Rep[String] = StringSubstring(str, start, end)
-  def string_apply(str: Rep[String], index: Rep[Int]): Rep[Char] = StringCharAt(str, index)
+  def string_substring(str: Ref[String], start: Ref[Int], end: Ref[Int]): Ref[String] = StringSubstring(str, start, end)
+  def string_apply(str: Ref[String], index: Ref[Int]): Ref[Char] = StringCharAt(str, index)
 
   override def rewriteDef[T](d: Def[T]) = d match {
     case ApplyBinOp(op, x, Def(Const(""))) if op == StringConcat =>

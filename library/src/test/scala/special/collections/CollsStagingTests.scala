@@ -9,10 +9,10 @@ class CollsStagingTests extends WrappersTests {
   class Ctx extends TestContext with TestLibrary {
     import Coll._
     import CollBuilder._
-    lazy val t2 = fun { (c: Rep[Coll[Double]]) =>
+    lazy val t2 = fun { (c: Ref[Coll[Double]]) =>
       c.map(fun { x => x + 1.0 })
     }
-    lazy val t3 = fun { (x: Rep[Int]) =>
+    lazy val t3 = fun { (x: Ref[Int]) =>
       val b = colBuilder
       b.fromItems(x, x + 1, x + 2)
     }
@@ -85,7 +85,7 @@ class CollsStagingTests extends WrappersTests {
       import CollBuilder._
       var outGraph: Sym = null
       for (j <- 0 until nRepeats) {
-        val f = fun { in: Rep[(CollBuilder, Int)] =>
+        val f = fun { in: Ref[(CollBuilder, Int)] =>
           val Pair(colBuilder, delta) = in
           val col = colBuilder.replicate(i*j, 0)
           val res = col.map(fun {x => x + delta})
@@ -105,7 +105,7 @@ class CollsStagingTests extends WrappersTests {
       import CollBuilder._
       var outGraph: Sym = null
       for (j <- 0 until nRepeats) {
-        val f = fun { in: Rep[(CollBuilder, Int)] =>
+        val f = fun { in: Ref[(CollBuilder, Int)] =>
           val Pair(colBuilder, delta) = in
           val col = colBuilder.replicate(i*j, delta)
           val col2 = colBuilder.replicate(j+i, delta)
@@ -138,9 +138,9 @@ class CollsStagingTests extends WrappersTests {
     }
     import ctx._
     import Coll._
-    val f = fun { col: Rep[Coll[Int]] =>  col.length }
-    val g = fun { col: Rep[Coll[Int]] => f(col) }
-    val exp = fun { col: Rep[Coll[Int]] => col.length }
+    val f = fun { col: Ref[Coll[Int]] =>  col.length }
+    val g = fun { col: Ref[Coll[Int]] => f(col) }
+    val exp = fun { col: Ref[Coll[Int]] => col.length }
     emit("graphs", f, g, exp)
     g shouldBe exp
   }

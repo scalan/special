@@ -5,7 +5,7 @@ import scalan.{ScalanEx, BaseEx}
 trait ThunksEx extends Thunks with BaseEx { self: ScalanEx =>
   import IsoUR._
 
-  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
+  override def unapplyViews[T](s: Ref[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ThunkView[_,_]) =>
       Some((view.source, view.iso))
     case _ =>
@@ -22,7 +22,7 @@ trait ThunksEx extends Thunks with BaseEx { self: ScalanEx =>
     case ThunkForce(HasViews(srcTh, Def(iso: ThunkIso[a, b]))) => {
       val innerIso = iso.innerIso
       implicit val eA = innerIso.eFrom
-      innerIso.to(srcTh.asInstanceOf[Rep[Thunk[a]]].force)
+      innerIso.to(srcTh.asInstanceOf[Ref[Thunk[a]]].force)
     }
     case _ => super.rewriteViews(d)
   }

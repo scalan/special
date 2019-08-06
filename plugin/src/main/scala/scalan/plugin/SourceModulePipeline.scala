@@ -188,7 +188,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       withUnitModule(unit) { (module, conf) =>
        val unitDef = context.getUnit
 
-        /** Generates a virtualized version of original Scala AST, wraps types by Rep[] and etc. */
+        /** Generates a virtualized version of original Scala AST, wraps types by Ref[] and etc. */
         val virtUnitDef = virtPipeline(unitDef)
         var optUnitDef = optimizeUnitImplicits(virtUnitDef)
         optUnitDef = optUnitDef.addInCakeImports

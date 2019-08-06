@@ -39,20 +39,20 @@ trait TypeDescs extends Base { self: Scalan =>
   type DataEnv = Map[Sym, AnyRef]
 
   /** State monad for symbols computed in an environment. */
-  case class EnvRep[A](run: DataEnv => (DataEnv, Rep[A])) {
-    def flatMap[B](f: Rep[A] => EnvRep[B]): EnvRep[B] = EnvRep { env =>
+  case class EnvRep[A](run: DataEnv => (DataEnv, Ref[A])) {
+    def flatMap[B](f: Ref[A] => EnvRep[B]): EnvRep[B] = EnvRep { env =>
       val (env1, x) = run(env)
       val res = f(x).run(env1)
       res
     }
-    def map[B](f: Rep[A] => Rep[B]): EnvRep[B] = EnvRep { env =>
+    def map[B](f: Ref[A] => Ref[B]): EnvRep[B] = EnvRep { env =>
       val (env1, x) = run(env)
       val y = f(x)
       (env1, y)
     }
   }
   object EnvRep {
-    def add[T](entry: (Rep[T], AnyRef)): EnvRep[T] =
+    def add[T](entry: (Ref[T], AnyRef)): EnvRep[T] =
       EnvRep { env => val (sym, value) = entry; (env + (sym -> value), sym) }
 
     def lifted[ST, T](x: ST)(implicit lT: Liftables.Liftable[ST, T]): EnvRep[T] = EnvRep { env =>
@@ -241,7 +241,7 @@ trait TypeDescs extends Base { self: Scalan =>
   object Elem {
     implicit def rtypeToElem[SA, A](tSA: RType[SA])(implicit lA: Liftables.Liftable[SA,A]): Elem[A] = lA.eW
 
-    def unapply[T, E <: Elem[T]](s: Rep[T]): Option[E] = Some(s.elem.asInstanceOf[E])
+    def unapply[T, E <: Elem[T]](s: Ref[T]): Option[E] = Some(s.elem.asInstanceOf[E])
 
     def pairify(es: Iterator[Elem[_]]): Elem[_] = {
       def step(a: Elem[_], b: Elem[_], tail: Iterator[Elem[_]]): Elem[_] = {
@@ -434,24 +434,24 @@ trait TypeDescs extends Base { self: Scalan =>
   def TypeArgs(descs: (String, (TypeDesc, Variance))*) = ListMap(descs: _*)
 
   // can be removed and replaced with assert(value.elem == elem) after #72
-  def assertElem(value: Rep[_], elem: Elem[_]): Unit = assertElem(value, elem, "")
-  def assertElem(value: Rep[_], elem: Elem[_], hint: => String): Unit = {
+  def assertElem(value: Ref[_], elem: Elem[_]): Unit = assertElem(value, elem, "")
+  def assertElem(value: Ref[_], elem: Elem[_], hint: => String): Unit = {
     assert(value.elem == elem,
       s"${value.varNameWithType} doesn't have type ${elem.name}" + (if (hint.isEmpty) "" else s"; $hint"))
   }
   def assertEqualElems[A](e1: Elem[A], e2: Elem[A], m: => String): Unit =
     assert(e1 == e2, s"Element $e1 != $e2: $m")
 
-  def withElemOf[A, R](x: Rep[A])(block: Elem[A] => R): R = block(x.elem)
-  def withResultElem[A, B, R](f: Rep[A => B])(block: Elem[B] => R): R = block(withElemOf(f) { e => e.eRange })
+  def withElemOf[A, R](x: Ref[A])(block: Elem[A] => R): R = block(x.elem)
+  def withResultElem[A, B, R](f: Ref[A => B])(block: Elem[B] => R): R = block(withElemOf(f) { e => e.eRange })
 
   @implicitNotFound(msg = "No Cont available for ${F}.")
   trait Cont[F[_]] extends TypeDesc {
     def tag[T](implicit tT: WeakTypeTag[T]): WeakTypeTag[F[T]]
     def lift[T](implicit eT: Elem[T]): Elem[F[T]]
     def unlift[T](implicit eFT: Elem[F[T]]): Elem[T]
-    def getElem[T](fa: Rep[F[T]]): Elem[F[T]]
-    def getItemElem[T](fa: Rep[F[T]]): Elem[T] = unlift(getElem(fa))
+    def getElem[T](fa: Ref[F[T]]): Elem[F[T]]
+    def getItemElem[T](fa: Ref[F[T]]): Elem[T] = unlift(getElem(fa))
     def unapply[T](e: Elem[_]): Option[Elem[F[T]]]
 
     def getName(f: TypeDesc => String): String = {
@@ -476,6 +476,6 @@ trait TypeDescs extends Base { self: Scalan =>
   implicit def containerElem[F[_]:Cont, A:Elem]: Elem[F[A]] = container[F].lift(element[A])
 
   trait Functor[F[_]] extends Cont[F] {
-    def map[A,B](a: Rep[F[A]])(f: Rep[A] => Rep[B]): Rep[F[B]]
+    def map[A,B](a: Ref[F[A]])(f: Ref[A] => Ref[B]): Ref[F[B]]
   }
 }

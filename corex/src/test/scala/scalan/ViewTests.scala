@@ -6,13 +6,13 @@ import scalan.common.{CommonExamples, MetaTestsModule, SegmentsModule, ViewExamp
 abstract class BaseViewTests extends BaseCtxTestsEx {
   class ViewTestsCtx extends TestContextEx {
     import IsoUR._
-    def testLambdaResultHasViewsWithDataType[A,B](msg: String, f: Rep[A => B], expectedDataElem: Elem[_]) =
+    def testLambdaResultHasViewsWithDataType[A,B](msg: String, f: Ref[A => B], expectedDataElem: Elem[_]) =
       _testLambdaResultHasViews(msg, f, Some(expectedDataElem))
 
-    def testLambdaResultHasViews[A,B](msg: String, f: Rep[A => B]) =
+    def testLambdaResultHasViews[A,B](msg: String, f: Ref[A => B]) =
       _testLambdaResultHasViews(msg, f, None)
 
-    private def _testLambdaResultHasViews[A,B](msg: String, f: Rep[A => B], expectedDataElem: Option[Elem[_]]) = {
+    private def _testLambdaResultHasViews[A,B](msg: String, f: Ref[A => B], expectedDataElem: Option[Elem[_]]) = {
       val actualDataElem = f match {
         case LambdaResultHasViews(f, iso) =>
           Some(iso.eFrom)
@@ -34,13 +34,13 @@ abstract class BaseViewTests extends BaseCtxTestsEx {
       emit(name + ".to", iso.toFun)
     }
 
-    def testHasViews[T](s: Rep[T], eExpected: Elem[_]) = {
+    def testHasViews[T](s: Ref[T], eExpected: Elem[_]) = {
       val HasViews(source, iso) = s
       assertResult(eExpected)(iso.eFrom)
       assertResult(eExpected)(source.elem)
     }
 
-    def testNoViews[T](s: Rep[T]) = {
+    def testNoViews[T](s: Ref[T]) = {
       s match {
         case HasViews(source, iso) =>
           assert(false, s"no views expected, but found ($source, $iso)")
@@ -91,8 +91,8 @@ class ViewTests extends BaseViewTests {
       import Slice._
       import Interval._
       import Centered._
-      lazy val v1 = fun { (in: Rep[Unit]) => in.asLeft[Slice] }
-      lazy val v2 = fun { (in: Rep[(Int,Int)]) => SumView(in.asRight[Unit])(identityIso[Unit], isoSlice) }
+      lazy val v1 = fun { (in: Ref[Unit]) => in.asLeft[Slice] }
+      lazy val v2 = fun { (in: Ref[(Int,Int)]) => SumView(in.asRight[Unit])(identityIso[Unit], isoSlice) }
     }
     import ctx._
     testLambdaResultHasViewsWithDataType("v1", v1, element[Unit | (Int,Int)])

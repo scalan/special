@@ -8,7 +8,7 @@ import scala.reflect.ClassTag
 trait TransformingEx { self: ScalanEx =>
 
   object DecomposeRewriter extends Rewriter {
-    def apply[T](x: Rep[T]): Rep[T] = x match {
+    def apply[T](x: Ref[T]): Ref[T] = x match {
       case Def(d) => decompose(d) match {
         case None => x
         case Some(y) => y
@@ -19,7 +19,7 @@ trait TransformingEx { self: ScalanEx =>
 
   abstract class MirrorEx[Ctx <: Transformer : TransformerOps] extends Mirror[Ctx] {
 
-    protected def mirrorMetadata[A, B](t: Ctx, old: Rep[A], mirrored: Rep[B]) =
+    protected def mirrorMetadata[A, B](t: Ctx, old: Ref[A], mirrored: Ref[B]) =
       (t, allMetadataOf(old))
 
     private def setMirroredMetadata(t1: Ctx, node: Sym, mirrored: Sym): (Ctx, Sym) = {
@@ -35,18 +35,18 @@ trait TransformingEx { self: ScalanEx =>
   //  case object GoRight extends TupleStep("R")
   type TuplePath = List[Int]
 
-  def projectPath(x:Rep[Any], path: TuplePath) = {
-    val res = path.foldLeft(x)((y,i) => TupleProjection(y.asInstanceOf[Rep[(Any,Any)]], i))
+  def projectPath(x:Ref[Any], path: TuplePath) = {
+    val res = path.foldLeft(x)((y,i) => TupleProjection(y.asInstanceOf[Ref[(Any,Any)]], i))
     res
   }
 
   // build projection from the root taking projection structure from the tree
   // assert(result.root == root)
   // NOTE: tree.root is not used
-  def projectTree(root:Rep[Any], tree: ProjectionTree): ProjectionTree = {
+  def projectTree(root:Ref[Any], tree: ProjectionTree): ProjectionTree = {
     val newChildren = tree.children.map(child => {
       val i = projectionIndex(child.root)
-      val newChildRoot = TupleProjection(root.asInstanceOf[Rep[(Any,Any)]], i)
+      val newChildRoot = TupleProjection(root.asInstanceOf[Ref[(Any,Any)]], i)
       projectTree(newChildRoot, child)
     })
     ProjectionTree(root, newChildren)
@@ -127,7 +127,7 @@ trait TransformingEx { self: ScalanEx =>
         TupleTree(newRoot, newChildren)
       }
 
-    def unapply[T](s: Rep[T]): Option[TupleTree] = {
+    def unapply[T](s: Ref[T]): Option[TupleTree] = {
       s match {
         case Def(Tup(TupleTree(l),TupleTree(r))) =>
           Some(TupleTree(s, List(l, r)))
@@ -148,42 +148,42 @@ trait TransformingEx { self: ScalanEx =>
   }
 
   trait BackwardAnalyzer[M[_]] extends Analyzer {
-    type MarkedSym = (Rep[T], M[T]) forSome {type T}
+    type MarkedSym = (Ref[T], M[T]) forSome {type T}
     type MarkedSyms = Seq[MarkedSym]
     def keyPrefix: String = name
 
     def lattice: Lattice[M]
     def defaultMarking[T:Elem]: M[T]
 
-    def updateMark[T](s: Rep[T], other: M[T]): (Rep[T], M[T]) = {
+    def updateMark[T](s: Ref[T], other: M[T]): (Ref[T], M[T]) = {
       s -> lattice.join(getMark(s), other)
     }
 
     def beforeAnalyze[A,B](l: Lambda[A,B]): Unit = {}
 
-    def getInboundMarkings[T](thisSym: Rep[T], outMark: M[T]): MarkedSyms
+    def getInboundMarkings[T](thisSym: Ref[T], outMark: M[T]): MarkedSyms
 
     def getLambdaMarking[A,B](lam: Lambda[A,B], mDom: M[A], mRange: M[B]): M[A => B]
 
     def getMarkingKey[T](implicit eT:Elem[T]): MetaKey[M[T]] = markingKey[T](keyPrefix).asInstanceOf[MetaKey[M[T]]]
 
-    def clearMark[T](s: Rep[T]): Unit = {
+    def clearMark[T](s: Ref[T]): Unit = {
       implicit val eT = s.elem
       s.removeMetadata(getMarkingKey[T])
     }
 
-    def getMark[T](s: Rep[T]): M[T] = {
+    def getMark[T](s: Ref[T]): M[T] = {
       implicit val eT = s.elem
       val mark = s.getMetadata(getMarkingKey[T]).getOrElse(defaultMarking[T])
       mark
     }
 
-    def hasMark[T](s: Rep[T]): Boolean = {
+    def hasMark[T](s: Ref[T]): Boolean = {
       implicit val eT = s.elem
       s.getMetadata(getMarkingKey[T]).isDefined
     }
 
-    def updateOutboundMarking[T](s: Rep[T], mark: M[T]): Unit = {
+    def updateOutboundMarking[T](s: Ref[T], mark: M[T]): Unit = {
       implicit val eT = s.elem
       val current = getMark(s)
       val updated = lattice.join(current, mark)
@@ -193,7 +193,7 @@ trait TransformingEx { self: ScalanEx =>
 
     def backwardAnalyzeRec(g: AstGraph): Unit = {
       val revSchedule = g.schedule.reverseIterator
-      for (sym <- revSchedule) sym match { case s: Rep[t] =>
+      for (sym <- revSchedule) sym match { case s: Ref[t] =>
         val d = s.rhs
         // back-propagate analysis information (including from Lambda to Lambda.y, see LevelAnalyzer)
         val outMark = getMark(s)
@@ -229,7 +229,7 @@ trait TransformingEx { self: ScalanEx =>
     def nonEmpty = false
   }
 
-  type MarkedSym = (Rep[T], Marking[T]) forSome {type T}
+  type MarkedSym = (Ref[T], Marking[T]) forSome {type T}
   type MarkedSyms = Seq[MarkedSym]
 
   implicit def markingRType[A](implicit tA: RType[A]): RType[Marking[A]] = MarkingType(tA)

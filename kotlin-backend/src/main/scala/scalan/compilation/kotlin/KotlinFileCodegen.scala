@@ -185,7 +185,7 @@ class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) ext
     }
   }
 
-  def emitLambdaHeader(f: Rep[_], lam: Lambda[_, _], functionName: String)
+  def emitLambdaHeader(f: Ref[_], lam: Lambda[_, _], functionName: String)
                       (implicit stream: PrintWriter, indentLevel: IndentLevel) = {
     emit(src"fun $f(${lam.x }: ${lam.x.elem }): ${lam.y.elem } {")
   }
@@ -208,9 +208,9 @@ class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) ext
 
   override def tpe(elem: Elem[_]): String = elem.name
 
-  def simpleNode(sym: Rep[_], d: Def[_]) = src"local $sym = $d"
+  def simpleNode(sym: Ref[_], d: Def[_]) = src"local $sym = $d"
 
-  override def emitNode(sym: Rep[_], d: Def[_], graph: AstGraph)
+  override def emitNode(sym: Ref[_], d: Def[_], graph: AstGraph)
                        (implicit stream: PrintWriter, indentLevel: IndentLevel) = {
     def initSym(rhs: Any = "{}"): Unit =
       emit(src"local $sym = $rhs")
@@ -245,10 +245,10 @@ class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) ext
     }
   }
 
-  def functionHeader(sym: Rep[_], args: List[Rep[_]]): String =
+  def functionHeader(sym: Ref[_], args: List[Ref[_]]): String =
     src"local function $sym($args)"
 
-  def functionReturn(y: Rep[_]): String = src"return $y"
+  def functionReturn(y: Ref[_]): String = src"return $y"
 
   def functionFooter(): Option[String] = Some("end")
 
@@ -305,7 +305,7 @@ class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) ext
     case NaN => "0/0"
   }
 
-  override def unOp(op: UnOp[_, _], x: Rep[_]): String = op match {
+  override def unOp(op: UnOp[_, _], x: Ref[_]): String = op match {
     case ToString() => src"tostring($x)"
     case StringToDouble =>
       src"tonumber($x)"
@@ -321,7 +321,7 @@ class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) ext
     case _ => super.unOp(op, x)
   }
 
-  override def binOp(op: BinOp[_, _], x: Rep[_], y: Rep[_]): String = op match {
+  override def binOp(op: BinOp[_, _], x: Ref[_], y: Ref[_]): String = op match {
     case StringConcat =>
       src"$x .. $y"
     case StringContains =>

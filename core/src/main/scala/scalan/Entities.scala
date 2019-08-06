@@ -15,7 +15,7 @@ trait Entities extends TypeDescs { self: Scalan =>
       val n = this.getClass.getSimpleName.stripSuffix("Elem")
       n
     }
-    def convert(x: Rep[Def[_]]): Rep[A] = !!!("should not be called")
+    def convert(x: Ref[Def[_]]): Ref[A] = !!!("should not be called")
     def canEqual(other: Any) = other.isInstanceOf[EntityElem[_]]
 
     override def equals(other: Any) = other match {
@@ -49,8 +49,8 @@ trait Entities extends TypeDescs { self: Scalan =>
   trait ConcreteElem[TData, TClass] extends EntityElem[TClass] with ViewElem[TData, TClass] { eClass =>
     def getConverterFrom[E](eEntity: EntityElem[E]): Option[Conv[E, TClass]] = {
       try {
-        val convFun: Rep[E => TClass] =
-          fun({ x: Rep[E] => eClass.convert(asRep[Def[_]](x))})(Lazy(eEntity))
+        val convFun: Ref[E => TClass] =
+          fun({ x: Ref[E] => eClass.convert(asRep[Def[_]](x))})(Lazy(eEntity))
         Some(RBaseConverter(convFun))
       }
       catch {
@@ -99,8 +99,8 @@ trait Entities extends TypeDescs { self: Scalan =>
   trait ConcreteClass3[T[_, _, _]]
   trait ConcreteClass4[T[_, _, _, _]]
 
-  implicit class RepDefViewOps[T <: Def[_]](x: Rep[T]) {
-    def convertTo[R <: Def[_]](implicit eR: Elem[R]): Rep[R] =
+  implicit class RepDefViewOps[T <: Def[_]](x: Ref[T]) {
+    def convertTo[R <: Def[_]](implicit eR: Elem[R]): Ref[R] =
       eR match {
         case entE: EntityElem[R] @unchecked => entE.convert(x)
         case _ => !!!(s"Cannot convert $x to a value of type ${eR.name}: EntityElem expected but ${eR.getClass.getSimpleName} found", x)

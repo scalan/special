@@ -8,10 +8,10 @@ package special.collection {
     import Size._;
     import SizeOption._;
     import WOption._;
-    abstract class CCostedOption[T](val value: Rep[WOption[T]], val costOpt: Rep[WOption[Int]], val sizeOpt: Rep[WOption[Size[T]]], val accumulatedCost: Rep[Int]) extends CostedOption[T] {
-      def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      @NeverInline def cost: Rep[Int] = delayInvoke;
-      def size: Rep[Size[WOption[T]]] = CCostedOption.this.builder.mkSizeOption[T](CCostedOption.this.sizeOpt)
+    abstract class CCostedOption[T](val value: Ref[WOption[T]], val costOpt: Ref[WOption[Int]], val sizeOpt: Ref[WOption[Size[T]]], val accumulatedCost: Ref[Int]) extends CostedOption[T] {
+      def builder: Ref[CostedBuilder] = RCCostedBuilder();
+      @NeverInline def cost: Ref[Int] = delayInvoke;
+      def size: Ref[Size[WOption[T]]] = CCostedOption.this.builder.mkSizeOption[T](CCostedOption.this.sizeOpt)
     };
     trait CCostedOptionCompanion
   }

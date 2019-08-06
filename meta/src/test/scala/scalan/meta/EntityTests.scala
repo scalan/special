@@ -53,13 +53,13 @@ class EntityTests extends BaseMetaTests with Examples {
       def isMap(m: SEntityMember) = m.item.name == "map"
       it("returns matching member with specialized signature") {
         testVisible(eCollection, isMap,
-          List(("Collection", "def map[B](f: Rep[A => B]): Rep[Collection[B]]")))
+          List(("Collection", "def map[B](f: Ref[A => B]): Ref[Collection[B]]")))
         testVisible(eColOverArray, isMap,
-          List(("ColOverArray", "def map[B](f: Rep[A => B]): Rep[Collection[B]] = ColOverArray(ColOverArray.this.arr.map(f))")))
+          List(("ColOverArray", "def map[B](f: Ref[A => B]): Ref[Collection[B]] = ColOverArray(ColOverArray.this.arr.map(f))")))
         testVisible(ePairCollection, isMap,
-          List(("Collection", "def map[B](f: Rep[((L,R)) => B]): Rep[Collection[B]]")))
+          List(("Collection", "def map[B](f: Ref[((L,R)) => B]): Ref[Collection[B]]")))
         testVisible(ePairOfCols, isMap,
-          List(("PairOfCols", "override def map[V](f: Rep[((L, R)) => V]): Rep[Collection[V]] = ColOverArray(PairOfCols.this.arr.map(f))")))
+          List(("PairOfCols", "override def map[V](f: Ref[((L, R)) => V]): Ref[Collection[V]] = ColOverArray(PairOfCols.this.arr.map(f))")))
       }
       def testMemberEntity(e: SEntityDef, expected: List[(String, String)]) = {
         val actual = e.collectVisibleMembers.map(m => (m.entity.name, m.item.name))

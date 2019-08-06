@@ -8,9 +8,9 @@ trait Equal extends Base { self: Scalan =>
 
   def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = x == y
 
-  implicit class EqualOps[A](x: Rep[A]) {
+  implicit class EqualOps[A](x: Ref[A]) {
     implicit private val eA = x.elem
-    def ===(y: Rep[A]): Rep[Boolean] = Equals[A].apply(x, y)
-    def !==(y: Rep[A]): Rep[Boolean] = NotEquals[A].apply(x, y)
+    def ===(y: Ref[A]): Ref[Boolean] = Equals[A].apply(x, y)
+    def !==(y: Ref[A]): Ref[Boolean] = NotEquals[A].apply(x, y)
   }
 }

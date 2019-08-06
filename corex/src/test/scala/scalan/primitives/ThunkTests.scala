@@ -8,47 +8,47 @@ import scalan.common.{SegmentsModule}
 
 class ThunkTests extends BaseCtxTests with BaseLiftableTests {
   trait MyProg extends Scalan {
-    lazy val t1 = fun { (in: Rep[Int]) =>
+    lazy val t1 = fun { (in: Ref[Int]) =>
       Thunk { in }
     }
 
-    lazy val t2 = fun { (in: Rep[Int]) =>
+    lazy val t2 = fun { (in: Ref[Int]) =>
       Thunk { in + 1 }
     }
 
-    lazy val t3 = fun { (in: Rep[Int]) =>
+    lazy val t3 = fun { (in: Ref[Int]) =>
       Thunk { in + in + 1 }
     }
 
-    lazy val t4 = fun { (in: Rep[Int]) =>
+    lazy val t4 = fun { (in: Ref[Int]) =>
       Thunk { in + Thunk { in + 1 }.force }
     }
-    lazy val t5 = fun { (in: Rep[Int]) =>
+    lazy val t5 = fun { (in: Ref[Int]) =>
       Thunk { in + 1 }.force + Thunk { in + 1 }.force
     }
-    lazy val t6 = fun { (in: Rep[Int]) =>
+    lazy val t6 = fun { (in: Ref[Int]) =>
       Thunk { Thunk {in + 1}.force + 1 }.force + 1
     }
 
-    def f7(x: => Rep[Int]) = Thunk { x }
-    lazy val t7 = fun { (in: Rep[Int]) =>
+    def f7(x: => Ref[Int]) = Thunk { x }
+    lazy val t7 = fun { (in: Ref[Int]) =>
       f7 {in + 1}
     }
-    def f8(x: Rep[Int]) = Thunk { x }
-    lazy val t8 = fun { (in: Rep[Int]) =>
+    def f8(x: Ref[Int]) = Thunk { x }
+    lazy val t8 = fun { (in: Ref[Int]) =>
       f8 {in + 1}
     }
 
-    lazy val t9 = fun { (in: Rep[Int]) =>
+    lazy val t9 = fun { (in: Ref[Int]) =>
       Thunk { (in + 1) + Thunk { in + 1 }.force }
     }
 
-    lazy val t10 = fun { (in: Rep[Int]) =>
+    lazy val t10 = fun { (in: Ref[Int]) =>
       Thunk { Thunk { Thunk { in + 1 }}}.force.force
     }
 
-    def to(x: Rep[Int]): Rep[Int] = x * x
-    lazy val t11 = fun { (in: Rep[Int]) =>
+    def to(x: Ref[Int]): Ref[Int] = x * x
+    lazy val t11 = fun { (in: Ref[Int]) =>
       val x = Thunk { in + 1 }
       val res = Thunk { to(x.force) }              // test for ThunkIso.to
       res
@@ -58,7 +58,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
   test("Thunk matchDefs") {
     val ctx = new TestContext with MyProg
     import ctx._
-    val f = { x: Rep[Int] => x * x > 1 && Thunk.forced{ x * x + 1 < 1 } }
+    val f = { x: Ref[Int] => x * x > 1 && Thunk.forced{ x * x + 1 < 1 } }
     val f1 = fun(f)
     val f2 = fun(f)
     emit("equality", f1, f2)
@@ -147,16 +147,16 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
     import Slice._
     import Interval._
 
-    lazy val t1 = fun { (in: Rep[Int]) =>
+    lazy val t1 = fun { (in: Ref[Int]) =>
       Thunk { RInterval(in, in) }.force.length
     }
-    lazy val t2 = fun { (in: Rep[Int]) =>
+    lazy val t2 = fun { (in: Ref[Int]) =>
       Thunk { RSlice(in, in + in) }.force.length
     }
-    lazy val t3 = fun { (in: Rep[Segment]) =>
+    lazy val t3 = fun { (in: Ref[Segment]) =>
       Thunk { in }.force.length
     }
-    lazy val t4 = fun { (in: Rep[Int]) =>
+    lazy val t4 = fun { (in: Ref[Int]) =>
       t3(RInterval(in,in))
     }
 

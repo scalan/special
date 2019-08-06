@@ -9,7 +9,7 @@ class MetadataTests extends BaseNestedTests {
   trait Prog extends ScalanEx {
     val functionNameKey = MetaKey[String]("name")
 
-    val main = fun { x: Rep[Int] => x + 1 }
+    val main = fun { x: Ref[Int] => x + 1 }
 
     main.setMetadata(functionNameKey)(mainStr)
   }

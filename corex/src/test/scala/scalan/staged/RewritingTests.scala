@@ -22,7 +22,7 @@ class RewritingTests extends BaseCtxTestsEx {
 
   trait Prog0 extends Scalan {
 
-    lazy val mkRightFun = fun { x: Rep[Int] => x.asRight[Int] }
+    lazy val mkRightFun = fun { x: Ref[Int] => x.asRight[Int] }
 
     override def rewriteDef[T](d: Def[T]): Sym = d match {
       // rewrite fun(x => Right(_)) to fun(x => Left(x))
@@ -30,7 +30,7 @@ class RewritingTests extends BaseCtxTestsEx {
         lam.y match {
           case Def(r @ SRight(_,_)) =>
             implicit val eA = r.eLeft.asInstanceOf[Elem[b]]
-            fun { x: Rep[b] => x.asLeft[b] }
+            fun { x: Ref[b] => x.asLeft[b] }
           case _ => super.rewriteDef(d)
         }
       case _ =>
@@ -55,14 +55,14 @@ class RewritingTests extends BaseCtxTestsEx {
   }
 
   trait Prog extends Scalan {
-    lazy val ifFold = fun { pp: Rep[Boolean] =>
+    lazy val ifFold = fun { pp: Ref[Boolean] =>
       val e1 = toRep(1.0).asLeft[Int]
       val e2 = toRep(2).asRight[Double]
       val iff = ifThenElseLazy(pp, e1, e2)
       iff.foldBy(constFun(10), constFun(100))
     }
 
-    lazy val ifIfFold = fun2 { (p1: Rep[Boolean], p2: Rep[Boolean]) =>
+    lazy val ifIfFold = fun2 { (p1: Ref[Boolean], p2: Ref[Boolean]) =>
       val e1 = toRep(1.0).asLeft[Int]
       val e2 = toRep(2).asRight[Double]
       val e3 = toRep(3).asRight[Double]

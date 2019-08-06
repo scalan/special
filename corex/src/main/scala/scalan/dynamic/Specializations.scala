@@ -9,24 +9,24 @@ import scalan.util.CollectionUtil._
 
 trait Specializations extends Views with Converters with DefRewriting { self: ScalanEx =>
   import IsoUR._
-  type RepIsoFunc[T,R,M] = Rep[IsoFunc[T,R,M]]
+  type RepIsoFunc[T,R,M] = Ref[IsoFunc[T,R,M]]
   trait IsoFunc[T,R,M] extends Def[IsoFunc[T,R,M]] {
     implicit def eT: Elem[T]
     implicit def eR: Elem[R]
     implicit def eM: Elem[M]
-    def func: Rep[T => R]
-    def metric: Rep[T => M]
-    def apply(x: Rep[T]): Rep[R]
+    def func: Ref[T => R]
+    def metric: Ref[T => M]
+    def apply(x: Ref[T]): Ref[R]
   }
 
   abstract class IsoFuncBase[T,R,M]
-        (val func: Rep[T => R], val metric: Rep[T => M])
+        (val func: Ref[T => R], val metric: Ref[T => M])
 //        (implicit val eT: Elem[T], val eR: Elem[R], val eM: Elem[M])
     extends IsoFunc[T,R,M] {
     implicit def eT: Elem[T]
     implicit def eR: Elem[R]
     implicit def eM: Elem[M]
-    def apply(x: Rep[T]): Rep[R] = func(x)
+    def apply(x: Ref[T]): Ref[R] = func(x)
     override def toString: String = s"${eT.name} iso≈> ${eR.name}"
     override def equals(other: Any): Boolean = other match {
       case c: Specializations#IsoFuncBase[_, _, _] =>
@@ -45,16 +45,16 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     def format: F
   }
 
-  case class NoFuse[A:Elem](arg: Rep[A]) extends Def[A] {
+  case class NoFuse[A:Elem](arg: Ref[A]) extends Def[A] {
     def resultType = element[A]
     override def transform(t: Transformer) = NoFuse(t(arg))
   }
-  def no_fuse[A:Elem](arg: Rep[A]) = NoFuse(arg)
+  def no_fuse[A:Elem](arg: Ref[A]) = NoFuse(arg)
 
-  def composeKernel[S:Elem,T:Elem,A:Elem,B:Elem,C](isoA: Iso[S,A], f: Rep[A=>B], isoC: Iso[T,C]): List[Rep[S=>T]] = {
+  def composeKernel[S:Elem,T:Elem,A:Elem,B:Elem,C](isoA: Iso[S,A], f: Ref[A=>B], isoC: Iso[T,C]): List[Ref[S=>T]] = {
     (element[B], isoC.eTo) match {
       case (eB,eC) if (eB==eC) =>
-        val k = fun { x: Rep[S] =>
+        val k = fun { x: Ref[S] =>
           val a = isoA.to(x)
           val b = asRep[C](f(a))
           isoC.from(b)
@@ -62,7 +62,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         List(k)
       case HasConv(conv) =>
         try {
-          val k = fun { x: Rep[S] =>
+          val k = fun { x: Ref[S] =>
             val a = isoA.to(x)
             val b = f(a)
             val converted = conv(b)
@@ -77,10 +77,10 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     }
   }
 
-//  def composeWrapper[S,T,A,B,C](isoA: Iso[S,A], f: Rep[A=>B], isoC: Iso[T,C]): List[Rep[S=>T]] = {
+//  def composeWrapper[S,T,A,B,C](isoA: Iso[S,A], f: Ref[A=>B], isoC: Iso[T,C]): List[Ref[S=>T]] = {
 //    (typeOf[B], isoC.tTo) match {
 //      case HasConv(conv) =>
-//        List(fun { x: Rep[S] =>
+//        List(fun { x: Ref[S] =>
 //          val a = isoA.to(x)
 //          val b = f(a)
 //          val converted = conv(b)
@@ -147,7 +147,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 
   def getFormats(isos: List[Iso[Any,Any]]) = isos.map(_.eFrom).distinct
 
-  def composeKernel[A,B:Elem](inE: Elem[_], outE: Elem[_], f: Rep[A=>B], whereIn: TypePredicate, whereOut: TypePredicate): List[Rep[_]] = {
+  def composeKernel[A,B:Elem](inE: Elem[_], outE: Elem[_], f: Ref[A=>B], whereIn: TypePredicate, whereOut: TypePredicate): List[Ref[_]] = {
     (inE, outE) match {
       case (inE: Elem[a], outE: Elem[b]) =>
         val ins = getAllReprIsos(inE)(QueryParams(true, whereIn))
@@ -167,12 +167,12 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
             }
             yield kernel
         }
-        val res: List[Rep[_]] = kernels.flatten
+        val res: List[Ref[_]] = kernels.flatten
         res
     }
   }
 
-//  def genWrappers[A,B](inT: Type, outT: Type, f: Rep[A=>B], inType: TypePredicate, outType: TypePredicate): List[Rep[_]] = {
+//  def genWrappers[A,B](inT: Type, outT: Type, f: Ref[A=>B], inType: TypePredicate, outType: TypePredicate): List[Ref[_]] = {
 //    val ins = allSpecs(getIsoByType(inT)).filter(iso => iso.tFrom.isConcrete && inType(iso.tFrom))
 //    val outs = allSpecs(getIsoByType(outT)).filter(iso => iso.tFrom.isConcrete && outType(iso.tFrom))
 //    val wrappers = for {
@@ -184,7 +184,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 //    wrappers.flatten
 //  }
 
-  def specialize[A,B](f: Rep[A=>B], inFilter: TypePredicate = AllTypes, outFilter: TypePredicate = AllTypes)(implicit eA: Elem[A], eB:Elem[B]): List[Sym] = {
+  def specialize[A,B](f: Ref[A=>B], inFilter: TypePredicate = AllTypes, outFilter: TypePredicate = AllTypes)(implicit eA: Elem[A], eB:Elem[B]): List[Sym] = {
     val inElems = eA.allConcreteSpecs(QueryParams(true))
     val outElems = eB.allConcreteSpecs(QueryParams(true))
     val specs = for {
@@ -225,7 +225,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
         c    <- HasConv.unapply((iso1.eTo, iso2.eTo))
       }
       yield {
-        RBaseConverter(fun({ x: Rep[Any] =>
+        RBaseConverter(fun({ x: Ref[Any] =>
             val a1 = iso1.to(x)
             val a2 = c(a1)
             iso2.from(a2)
@@ -236,7 +236,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     buildConvMatrix(formatsFrom, formatsTo, buildConvSet)
   }
 
-  def applySpecificKernel[A,B,A1,B1](kernel: DynKernel[A,B], arg: Rep[A1], specNum: Rep[Int], eOut: Elem[B1]) = {
+  def applySpecificKernel[A,B,A1,B1](kernel: DynKernel[A,B], arg: Ref[A1], specNum: Ref[Int], eOut: Elem[B1]) = {
     implicit val ea1 = arg.elem
     implicit val eb = kernel.eB
     val iso = identityIso[A1]
@@ -253,8 +253,8 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
   }
 
   case class DynKernel[A,B](
-        func: Rep[A => B],    // original function
-        inTypes: TypePredicate, outTypes: TypePredicate)
+                               func: Ref[A => B], // original function
+                               inTypes: TypePredicate, outTypes: TypePredicate)
         (implicit val eA: Elem[A] = func.elem.eDom, val eB: Elem[B] = func.elem.eRange)
         extends BaseDef[A=>B]
   {
@@ -264,7 +264,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 
     val inTypesCurr     : TypePredicate = inTypes
     val outTypesCurr     : TypePredicate = outTypes
-    val originalFunc: Rep[A=>B] = func
+    val originalFunc: Ref[A=>B] = func
 
     /*lazy*/ val inTypeSpecs : List[Elem[_]] = getTypeSpecs(eA)(QueryParams(true, inTypes))
     /*lazy*/ val outTypeSpecs: List[Elem[_]] = getTypeSpecs(eB)(QueryParams(true, outTypes))
@@ -296,7 +296,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 //                                           buildFormatConvMatrix(inFormatsIncrement, inFormatsIncrement, inFormatIsosIncrement, inFormatIsosIncrement)
 //    /*lazy*/ val inFormatConvMatrixParent = parent.map(_.inFormatConvMatrix).getOrElse( Map[(Elem[_],Elem[_]), Set[Conv[Any,Any]]]() )
 
-    def getPrimaryKernels(inIsos: List[Iso[Any,Any]], outIsos: List[Iso[Any,Any]]): List[Rep[Any=>Any]] = {
+    def getPrimaryKernels(inIsos: List[Iso[Any,Any]], outIsos: List[Iso[Any,Any]]): List[Ref[Any=>Any]] = {
       getPrimaryKernelsMap(inIsos, outIsos).values.toList.distinct
     }
 
@@ -317,9 +317,9 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       res.toList
     }
 
-    // Just getting kernels as List[Rep[Any=>Any]] is not enough. We need the way to address them somehow.
+    // Just getting kernels as List[Ref[Any=>Any]] is not enough. We need the way to address them somehow.
     // So, we return Map, which contains each kernel addressed by SpecKey
-    def getPrimaryKernelsMap(inIsos: List[Iso[Any,Any]], outIsos: List[Iso[Any,Any]]): Map[SpecKey, Rep[Any =>Any]] = {
+    def getPrimaryKernelsMap(inIsos: List[Iso[Any,Any]], outIsos: List[Iso[Any,Any]]): Map[SpecKey, Ref[Any =>Any]] = {
       val kernels = for {
         inIso <- inIsos
         outIso <- outIsos
@@ -334,7 +334,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
             val res = for {
               csym @ Def(c: Converter[_,_]) <- cs
               kernel <- {
-                val f = fun({ x: Rep[a] =>
+                val f = fun({ x: Ref[a] =>
                   val a1 = asRep[Converter[a,A]](csym).apply(x)
                   val b = originalFunc(a1)
                   b
@@ -356,11 +356,11 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 //      val r3 = getPrimaryKernelsMap(inFormatIsosIncrement, outFormatIsosIncrement)
 //      r1 ++ r2 ++ r3
 //    }
-    /*lazy*/ val primaryKernelsMap = Map[SpecKey, Rep[Any=>Any]]()
+    /*lazy*/ val primaryKernelsMap = Map[SpecKey, Ref[Any=>Any]]()
 
     /*lazy*/ val primaryKernels= primaryKernelsMap.values.toList.distinct
 
-    val extendedKernelsMapIncrement: Map[SpecKey, Rep[Any =>Any]] = {
+    val extendedKernelsMapIncrement: Map[SpecKey, Ref[Any =>Any]] = {
       // Converters from new formats to all others
       val kernelsFrom = for {
         inF <- inFormatsIncrement
@@ -370,7 +370,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       yield {
         (inF equals c.eR) match {
           case false => {
-            val kernel = fun({ x: Rep[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
+            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
             val new_key = SpecKey(c.eT, sKey.eOut, sKey.convTo, Some(c.eR))
             (new_key, kernel)
           }
@@ -386,7 +386,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       yield {
         (c.eT equals c.eR) match {
           case false => {
-            val kernel = fun({ x: Rep[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
+            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
             val new_key = SpecKey(c.eT, sKey.eOut, sKey.convTo, Some(c.eR))
             (new_key, kernel)
           }
@@ -403,7 +403,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       yield {
         (c.eT equals c.eR) match {
           case false => {
-            val kernel = fun({ x: Rep[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
+            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
             val new_key = SpecKey(c.eT, sKey.eOut, sKey.convTo, Some(c.eR))
             (new_key, kernel)
           }
@@ -412,17 +412,17 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       }
       (kernelsNewPrimary ++ kernelsFrom ++ kernelsTo).distinct.toMap
     }
-    /*lazy*/ val extendedKernelsMap:  Map[SpecKey, Rep[Any =>Any]]  = Map[SpecKey, Rep[Any=>Any]]()
+    /*lazy*/ val extendedKernelsMap:  Map[SpecKey, Ref[Any =>Any]]  = Map[SpecKey, Ref[Any=>Any]]()
     /*lazy*/ val extendedKernels = extendedKernelsMap.values.toList.distinct.diff(primaryKernels)
   }
 
-//  case class DynKernelSpecs[A,B](nKernels: Rep[Int], specList: List[Rep[A=>B]])(implicit val eA:Elem[A], val eB: Elem[B]) extends ArrayDef[A=>B] {
+//  case class DynKernelSpecs[A,B](nKernels: Ref[Int], specList: List[Ref[A=>B]])(implicit val eA:Elem[A], val eB: Elem[B]) extends ArrayDef[A=>B] {
 //    lazy val eT = element[A=>B]
 ////    override def mirror(t: Transformer) = DynKernelSpecs(t(nKernels), specList.map{s => t(s)})
 //  }
 
   case class ApplyKernel[A, B, C, A1, D, B1]
-        (kernel: Rep[A => B], arg: Rep[C], isoDom: Iso[C,A1], isoRange: Iso[D,B1], specNum: Rep[Int])
+        (kernel: Ref[A => B], arg: Ref[C], isoDom: Iso[C,A1], isoRange: Iso[D,B1], specNum: Ref[Int])
     extends Def[D]
   {
     // TODO assert(A1 isSpecialOf A && B1 isSpecialOf B)
@@ -431,8 +431,8 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
   }
 
   def isoFun[A:Elem, B: Elem](
-        f: Rep[A] => Rep[B],
-        inTypes: TypePredicate = AllTypes, outTypes: TypePredicate = AllTypes) = {
+                                 f: Ref[A] => Ref[B],
+                                 inTypes: TypePredicate = AllTypes, outTypes: TypePredicate = AllTypes) = {
     DynKernel(fun(f), inTypes, outTypes)
   }
 
@@ -440,7 +440,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     el => elems.contains(el)
   }
 
-//  def specializeKernel[A,B,C,D](k: Rep[A => B])(implicit eC: Elem[C], eD:Elem[D]): Rep[C => D] = {
+//  def specializeKernel[A,B,C,D](k: Ref[A => B])(implicit eC: Elem[C], eD:Elem[D]): Ref[C => D] = {
 //    k match {
 //      case Def(k: IsoKernel[A,B,m]) =>
 //        implicit val eA = k.eA
@@ -463,7 +463,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 //    iso match {
 //      case iso: Iso[data, o1] =>
 //        val eD = iso.eFrom
-//        MethodCallSpec(iso, fun[data,R]({ d: Rep[data] =>
+//        MethodCallSpec(iso, fun[data,R]({ d: Ref[data] =>
 //          mkMethodCall(iso.to(d), method, args, false).asRep[R]
 //        })(Lazy(eD), eR))
 //    }
@@ -480,7 +480,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 
   override def rewriteDef[T](d: Def[T]) = d match {
 
-    case Apply(Def(k: DynKernel[a,b]), x: Rep[a1], _) =>
+    case Apply(Def(k: DynKernel[a,b]), x: Ref[a1], _) =>
       implicit val ea1 = x.elem
       implicit val eb = k.eB
       getIsoByElem(ea1) match {

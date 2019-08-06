@@ -30,7 +30,7 @@ import WRType._  // manual fix
 
 object CSizePrim extends EntityObject("CSizePrim") {
   case class CSizePrimCtor[Val]
-      (override val dataSize: Rep[Long], override val tVal: Rep[WRType[Val]])
+      (override val dataSize: Ref[Long], override val tVal: Ref[WRType[Val]])
     extends CSizePrim[Val](dataSize, tVal) with Def[CSizePrim[Val]] {
     implicit lazy val eVal = tVal.eA
 
@@ -52,10 +52,10 @@ object CSizePrim extends EntityObject("CSizePrim") {
   class CSizePrimIso[Val](implicit eVal: Elem[Val])
     extends EntityIso[CSizePrimData[Val], CSizePrim[Val]] with Def[CSizePrimIso[Val]] {
     override def transform(t: Transformer) = new CSizePrimIso[Val]()(eVal)
-    private lazy val _safeFrom = fun { p: Rep[CSizePrim[Val]] => (p.dataSize, p.tVal) }
-    override def from(p: Rep[CSizePrim[Val]]) =
+    private lazy val _safeFrom = fun { p: Ref[CSizePrim[Val]] => (p.dataSize, p.tVal) }
+    override def from(p: Ref[CSizePrim[Val]]) =
       tryConvert[CSizePrim[Val], (Long, WRType[Val])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Long, WRType[Val])]) = {
+    override def to(p: Ref[(Long, WRType[Val])]) = {
       val Pair(dataSize, tVal) = p
       RCSizePrim(dataSize, tVal)
     }
@@ -73,20 +73,20 @@ object CSizePrim extends EntityObject("CSizePrim") {
     def resultType = CSizePrimCompanionElem
     override def toString = "CSizePrimCompanion"
     @scalan.OverloadId("fromData")
-    def apply[Val](p: Rep[CSizePrimData[Val]]): Rep[CSizePrim[Val]] = {
+    def apply[Val](p: Ref[CSizePrimData[Val]]): Ref[CSizePrim[Val]] = {
       implicit val eVal = p._2.eA
       isoCSizePrim[Val].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[Val](dataSize: Rep[Long], tVal: Rep[WRType[Val]]): Rep[CSizePrim[Val]] =
+    def apply[Val](dataSize: Ref[Long], tVal: Ref[WRType[Val]]): Ref[CSizePrim[Val]] =
       mkCSizePrim(dataSize, tVal)
 
-    def unapply[Val](p: Rep[SizePrim[Val]]) = unmkCSizePrim(p)
+    def unapply[Val](p: Ref[SizePrim[Val]]) = unmkCSizePrim(p)
   }
-  lazy val CSizePrimRep: Rep[CSizePrimCompanionCtor] = new CSizePrimCompanionCtor
+  lazy val CSizePrimRep: Ref[CSizePrimCompanionCtor] = new CSizePrimCompanionCtor
   lazy val RCSizePrim: CSizePrimCompanionCtor = proxyCSizePrimCompanion(CSizePrimRep)
-  implicit def proxyCSizePrimCompanion(p: Rep[CSizePrimCompanionCtor]): CSizePrimCompanionCtor = {
+  implicit def proxyCSizePrimCompanion(p: Ref[CSizePrimCompanionCtor]): CSizePrimCompanionCtor = {
     if (p.rhs.isInstanceOf[CSizePrimCompanionCtor])
       p.rhs.asInstanceOf[CSizePrimCompanionCtor]
     else
@@ -95,15 +95,15 @@ object CSizePrim extends EntityObject("CSizePrim") {
 
   implicit case object CSizePrimCompanionElem extends CompanionElem[CSizePrimCompanionCtor]
 
-  implicit def proxyCSizePrim[Val](p: Rep[CSizePrim[Val]]): CSizePrim[Val] = {
+  implicit def proxyCSizePrim[Val](p: Ref[CSizePrim[Val]]): CSizePrim[Val] = {
     if (p.rhs.isInstanceOf[CSizePrim[Val]@unchecked])
       p.rhs.asInstanceOf[CSizePrim[Val]]
     else
       proxyOps[CSizePrim[Val]](p)
   }
 
-  implicit class ExtendedCSizePrim[Val](p: Rep[CSizePrim[Val]]) {
-    def toData: Rep[CSizePrimData[Val]] = {
+  implicit class ExtendedCSizePrim[Val](p: Ref[CSizePrim[Val]]) {
+    def toData: Ref[CSizePrimData[Val]] = {
       implicit val eVal = p.tVal.eA
       isoCSizePrim(eVal).from(p)
     }
@@ -118,10 +118,10 @@ object CSizePrim extends EntityObject("CSizePrim") {
     _isoCSizePrimMemo(eVal).asInstanceOf[Iso[CSizePrimData[Val], CSizePrim[Val]]]
 
   def mkCSizePrim[Val]
-    (dataSize: Rep[Long], tVal: Rep[WRType[Val]]): Rep[CSizePrim[Val]] = {
+    (dataSize: Ref[Long], tVal: Ref[WRType[Val]]): Ref[CSizePrim[Val]] = {
     new CSizePrimCtor[Val](dataSize, tVal)
   }
-  def unmkCSizePrim[Val](p: Rep[SizePrim[Val]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkCSizePrim[Val](p: Ref[SizePrim[Val]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CSizePrimElem[Val] @unchecked =>
       Some((asRep[CSizePrim[Val]](p).dataSize, asRep[CSizePrim[Val]](p).tVal))
     case _ =>
@@ -132,7 +132,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
 
 object CSizePair extends EntityObject("CSizePair") {
   case class CSizePairCtor[L, R]
-      (override val l: Rep[Size[L]], override val r: Rep[Size[R]])
+      (override val l: Ref[Size[L]], override val r: Ref[Size[R]])
     extends CSizePair[L, R](l, r) with Def[CSizePair[L, R]] {
     implicit lazy val eL = l.eVal;
 implicit lazy val eR = r.eVal
@@ -141,7 +141,7 @@ implicit lazy val eR = r.eVal
     override def transform(t: Transformer) = CSizePairCtor[L, R](t(l), t(r))
     private val thisClass = classOf[SizePair[_, _]]
 
-    override def dataSize: Rep[Long] = {
+    override def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -163,10 +163,10 @@ implicit lazy val eR = r.eVal
   class CSizePairIso[L, R](implicit eL: Elem[L], eR: Elem[R])
     extends EntityIso[CSizePairData[L, R], CSizePair[L, R]] with Def[CSizePairIso[L, R]] {
     override def transform(t: Transformer) = new CSizePairIso[L, R]()(eL, eR)
-    private lazy val _safeFrom = fun { p: Rep[CSizePair[L, R]] => (p.l, p.r) }
-    override def from(p: Rep[CSizePair[L, R]]) =
+    private lazy val _safeFrom = fun { p: Ref[CSizePair[L, R]] => (p.l, p.r) }
+    override def from(p: Ref[CSizePair[L, R]]) =
       tryConvert[CSizePair[L, R], (Size[L], Size[R])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Size[L], Size[R])]) = {
+    override def to(p: Ref[(Size[L], Size[R])]) = {
       val Pair(l, r) = p
       RCSizePair(l, r)
     }
@@ -187,21 +187,21 @@ implicit lazy val eR = r.eVal
     def resultType = CSizePairCompanionElem
     override def toString = "CSizePairCompanion"
     @scalan.OverloadId("fromData")
-    def apply[L, R](p: Rep[CSizePairData[L, R]]): Rep[CSizePair[L, R]] = {
+    def apply[L, R](p: Ref[CSizePairData[L, R]]): Ref[CSizePair[L, R]] = {
       implicit val eL = p._1.eVal;
 implicit val eR = p._2.eVal
       isoCSizePair[L, R].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[L, R](l: Rep[Size[L]], r: Rep[Size[R]]): Rep[CSizePair[L, R]] =
+    def apply[L, R](l: Ref[Size[L]], r: Ref[Size[R]]): Ref[CSizePair[L, R]] =
       mkCSizePair(l, r)
 
-    def unapply[L, R](p: Rep[SizePair[L, R]]) = unmkCSizePair(p)
+    def unapply[L, R](p: Ref[SizePair[L, R]]) = unmkCSizePair(p)
   }
-  lazy val CSizePairRep: Rep[CSizePairCompanionCtor] = new CSizePairCompanionCtor
+  lazy val CSizePairRep: Ref[CSizePairCompanionCtor] = new CSizePairCompanionCtor
   lazy val RCSizePair: CSizePairCompanionCtor = proxyCSizePairCompanion(CSizePairRep)
-  implicit def proxyCSizePairCompanion(p: Rep[CSizePairCompanionCtor]): CSizePairCompanionCtor = {
+  implicit def proxyCSizePairCompanion(p: Ref[CSizePairCompanionCtor]): CSizePairCompanionCtor = {
     if (p.rhs.isInstanceOf[CSizePairCompanionCtor])
       p.rhs.asInstanceOf[CSizePairCompanionCtor]
     else
@@ -210,15 +210,15 @@ implicit val eR = p._2.eVal
 
   implicit case object CSizePairCompanionElem extends CompanionElem[CSizePairCompanionCtor]
 
-  implicit def proxyCSizePair[L, R](p: Rep[CSizePair[L, R]]): CSizePair[L, R] = {
+  implicit def proxyCSizePair[L, R](p: Ref[CSizePair[L, R]]): CSizePair[L, R] = {
     if (p.rhs.isInstanceOf[CSizePair[L, R]@unchecked])
       p.rhs.asInstanceOf[CSizePair[L, R]]
     else
       proxyOps[CSizePair[L, R]](p)
   }
 
-  implicit class ExtendedCSizePair[L, R](p: Rep[CSizePair[L, R]]) {
-    def toData: Rep[CSizePairData[L, R]] = {
+  implicit class ExtendedCSizePair[L, R](p: Ref[CSizePair[L, R]]) {
+    def toData: Ref[CSizePairData[L, R]] = {
       implicit val eL = p.l.eVal;
 implicit val eR = p.r.eVal
       isoCSizePair(eL, eR).from(p)
@@ -230,10 +230,10 @@ implicit val eR = p.r.eVal
     reifyObject(new CSizePairIso[L, R]()(eL, eR))
 
   def mkCSizePair[L, R]
-    (l: Rep[Size[L]], r: Rep[Size[R]]): Rep[CSizePair[L, R]] = {
+    (l: Ref[Size[L]], r: Ref[Size[R]]): Ref[CSizePair[L, R]] = {
     new CSizePairCtor[L, R](l, r)
   }
-  def unmkCSizePair[L, R](p: Rep[SizePair[L, R]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkCSizePair[L, R](p: Ref[SizePair[L, R]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CSizePairElem[L, R] @unchecked =>
       Some((asRep[CSizePair[L, R]](p).l, asRep[CSizePair[L, R]](p).r))
     case _ =>
@@ -244,7 +244,7 @@ implicit val eR = p.r.eVal
 
 object CSizeColl extends EntityObject("CSizeColl") {
   case class CSizeCollCtor[Item]
-      (override val sizes: Rep[Coll[Size[Item]]])
+      (override val sizes: Ref[Coll[Size[Item]]])
     extends CSizeColl[Item](sizes) with Def[CSizeColl[Item]] {
     implicit lazy val eItem = sizes.eA.typeArgs("Val")._1.asElem[Item]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
@@ -252,7 +252,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     override def transform(t: Transformer) = CSizeCollCtor[Item](t(sizes))
     private val thisClass = classOf[SizeColl[_]]
 
-    override def dataSize: Rep[Long] = {
+    override def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -274,10 +274,10 @@ object CSizeColl extends EntityObject("CSizeColl") {
   class CSizeCollIso[Item](implicit eItem: Elem[Item])
     extends EntityIso[CSizeCollData[Item], CSizeColl[Item]] with Def[CSizeCollIso[Item]] {
     override def transform(t: Transformer) = new CSizeCollIso[Item]()(eItem)
-    private lazy val _safeFrom = fun { p: Rep[CSizeColl[Item]] => p.sizes }
-    override def from(p: Rep[CSizeColl[Item]]) =
+    private lazy val _safeFrom = fun { p: Ref[CSizeColl[Item]] => p.sizes }
+    override def from(p: Ref[CSizeColl[Item]]) =
       tryConvert[CSizeColl[Item], Coll[Size[Item]]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Coll[Size[Item]]]) = {
+    override def to(p: Ref[Coll[Size[Item]]]) = {
       val sizes = p
       RCSizeColl(sizes)
     }
@@ -296,14 +296,14 @@ object CSizeColl extends EntityObject("CSizeColl") {
     override def toString = "CSizeCollCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[Item](sizes: Rep[Coll[Size[Item]]]): Rep[CSizeColl[Item]] =
+    def apply[Item](sizes: Ref[Coll[Size[Item]]]): Ref[CSizeColl[Item]] =
       mkCSizeColl(sizes)
 
-    def unapply[Item](p: Rep[SizeColl[Item]]) = unmkCSizeColl(p)
+    def unapply[Item](p: Ref[SizeColl[Item]]) = unmkCSizeColl(p)
   }
-  lazy val CSizeCollRep: Rep[CSizeCollCompanionCtor] = new CSizeCollCompanionCtor
+  lazy val CSizeCollRep: Ref[CSizeCollCompanionCtor] = new CSizeCollCompanionCtor
   lazy val RCSizeColl: CSizeCollCompanionCtor = proxyCSizeCollCompanion(CSizeCollRep)
-  implicit def proxyCSizeCollCompanion(p: Rep[CSizeCollCompanionCtor]): CSizeCollCompanionCtor = {
+  implicit def proxyCSizeCollCompanion(p: Ref[CSizeCollCompanionCtor]): CSizeCollCompanionCtor = {
     if (p.rhs.isInstanceOf[CSizeCollCompanionCtor])
       p.rhs.asInstanceOf[CSizeCollCompanionCtor]
     else
@@ -312,15 +312,15 @@ object CSizeColl extends EntityObject("CSizeColl") {
 
   implicit case object CSizeCollCompanionElem extends CompanionElem[CSizeCollCompanionCtor]
 
-  implicit def proxyCSizeColl[Item](p: Rep[CSizeColl[Item]]): CSizeColl[Item] = {
+  implicit def proxyCSizeColl[Item](p: Ref[CSizeColl[Item]]): CSizeColl[Item] = {
     if (p.rhs.isInstanceOf[CSizeColl[Item]@unchecked])
       p.rhs.asInstanceOf[CSizeColl[Item]]
     else
       proxyOps[CSizeColl[Item]](p)
   }
 
-  implicit class ExtendedCSizeColl[Item](p: Rep[CSizeColl[Item]]) {
-    def toData: Rep[CSizeCollData[Item]] = {
+  implicit class ExtendedCSizeColl[Item](p: Ref[CSizeColl[Item]]) {
+    def toData: Ref[CSizeCollData[Item]] = {
       implicit val eItem = p.sizes.eA.typeArgs("Val")._1.asElem[Item]
       isoCSizeColl(eItem).from(p)
     }
@@ -331,10 +331,10 @@ object CSizeColl extends EntityObject("CSizeColl") {
     reifyObject(new CSizeCollIso[Item]()(eItem))
 
   def mkCSizeColl[Item]
-    (sizes: Rep[Coll[Size[Item]]]): Rep[CSizeColl[Item]] = {
+    (sizes: Ref[Coll[Size[Item]]]): Ref[CSizeColl[Item]] = {
     new CSizeCollCtor[Item](sizes)
   }
-  def unmkCSizeColl[Item](p: Rep[SizeColl[Item]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkCSizeColl[Item](p: Ref[SizeColl[Item]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CSizeCollElem[Item] @unchecked =>
       Some((asRep[CSizeColl[Item]](p).sizes))
     case _ =>
@@ -345,7 +345,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
 
 object CSizeFunc extends EntityObject("CSizeFunc") {
   case class CSizeFuncCtor[Env, Arg, Res]
-      (override val sizeEnv: Rep[Size[Env]], override val sizeFunc: Rep[Long], override val tArg: Rep[WRType[Arg]], override val tRes: Rep[WRType[Res]])
+      (override val sizeEnv: Ref[Size[Env]], override val sizeFunc: Ref[Long], override val tArg: Ref[WRType[Arg]], override val tRes: Ref[WRType[Res]])
     extends CSizeFunc[Env, Arg, Res](sizeEnv, sizeFunc, tArg, tRes) with Def[CSizeFunc[Env, Arg, Res]] {
     implicit lazy val eEnv = sizeEnv.eVal;
 implicit lazy val eArg = tArg.eA;
@@ -355,7 +355,7 @@ implicit lazy val eRes = tRes.eA
     override def transform(t: Transformer) = CSizeFuncCtor[Env, Arg, Res](t(sizeEnv), t(sizeFunc), t(tArg), t(tRes))
     private val thisClass = classOf[SizeFunc[_, _, _]]
 
-    override def dataSize: Rep[Long] = {
+    override def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -377,10 +377,10 @@ implicit lazy val eRes = tRes.eA
   class CSizeFuncIso[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res])
     extends EntityIso[CSizeFuncData[Env, Arg, Res], CSizeFunc[Env, Arg, Res]] with Def[CSizeFuncIso[Env, Arg, Res]] {
     override def transform(t: Transformer) = new CSizeFuncIso[Env, Arg, Res]()(eEnv, eArg, eRes)
-    private lazy val _safeFrom = fun { p: Rep[CSizeFunc[Env, Arg, Res]] => (p.sizeEnv, p.sizeFunc, p.tArg, p.tRes) }
-    override def from(p: Rep[CSizeFunc[Env, Arg, Res]]) =
+    private lazy val _safeFrom = fun { p: Ref[CSizeFunc[Env, Arg, Res]] => (p.sizeEnv, p.sizeFunc, p.tArg, p.tRes) }
+    override def from(p: Ref[CSizeFunc[Env, Arg, Res]]) =
       tryConvert[CSizeFunc[Env, Arg, Res], (Size[Env], (Long, (WRType[Arg], WRType[Res])))](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Size[Env], (Long, (WRType[Arg], WRType[Res])))]) = {
+    override def to(p: Ref[(Size[Env], (Long, (WRType[Arg], WRType[Res])))]) = {
       val Pair(sizeEnv, Pair(sizeFunc, Pair(tArg, tRes))) = p
       RCSizeFunc(sizeEnv, sizeFunc, tArg, tRes)
     }
@@ -402,7 +402,7 @@ implicit lazy val eRes = tRes.eA
     def resultType = CSizeFuncCompanionElem
     override def toString = "CSizeFuncCompanion"
     @scalan.OverloadId("fromData")
-    def apply[Env, Arg, Res](p: Rep[CSizeFuncData[Env, Arg, Res]]): Rep[CSizeFunc[Env, Arg, Res]] = {
+    def apply[Env, Arg, Res](p: Ref[CSizeFuncData[Env, Arg, Res]]): Ref[CSizeFunc[Env, Arg, Res]] = {
       implicit val eEnv = p._1.eVal;
 implicit val eArg = p._3.eA;
 implicit val eRes = p._4.eA
@@ -410,14 +410,14 @@ implicit val eRes = p._4.eA
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[Env, Arg, Res](sizeEnv: Rep[Size[Env]], sizeFunc: Rep[Long], tArg: Rep[WRType[Arg]], tRes: Rep[WRType[Res]]): Rep[CSizeFunc[Env, Arg, Res]] =
+    def apply[Env, Arg, Res](sizeEnv: Ref[Size[Env]], sizeFunc: Ref[Long], tArg: Ref[WRType[Arg]], tRes: Ref[WRType[Res]]): Ref[CSizeFunc[Env, Arg, Res]] =
       mkCSizeFunc(sizeEnv, sizeFunc, tArg, tRes)
 
-    def unapply[Env, Arg, Res](p: Rep[SizeFunc[Env, Arg, Res]]) = unmkCSizeFunc(p)
+    def unapply[Env, Arg, Res](p: Ref[SizeFunc[Env, Arg, Res]]) = unmkCSizeFunc(p)
   }
-  lazy val CSizeFuncRep: Rep[CSizeFuncCompanionCtor] = new CSizeFuncCompanionCtor
+  lazy val CSizeFuncRep: Ref[CSizeFuncCompanionCtor] = new CSizeFuncCompanionCtor
   lazy val RCSizeFunc: CSizeFuncCompanionCtor = proxyCSizeFuncCompanion(CSizeFuncRep)
-  implicit def proxyCSizeFuncCompanion(p: Rep[CSizeFuncCompanionCtor]): CSizeFuncCompanionCtor = {
+  implicit def proxyCSizeFuncCompanion(p: Ref[CSizeFuncCompanionCtor]): CSizeFuncCompanionCtor = {
     if (p.rhs.isInstanceOf[CSizeFuncCompanionCtor])
       p.rhs.asInstanceOf[CSizeFuncCompanionCtor]
     else
@@ -426,15 +426,15 @@ implicit val eRes = p._4.eA
 
   implicit case object CSizeFuncCompanionElem extends CompanionElem[CSizeFuncCompanionCtor]
 
-  implicit def proxyCSizeFunc[Env, Arg, Res](p: Rep[CSizeFunc[Env, Arg, Res]]): CSizeFunc[Env, Arg, Res] = {
+  implicit def proxyCSizeFunc[Env, Arg, Res](p: Ref[CSizeFunc[Env, Arg, Res]]): CSizeFunc[Env, Arg, Res] = {
     if (p.rhs.isInstanceOf[CSizeFunc[Env, Arg, Res]@unchecked])
       p.rhs.asInstanceOf[CSizeFunc[Env, Arg, Res]]
     else
       proxyOps[CSizeFunc[Env, Arg, Res]](p)
   }
 
-  implicit class ExtendedCSizeFunc[Env, Arg, Res](p: Rep[CSizeFunc[Env, Arg, Res]]) {
-    def toData: Rep[CSizeFuncData[Env, Arg, Res]] = {
+  implicit class ExtendedCSizeFunc[Env, Arg, Res](p: Ref[CSizeFunc[Env, Arg, Res]]) {
+    def toData: Ref[CSizeFuncData[Env, Arg, Res]] = {
       implicit val eEnv = p.sizeEnv.eVal;
 implicit val eArg = p.tArg.eA;
 implicit val eRes = p.tRes.eA
@@ -447,10 +447,10 @@ implicit val eRes = p.tRes.eA
     reifyObject(new CSizeFuncIso[Env, Arg, Res]()(eEnv, eArg, eRes))
 
   def mkCSizeFunc[Env, Arg, Res]
-    (sizeEnv: Rep[Size[Env]], sizeFunc: Rep[Long], tArg: Rep[WRType[Arg]], tRes: Rep[WRType[Res]]): Rep[CSizeFunc[Env, Arg, Res]] = {
+    (sizeEnv: Ref[Size[Env]], sizeFunc: Ref[Long], tArg: Ref[WRType[Arg]], tRes: Ref[WRType[Res]]): Ref[CSizeFunc[Env, Arg, Res]] = {
     new CSizeFuncCtor[Env, Arg, Res](sizeEnv, sizeFunc, tArg, tRes)
   }
-  def unmkCSizeFunc[Env, Arg, Res](p: Rep[SizeFunc[Env, Arg, Res]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkCSizeFunc[Env, Arg, Res](p: Ref[SizeFunc[Env, Arg, Res]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CSizeFuncElem[Env, Arg, Res] @unchecked =>
       Some((asRep[CSizeFunc[Env, Arg, Res]](p).sizeEnv, asRep[CSizeFunc[Env, Arg, Res]](p).sizeFunc, asRep[CSizeFunc[Env, Arg, Res]](p).tArg, asRep[CSizeFunc[Env, Arg, Res]](p).tRes))
     case _ =>
@@ -461,7 +461,7 @@ implicit val eRes = p.tRes.eA
 
 object CSizeOption extends EntityObject("CSizeOption") {
   case class CSizeOptionCtor[Item]
-      (override val sizeOpt: Rep[WOption[Size[Item]]])
+      (override val sizeOpt: Ref[WOption[Size[Item]]])
     extends CSizeOption[Item](sizeOpt) with Def[CSizeOption[Item]] {
     implicit lazy val eItem = sizeOpt.eA.typeArgs("Val")._1.asElem[Item]
     override lazy val eT: Elem[Item] = eItem
@@ -470,7 +470,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     override def transform(t: Transformer) = CSizeOptionCtor[Item](t(sizeOpt))
     private val thisClass = classOf[SizeOption[_]]
 
-    override def dataSize: Rep[Long] = {
+    override def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -492,10 +492,10 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
   class CSizeOptionIso[Item](implicit eItem: Elem[Item])
     extends EntityIso[CSizeOptionData[Item], CSizeOption[Item]] with Def[CSizeOptionIso[Item]] {
     override def transform(t: Transformer) = new CSizeOptionIso[Item]()(eItem)
-    private lazy val _safeFrom = fun { p: Rep[CSizeOption[Item]] => p.sizeOpt }
-    override def from(p: Rep[CSizeOption[Item]]) =
+    private lazy val _safeFrom = fun { p: Ref[CSizeOption[Item]] => p.sizeOpt }
+    override def from(p: Ref[CSizeOption[Item]]) =
       tryConvert[CSizeOption[Item], WOption[Size[Item]]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[WOption[Size[Item]]]) = {
+    override def to(p: Ref[WOption[Size[Item]]]) = {
       val sizeOpt = p
       RCSizeOption(sizeOpt)
     }
@@ -514,14 +514,14 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     override def toString = "CSizeOptionCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[Item](sizeOpt: Rep[WOption[Size[Item]]]): Rep[CSizeOption[Item]] =
+    def apply[Item](sizeOpt: Ref[WOption[Size[Item]]]): Ref[CSizeOption[Item]] =
       mkCSizeOption(sizeOpt)
 
-    def unapply[Item](p: Rep[SizeOption[Item]]) = unmkCSizeOption(p)
+    def unapply[Item](p: Ref[SizeOption[Item]]) = unmkCSizeOption(p)
   }
-  lazy val CSizeOptionRep: Rep[CSizeOptionCompanionCtor] = new CSizeOptionCompanionCtor
+  lazy val CSizeOptionRep: Ref[CSizeOptionCompanionCtor] = new CSizeOptionCompanionCtor
   lazy val RCSizeOption: CSizeOptionCompanionCtor = proxyCSizeOptionCompanion(CSizeOptionRep)
-  implicit def proxyCSizeOptionCompanion(p: Rep[CSizeOptionCompanionCtor]): CSizeOptionCompanionCtor = {
+  implicit def proxyCSizeOptionCompanion(p: Ref[CSizeOptionCompanionCtor]): CSizeOptionCompanionCtor = {
     if (p.rhs.isInstanceOf[CSizeOptionCompanionCtor])
       p.rhs.asInstanceOf[CSizeOptionCompanionCtor]
     else
@@ -530,15 +530,15 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
 
   implicit case object CSizeOptionCompanionElem extends CompanionElem[CSizeOptionCompanionCtor]
 
-  implicit def proxyCSizeOption[Item](p: Rep[CSizeOption[Item]]): CSizeOption[Item] = {
+  implicit def proxyCSizeOption[Item](p: Ref[CSizeOption[Item]]): CSizeOption[Item] = {
     if (p.rhs.isInstanceOf[CSizeOption[Item]@unchecked])
       p.rhs.asInstanceOf[CSizeOption[Item]]
     else
       proxyOps[CSizeOption[Item]](p)
   }
 
-  implicit class ExtendedCSizeOption[Item](p: Rep[CSizeOption[Item]]) {
-    def toData: Rep[CSizeOptionData[Item]] = {
+  implicit class ExtendedCSizeOption[Item](p: Ref[CSizeOption[Item]]) {
+    def toData: Ref[CSizeOptionData[Item]] = {
       implicit val eItem = p.sizeOpt.eA.typeArgs("Val")._1.asElem[Item]
       isoCSizeOption(eItem).from(p)
     }
@@ -549,10 +549,10 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     reifyObject(new CSizeOptionIso[Item]()(eItem))
 
   def mkCSizeOption[Item]
-    (sizeOpt: Rep[WOption[Size[Item]]]): Rep[CSizeOption[Item]] = {
+    (sizeOpt: Ref[WOption[Size[Item]]]): Ref[CSizeOption[Item]] = {
     new CSizeOptionCtor[Item](sizeOpt)
   }
-  def unmkCSizeOption[Item](p: Rep[SizeOption[Item]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkCSizeOption[Item](p: Ref[SizeOption[Item]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CSizeOptionElem[Item] @unchecked =>
       Some((asRep[CSizeOption[Item]](p).sizeOpt))
     case _ =>

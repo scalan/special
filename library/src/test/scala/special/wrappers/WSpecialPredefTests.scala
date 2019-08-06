@@ -16,7 +16,7 @@ class WSpecialPredefTests extends WrappersTests {
   lazy val CCB = CostedBuilderMethods
 
   test("some") {
-    val x: Rep[Int] = 10
+    val x: Ref[Int] = 10
     val opt = RWSpecialPredef.some(x)
     opt match {
       case SPCM.some(_x) => _x shouldBe x
@@ -25,10 +25,10 @@ class WSpecialPredefTests extends WrappersTests {
   }
 
   test("costedValue") {
-    val cost: Rep[Int] = 10
+    val cost: Ref[Int] = 10
     val optCost = RWSpecialPredef.some(cost)
-    val b: Rep[CostedBuilder] = RCCostedBuilder()
-    val x: Rep[Long] = 1L
+    val b: Ref[CostedBuilder] = RCCostedBuilder()
+    val x: Ref[Long] = 1L
     val value = b.costedValue(x, optCost)
     value match {
       case CCB.costedValue(_b, _x, SPCM.some(_cost)) =>

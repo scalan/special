@@ -41,7 +41,7 @@ object Size extends EntityObject("Size") {
     implicit def eVal: Elem[Val]
     private val SizeClass = classOf[Size[Val]]
 
-    override def dataSize: Rep[Long] = {
+    override def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         SizeClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -56,8 +56,8 @@ object Size extends EntityObject("Size") {
             implicit val tagSVal = lVal.sourceType.asInstanceOf[RType[SVal]]
       RType[SSize[SVal]]
     }
-    def lift(x: SSize[SVal]): Rep[Size[Val]] = SizeConst(x, lVal)
-    def unlift(w: Rep[Size[Val]]): SSize[SVal] = w match {
+    def lift(x: SSize[SVal]): Ref[Size[Val]] = SizeConst(x, lVal)
+    def unlift(w: Ref[Size[Val]]): SSize[SVal] = w match {
       case Def(SizeConst(x: SSize[_], _lVal))
             if _lVal == lVal => x.asInstanceOf[SSize[SVal]]
       case _ => unliftError(w)
@@ -69,7 +69,7 @@ object Size extends EntityObject("Size") {
   private val SizeClass = classOf[Size[_]]
 
   // entityAdapter for Size trait
-  case class SizeAdapter[Val](source: Rep[Size[Val]])
+  case class SizeAdapter[Val](source: Ref[Size[Val]])
       extends Size[Val]
       with Def[Size[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
@@ -77,7 +77,7 @@ object Size extends EntityObject("Size") {
     val resultType: Elem[Size[Val]] = element[Size[Val]]
     override def transform(t: Transformer) = SizeAdapter[Val](t(source))
 
-    def dataSize: Rep[Long] = {
+    def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -86,7 +86,7 @@ object Size extends EntityObject("Size") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySize[Val](p: Rep[Size[Val]]): Size[Val] = {
+  implicit def proxySize[Val](p: Ref[Size[Val]]): Size[Val] = {
     if (p.rhs.isInstanceOf[Size[Val]@unchecked]) p.rhs.asInstanceOf[Size[Val]]
     else
       SizeAdapter(p)
@@ -118,22 +118,22 @@ object Size extends EntityObject("Size") {
     def resultType = SizeCompanionElem
     override def toString = "Size"
   }
-  implicit def proxySizeCompanionCtor(p: Rep[SizeCompanionCtor]): SizeCompanionCtor =
+  implicit def proxySizeCompanionCtor(p: Ref[SizeCompanionCtor]): SizeCompanionCtor =
     p.rhs.asInstanceOf[SizeCompanionCtor]
 
-  lazy val RSize: Rep[SizeCompanionCtor] = new SizeCompanionCtor {
+  lazy val RSize: Ref[SizeCompanionCtor] = new SizeCompanionCtor {
     private val thisClass = classOf[SizeCompanion]
   }
 
   object SizeMethods {
     object dataSize {
-      def unapply(d: Def[_]): Nullable[Rep[Size[Val]] forSome {type Val}] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Size[Val]] forSome {type Val}] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "dataSize" && receiver.elem.isInstanceOf[SizeElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Size[Val]] forSome {type Val}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Size[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Size[Val]] forSome {type Val}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Size[Val]] forSome {type Val}] = unapply(exp.rhs)
     }
   }
 
@@ -162,14 +162,14 @@ object SizePrim extends EntityObject("SizePrim") {
     implicit def eVal: Elem[Val]
     private val SizePrimClass = classOf[SizePrim[Val]]
 
-    override def dataSize: Rep[Long] = {
+    override def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         SizePrimClass.getMethod("dataSize"),
         WrappedArray.empty,
         true, false, element[Long]))
     }
 
-    override def tVal: Rep[WRType[Val]] = {
+    override def tVal: Ref[WRType[Val]] = {
       asRep[WRType[Val]](mkMethodCall(self,
         SizePrimClass.getMethod("tVal"),
         WrappedArray.empty,
@@ -184,8 +184,8 @@ object SizePrim extends EntityObject("SizePrim") {
             implicit val tagSVal = lVal.sourceType.asInstanceOf[RType[SVal]]
       RType[SSizePrim[SVal]]
     }
-    def lift(x: SSizePrim[SVal]): Rep[SizePrim[Val]] = SizePrimConst(x, lVal)
-    def unlift(w: Rep[SizePrim[Val]]): SSizePrim[SVal] = w match {
+    def lift(x: SSizePrim[SVal]): Ref[SizePrim[Val]] = SizePrimConst(x, lVal)
+    def unlift(w: Ref[SizePrim[Val]]): SSizePrim[SVal] = w match {
       case Def(SizePrimConst(x: SSizePrim[_], _lVal))
             if _lVal == lVal => x.asInstanceOf[SSizePrim[SVal]]
       case _ => unliftError(w)
@@ -197,7 +197,7 @@ object SizePrim extends EntityObject("SizePrim") {
   private val SizePrimClass = classOf[SizePrim[_]]
 
   // entityAdapter for SizePrim trait
-  case class SizePrimAdapter[Val](source: Rep[SizePrim[Val]])
+  case class SizePrimAdapter[Val](source: Ref[SizePrim[Val]])
       extends SizePrim[Val]
       with Def[SizePrim[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
@@ -205,14 +205,14 @@ object SizePrim extends EntityObject("SizePrim") {
     val resultType: Elem[SizePrim[Val]] = element[SizePrim[Val]]
     override def transform(t: Transformer) = SizePrimAdapter[Val](t(source))
 
-    def dataSize: Rep[Long] = {
+    def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(source,
         SizePrimClass.getMethod("dataSize"),
         WrappedArray.empty,
         true, true, element[Long]))
     }
 
-    def tVal: Rep[WRType[Val]] = {
+    def tVal: Ref[WRType[Val]] = {
       asRep[WRType[Val]](mkMethodCall(source,
         SizePrimClass.getMethod("tVal"),
         WrappedArray.empty,
@@ -221,7 +221,7 @@ object SizePrim extends EntityObject("SizePrim") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySizePrim[Val](p: Rep[SizePrim[Val]]): SizePrim[Val] = {
+  implicit def proxySizePrim[Val](p: Ref[SizePrim[Val]]): SizePrim[Val] = {
     if (p.rhs.isInstanceOf[SizePrim[Val]@unchecked]) p.rhs.asInstanceOf[SizePrim[Val]]
     else
       SizePrimAdapter(p)
@@ -254,10 +254,10 @@ object SizePrim extends EntityObject("SizePrim") {
     def resultType = SizePrimCompanionElem
     override def toString = "SizePrim"
   }
-  implicit def proxySizePrimCompanionCtor(p: Rep[SizePrimCompanionCtor]): SizePrimCompanionCtor =
+  implicit def proxySizePrimCompanionCtor(p: Ref[SizePrimCompanionCtor]): SizePrimCompanionCtor =
     p.rhs.asInstanceOf[SizePrimCompanionCtor]
 
-  lazy val RSizePrim: Rep[SizePrimCompanionCtor] = new SizePrimCompanionCtor {
+  lazy val RSizePrim: Ref[SizePrimCompanionCtor] = new SizePrimCompanionCtor {
     private val thisClass = classOf[SizePrimCompanion]
   }
 } // of object SizePrim
@@ -286,14 +286,14 @@ object SizePair extends EntityObject("SizePair") {
     implicit def eR: Elem[R]
     private val SizePairClass = classOf[SizePair[L, R]]
 
-    override def l: Rep[Size[L]] = {
+    override def l: Ref[Size[L]] = {
       asRep[Size[L]](mkMethodCall(self,
         SizePairClass.getMethod("l"),
         WrappedArray.empty,
         true, false, element[Size[L]]))
     }
 
-    override def r: Rep[Size[R]] = {
+    override def r: Ref[Size[R]] = {
       asRep[Size[R]](mkMethodCall(self,
         SizePairClass.getMethod("r"),
         WrappedArray.empty,
@@ -309,8 +309,8 @@ object SizePair extends EntityObject("SizePair") {
       implicit val tagSR = lR.sourceType.asInstanceOf[RType[SR]]
       RType[SSizePair[SL, SR]]
     }
-    def lift(x: SSizePair[SL, SR]): Rep[SizePair[L, R]] = SizePairConst(x, lL,lR)
-    def unlift(w: Rep[SizePair[L, R]]): SSizePair[SL, SR] = w match {
+    def lift(x: SSizePair[SL, SR]): Ref[SizePair[L, R]] = SizePairConst(x, lL,lR)
+    def unlift(w: Ref[SizePair[L, R]]): SSizePair[SL, SR] = w match {
       case Def(SizePairConst(x: SSizePair[_,_], _lL,_lR))
             if _lL == lL && _lR == lR => x.asInstanceOf[SSizePair[SL, SR]]
       case _ => unliftError(w)
@@ -322,7 +322,7 @@ object SizePair extends EntityObject("SizePair") {
   private val SizePairClass = classOf[SizePair[_, _]]
 
   // entityAdapter for SizePair trait
-  case class SizePairAdapter[L, R](source: Rep[SizePair[L, R]])
+  case class SizePairAdapter[L, R](source: Ref[SizePair[L, R]])
       extends SizePair[L, R]
       with Def[SizePair[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
@@ -331,21 +331,21 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     val resultType: Elem[SizePair[L, R]] = element[SizePair[L, R]]
     override def transform(t: Transformer) = SizePairAdapter[L, R](t(source))
 
-    def l: Rep[Size[L]] = {
+    def l: Ref[Size[L]] = {
       asRep[Size[L]](mkMethodCall(source,
         SizePairClass.getMethod("l"),
         WrappedArray.empty,
         true, true, element[Size[L]]))
     }
 
-    def r: Rep[Size[R]] = {
+    def r: Ref[Size[R]] = {
       asRep[Size[R]](mkMethodCall(source,
         SizePairClass.getMethod("r"),
         WrappedArray.empty,
         true, true, element[Size[R]]))
     }
 
-    def dataSize: Rep[Long] = {
+    def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(source,
         SizePairClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -354,7 +354,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySizePair[L, R](p: Rep[SizePair[L, R]]): SizePair[L, R] = {
+  implicit def proxySizePair[L, R](p: Ref[SizePair[L, R]]): SizePair[L, R] = {
     if (p.rhs.isInstanceOf[SizePair[L, R]@unchecked]) p.rhs.asInstanceOf[SizePair[L, R]]
     else
       SizePairAdapter(p)
@@ -388,32 +388,32 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def resultType = SizePairCompanionElem
     override def toString = "SizePair"
   }
-  implicit def proxySizePairCompanionCtor(p: Rep[SizePairCompanionCtor]): SizePairCompanionCtor =
+  implicit def proxySizePairCompanionCtor(p: Ref[SizePairCompanionCtor]): SizePairCompanionCtor =
     p.rhs.asInstanceOf[SizePairCompanionCtor]
 
-  lazy val RSizePair: Rep[SizePairCompanionCtor] = new SizePairCompanionCtor {
+  lazy val RSizePair: Ref[SizePairCompanionCtor] = new SizePairCompanionCtor {
     private val thisClass = classOf[SizePairCompanion]
   }
 
   object SizePairMethods {
     object l {
-      def unapply(d: Def[_]): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[SizePair[L, R]] forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "l" && receiver.elem.isInstanceOf[SizePairElem[_, _, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SizePair[L, R]] forSome {type L; type R}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[SizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[SizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
 
     object r {
-      def unapply(d: Def[_]): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[SizePair[L, R]] forSome {type L; type R}] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "r" && receiver.elem.isInstanceOf[SizePairElem[_, _, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SizePair[L, R]] forSome {type L; type R}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[SizePair[L, R]] forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[SizePair[L, R]] forSome {type L; type R}] = unapply(exp.rhs)
     }
   }
 
@@ -443,7 +443,7 @@ object SizeColl extends EntityObject("SizeColl") {
     implicit def eItem: Elem[Item]
     private val SizeCollClass = classOf[SizeColl[Item]]
 
-    override def sizes: Rep[Coll[Size[Item]]] = {
+    override def sizes: Ref[Coll[Size[Item]]] = {
       asRep[Coll[Size[Item]]](mkMethodCall(self,
         SizeCollClass.getMethod("sizes"),
         WrappedArray.empty,
@@ -458,8 +458,8 @@ object SizeColl extends EntityObject("SizeColl") {
             implicit val tagSItem = lItem.sourceType.asInstanceOf[RType[SItem]]
       RType[SSizeColl[SItem]]
     }
-    def lift(x: SSizeColl[SItem]): Rep[SizeColl[Item]] = SizeCollConst(x, lItem)
-    def unlift(w: Rep[SizeColl[Item]]): SSizeColl[SItem] = w match {
+    def lift(x: SSizeColl[SItem]): Ref[SizeColl[Item]] = SizeCollConst(x, lItem)
+    def unlift(w: Ref[SizeColl[Item]]): SSizeColl[SItem] = w match {
       case Def(SizeCollConst(x: SSizeColl[_], _lItem))
             if _lItem == lItem => x.asInstanceOf[SSizeColl[SItem]]
       case _ => unliftError(w)
@@ -471,7 +471,7 @@ object SizeColl extends EntityObject("SizeColl") {
   private val SizeCollClass = classOf[SizeColl[_]]
 
   // entityAdapter for SizeColl trait
-  case class SizeCollAdapter[Item](source: Rep[SizeColl[Item]])
+  case class SizeCollAdapter[Item](source: Ref[SizeColl[Item]])
       extends SizeColl[Item]
       with Def[SizeColl[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
@@ -479,14 +479,14 @@ object SizeColl extends EntityObject("SizeColl") {
     val resultType: Elem[SizeColl[Item]] = element[SizeColl[Item]]
     override def transform(t: Transformer) = SizeCollAdapter[Item](t(source))
 
-    def sizes: Rep[Coll[Size[Item]]] = {
+    def sizes: Ref[Coll[Size[Item]]] = {
       asRep[Coll[Size[Item]]](mkMethodCall(source,
         SizeCollClass.getMethod("sizes"),
         WrappedArray.empty,
         true, true, element[Coll[Size[Item]]]))
     }
 
-    def dataSize: Rep[Long] = {
+    def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeCollClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -495,7 +495,7 @@ object SizeColl extends EntityObject("SizeColl") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySizeColl[Item](p: Rep[SizeColl[Item]]): SizeColl[Item] = {
+  implicit def proxySizeColl[Item](p: Ref[SizeColl[Item]]): SizeColl[Item] = {
     if (p.rhs.isInstanceOf[SizeColl[Item]@unchecked]) p.rhs.asInstanceOf[SizeColl[Item]]
     else
       SizeCollAdapter(p)
@@ -528,22 +528,22 @@ object SizeColl extends EntityObject("SizeColl") {
     def resultType = SizeCollCompanionElem
     override def toString = "SizeColl"
   }
-  implicit def proxySizeCollCompanionCtor(p: Rep[SizeCollCompanionCtor]): SizeCollCompanionCtor =
+  implicit def proxySizeCollCompanionCtor(p: Ref[SizeCollCompanionCtor]): SizeCollCompanionCtor =
     p.rhs.asInstanceOf[SizeCollCompanionCtor]
 
-  lazy val RSizeColl: Rep[SizeCollCompanionCtor] = new SizeCollCompanionCtor {
+  lazy val RSizeColl: Ref[SizeCollCompanionCtor] = new SizeCollCompanionCtor {
     private val thisClass = classOf[SizeCollCompanion]
   }
 
   object SizeCollMethods {
     object sizes {
-      def unapply(d: Def[_]): Nullable[Rep[SizeColl[Item]] forSome {type Item}] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[SizeColl[Item]] forSome {type Item}] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "sizes" && receiver.elem.isInstanceOf[SizeCollElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SizeColl[Item]] forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[SizeColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizeColl[Item]] forSome {type Item}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[SizeColl[Item]] forSome {type Item}] = unapply(exp.rhs)
     }
   }
 
@@ -577,7 +577,7 @@ object SizeFunc extends EntityObject("SizeFunc") {
     implicit def eRes: Elem[Res]
     private val SizeFuncClass = classOf[SizeFunc[Env, Arg, Res]]
 
-    override def sizeEnv: Rep[Size[Env]] = {
+    override def sizeEnv: Ref[Size[Env]] = {
       asRep[Size[Env]](mkMethodCall(self,
         SizeFuncClass.getMethod("sizeEnv"),
         WrappedArray.empty,
@@ -594,8 +594,8 @@ object SizeFunc extends EntityObject("SizeFunc") {
       implicit val tagSRes = lRes.sourceType.asInstanceOf[RType[SRes]]
       RType[SSizeFunc[SEnv, SArg, SRes]]
     }
-    def lift(x: SSizeFunc[SEnv, SArg, SRes]): Rep[SizeFunc[Env, Arg, Res]] = SizeFuncConst(x, lEnv,lArg,lRes)
-    def unlift(w: Rep[SizeFunc[Env, Arg, Res]]): SSizeFunc[SEnv, SArg, SRes] = w match {
+    def lift(x: SSizeFunc[SEnv, SArg, SRes]): Ref[SizeFunc[Env, Arg, Res]] = SizeFuncConst(x, lEnv,lArg,lRes)
+    def unlift(w: Ref[SizeFunc[Env, Arg, Res]]): SSizeFunc[SEnv, SArg, SRes] = w match {
       case Def(SizeFuncConst(x: SSizeFunc[_,_,_], _lEnv,_lArg,_lRes))
             if _lEnv == lEnv && _lArg == lArg && _lRes == lRes => x.asInstanceOf[SSizeFunc[SEnv, SArg, SRes]]
       case _ => unliftError(w)
@@ -607,7 +607,7 @@ object SizeFunc extends EntityObject("SizeFunc") {
   private val SizeFuncClass = classOf[SizeFunc[_, _, _]]
 
   // entityAdapter for SizeFunc trait
-  case class SizeFuncAdapter[Env, Arg, Res](source: Rep[SizeFunc[Env, Arg, Res]])
+  case class SizeFuncAdapter[Env, Arg, Res](source: Ref[SizeFunc[Env, Arg, Res]])
       extends SizeFunc[Env, Arg, Res]
       with Def[SizeFunc[Env, Arg, Res]] {
     implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asElem[Env];
@@ -617,14 +617,14 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     val resultType: Elem[SizeFunc[Env, Arg, Res]] = element[SizeFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = SizeFuncAdapter[Env, Arg, Res](t(source))
 
-    def sizeEnv: Rep[Size[Env]] = {
+    def sizeEnv: Ref[Size[Env]] = {
       asRep[Size[Env]](mkMethodCall(source,
         SizeFuncClass.getMethod("sizeEnv"),
         WrappedArray.empty,
         true, true, element[Size[Env]]))
     }
 
-    def dataSize: Rep[Long] = {
+    def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeFuncClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -633,7 +633,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySizeFunc[Env, Arg, Res](p: Rep[SizeFunc[Env, Arg, Res]]): SizeFunc[Env, Arg, Res] = {
+  implicit def proxySizeFunc[Env, Arg, Res](p: Ref[SizeFunc[Env, Arg, Res]]): SizeFunc[Env, Arg, Res] = {
     if (p.rhs.isInstanceOf[SizeFunc[Env, Arg, Res]@unchecked]) p.rhs.asInstanceOf[SizeFunc[Env, Arg, Res]]
     else
       SizeFuncAdapter(p)
@@ -668,22 +668,22 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     def resultType = SizeFuncCompanionElem
     override def toString = "SizeFunc"
   }
-  implicit def proxySizeFuncCompanionCtor(p: Rep[SizeFuncCompanionCtor]): SizeFuncCompanionCtor =
+  implicit def proxySizeFuncCompanionCtor(p: Ref[SizeFuncCompanionCtor]): SizeFuncCompanionCtor =
     p.rhs.asInstanceOf[SizeFuncCompanionCtor]
 
-  lazy val RSizeFunc: Rep[SizeFuncCompanionCtor] = new SizeFuncCompanionCtor {
+  lazy val RSizeFunc: Ref[SizeFuncCompanionCtor] = new SizeFuncCompanionCtor {
     private val thisClass = classOf[SizeFuncCompanion]
   }
 
   object SizeFuncMethods {
     object sizeEnv {
-      def unapply(d: Def[_]): Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "sizeEnv" && receiver.elem.isInstanceOf[SizeFuncElem[_, _, _, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[SizeFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = unapply(exp.rhs)
     }
   }
 
@@ -713,7 +713,7 @@ object SizeOption extends EntityObject("SizeOption") {
     implicit def eT: Elem[T]
     private val SizeOptionClass = classOf[SizeOption[T]]
 
-    override def sizeOpt: Rep[WOption[Size[T]]] = {
+    override def sizeOpt: Ref[WOption[Size[T]]] = {
       asRep[WOption[Size[T]]](mkMethodCall(self,
         SizeOptionClass.getMethod("sizeOpt"),
         WrappedArray.empty,
@@ -728,8 +728,8 @@ object SizeOption extends EntityObject("SizeOption") {
             implicit val tagST = lT.sourceType.asInstanceOf[RType[ST]]
       RType[SSizeOption[ST]]
     }
-    def lift(x: SSizeOption[ST]): Rep[SizeOption[T]] = SizeOptionConst(x, lT)
-    def unlift(w: Rep[SizeOption[T]]): SSizeOption[ST] = w match {
+    def lift(x: SSizeOption[ST]): Ref[SizeOption[T]] = SizeOptionConst(x, lT)
+    def unlift(w: Ref[SizeOption[T]]): SSizeOption[ST] = w match {
       case Def(SizeOptionConst(x: SSizeOption[_], _lT))
             if _lT == lT => x.asInstanceOf[SSizeOption[ST]]
       case _ => unliftError(w)
@@ -741,7 +741,7 @@ object SizeOption extends EntityObject("SizeOption") {
   private val SizeOptionClass = classOf[SizeOption[_]]
 
   // entityAdapter for SizeOption trait
-  case class SizeOptionAdapter[T](source: Rep[SizeOption[T]])
+  case class SizeOptionAdapter[T](source: Ref[SizeOption[T]])
       extends SizeOption[T]
       with Def[SizeOption[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
@@ -749,14 +749,14 @@ object SizeOption extends EntityObject("SizeOption") {
     val resultType: Elem[SizeOption[T]] = element[SizeOption[T]]
     override def transform(t: Transformer) = SizeOptionAdapter[T](t(source))
 
-    def sizeOpt: Rep[WOption[Size[T]]] = {
+    def sizeOpt: Ref[WOption[Size[T]]] = {
       asRep[WOption[Size[T]]](mkMethodCall(source,
         SizeOptionClass.getMethod("sizeOpt"),
         WrappedArray.empty,
         true, true, element[WOption[Size[T]]]))
     }
 
-    def dataSize: Rep[Long] = {
+    def dataSize: Ref[Long] = {
       asRep[Long](mkMethodCall(source,
         SizeOptionClass.getMethod("dataSize"),
         WrappedArray.empty,
@@ -765,7 +765,7 @@ object SizeOption extends EntityObject("SizeOption") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySizeOption[T](p: Rep[SizeOption[T]]): SizeOption[T] = {
+  implicit def proxySizeOption[T](p: Ref[SizeOption[T]]): SizeOption[T] = {
     if (p.rhs.isInstanceOf[SizeOption[T]@unchecked]) p.rhs.asInstanceOf[SizeOption[T]]
     else
       SizeOptionAdapter(p)
@@ -798,22 +798,22 @@ object SizeOption extends EntityObject("SizeOption") {
     def resultType = SizeOptionCompanionElem
     override def toString = "SizeOption"
   }
-  implicit def proxySizeOptionCompanionCtor(p: Rep[SizeOptionCompanionCtor]): SizeOptionCompanionCtor =
+  implicit def proxySizeOptionCompanionCtor(p: Ref[SizeOptionCompanionCtor]): SizeOptionCompanionCtor =
     p.rhs.asInstanceOf[SizeOptionCompanionCtor]
 
-  lazy val RSizeOption: Rep[SizeOptionCompanionCtor] = new SizeOptionCompanionCtor {
+  lazy val RSizeOption: Ref[SizeOptionCompanionCtor] = new SizeOptionCompanionCtor {
     private val thisClass = classOf[SizeOptionCompanion]
   }
 
   object SizeOptionMethods {
     object sizeOpt {
-      def unapply(d: Def[_]): Nullable[Rep[SizeOption[T]] forSome {type T}] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[SizeOption[T]] forSome {type T}] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "sizeOpt" && receiver.elem.isInstanceOf[SizeOptionElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[SizeOption[T]] forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[SizeOption[T]] forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[SizeOption[T]] forSome {type T}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[SizeOption[T]] forSome {type T}] = unapply(exp.rhs)
     }
   }
 

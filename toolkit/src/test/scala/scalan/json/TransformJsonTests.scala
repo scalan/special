@@ -47,9 +47,9 @@ class TransformJsonTests extends JsonTests {
 
   describe("Single stage pipeline") {
     val pipeline = new SingleStagePipeline(new Ctx) {
-      import ctx.{Rewriter, Rep, asRep}
+      import ctx.{Rewriter, Ref, asRep}
       val rewriter = new Rewriter {
-        def apply[T](x: Rep[T]): Rep[T] = asRep[T](x match {
+        def apply[T](x: Ref[T]): Ref[T] = asRep[T](x match {
           case _ => x
         })
       }

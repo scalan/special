@@ -35,26 +35,26 @@ abstract class AbstractSlicingTests extends BaseTests with TestContextsEx {
 //    val mArrNone   = ArrayMarking(KeyPath.All, mNoFields)
 //    val mArrJoined = ArrayMarking(KeyPath.All, mJoined)
 
-    lazy val funOneField = fun { in: Rep[Struct] => in.get[Int]("a") }(Lazy(eIn))
-    lazy val funTwoFields = fun { in: Rep[Struct] =>
+    lazy val funOneField = fun { in: Ref[Struct] => in.get[Int]("a") }(Lazy(eIn))
+    lazy val funTwoFields = fun { in: Ref[Struct] =>
       Pair(in.get[Int]("a"), in.get[String]("b")) }(Lazy(eIn))
-    lazy val funNestedFields = fun { in: Rep[Struct] =>
+    lazy val funNestedFields = fun { in: Ref[Struct] =>
       in.getUnchecked[Struct]("d").get[Int]("e") }(Lazy(eJoined))
-    lazy val funPlus = fun { in: Rep[Struct] =>
+    lazy val funPlus = fun { in: Ref[Struct] =>
       in.get[Int]("a") + in.getUnchecked[Struct]("d").get[Int]("e") }(Lazy(eJoined))
-    lazy val funMap = fun { in: Rep[Struct] =>
+    lazy val funMap = fun { in: Ref[Struct] =>
       Pair(
         in.get[Int]("a") + in.getUnchecked[Struct]("d").get[Int]("e"),
         in.get[Int]("a") * in.get[String]("b").toInt
       )
     }(Lazy(eJoined))
 
-    lazy val funKey = fun { in: Rep[Struct] => in.get[String]("b") }(Lazy(eJoined))
+    lazy val funKey = fun { in: Ref[Struct] => in.get[String]("b") }(Lazy(eJoined))
     lazy val funReduce = fun {
-      in: Rep[(Int, Struct)] => in._1 + in._2.getUnchecked[Struct]("d").get[Int]("e")
+      in: Ref[(Int, Struct)] => in._1 + in._2.getUnchecked[Struct]("d").get[Int]("e")
     }(Lazy(pairElement(IntElement, eJoined)))
 
-    lazy val funPred = fun { in: Rep[Struct] =>
+    lazy val funPred = fun { in: Ref[Struct] =>
       in.get[Int]("a") < in.getUnchecked[Struct]("d").get[Int]("e")
     }(Lazy(eJoined))
   }
@@ -64,7 +64,7 @@ abstract class AbstractSlicingTests extends BaseTests with TestContextsEx {
     import compiler._
     import compiler.scalan._
 
-    def getFuncMarking[A,B](f: scalan.Rep[A => B], mInitial: SliceMarking[B]): FuncMarking[A,B] = {
+    def getFuncMarking[A,B](f: scalan.Ref[A => B], mInitial: SliceMarking[B]): FuncMarking[A,B] = {
       val slicingPassBuilder = SlicingPass.makePass(false)
       val g = new PGraph(f)
       val pass = slicingPassBuilder(g)
@@ -78,14 +78,14 @@ abstract class AbstractSlicingTests extends BaseTests with TestContextsEx {
       res
     }
 
-    def testFuncMark[A,B](f: scalan.Rep[A => B], mInitial: SliceMarking[B], mExpected: SliceMarking[A]) = {
+    def testFuncMark[A,B](f: scalan.Ref[A => B], mInitial: SliceMarking[B], mExpected: SliceMarking[A]) = {
       val fm = getFuncMarking(f, mInitial)
       val mA = fm.mDom
       assertResult(mExpected)(mA)
       assertResult(FuncMarking(mA,mInitial))(fm)
     }
 
-    def testFuncSlice[A,B](name: String, f: scalan.Rep[A => B], mInitial: SliceMarking[B]) = {
+    def testFuncSlice[A,B](name: String, f: scalan.Ref[A => B], mInitial: SliceMarking[B]) = {
       import scalan._
       val fm = getFuncMarking(f, mInitial)
       val fsliced = sliceFunc(f, fm)

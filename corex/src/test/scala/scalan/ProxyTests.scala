@@ -11,7 +11,7 @@ class ProxyTests extends BaseCtxTests {
 
     /**
      * Check that calling getResultElem on TReceiver.name produces expectedResultElem.
-     * params is a seq of pairs (JVM param class, param). Note that for JVM class for `Rep` is `classOf[Object]`
+     * params is a seq of pairs (JVM param class, param). Note that for JVM class for `Ref` is `classOf[Object]`
      */
 //    def testResultElem[TReceiver, TResult](name: String, params: (Class[_], AnyRef)*)(implicit tag: TypeTag[TReceiver], expectedResultElem: Elem[TResult]) = {
 //      val tpe = tag.tpe

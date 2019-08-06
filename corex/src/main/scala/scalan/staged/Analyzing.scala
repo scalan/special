@@ -24,14 +24,14 @@ trait Analyzing { self: ScalanEx =>
     def defaultMarking[T:Elem] = LevelCount[T](0)
     def mkLevelMark[T](level: Int)(eT: Elem[T]) = LevelCount(level)(eT)
 
-    def updateMark[T](s: Rep[T], level: Int): (Rep[T], LevelCount[T]) = {
+    def updateMark[T](s: Ref[T], level: Int): (Ref[T], LevelCount[T]) = {
       updateMark(s, mkLevelMark(level)(s.elem))
     }
 
     def getLambdaMarking[A, B](lam: Lambda[A, B], mDom: LevelCount[A], mRange: LevelCount[B]): LevelCount[(A) => B] =
       mkLevelMark(0)(lam.elem)
 
-    def getInboundMarkings[T](thisSym: Rep[T], outMark: LevelCount[T]): MarkedSyms = {
+    def getInboundMarkings[T](thisSym: Ref[T], outMark: LevelCount[T]): MarkedSyms = {
       val l = outMark.level
       thisSym.rhs match {
         case lam: Lambda[a,b] =>
@@ -68,16 +68,16 @@ trait Analyzing { self: ScalanEx =>
     def defaultMarking[T:Elem] = UsageCount[T](Map())
     def mkUsageMark[T](counters: Map[Int,Seq[Sym]])(eT: Elem[T]) = UsageCount(counters)(eT)
 
-    def promoteMark[T](s: Rep[T], counters: Map[Int,Seq[Sym]]): (Rep[T], UsageCount[T]) = {
+    def promoteMark[T](s: Ref[T], counters: Map[Int,Seq[Sym]]): (Ref[T], UsageCount[T]) = {
       s -> mkUsageMark(counters)(s.elem)
     }
 
-    def getLevel[T](s: Rep[T]): Int = levelAnalyzer.getMark(s).level
+    def getLevel[T](s: Ref[T]): Int = levelAnalyzer.getMark(s).level
 
     def getLambdaMarking[A, B](lam: Lambda[A, B], mDom: UsageCount[A], mRange: UsageCount[B]): UsageCount[(A) => B] =
       mkUsageMark(Map())(lam.elem)
 
-    def getInboundMarkings[T](thisSym: Rep[T], outMark: UsageCount[T]): MarkedSyms = {
+    def getInboundMarkings[T](thisSym: Ref[T], outMark: UsageCount[T]): MarkedSyms = {
       thisSym.rhs match {
         case l: Lambda[a,b] => Seq()
         case _ =>

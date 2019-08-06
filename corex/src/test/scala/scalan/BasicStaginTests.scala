@@ -7,7 +7,7 @@ class BasicStaginTests extends BaseCtxTests {
     beginPass(new DefaultPass("mypass", Pass.defaultPassConfig.copy(constantPropagation = false)))
     var defCounter = 0
     var defTime: Long = 0
-    override def def_unapply[T](e: Rep[T]) = {
+    override def def_unapply[T](e: Ref[T]) = {
       defCounter += 1
       val start = System.nanoTime()
       val res = super.def_unapply(e)
@@ -45,7 +45,7 @@ class BasicStaginTests extends BaseCtxTests {
   }
 
   test("stage and pattern match lambdas") {
-    val f = fun { x: Rep[Int] => x + 1 }
+    val f = fun { x: Ref[Int] => x + 1 }
     f match {
       case Def(Lambda(lam, _, x, Def(ApplyBinOp(op, x1, Def(Const(1)))))) =>
         x shouldBe x1

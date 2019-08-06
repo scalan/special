@@ -15,8 +15,8 @@ trait RewriteRuleSuite[A] extends BaseShouldTests {
 
   trait TestCtx extends ScalanEx {
     def testLemma: RRewrite[A]
-    def testExpr(): Rep[A]
-    def expected: Rep[A]
+    def testExpr(): Ref[A]
+    def expected: Ref[A]
 
     lazy val rule = patternRewriteRule(testLemma)
   }

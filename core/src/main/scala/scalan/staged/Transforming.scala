@@ -80,12 +80,12 @@ trait Transforming { self: Scalan =>
     def this(substPairs: (Sym, Sym)*) {
       this(substPairs.toMap)
     }
-    def apply[A](x: Rep[A]): Rep[A] = subst.get(x) match {
-      case Some(y) if y != x => apply(y.asInstanceOf[Rep[A]]) // transitive closure
+    def apply[A](x: Ref[A]): Ref[A] = subst.get(x) match {
+      case Some(y) if y != x => apply(y.asInstanceOf[Ref[A]]) // transitive closure
       case _ => x
     }
-    def isDefinedAt(x: Rep[_]) = subst.contains(x)
-    def domain: Set[Rep[_]] = subst.keySet
+    def isDefinedAt(x: Ref[_]) = subst.contains(x)
+    def domain: Set[Ref[_]] = subst.keySet
 
     override def toString = if (subst.isEmpty) "MapTransformer.Empty" else s"MapTransformer($subst)"
   }
@@ -95,25 +95,25 @@ trait Transforming { self: Scalan =>
 
     implicit val ops: TransformerOps[MapTransformer] = new TransformerOps[MapTransformer] {
       def empty = Empty//new MapTransformer(Map.empty)
-      def add[A](t: MapTransformer, kv: (Rep[A], Rep[A])): MapTransformer =
+      def add[A](t: MapTransformer, kv: (Ref[A], Ref[A])): MapTransformer =
         new MapTransformer(t.subst + kv)
     }
   }
 
   implicit class PartialRewriter(pf: PartialFunction[Sym, Sym]) extends Rewriter {
-    def apply[T](x: Rep[T]): Rep[T] =
+    def apply[T](x: Ref[T]): Ref[T] =
       if (pf.isDefinedAt(x))
-        pf(x).asInstanceOf[Rep[T]]
+        pf(x).asInstanceOf[Ref[T]]
       else
         x
   }
 
   object InvokeRewriter extends Rewriter {
-    def apply[T](x: Rep[T]): Rep[T] = x match {
+    def apply[T](x: Ref[T]): Ref[T] = x match {
       case Def(call: MethodCall) =>
         call.tryInvoke match {
           case InvokeSuccess(res) =>
-            res.asInstanceOf[Rep[T]]
+            res.asInstanceOf[Ref[T]]
           case InvokeFailure(e) =>
             if (e.isInstanceOf[DelayInvokeException])
               x
@@ -126,16 +126,16 @@ trait Transforming { self: Scalan =>
   }
 
   abstract class Rewriter { self =>
-    def apply[T](x: Rep[T]): Rep[T]
+    def apply[T](x: Ref[T]): Ref[T]
 
     def orElse(other: Rewriter): Rewriter = new Rewriter {
-      def apply[T](x: Rep[T]) = {
+      def apply[T](x: Ref[T]) = {
         val y = self(x)
         (x == y) match { case true => other(x) case _ => y }
       }
     }
     def andThen(other: Rewriter): Rewriter = new Rewriter {
-      def apply[T](x: Rep[T]) = {
+      def apply[T](x: Ref[T]) = {
         val y = self(x)
         val res = other(y)
         res
@@ -147,26 +147,26 @@ trait Transforming { self: Scalan =>
   }
 
   val NoRewriting: Rewriter = new Rewriter {
-    def apply[T](x: Rep[T]) = x
+    def apply[T](x: Ref[T]) = x
   }
 
   abstract class Mirror[Ctx <: Transformer : TransformerOps] {
-    def apply[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): (Ctx, Sym) = (t, d.mirror(t))
+    def apply[A](t: Ctx, rewriter: Rewriter, node: Ref[A], d: Def[A]): (Ctx, Sym) = (t, d.mirror(t))
 
     protected def mirrorElem(node: Sym): Elem[_] = node.elem
 
     // every mirrorXXX method should return a pair (t + (v -> v1), v1)
-    protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Rep[A]): Ctx = {
+    protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Ref[A]): Ctx = {
       val newVar = variable(Lazy(mirrorElem(v)))
       t + (v -> newVar)
     }
 
-    protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Rep[A], d: Def[A]): Ctx = {
+    protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Ref[A], d: Def[A]): Ctx = {
       val (t1, res) = apply(t, rewriter, node, d)
       t1 + ((node, res))
     }
 
-    protected def getMirroredLambdaSym[A, B](node: Rep[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
+    protected def getMirroredLambdaSym[A, B](node: Ref[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
 
     // require: should be called after oldlam.schedule is mirrored
     private def getMirroredLambdaDef(t: Ctx, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
@@ -175,7 +175,7 @@ trait Transforming { self: Scalan =>
       newLambdaDef
     }
 
-    protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Rep[A => B], lam: Lambda[A, B]): Ctx = {
+    protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Ref[A => B], lam: Lambda[A, B]): Ctx = {
       var tRes: Ctx = t
       val t1 = mirrorNode(t, rewriter, lam, lam.x)
 
@@ -214,7 +214,7 @@ trait Transforming { self: Scalan =>
       tRes + (node -> resLam)
     }
 
-    protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Rep[Thunk[A]], thunk: ThunkDef[A]): Ctx = {
+    protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Ref[Thunk[A]], thunk: ThunkDef[A]): Ctx = {
       var scheduleIdsPH: ScheduleIds = null
       val newRootPH = placeholder(Lazy(node.elem.eItem))
       val newThunk = new ThunkDef(newRootPH, { assert(scheduleIdsPH != null); scheduleIdsPH })
@@ -245,9 +245,9 @@ trait Transforming { self: Scalan =>
           case v: Variable[_] =>
             mirrorVar(t, rewriter, node)
           case lam: Lambda[a, b] =>
-            mirrorLambda(t, rewriter, node.asInstanceOf[Rep[a => b]], lam)
+            mirrorLambda(t, rewriter, node.asInstanceOf[Ref[a => b]], lam)
           case th: ThunkDef[a] =>
-            mirrorThunk(t, rewriter, node.asInstanceOf[Rep[Thunk[a]]], th)
+            mirrorThunk(t, rewriter, node.asInstanceOf[Ref[Thunk[a]]], th)
           case d =>
             mirrorDef(t, rewriter, node, d)
         }

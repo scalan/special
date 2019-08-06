@@ -8,7 +8,7 @@ class SumTests extends BaseCtxTestsEx {
 
   test("IsSumMapLambda") {
     val ctx = new TestContextEx with SegmentsModule {
-      lazy val t1 = fun { x: Rep[Int|Unit] => x.mapSum(l => l + 1, r => r) }
+      lazy val t1 = fun { x: Ref[Int|Unit] => x.mapSum(l => l + 1, r => r) }
     }
     import ctx._
     t1 should matchPattern { case Def(IsSumMapLambda(_)) => }
@@ -16,11 +16,11 @@ class SumTests extends BaseCtxTestsEx {
 
   test("constant propagation from If to SumFold") {
     val ctx = new TestContext("fromIfToSumFold") with SegmentsModule {
-      lazy val t1 = fun { x: Rep[Int] =>
+      lazy val t1 = fun { x: Ref[Int] =>
         val s = IF (x > 0) THEN { (x + 1).asLeft[Int] } ELSE { (x + 2).asRight[Int] }
         s.fold(l => l + 1, r => r - 2)
       }
-      lazy val t2 = fun { x: Rep[Int] =>
+      lazy val t2 = fun { x: Ref[Int] =>
         val s = IF (x > 0) THEN { (x + 1).asRight[Int] } ELSE { (x + 2).asLeft[Int] }
         s.fold(l => l + 1, r => r - 2)
       }
@@ -32,7 +32,7 @@ class SumTests extends BaseCtxTestsEx {
 
   test("SumMap(Right(x)) rewriting") {
     val ctx = new TestContextEx("SumMapRightRewriting") {
-      lazy val t1 = fun { x: Rep[Int] =>
+      lazy val t1 = fun { x: Ref[Int] =>
         x.asRight[Int].mapSum(_ + 1, _ - 1)
       }
     }
@@ -44,7 +44,7 @@ class SumTests extends BaseCtxTestsEx {
 
   test("SumMap(Left(x)) rewriting") {
     val ctx = new TestContextEx("SumMapLeftRewriting") {
-      lazy val t1 = fun { x: Rep[Int] =>
+      lazy val t1 = fun { x: Ref[Int] =>
         x.asLeft[Int].mapSum(_ + 1, _ - 1)
       }
     }
@@ -56,8 +56,8 @@ class SumTests extends BaseCtxTestsEx {
 
   test("isLeft and isRight work") {
     val ctx = new TestContextEx() {
-      lazy val isLeftFun = fun { x: Rep[Int | Double] => x.isLeft }
-      lazy val isRightFun = fun { x: Rep[Int | Double] => x.isRight }
+      lazy val isLeftFun = fun { x: Ref[Int | Double] => x.isLeft }
+      lazy val isRightFun = fun { x: Ref[Int | Double] => x.isRight }
 
       lazy val shouldBeTrue = toRep(10).asLeft[Double].isLeft
     }

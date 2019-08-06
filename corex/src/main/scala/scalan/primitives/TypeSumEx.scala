@@ -6,7 +6,7 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
   import IsoUR._
   import Converter._
 
-  override def toRep[A](x: A)(implicit eA: Elem[A]):Rep[A] = eA match {
+  override def toRep[A](x: A)(implicit eA: Elem[A]):Ref[A] = eA match {
     case se: SumElem[a, b] =>
       val x1 = x.asInstanceOf[a | b]
       implicit val eA = se.eLeft
@@ -17,21 +17,21 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
   }
 
   object IsLeft {
-    def unapply(b: Def[_]): Option[Rep[_ | _]] = b match {
+    def unapply(b: Def[_]): Option[Ref[_ | _]] = b match {
       case SumFold(sum, Def(VeryConstantLambda(true)), Def(VeryConstantLambda(false))) => Some(sum)
       case _ => None
     }
   }
 
   object IsRight {
-    def unapply(b: Def[_]): Option[Rep[_ | _]] = b match {
+    def unapply(b: Def[_]): Option[Ref[_ | _]] = b match {
       case SumFold(sum, Def(VeryConstantLambda(false)), Def(VeryConstantLambda(true))) => Some(sum)
       case _ => None
     }
   }
 
   object IsJoinSum {
-    def unapply[T](d: Def[T]): Option[Rep[Source] forSome {type Source}] = d match {
+    def unapply[T](d: Def[T]): Option[Ref[Source] forSome {type Source}] = d match {
       case SumFold(source, Def(IdentityLambda()), Def(IdentityLambda())) => Some(source)
       case _ => None
     }
@@ -44,30 +44,30 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
     }
   }
 
-  def liftFromSumFold[T1, T2, A, B](sum: Rep[T1 | T2], left: Rep[T1 => B], right: Rep[T2 => B],
-                                    iso: Iso[A, B]): Rep[B] = {
+  def liftFromSumFold[T1, T2, A, B](sum: Ref[T1 | T2], left: Ref[T1 => B], right: Ref[T2 => B],
+                                    iso: Iso[A, B]): Ref[B] = {
     implicit val eA = iso.eFrom
     val res = sum.foldBy(iso.fromFun << left, iso.fromFun << right)
     iso.to(res)
   }
 
-  def liftFromSumFold[T1, T2, A, B, C, D](sum: Rep[T1 | T2], left: Rep[T1 => C], right: Rep[T2 => D],
+  def liftFromSumFold[T1, T2, A, B, C, D](sum: Ref[T1 | T2], left: Ref[T1 => C], right: Ref[T2 => D],
                                           iso1: Iso[A, C], iso2: Iso[B, D],
-                                          toD: Conv[C, D], toC: Conv[D, C]): Rep[C] = {
+                                          toD: Conv[C, D], toC: Conv[D, C]): Ref[C] = {
     implicit val eA = iso1.eFrom
     val res = sum.foldBy(iso1.fromFun << left, iso1.fromFun << toC.convFun << right)
     iso1.to(res)
   }
 
-  case class HasArg(predicate: Rep[_] => Boolean) {
+  case class HasArg(predicate: Ref[_] => Boolean) {
     def unapply[T](d: Def[T]): Option[Def[T]] = {
       val args = d.deps
       if (args.exists(predicate)) Some(d) else None
     }
   }
 
-  case class FindArg(predicate: Rep[_] => Boolean) {
-    def unapply[T](d: Def[T]): Option[Rep[_]] = {
+  case class FindArg(predicate: Ref[_] => Boolean) {
+    def unapply[T](d: Def[T]): Option[Ref[_]] = {
       val args = d.deps
       for { a <- args.find(predicate) } yield a
     }
@@ -121,16 +121,16 @@ trait TypeSumEx extends BaseEx { self: ScalanEx =>
         val source = asRep[(a | b) | (a | b)](sum)
         implicit val eRes: Elem[a | b] = source.elem.eLeft
         implicit val eT = foldD.left.elem.eRange
-        val f1 = fun { x: Rep[a | b] => x.foldBy(foldD.left, foldD.right) }
+        val f1 = fun { x: Ref[a | b] => x.foldBy(foldD.left, foldD.right) }
         source.foldBy(f1, f1)
 
       // Rule: fold(Left(left), l, r) ==> l(left)
-      case Def(SLeft(left: Rep[a], _)) =>
+      case Def(SLeft(left: Ref[a], _)) =>
         implicit val eLeft = left.elem
         foldD.left(left)
 
       // Rule: fold(Right(right), l, r) ==> r(right)
-      case Def(SRight(right: Rep[a], _)) =>
+      case Def(SRight(right: Ref[a], _)) =>
         implicit val eRight = right.elem
         foldD.right(right)
 

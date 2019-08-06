@@ -18,10 +18,10 @@ import scala.collection.mutable.ArrayBuffer
 
 trait Proxy extends Base with GraphVizExport { self: Scalan =>
 
-  def getStagedFunc(name: String): Rep[_] = {
+  def getStagedFunc(name: String): Ref[_] = {
     val clazz = this.getClass
     val f = clazz.getDeclaredMethod(name)
-    f.invoke(this).asInstanceOf[Rep[_]]
+    f.invoke(this).asInstanceOf[Ref[_]]
   }
 
   def delayInvoke = throw new DelayInvokeException
@@ -30,7 +30,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   case class MethodCall private[Proxy](receiver: Sym, method: Method, args: Seq[AnyRef], neverInvoke: Boolean)
                                       (val resultType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
 
-    override def mirror(t: Transformer): Rep[Any] = {
+    override def mirror(t: Transformer): Ref[Any] = {
       val len = args.length
       val args1 = new Array[AnyRef](len)
       cfor(0)(_ < len, _ + 1) { i =>
@@ -38,7 +38,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
       }
       val receiver1 = t(receiver)
       // in the case neverInvoke is false, the method is invoked in rewriteDef
-      mkMethodCall(receiver1, method, args1, neverInvoke, isAdapterCall, resultType).asInstanceOf[Rep[Any]]
+      mkMethodCall(receiver1, method, args1, neverInvoke, isAdapterCall, resultType).asInstanceOf[Ref[Any]]
     }
 
     override def toString = {
@@ -146,13 +146,13 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
     * However, in this method, `mc` can be examined by a second set of RW rules
     * (kind of lower priority rules). These rules kind of context dependent, because at this
     * point we know that the first RW set didn't triggered any rewrite. */
-  def rewriteNonInvokableMethodCall(mc: MethodCall): Rep[_] = null
+  def rewriteNonInvokableMethodCall(mc: MethodCall): Ref[_] = null
 
-  def newObjEx[A](args: Any*)(implicit eA: Elem[A]): Rep[A] = {
+  def newObjEx[A](args: Any*)(implicit eA: Elem[A]): Ref[A] = {
     reifyObject(NewObject[A](eA, args, true))
   }
 
-  def proxyOps[Ops <: AnyRef](x: Rep[Ops])(implicit ct: ClassTag[Ops]): Ops = {
+  def proxyOps[Ops <: AnyRef](x: Ref[Ops])(implicit ct: ClassTag[Ops]): Ops = {
     val d = x.rhs
     if (d.isInstanceOf[Const[_]])
       d.asInstanceOf[Const[Ops]@unchecked].x
@@ -166,7 +166,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   private lazy val proxyCache = AVHashMap[ClassTag[_], CachedProxyClass](100)
   private lazy val objenesis = new ObjenesisStd
 
-  private def getProxy[Ops](x: Rep[Ops], ct: ClassTag[Ops]): Ops = {
+  private def getProxy[Ops](x: Ref[Ops], ct: ClassTag[Ops]): Ops = {
     val cachedOpt = proxyCache.get(ct)
     val entry = if (cachedOpt.isEmpty) {
       val clazz = ct.runtimeClass
@@ -262,7 +262,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
       // If method arguments include Scala functions, the method can't be staged directly.
       // In most cases it just stages the functions and calls a method which _can_ be staged.
       hasFuncArg(args) || {
-        // Methods can only be staged if they return Rep[_]. For such methods
+        // Methods can only be staged if they return Ref[_]. For such methods
         // the JVM return type is Object if the method is defined in abstract context
         // and Exp if defined in staged context.
         // If neither holds, the method again should be invoked immediately.
@@ -315,11 +315,11 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
 
   sealed trait InvokeResult
 
-  case class InvokeSuccess(result: Rep[_]) extends InvokeResult
+  case class InvokeSuccess(result: Ref[_]) extends InvokeResult
   case class InvokeFailure(exception: Throwable) extends InvokeResult
   case object InvokeImpossible extends InvokeResult
 
-  class ExpInvocationHandler[T](receiver: Rep[T]) extends InvocationHandler {
+  class ExpInvocationHandler[T](receiver: Ref[T]) extends InvocationHandler {
     override def toString = s"ExpInvocationHandler(${receiver.toStringWithDefinition})"
 
     def invoke(proxy: AnyRef, m: Method, _args: Array[AnyRef]) = {

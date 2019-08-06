@@ -202,7 +202,7 @@ class MetaCodegen {
           }
         }.orElse {
           m.tpeRes.filter(!_.isRep(module, config.isVirtualized)).map {
-            returnTpe => s"Method's return type $returnTpe is not a Rep"
+            returnTpe => s"Method's return type $returnTpe is not a Ref"
           }
         }
 //        .orElse {
@@ -228,19 +228,19 @@ class MetaCodegen {
             }
             val typeVars = (e.tpeArgs ++ m.tpeArgs).map(_.declaration).toSet
             val returnType = {
-              val receiverType = s"Rep[${e.name + e.tpeArgs.asTypeParams(_.name)}]"
+              val receiverType = s"Ref[${e.name + e.tpeArgs.asTypeParams(_.name)}]"
               val argTypes = methodArgs.map { arg =>
                 arg.tpe match {
                   case RepeatedArgType(t) =>
                     if (config.isVirtualized)
                       s"Seq[$t]"
                     else
-                      s"Seq[Rep[$t]]"
+                      s"Seq[Ref[$t]]"
                   case _ =>
                     if (config.isVirtualized || arg.isTypeDesc)
                       arg.tpe.toString
                     else
-                      s"Rep[${arg.tpe}]"
+                      s"Ref[${arg.tpe}]"
                 }
               }
               val receiverAndArgTypes = ((if (isCompanion) Nil else List(receiverType)) ++ argTypes) match {
@@ -388,7 +388,7 @@ class MetaCodegen {
     val implicitArgsOrParens = if (implicitArgs.nonEmpty) implicitArgsUse else "()"
     val firstAncestorType = entity.firstAncestorType
 
-    def entityRepSynonym = STpeDef(unit.unitSym, "Rep" + name, tpeArgs, STraitCall("Rep", List(STraitCall(name, tpeArgs.map(_.toTraitCall)))))
+    def entityRepSynonym = STpeDef(unit.unitSym, "Ref" + name, tpeArgs, STraitCall("Ref", List(STraitCall(name, tpeArgs.map(_.toTraitCall)))))
 
     def isCont = tpeArgs.length == 1 && entity.hasAnnotation(ContainerTypeAnnotation)
     def isFunctor = tpeArgs.length == 1 && entity.hasAnnotation(FunctorTypeAnnotation)

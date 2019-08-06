@@ -22,21 +22,21 @@ trait Library extends Scalan
   import CostedFunc._;
   import WSpecialPredef._
 
-  type RSize[Val] = Rep[Size[Val]]
-  type RCosted[A] = Rep[Costed[A]]
-  type LazyRep[T] = MutableLazy[Rep[T]]
+  type RSize[Val] = Ref[Size[Val]]
+  type RCosted[A] = Ref[Costed[A]]
+  type LazyRep[T] = MutableLazy[Ref[T]]
 
   private val _liftElemMemo = new MemoizedFunc({
     case eT: Elem[t] =>
       val lT = Liftables.asLiftable[Any, t](eT.liftable)
       liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
   })
-  implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
-    _liftElemMemo(eT).asInstanceOf[Rep[WRType[T]]]  // asRep cannot be used for AnyRef
+  implicit def liftElem[T](eT: Elem[T]): Ref[WRType[T]] = {
+    _liftElemMemo(eT).asInstanceOf[Ref[WRType[T]]]  // asRep cannot be used for AnyRef
   }
 
   private val _specialPredef: LazyRep[WSpecialPredefCompanionCtor] = MutableLazy(RWSpecialPredef)
-  def specialPredef: Rep[WSpecialPredefCompanionCtor] = _specialPredef.value
+  def specialPredef: Ref[WSpecialPredefCompanionCtor] = _specialPredef.value
 
   override protected def onReset(): Unit = {
     _specialPredef.reset()
@@ -59,10 +59,10 @@ trait Library extends Scalan
   private val WOptionM = WOptionMethods
   private val SPCM = WSpecialPredefCompanionMethods
 
-  def colBuilder: Rep[CollBuilder]
-  def costedBuilder: Rep[CostedBuilder]
-  def intPlusMonoid: Rep[Monoid[Int]]
-  def longPlusMonoid: Rep[Monoid[Long]]
+  def colBuilder: Ref[CollBuilder]
+  def costedBuilder: Ref[CostedBuilder]
+  def intPlusMonoid: Ref[Monoid[Int]]
+  def longPlusMonoid: Ref[Monoid[Long]]
 
   val intPlusMonoidValue = new special.collection.MonoidBuilderInst().intPlusMonoid
   val longPlusMonoidValue = new special.collection.MonoidBuilderInst().longPlusMonoid
@@ -92,7 +92,7 @@ trait Library extends Scalan
       case IdentityLambda() => xs
       case _ => xs.rhs match {
         // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
-        case CBM.replicate(b, l, v: Rep[a]) =>
+        case CBM.replicate(b, l, v: Ref[a]) =>
           val f = asRep[a => Any](_f)
           b.replicate(l, Apply(f, v, false))
         case _ => super.rewriteDef(d)
@@ -103,14 +103,14 @@ trait Library extends Scalan
       case _: IntPlusMonoid => xs.rhs match {
         case CollConst(coll, lA) if lA.eW == IntElement =>
           coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
-        case CBM.replicate(_, n, x: Rep[Int] @unchecked) =>
+        case CBM.replicate(_, n, x: Ref[Int] @unchecked) =>
           x * n
         case _ => super.rewriteDef(d)
       }
       case _: LongPlusMonoid => xs.rhs match {
         case CollConst(coll, lA) if lA.eW == LongElement =>
           coll.asInstanceOf[SColl[Long]].sum(longPlusMonoidValue)
-        case CBM.replicate(_, n, x: Rep[Long] @unchecked) =>
+        case CBM.replicate(_, n, x: Ref[Long] @unchecked) =>
           x * n.toLong
         case _ => super.rewriteDef(d)
       }
@@ -142,14 +142,14 @@ trait Library extends Scalan
       super.invokeUnlifted(e, mc, dataEnv)
   }
 
-//  implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
-//    def applyCosted(x: Rep[Costed[A]]): Rep[Costed[B]] = {
+//  implicit class CostedFuncOps[A,B](fC: Ref[Costed[A => B]]) {
+//    def applyCosted(x: Ref[Costed[A]]): Ref[Costed[B]] = {
 //      val fC_elem = fC.elem.asInstanceOf[CostedElem[A => B,_]].eVal
 //      implicit val eA = fC_elem.eDom
 //      implicit val eB = fC_elem.eRange
 //      val res = tryConvert(
 //            element[CostedFunc[Unit,A,B]], element[Costed[B]], fC,
-//            fun { f: Rep[CostedFunc[Unit,A,B]] => f.func(x) })
+//            fun { f: Ref[CostedFunc[Unit,A,B]] => f.func(x) })
 //      res
 //    }
 //  }

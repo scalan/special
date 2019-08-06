@@ -9,25 +9,25 @@ import scalan.util.Covariant
 
 trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
-  type Th[+T] = Rep[Thunk[T]]
+  type Th[+T] = Ref[Thunk[T]]
   trait Thunk[+A] { def value: A }
   class ThunkCompanion {
-    def apply[T](block: => Rep[T]) = thunk_create(block)
-    def forced[T](block: => Rep[T]) = thunk_create(block).force
+    def apply[T](block: => Ref[T]) = thunk_create(block)
+    def forced[T](block: => Ref[T]) = thunk_create(block).force
   }
   val Thunk: ThunkCompanion = new ThunkCompanion
 
   implicit class RepThunkOps[T](t: Th[T]) {
     def force() = thunk_force(t)
-    def map[R](f: Rep[T => R]): Th[R] = thunk_map(t, f)
-    def map[R](f: Rep[T] => Rep[R]): Th[R] = thunk_map1(t, f)
+    def map[R](f: Ref[T => R]): Th[R] = thunk_map(t, f)
+    def map[R](f: Ref[T] => Ref[R]): Th[R] = thunk_map1(t, f)
   }
 
   implicit val thunkCont: Cont[Thunk] = new Cont[Thunk] {
     def tag[T](implicit tT: WeakTypeTag[T]) = weakTypeTag[Thunk[T]]
     def lift[T](implicit eT: Elem[T]) = element[Thunk[T]]
     def unlift[T](implicit eFT: Elem[Thunk[T]]) = eFT.eItem
-    def getElem[T](fa: Rep[Thunk[T]]) = !!!("Operation is not supported by Thunk container " + fa)
+    def getElem[T](fa: Ref[Thunk[T]]) = !!!("Operation is not supported by Thunk container " + fa)
     def unapply[T](e: Elem[_]) = e match {
       case e: ThunkElem[_] => Some(e.asElem[Thunk[T]])
       case _ => None
@@ -51,8 +51,8 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       implicit val tST = lT.sourceType
       RType[SThunk[ST]]
     }
-    def lift(x: SThunk[ST]): Rep[Thunk[T]] = ThunkConst(x, lT)
-    def unlift(w: Rep[Thunk[T]]): SThunk[ST] = w match {
+    def lift(x: SThunk[ST]): Ref[Thunk[T]] = ThunkConst(x, lT)
+    def unlift(w: Ref[Thunk[T]]): SThunk[ST] = w match {
       case Def(ThunkConst(x: SThunk[_], l)) if l == lT => x.asInstanceOf[SThunk[ST]]
       case _ => unliftError(w)
     }
@@ -72,7 +72,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     cachedElemByClass(eItem)(classOf[ThunkElem[T]])
   implicit def extendThunkElement[T](elem: Elem[Thunk[T]]): ThunkElem[T] = elem.asInstanceOf[ThunkElem[T]]
 
-  class ThunkDef[A](val root: Rep[A], _scheduleIds: =>ScheduleIds)
+  class ThunkDef[A](val root: Ref[A], _scheduleIds: =>ScheduleIds)
     extends Def[Thunk[A]] with AstGraph with Product {
 
     implicit def eA: Elem[A] = root.elem
@@ -118,17 +118,17 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     override lazy val rootIds: DBuffer[Int] = super.rootIds
   }
   object ThunkDef {
-    def unapply(d: ThunkDef[_]): Option[(Rep[T], Schedule) forSome {type T}] = d match {
+    def unapply(d: ThunkDef[_]): Option[(Ref[T], Schedule) forSome {type T}] = d match {
       case th: ThunkDef[_] => Some((th.root, th.schedule))
       case _ => None
     }
   }
 
-  case class ThunkView[A, B](source: Rep[Thunk[A]])(innerIso: Iso[A, B])
+  case class ThunkView[A, B](source: Ref[Thunk[A]])(innerIso: Iso[A, B])
     extends View1[A, B, Thunk](thunkIso(innerIso)) {
   }
 
-  class ThunkScope(val parent: ThunkScope, val thunkSym: Rep[Any]) {
+  class ThunkScope(val parent: ThunkScope, val thunkSym: Ref[Any]) {
     private val bodyIds: DSet[Int] = DSet.ofSize(16)
     private val bodyDefs: AVHashMap[Def[_], Def[_]] = AVHashMap(32)
 
@@ -140,7 +140,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       bodyDefs.put(d, d)
     }
 
-    def scheduleForResult(root: Rep[Any]): DBuffer[Int] = {
+    def scheduleForResult(root: Ref[Any]): DBuffer[Int] = {
       val sch = buildScheduleForResult(
         DBuffer(root.rhs.nodeId),
         { id =>
@@ -158,9 +158,9 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       sch
     }
 
-    def findDef[T](d: Def[T]): Rep[T] = {
+    def findDef[T](d: Def[T]): Ref[T] = {
       val existingOpt = bodyDefs.get(d)
-      if (existingOpt.isDefined) return existingOpt.get.self.asInstanceOf[Rep[T]]
+      if (existingOpt.isDefined) return existingOpt.get.self.asInstanceOf[Ref[T]]
       if (parent == null)
         findGlobalDefinition(d)
       else
@@ -177,7 +177,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
       stack = stack.tail
       res
     }
-    def beginScope(thunkSym: Rep[Any]): ThunkScope = {
+    def beginScope(thunkSym: Ref[Any]): ThunkScope = {
       val parent = if (stack.isEmpty) null else stack.head
       val scope = new ThunkScope(parent, thunkSym)
       this.push(scope)
@@ -192,11 +192,11 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     case _ => globalThunkSym
   }
 
-  implicit def repToThunk[A](block: Rep[A]): Rep[Thunk[A]] = thunk_create(block)
+  implicit def repToThunk[A](block: Ref[A]): Ref[Thunk[A]] = thunk_create(block)
 
-  def thunk_create[A](block: => Rep[A]): Rep[Thunk[A]] = {
+  def thunk_create[A](block: => Ref[A]): Ref[Thunk[A]] = {
     var scheduleIds: ScheduleIds = null
-    val resPH = placeholder(Lazy(AnyElement)).asInstanceOf[Rep[A]] // will be known after block is evaluated
+    val resPH = placeholder(Lazy(AnyElement)).asInstanceOf[Ref[A]] // will be known after block is evaluated
     val newThunk = new ThunkDef(resPH, { assert(scheduleIds != null); scheduleIds })
     val newThunkSym = newThunk.self
 
@@ -215,12 +215,12 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     toExp(newThunk, newThunkSym)
   }
 
-  def thunk_map[A, B](t: Th[A], f: Rep[A => B]): Th[B] = {
+  def thunk_map[A, B](t: Th[A], f: Ref[A => B]): Th[B] = {
     Thunk {
       f(thunk_force(t))
     }
   }
-  def thunk_map1[A, B](t: Th[A], f: Rep[A] => Rep[B]): Th[B] = {
+  def thunk_map1[A, B](t: Th[A], f: Ref[A] => Ref[B]): Th[B] = {
     Thunk {
       f(thunk_force(t))
     }
@@ -228,17 +228,17 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
   var isInlineThunksOnForce = false
 
-  def forceThunkByMirror[A](thunk: Th[A], subst: MapTransformer = MapTransformer.Empty): Rep[A] = {
+  def forceThunkByMirror[A](thunk: Th[A], subst: MapTransformer = MapTransformer.Empty): Ref[A] = {
     val Def(th: ThunkDef[A]) = thunk
     forceThunkDefByMirror(th, subst)
   }
-  def forceThunkDefByMirror[A](th: ThunkDef[A], subst: MapTransformer = MapTransformer.Empty): Rep[A] = {
+  def forceThunkDefByMirror[A](th: ThunkDef[A], subst: MapTransformer = MapTransformer.Empty): Ref[A] = {
     val body = th.scheduleIds
     val t = DefaultMirror.mirrorSymbols(subst, NoRewriting, th, body)
-    t(th.root).asInstanceOf[Rep[A]]
+    t(th.root).asInstanceOf[Ref[A]]
   }
 
-  def thunk_force[A](t: Th[A]): Rep[A] =
+  def thunk_force[A](t: Th[A]): Ref[A] =
     if (isInlineThunksOnForce)
       t match {
         case Def(th@ThunkDef(_, _)) =>
@@ -248,7 +248,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     else
       ThunkForce(t)
 
-  case class ThunkForce[A](thunk: Rep[Thunk[A]]) extends Def[A] {
+  case class ThunkForce[A](thunk: Ref[Thunk[A]]) extends Def[A] {
     implicit def resultType = thunk.elem.eItem
     override def transform(t: Transformer) = ThunkForce(t(thunk))
   }

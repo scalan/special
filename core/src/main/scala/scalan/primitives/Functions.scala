@@ -12,10 +12,10 @@ import spire.syntax.all.cfor
 
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
-  implicit class LambdaOps[A,B](f: Rep[A => B]) {
-    def apply(x: Rep[A]): Rep[B] = mkApply(f, x)
-    def >>[C](g: Rep[B => C]) = compose(g, f)
-    def <<[C](g: Rep[C => A]) = compose(f, g)
+  implicit class LambdaOps[A,B](f: Ref[A => B]) {
+    def apply(x: Ref[A]): Ref[B] = mkApply(f, x)
+    def >>[C](g: Ref[B => C]) = compose(g, f)
+    def <<[C](g: Ref[C => A]) = compose(f, g)
   }
 
   /** Global lambda equality mode used by default. It is used in `fun` and `fun2` lambda builders.
@@ -24,7 +24,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   var useAlphaEquality: Boolean = true
 
   /** Global flag governing lambda reification in `fun` and `mkLambda`.
-    * If this flag is `true` then original `f: Rep[A] => Rep[B]` function is stored in Lambda node.
+    * If this flag is `true` then original `f: Ref[A] => Ref[B]` function is stored in Lambda node.
     * As a consequence if `f` is not stored, then `unfoldLambda` is done by `mirrorLambda`. */
   var keepOriginalFunc: Boolean = true
 
@@ -32,23 +32,23 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     * If this flag is `false` then this function cannot be used even if it is present in the node. */
   var unfoldWithOriginalFunc: Boolean = true
 
-  implicit def fun[A,B](f: Rep[A] => Rep[B])(implicit eA: LElem[A]): Rep[A => B] = mkLambda(f, true, useAlphaEquality, keepOriginalFunc)
-  implicit def fun2[A,B,C](f: (Rep[A], Rep[B])=>Rep[C])(implicit eA: LElem[A], eB: LElem[B]): Rep[((A,B))=>C] = mkLambda(f)
-  def funGlob[A,B](f: Rep[A] => Rep[B])(implicit eA: LElem[A]): Rep[A => B] = mkLambda(f, false, true, keepOriginalFunc)
+  implicit def fun[A,B](f: Ref[A] => Ref[B])(implicit eA: LElem[A]): Ref[A => B] = mkLambda(f, true, useAlphaEquality, keepOriginalFunc)
+  implicit def fun2[A,B,C](f: (Ref[A], Ref[B])=>Ref[C])(implicit eA: LElem[A], eB: LElem[B]): Ref[((A,B))=>C] = mkLambda(f)
+  def funGlob[A,B](f: Ref[A] => Ref[B])(implicit eA: LElem[A]): Ref[A => B] = mkLambda(f, false, true, keepOriginalFunc)
 
   // more convenient to call with explicit eA
-  def typedfun[A, B](eA: Elem[A])(f: Rep[A] => Rep[B]): Rep[A => B] =
+  def typedfun[A, B](eA: Elem[A])(f: Ref[A] => Ref[B]): Ref[A => B] =
     fun(f)(Lazy(eA))
 
   // see BooleanFunctionOps for example usage
-  def sameArgFun[A, B, C](sample: Rep[A => C])(f: Rep[A] => Rep[B]): Rep[A => B] =
+  def sameArgFun[A, B, C](sample: Ref[A => C])(f: Ref[A] => Ref[B]): Ref[A => B] =
     typedfun(sample.elem.eDom)(f)
 
-  def composeBi[A, B, C, D](f: Rep[A => B], g: Rep[A => C])(h: (Rep[B], Rep[C]) => Rep[D]): Rep[A => D] = {
+  def composeBi[A, B, C, D](f: Ref[A => B], g: Ref[A => C])(h: (Ref[B], Ref[C]) => Ref[D]): Ref[A => D] = {
     sameArgFun(f) { x => h(f(x), g(x)) }
   }
 
-  class Lambda[A, B](val f: Nullable[Rep[A] => Rep[B]], val x: Rep[A], val y: Rep[B], val mayInline: Boolean, val alphaEquality: Boolean = true)
+  class Lambda[A, B](val f: Nullable[Ref[A] => Ref[B]], val x: Ref[A], val y: Ref[B], val mayInline: Boolean, val alphaEquality: Boolean = true)
     extends Def[A => B] with AstGraph with Product { thisLambda =>
     def eA = x.elem
     def eB = y.elem
@@ -145,7 +145,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     }
   }
 
-  type LambdaData[A,B] = (Lambda[A,B], Nullable[Rep[A] => Rep[B]], Rep[A], Rep[B])
+  type LambdaData[A,B] = (Lambda[A,B], Nullable[Ref[A] => Ref[B]], Ref[A], Ref[B])
   object Lambda {
     def unapply[A,B](lam: Lambda[A, B]): Nullable[LambdaData[A,B]] = {
       val res: LambdaData[A,B] =
@@ -164,7 +164,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   object ConstantLambda {
     // if lam.y depends on lam.x indirectly, lam.schedule must contain the dependency path
     // and its length will be > 1
-    def unapply[A,B](lam: Lambda[A, B]): Option[Rep[B]] =
+    def unapply[A,B](lam: Lambda[A, B]): Option[Ref[B]] =
       if (lam.schedule.length <= 1 && !lam.y.rhs.deps.contains(lam.x) && lam.y != lam.x)
         Some(lam.y)
       else
@@ -187,22 +187,22 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     def unapply[A,B](lam: Lambda[A, B]): Boolean = lam.isIdentity
   }
 
-  case class Apply[A,B](f: Rep[A => B], arg: Rep[A], mayInline: Boolean = true) extends Def[B] {
+  case class Apply[A,B](f: Ref[A => B], arg: Ref[A], mayInline: Boolean = true) extends Def[B] {
     def resultType = f.elem.eRange
     override def transform(t: Transformer) = Apply(t(f), t(arg), mayInline)
   }
 
-  implicit class FuncExtensions[A, B](f: Rep[A=>B]) {
+  implicit class FuncExtensions[A, B](f: Ref[A=>B]) {
     implicit def eA = f.elem.eDom
     def getLambda: Lambda[A,B] = f match {
       case Def(lam: Lambda[_,_]) => lam.asInstanceOf[Lambda[A,B]]
       case _ => !!!(s"Expected symbol of Lambda node but was $f", f)
     }
 
-    def zip[C](g: Rep[A=>C]): Rep[A=>(B,C)] = {
+    def zip[C](g: Ref[A=>C]): Ref[A=>(B,C)] = {
       implicit val eB = f.elem.eRange
       implicit val eC = g.elem.eRange
-      fun { (x: Rep[A]) => Pair(f(x), g(x)) }
+      fun { (x: Ref[A]) => Pair(f(x), g(x)) }
     }
   }
 
@@ -286,7 +286,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
   //=====================================================================================
   //   Function application
 
-  def mkApply[A,B](f: Rep[A => B], x: Rep[A]): Rep[B] = {
+  def mkApply[A,B](f: Ref[A => B], x: Ref[A]): Ref[B] = {
     val d = f.rhs
     if (d.isInstanceOf[Lambda[_, _]]) {
       val lam = d.asInstanceOf[Lambda[A, B]]
@@ -297,48 +297,48 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     Apply(f, x, mayInline = false)
   }
 
-  def unfoldLambda[A,B](lam: Lambda[A,B], x: Rep[A]): Rep[B] = {
+  def unfoldLambda[A,B](lam: Lambda[A,B], x: Ref[A]): Ref[B] = {
     lam.f match {
       case Nullable(g) if unfoldWithOriginalFunc => g(x) // unfold initial non-recursive function
       case _ => mirrorApply(lam, x)  // f is mirrored, unfold it by mirroring
     }
   }
 
-  def unfoldLambda[A,B](f: Rep[A=>B], x: Rep[A]): Rep[B] = {
+  def unfoldLambda[A,B](f: Ref[A=>B], x: Ref[A]): Ref[B] = {
     val lam = f.getLambda
     unfoldLambda(lam, x)
   }
 
-  def mirrorApply[A,B](lam: Lambda[A, B], s: Rep[A]): Rep[B] = {
+  def mirrorApply[A,B](lam: Lambda[A, B], s: Ref[A]): Ref[B] = {
     val body = lam.scheduleIds
     val t = DefaultMirror.mirrorSymbols(new MapTransformer(lam.x -> s), NoRewriting, lam, body)
-    t(lam.y).asInstanceOf[Rep[B]]
+    t(lam.y).asInstanceOf[Ref[B]]
   }
 
   //=====================================================================================
   //   Function reification
 
-  def mkLambda[A,B](f: Rep[A] => Rep[B],
+  def mkLambda[A,B](f: Ref[A] => Ref[B],
                     mayInline: Boolean,
                     alphaEquality: Boolean,
-                    keepOriginalFunc: Boolean)(implicit eA: LElem[A]): Rep[A=>B] = {
+                    keepOriginalFunc: Boolean)(implicit eA: LElem[A]): Ref[A=>B] = {
     val x = variable[A]
     lambda(x)(f, mayInline, alphaEquality, keepOriginalFunc)
   }
 
-  def mkLambda[A,B,C](f: Rep[A]=>Rep[B]=>Rep[C])
-                     (implicit eA: LElem[A], eB: Elem[B]): Rep[A=>B=>C] = {
+  def mkLambda[A,B,C](f: Ref[A]=>Ref[B]=>Ref[C])
+                     (implicit eA: LElem[A], eB: Elem[B]): Ref[A=>B=>C] = {
     val y = variable[B]
     mkLambda(
-      (a: Rep[A]) => lambda(y)((b:Rep[B]) => f(a)(b), mayInline = true, useAlphaEquality, keepOriginalFunc),
+      (a: Ref[A]) => lambda(y)((b:Ref[B]) => f(a)(b), mayInline = true, useAlphaEquality, keepOriginalFunc),
       mayInline = true,
       alphaEquality = useAlphaEquality,
       keepOriginalFunc = keepOriginalFunc)
   }
 
-  def mkLambda[A,B,C](f: (Rep[A], Rep[B])=>Rep[C])(implicit eA: LElem[A], eB: LElem[B]): Rep[((A,B))=>C] = {
+  def mkLambda[A,B,C](f: (Ref[A], Ref[B])=>Ref[C])(implicit eA: LElem[A], eB: LElem[B]): Ref[((A,B))=>C] = {
     implicit val leAB = Lazy(pairElement(eA.value, eB.value))
-    mkLambda({ (p: Rep[(A, B)]) =>
+    mkLambda({ (p: Ref[(A, B)]) =>
       val (x, y) = unzipPair(p)
       f(x, y)
     }, true, useAlphaEquality, keepOriginalFunc)
@@ -346,14 +346,14 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   var lambdaStack: List[Lambda[_,_]] = Nil
 
-  private def lambda[A,B](x: Rep[A])(f: Rep[A] => Rep[B],
+  private def lambda[A,B](x: Ref[A])(f: Ref[A] => Ref[B],
                                      mayInline: Boolean,
                                      alphaEquality: Boolean,
-                                     keepOriginalFunc: Boolean)(implicit leA: LElem[A]): Rep[A=>B] = {
+                                     keepOriginalFunc: Boolean)(implicit leA: LElem[A]): Ref[A=>B] = {
 //    implicit val eA = leA.value
 
     // ySym will be assigned after f is executed
-    val ySym = placeholder(LazyAnyElement).asInstanceOf[Rep[B]]
+    val ySym = placeholder(LazyAnyElement).asInstanceOf[Ref[B]]
 
     val orig = if (keepOriginalFunc) Nullable(f) else Nullable.None
     val lam = new Lambda(orig, x, ySym, mayInline, alphaEquality)
@@ -387,14 +387,14 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def identityFun[A](implicit e: Elem[A]) = fun[A, A](x => x)
 
-  def upcastFun[A: Elem, B >: A]: Rep[A => B] = fun[A,B](x => x)
+  def upcastFun[A: Elem, B >: A]: Ref[A => B] = fun[A,B](x => x)
 
-  def constFun[A, B](x: Rep[B])(implicit e: Elem[A]) = {
+  def constFun[A, B](x: Ref[B])(implicit e: Elem[A]) = {
     implicit val eB = x.elem
     fun[A, B](_ => x)
   }
 
-  def compose[A, B, C](f: Rep[B => C], g: Rep[A => B]): Rep[A => C] = {
+  def compose[A, B, C](f: Ref[B => C], g: Ref[A => B]): Ref[A => C] = {
     implicit val eA = g.elem.eDom
     implicit val eC = f.elem.eRange
     fun { x => f(g(x)) }

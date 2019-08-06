@@ -23,7 +23,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   private val WrapSpecBaseClass = classOf[WrapSpecBase]
 
   // entityAdapter for WrapSpecBase trait
-  case class WrapSpecBaseAdapter(source: Rep[WrapSpecBase])
+  case class WrapSpecBaseAdapter(source: Ref[WrapSpecBase])
       extends WrapSpecBase
       with Def[WrapSpecBase] {
     val resultType: Elem[WrapSpecBase] = element[WrapSpecBase]
@@ -31,7 +31,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyWrapSpecBase(p: Rep[WrapSpecBase]): WrapSpecBase = {
+  implicit def proxyWrapSpecBase(p: Ref[WrapSpecBase]): WrapSpecBase = {
     if (p.rhs.isInstanceOf[WrapSpecBase]) p.rhs.asInstanceOf[WrapSpecBase]
     else
       WrapSpecBaseAdapter(p)
@@ -51,10 +51,10 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     def resultType = WrapSpecBaseCompanionElem
     override def toString = "WrapSpecBase"
   }
-  implicit def proxyWrapSpecBaseCompanionCtor(p: Rep[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
+  implicit def proxyWrapSpecBaseCompanionCtor(p: Ref[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
     p.rhs.asInstanceOf[WrapSpecBaseCompanionCtor]
 
-  lazy val RWrapSpecBase: Rep[WrapSpecBaseCompanionCtor] = new WrapSpecBaseCompanionCtor {
+  lazy val RWrapSpecBase: Ref[WrapSpecBaseCompanionCtor] = new WrapSpecBaseCompanionCtor {
     private val thisClass = classOf[WrapSpecBaseCompanion]
   }
 } // of object WrapSpecBase
@@ -64,13 +64,13 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
   private val OptionWrapSpecClass = classOf[OptionWrapSpec]
 
   // entityAdapter for OptionWrapSpec trait
-  case class OptionWrapSpecAdapter(source: Rep[OptionWrapSpec])
+  case class OptionWrapSpecAdapter(source: Ref[OptionWrapSpec])
       extends OptionWrapSpec
       with Def[OptionWrapSpec] {
     val resultType: Elem[OptionWrapSpec] = element[OptionWrapSpec]
     override def transform(t: Transformer) = OptionWrapSpecAdapter(t(source))
 
-    override def getOrElse[A](xs: Rep[WOption[A]], default: Rep[Thunk[A]]): Rep[A] = {
+    override def getOrElse[A](xs: Ref[WOption[A]], default: Ref[Thunk[A]]): Ref[A] = {
       implicit val eA = xs.eA
       asRep[A](mkMethodCall(source,
         OptionWrapSpecClass.getMethod("getOrElse", classOf[Sym], classOf[Sym]),
@@ -78,7 +78,7 @@ object OptionWrapSpec extends EntityObject("OptionWrapSpec") {
         true, true, element[A]))
     }
 
-    override def fold[A, B](xs: Rep[WOption[A]], ifEmpty: Rep[Thunk[B]], f: Rep[A => B]): Rep[B] = {
+    override def fold[A, B](xs: Ref[WOption[A]], ifEmpty: Ref[Thunk[B]], f: Ref[A => B]): Ref[B] = {
       implicit val eA = xs.eA
 implicit val eB = ifEmpty.elem.eItem
       asRep[B](mkMethodCall(source,
@@ -89,7 +89,7 @@ implicit val eB = ifEmpty.elem.eItem
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyOptionWrapSpec(p: Rep[OptionWrapSpec]): OptionWrapSpec = {
+  implicit def proxyOptionWrapSpec(p: Ref[OptionWrapSpec]): OptionWrapSpec = {
     if (p.rhs.isInstanceOf[OptionWrapSpec]) p.rhs.asInstanceOf[OptionWrapSpec]
     else
       OptionWrapSpecAdapter(p)
@@ -110,10 +110,10 @@ implicit val eB = ifEmpty.elem.eItem
     def resultType = OptionWrapSpecCompanionElem
     override def toString = "OptionWrapSpec"
   }
-  implicit def proxyOptionWrapSpecCompanionCtor(p: Rep[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
+  implicit def proxyOptionWrapSpecCompanionCtor(p: Ref[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
     p.rhs.asInstanceOf[OptionWrapSpecCompanionCtor]
 
-  lazy val ROptionWrapSpec: Rep[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor {
+  lazy val ROptionWrapSpec: Ref[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor {
     private val thisClass = classOf[OptionWrapSpecCompanion]
   }
 } // of object OptionWrapSpec
@@ -123,7 +123,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   private val SpecialPredefWrapSpecClass = classOf[SpecialPredefWrapSpec]
 
   // entityAdapter for SpecialPredefWrapSpec trait
-  case class SpecialPredefWrapSpecAdapter(source: Rep[SpecialPredefWrapSpec])
+  case class SpecialPredefWrapSpecAdapter(source: Ref[SpecialPredefWrapSpec])
       extends SpecialPredefWrapSpec
       with Def[SpecialPredefWrapSpec] {
     val resultType: Elem[SpecialPredefWrapSpec] = element[SpecialPredefWrapSpec]
@@ -131,7 +131,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySpecialPredefWrapSpec(p: Rep[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
+  implicit def proxySpecialPredefWrapSpec(p: Ref[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
     if (p.rhs.isInstanceOf[SpecialPredefWrapSpec]) p.rhs.asInstanceOf[SpecialPredefWrapSpec]
     else
       SpecialPredefWrapSpecAdapter(p)
@@ -152,10 +152,10 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     def resultType = SpecialPredefWrapSpecCompanionElem
     override def toString = "SpecialPredefWrapSpec"
   }
-  implicit def proxySpecialPredefWrapSpecCompanionCtor(p: Rep[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
+  implicit def proxySpecialPredefWrapSpecCompanionCtor(p: Ref[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
     p.rhs.asInstanceOf[SpecialPredefWrapSpecCompanionCtor]
 
-  lazy val RSpecialPredefWrapSpec: Rep[SpecialPredefWrapSpecCompanionCtor] = new SpecialPredefWrapSpecCompanionCtor {
+  lazy val RSpecialPredefWrapSpec: Ref[SpecialPredefWrapSpecCompanionCtor] = new SpecialPredefWrapSpecCompanionCtor {
     private val thisClass = classOf[SpecialPredefWrapSpecCompanion]
   }
 } // of object SpecialPredefWrapSpec
@@ -165,7 +165,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   private val RTypeWrapSpecClass = classOf[RTypeWrapSpec]
 
   // entityAdapter for RTypeWrapSpec trait
-  case class RTypeWrapSpecAdapter(source: Rep[RTypeWrapSpec])
+  case class RTypeWrapSpecAdapter(source: Ref[RTypeWrapSpec])
       extends RTypeWrapSpec
       with Def[RTypeWrapSpec] {
     val resultType: Elem[RTypeWrapSpec] = element[RTypeWrapSpec]
@@ -173,7 +173,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyRTypeWrapSpec(p: Rep[RTypeWrapSpec]): RTypeWrapSpec = {
+  implicit def proxyRTypeWrapSpec(p: Ref[RTypeWrapSpec]): RTypeWrapSpec = {
     if (p.rhs.isInstanceOf[RTypeWrapSpec]) p.rhs.asInstanceOf[RTypeWrapSpec]
     else
       RTypeWrapSpecAdapter(p)
@@ -194,10 +194,10 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
     def resultType = RTypeWrapSpecCompanionElem
     override def toString = "RTypeWrapSpec"
   }
-  implicit def proxyRTypeWrapSpecCompanionCtor(p: Rep[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
+  implicit def proxyRTypeWrapSpecCompanionCtor(p: Ref[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
     p.rhs.asInstanceOf[RTypeWrapSpecCompanionCtor]
 
-  lazy val RRTypeWrapSpec: Rep[RTypeWrapSpecCompanionCtor] = new RTypeWrapSpecCompanionCtor {
+  lazy val RRTypeWrapSpec: Ref[RTypeWrapSpecCompanionCtor] = new RTypeWrapSpecCompanionCtor {
     private val thisClass = classOf[RTypeWrapSpecCompanion]
   }
 } // of object RTypeWrapSpec

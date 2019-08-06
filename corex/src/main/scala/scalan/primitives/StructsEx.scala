@@ -6,7 +6,7 @@ import scalan.{ScalanEx, Nullable}
 trait StructsEx extends Structs with StructItemsModule with StructKeysModule { self: ScalanEx =>
   import IsoUR._
 
-  case class ViewStruct[A, B](source: Rep[A])(val iso: Iso[A, B])
+  case class ViewStruct[A, B](source: Ref[A])(val iso: Iso[A, B])
       extends View[A, B] {
     override def transform(t: Transformer) = ViewStruct(t(source))(t(iso))
     override def toString = s"ViewStruct[${iso.eTo.name}]($source)"
@@ -16,7 +16,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     }
   }
 
-  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
+  override def unapplyViews[T](s: Ref[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ViewStruct[a, b]) =>
       Some((view.source, view.iso))
     case _ =>
@@ -24,14 +24,14 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
   }).asInstanceOf[Option[Unpacked[T]]]
 
   object StructsRewriter extends Rewriter {
-    def apply[T](x: Rep[T]): Rep[T] = asRep[T](x match {
+    def apply[T](x: Ref[T]): Ref[T] = asRep[T](x match {
       case Def(FieldGet(v)) => v
       case _ => x
     })
   }
 
   object FieldGet {
-    def unapply[T](d: FieldApply[T]): Option[Rep[T]] = d match {
+    def unapply[T](d: FieldApply[T]): Option[Ref[T]] = d match {
       case FieldApply(Def(SimpleStruct(_, fs)), fn) =>
         val optItem = fs.find { case (n, _) => n == fn }
         optItem.map(x => asRep[T](x._2))
@@ -40,7 +40,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
   }
 
   object SameStructAs {
-    def unapply[A](d: Def[A]): Nullable[Rep[A]] = d match {
+    def unapply[A](d: Def[A]): Nullable[Ref[A]] = d match {
       case Struct(tag, fields) =>
         fields.headOption match {
           case Some((_, Def(Field(possibleSourceStruct, _)))) if d.resultType == possibleSourceStruct.elem =>
@@ -88,10 +88,10 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     lazy val resultType = new ConcreteIsoElem[Struct, (B1, B2), StructToPairIso[A1, A2, B1, B2]](eFrom, eTo).
         asElem[IsoUR[Struct, (B1, B2)]]
 
-    override def from(p: Rep[(B1, B2)]) =
+    override def from(p: Ref[(B1, B2)]) =
       struct(tupleFN(0) -> iso1.from(p._1), tupleFN(1) -> iso2.from(p._2))
 
-    override def to(struct: Rep[Struct]) = {
+    override def to(struct: Ref[Struct]) = {
       Pair(iso1.to(struct.getUnchecked[A1](tupleFN(0))), iso2.to(struct.getUnchecked[A2](tupleFN(1))))
     }
   }
@@ -113,7 +113,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
       case _ => false
     }
 
-    override def from(y: Rep[T]) = {
+    override def from(y: Ref[T]) = {
       val items = eFrom.fields.zip(eTo.fields).zip(itemIsos).map {
         case (((fnS, feS), (fnT, feT)), iso: Iso[s,t] @unchecked) =>
           fnS -> iso.from(y.getUnchecked[t](fnT))
@@ -121,7 +121,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
       }
       asRep[S](struct(items))
     }
-    override def to(x: Rep[S]) = {
+    override def to(x: Ref[S]) = {
       val items = eFrom.fields.zip(eTo.fields).zip(itemIsos).map {
         case (((fnS, feS), (fnT, feT)), iso: Iso[s,t] @unchecked) =>
           fnT -> iso.to(x.getUnchecked[s](fnS))
@@ -152,7 +152,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
 
     val groups = links.groupBy(_.field)
 
-    def to(x: Rep[Struct]) = {
+    def to(x: Ref[Struct]) = {
       val items = eTo.fields.map { case (fn, fe) =>
         val g = groups(fn)
         flatIsos.get(fn) match {
@@ -170,13 +170,13 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
       struct(eTo.structTag, items: _*)
     }
 
-    def from(y: Rep[T]) = {
+    def from(y: Ref[T]) = {
       val items = eTo.fields.flatMap { case (fn, fe) =>
         val g = groups(fn)
         flatIsos.get(fn) match {
           case Some(iso: Iso[_, a] @unchecked) =>
             val nestedStruct = asRep[Struct](iso.from(y.getUnchecked[a](fn)))
-            // nestedStruct is guaranteed to be a Rep[Struct], because iso can be either IdentityIso on a struct or FlatteningIso
+            // nestedStruct is guaranteed to be a Ref[Struct], because iso can be either IdentityIso on a struct or FlatteningIso
             g.map { link =>
               link.flatName -> nestedStruct.getUntyped(link.nestedField)
             }
@@ -286,7 +286,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
 
     lazy val resultType = new ConcreteIsoElem[Struct, T, MergeIso[T]](eFrom, eTo).asElem[IsoUR[Struct, T]]
 
-    def to(x: Rep[Struct]) = {
+    def to(x: Ref[Struct]) = {
       val items = eTo.fields.map {
         case (outerN, outerE: StructElem[_]) =>
           val s = struct(outerE.fields.map { case (innerN, innerE) => innerN -> x.getUntyped(innerN) })
@@ -296,7 +296,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
       struct(eTo.structTag, items: _*)
     }
 
-    def from(y: Rep[T]) = {
+    def from(y: Ref[T]) = {
       val items = eTo.fields.flatMap {
         case (outerN, outerE: StructElem[_]) =>
           val s = asRep[Struct](y.getUntyped(outerN))
@@ -318,7 +318,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     CollectionUtil.foldRight[(String, Elem[_]), Elem[_]](se.fields)(_._2) { case ((fn,fe), e) => pairElement(fe, e) }
   }
 
-  def unzipMany[T](tuple: Rep[_], list: List[T]): List[Rep[_]] = {
+  def unzipMany[T](tuple: Ref[_], list: List[T]): List[Ref[_]] = {
     val pair = asRep[(Any, Any)](tuple)
     list match {
       case Nil => List(tuple)
@@ -333,14 +333,14 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     val eFrom: Elem[A] = pairifyStruct(eTo).asElem[A]
     override def transform(t: Transformer) = PairifyIso(eTo)
 
-    def from(y: Rep[AS]) =  {
-      val res = CollectionUtil.foldRight[String, Rep[_]](eTo.fieldNames)(y.getUntyped(_)) {
+    def from(y: Ref[AS]) =  {
+      val res = CollectionUtil.foldRight[String, Ref[_]](eTo.fieldNames)(y.getUntyped(_)) {
         case (fn, s) => Pair(y.getUntyped(fn), s)
       }
       asRep[A](res)
     }
 
-    override def to(x: Rep[A]) = {
+    override def to(x: Ref[A]) = {
       val items = unzipMany(x, eTo.fields.toList)
       val fields = eTo.fieldNames.zip(items.map(asRep[Any](_)))
       asRep[AS](struct(fields))
@@ -354,7 +354,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     lazy val resultType = new ConcreteIsoElem[A, AS, PairifyIso[A, AS]](eFrom, eTo).asElem[IsoUR[A, AS]]
   }
 
-  def structWrapper[A,B](f: Rep[A => B]): Rep[Any => Any] = {
+  def structWrapper[A,B](f: Ref[A => B]): Ref[Any => Any] = {
     val wrapperFun = (getStructWrapperIso[A](f.elem.eDom),
         getStructWrapperIso[B](f.elem.eRange)) match {
       case (inIso: Iso[a, A] @unchecked, outIso: Iso[b, B] @unchecked) =>
@@ -362,12 +362,12 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     }
     asRep[Any => Any](wrapperFun)
   }
-  def structWrapperIn[A,B](f: Rep[A => B]): Rep[Any => B] = {
+  def structWrapperIn[A,B](f: Ref[A => B]): Ref[Any => B] = {
     val inIso = getStructWrapperIso[A](f.elem.eDom)
     val wrapperFun = inIso.toFun >> f
     asRep[Any => B](wrapperFun)
   }
-  def structWrapperOut[A,B](f: Rep[A => B]): Rep[A => Any] = {
+  def structWrapperOut[A,B](f: Ref[A => B]): Ref[A => Any] = {
     val outIso = getStructWrapperIso[B](f.elem.eRange)
     val wrapperFun = f >> outIso.fromFun
     asRep[A => Any](wrapperFun)

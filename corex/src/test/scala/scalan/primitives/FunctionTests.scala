@@ -20,7 +20,7 @@ class FunctionTests extends BaseCtxTests {
   test("IdentityLambda matcher works") {
     val ctx = new TestContext("identityFuns2") {
       lazy val t1 = constFun[Int, Int](1)
-      lazy val t2 = fun { x: Rep[Int] => fun { y: Rep[Int] => x } }
+      lazy val t2 = fun { x: Ref[Int] => fun { y: Ref[Int] => x } }
     }
     import ctx._
 
@@ -47,7 +47,7 @@ class FunctionTests extends BaseCtxTests {
   test("ConstantLambda matcher works") {
     val ctx = new TestContext("constFuns2") {
       lazy val t1 = constFun[Int, Int](1)
-      lazy val t2 = fun { x: Rep[Int] => fun { y: Rep[Int] => x } }
+      lazy val t2 = fun { x: Ref[Int] => fun { y: Ref[Int] => x } }
     }
     import ctx._
 
@@ -67,13 +67,13 @@ class FunctionTests extends BaseCtxTests {
       lazy val idInt1 = fun[Int, Int] { x => x }
       lazy val idInt2 = fun[Int, Int] { y => y }
       lazy val idDouble = fun[Double, Double] { x => x }
-      lazy val f1_1 = fun { x: Rep[Int] => fun { y: Rep[Int] => x } }
-      lazy val f1_2 = fun { y: Rep[Int] => fun { x: Rep[Int] => y } }
-      lazy val f2_1 = fun { y: Rep[Int] => fun { x: Rep[Int] => x } }
-      lazy val f2_2 = fun { x: Rep[Int] => fun { y: Rep[Int] => y } }
-      lazy val f3_1 = fun { x: Rep[Int] => x + 1 }
-      lazy val f3_2 = fun { y: Rep[Int] => y + 1 }
-      lazy val f4 = fun { x: Rep[Int] => x + 2 }
+      lazy val f1_1 = fun { x: Ref[Int] => fun { y: Ref[Int] => x } }
+      lazy val f1_2 = fun { y: Ref[Int] => fun { x: Ref[Int] => y } }
+      lazy val f2_1 = fun { y: Ref[Int] => fun { x: Ref[Int] => x } }
+      lazy val f2_2 = fun { x: Ref[Int] => fun { y: Ref[Int] => y } }
+      lazy val f3_1 = fun { x: Ref[Int] => x + 1 }
+      lazy val f3_2 = fun { y: Ref[Int] => y + 1 }
+      lazy val f4 = fun { x: Ref[Int] => x + 2 }
     }
     import ctx._
 
@@ -97,8 +97,8 @@ class FunctionTests extends BaseCtxTests {
       this.useAlphaEquality = alphaEquality
       lazy val idInt1 = fun[Int, Int] { x => x }
       lazy val idInt2 = fun[Int, Int] { y => y }
-      lazy val f3_1 = fun { x: Rep[Int] => x + 1 }
-      lazy val f3_2 = fun { y: Rep[Int] => y + 1 }
+      lazy val f3_1 = fun { x: Ref[Int] => x + 1 }
+      lazy val f3_2 = fun { y: Ref[Int] => y + 1 }
     }
 
     val ctx = new Ctx(alphaEquality = false)

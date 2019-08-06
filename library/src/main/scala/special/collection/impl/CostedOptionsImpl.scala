@@ -21,7 +21,7 @@ import CCostedOption._
 
 object CCostedOption extends EntityObject("CCostedOption") {
   case class CCostedOptionCtor[T]
-      (override val value: Rep[WOption[T]], override val costOpt: Rep[WOption[Int]], override val sizeOpt: Rep[WOption[Size[T]]], override val accumulatedCost: Rep[Int])
+      (override val value: Ref[WOption[T]], override val costOpt: Ref[WOption[Int]], override val sizeOpt: Ref[WOption[Size[T]]], override val accumulatedCost: Ref[Int])
     extends CCostedOption[T](value, costOpt, sizeOpt, accumulatedCost) with Def[CCostedOption[T]] {
     implicit lazy val eT = value.eA
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
@@ -29,7 +29,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     override def transform(t: Transformer) = CCostedOptionCtor[T](t(value), t(costOpt), t(sizeOpt), t(accumulatedCost))
     private val thisClass = classOf[CostedOption[_]]
 
-    override def cost: Rep[Int] = {
+    override def cost: Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("cost"),
         WrappedArray.empty,
@@ -51,10 +51,10 @@ object CCostedOption extends EntityObject("CCostedOption") {
   class CCostedOptionIso[T](implicit eT: Elem[T])
     extends EntityIso[CCostedOptionData[T], CCostedOption[T]] with Def[CCostedOptionIso[T]] {
     override def transform(t: Transformer) = new CCostedOptionIso[T]()(eT)
-    private lazy val _safeFrom = fun { p: Rep[CCostedOption[T]] => (p.value, p.costOpt, p.sizeOpt, p.accumulatedCost) }
-    override def from(p: Rep[CCostedOption[T]]) =
+    private lazy val _safeFrom = fun { p: Ref[CCostedOption[T]] => (p.value, p.costOpt, p.sizeOpt, p.accumulatedCost) }
+    override def from(p: Ref[CCostedOption[T]]) =
       tryConvert[CCostedOption[T], (WOption[T], (WOption[Int], (WOption[Size[T]], Int)))](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(WOption[T], (WOption[Int], (WOption[Size[T]], Int)))]) = {
+    override def to(p: Ref[(WOption[T], (WOption[Int], (WOption[Size[T]], Int)))]) = {
       val Pair(value, Pair(costOpt, Pair(sizeOpt, accumulatedCost))) = p
       RCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
     }
@@ -72,23 +72,23 @@ object CCostedOption extends EntityObject("CCostedOption") {
     def resultType = CCostedOptionCompanionElem
     override def toString = "CCostedOptionCompanion"
     @scalan.OverloadId("fromData")
-    def apply[T](p: Rep[CCostedOptionData[T]]): Rep[CCostedOption[T]] = {
+    def apply[T](p: Ref[CCostedOptionData[T]]): Ref[CCostedOption[T]] = {
       implicit val eT = p._1.eA
       isoCCostedOption[T].to(p)
     }
 
     // manual fix
     @scalan.OverloadId("fromFields")
-    def apply[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CCostedOption[T]] = {
+    def apply[T](value: Ref[WOption[T]], costOpt: Ref[WOption[Int]], sizeOpt: Ref[WOption[Size[T]]], accumulatedCost: Ref[Int]): Ref[CCostedOption[T]] = {
       assertValueIdForOpCost(value, accumulatedCost)
       mkCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
     }
 
-    def unapply[T](p: Rep[CostedOption[T]]) = unmkCCostedOption(p)
+    def unapply[T](p: Ref[CostedOption[T]]) = unmkCCostedOption(p)
   }
-  lazy val CCostedOptionRep: Rep[CCostedOptionCompanionCtor] = new CCostedOptionCompanionCtor
+  lazy val CCostedOptionRep: Ref[CCostedOptionCompanionCtor] = new CCostedOptionCompanionCtor
   lazy val RCCostedOption: CCostedOptionCompanionCtor = proxyCCostedOptionCompanion(CCostedOptionRep)
-  implicit def proxyCCostedOptionCompanion(p: Rep[CCostedOptionCompanionCtor]): CCostedOptionCompanionCtor = {
+  implicit def proxyCCostedOptionCompanion(p: Ref[CCostedOptionCompanionCtor]): CCostedOptionCompanionCtor = {
     if (p.rhs.isInstanceOf[CCostedOptionCompanionCtor])
       p.rhs.asInstanceOf[CCostedOptionCompanionCtor]
     else
@@ -97,15 +97,15 @@ object CCostedOption extends EntityObject("CCostedOption") {
 
   implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor]
 
-  implicit def proxyCCostedOption[T](p: Rep[CCostedOption[T]]): CCostedOption[T] = {
+  implicit def proxyCCostedOption[T](p: Ref[CCostedOption[T]]): CCostedOption[T] = {
     if (p.rhs.isInstanceOf[CCostedOption[T]@unchecked])
       p.rhs.asInstanceOf[CCostedOption[T]]
     else
       proxyOps[CCostedOption[T]](p)
   }
 
-  implicit class ExtendedCCostedOption[T](p: Rep[CCostedOption[T]]) {
-    def toData: Rep[CCostedOptionData[T]] = {
+  implicit class ExtendedCCostedOption[T](p: Ref[CCostedOption[T]]) {
+    def toData: Ref[CCostedOptionData[T]] = {
       implicit val eT = p.value.eA
       isoCCostedOption(eT).from(p)
     }
@@ -116,10 +116,10 @@ object CCostedOption extends EntityObject("CCostedOption") {
     reifyObject(new CCostedOptionIso[T]()(eT))
 
   def mkCCostedOption[T]
-    (value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CCostedOption[T]] = {
+    (value: Ref[WOption[T]], costOpt: Ref[WOption[Int]], sizeOpt: Ref[WOption[Size[T]]], accumulatedCost: Ref[Int]): Ref[CCostedOption[T]] = {
     new CCostedOptionCtor[T](value, costOpt, sizeOpt, accumulatedCost)
   }
-  def unmkCCostedOption[T](p: Rep[CostedOption[T]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkCCostedOption[T](p: Ref[CostedOption[T]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CCostedOptionElem[T] @unchecked =>
       Some((asRep[CCostedOption[T]](p).value, asRep[CCostedOption[T]](p).costOpt, asRep[CCostedOption[T]](p).sizeOpt, asRep[CCostedOption[T]](p).accumulatedCost))
     case _ =>

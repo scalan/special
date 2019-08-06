@@ -3,35 +3,35 @@ package scalan.common
 import scalan._
 
 trait MetaTests { self: MetaTestsModule =>
-  type RMetaTest[T] = Rep[MetaTest[T]]
+  type RMetaTest[T] = Ref[MetaTest[T]]
   @Liftable
   @Convertible
   @WithMethodCallRecognizers
   trait MetaTest[T] extends Def[MetaTest[T]] { self =>
     def test: RMetaTest[T]
-    def give: Rep[T]
-    def size: Rep[Int]
+    def give: Ref[T]
+    def size: Ref[Int]
     implicit def eT: Elem[T]
-    @Reified(value = "B") def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]]
+    @Reified(value = "B") def fromItems[B](items: Ref[B]*)(implicit cB: Elem[B]): Ref[MetaTest[B]]
   }
   trait MetaTestCompanion
 
   @WithMethodCallRecognizers
-  abstract class MT0(val size: Rep[Int]) extends MetaTest[Unit] {
+  abstract class MT0(val size: Ref[Int]) extends MetaTest[Unit] {
 
     def test: RMetaTest[Unit] = ???
-    def give: Rep[Unit] = ???
+    def give: Ref[Unit] = ???
     def eT = UnitElement
 
-    def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = ???
+    def fromItems[B](items: Ref[B]*)(implicit cB: Elem[B]): Ref[MetaTest[B]] = ???
   }
   trait MT0Companion
 
   @WithMethodCallRecognizers
-  abstract class MT1[T](val data: Rep[T], val size: Rep[Int]) extends MetaTest[T] {
+  abstract class MT1[T](val data: Ref[T], val size: Ref[Int]) extends MetaTest[T] {
     def test: RMetaTest[T] = ???
-    def give: Rep[T] = ???
-    def fromItems[B](items: Rep[B]*)(implicit cB: Elem[B]): Rep[MetaTest[B]] = ???
+    def give: Ref[T] = ???
+    def fromItems[B](items: Ref[B]*)(implicit cB: Elem[B]): Ref[MetaTest[B]] = ???
   }
 
   @Liftable
@@ -39,18 +39,18 @@ trait MetaTests { self: MetaTestsModule =>
   trait MetaPair[A,B] extends MetaTest[(A,B)] {
     implicit def eA: Elem[A]
     implicit def eB: Elem[B]
-    def indices: Rep[A]
-    def values: Rep[B]
-    def give: Rep[(A, B)]
+    def indices: Ref[A]
+    def values: Ref[B]
+    def give: Ref[(A, B)]
   }
 
   @WithMethodCallRecognizers
-  abstract class MT2[A, B](val indices: Rep[A], val values: Rep[B], val size: Rep[Int])
+  abstract class MT2[A, B](val indices: Ref[A], val values: Ref[B], val size: Ref[Int])
     extends MetaPair[A, B] {
     implicit def eA: Elem[A]; implicit def eB: Elem[B]
     def test: RMetaTest[(A, B)] = ???
-    def give: Rep[(A, B)] = ???
-    def fromItems[C](items: Rep[C]*)(implicit cB: Elem[C]): Rep[MetaTest[C]] = ???
+    def give: Ref[(A, B)] = ???
+    def fromItems[C](items: Ref[C]*)(implicit cB: Elem[C]): Ref[MetaTest[C]] = ???
   }
 }
 

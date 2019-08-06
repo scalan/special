@@ -9,7 +9,7 @@ trait Passes {
   import scalan._
 
   // to avoid need to import compiler.scalan.Exp in many places
-  type Rep[+T] = scalan.Rep[T]
+  type Rep[+T] = scalan.Ref[T]
 
   abstract class GraphPass extends Pass {
     def builder: PassBuilder[GraphPass]

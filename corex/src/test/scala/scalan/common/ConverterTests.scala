@@ -7,7 +7,7 @@ class ConverterTests extends BaseCtxTests {
 
   trait ConvProg extends CommonExamples {
   //TODO uncomment after convertTo works not only for Def[_]
-//    lazy val t20 = fun { in: Rep[Array[Interval]] => in.convertTo[Array[Slice]] }
+//    lazy val t20 = fun { in: Ref[Array[Interval]] => in.convertTo[Array[Slice]] }
   }
 
   class ConvProgStaged extends TestContext with ConvProg with SegmentsModule {
@@ -111,7 +111,7 @@ class ConverterTests extends BaseCtxTests {
     emit("comp", comp)
     assert(comp.isIdentity)
 
-    val baseInt = baseConv(fun { x: Rep[Int] => x + 1 })
+    val baseInt = baseConv(fun { x: Ref[Int] => x + 1 })
     emit("baseInt", baseInt)
     assert(!baseInt.isIdentity)
     val pairNon = pairConv(baseInt, idDouble)

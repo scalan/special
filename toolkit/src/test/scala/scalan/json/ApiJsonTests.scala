@@ -13,14 +13,14 @@ class ApiJsonTests extends JsonTests {
     import ctx._
     import Coll._
 
-    def testLam[A, B](f: Rep[A => B], fileName: String = ""): Unit = {
+    def testLam[A, B](f: Ref[A => B], fileName: String = ""): Unit = {
       val g = new PGraph(f)
       test(g, fileName)
     }
 
-    testLam(fun { xs: Rep[Coll[Int]] => xs.length }, "lambda with Coll argument")
+    testLam(fun { xs: Ref[Coll[Int]] => xs.length }, "lambda with Coll argument")
     testLam(
-      fun { p: Rep[(Coll[Int], Coll[Int])] =>
+      fun { p: Ref[(Coll[Int], Coll[Int])] =>
         val Pair(xs, ys) = p
         xs.length + ys.length
       }, "lambda with (Coll,Coll) argument")

@@ -5,10 +5,10 @@ import java.math.BigInteger
 import scalan.{Base, Scalan}
 
 trait NumericOps extends Base { self: Scalan =>
-  implicit class NumericOpsCls[T](x: Rep[T])(implicit val n: Numeric[T]) {
-    def +(y: Rep[T]) = NumericPlus(n)(x.elem).apply(x, y)
-    def -(y: Rep[T]) = NumericMinus(n)(x.elem).apply(x, y)
-    def *(y: Rep[T]) = NumericTimes(n)(x.elem).apply(x, y)
+  implicit class NumericOpsCls[T](x: Ref[T])(implicit val n: Numeric[T]) {
+    def +(y: Ref[T]) = NumericPlus(n)(x.elem).apply(x, y)
+    def -(y: Ref[T]) = NumericMinus(n)(x.elem).apply(x, y)
+    def *(y: Ref[T]) = NumericTimes(n)(x.elem).apply(x, y)
     def unary_- = NumericNegate(n)(x.elem).apply(x)
     def abs = Math.abs(x)
     def toFloat = NumericToFloat(n).apply(x)
@@ -19,16 +19,16 @@ trait NumericOps extends Base { self: Scalan =>
     def floor = Math.floor(toDouble)
   }
 
-  implicit class FractionalOpsCls[T](x: Rep[T])(implicit f: Fractional[T]) {
-    def /(y: Rep[T]): Rep[T] = FractionalDivide(f)(x.elem).apply(x, y)
+  implicit class FractionalOpsCls[T](x: Ref[T])(implicit f: Fractional[T]) {
+    def /(y: Ref[T]): Ref[T] = FractionalDivide(f)(x.elem).apply(x, y)
   }
 
-  implicit class IntegralOpsCls[T](x: Rep[T])(implicit i: Integral[T]) {
-    def div(y: Rep[T]): Rep[T] = IntegralDivide(i)(x.elem).apply(x, y)
-    def mod(y: Rep[T]): Rep[T] = IntegralMod(i)(x.elem).apply(x, y)
+  implicit class IntegralOpsCls[T](x: Ref[T])(implicit i: Integral[T]) {
+    def div(y: Ref[T]): Ref[T] = IntegralDivide(i)(x.elem).apply(x, y)
+    def mod(y: Ref[T]): Ref[T] = IntegralMod(i)(x.elem).apply(x, y)
     // avoid / due to conflicts
-    def /!(y: Rep[T]): Rep[T] = div(y)
-    def %(y: Rep[T]): Rep[T] = mod(y)
+    def /!(y: Ref[T]): Ref[T] = div(y)
+    def %(y: Ref[T]): Ref[T] = mod(y)
   }
 
   def numeric[T:Numeric]: Numeric[T] = implicitly[Numeric[T]]
@@ -61,11 +61,11 @@ trait NumericOps extends Base { self: Scalan =>
 
   case class IntegralMod[T](i: Integral[T])(implicit elem: Elem[T]) extends DivOp[T]("%", i.rem, i)
 
-  case class NumericRand[T](bound: Rep[T], id: Int = IdSupply.nextId)(implicit val eT: Elem[T]) extends BaseDef[T] {
+  case class NumericRand[T](bound: Ref[T], id: Int = IdSupply.nextId)(implicit val eT: Elem[T]) extends BaseDef[T] {
     override def transform(t: Transformer) = NumericRand(t(bound))
   }
 
-  def random[T](bound: Rep[T])(implicit n: Numeric[T]): Rep[T] =
+  def random[T](bound: Ref[T])(implicit n: Numeric[T]): Ref[T] =
     NumericRand(bound)(bound.elem)
 
   @inline final def isZero[T](x: T, n: Numeric[T]) = x == n.zero

@@ -2,7 +2,7 @@ package scalan
 
 trait DefRewriting { scalan: Scalan =>
 
-  def rewriteDef[T](d: Def[T]): Rep[_] = d match {
+  def rewriteDef[T](d: Def[T]): Ref[_] = d match {
     case First(p) if p.rhs.isInstanceOf[Tup[_,_]] => p.rhs.asInstanceOf[Tup[_,_]].a
     case Second(p) if p.rhs.isInstanceOf[Tup[_,_]] => p.rhs.asInstanceOf[Tup[_,_]].b
     case Tup(Def(First(a)), Def(Second(b))) if a == b => a
@@ -43,7 +43,7 @@ trait DefRewriting { scalan: Scalan =>
     case _ => null
   }
 
-  final def rewriteUnOp[A,R](op: UnOp[A,R], x: Rep[A]): Rep[_] = {
+  final def rewriteUnOp[A,R](op: UnOp[A,R], x: Ref[A]): Ref[_] = {
     op match {
       case _: NumericNegate[_] => x.rhs match {
         // -(-x) => x
@@ -82,7 +82,7 @@ trait DefRewriting { scalan: Scalan =>
     }
   }
 
-  final def rewriteBinOp[A,R](op: BinOp[A,R], x: Rep[A], y: Rep[A]): Rep[_] = {
+  final def rewriteBinOp[A,R](op: BinOp[A,R], x: Ref[A], y: Ref[A]): Ref[_] = {
     op.asInstanceOf[BinOp[_,_]] match {
       case _: Equals[_] =>
         if (x == y) Const(true)
@@ -119,7 +119,7 @@ trait DefRewriting { scalan: Scalan =>
       case Or =>
         rewriteBoolConsts(x, y, _ => true, x => x, x => x, _ => true)
       case BinaryXorOp =>
-        rewriteBoolConsts(x, y, x => !x.asInstanceOf[Rep[Boolean]], x => x.asInstanceOf[Rep[Boolean]], _ => false, _ => true)
+        rewriteBoolConsts(x, y, x => !x.asInstanceOf[Ref[Boolean]], x => x.asInstanceOf[Ref[Boolean]], _ => false, _ => true)
 
       case NumericPlus(n: Numeric[a]) => (x, y) match {
         // x + 0 => x
@@ -169,7 +169,7 @@ trait DefRewriting { scalan: Scalan =>
   /** Perform constant propagation if enabled and argument is Const.
     * @return null if propagation is not done
     */
-  def propagateUnOp[T,R](op: UnOp[T,R], x: Rep[T]): Rep[R] = {
+  def propagateUnOp[T,R](op: UnOp[T,R], x: Ref[T]): Ref[R] = {
     if (currentPass.config.constantPropagation) {
       if (x.isConst) {
         val xVal = valueFromRep(x)
@@ -186,7 +186,7 @@ trait DefRewriting { scalan: Scalan =>
   /** Perform constant propagation if enabled and both arguments are Const.
     * @return null if propagation is not done
     */
-  def propagateBinOp[T,R](op: BinOp[T,R], x: Rep[T], y: Rep[T]): Rep[R] = {
+  def propagateBinOp[T,R](op: BinOp[T,R], x: Ref[T], y: Ref[T]): Ref[R] = {
     if (currentPass.config.constantPropagation) {
       if (x.isConst && y.isConst) {
         val xVal = valueFromRep(x)

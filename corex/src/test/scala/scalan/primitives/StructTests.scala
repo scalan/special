@@ -14,30 +14,30 @@ trait StructExamples extends ScalanEx with SegmentsModule with MetaTestsModule {
 
   def eInt = IntElement
 
-  lazy val t1 = fun({ (in: Rep[Int]) =>
+  lazy val t1 = fun({ (in: Ref[Int]) =>
     struct("in" -> in)
   })(Lazy(element[Int]))
 
-  lazy val singleFieldStructIn = fun({ (in: Rep[Struct]) =>
+  lazy val singleFieldStructIn = fun({ (in: Ref[Struct]) =>
     in.get[Int]("in")
   })(Lazy(structElement(Seq("in" -> eInt))))
 
-  lazy val manyFieldsStructIn = fun({ (in: Rep[Struct]) =>
+  lazy val manyFieldsStructIn = fun({ (in: Ref[Struct]) =>
     in.get[Int]("in1") - in.get[Int]("in2")
   })(Lazy(structElement(Seq("in1" -> eInt, "in2" -> eInt))))
 
-  lazy val structInOut = fun({ (in: Rep[Struct]) =>
+  lazy val structInOut = fun({ (in: Ref[Struct]) =>
     val outVal = in.get[Int]("in") - 1
     struct("out" -> outVal)
   })(Lazy(structElement(Seq("in" -> eInt))))
 
-  lazy val crossFields = fun({ (in: Rep[Struct]) =>
+  lazy val crossFields = fun({ (in: Ref[Struct]) =>
     val in1 = in.get[Int]("in1")
     val in2 = in.get[Int]("in2")
     struct("out1" -> in2, "out2" -> in1)
   })(Lazy(structElement(Seq("in1" -> eInt, "in2" -> eInt))))
 
-  lazy val structInside = fun { (n: Rep[Int]) =>
+  lazy val structInside = fun { (n: Ref[Int]) =>
     // This should ensure we get structs left inside
     // If rewritings are added which optimize this to `if (n > 0) then n else n + 1`, change this!
     val s1 = struct("a" -> n, "b" -> n)
@@ -46,67 +46,67 @@ trait StructExamples extends ScalanEx with SegmentsModule with MetaTestsModule {
     s3.get[Int]("a") + s3.get[Int]("b")
   }
 
-  lazy val t2 = fun({ (in: Rep[Int]) =>
+  lazy val t2 = fun({ (in: Ref[Int]) =>
     struct("in" -> in).get[Int]("in")
   })
 
-  lazy val t3 = fun({ (in: Rep[Int]) =>
+  lazy val t3 = fun({ (in: Ref[Int]) =>
     val b = in + toRep(1)
     val c = in + in
     fields(struct("a" -> in, "b" -> b, "c" -> c), Seq("a", "c"))
   })(Lazy(element[Int]))
 
-  lazy val t4 = fun({ (in: Rep[Int]) =>
+  lazy val t4 = fun({ (in: Ref[Int]) =>
     Pair(in, in)
   })
 
-  lazy val t5 = fun({ (in: Rep[Int]) =>
+  lazy val t5 = fun({ (in: Ref[Int]) =>
     Pair(in, Pair(in, in + 1))
   })
 
 
-  lazy val t6 = structWrapper(fun { (in: Rep[(Int,Int)]) => RInterval(in).shift(10).toData })
+  lazy val t6 = structWrapper(fun { (in: Ref[(Int,Int)]) => RInterval(in).shift(10).toData })
 
-  lazy val t2x2_7 = fun { (in: Rep[(Int,Int)]) =>
+  lazy val t2x2_7 = fun { (in: Ref[(Int,Int)]) =>
     Pair(in._1 + in._2, in._1 - in._2)
   }
   lazy val t7 = structWrapper(t2x2_7)
 
-  lazy val t8 = structWrapper(fun { (in: Rep[(Int,Int)]) =>
+  lazy val t8 = structWrapper(fun { (in: Ref[(Int,Int)]) =>
     Pair(in._2, in._1)
   })
-  lazy val t9f = fun { (in: Rep[((Int,Int),Int)]) =>
+  lazy val t9f = fun { (in: Ref[((Int,Int),Int)]) =>
     val Pair(Pair(x, y), z) = in
     Pair(x + y, Pair(x - z, y - z))
   }
   lazy val t9 = structWrapper(t9f)
-  lazy val t10 = structWrapper(fun { (in: Rep[((Int,Int),Int)]) =>
+  lazy val t10 = structWrapper(fun { (in: Ref[((Int,Int),Int)]) =>
     val Pair(Pair(x, y), z) = in
     val i = RInterval(x,y)
     Pair(i.length, i.shift(z).toData)
   })
-//  lazy val t11 = structWrapper(fun { (in: Rep[(Array[(Int,Int)],Int)]) =>
+//  lazy val t11 = structWrapper(fun { (in: Ref[(Array[(Int,Int)],Int)]) =>
 //    val Pair(segs, z) = in
 //    Pair(segs, segs.length + z)
 //  })
-//  lazy val t12 = structWrapper(fun { (in: Rep[(Array[(Int,Int)],Int)]) =>
+//  lazy val t12 = structWrapper(fun { (in: Ref[(Array[(Int,Int)],Int)]) =>
 //    val Pair(segs, z) = in
 //    val sums = segs.map(p => p._1 + p._2)
 //    Pair(sums, sums.length)
 //  })
-//  lazy val t13 = structWrapper(fun { (in: Rep[(Array[(Int,Int)],Int)]) =>
+//  lazy val t13 = structWrapper(fun { (in: Ref[(Array[(Int,Int)],Int)]) =>
 //    val Pair(segs, z) = in
 //    val intervals = segs.map(Interval(_))
 //    Pair(intervals.map(_.length), intervals.length)
 //  })
-  lazy val t14 = fun { (in: Rep[Int]) =>
+  lazy val t14 = fun { (in: Ref[Int]) =>
     Pair(in, in)
   }
-  lazy val t15 = structWrapper(fun { (in: Rep[(Int,Int)]) =>
+  lazy val t15 = structWrapper(fun { (in: Ref[(Int,Int)]) =>
     val Pair(x, y) = in
     IF (x > y) { Pair(x,y) } ELSE { Pair(y,x) }
   })
-//  lazy val t16 = structWrapper(fun { (in: Rep[((Array[(Int,Int)],Array[((Int,Int), Boolean)]),Int)]) =>
+//  lazy val t16 = structWrapper(fun { (in: Ref[((Array[(Int,Int)],Array[((Int,Int), Boolean)]),Int)]) =>
 //    val Pair(Pair(segs1, segs2), z) = in
 //    val intervals1 = segs1.map(Interval(_))
 //    val intervals2 = segs2.map(t => IF (t._2) { Interval(t._1).asRep[Segment] } ELSE { Slice(t._1).asRep[Segment]})
@@ -242,7 +242,7 @@ class StructTests extends BaseViewTests {
     val ctx = new Ctx {
       import compiler.scalan._
       def testWrapper[A,B](functionName: String,
-                             f: => Rep[A => B], expectTuples: Boolean = false): compiler.CompilerOutput[A, B] = {
+                           f: => Ref[A => B], expectTuples: Boolean = false): compiler.CompilerOutput[A, B] = {
         val out = super.test(functionName, f)
         val hasTuples = containsTuples(out.common.graph)
         assert(expectTuples == hasTuples)
@@ -431,7 +431,7 @@ abstract class StructItTests extends BaseItTests[StructExamples](new ScalanEx wi
   import progStd._
 
   test("t1") {
-    compareOutputWithStd(s => s.t1.asInstanceOf[s.Rep[Int => Struct]])(100)
+    compareOutputWithStd(s => s.t1.asInstanceOf[s.Ref[Int => Struct]])(100)
   }
 
   test("t2") {
@@ -439,23 +439,23 @@ abstract class StructItTests extends BaseItTests[StructExamples](new ScalanEx wi
   }
 
   test("t3") {
-    compareOutputWithStd(s => s.t3.asInstanceOf[s.Rep[Int => Struct]])(100)
+    compareOutputWithStd(s => s.t3.asInstanceOf[s.Ref[Int => Struct]])(100)
   }
 
 //  test("struct with one field in") {
-//    compareOutputWithStd(s => s.singleFieldStructIn.asInstanceOf[s.Rep[Struct => Int]])(struct("in" -> 100))
+//    compareOutputWithStd(s => s.singleFieldStructIn.asInstanceOf[s.Ref[Struct => Int]])(struct("in" -> 100))
 //  }
 
 //  test("struct with many fields in") {
-//    compareOutputWithStd(s => s.manyFieldsStructIn.asInstanceOf[s.Rep[Struct => Int]])(struct("in1" -> 200, "in2" -> 50))
+//    compareOutputWithStd(s => s.manyFieldsStructIn.asInstanceOf[s.Ref[Struct => Int]])(struct("in1" -> 200, "in2" -> 50))
 //  }
 
 //  test("struct in and out") {
-//    compareOutputWithStd(s => s.structInOut.asInstanceOf[s.Rep[Struct => Struct]])(struct("in" -> 100))
+//    compareOutputWithStd(s => s.structInOut.asInstanceOf[s.Ref[Struct => Struct]])(struct("in" -> 100))
 //  }
 
 //  test("struct with many fields in and out") {
-//    compareOutputWithStd(s => s.crossFields.asInstanceOf[s.Rep[Struct => Struct]])(struct("in1" -> 200, "in2" -> 50))
+//    compareOutputWithStd(s => s.crossFields.asInstanceOf[s.Ref[Struct => Struct]])(struct("in1" -> 200, "in2" -> 50))
 //  }
 
   test("struct used inside") {

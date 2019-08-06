@@ -12,13 +12,13 @@ import scalan.{Plugins, ScalanEx}
 
 // TODO Split into AbstractKernel and FileSystemKernel?
 class Kernel[+ScalanCake <: ScalanEx, A, B](
-      val kernelName: String,
-      val kernelType: KernelType,
-      _kernelFunc: => ScalanCake#Rep[A => B],
-      val compiler: Compiler[ScalanCake], dir: File, _config: Config)
+                                               val kernelName: String,
+                                               val kernelType: KernelType,
+                                               _kernelFunc: => ScalanCake#Ref[A => B],
+                                               val compiler: Compiler[ScalanCake], dir: File, _config: Config)
   extends (A => B) {
   val scalan: compiler.scalan.type = compiler.scalan
-  lazy val kernelFunc = _kernelFunc.asInstanceOf[scalan.Rep[A => B]]
+  lazy val kernelFunc = _kernelFunc.asInstanceOf[scalan.Ref[A => B]]
   lazy val compilerConfig = _config.get[Config]("compiler") match {
     case Failure(_) =>
       compiler.defaultCompilerConfig
@@ -79,13 +79,13 @@ abstract class KernelStore[+ScalanCake <: ScalanEx] {
     }
   }
 
-  def createKernel[A,B](kernelId: String, kernelType: KernelType, f: => scalan.Rep[A => B], kernelConfig: Config = ConfigFactory.empty()): Kernel[scalan.type, A, B] = {
+  def createKernel[A,B](kernelId: String, kernelType: KernelType, f: => scalan.Ref[A => B], kernelConfig: Config = ConfigFactory.empty()): Kernel[scalan.type, A, B] = {
     val allConfig = kernelConfig.withFallback(storeConfig)
     val compiler = this.compiler(kernelType)
     internalCreateKernel(kernelId, kernelType, f, compiler, allConfig)
   }
 
-  def internalCreateKernel[A, B](kernelId: String, kernelType: KernelType, f: => scalan.Rep[(A) => B], compiler: Compiler[scalan.type], allConfig: Config): Kernel[scalan.type, A, B]
+  def internalCreateKernel[A, B](kernelId: String, kernelType: KernelType, f: => scalan.Ref[(A) => B], compiler: Compiler[scalan.type], allConfig: Config): Kernel[scalan.type, A, B]
 }
 
 object KernelStore {
@@ -102,7 +102,7 @@ object KernelStore {
 
 // TODO move methods for actually storing results from Compiler to here
 class FileSystemKernelStore[+ScalanCake <: ScalanEx](val scalan: ScalanCake, val baseDir: File, val storeConfig: Config) extends KernelStore[ScalanCake] {
-  def internalCreateKernel[A, B](kernelId: String, kernelType: KernelType, f: => scalan.Rep[(A) => B], compiler: Compiler[scalan.type], allConfig: Config): Kernel[scalan.type, A, B] = {
+  def internalCreateKernel[A, B](kernelId: String, kernelType: KernelType, f: => scalan.Ref[(A) => B], compiler: Compiler[scalan.type], allConfig: Config): Kernel[scalan.type, A, B] = {
     if (FileUtil.isBadFileName(kernelId)) {
       throw new IllegalArgumentException(s"kernel id $kernelId contains special characters")
     }

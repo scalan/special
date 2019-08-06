@@ -12,7 +12,7 @@ class TransformerTests extends BaseMetaTests with Examples {
   context.updateWrapper("Array", WrapperDescr(warrays, WrapperConf("", "scala", "Array")))
   val b = new SModuleBuilder
 
-  describe("Rep removing") {
+  describe("Ref removing") {
     context.addUnit(colsVirt)
     val trans = new TypeTransformerInAst(new RepTypeRemover())
     def test(m: SUnitDef, typeIn: SUnitDef => STpeExpr): Unit = {

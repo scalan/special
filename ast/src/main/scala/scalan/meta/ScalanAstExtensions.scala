@@ -29,7 +29,7 @@ object ScalanAstExtensions {
             if (config.isVirtualized || arg.isTypeDesc)
               s"${arg.name}: ${arg.tpe}"
             else
-              s"${arg.name}: Rep[${arg.tpe}]"
+              s"${arg.name}: Ref[${arg.tpe}]"
         }
       }
     }
@@ -38,7 +38,7 @@ object ScalanAstExtensions {
       if (isVirtualized) {
         as.args.map({ a =>
           val res = a.tpe.unRep(module, isVirtualized)
-          res.getOrElse { sys.error(s"Invalid field $a. Fields of concrete classes should be of type Rep[T] for some T.") }
+          res.getOrElse { sys.error(s"Invalid field $a. Fields of concrete classes should be of type Ref[T] for some T.") }
         })
       }
       else
@@ -109,7 +109,7 @@ object ScalanAstExtensions {
 
       val tRes = md.tpeRes.getOrElse(error)
       if (config.isVirtualized) tRes.toString
-      else s"Rep[$tRes]"
+      else s"Ref[$tRes]"
     }
 
     def declaration(config: UnitConfig, includeOverride: Boolean) = {

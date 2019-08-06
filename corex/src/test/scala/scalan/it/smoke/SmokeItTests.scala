@@ -5,118 +5,118 @@ import scalan.it.BaseItTests
 
 trait SmokeProg extends ScalanEx {
 
-  lazy val simpleArith = fun {x: Rep[Int] => x*x + 2}
+  lazy val simpleArith = fun {x: Ref[Int] => x*x + 2}
 
-//  lazy val simpleArrGet = fun {in: Rep[(Array[Int], Int)] =>
+//  lazy val simpleArrGet = fun {in: Ref[(Array[Int], Int)] =>
 //    val arr = in._1
 //    val ind = in._2
 //    arr(ind)
 //  }
-//  lazy val simpleMap = fun {x: Rep[Array[Int]] =>
-//    val x1 = x.map {y:Rep[Int] => y+1}
+//  lazy val simpleMap = fun {x: Ref[Array[Int]] =>
+//    val x1 = x.map {y:Ref[Int] => y+1}
 //    x1
 //  }
-//  lazy val simpleMapNested = fun {x: Rep[(Array[Array[Double]], Int)] =>
-//    val x1 = x._1.map {y:Rep[Array[Double]] => y(x._2)}
+//  lazy val simpleMapNested = fun {x: Ref[(Array[Array[Double]], Int)] =>
+//    val x1 = x._1.map {y:Ref[Array[Double]] => y(x._2)}
 //    x1
 //  }
-//  lazy val simpleZip = fun {x: Rep[Array[Int]] =>
-//    val x1 = x.map {y:Rep[Int] => y+2}
+//  lazy val simpleZip = fun {x: Ref[Array[Int]] =>
+//    val x1 = x.map {y:Ref[Int] => y+2}
 //    x1 zip x
 //  }
-//  lazy val simpleZipWith = fun {x: Rep[Array[Int]] =>
-//    val x1 = x.map {y:Rep[Int] => y+3}
+//  lazy val simpleZipWith = fun {x: Ref[Array[Int]] =>
+//    val x1 = x.map {y:Ref[Int] => y+3}
 //    val x2 = x1 zip x
-//    val x3 = x2.map {y:Rep[(Int,Int)] => y._1 * y._2}
+//    val x3 = x2.map {y:Ref[(Int,Int)] => y._1 * y._2}
 //    x3
 //  }
 //
-//  lazy val simpleReduce = fun {x: Rep[Array[Int]] =>
+//  lazy val simpleReduce = fun {x: Ref[Array[Int]] =>
 //    val x1 = x.reduce
 //    x1
 //  }
-//  lazy val mvMul = fun { in:Rep[(Array[Array[Int]], Array[Int])] =>
+//  lazy val mvMul = fun { in:Ref[(Array[Array[Int]], Array[Int])] =>
 //    val mat = in._1
 //    val vec = in._2
-//    val res = mat map {row: Rep[Array[Int]] =>
+//    val res = mat map {row: Ref[Array[Int]] =>
 //      val x1 = row zip vec
-//      val x2 = x1.map {y:Rep[(Int,Int)] => y._1 * y._2}
+//      val x2 = x1.map {y:Ref[(Int,Int)] => y._1 * y._2}
 //      x2.reduce
 //    }
 //    res
 //  }
 //
-//  lazy val simpleIf = fun { in: Rep[(Array[Double], Double)] =>
+//  lazy val simpleIf = fun { in: Ref[(Array[Double], Double)] =>
 //    val res = IF (in._2 === 0.0) THEN { in._1 map (x => x/2.0) } ELSE { IF ( in._2 < 0.0) THEN { in._1 map (x => (x*(-1.0))/in._2) } ELSE {in._1 map (x => x/in._2) } }
 //    res.reduce
 //  }
 
-  lazy val simpleSum = fun { x: Rep[Int] =>
+  lazy val simpleSum = fun { x: Ref[Int] =>
     val l = x.asLeft[Unit].mapSum(_ + 7, identity)
     val r = x.asRight[Unit].mapSum(identity, _ + 3)
     (l, r)
   }
 
-  lazy val sumOps = fun { x: Rep[Either[Unit, Int]] =>
+  lazy val sumOps = fun { x: Ref[Either[Unit, Int]] =>
     x.fold(_ => x.isLeft, _ => x.isRight)
   }
 
-  lazy val optionOps = fun { x: Rep[Int] =>
+  lazy val optionOps = fun { x: Ref[Int] =>
     val d = 19
     val l = SOptional.none[Int].map(_ + 3)
     val r = SOptional.some(x).map(_ + 7).flatMap(x => SOptional.some(x * 2))
     (l.getOrElse(d), r.getOrElse(d))
   }
 
-  lazy val lambdaApply = fun2 { (x: Rep[Int], f: Rep[Int => Int]) =>
+  lazy val lambdaApply = fun2 { (x: Ref[Int], f: Ref[Int => Int]) =>
     f(x)
   }
 
-  lazy val lambdaConst = fun { x: Rep[Int] =>
-    val f = fun { x: Rep[Int] => true }
+  lazy val lambdaConst = fun { x: Ref[Int] =>
+    val f = fun { x: Ref[Int] => true }
     SOptional.some(f)
   }
 
-  lazy val logicalOps = fun2 { (x: Rep[Boolean], y: Rep[Boolean]) =>
+  lazy val logicalOps = fun2 { (x: Ref[Boolean], y: Ref[Boolean]) =>
     val a = !x && y
     val b = x || !y
     (a, b)
   }
 
-//  lazy val arrayUpdate = fun {in: Rep[Array[Int]] => val f = {a:Rep[Array[Int]] => a.update(0,1)}; f(in)}
+//  lazy val arrayUpdate = fun {in: Ref[Array[Int]] => val f = {a:Ref[Array[Int]] => a.update(0,1)}; f(in)}
 //
-//  lazy val filterCompound = fun { in: Rep[Array[(Int, (Int, Int))]] =>
+//  lazy val filterCompound = fun { in: Ref[Array[(Int, (Int, Int))]] =>
 //    in.filter(x => x._1 >= 20 && x._2 >= x._1 && x._3 < 30)
 //  }
 //
-//  lazy val aggregates = fun { in: Rep[Array[Int]] =>
+//  lazy val aggregates = fun { in: Ref[Array[Int]] =>
 //    (in.min, in.max, in.sum, in.avg)
 //  }
 //
-//  lazy val sortBy = fun { in: Rep[Array[(Int, Int)]] =>
+//  lazy val sortBy = fun { in: Ref[Array[(Int, Int)]] =>
 //    in.sortBy(fun { p => p._1})
 //  }
 //
-//  lazy val reuseTest = fun { len: Rep[Int] =>
-//    val matrix: Rep[Array[Array[Int]]] = SArray.tabulate[Array[Int]](len) { n => SArray.tabulate[Int](n) { i => i}}
+//  lazy val reuseTest = fun { len: Ref[Int] =>
+//    val matrix: Ref[Array[Array[Int]]] = SArray.tabulate[Array[Int]](len) { n => SArray.tabulate[Int](n) { i => i}}
 //    matrix.map(row => row.reduce) zip matrix.map(row => row.reduce * 2)
 //  }
 //
-//  lazy val arrayEmpty = fun { _:Rep[Int] => SArray.empty[Int]}
+//  lazy val arrayEmpty = fun { _:Ref[Int] => SArray.empty[Int]}
 //
-//  lazy val arrayReplicate = fun {in:Rep[(Int,Double)] =>
+//  lazy val arrayReplicate = fun {in:Ref[(Int,Double)] =>
 //    SArray.replicate(in._1, in._2)
 //  }
 
-  lazy val randoms = fun { in: Rep[(Int, Double)] =>
+  lazy val randoms = fun { in: Ref[(Int, Double)] =>
     val Pair(i, d) = in
     Pair(random(i), random(d))
   }
 
-//  lazy val emptyNestedUnitArray = fun {_ : Rep[Int] => array_empty[Array[Unit]]}
+//  lazy val emptyNestedUnitArray = fun {_ : Ref[Int] => array_empty[Array[Unit]]}
 //
 //
-//  lazy val pairIf = fun { in: Rep[(Int, Array[Int])] =>
+//  lazy val pairIf = fun { in: Ref[(Int, Array[Int])] =>
 //    val rs = IF (in._1 > 0) THEN {
 //      val red = in._2.reduce
 //      (red + 1, red - 1)
@@ -126,47 +126,47 @@ trait SmokeProg extends ScalanEx {
 //    rs._1 + rs._2
 //  }
 //
-//  lazy val arrayUpdateMany = fun { in: Rep[(Array[Int], (Array[Int], Array[Int]))] => array_updateMany(in._1, in._2, in._3) }
+//  lazy val arrayUpdateMany = fun { in: Ref[(Array[Int], (Array[Int], Array[Int]))] => array_updateMany(in._1, in._2, in._3) }
 //
-//  lazy val listRangeFrom0 = fun { n: Rep[Int] => SList.rangeFrom0(n) }
+//  lazy val listRangeFrom0 = fun { n: Ref[Int] => SList.rangeFrom0(n) }
 //
-//  lazy val applyLambda2Array = fun {arr: Rep[Array[Int]] =>
-//    def isMatch(arr: Rep[Array[Int]]) = arr.length > 3
-//    def step(arr: Rep[Array[Int]]): Rep[Array[Int]] = arr map {a => a + 2}
+//  lazy val applyLambda2Array = fun {arr: Ref[Array[Int]] =>
+//    def isMatch(arr: Ref[Array[Int]]) = arr.length > 3
+//    def step(arr: Ref[Array[Int]]): Ref[Array[Int]] = arr map {a => a + 2}
 //
 //    from(arr).until(isMatch)(step)
 //  }
 //
-//  lazy val fillArrayBuffer = fun { in: Rep[Array[Int]] =>
-//    in.fold(ArrayBuffer.empty[Int], (state: Rep[ArrayBuffer[Int]], x: Rep[Int]) => state += x).toArray
+//  lazy val fillArrayBuffer = fun { in: Ref[Array[Int]] =>
+//    in.fold(ArrayBuffer.empty[Int], (state: Ref[ArrayBuffer[Int]], x: Ref[Int]) => state += x).toArray
 //  }
 //
-//  lazy val makeArrayBuffer = fun { in: Rep[Array[Int]] =>
-//    in.fold(ArrayBuffer.make[Int]("testArrayBuffer"), (state: Rep[ArrayBuffer[Int]], x: Rep[Int]) => state += x).toArray
+//  lazy val makeArrayBuffer = fun { in: Ref[Array[Int]] =>
+//    in.fold(ArrayBuffer.make[Int]("testArrayBuffer"), (state: Ref[ArrayBuffer[Int]], x: Ref[Int]) => state += x).toArray
 //  }
 
-  lazy val stringCompare = fun { in: Rep[(String, String)] =>
+  lazy val stringCompare = fun { in: Ref[(String, String)] =>
     val Pair(a,b) = in
     a.compare(b)
   }
 
-  lazy val stringMax = fun { in: Rep[(String, String)] =>
+  lazy val stringMax = fun { in: Ref[(String, String)] =>
     val Pair(a,b) = in
     a.max(b)
   }
-  //    lazy val absTest = fun {x: Rep[Float] =>
+  //    lazy val absTest = fun {x: Ref[Float] =>
   //      x.abs
   //    }
   //
-  //    lazy val logTest = fun {x: Rep[(Double, Double)] =>
+  //    lazy val logTest = fun {x: Ref[(Double, Double)] =>
   //      Pair(Math.log(x._1), Math.log(x._2))
   //    }
   //
   //    // sums elements of an array in imperative way
   //    lazy val simpleLoop = fun {x: PA[Int] =>
   //      val s = loopUntil((0, 0)) (
-  //      {s: Rep[(Int, Int)] => s._2 >= x.length},
-  //      {s: Rep[(Int, Int)] => (s._1 + x(s._2), s._2 + 1): Rep[(Int, Int)]}
+  //      {s: Ref[(Int, Int)] => s._2 >= x.length},
+  //      {s: Ref[(Int, Int)] => (s._1 + x(s._2), s._2 + 1): Ref[(Int, Int)]}
   //      )
   //      singleton(s._1)
   //    }
@@ -177,8 +177,8 @@ trait SmokeProg extends ScalanEx {
   //
   //    lazy val simpleLoop2 = fun {x: PA[Int] =>
   //      val res = loopUntil(0) (
-  //        {s: Rep[Int] => s >= x.length},
-  //        {s: Rep[Int] => s + 1}
+  //        {s: Ref[Int] => s >= x.length},
+  //        {s: Ref[Int] => s + 1}
   //      )
   //      singleton(res)
   //    }
@@ -206,16 +206,16 @@ trait SmokeProg extends ScalanEx {
   //
   //    lazy val curredPlusMap = fun { xs: PA[Int] => xs.map { x => curred(x)(x) }}
   //
-  //    lazy val isEven = fun { x: Rep[Int] => (x % 2) === 0 }
+  //    lazy val isEven = fun { x: Ref[Int] => (x % 2) === 0 }
   //
   //    lazy val filterEven = fun {xs: PA[Int] => xs.filter(x => isEven(x)) }
   //
   //    lazy val filterPositive = fun {xs: PA[Int] => xs.filter(x => x > 0)}
   //
   //    lazy val div2Reduce = fun {xs: PA[Int] =>
-  //      implicit val DivBy2Monoid: Monoid[Rep[Int]] = new Monoid[Rep[Int]] {
-  //        val zero: Rep[Int] = 0
-  //        def append(x: Rep[Int], y: =>Rep[Int]): Rep[Int] = (x + y) % 2
+  //      implicit val DivBy2Monoid: Monoid[Ref[Int]] = new Monoid[Ref[Int]] {
+  //        val zero: Ref[Int] = 0
+  //        def append(x: Ref[Int], y: =>Ref[Int]): Ref[Int] = (x + y) % 2
   //        def opName = "myMonoid"
   //        def isInfix = true
   //      }
@@ -239,19 +239,19 @@ trait SmokeProg extends ScalanEx {
   //    }
   //
   //    lazy val flatMap1 = fun { xs: PA[Int] =>
-  //      xs.flatMap{x: Rep[Int] => replicate(x, x)}
+  //      xs.flatMap{x: Ref[Int] => replicate(x, x)}
   //    }
   //
   //    lazy val flatMap2 = fun { xs: PA[Int] =>
-  //      xs.flatMap{x: Rep[Int] => replicate(x, x).flatMap{x: Rep[Int] => replicate(x, x)}}
+  //      xs.flatMap{x: Ref[Int] => replicate(x, x).flatMap{x: Ref[Int] => replicate(x, x)}}
   //    }
   //
-  //    lazy val pairToArray = fun { p: Rep[(Int, Int)] =>
+  //    lazy val pairToArray = fun { p: Ref[(Int, Int)] =>
   //      val a: PA[Int] = replicate(2, p._1)
   //      a <<- (1, p._2)
   //    }
   //
-  //    lazy val doubleSwap = fun { p: Rep[(Double, Double)] =>
+  //    lazy val doubleSwap = fun { p: Ref[(Double, Double)] =>
   //      Pair(p._2, p._1)
   //    }
   //
@@ -264,22 +264,22 @@ trait SmokeProg extends ScalanEx {
   //    }
   //
   //    lazy val valuesOfNA = fun { p: NA[Int] => p.values}
-  //    lazy val valuesOfNA2 = fun { p: Rep[PArray[PArray[PArray[Int]]]] => p.values.values}
+  //    lazy val valuesOfNA2 = fun { p: Ref[PArray[PArray[PArray[Int]]]] => p.values.values}
   //
-  //    def sVecDVecDot(sv: PA[(Int, Float)], dv: PA[Float]): Rep[Float] = {
+  //    def sVecDVecDot(sv: PA[(Int, Float)], dv: PA[Float]): Ref[Float] = {
   //      val p = unzip(sv)
   //      val v2 =p._2 |*| dv.backPermute(p._1)
   //      sum(v2)
   //    }
   //
-  //    lazy val sMatDVecMul = fun {p : Rep[(PArray[PArray[(Int, Float)]], PArray[Float])] =>
+  //    lazy val sMatDVecMul = fun {p : Ref[(PArray[PArray[(Int, Float)]], PArray[Float])] =>
   //      val m = p._1
   //      val v = p._2
   //      m.map {row => sVecDVecDot(row, v)}
   //    }
   //
   //
-  //    lazy val fusion = fun {r: Rep[(PArray[Int], PArray[Int])] =>
+  //    lazy val fusion = fun {r: Ref[(PArray[Int], PArray[Int])] =>
   //      val a1 = r._1
   //      val a2 = a1.map{x => x * 2}
   //      val a3 = a2.map{x => x * 2}
@@ -292,13 +292,13 @@ trait SmokeProg extends ScalanEx {
   //      a3.zip(a7)
   //    }
   //
-  //    lazy val fusion1 = fun {a1: Rep[PArray[Int]] =>
+  //    lazy val fusion1 = fun {a1: Ref[PArray[Int]] =>
   //      val a2 = a1.map{x => x * 2}
   //      val a3 = a2.map{x => x * 2}
   //      a3
   //    }
   //
-  ////    lazy val expandScaledRangesFun = fun {in: Rep[(PArray[Int],Int)] =>
+  ////    lazy val expandScaledRangesFun = fun {in: Ref[(PArray[Int],Int)] =>
   ////      val Pair(is, scale) = in
   ////      expandScaledRanges(is, scale)
   ////    }

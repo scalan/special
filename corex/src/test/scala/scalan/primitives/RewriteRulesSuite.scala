@@ -13,7 +13,7 @@ class RewriteRulesSuite extends BaseShouldTests {
     lazy val testLemma = postulate[Int, Int, Int, Int]((x, y, z) => x * y + x * z <=> x * (y + z))
     lazy val rule = patternRewriteRule(testLemma)
 
-    lazy val test = {(x: Rep[Int]) => x * 10 + x * 20}
+    lazy val test = {(x: Ref[Int]) => x * 10 + x * 20}
     lazy val testFunc = fun(test)
   }
 

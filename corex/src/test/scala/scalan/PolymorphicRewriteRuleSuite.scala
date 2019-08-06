@@ -11,7 +11,7 @@ class PolymorphicRewriteRuleSuite extends BaseShouldTests {
     //
     //    lazy val test = {(x: IntRep) => x * 10 + x * 20}
     //    lazy val testFunc = fun(test)
-    case class Id[T](x: Rep[T])(implicit selfType: Elem[T]) extends BaseDef[T] {
+    case class Id[T](x: Ref[T])(implicit selfType: Elem[T]) extends BaseDef[T] {
       override def transform(t: Transformer) = Id(t(x))
     }
     // We do _not_ want to use rewrite
@@ -27,8 +27,8 @@ class PolymorphicRewriteRuleSuite extends BaseShouldTests {
     pending
     val ctx = getCtx
     import ctx._
-    val c0: Rep[Int] = Const(0)
-    val ic0: Rep[Int] = Id(Const(0))
+    val c0: Ref[Int] = Const(0)
+    val ic0: Ref[Int] = Id(Const(0))
     ic0 should equal(c0)
   }
 }

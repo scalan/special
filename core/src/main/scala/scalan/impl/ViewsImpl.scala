@@ -25,7 +25,7 @@ object IsoUR extends EntityObject("IsoUR") {
   private val IsoURClass = classOf[IsoUR[_, _]]
 
   // entityAdapter for IsoUR trait
-  case class IsoURAdapter[From, To](source: Rep[IsoUR[From, To]])
+  case class IsoURAdapter[From, To](source: Ref[IsoUR[From, To]])
       extends IsoUR[From, To]
       with Def[IsoUR[From, To]] {
     implicit lazy val eFrom = source.elem.typeArgs("From")._1.asElem[From];
@@ -34,14 +34,14 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
     val resultType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
     override def transform(t: Transformer) = IsoURAdapter[From, To](t(source))
 
-    def from(p: Rep[To]): Rep[From] = {
+    def from(p: Ref[To]): Ref[From] = {
       asRep[From](mkMethodCall(source,
         IsoURClass.getMethod("from", classOf[Sym]),
         Array[AnyRef](p),
         true, true, element[From]))
     }
 
-    def to(p: Rep[From]): Rep[To] = {
+    def to(p: Ref[From]): Ref[To] = {
       asRep[To](mkMethodCall(source,
         IsoURClass.getMethod("to", classOf[Sym]),
         Array[AnyRef](p),
@@ -50,7 +50,7 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyIsoUR[From, To](p: Rep[IsoUR[From, To]]): IsoUR[From, To] = {
+  implicit def proxyIsoUR[From, To](p: Ref[IsoUR[From, To]]): IsoUR[From, To] = {
     if (p.rhs.isInstanceOf[IsoUR[From, To]@unchecked]) p.rhs.asInstanceOf[IsoUR[From, To]]
     else
       IsoURAdapter(p)
@@ -74,10 +74,10 @@ implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
     def resultType = IsoURCompanionElem
     override def toString = "IsoUR"
   }
-  implicit def proxyIsoURCompanionCtor(p: Rep[IsoURCompanionCtor]): IsoURCompanionCtor =
+  implicit def proxyIsoURCompanionCtor(p: Ref[IsoURCompanionCtor]): IsoURCompanionCtor =
     p.rhs.asInstanceOf[IsoURCompanionCtor]
 
-  lazy val RIsoUR: Rep[IsoURCompanionCtor] = new IsoURCompanionCtor {
+  lazy val RIsoUR: Ref[IsoURCompanionCtor] = new IsoURCompanionCtor {
   }
 } // of object IsoUR
   registerEntityObject("IsoUR", IsoUR)
@@ -86,7 +86,7 @@ object Iso1UR extends EntityObject("Iso1UR") {
   private val Iso1URClass = classOf[Iso1UR[_, _, C] forSome {type C[_]}]
 
   // entityAdapter for Iso1UR trait
-  case class Iso1URAdapter[A, B, C[_]](source: Rep[Iso1UR[A, B, C]])
+  case class Iso1URAdapter[A, B, C[_]](source: Ref[Iso1UR[A, B, C]])
       extends Iso1UR[A, B, C]
       with Def[Iso1UR[A, B, C]] {
     implicit override lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
@@ -103,14 +103,14 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
         true, true, element[IsoUR[A, B]]))
     }
 
-    def from(p: Rep[C[B]]): Rep[C[A]] = {
+    def from(p: Ref[C[B]]): Ref[C[A]] = {
       asRep[C[A]](mkMethodCall(source,
         Iso1URClass.getMethod("from", classOf[Sym]),
         Array[AnyRef](p),
         true, true, element[C[A]]))
     }
 
-    def to(p: Rep[C[A]]): Rep[C[B]] = {
+    def to(p: Ref[C[A]]): Ref[C[B]] = {
       asRep[C[B]](mkMethodCall(source,
         Iso1URClass.getMethod("to", classOf[Sym]),
         Array[AnyRef](p),
@@ -119,7 +119,7 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyIso1UR[A, B, C[_]](p: Rep[Iso1UR[A, B, C]]): Iso1UR[A, B, C] = {
+  implicit def proxyIso1UR[A, B, C[_]](p: Ref[Iso1UR[A, B, C]]): Iso1UR[A, B, C] = {
     if (p.rhs.isInstanceOf[Iso1UR[A, B, C]@unchecked]) p.rhs.asInstanceOf[Iso1UR[A, B, C]]
     else
       Iso1URAdapter(p)
@@ -145,10 +145,10 @@ implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
     def resultType = Iso1URCompanionElem
     override def toString = "Iso1UR"
   }
-  implicit def proxyIso1URCompanionCtor(p: Rep[Iso1URCompanionCtor]): Iso1URCompanionCtor =
+  implicit def proxyIso1URCompanionCtor(p: Ref[Iso1URCompanionCtor]): Iso1URCompanionCtor =
     p.rhs.asInstanceOf[Iso1URCompanionCtor]
 
-  lazy val RIso1UR: Rep[Iso1URCompanionCtor] = new Iso1URCompanionCtor {
+  lazy val RIso1UR: Ref[Iso1URCompanionCtor] = new Iso1URCompanionCtor {
   }
 } // of object Iso1UR
   registerEntityObject("Iso1UR", Iso1UR)
@@ -175,10 +175,10 @@ object IdentityIso extends EntityObject("IdentityIso") {
   class IdentityIsoIso[A](implicit eA: Elem[A])
     extends EntityIso[IdentityIsoData[A], IdentityIso[A]] with Def[IdentityIsoIso[A]] {
     override def transform(t: Transformer) = new IdentityIsoIso[A]()(eA)
-    private lazy val _safeFrom = fun { p: Rep[IdentityIso[A]] => () }
-    override def from(p: Rep[IdentityIso[A]]) =
+    private lazy val _safeFrom = fun { p: Ref[IdentityIso[A]] => () }
+    override def from(p: Ref[IdentityIso[A]]) =
       tryConvert[IdentityIso[A], Unit](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Unit]) = {
+    override def to(p: Ref[Unit]) = {
       val unit = p
       RIdentityIso()
     }
@@ -196,19 +196,19 @@ object IdentityIso extends EntityObject("IdentityIso") {
     def resultType = IdentityIsoCompanionElem
     override def toString = "IdentityIsoCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A](p: Rep[IdentityIsoData[A]])(implicit eA: Elem[A]): Rep[IdentityIso[A]] = {
+    def apply[A](p: Ref[IdentityIsoData[A]])(implicit eA: Elem[A]): Ref[IdentityIso[A]] = {
       isoIdentityIso[A].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A]()(implicit eA: Elem[A]): Rep[IdentityIso[A]] =
+    def apply[A]()(implicit eA: Elem[A]): Ref[IdentityIso[A]] =
       mkIdentityIso()
 
-    def unapply[A](p: Rep[IsoUR[A, A]]) = unmkIdentityIso(p)
+    def unapply[A](p: Ref[IsoUR[A, A]]) = unmkIdentityIso(p)
   }
-  lazy val IdentityIsoRep: Rep[IdentityIsoCompanionCtor] = new IdentityIsoCompanionCtor
+  lazy val IdentityIsoRep: Ref[IdentityIsoCompanionCtor] = new IdentityIsoCompanionCtor
   lazy val RIdentityIso: IdentityIsoCompanionCtor = proxyIdentityIsoCompanion(IdentityIsoRep)
-  implicit def proxyIdentityIsoCompanion(p: Rep[IdentityIsoCompanionCtor]): IdentityIsoCompanionCtor = {
+  implicit def proxyIdentityIsoCompanion(p: Ref[IdentityIsoCompanionCtor]): IdentityIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[IdentityIsoCompanionCtor])
       p.rhs.asInstanceOf[IdentityIsoCompanionCtor]
     else
@@ -217,15 +217,15 @@ object IdentityIso extends EntityObject("IdentityIso") {
 
   implicit case object IdentityIsoCompanionElem extends CompanionElem[IdentityIsoCompanionCtor]
 
-  implicit def proxyIdentityIso[A](p: Rep[IdentityIso[A]]): IdentityIso[A] = {
+  implicit def proxyIdentityIso[A](p: Ref[IdentityIso[A]]): IdentityIso[A] = {
     if (p.rhs.isInstanceOf[IdentityIso[A]@unchecked])
       p.rhs.asInstanceOf[IdentityIso[A]]
     else
       proxyOps[IdentityIso[A]](p)
   }
 
-  implicit class ExtendedIdentityIso[A](p: Rep[IdentityIso[A]])(implicit eA: Elem[A]) {
-    def toData: Rep[IdentityIsoData[A]] = {
+  implicit class ExtendedIdentityIso[A](p: Ref[IdentityIso[A]])(implicit eA: Elem[A]) {
+    def toData: Ref[IdentityIsoData[A]] = {
       isoIdentityIso(eA).from(p)
     }
   }
@@ -235,10 +235,10 @@ object IdentityIso extends EntityObject("IdentityIso") {
     reifyObject(new IdentityIsoIso[A]()(eA))
 
   def mkIdentityIso[A]
-    ()(implicit eA: Elem[A]): Rep[IdentityIso[A]] = {
+    ()(implicit eA: Elem[A]): Ref[IdentityIso[A]] = {
     new IdentityIsoCtor[A]()
   }
-  def unmkIdentityIso[A](p: Rep[IsoUR[A, A]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkIdentityIso[A](p: Ref[IsoUR[A, A]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IdentityIsoElem[A] @unchecked =>
       Some(())
     case _ =>
@@ -275,10 +275,10 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   class PairIsoIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]] with Def[PairIsoIso[A1, A2, B1, B2]] {
     override def transform(t: Transformer) = new PairIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
-    private lazy val _safeFrom = fun { p: Rep[PairIso[A1, A2, B1, B2]] => (p.iso1, p.iso2) }
-    override def from(p: Rep[PairIso[A1, A2, B1, B2]]) =
+    private lazy val _safeFrom = fun { p: Ref[PairIso[A1, A2, B1, B2]] => (p.iso1, p.iso2) }
+    override def from(p: Ref[PairIso[A1, A2, B1, B2]]) =
       tryConvert[PairIso[A1, A2, B1, B2], (IsoUR[A1, B1], IsoUR[A2, B2])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(IsoUR[A1, B1], IsoUR[A2, B2])]) = {
+    override def to(p: Ref[(IsoUR[A1, B1], IsoUR[A2, B2])]) = {
       val Pair(iso1, iso2) = p
       RPairIso(iso1, iso2)
     }
@@ -301,7 +301,7 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     def resultType = PairIsoCompanionElem
     override def toString = "PairIsoCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A1, A2, B1, B2](p: Rep[PairIsoData[A1, A2, B1, B2]]): Rep[PairIso[A1, A2, B1, B2]] = {
+    def apply[A1, A2, B1, B2](p: Ref[PairIsoData[A1, A2, B1, B2]]): Ref[PairIso[A1, A2, B1, B2]] = {
       implicit val eA1 = p._1.eFrom;
 implicit val eA2 = p._2.eFrom;
 implicit val eB1 = p._1.eTo;
@@ -310,14 +310,14 @@ implicit val eB2 = p._2.eTo
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A1, A2, B1, B2](iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Rep[PairIso[A1, A2, B1, B2]] =
+    def apply[A1, A2, B1, B2](iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Ref[PairIso[A1, A2, B1, B2]] =
       mkPairIso(iso1, iso2)
 
-    def unapply[A1, A2, B1, B2](p: Rep[IsoUR[(A1, A2), (B1, B2)]]) = unmkPairIso(p)
+    def unapply[A1, A2, B1, B2](p: Ref[IsoUR[(A1, A2), (B1, B2)]]) = unmkPairIso(p)
   }
-  lazy val PairIsoRep: Rep[PairIsoCompanionCtor] = new PairIsoCompanionCtor
+  lazy val PairIsoRep: Ref[PairIsoCompanionCtor] = new PairIsoCompanionCtor
   lazy val RPairIso: PairIsoCompanionCtor = proxyPairIsoCompanion(PairIsoRep)
-  implicit def proxyPairIsoCompanion(p: Rep[PairIsoCompanionCtor]): PairIsoCompanionCtor = {
+  implicit def proxyPairIsoCompanion(p: Ref[PairIsoCompanionCtor]): PairIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[PairIsoCompanionCtor])
       p.rhs.asInstanceOf[PairIsoCompanionCtor]
     else
@@ -326,15 +326,15 @@ implicit val eB2 = p._2.eTo
 
   implicit case object PairIsoCompanionElem extends CompanionElem[PairIsoCompanionCtor]
 
-  implicit def proxyPairIso[A1, A2, B1, B2](p: Rep[PairIso[A1, A2, B1, B2]]): PairIso[A1, A2, B1, B2] = {
+  implicit def proxyPairIso[A1, A2, B1, B2](p: Ref[PairIso[A1, A2, B1, B2]]): PairIso[A1, A2, B1, B2] = {
     if (p.rhs.isInstanceOf[PairIso[A1, A2, B1, B2]@unchecked])
       p.rhs.asInstanceOf[PairIso[A1, A2, B1, B2]]
     else
       proxyOps[PairIso[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedPairIso[A1, A2, B1, B2](p: Rep[PairIso[A1, A2, B1, B2]]) {
-    def toData: Rep[PairIsoData[A1, A2, B1, B2]] = {
+  implicit class ExtendedPairIso[A1, A2, B1, B2](p: Ref[PairIso[A1, A2, B1, B2]]) {
+    def toData: Ref[PairIsoData[A1, A2, B1, B2]] = {
       implicit val eA1 = p.iso1.eFrom;
 implicit val eA2 = p.iso2.eFrom;
 implicit val eB1 = p.iso1.eTo;
@@ -348,10 +348,10 @@ implicit val eB2 = p.iso2.eTo
     reifyObject(new PairIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
 
   def mkPairIso[A1, A2, B1, B2]
-    (iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Rep[PairIso[A1, A2, B1, B2]] = {
+    (iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Ref[PairIso[A1, A2, B1, B2]] = {
     new PairIsoCtor[A1, A2, B1, B2](iso1, iso2)
   }
-  def unmkPairIso[A1, A2, B1, B2](p: Rep[IsoUR[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkPairIso[A1, A2, B1, B2](p: Ref[IsoUR[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: PairIsoElem[A1, A2, B1, B2] @unchecked =>
       Some((asRep[PairIso[A1, A2, B1, B2]](p).iso1, asRep[PairIso[A1, A2, B1, B2]](p).iso2))
     case _ =>
@@ -386,10 +386,10 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
   class AbsorbFirstUnitIsoIso[A2, B2](implicit eA2: Elem[A2], eB2: Elem[B2])
     extends EntityIso[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]] with Def[AbsorbFirstUnitIsoIso[A2, B2]] {
     override def transform(t: Transformer) = new AbsorbFirstUnitIsoIso[A2, B2]()(eA2, eB2)
-    private lazy val _safeFrom = fun { p: Rep[AbsorbFirstUnitIso[A2, B2]] => p.iso2 }
-    override def from(p: Rep[AbsorbFirstUnitIso[A2, B2]]) =
+    private lazy val _safeFrom = fun { p: Ref[AbsorbFirstUnitIso[A2, B2]] => p.iso2 }
+    override def from(p: Ref[AbsorbFirstUnitIso[A2, B2]]) =
       tryConvert[AbsorbFirstUnitIso[A2, B2], IsoUR[A2, B2]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[IsoUR[A2, B2]]) = {
+    override def to(p: Ref[IsoUR[A2, B2]]) = {
       val iso2 = p
       RAbsorbFirstUnitIso(iso2)
     }
@@ -411,14 +411,14 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     override def toString = "AbsorbFirstUnitIsoCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[A2, B2](iso2: Iso[A2, B2]): Rep[AbsorbFirstUnitIso[A2, B2]] =
+    def apply[A2, B2](iso2: Iso[A2, B2]): Ref[AbsorbFirstUnitIso[A2, B2]] =
       mkAbsorbFirstUnitIso(iso2)
 
-    def unapply[A2, B2](p: Rep[IsoUR[A2, (Unit, B2)]]) = unmkAbsorbFirstUnitIso(p)
+    def unapply[A2, B2](p: Ref[IsoUR[A2, (Unit, B2)]]) = unmkAbsorbFirstUnitIso(p)
   }
-  lazy val AbsorbFirstUnitIsoRep: Rep[AbsorbFirstUnitIsoCompanionCtor] = new AbsorbFirstUnitIsoCompanionCtor
+  lazy val AbsorbFirstUnitIsoRep: Ref[AbsorbFirstUnitIsoCompanionCtor] = new AbsorbFirstUnitIsoCompanionCtor
   lazy val RAbsorbFirstUnitIso: AbsorbFirstUnitIsoCompanionCtor = proxyAbsorbFirstUnitIsoCompanion(AbsorbFirstUnitIsoRep)
-  implicit def proxyAbsorbFirstUnitIsoCompanion(p: Rep[AbsorbFirstUnitIsoCompanionCtor]): AbsorbFirstUnitIsoCompanionCtor = {
+  implicit def proxyAbsorbFirstUnitIsoCompanion(p: Ref[AbsorbFirstUnitIsoCompanionCtor]): AbsorbFirstUnitIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[AbsorbFirstUnitIsoCompanionCtor])
       p.rhs.asInstanceOf[AbsorbFirstUnitIsoCompanionCtor]
     else
@@ -427,15 +427,15 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
 
   implicit case object AbsorbFirstUnitIsoCompanionElem extends CompanionElem[AbsorbFirstUnitIsoCompanionCtor]
 
-  implicit def proxyAbsorbFirstUnitIso[A2, B2](p: Rep[AbsorbFirstUnitIso[A2, B2]]): AbsorbFirstUnitIso[A2, B2] = {
+  implicit def proxyAbsorbFirstUnitIso[A2, B2](p: Ref[AbsorbFirstUnitIso[A2, B2]]): AbsorbFirstUnitIso[A2, B2] = {
     if (p.rhs.isInstanceOf[AbsorbFirstUnitIso[A2, B2]@unchecked])
       p.rhs.asInstanceOf[AbsorbFirstUnitIso[A2, B2]]
     else
       proxyOps[AbsorbFirstUnitIso[A2, B2]](p)
   }
 
-  implicit class ExtendedAbsorbFirstUnitIso[A2, B2](p: Rep[AbsorbFirstUnitIso[A2, B2]]) {
-    def toData: Rep[AbsorbFirstUnitIsoData[A2, B2]] = {
+  implicit class ExtendedAbsorbFirstUnitIso[A2, B2](p: Ref[AbsorbFirstUnitIso[A2, B2]]) {
+    def toData: Ref[AbsorbFirstUnitIsoData[A2, B2]] = {
       implicit val eA2 = p.iso2.eFrom;
 implicit val eB2 = p.iso2.eTo
       isoAbsorbFirstUnitIso(eA2, eB2).from(p)
@@ -447,10 +447,10 @@ implicit val eB2 = p.iso2.eTo
     reifyObject(new AbsorbFirstUnitIsoIso[A2, B2]()(eA2, eB2))
 
   def mkAbsorbFirstUnitIso[A2, B2]
-    (iso2: Iso[A2, B2]): Rep[AbsorbFirstUnitIso[A2, B2]] = {
+    (iso2: Iso[A2, B2]): Ref[AbsorbFirstUnitIso[A2, B2]] = {
     new AbsorbFirstUnitIsoCtor[A2, B2](iso2)
   }
-  def unmkAbsorbFirstUnitIso[A2, B2](p: Rep[IsoUR[A2, (Unit, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkAbsorbFirstUnitIso[A2, B2](p: Ref[IsoUR[A2, (Unit, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: AbsorbFirstUnitIsoElem[A2, B2] @unchecked =>
       Some((asRep[AbsorbFirstUnitIso[A2, B2]](p).iso2))
     case _ =>
@@ -485,10 +485,10 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
   class AbsorbSecondUnitIsoIso[A1, B1](implicit eA1: Elem[A1], eB1: Elem[B1])
     extends EntityIso[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]] with Def[AbsorbSecondUnitIsoIso[A1, B1]] {
     override def transform(t: Transformer) = new AbsorbSecondUnitIsoIso[A1, B1]()(eA1, eB1)
-    private lazy val _safeFrom = fun { p: Rep[AbsorbSecondUnitIso[A1, B1]] => p.iso1 }
-    override def from(p: Rep[AbsorbSecondUnitIso[A1, B1]]) =
+    private lazy val _safeFrom = fun { p: Ref[AbsorbSecondUnitIso[A1, B1]] => p.iso1 }
+    override def from(p: Ref[AbsorbSecondUnitIso[A1, B1]]) =
       tryConvert[AbsorbSecondUnitIso[A1, B1], IsoUR[A1, B1]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[IsoUR[A1, B1]]) = {
+    override def to(p: Ref[IsoUR[A1, B1]]) = {
       val iso1 = p
       RAbsorbSecondUnitIso(iso1)
     }
@@ -510,14 +510,14 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     override def toString = "AbsorbSecondUnitIsoCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[A1, B1](iso1: Iso[A1, B1]): Rep[AbsorbSecondUnitIso[A1, B1]] =
+    def apply[A1, B1](iso1: Iso[A1, B1]): Ref[AbsorbSecondUnitIso[A1, B1]] =
       mkAbsorbSecondUnitIso(iso1)
 
-    def unapply[A1, B1](p: Rep[IsoUR[A1, (B1, Unit)]]) = unmkAbsorbSecondUnitIso(p)
+    def unapply[A1, B1](p: Ref[IsoUR[A1, (B1, Unit)]]) = unmkAbsorbSecondUnitIso(p)
   }
-  lazy val AbsorbSecondUnitIsoRep: Rep[AbsorbSecondUnitIsoCompanionCtor] = new AbsorbSecondUnitIsoCompanionCtor
+  lazy val AbsorbSecondUnitIsoRep: Ref[AbsorbSecondUnitIsoCompanionCtor] = new AbsorbSecondUnitIsoCompanionCtor
   lazy val RAbsorbSecondUnitIso: AbsorbSecondUnitIsoCompanionCtor = proxyAbsorbSecondUnitIsoCompanion(AbsorbSecondUnitIsoRep)
-  implicit def proxyAbsorbSecondUnitIsoCompanion(p: Rep[AbsorbSecondUnitIsoCompanionCtor]): AbsorbSecondUnitIsoCompanionCtor = {
+  implicit def proxyAbsorbSecondUnitIsoCompanion(p: Ref[AbsorbSecondUnitIsoCompanionCtor]): AbsorbSecondUnitIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[AbsorbSecondUnitIsoCompanionCtor])
       p.rhs.asInstanceOf[AbsorbSecondUnitIsoCompanionCtor]
     else
@@ -526,15 +526,15 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
 
   implicit case object AbsorbSecondUnitIsoCompanionElem extends CompanionElem[AbsorbSecondUnitIsoCompanionCtor]
 
-  implicit def proxyAbsorbSecondUnitIso[A1, B1](p: Rep[AbsorbSecondUnitIso[A1, B1]]): AbsorbSecondUnitIso[A1, B1] = {
+  implicit def proxyAbsorbSecondUnitIso[A1, B1](p: Ref[AbsorbSecondUnitIso[A1, B1]]): AbsorbSecondUnitIso[A1, B1] = {
     if (p.rhs.isInstanceOf[AbsorbSecondUnitIso[A1, B1]@unchecked])
       p.rhs.asInstanceOf[AbsorbSecondUnitIso[A1, B1]]
     else
       proxyOps[AbsorbSecondUnitIso[A1, B1]](p)
   }
 
-  implicit class ExtendedAbsorbSecondUnitIso[A1, B1](p: Rep[AbsorbSecondUnitIso[A1, B1]]) {
-    def toData: Rep[AbsorbSecondUnitIsoData[A1, B1]] = {
+  implicit class ExtendedAbsorbSecondUnitIso[A1, B1](p: Ref[AbsorbSecondUnitIso[A1, B1]]) {
+    def toData: Ref[AbsorbSecondUnitIsoData[A1, B1]] = {
       implicit val eA1 = p.iso1.eFrom;
 implicit val eB1 = p.iso1.eTo
       isoAbsorbSecondUnitIso(eA1, eB1).from(p)
@@ -546,10 +546,10 @@ implicit val eB1 = p.iso1.eTo
     reifyObject(new AbsorbSecondUnitIsoIso[A1, B1]()(eA1, eB1))
 
   def mkAbsorbSecondUnitIso[A1, B1]
-    (iso1: Iso[A1, B1]): Rep[AbsorbSecondUnitIso[A1, B1]] = {
+    (iso1: Iso[A1, B1]): Ref[AbsorbSecondUnitIso[A1, B1]] = {
     new AbsorbSecondUnitIsoCtor[A1, B1](iso1)
   }
-  def unmkAbsorbSecondUnitIso[A1, B1](p: Rep[IsoUR[A1, (B1, Unit)]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkAbsorbSecondUnitIso[A1, B1](p: Ref[IsoUR[A1, (B1, Unit)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: AbsorbSecondUnitIsoElem[A1, B1] @unchecked =>
       Some((asRep[AbsorbSecondUnitIso[A1, B1]](p).iso1))
     case _ =>
@@ -586,10 +586,10 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   class SumIsoIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]] with Def[SumIsoIso[A1, A2, B1, B2]] {
     override def transform(t: Transformer) = new SumIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
-    private lazy val _safeFrom = fun { p: Rep[SumIso[A1, A2, B1, B2]] => (p.iso1, p.iso2) }
-    override def from(p: Rep[SumIso[A1, A2, B1, B2]]) =
+    private lazy val _safeFrom = fun { p: Ref[SumIso[A1, A2, B1, B2]] => (p.iso1, p.iso2) }
+    override def from(p: Ref[SumIso[A1, A2, B1, B2]]) =
       tryConvert[SumIso[A1, A2, B1, B2], (IsoUR[A1, B1], IsoUR[A2, B2])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(IsoUR[A1, B1], IsoUR[A2, B2])]) = {
+    override def to(p: Ref[(IsoUR[A1, B1], IsoUR[A2, B2])]) = {
       val Pair(iso1, iso2) = p
       RSumIso(iso1, iso2)
     }
@@ -612,7 +612,7 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     def resultType = SumIsoCompanionElem
     override def toString = "SumIsoCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A1, A2, B1, B2](p: Rep[SumIsoData[A1, A2, B1, B2]]): Rep[SumIso[A1, A2, B1, B2]] = {
+    def apply[A1, A2, B1, B2](p: Ref[SumIsoData[A1, A2, B1, B2]]): Ref[SumIso[A1, A2, B1, B2]] = {
       implicit val eA1 = p._1.eFrom;
 implicit val eA2 = p._2.eFrom;
 implicit val eB1 = p._1.eTo;
@@ -621,14 +621,14 @@ implicit val eB2 = p._2.eTo
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A1, A2, B1, B2](iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Rep[SumIso[A1, A2, B1, B2]] =
+    def apply[A1, A2, B1, B2](iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Ref[SumIso[A1, A2, B1, B2]] =
       mkSumIso(iso1, iso2)
 
-    def unapply[A1, A2, B1, B2](p: Rep[IsoUR[$bar[A1, A2], $bar[B1, B2]]]) = unmkSumIso(p)
+    def unapply[A1, A2, B1, B2](p: Ref[IsoUR[$bar[A1, A2], $bar[B1, B2]]]) = unmkSumIso(p)
   }
-  lazy val SumIsoRep: Rep[SumIsoCompanionCtor] = new SumIsoCompanionCtor
+  lazy val SumIsoRep: Ref[SumIsoCompanionCtor] = new SumIsoCompanionCtor
   lazy val RSumIso: SumIsoCompanionCtor = proxySumIsoCompanion(SumIsoRep)
-  implicit def proxySumIsoCompanion(p: Rep[SumIsoCompanionCtor]): SumIsoCompanionCtor = {
+  implicit def proxySumIsoCompanion(p: Ref[SumIsoCompanionCtor]): SumIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[SumIsoCompanionCtor])
       p.rhs.asInstanceOf[SumIsoCompanionCtor]
     else
@@ -637,15 +637,15 @@ implicit val eB2 = p._2.eTo
 
   implicit case object SumIsoCompanionElem extends CompanionElem[SumIsoCompanionCtor]
 
-  implicit def proxySumIso[A1, A2, B1, B2](p: Rep[SumIso[A1, A2, B1, B2]]): SumIso[A1, A2, B1, B2] = {
+  implicit def proxySumIso[A1, A2, B1, B2](p: Ref[SumIso[A1, A2, B1, B2]]): SumIso[A1, A2, B1, B2] = {
     if (p.rhs.isInstanceOf[SumIso[A1, A2, B1, B2]@unchecked])
       p.rhs.asInstanceOf[SumIso[A1, A2, B1, B2]]
     else
       proxyOps[SumIso[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedSumIso[A1, A2, B1, B2](p: Rep[SumIso[A1, A2, B1, B2]]) {
-    def toData: Rep[SumIsoData[A1, A2, B1, B2]] = {
+  implicit class ExtendedSumIso[A1, A2, B1, B2](p: Ref[SumIso[A1, A2, B1, B2]]) {
+    def toData: Ref[SumIsoData[A1, A2, B1, B2]] = {
       implicit val eA1 = p.iso1.eFrom;
 implicit val eA2 = p.iso2.eFrom;
 implicit val eB1 = p.iso1.eTo;
@@ -659,10 +659,10 @@ implicit val eB2 = p.iso2.eTo
     reifyObject(new SumIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
 
   def mkSumIso[A1, A2, B1, B2]
-    (iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Rep[SumIso[A1, A2, B1, B2]] = {
+    (iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Ref[SumIso[A1, A2, B1, B2]] = {
     new SumIsoCtor[A1, A2, B1, B2](iso1, iso2)
   }
-  def unmkSumIso[A1, A2, B1, B2](p: Rep[IsoUR[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkSumIso[A1, A2, B1, B2](p: Ref[IsoUR[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: SumIsoElem[A1, A2, B1, B2] @unchecked =>
       Some((asRep[SumIso[A1, A2, B1, B2]](p).iso1, asRep[SumIso[A1, A2, B1, B2]](p).iso2))
     case _ =>
@@ -697,10 +697,10 @@ implicit lazy val eC = iso2.eTo
   class ComposeIsoIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C])
     extends EntityIso[ComposeIsoData[A, B, C], ComposeIso[A, B, C]] with Def[ComposeIsoIso[A, B, C]] {
     override def transform(t: Transformer) = new ComposeIsoIso[A, B, C]()(eA, eB, eC)
-    private lazy val _safeFrom = fun { p: Rep[ComposeIso[A, B, C]] => (p.iso2, p.iso1) }
-    override def from(p: Rep[ComposeIso[A, B, C]]) =
+    private lazy val _safeFrom = fun { p: Ref[ComposeIso[A, B, C]] => (p.iso2, p.iso1) }
+    override def from(p: Ref[ComposeIso[A, B, C]]) =
       tryConvert[ComposeIso[A, B, C], (IsoUR[B, C], IsoUR[A, B])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(IsoUR[B, C], IsoUR[A, B])]) = {
+    override def to(p: Ref[(IsoUR[B, C], IsoUR[A, B])]) = {
       val Pair(iso2, iso1) = p
       RComposeIso(iso2, iso1)
     }
@@ -722,7 +722,7 @@ implicit lazy val eC = iso2.eTo
     def resultType = ComposeIsoCompanionElem
     override def toString = "ComposeIsoCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A, B, C](p: Rep[ComposeIsoData[A, B, C]]): Rep[ComposeIso[A, B, C]] = {
+    def apply[A, B, C](p: Ref[ComposeIsoData[A, B, C]]): Ref[ComposeIso[A, B, C]] = {
       implicit val eA = p._2.eFrom;
 implicit val eB = p._1.eFrom;
 implicit val eC = p._1.eTo
@@ -730,14 +730,14 @@ implicit val eC = p._1.eTo
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A, B, C](iso2: Iso[B, C], iso1: Iso[A, B]): Rep[ComposeIso[A, B, C]] =
+    def apply[A, B, C](iso2: Iso[B, C], iso1: Iso[A, B]): Ref[ComposeIso[A, B, C]] =
       mkComposeIso(iso2, iso1)
 
-    def unapply[A, B, C](p: Rep[IsoUR[A, C]]) = unmkComposeIso(p)
+    def unapply[A, B, C](p: Ref[IsoUR[A, C]]) = unmkComposeIso(p)
   }
-  lazy val ComposeIsoRep: Rep[ComposeIsoCompanionCtor] = new ComposeIsoCompanionCtor
+  lazy val ComposeIsoRep: Ref[ComposeIsoCompanionCtor] = new ComposeIsoCompanionCtor
   lazy val RComposeIso: ComposeIsoCompanionCtor = proxyComposeIsoCompanion(ComposeIsoRep)
-  implicit def proxyComposeIsoCompanion(p: Rep[ComposeIsoCompanionCtor]): ComposeIsoCompanionCtor = {
+  implicit def proxyComposeIsoCompanion(p: Ref[ComposeIsoCompanionCtor]): ComposeIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[ComposeIsoCompanionCtor])
       p.rhs.asInstanceOf[ComposeIsoCompanionCtor]
     else
@@ -746,15 +746,15 @@ implicit val eC = p._1.eTo
 
   implicit case object ComposeIsoCompanionElem extends CompanionElem[ComposeIsoCompanionCtor]
 
-  implicit def proxyComposeIso[A, B, C](p: Rep[ComposeIso[A, B, C]]): ComposeIso[A, B, C] = {
+  implicit def proxyComposeIso[A, B, C](p: Ref[ComposeIso[A, B, C]]): ComposeIso[A, B, C] = {
     if (p.rhs.isInstanceOf[ComposeIso[A, B, C]@unchecked])
       p.rhs.asInstanceOf[ComposeIso[A, B, C]]
     else
       proxyOps[ComposeIso[A, B, C]](p)
   }
 
-  implicit class ExtendedComposeIso[A, B, C](p: Rep[ComposeIso[A, B, C]]) {
-    def toData: Rep[ComposeIsoData[A, B, C]] = {
+  implicit class ExtendedComposeIso[A, B, C](p: Ref[ComposeIso[A, B, C]]) {
+    def toData: Ref[ComposeIsoData[A, B, C]] = {
       implicit val eA = p.iso1.eFrom;
 implicit val eB = p.iso2.eFrom;
 implicit val eC = p.iso2.eTo
@@ -767,10 +767,10 @@ implicit val eC = p.iso2.eTo
     reifyObject(new ComposeIsoIso[A, B, C]()(eA, eB, eC))
 
   def mkComposeIso[A, B, C]
-    (iso2: Iso[B, C], iso1: Iso[A, B]): Rep[ComposeIso[A, B, C]] = {
+    (iso2: Iso[B, C], iso1: Iso[A, B]): Ref[ComposeIso[A, B, C]] = {
     new ComposeIsoCtor[A, B, C](iso2, iso1)
   }
-  def unmkComposeIso[A, B, C](p: Rep[IsoUR[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkComposeIso[A, B, C](p: Ref[IsoUR[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ComposeIsoElem[A, B, C] @unchecked =>
       Some((asRep[ComposeIso[A, B, C]](p).iso2, asRep[ComposeIso[A, B, C]](p).iso1))
     case _ =>
@@ -807,10 +807,10 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
   class FuncIsoIso[A, B, C, D](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D])
     extends EntityIso[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]] with Def[FuncIsoIso[A, B, C, D]] {
     override def transform(t: Transformer) = new FuncIsoIso[A, B, C, D]()(eA, eB, eC, eD)
-    private lazy val _safeFrom = fun { p: Rep[FuncIso[A, B, C, D]] => (p.iso1, p.iso2) }
-    override def from(p: Rep[FuncIso[A, B, C, D]]) =
+    private lazy val _safeFrom = fun { p: Ref[FuncIso[A, B, C, D]] => (p.iso1, p.iso2) }
+    override def from(p: Ref[FuncIso[A, B, C, D]]) =
       tryConvert[FuncIso[A, B, C, D], (IsoUR[A, B], IsoUR[C, D])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(IsoUR[A, B], IsoUR[C, D])]) = {
+    override def to(p: Ref[(IsoUR[A, B], IsoUR[C, D])]) = {
       val Pair(iso1, iso2) = p
       RFuncIso(iso1, iso2)
     }
@@ -833,7 +833,7 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     def resultType = FuncIsoCompanionElem
     override def toString = "FuncIsoCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A, B, C, D](p: Rep[FuncIsoData[A, B, C, D]]): Rep[FuncIso[A, B, C, D]] = {
+    def apply[A, B, C, D](p: Ref[FuncIsoData[A, B, C, D]]): Ref[FuncIso[A, B, C, D]] = {
       implicit val eA = p._1.eFrom;
 implicit val eB = p._1.eTo;
 implicit val eC = p._2.eFrom;
@@ -842,14 +842,14 @@ implicit val eD = p._2.eTo
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A, B, C, D](iso1: Iso[A, B], iso2: Iso[C, D]): Rep[FuncIso[A, B, C, D]] =
+    def apply[A, B, C, D](iso1: Iso[A, B], iso2: Iso[C, D]): Ref[FuncIso[A, B, C, D]] =
       mkFuncIso(iso1, iso2)
 
-    def unapply[A, B, C, D](p: Rep[IsoUR[A => C, B => D]]) = unmkFuncIso(p)
+    def unapply[A, B, C, D](p: Ref[IsoUR[A => C, B => D]]) = unmkFuncIso(p)
   }
-  lazy val FuncIsoRep: Rep[FuncIsoCompanionCtor] = new FuncIsoCompanionCtor
+  lazy val FuncIsoRep: Ref[FuncIsoCompanionCtor] = new FuncIsoCompanionCtor
   lazy val RFuncIso: FuncIsoCompanionCtor = proxyFuncIsoCompanion(FuncIsoRep)
-  implicit def proxyFuncIsoCompanion(p: Rep[FuncIsoCompanionCtor]): FuncIsoCompanionCtor = {
+  implicit def proxyFuncIsoCompanion(p: Ref[FuncIsoCompanionCtor]): FuncIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[FuncIsoCompanionCtor])
       p.rhs.asInstanceOf[FuncIsoCompanionCtor]
     else
@@ -858,15 +858,15 @@ implicit val eD = p._2.eTo
 
   implicit case object FuncIsoCompanionElem extends CompanionElem[FuncIsoCompanionCtor]
 
-  implicit def proxyFuncIso[A, B, C, D](p: Rep[FuncIso[A, B, C, D]]): FuncIso[A, B, C, D] = {
+  implicit def proxyFuncIso[A, B, C, D](p: Ref[FuncIso[A, B, C, D]]): FuncIso[A, B, C, D] = {
     if (p.rhs.isInstanceOf[FuncIso[A, B, C, D]@unchecked])
       p.rhs.asInstanceOf[FuncIso[A, B, C, D]]
     else
       proxyOps[FuncIso[A, B, C, D]](p)
   }
 
-  implicit class ExtendedFuncIso[A, B, C, D](p: Rep[FuncIso[A, B, C, D]]) {
-    def toData: Rep[FuncIsoData[A, B, C, D]] = {
+  implicit class ExtendedFuncIso[A, B, C, D](p: Ref[FuncIso[A, B, C, D]]) {
+    def toData: Ref[FuncIsoData[A, B, C, D]] = {
       implicit val eA = p.iso1.eFrom;
 implicit val eB = p.iso1.eTo;
 implicit val eC = p.iso2.eFrom;
@@ -880,10 +880,10 @@ implicit val eD = p.iso2.eTo
     reifyObject(new FuncIsoIso[A, B, C, D]()(eA, eB, eC, eD))
 
   def mkFuncIso[A, B, C, D]
-    (iso1: Iso[A, B], iso2: Iso[C, D]): Rep[FuncIso[A, B, C, D]] = {
+    (iso1: Iso[A, B], iso2: Iso[C, D]): Ref[FuncIso[A, B, C, D]] = {
     new FuncIsoCtor[A, B, C, D](iso1, iso2)
   }
-  def unmkFuncIso[A, B, C, D](p: Rep[IsoUR[A => C, B => D]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkFuncIso[A, B, C, D](p: Ref[IsoUR[A => C, B => D]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: FuncIsoElem[A, B, C, D] @unchecked =>
       Some((asRep[FuncIso[A, B, C, D]](p).iso1, asRep[FuncIso[A, B, C, D]](p).iso2))
     case _ =>
@@ -917,10 +917,10 @@ implicit lazy val eB = convTo.eR
   class ConverterIsoIso[A, B](implicit eA: Elem[A], eB: Elem[B])
     extends EntityIso[ConverterIsoData[A, B], ConverterIso[A, B]] with Def[ConverterIsoIso[A, B]] {
     override def transform(t: Transformer) = new ConverterIsoIso[A, B]()(eA, eB)
-    private lazy val _safeFrom = fun { p: Rep[ConverterIso[A, B]] => (p.convTo, p.convFrom) }
-    override def from(p: Rep[ConverterIso[A, B]]) =
+    private lazy val _safeFrom = fun { p: Ref[ConverterIso[A, B]] => (p.convTo, p.convFrom) }
+    override def from(p: Ref[ConverterIso[A, B]]) =
       tryConvert[ConverterIso[A, B], (Converter[A, B], Converter[B, A])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Converter[A, B], Converter[B, A])]) = {
+    override def to(p: Ref[(Converter[A, B], Converter[B, A])]) = {
       val Pair(convTo, convFrom) = p
       RConverterIso(convTo, convFrom)
     }
@@ -941,21 +941,21 @@ implicit lazy val eB = convTo.eR
     def resultType = ConverterIsoCompanionElem
     override def toString = "ConverterIsoCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A, B](p: Rep[ConverterIsoData[A, B]]): Rep[ConverterIso[A, B]] = {
+    def apply[A, B](p: Ref[ConverterIsoData[A, B]]): Ref[ConverterIso[A, B]] = {
       implicit val eA = p._1.eT;
 implicit val eB = p._1.eR
       isoConverterIso[A, B].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A, B](convTo: Conv[A, B], convFrom: Conv[B, A]): Rep[ConverterIso[A, B]] =
+    def apply[A, B](convTo: Conv[A, B], convFrom: Conv[B, A]): Ref[ConverterIso[A, B]] =
       mkConverterIso(convTo, convFrom)
 
-    def unapply[A, B](p: Rep[IsoUR[A, B]]) = unmkConverterIso(p)
+    def unapply[A, B](p: Ref[IsoUR[A, B]]) = unmkConverterIso(p)
   }
-  lazy val ConverterIsoRep: Rep[ConverterIsoCompanionCtor] = new ConverterIsoCompanionCtor
+  lazy val ConverterIsoRep: Ref[ConverterIsoCompanionCtor] = new ConverterIsoCompanionCtor
   lazy val RConverterIso: ConverterIsoCompanionCtor = proxyConverterIsoCompanion(ConverterIsoRep)
-  implicit def proxyConverterIsoCompanion(p: Rep[ConverterIsoCompanionCtor]): ConverterIsoCompanionCtor = {
+  implicit def proxyConverterIsoCompanion(p: Ref[ConverterIsoCompanionCtor]): ConverterIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[ConverterIsoCompanionCtor])
       p.rhs.asInstanceOf[ConverterIsoCompanionCtor]
     else
@@ -964,15 +964,15 @@ implicit val eB = p._1.eR
 
   implicit case object ConverterIsoCompanionElem extends CompanionElem[ConverterIsoCompanionCtor]
 
-  implicit def proxyConverterIso[A, B](p: Rep[ConverterIso[A, B]]): ConverterIso[A, B] = {
+  implicit def proxyConverterIso[A, B](p: Ref[ConverterIso[A, B]]): ConverterIso[A, B] = {
     if (p.rhs.isInstanceOf[ConverterIso[A, B]@unchecked])
       p.rhs.asInstanceOf[ConverterIso[A, B]]
     else
       proxyOps[ConverterIso[A, B]](p)
   }
 
-  implicit class ExtendedConverterIso[A, B](p: Rep[ConverterIso[A, B]]) {
-    def toData: Rep[ConverterIsoData[A, B]] = {
+  implicit class ExtendedConverterIso[A, B](p: Ref[ConverterIso[A, B]]) {
+    def toData: Ref[ConverterIsoData[A, B]] = {
       implicit val eA = p.convTo.eT;
 implicit val eB = p.convTo.eR
       isoConverterIso(eA, eB).from(p)
@@ -984,10 +984,10 @@ implicit val eB = p.convTo.eR
     reifyObject(new ConverterIsoIso[A, B]()(eA, eB))
 
   def mkConverterIso[A, B]
-    (convTo: Conv[A, B], convFrom: Conv[B, A]): Rep[ConverterIso[A, B]] = {
+    (convTo: Conv[A, B], convFrom: Conv[B, A]): Ref[ConverterIso[A, B]] = {
     new ConverterIsoCtor[A, B](convTo, convFrom)
   }
-  def unmkConverterIso[A, B](p: Rep[IsoUR[A, B]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkConverterIso[A, B](p: Ref[IsoUR[A, B]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ConverterIsoElem[A, B] @unchecked =>
       Some((asRep[ConverterIso[A, B]](p).convTo, asRep[ConverterIso[A, B]](p).convFrom))
     case _ =>
@@ -1021,10 +1021,10 @@ implicit override lazy val eB = innerIso.eTo
   class ThunkIsoIso[A, B](implicit eA: Elem[A], eB: Elem[B])
     extends EntityIso[ThunkIsoData[A, B], ThunkIso[A, B]] with Def[ThunkIsoIso[A, B]] {
     override def transform(t: Transformer) = new ThunkIsoIso[A, B]()(eA, eB)
-    private lazy val _safeFrom = fun { p: Rep[ThunkIso[A, B]] => p.innerIso }
-    override def from(p: Rep[ThunkIso[A, B]]) =
+    private lazy val _safeFrom = fun { p: Ref[ThunkIso[A, B]] => p.innerIso }
+    override def from(p: Ref[ThunkIso[A, B]]) =
       tryConvert[ThunkIso[A, B], IsoUR[A, B]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[IsoUR[A, B]]) = {
+    override def to(p: Ref[IsoUR[A, B]]) = {
       val innerIso = p
       RThunkIso(innerIso)
     }
@@ -1046,14 +1046,14 @@ implicit override lazy val eB = innerIso.eTo
     override def toString = "ThunkIsoCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[A, B](innerIso: Iso[A, B]): Rep[ThunkIso[A, B]] =
+    def apply[A, B](innerIso: Iso[A, B]): Ref[ThunkIso[A, B]] =
       mkThunkIso(innerIso)
 
-    def unapply[A, B](p: Rep[Iso1UR[A, B, Thunk]]) = unmkThunkIso(p)
+    def unapply[A, B](p: Ref[Iso1UR[A, B, Thunk]]) = unmkThunkIso(p)
   }
-  lazy val ThunkIsoRep: Rep[ThunkIsoCompanionCtor] = new ThunkIsoCompanionCtor
+  lazy val ThunkIsoRep: Ref[ThunkIsoCompanionCtor] = new ThunkIsoCompanionCtor
   lazy val RThunkIso: ThunkIsoCompanionCtor = proxyThunkIsoCompanion(ThunkIsoRep)
-  implicit def proxyThunkIsoCompanion(p: Rep[ThunkIsoCompanionCtor]): ThunkIsoCompanionCtor = {
+  implicit def proxyThunkIsoCompanion(p: Ref[ThunkIsoCompanionCtor]): ThunkIsoCompanionCtor = {
     if (p.rhs.isInstanceOf[ThunkIsoCompanionCtor])
       p.rhs.asInstanceOf[ThunkIsoCompanionCtor]
     else
@@ -1062,15 +1062,15 @@ implicit override lazy val eB = innerIso.eTo
 
   implicit case object ThunkIsoCompanionElem extends CompanionElem[ThunkIsoCompanionCtor]
 
-  implicit def proxyThunkIso[A, B](p: Rep[ThunkIso[A, B]]): ThunkIso[A, B] = {
+  implicit def proxyThunkIso[A, B](p: Ref[ThunkIso[A, B]]): ThunkIso[A, B] = {
     if (p.rhs.isInstanceOf[ThunkIso[A, B]@unchecked])
       p.rhs.asInstanceOf[ThunkIso[A, B]]
     else
       proxyOps[ThunkIso[A, B]](p)
   }
 
-  implicit class ExtendedThunkIso[A, B](p: Rep[ThunkIso[A, B]]) {
-    def toData: Rep[ThunkIsoData[A, B]] = {
+  implicit class ExtendedThunkIso[A, B](p: Ref[ThunkIso[A, B]]) {
+    def toData: Ref[ThunkIsoData[A, B]] = {
       implicit val eA = p.innerIso.eFrom;
 implicit val eB = p.innerIso.eTo
       isoThunkIso(eA, eB).from(p)
@@ -1082,10 +1082,10 @@ implicit val eB = p.innerIso.eTo
     reifyObject(new ThunkIsoIso[A, B]()(eA, eB))
 
   def mkThunkIso[A, B]
-    (innerIso: Iso[A, B]): Rep[ThunkIso[A, B]] = {
+    (innerIso: Iso[A, B]): Ref[ThunkIso[A, B]] = {
     new ThunkIsoCtor[A, B](innerIso)
   }
-  def unmkThunkIso[A, B](p: Rep[Iso1UR[A, B, Thunk]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkThunkIso[A, B](p: Ref[Iso1UR[A, B, Thunk]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ThunkIsoElem[A, B] @unchecked =>
       Some((asRep[ThunkIso[A, B]](p).innerIso))
     case _ =>

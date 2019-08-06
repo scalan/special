@@ -43,12 +43,12 @@ trait Structs extends GraphVizExport { self: Scalan =>
     // Intentionally no case _, add something here or override when extending StructTag!
   }
 
-  type StructField = (String, Rep[Any])
+  type StructField = (String, Ref[Any])
   trait Struct {
     def tag: StructTag[_]
     def fields: Seq[StructField]
   }
-  type RStruct = Rep[Struct]
+  type RStruct = Ref[Struct]
 
   import Liftables._
   import scala.reflect.{ClassTag, classTag}
@@ -59,7 +59,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
         extends AbstractStruct[T] with LiftedConst[SStruct, T] {
     override lazy val resultType = _selfType
     def tag = _selfType.structTag
-    val fields: Seq[(String, Rep[Any])] =
+    val fields: Seq[(String, Ref[Any])] =
       constValue.toArray.zip(_selfType.fields).map { case (v, (fn, e)) => (fn, toRep(v)(e.asElem[Any])) }
     def liftable = liftableStruct(_selfType)
   }
@@ -74,8 +74,8 @@ trait Structs extends GraphVizExport { self: Scalan =>
       case _ =>
         !!!(s"Invalid argument of LiftableStruct($eW)")
     }
-    def lift(x: SStruct): Rep[T] = StructConst(x, eW)
-    def unlift(w: Rep[T]): SStruct = w match {
+    def lift(x: SStruct): Ref[T] = StructConst(x, eW)
+    def unlift(w: Ref[T]): SStruct = w match {
       case Def(StructConst(x: SStruct, _)) => x
       case _ => unliftError(w)
     }
@@ -84,7 +84,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
   implicit def liftableStruct[T <: Struct](implicit e: Elem[T]): Liftable[SStruct, T] =
     LiftableStruct(e)
 
-  def liftStruct[T <: Struct](x: SStruct)(implicit eT: Elem[T]): Rep[T] = StructConst(x, eT)
+  def liftStruct[T <: Struct](x: SStruct)(implicit eT: Elem[T]): Ref[T] = StructConst(x, eT)
 
   case class StructElem[T <: Struct](structTag: StructTag[T], fields: Seq[(String, Elem[_])]) extends Elem[T] {
     override def liftable: Liftables.Liftable[_, T] = asLiftable[SStruct, T](liftableStruct(this))
@@ -149,11 +149,11 @@ trait Structs extends GraphVizExport { self: Scalan =>
     tupleStructElement(element[A], element[B], element[C])
 
 
-  implicit class StructOps(s: Rep[Struct]) {
-    def getUntyped(index: Int): Rep[_] = field(s, index)
-    def getUntyped(fieldName: String): Rep[_] = field(s, fieldName)
-    def getUnchecked[A](fieldName: String): Rep[A] = asRep[A](field(s, fieldName))
-    def get[A: Elem](fieldName: String): Rep[A] = {
+  implicit class StructOps(s: Ref[Struct]) {
+    def getUntyped(index: Int): Ref[_] = field(s, index)
+    def getUntyped(fieldName: String): Ref[_] = field(s, fieldName)
+    def getUnchecked[A](fieldName: String): Ref[A] = asRep[A](field(s, fieldName))
+    def get[A: Elem](fieldName: String): Ref[A] = {
       val value = getUnchecked[A](fieldName)
       assertElem(value, element[A])
       value
@@ -163,7 +163,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
     def fields: Seq[StructField] = {
       fieldNames.map(name => (name, field(s, name)))
     }
-    def mapFields(f: Rep[_] => Rep[_]) = {
+    def mapFields(f: Ref[_] => Ref[_]) = {
       val newFields = fieldNames.map { name =>
         val fieldValue = field(s, name)
         val newValue = f(fieldValue)
@@ -173,11 +173,11 @@ trait Structs extends GraphVizExport { self: Scalan =>
     }
   }
 
-  def struct(fields: StructField*)(implicit o: Overloaded1): Rep[Struct] = struct(fields)
-  def struct(fields: Seq[StructField]): Rep[Struct] = struct(defaultStructTag, fields)
-  def struct[T <: Struct](tag: StructTag[T], fields: StructField*)(implicit o: Overloaded1): Rep[T] =
+  def struct(fields: StructField*)(implicit o: Overloaded1): Ref[Struct] = struct(fields)
+  def struct(fields: Seq[StructField]): Ref[Struct] = struct(defaultStructTag, fields)
+  def struct[T <: Struct](tag: StructTag[T], fields: StructField*)(implicit o: Overloaded1): Ref[T] =
     struct(tag, fields)
-  def tupleStruct(items: Rep[_]*): Rep[Struct] = {
+  def tupleStruct(items: Ref[_]*): Ref[Struct] = {
     val fields = items.zipWithIndex.map { case (f, i) => tupleFN(i) -> f }
     struct(defaultStructTag, fields)
   }
@@ -198,7 +198,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
   }
 
   object Field {
-    def unapply[T](d: Def[T]): Option[(Rep[Struct], String)] = d match {
+    def unapply[T](d: Def[T]): Option[(Ref[Struct], String)] = d match {
       case FieldApply(struct, fieldName) => Some((struct, fieldName))
       case _ => None
     }
@@ -207,12 +207,12 @@ trait Structs extends GraphVizExport { self: Scalan =>
   case class SimpleStruct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]) extends AbstractStruct[T] {
     override def transform(t: Transformer): Def[T] = SimpleStruct(tag, fields.map { case (n, s) => (n, t(s)) })
   }
-  case class FieldApply[T](struct: Rep[Struct], fieldName: String)
+  case class FieldApply[T](struct: Ref[Struct], fieldName: String)
     extends BaseDef[T]()(struct.elem(fieldName).asElem[T]) {
     override def transform(t: Transformer): Def[T] = FieldApply(t(struct), fieldName)
   }
 
-  case class FieldUpdate[S <: Struct, T](struct: Rep[S], fieldName: String, value: Rep[T]) extends AbstractStruct[S] {
+  case class FieldUpdate[S <: Struct, T](struct: Ref[S], fieldName: String, value: Ref[T]) extends AbstractStruct[S] {
     val tag = struct.elem.structTag
     val fields = struct.elem.fields.map { case (fn, _) =>
       if (fn == fieldName)
@@ -223,18 +223,18 @@ trait Structs extends GraphVizExport { self: Scalan =>
     override def transform(t: Transformer): Def[S] = FieldUpdate(t(struct), fieldName, t(value))
   }
 
-  case class ProjectionStruct(struct: Rep[Struct], outFields: Seq[String]) extends AbstractStruct[Struct] {
+  case class ProjectionStruct(struct: Ref[Struct], outFields: Seq[String]) extends AbstractStruct[Struct] {
     def tag = defaultStructTag
     val fields = outFields.map(fn => (fn, field(struct, fn)))
     override def transform(t: Transformer): Def[Struct] = ProjectionStruct(t(struct), outFields)
   }
 
-  def struct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]): Rep[T] = {
+  def struct[T <: Struct](tag: StructTag[T], fields: Seq[StructField]): Ref[T] = {
     val names = fields.map(_._1)
     assert(names.distinct.lengthCompare(fields.length) == 0, s"Fields of struct should be distinct but $names")
     SimpleStruct(tag, fields)
   }
-  def field(struct: Rep[Struct], field: String): Rep[_] = {
+  def field(struct: Ref[Struct], field: String): Ref[_] = {
     struct.elem match {
       case se: StructElem[a] =>
         //        val fieldElem = se(field)
@@ -243,13 +243,13 @@ trait Structs extends GraphVizExport { self: Scalan =>
         !!!(s"Attempt to get field $field from a non-struct ${struct.varNameWithType}", struct)
     }
   }
-  def field(struct: Rep[Struct], fieldIndex: Int): Rep[_] = {
+  def field(struct: Ref[Struct], fieldIndex: Int): Ref[_] = {
     val fieldName = struct.elem.fields(fieldIndex)._1
     field(struct, fieldName)
   }
 
-  def updateField[S <: Struct](struct: Rep[S], fieldName: String, v: Rep[_]): Rep[S] = FieldUpdate[S,Any](struct, fieldName, v)
-  def fields(struct: Rep[Struct], fields: Seq[String]): Rep[Struct] = ProjectionStruct(struct, fields)
+  def updateField[S <: Struct](struct: Ref[S], fieldName: String, v: Ref[_]): Ref[S] = FieldUpdate[S,Any](struct, fieldName, v)
+  def fields(struct: Ref[Struct], fields: Seq[String]): Ref[Struct] = ProjectionStruct(struct, fields)
 
   override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
     case SimpleStruct(tag, fields) =>

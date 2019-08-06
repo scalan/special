@@ -27,8 +27,8 @@ class CostedTests extends BaseCostedTests {
   import WSpecialPredef._
   import Liftables._
 
-  def buildGraph[T](nIters: Int, name: String)(action: Int => Rep[T]) = {
-    val buf = mutable.ArrayBuilder.make[Rep[T]]()
+  def buildGraph[T](nIters: Int, name: String)(action: Int => Ref[T]) = {
+    val buf = mutable.ArrayBuilder.make[Ref[T]]()
     measure(nIters) { i =>
       buf += action(i)
     }
@@ -57,7 +57,7 @@ class CostedTests extends BaseCostedTests {
 
   val Colls = new special.collection.CollOverArrayBuilder
   val xs = Colls.fromItems(10, 20, 30)
-  lazy val xsSym: Rep[Coll[Int]] = liftConst(xs)
+  lazy val xsSym: Ref[Coll[Int]] = liftConst(xs)
   lazy val xsCosts = liftConst(Colls.replicate(3, 0))
   lazy val IntSize: RSize[Int] = costedBuilder.mkSizePrim(4L, element[Int])
   lazy val xsSizes = colBuilder.replicate(3, IntSize)

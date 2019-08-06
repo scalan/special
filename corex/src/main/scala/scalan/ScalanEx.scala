@@ -7,13 +7,13 @@ import scalan.util.{StringUtil, ReflectionUtil}
 import scala.reflect.runtime.universe._
 
 trait BaseEx extends Base with DefRewriting { self: ScalanEx =>
-  def decompose[T](d: Def[T]): Option[Rep[T]] = None
+  def decompose[T](d: Def[T]): Option[Ref[T]] = None
 
   val performViewsLifting: Boolean = true
 
-  def rewriteViews[T](d: Def[T]): Rep[_] = null
+  def rewriteViews[T](d: Def[T]): Ref[_] = null
 
-  def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = None
+  def unapplyViews[T](s: Ref[T]): Option[Unpacked[T]] = None
 }
 
 class ScalanEx extends Scalan
@@ -43,9 +43,9 @@ class ScalanEx extends Scalan
       Nil
   }
 
-  protected def rewriteUntilFixPoint[T](start: Rep[T], mn: MetaNode, rw: Rewriter): Rep[T] = {
+  protected def rewriteUntilFixPoint[T](start: Ref[T], mn: MetaNode, rw: Rewriter): Ref[T] = {
     var res = start
-    var curr: Rep[T] = res
+    var curr: Ref[T] = res
     do {
       curr = res
       setAllMetadata(curr, mn)
@@ -54,13 +54,13 @@ class ScalanEx extends Scalan
     res
   }
 
-  override protected[scalan] def toExp[T](d: Def[T], newSym: => Rep[T]): Rep[T] = {
+  override protected[scalan] def toExp[T](d: Def[T], newSym: => Ref[T]): Ref[T] = {
     var res = findOrCreateDefinition(d, newSym)
     var currSym = res
     var currDef = d
     do {
       currSym = res
-      val ns = rewrite(currSym).asInstanceOf[Rep[T]]
+      val ns = rewrite(currSym).asInstanceOf[Ref[T]]
       ns match {
         case null =>
           currDef = null

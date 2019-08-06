@@ -37,7 +37,7 @@ object WRType extends EntityObject("WRType") {
     implicit def eA: Elem[A]
     private val WRTypeClass = classOf[WRType[A]]
 
-    override def name: Rep[String] = {
+    override def name: Ref[String] = {
       asRep[String](mkMethodCall(self,
         WRTypeClass.getMethod("name"),
         WrappedArray.empty,
@@ -52,8 +52,8 @@ object WRType extends EntityObject("WRType") {
             implicit val tagSA = lA.sourceType.asInstanceOf[RType[SA]]
       RType[RType[SA]]
     }
-    def lift(x: RType[SA]): Rep[WRType[A]] = WRTypeConst(x, lA)
-    def unlift(w: Rep[WRType[A]]): RType[SA] = w match {
+    def lift(x: RType[SA]): Ref[WRType[A]] = WRTypeConst(x, lA)
+    def unlift(w: Ref[WRType[A]]): RType[SA] = w match {
       case Def(WRTypeConst(x: RType[_], _lA))
             if _lA == lA => x.asInstanceOf[RType[SA]]
       case _ => unliftError(w)
@@ -67,7 +67,7 @@ object WRType extends EntityObject("WRType") {
   private val WRTypeClass = classOf[WRType[_]]
 
   // entityAdapter for WRType trait
-  case class WRTypeAdapter[A](source: Rep[WRType[A]])
+  case class WRTypeAdapter[A](source: Ref[WRType[A]])
       extends WRType[A]
       with Def[WRType[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
@@ -75,7 +75,7 @@ object WRType extends EntityObject("WRType") {
     val resultType: Elem[WRType[A]] = element[WRType[A]]
     override def transform(t: Transformer) = WRTypeAdapter[A](t(source))
 
-    def name: Rep[String] = {
+    def name: Ref[String] = {
       asRep[String](mkMethodCall(source,
         WRTypeClass.getMethod("name"),
         WrappedArray.empty,
@@ -84,7 +84,7 @@ object WRType extends EntityObject("WRType") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyWRType[A](p: Rep[WRType[A]]): WRType[A] = {
+  implicit def proxyWRType[A](p: Ref[WRType[A]]): WRType[A] = {
     if (p.rhs.isInstanceOf[WRType[A]@unchecked]) p.rhs.asInstanceOf[WRType[A]]
     else
       WRTypeAdapter(p)
@@ -116,22 +116,22 @@ object WRType extends EntityObject("WRType") {
     def resultType = WRTypeCompanionElem
     override def toString = "WRType"
   }
-  implicit def proxyWRTypeCompanionCtor(p: Rep[WRTypeCompanionCtor]): WRTypeCompanionCtor =
+  implicit def proxyWRTypeCompanionCtor(p: Ref[WRTypeCompanionCtor]): WRTypeCompanionCtor =
     p.rhs.asInstanceOf[WRTypeCompanionCtor]
 
-  lazy val RWRType: Rep[WRTypeCompanionCtor] = new WRTypeCompanionCtor {
+  lazy val RWRType: Ref[WRTypeCompanionCtor] = new WRTypeCompanionCtor {
     private val thisClass = classOf[WRTypeCompanion]
   }
 
   object WRTypeMethods {
     object name {
-      def unapply(d: Def[_]): Nullable[Rep[WRType[A]] forSome {type A}] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[WRType[A]] forSome {type A}] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "name" && receiver.elem.isInstanceOf[WRTypeElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[WRType[A]] forSome {type A}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[WRType[A]] forSome {type A}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[WRType[A]] forSome {type A}] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[WRType[A]] forSome {type A}] = unapply(exp.rhs)
     }
   }
 

@@ -18,7 +18,7 @@ trait Slicing extends ScalanEx {
 
     override def backwardAnalyzeRec(g: AstGraph): Unit = {
       val revSchedule = g.schedule.reverseIterator
-      for (sym <- revSchedule) sym match { case s: Rep[t] =>
+      for (sym <- revSchedule) sym match { case s: Ref[t] =>
         val d = s.rhs
         d match {
           case _: AstGraph =>
@@ -34,7 +34,7 @@ trait Slicing extends ScalanEx {
       }
     }
 
-    def analyzeFunc[A,B](f: Rep[A => B], mRes: SliceMarking[B]): FuncMarking[A,B] = {
+    def analyzeFunc[A,B](f: Ref[A => B], mRes: SliceMarking[B]): FuncMarking[A,B] = {
       val mX = f match {
         case Def(l: Lambda[A,B]@unchecked) =>
           implicit val eA = l.eA
@@ -60,11 +60,11 @@ trait Slicing extends ScalanEx {
       thunkMarking
     }
 
-    implicit class ExpOpsForSlicing[T](s: Rep[T]) {
+    implicit class ExpOpsForSlicing[T](s: Ref[T]) {
       def marked(m: SliceMarking[T]): MarkedSym = (s, m).asInstanceOf[MarkedSym]
     }
 
-    def getInboundMarkings[T](thisSym: Rep[T], outMark: SliceMarking[T]): MarkedSyms = {
+    def getInboundMarkings[T](thisSym: Ref[T], outMark: SliceMarking[T]): MarkedSyms = {
       val d = thisSym.rhs
       d match {
         case SimpleStruct(tag, fields) =>
@@ -73,7 +73,7 @@ trait Slicing extends ScalanEx {
               val struct = asRep[Struct](thisSym)
               fMarks.map { case (name, mark) =>
                 struct.getUntyped(name) match {
-                  case field: Rep[a] => field.marked(mark.asMark[a])
+                  case field: Ref[a] => field.marked(mark.asMark[a])
                 }
               }
           }
@@ -91,7 +91,7 @@ trait Slicing extends ScalanEx {
           implicit val eB = p.pair.elem.eSnd
           Seq(p.pair.marked(PairMarking(EmptyMarking(eA), outMark.asMark[b])))
 
-        case Tup(a: Rep[a], b: Rep[b]) =>
+        case Tup(a: Ref[a], b: Ref[b]) =>
           outMark match {
             case PairMarking(ma, mb) =>
               Seq[MarkedSym](a.marked(ma.asMark[a]), b.marked(mb.asMark[b]))
@@ -106,7 +106,7 @@ trait Slicing extends ScalanEx {
           Seq()
         case _ =>
           val deps = thisSym.rhs.deps
-          val res = deps.map { case s: Rep[a] => (s, AllMarking(s.elem)) }
+          val res = deps.map { case s: Ref[a] => (s, AllMarking(s.elem)) }
           res
       }
     }
@@ -167,10 +167,10 @@ trait Slicing extends ScalanEx {
       * @param inner marking which describes slicing inside the component
       */
     def |/|[R](key: KeyPath, inner: SliceMarking[R]): SliceMarking[T]
-    def projectToExp(x: Rep[T]): Sym
+    def projectToExp(x: Ref[T]): Sym
     def projectedElem: Elem[_]
-    def makeSlot: Rep[T]
-    def set(slot: Rep[T], value: Sym): Rep[T]
+    def makeSlot: Ref[T]
+    def set(slot: Ref[T], value: Sym): Ref[T]
 
     protected def setInvalid(slot: Sym, value: Sym) =
       !!!(s"$this.set(${slot.toStringWithDefinition}, ${value.toStringWithDefinition}")
@@ -190,10 +190,10 @@ trait Slicing extends ScalanEx {
     def >>[R](m2: SliceMarking[R]): SliceMarking[T] = this
     def isIdentity = false
     def |/|[R](key: KeyPath, inner: SliceMarking[R]) = !!!(s"Inner marking is not possible for base type ${elem}")
-    def projectToExp(x: Rep[T]): Sym = toRep(())
+    def projectToExp(x: Ref[T]): Sym = toRep(())
     def projectedElem: Elem[_] = element[Unit]
     def makeSlot = SlicedBase((), this)
-    def set(slot: Rep[T], value: Sym) = {
+    def set(slot: Ref[T], value: Sym) = {
       assert(value.elem == UnitElement)
       slot
     }
@@ -215,10 +215,10 @@ trait Slicing extends ScalanEx {
     }
     def isIdentity = true
     def |/|[R](key: KeyPath, inner: SliceMarking[R]) = !!!(s"Inner marking is not possible for base type ${elem}")
-    def projectToExp(x: Rep[T]): Sym = x
+    def projectToExp(x: Ref[T]): Sym = x
     def projectedElem: Elem[_] = elem
     def makeSlot = variable[T](Lazy(elem))
-    def set(slot: Rep[T], value: Sym) = {
+    def set(slot: Ref[T], value: Sym) = {
       assert(value.elem == elem)
       asRep[T](value)
     }
@@ -328,7 +328,7 @@ trait Slicing extends ScalanEx {
         !!!(s"StructMarking |/| ($key, $inner)")
     }
 
-    def projectToExp(x: Rep[T]): Sym = {
+    def projectToExp(x: Ref[T]): Sym = {
       val structFields = fields.map {
         case (name, marking: SliceMarking[a]) =>
           val projectedField = marking.projectToExp(x.getUnchecked[a](name))
@@ -351,7 +351,7 @@ trait Slicing extends ScalanEx {
       SlicedStruct(source, this)
     }
 
-    def set(slot: Rep[T], value: Sym) = slot match {
+    def set(slot: Ref[T], value: Sym) = slot match {
       case Def(ss: SlicedStruct[_, _]) =>
         assert(value.elem == ss.mark.projectedElem, s"${value.elem} != ${ss.mark.projectedElem}")
         SlicedStruct(asRep[Struct](value), ss.mark)
@@ -411,14 +411,14 @@ trait Slicing extends ScalanEx {
       case KeyPath.Second if inner.elem == eB =>
         PairMarking(markA, inner.asMark[B])
     }
-    def projectToExp(x: Rep[(A,B)]): Sym =
+    def projectToExp(x: Ref[(A,B)]): Sym =
       Pair(markA.projectToExp(x._1), markB.projectToExp(x._2))
     val projectedElem: Elem[_] =
       pairElement(markA.projectedElem, markB.projectedElem)
     def makeSlot = {
       SlicedPair(Pair(markA.makeSlot, markB.makeSlot), this)
     }
-    def set(slot: Rep[(A, B)], value: Sym) = slot match {
+    def set(slot: Ref[(A, B)], value: Sym) = slot match {
       case Def(sp: SlicedPair[A,B,a,b]@unchecked) =>
         assert(value.elem == sp.mark.projectedElem, s"${value.elem} != ${sp.mark.projectedElem}")
         SlicedPair(asRep[(a,b)](value), sp.mark)
@@ -457,14 +457,14 @@ trait Slicing extends ScalanEx {
     def >>[R](m2: SliceMarking[R]): SliceMarking[(A) => B] = ???
     def |/|[R](key: KeyPath, inner: SliceMarking[R]) = ???
 
-    def projectToExp(f: Rep[A => B]): Sym =
+    def projectToExp(f: Ref[A => B]): Sym =
       sliceFunc(f, this)
 
     val projectedElem: Elem[_] =
       funcElement(mDom.projectedElem, mRange.projectedElem)
-    def makeSlot: Rep[A => B] =
+    def makeSlot: Ref[A => B] =
       SlicedFunc(variable(Lazy(funcElement(mDom.projectedElem, mRange.projectedElem))), this)
-    def set(slot: Rep[A => B], value: Sym) = slot match {
+    def set(slot: Ref[A => B], value: Sym) = slot match {
       case Def(sf: SlicedFunc[a, b, a1, b1]) =>
         SlicedFunc(asRep[a1 => b1](value), this)
       case _ =>
@@ -507,7 +507,7 @@ trait Slicing extends ScalanEx {
         copy(key, inner.asMark[T])
     }
 
-    def projectToExp(xs: Rep[F[T]]): Sym = itemsPath match {
+    def projectToExp(xs: Ref[F[T]]): Sym = itemsPath match {
       case KeyPath.All =>
         assert(xs.elem == this.elem)
         reifyObject(UnpackSliced(xs, this))
@@ -520,7 +520,7 @@ trait Slicing extends ScalanEx {
     def makeSlot =
       SlicedTraversable(variable(Lazy(projectedElem)), innerMark, cF)
 
-    def set(slot: Rep[F[T]], value: Sym) = slot match {
+    def set(slot: Ref[F[T]], value: Sym) = slot match {
       case Def(sliced: SlicedTraversable[T, a, F] @unchecked) =>
         sliced.copy(asRep[F[a]](value))
       case _ =>
@@ -558,7 +558,7 @@ trait Slicing extends ScalanEx {
       case KeyPath.All if inner.elem == eItem =>
         ThunkMarking[A](inner.asMark[A])
     }
-    def projectToExp(thunk: Rep[Thunk[A]]): Sym = thunk match {
+    def projectToExp(thunk: Ref[Thunk[A]]): Sym = thunk match {
       case Def(SlicedThunk(thunk1, m1)) if this == m1 =>
         thunk1
       case _ if innerMark.isIdentity =>
@@ -576,7 +576,7 @@ trait Slicing extends ScalanEx {
     }
 
     def makeSlot = SlicedThunk(variable(Lazy(projectedElem)), this)
-    def set(slot: Rep[Thunk[A]], value: Sym) = slot match {
+    def set(slot: Ref[Thunk[A]], value: Sym) = slot match {
       case Def(sf: SlicedThunk[a, a1]) =>
         SlicedThunk(asRep[Thunk[a1]](value), this)
       case _ =>
@@ -600,7 +600,7 @@ trait Slicing extends ScalanEx {
     def marked(m: SliceMarking[_]): MarkedSym = (e, m).asInstanceOf[MarkedSym]
   }
 
-  def sliceIn[A,B,C](f: Rep[A => B], m: SliceMarking[A]): Rep[C => B] = f match {
+  def sliceIn[A,B,C](f: Ref[A => B], m: SliceMarking[A]): Ref[C => B] = f match {
     case Def(d) => d match {
       case SlicedFunc(fs, fm) =>
         if (m == fm.mDom && fm.mRange.isIdentity)
@@ -612,7 +612,7 @@ trait Slicing extends ScalanEx {
         implicit val eA = elem.eDom
         implicit val eB = elem.eRange
         implicit val eC = m.projectedElem.asElem[C]
-        val res = fun { x: Rep[C] =>
+        val res = fun { x: Ref[C] =>
           val slot = m.makeSlot
           val init = m.set(slot, x)
           mirrorApply(lam, init)
@@ -621,19 +621,19 @@ trait Slicing extends ScalanEx {
     }
   }
 
-  def sliceOut[A,B,C](f: Rep[A => B], m: SliceMarking[B]): Rep[A => C] = {
+  def sliceOut[A,B,C](f: Ref[A => B], m: SliceMarking[B]): Ref[A => C] = {
     val elem = f.elem
     implicit val eA = elem.eDom
     implicit val eB = elem.eRange
     implicit val eC = m.projectedElem.asElem[C]
-    val res = fun { x: Rep[A] =>
+    val res = fun { x: Ref[A] =>
       val y = f(x)
       asRep[C](m.projectToExp(y))
     }
     res
   }
 
-  def sliceFunc[A,B,C,D](f: Rep[A => B], m: FuncMarking[A,B]): Rep[C => D] = asRep[C => D](f match {
+  def sliceFunc[A,B,C,D](f: Ref[A => B], m: FuncMarking[A,B]): Ref[C => D] = asRep[C => D](f match {
     case Def(SlicedFunc(f1, m1)) if m == m1 =>
       f1
     case _ =>
@@ -650,14 +650,14 @@ trait Slicing extends ScalanEx {
       }
   })
 
-  def sliceFunc[A,B,C,D](f: Rep[A => B], m: SliceMarking[A => B]): Rep[C => D] = m match {
+  def sliceFunc[A,B,C,D](f: Ref[A => B], m: SliceMarking[A => B]): Ref[C => D] = m match {
     case fm: FuncMarking[A,B]@unchecked => sliceFunc(f, fm)
     case _ => !!!(s"FuncMarking expected but found ${m}")
   }
 
   class SlicingMirror(sliceAnalyzer: SliceAnalyzer, graph: PGraph) extends Mirror[MapTransformer] {
 
-//    override def mirrorNode[A](t: MapTransformer, rewriter: Rewriter, g: AstGraph, node: Rep[A]): (MapTransformer, Sym) = {
+//    override def mirrorNode[A](t: MapTransformer, rewriter: Rewriter, g: AstGraph, node: Ref[A]): (MapTransformer, Sym) = {
 //      val (t1, mirrored) = super.mirrorNode(t, rewriter, g, node)
 //      implicit val eA = mirrored.elem.asElem[A]
 //      val mark = mirrored.getMetadata(markingKey[A](SliceMarking.KeyPrefix))
@@ -667,7 +667,7 @@ trait Slicing extends ScalanEx {
 //      (t1,mirrored)
 //    }
 //    protected override def mirrorMetadata[A, B](
-//                                                 t: MapTransformer, old: Rep[A], mirrored: Rep[B]): (MapTransformer, MetaNode) = {
+//                                                 t: MapTransformer, old: Ref[A], mirrored: Ref[B]): (MapTransformer, MetaNode) = {
 //      val (t1, metaNode) = super.mirrorMetadata(t, old, mirrored)
 //
 //      //      implicit val eA = old.elem
@@ -680,7 +680,7 @@ trait Slicing extends ScalanEx {
 //      (t1, metaNode)
 //    }
     override protected def mirrorLambda[A, B](
-        t: MapTransformer, rewriter: Rewriter, node: Rep[(A) => B], lam: Lambda[A, B]): MapTransformer = {
+                                                 t: MapTransformer, rewriter: Rewriter, node: Ref[(A) => B], lam: Lambda[A, B]): MapTransformer = {
       if (graph.roots.contains(node)) {
         val fm = sliceAnalyzer.getMark(node)
         if (!fm.isIdentity) {
@@ -697,43 +697,43 @@ trait Slicing extends ScalanEx {
   }
 
   abstract class Sliced[From, To] extends Def[From] {
-    def source: Rep[To]
+    def source: Ref[To]
     def mark: SliceMarking[From]
     implicit lazy val resultType = mark.elem
   }
 
-  case class SlicedFunc[AFrom, BFrom, ATo, BTo](source: Rep[ATo => BTo], mark: FuncMarking[AFrom, BFrom])
+  case class SlicedFunc[AFrom, BFrom, ATo, BTo](source: Ref[ATo => BTo], mark: FuncMarking[AFrom, BFrom])
     extends Sliced[AFrom => BFrom, ATo => BTo] {
     override def transform(t: Transformer): Def[AFrom => BFrom] = SlicedFunc(t(source), mark)
   }
 
-  case class SlicedThunk[AFrom, ATo](source: Rep[Thunk[ATo]], mark: ThunkMarking[AFrom]) extends
+  case class SlicedThunk[AFrom, ATo](source: Ref[Thunk[ATo]], mark: ThunkMarking[AFrom]) extends
     Sliced[Thunk[AFrom], Thunk[ATo]] {
     override def transform(t: Transformer): Def[Thunk[AFrom]] = SlicedThunk(t(source), mark)
   }
 
-  case class UnpackSliced[From, To](sliced: Rep[From], mark: SliceMarking[From]) extends Def[To] {
+  case class UnpackSliced[From, To](sliced: Ref[From], mark: SliceMarking[From]) extends Def[To] {
     implicit def resultType = mark.projectedElem.asElem[To]
     override def transform(t: Transformer): Def[To] = UnpackSliced(t(sliced), mark)
   }
 
-  case class SlicedTraversable[A, B, F[_]](source: Rep[F[B]], innerMark: SliceMarking[A], cF: Cont[F]) extends Sliced[F[A], F[B]] {
+  case class SlicedTraversable[A, B, F[_]](source: Ref[F[B]], innerMark: SliceMarking[A], cF: Cont[F]) extends Sliced[F[A], F[B]] {
     val mark = TraversableMarking(KeyPath.All, innerMark, cF)
     override def transform(t: Transformer): Def[F[A]] = SlicedTraversable(t(source), innerMark, cF)
     override def toString = s"SlicedTraversable[${cF.name}][${innerMark.elem.name}]($source)"
   }
 
-  case class SlicedStruct[From <: Struct, To <: Struct](source: Rep[To], mark: StructMarking[From])
+  case class SlicedStruct[From <: Struct, To <: Struct](source: Ref[To], mark: StructMarking[From])
     extends Sliced[From, To] {
     override def transform(t: Transformer): Def[From] = SlicedStruct(t(source), mark)
   }
 
-  case class SlicedBase[A](source: Rep[Unit], mark: EmptyBaseMarking[A])
+  case class SlicedBase[A](source: Ref[Unit], mark: EmptyBaseMarking[A])
     extends Sliced[A, Unit] {
     override def transform(t: Transformer): Def[A] = SlicedBase(t(source), mark)
   }
 
-  case class SlicedPair[A,B,A1,B1](source: Rep[(A1,B1)], mark: PairMarking[A,B])
+  case class SlicedPair[A,B,A1,B1](source: Ref[(A1,B1)], mark: PairMarking[A,B])
     extends Sliced[(A,B), (A1,B1)] {
     override def transform(t: Transformer): Def[(A, B)] = SlicedPair(t(source), mark)
   }
@@ -742,7 +742,7 @@ trait Slicing extends ScalanEx {
     g.flatSchedule.filter { sym => sym.rhs.isInstanceOf[Sliced[_,_]] }
   }
 
-  type SliceInfo[A,B] = (Rep[B], SliceMarking[A])
+  type SliceInfo[A,B] = (Ref[B], SliceMarking[A])
   object IsSliced {
     def unapply(s: Def[_]): Option[SliceInfo[T,_] forSome {type T}] = s match {
       case sliced: Sliced[a,b] =>
@@ -757,7 +757,7 @@ trait Slicing extends ScalanEx {
   }
 
   object IsSlicedFunc {
-    def unapply[T](s: Rep[T]): Option[(SlicedFunc[_,_,_,_], Sym, SliceMarking[T])] = s match {
+    def unapply[T](s: Ref[T]): Option[(SlicedFunc[_,_,_,_], Sym, SliceMarking[T])] = s match {
       case Def(sliced: SlicedFunc[a,b,c,d]) =>
         Some((sliced, sliced.source, sliced.mark.asMark[T]))
       case Def(l: Lambda[a,b]) if sliceAnalyzer.hasMark(s) =>
@@ -775,14 +775,14 @@ trait Slicing extends ScalanEx {
   }
 
   class SlicingRewriter(sliceAnalyzer: SliceAnalyzer, graph: PGraph) extends Rewriter {
-    def apply[T](x: Rep[T]): Rep[T] = asRep[T](x match {
+    def apply[T](x: Ref[T]): Ref[T] = asRep[T](x match {
       case _ =>
         x
     })
   }
 
   object Sliced {
-    def apply[A](s: Sym, m: SliceMarking[A]): Rep[A] =
+    def apply[A](s: Sym, m: SliceMarking[A]): Ref[A] =
       if (m.isIdentity) asRep[A](s)
       else {
         val slot = m.makeSlot
@@ -809,7 +809,7 @@ trait Slicing extends ScalanEx {
       val y1 = f(x1)
       Sliced(y1, m.mRange)
 
-    case Apply(f: RFunc[a, b] @unchecked, IsSliced(x: Rep[c], m), _) =>
+    case Apply(f: RFunc[a, b] @unchecked, IsSliced(x: Ref[c], m), _) =>
       // is this correct?
       val f1 = asRep[c => b](sliceIn(f, m.asMark[a]))
       f1(x)

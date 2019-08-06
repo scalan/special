@@ -8,7 +8,7 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
   import AbsorbSecondUnitIso._
   
   object HasViews {
-    def unapply[T](s: Rep[T]): Option[Unpacked[T]] =
+    def unapply[T](s: Ref[T]): Option[Unpacked[T]] =
       if (performViewsLifting)
         unapplyViews(s)
       else None
@@ -145,9 +145,9 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
     ).asInstanceOf[Iso[_,T]]
 
   // for simplifying unapplyViews
-  protected def trivialUnapply[T](s: Rep[T]) = (s, identityIso(s.elem))
+  protected def trivialUnapply[T](s: Ref[T]) = (s, identityIso(s.elem))
 
-  override def unapplyViews[T](s: Rep[T]): Option[Unpacked[T]] = (s match {
+  override def unapplyViews[T](s: Ref[T]): Option[Unpacked[T]] = (s match {
     case Def(d: SLeft[l, r]) =>
       val left = d.left
       val eRight = d.eRight
@@ -183,10 +183,10 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
   }
 
   object UnpackableExp {
-    def unapply[T](e: Rep[T]): Option[Unpacked[T]] =
+    def unapply[T](e: Ref[T]): Option[Unpacked[T]] =
       e match {
         case Def(UnpackableDef(source, iso: Iso[a, T] @unchecked)) =>
-          Some((source.asInstanceOf[Rep[a]], iso))
+          Some((source.asInstanceOf[Ref[a]], iso))
         case _ =>
           val eT = e.elem
           eT match {
@@ -198,7 +198,7 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
   }
 
   object LambdaResultHasViews {
-    def unapply[A,C](l: Rep[A => C]): Option[UnpackedLambdaResult[A,C]] = l match {
+    def unapply[A,C](l: Ref[A => C]): Option[UnpackedLambdaResult[A,C]] = l match {
       case Def(Lambda(_, _, _, HasViews(_, iso: Iso[b, C]@unchecked))) =>
         Some((l, iso))
       case _ => None
@@ -211,11 +211,11 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
       PairView((asRep[a](a), asRep[b](b)), iso1, iso2)
 
     // Rule: (V(a, iso1), b) ==> V((a,b), PairIso(iso1, id))
-    case Tup(HasViews(a, iso1: Iso[a, c]), b: Rep[b]) =>
+    case Tup(HasViews(a, iso1: Iso[a, c]), b: Ref[b]) =>
       PairView((asRep[a](a), b), iso1, identityIso(b.elem)).self
 
     // Rule: (a, V(b, iso2)) ==> V((a,b), PairIso(id, iso2))
-    case Tup(a: Rep[a], HasViews(b, iso2: Iso[b, d])) =>
+    case Tup(a: Ref[a], HasViews(b, iso2: Iso[b, d])) =>
       PairView((a, asRep[b](b)), identityIso(a.elem), iso2).self
 
     // Rule: PairView(source, iso1, _)._1  ==> iso1.to(source._1)
@@ -237,7 +237,7 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
     case UnpackView(Def(UnpackableDef(source, _)), _) => source
 
     // Rule: ParExec(nJobs, f @ i => ... V(_, iso)) ==> V(ParExec(nJobs, f >> iso.from), arrayiso(iso))
-    //    case ParallelExecute(nJobs:Rep[Int], f@Def(Lambda(_, _, _, HasViews(_, iso: Iso[a, b])))) =>
+    //    case ParallelExecute(nJobs:Ref[Int], f@Def(Lambda(_, _, _, HasViews(_, iso: Iso[a, b])))) =>
     //      implicit val ea = iso.eFrom
     //      val parRes = ParallelExecute(nJobs, fun { i => iso.from(f(i)) })(iso.eFrom)
     //      ViewArray(parRes, iso)
@@ -247,13 +247,13 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
     //      val start1 = startWithoutViews.asRep[a]
     //      implicit val eA = iso.eFrom
     //      implicit val eB = iso.eTo
-    //      val step1 = fun { (x: Rep[a]) =>
+    //      val step1 = fun { (x: Ref[a]) =>
     //        val x_viewed = iso.to(x)
     //        val res_viewed = step.asRep[b => b](x_viewed) // mirrorApply(step.asRep[b => b], x_viewed)
     //      val res = iso.from(res_viewed)
     //        res
     //      }
-    //      val isMatch1 = fun { (x: Rep[a]) =>
+    //      val isMatch1 = fun { (x: Ref[a]) =>
     //        val x_viewed = iso.to(x)
     //        val res = isMatch.asRep[b => Boolean](x_viewed) // mirrorApply(isMatch.asRep[b => Boolean], x_viewed)
     //        res

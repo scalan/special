@@ -164,7 +164,7 @@ object ScalanAst {
     }
 
     def isTupledFunc = self match {
-      case STraitCall("Rep", List(STpeFunc(STpeTuple(a1 :: a2 :: tail), _))) => true
+      case STraitCall("Ref", List(STpeFunc(STpeTuple(a1 :: a2 :: tail), _))) => true
       case STpeFunc(STpeTuple(a1 :: a2 :: tail), _) => true
       case _ => false
     }
@@ -278,7 +278,7 @@ object ScalanAst {
           None
         }
         findInTuple(t)
-      case STraitCall("Rep", List(tT)) =>
+      case STraitCall("Ref", List(tT)) =>
         find(tT, argName)
       case STraitCall("Thunk", List(tT)) =>
         find(tT, argName).map(tail => SThunkPath(tpe, tail))

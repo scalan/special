@@ -22,7 +22,7 @@ object Converter extends EntityObject("Converter") {
   private val ConverterClass = classOf[Converter[_, _]]
 
   // entityAdapter for Converter trait
-  case class ConverterAdapter[T, R](source: Rep[Converter[T, R]])
+  case class ConverterAdapter[T, R](source: Ref[Converter[T, R]])
       extends Converter[T, R]
       with Def[Converter[T, R]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
@@ -31,7 +31,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     val resultType: Elem[Converter[T, R]] = element[Converter[T, R]]
     override def transform(t: Transformer) = ConverterAdapter[T, R](t(source))
 
-    def apply(x: Rep[T]): Rep[R] = {
+    def apply(x: Ref[T]): Ref[R] = {
       asRep[R](mkMethodCall(source,
         ConverterClass.getMethod("apply", classOf[Sym]),
         Array[AnyRef](x),
@@ -40,7 +40,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxyConverter[T, R](p: Rep[Converter[T, R]]): Converter[T, R] = {
+  implicit def proxyConverter[T, R](p: Ref[Converter[T, R]]): Converter[T, R] = {
     if (p.rhs.isInstanceOf[Converter[T, R]@unchecked]) p.rhs.asInstanceOf[Converter[T, R]]
     else
       ConverterAdapter(p)
@@ -64,10 +64,10 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def resultType = ConverterCompanionElem
     override def toString = "Converter"
   }
-  implicit def proxyConverterCompanionCtor(p: Rep[ConverterCompanionCtor]): ConverterCompanionCtor =
+  implicit def proxyConverterCompanionCtor(p: Ref[ConverterCompanionCtor]): ConverterCompanionCtor =
     p.rhs.asInstanceOf[ConverterCompanionCtor]
 
-  lazy val RConverter: Rep[ConverterCompanionCtor] = new ConverterCompanionCtor {
+  lazy val RConverter: Ref[ConverterCompanionCtor] = new ConverterCompanionCtor {
     private val thisClass = classOf[ConverterCompanion]
   }
 } // of object Converter
@@ -95,10 +95,10 @@ object IdentityConv extends EntityObject("IdentityConv") {
   class IdentityConvIso[A](implicit eT: Elem[A])
     extends EntityIso[IdentityConvData[A], IdentityConv[A]] with Def[IdentityConvIso[A]] {
     override def transform(t: Transformer) = new IdentityConvIso[A]()(eT)
-    private lazy val _safeFrom = fun { p: Rep[IdentityConv[A]] => () }
-    override def from(p: Rep[IdentityConv[A]]) =
+    private lazy val _safeFrom = fun { p: Ref[IdentityConv[A]] => () }
+    override def from(p: Ref[IdentityConv[A]]) =
       tryConvert[IdentityConv[A], Unit](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Unit]) = {
+    override def to(p: Ref[Unit]) = {
       val unit = p
       RIdentityConv()
     }
@@ -116,19 +116,19 @@ object IdentityConv extends EntityObject("IdentityConv") {
     def resultType = IdentityConvCompanionElem
     override def toString = "IdentityConvCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A](p: Rep[IdentityConvData[A]])(implicit eT: Elem[A]): Rep[IdentityConv[A]] = {
+    def apply[A](p: Ref[IdentityConvData[A]])(implicit eT: Elem[A]): Ref[IdentityConv[A]] = {
       isoIdentityConv[A].to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A]()(implicit eT: Elem[A]): Rep[IdentityConv[A]] =
+    def apply[A]()(implicit eT: Elem[A]): Ref[IdentityConv[A]] =
       mkIdentityConv()
 
-    def unapply[A](p: Rep[Converter[A, A]]) = unmkIdentityConv(p)
+    def unapply[A](p: Ref[Converter[A, A]]) = unmkIdentityConv(p)
   }
-  lazy val IdentityConvRep: Rep[IdentityConvCompanionCtor] = new IdentityConvCompanionCtor
+  lazy val IdentityConvRep: Ref[IdentityConvCompanionCtor] = new IdentityConvCompanionCtor
   lazy val RIdentityConv: IdentityConvCompanionCtor = proxyIdentityConvCompanion(IdentityConvRep)
-  implicit def proxyIdentityConvCompanion(p: Rep[IdentityConvCompanionCtor]): IdentityConvCompanionCtor = {
+  implicit def proxyIdentityConvCompanion(p: Ref[IdentityConvCompanionCtor]): IdentityConvCompanionCtor = {
     if (p.rhs.isInstanceOf[IdentityConvCompanionCtor])
       p.rhs.asInstanceOf[IdentityConvCompanionCtor]
     else
@@ -137,15 +137,15 @@ object IdentityConv extends EntityObject("IdentityConv") {
 
   implicit case object IdentityConvCompanionElem extends CompanionElem[IdentityConvCompanionCtor]
 
-  implicit def proxyIdentityConv[A](p: Rep[IdentityConv[A]]): IdentityConv[A] = {
+  implicit def proxyIdentityConv[A](p: Ref[IdentityConv[A]]): IdentityConv[A] = {
     if (p.rhs.isInstanceOf[IdentityConv[A]@unchecked])
       p.rhs.asInstanceOf[IdentityConv[A]]
     else
       proxyOps[IdentityConv[A]](p)
   }
 
-  implicit class ExtendedIdentityConv[A](p: Rep[IdentityConv[A]])(implicit eT: Elem[A]) {
-    def toData: Rep[IdentityConvData[A]] = {
+  implicit class ExtendedIdentityConv[A](p: Ref[IdentityConv[A]])(implicit eT: Elem[A]) {
+    def toData: Ref[IdentityConvData[A]] = {
       isoIdentityConv(eT).from(p)
     }
   }
@@ -155,10 +155,10 @@ object IdentityConv extends EntityObject("IdentityConv") {
     reifyObject(new IdentityConvIso[A]()(eT))
 
   def mkIdentityConv[A]
-    ()(implicit eT: Elem[A]): Rep[IdentityConv[A]] = {
+    ()(implicit eT: Elem[A]): Ref[IdentityConv[A]] = {
     new IdentityConvCtor[A]()
   }
-  def unmkIdentityConv[A](p: Rep[Converter[A, A]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkIdentityConv[A](p: Ref[Converter[A, A]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IdentityConvElem[A] @unchecked =>
       Some(())
     case _ =>
@@ -169,7 +169,7 @@ object IdentityConv extends EntityObject("IdentityConv") {
 
 object BaseConverter extends EntityObject("BaseConverter") {
   case class BaseConverterCtor[T, R]
-      (override val convFun: Rep[T => R])
+      (override val convFun: Ref[T => R])
     extends BaseConverter[T, R](convFun) with Def[BaseConverter[T, R]] {
     implicit lazy val eT = convFun.elem.eDom;
 implicit lazy val eR = convFun.elem.eRange
@@ -192,10 +192,10 @@ implicit lazy val eR = convFun.elem.eRange
   class BaseConverterIso[T, R](implicit eT: Elem[T], eR: Elem[R])
     extends EntityIso[BaseConverterData[T, R], BaseConverter[T, R]] with Def[BaseConverterIso[T, R]] {
     override def transform(t: Transformer) = new BaseConverterIso[T, R]()(eT, eR)
-    private lazy val _safeFrom = fun { p: Rep[BaseConverter[T, R]] => p.convFun }
-    override def from(p: Rep[BaseConverter[T, R]]) =
+    private lazy val _safeFrom = fun { p: Ref[BaseConverter[T, R]] => p.convFun }
+    override def from(p: Ref[BaseConverter[T, R]]) =
       tryConvert[BaseConverter[T, R], T => R](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[T => R]) = {
+    override def to(p: Ref[T => R]) = {
       val convFun = p
       RBaseConverter(convFun)
     }
@@ -217,14 +217,14 @@ implicit lazy val eR = convFun.elem.eRange
     override def toString = "BaseConverterCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[T, R](convFun: Rep[T => R]): Rep[BaseConverter[T, R]] =
+    def apply[T, R](convFun: Ref[T => R]): Ref[BaseConverter[T, R]] =
       mkBaseConverter(convFun)
 
-    def unapply[T, R](p: Rep[Converter[T, R]]) = unmkBaseConverter(p)
+    def unapply[T, R](p: Ref[Converter[T, R]]) = unmkBaseConverter(p)
   }
-  lazy val BaseConverterRep: Rep[BaseConverterCompanionCtor] = new BaseConverterCompanionCtor
+  lazy val BaseConverterRep: Ref[BaseConverterCompanionCtor] = new BaseConverterCompanionCtor
   lazy val RBaseConverter: BaseConverterCompanionCtor = proxyBaseConverterCompanion(BaseConverterRep)
-  implicit def proxyBaseConverterCompanion(p: Rep[BaseConverterCompanionCtor]): BaseConverterCompanionCtor = {
+  implicit def proxyBaseConverterCompanion(p: Ref[BaseConverterCompanionCtor]): BaseConverterCompanionCtor = {
     if (p.rhs.isInstanceOf[BaseConverterCompanionCtor])
       p.rhs.asInstanceOf[BaseConverterCompanionCtor]
     else
@@ -233,15 +233,15 @@ implicit lazy val eR = convFun.elem.eRange
 
   implicit case object BaseConverterCompanionElem extends CompanionElem[BaseConverterCompanionCtor]
 
-  implicit def proxyBaseConverter[T, R](p: Rep[BaseConverter[T, R]]): BaseConverter[T, R] = {
+  implicit def proxyBaseConverter[T, R](p: Ref[BaseConverter[T, R]]): BaseConverter[T, R] = {
     if (p.rhs.isInstanceOf[BaseConverter[T, R]@unchecked])
       p.rhs.asInstanceOf[BaseConverter[T, R]]
     else
       proxyOps[BaseConverter[T, R]](p)
   }
 
-  implicit class ExtendedBaseConverter[T, R](p: Rep[BaseConverter[T, R]]) {
-    def toData: Rep[BaseConverterData[T, R]] = {
+  implicit class ExtendedBaseConverter[T, R](p: Ref[BaseConverter[T, R]]) {
+    def toData: Ref[BaseConverterData[T, R]] = {
       implicit val eT = p.convFun.elem.eDom;
 implicit val eR = p.convFun.elem.eRange
       isoBaseConverter(eT, eR).from(p)
@@ -253,10 +253,10 @@ implicit val eR = p.convFun.elem.eRange
     reifyObject(new BaseConverterIso[T, R]()(eT, eR))
 
   def mkBaseConverter[T, R]
-    (convFun: Rep[T => R]): Rep[BaseConverter[T, R]] = {
+    (convFun: Ref[T => R]): Ref[BaseConverter[T, R]] = {
     new BaseConverterCtor[T, R](convFun)
   }
-  def unmkBaseConverter[T, R](p: Rep[Converter[T, R]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkBaseConverter[T, R](p: Ref[Converter[T, R]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: BaseConverterElem[T, R] @unchecked =>
       Some((asRep[BaseConverter[T, R]](p).convFun))
     case _ =>
@@ -293,10 +293,10 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   class PairConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] with Def[PairConverterIso[A1, A2, B1, B2]] {
     override def transform(t: Transformer) = new PairConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
-    private lazy val _safeFrom = fun { p: Rep[PairConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
-    override def from(p: Rep[PairConverter[A1, A2, B1, B2]]) =
+    private lazy val _safeFrom = fun { p: Ref[PairConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
+    override def from(p: Ref[PairConverter[A1, A2, B1, B2]]) =
       tryConvert[PairConverter[A1, A2, B1, B2], (Converter[A1, B1], Converter[A2, B2])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Converter[A1, B1], Converter[A2, B2])]) = {
+    override def to(p: Ref[(Converter[A1, B1], Converter[A2, B2])]) = {
       val Pair(conv1, conv2) = p
       RPairConverter(conv1, conv2)
     }
@@ -319,7 +319,7 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     def resultType = PairConverterCompanionElem
     override def toString = "PairConverterCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A1, A2, B1, B2](p: Rep[PairConverterData[A1, A2, B1, B2]]): Rep[PairConverter[A1, A2, B1, B2]] = {
+    def apply[A1, A2, B1, B2](p: Ref[PairConverterData[A1, A2, B1, B2]]): Ref[PairConverter[A1, A2, B1, B2]] = {
       implicit val eA1 = p._1.eT;
 implicit val eA2 = p._2.eT;
 implicit val eB1 = p._1.eR;
@@ -328,14 +328,14 @@ implicit val eB2 = p._2.eR
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A1, A2, B1, B2](conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[PairConverter[A1, A2, B1, B2]] =
+    def apply[A1, A2, B1, B2](conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Ref[PairConverter[A1, A2, B1, B2]] =
       mkPairConverter(conv1, conv2)
 
-    def unapply[A1, A2, B1, B2](p: Rep[Converter[(A1, A2), (B1, B2)]]) = unmkPairConverter(p)
+    def unapply[A1, A2, B1, B2](p: Ref[Converter[(A1, A2), (B1, B2)]]) = unmkPairConverter(p)
   }
-  lazy val PairConverterRep: Rep[PairConverterCompanionCtor] = new PairConverterCompanionCtor
+  lazy val PairConverterRep: Ref[PairConverterCompanionCtor] = new PairConverterCompanionCtor
   lazy val RPairConverter: PairConverterCompanionCtor = proxyPairConverterCompanion(PairConverterRep)
-  implicit def proxyPairConverterCompanion(p: Rep[PairConverterCompanionCtor]): PairConverterCompanionCtor = {
+  implicit def proxyPairConverterCompanion(p: Ref[PairConverterCompanionCtor]): PairConverterCompanionCtor = {
     if (p.rhs.isInstanceOf[PairConverterCompanionCtor])
       p.rhs.asInstanceOf[PairConverterCompanionCtor]
     else
@@ -344,15 +344,15 @@ implicit val eB2 = p._2.eR
 
   implicit case object PairConverterCompanionElem extends CompanionElem[PairConverterCompanionCtor]
 
-  implicit def proxyPairConverter[A1, A2, B1, B2](p: Rep[PairConverter[A1, A2, B1, B2]]): PairConverter[A1, A2, B1, B2] = {
+  implicit def proxyPairConverter[A1, A2, B1, B2](p: Ref[PairConverter[A1, A2, B1, B2]]): PairConverter[A1, A2, B1, B2] = {
     if (p.rhs.isInstanceOf[PairConverter[A1, A2, B1, B2]@unchecked])
       p.rhs.asInstanceOf[PairConverter[A1, A2, B1, B2]]
     else
       proxyOps[PairConverter[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedPairConverter[A1, A2, B1, B2](p: Rep[PairConverter[A1, A2, B1, B2]]) {
-    def toData: Rep[PairConverterData[A1, A2, B1, B2]] = {
+  implicit class ExtendedPairConverter[A1, A2, B1, B2](p: Ref[PairConverter[A1, A2, B1, B2]]) {
+    def toData: Ref[PairConverterData[A1, A2, B1, B2]] = {
       implicit val eA1 = p.conv1.eT;
 implicit val eA2 = p.conv2.eT;
 implicit val eB1 = p.conv1.eR;
@@ -366,10 +366,10 @@ implicit val eB2 = p.conv2.eR
     reifyObject(new PairConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
 
   def mkPairConverter[A1, A2, B1, B2]
-    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[PairConverter[A1, A2, B1, B2]] = {
+    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Ref[PairConverter[A1, A2, B1, B2]] = {
     new PairConverterCtor[A1, A2, B1, B2](conv1, conv2)
   }
-  def unmkPairConverter[A1, A2, B1, B2](p: Rep[Converter[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkPairConverter[A1, A2, B1, B2](p: Ref[Converter[(A1, A2), (B1, B2)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: PairConverterElem[A1, A2, B1, B2] @unchecked =>
       Some((asRep[PairConverter[A1, A2, B1, B2]](p).conv1, asRep[PairConverter[A1, A2, B1, B2]](p).conv2))
     case _ =>
@@ -406,10 +406,10 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   class SumConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
     extends EntityIso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] with Def[SumConverterIso[A1, A2, B1, B2]] {
     override def transform(t: Transformer) = new SumConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2)
-    private lazy val _safeFrom = fun { p: Rep[SumConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
-    override def from(p: Rep[SumConverter[A1, A2, B1, B2]]) =
+    private lazy val _safeFrom = fun { p: Ref[SumConverter[A1, A2, B1, B2]] => (p.conv1, p.conv2) }
+    override def from(p: Ref[SumConverter[A1, A2, B1, B2]]) =
       tryConvert[SumConverter[A1, A2, B1, B2], (Converter[A1, B1], Converter[A2, B2])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Converter[A1, B1], Converter[A2, B2])]) = {
+    override def to(p: Ref[(Converter[A1, B1], Converter[A2, B2])]) = {
       val Pair(conv1, conv2) = p
       RSumConverter(conv1, conv2)
     }
@@ -432,7 +432,7 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     def resultType = SumConverterCompanionElem
     override def toString = "SumConverterCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A1, A2, B1, B2](p: Rep[SumConverterData[A1, A2, B1, B2]]): Rep[SumConverter[A1, A2, B1, B2]] = {
+    def apply[A1, A2, B1, B2](p: Ref[SumConverterData[A1, A2, B1, B2]]): Ref[SumConverter[A1, A2, B1, B2]] = {
       implicit val eA1 = p._1.eT;
 implicit val eA2 = p._2.eT;
 implicit val eB1 = p._1.eR;
@@ -441,14 +441,14 @@ implicit val eB2 = p._2.eR
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A1, A2, B1, B2](conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[SumConverter[A1, A2, B1, B2]] =
+    def apply[A1, A2, B1, B2](conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Ref[SumConverter[A1, A2, B1, B2]] =
       mkSumConverter(conv1, conv2)
 
-    def unapply[A1, A2, B1, B2](p: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = unmkSumConverter(p)
+    def unapply[A1, A2, B1, B2](p: Ref[Converter[$bar[A1, A2], $bar[B1, B2]]]) = unmkSumConverter(p)
   }
-  lazy val SumConverterRep: Rep[SumConverterCompanionCtor] = new SumConverterCompanionCtor
+  lazy val SumConverterRep: Ref[SumConverterCompanionCtor] = new SumConverterCompanionCtor
   lazy val RSumConverter: SumConverterCompanionCtor = proxySumConverterCompanion(SumConverterRep)
-  implicit def proxySumConverterCompanion(p: Rep[SumConverterCompanionCtor]): SumConverterCompanionCtor = {
+  implicit def proxySumConverterCompanion(p: Ref[SumConverterCompanionCtor]): SumConverterCompanionCtor = {
     if (p.rhs.isInstanceOf[SumConverterCompanionCtor])
       p.rhs.asInstanceOf[SumConverterCompanionCtor]
     else
@@ -457,15 +457,15 @@ implicit val eB2 = p._2.eR
 
   implicit case object SumConverterCompanionElem extends CompanionElem[SumConverterCompanionCtor]
 
-  implicit def proxySumConverter[A1, A2, B1, B2](p: Rep[SumConverter[A1, A2, B1, B2]]): SumConverter[A1, A2, B1, B2] = {
+  implicit def proxySumConverter[A1, A2, B1, B2](p: Ref[SumConverter[A1, A2, B1, B2]]): SumConverter[A1, A2, B1, B2] = {
     if (p.rhs.isInstanceOf[SumConverter[A1, A2, B1, B2]@unchecked])
       p.rhs.asInstanceOf[SumConverter[A1, A2, B1, B2]]
     else
       proxyOps[SumConverter[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedSumConverter[A1, A2, B1, B2](p: Rep[SumConverter[A1, A2, B1, B2]]) {
-    def toData: Rep[SumConverterData[A1, A2, B1, B2]] = {
+  implicit class ExtendedSumConverter[A1, A2, B1, B2](p: Ref[SumConverter[A1, A2, B1, B2]]) {
+    def toData: Ref[SumConverterData[A1, A2, B1, B2]] = {
       implicit val eA1 = p.conv1.eT;
 implicit val eA2 = p.conv2.eT;
 implicit val eB1 = p.conv1.eR;
@@ -479,10 +479,10 @@ implicit val eB2 = p.conv2.eR
     reifyObject(new SumConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
 
   def mkSumConverter[A1, A2, B1, B2]
-    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Rep[SumConverter[A1, A2, B1, B2]] = {
+    (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Ref[SumConverter[A1, A2, B1, B2]] = {
     new SumConverterCtor[A1, A2, B1, B2](conv1, conv2)
   }
-  def unmkSumConverter[A1, A2, B1, B2](p: Rep[Converter[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkSumConverter[A1, A2, B1, B2](p: Ref[Converter[$bar[A1, A2], $bar[B1, B2]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: SumConverterElem[A1, A2, B1, B2] @unchecked =>
       Some((asRep[SumConverter[A1, A2, B1, B2]](p).conv1, asRep[SumConverter[A1, A2, B1, B2]](p).conv2))
     case _ =>
@@ -517,10 +517,10 @@ implicit lazy val eC = conv2.eR
   class ComposeConverterIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C])
     extends EntityIso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] with Def[ComposeConverterIso[A, B, C]] {
     override def transform(t: Transformer) = new ComposeConverterIso[A, B, C]()(eA, eB, eC)
-    private lazy val _safeFrom = fun { p: Rep[ComposeConverter[A, B, C]] => (p.conv2, p.conv1) }
-    override def from(p: Rep[ComposeConverter[A, B, C]]) =
+    private lazy val _safeFrom = fun { p: Ref[ComposeConverter[A, B, C]] => (p.conv2, p.conv1) }
+    override def from(p: Ref[ComposeConverter[A, B, C]]) =
       tryConvert[ComposeConverter[A, B, C], (Converter[B, C], Converter[A, B])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Converter[B, C], Converter[A, B])]) = {
+    override def to(p: Ref[(Converter[B, C], Converter[A, B])]) = {
       val Pair(conv2, conv1) = p
       RComposeConverter(conv2, conv1)
     }
@@ -542,7 +542,7 @@ implicit lazy val eC = conv2.eR
     def resultType = ComposeConverterCompanionElem
     override def toString = "ComposeConverterCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A, B, C](p: Rep[ComposeConverterData[A, B, C]]): Rep[ComposeConverter[A, B, C]] = {
+    def apply[A, B, C](p: Ref[ComposeConverterData[A, B, C]]): Ref[ComposeConverter[A, B, C]] = {
       implicit val eA = p._2.eT;
 implicit val eB = p._1.eT;
 implicit val eC = p._1.eR
@@ -550,14 +550,14 @@ implicit val eC = p._1.eR
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A, B, C](conv2: Conv[B, C], conv1: Conv[A, B]): Rep[ComposeConverter[A, B, C]] =
+    def apply[A, B, C](conv2: Conv[B, C], conv1: Conv[A, B]): Ref[ComposeConverter[A, B, C]] =
       mkComposeConverter(conv2, conv1)
 
-    def unapply[A, B, C](p: Rep[Converter[A, C]]) = unmkComposeConverter(p)
+    def unapply[A, B, C](p: Ref[Converter[A, C]]) = unmkComposeConverter(p)
   }
-  lazy val ComposeConverterRep: Rep[ComposeConverterCompanionCtor] = new ComposeConverterCompanionCtor
+  lazy val ComposeConverterRep: Ref[ComposeConverterCompanionCtor] = new ComposeConverterCompanionCtor
   lazy val RComposeConverter: ComposeConverterCompanionCtor = proxyComposeConverterCompanion(ComposeConverterRep)
-  implicit def proxyComposeConverterCompanion(p: Rep[ComposeConverterCompanionCtor]): ComposeConverterCompanionCtor = {
+  implicit def proxyComposeConverterCompanion(p: Ref[ComposeConverterCompanionCtor]): ComposeConverterCompanionCtor = {
     if (p.rhs.isInstanceOf[ComposeConverterCompanionCtor])
       p.rhs.asInstanceOf[ComposeConverterCompanionCtor]
     else
@@ -566,15 +566,15 @@ implicit val eC = p._1.eR
 
   implicit case object ComposeConverterCompanionElem extends CompanionElem[ComposeConverterCompanionCtor]
 
-  implicit def proxyComposeConverter[A, B, C](p: Rep[ComposeConverter[A, B, C]]): ComposeConverter[A, B, C] = {
+  implicit def proxyComposeConverter[A, B, C](p: Ref[ComposeConverter[A, B, C]]): ComposeConverter[A, B, C] = {
     if (p.rhs.isInstanceOf[ComposeConverter[A, B, C]@unchecked])
       p.rhs.asInstanceOf[ComposeConverter[A, B, C]]
     else
       proxyOps[ComposeConverter[A, B, C]](p)
   }
 
-  implicit class ExtendedComposeConverter[A, B, C](p: Rep[ComposeConverter[A, B, C]]) {
-    def toData: Rep[ComposeConverterData[A, B, C]] = {
+  implicit class ExtendedComposeConverter[A, B, C](p: Ref[ComposeConverter[A, B, C]]) {
+    def toData: Ref[ComposeConverterData[A, B, C]] = {
       implicit val eA = p.conv1.eT;
 implicit val eB = p.conv2.eT;
 implicit val eC = p.conv2.eR
@@ -587,10 +587,10 @@ implicit val eC = p.conv2.eR
     reifyObject(new ComposeConverterIso[A, B, C]()(eA, eB, eC))
 
   def mkComposeConverter[A, B, C]
-    (conv2: Conv[B, C], conv1: Conv[A, B]): Rep[ComposeConverter[A, B, C]] = {
+    (conv2: Conv[B, C], conv1: Conv[A, B]): Ref[ComposeConverter[A, B, C]] = {
     new ComposeConverterCtor[A, B, C](conv2, conv1)
   }
-  def unmkComposeConverter[A, B, C](p: Rep[Converter[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkComposeConverter[A, B, C](p: Ref[Converter[A, C]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: ComposeConverterElem[A, B, C] @unchecked =>
       Some((asRep[ComposeConverter[A, B, C]](p).conv2, asRep[ComposeConverter[A, B, C]](p).conv1))
     case _ =>
@@ -624,10 +624,10 @@ implicit lazy val eB = itemConv.eR
   class FunctorConverterIso[A, B, F[_]](implicit F: Functor[F], eA: Elem[A], eB: Elem[B])
     extends EntityIso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] with Def[FunctorConverterIso[A, B, F]] {
     override def transform(t: Transformer) = new FunctorConverterIso[A, B, F]()(F, eA, eB)
-    private lazy val _safeFrom = fun { p: Rep[FunctorConverter[A, B, F]] => p.itemConv }
-    override def from(p: Rep[FunctorConverter[A, B, F]]) =
+    private lazy val _safeFrom = fun { p: Ref[FunctorConverter[A, B, F]] => p.itemConv }
+    override def from(p: Ref[FunctorConverter[A, B, F]]) =
       tryConvert[FunctorConverter[A, B, F], Converter[A, B]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Converter[A, B]]) = {
+    override def to(p: Ref[Converter[A, B]]) = {
       val itemConv = p
       RFunctorConverter(itemConv)
     }
@@ -650,14 +650,14 @@ implicit lazy val eB = itemConv.eR
     override def toString = "FunctorConverterCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[A, B, F[_]](itemConv: Conv[A, B])(implicit F: Functor[F]): Rep[FunctorConverter[A, B, F]] =
+    def apply[A, B, F[_]](itemConv: Conv[A, B])(implicit F: Functor[F]): Ref[FunctorConverter[A, B, F]] =
       mkFunctorConverter(itemConv)
 
-    def unapply[A, B, F[_]](p: Rep[Converter[F[A], F[B]]]) = unmkFunctorConverter(p)
+    def unapply[A, B, F[_]](p: Ref[Converter[F[A], F[B]]]) = unmkFunctorConverter(p)
   }
-  lazy val FunctorConverterRep: Rep[FunctorConverterCompanionCtor] = new FunctorConverterCompanionCtor
+  lazy val FunctorConverterRep: Ref[FunctorConverterCompanionCtor] = new FunctorConverterCompanionCtor
   lazy val RFunctorConverter: FunctorConverterCompanionCtor = proxyFunctorConverterCompanion(FunctorConverterRep)
-  implicit def proxyFunctorConverterCompanion(p: Rep[FunctorConverterCompanionCtor]): FunctorConverterCompanionCtor = {
+  implicit def proxyFunctorConverterCompanion(p: Ref[FunctorConverterCompanionCtor]): FunctorConverterCompanionCtor = {
     if (p.rhs.isInstanceOf[FunctorConverterCompanionCtor])
       p.rhs.asInstanceOf[FunctorConverterCompanionCtor]
     else
@@ -666,15 +666,15 @@ implicit lazy val eB = itemConv.eR
 
   implicit case object FunctorConverterCompanionElem extends CompanionElem[FunctorConverterCompanionCtor]
 
-  implicit def proxyFunctorConverter[A, B, F[_]](p: Rep[FunctorConverter[A, B, F]]): FunctorConverter[A, B, F] = {
+  implicit def proxyFunctorConverter[A, B, F[_]](p: Ref[FunctorConverter[A, B, F]]): FunctorConverter[A, B, F] = {
     if (p.rhs.isInstanceOf[FunctorConverter[A, B, F]@unchecked])
       p.rhs.asInstanceOf[FunctorConverter[A, B, F]]
     else
       proxyOps[FunctorConverter[A, B, F]](p)
   }
 
-  implicit class ExtendedFunctorConverter[A, B, F[_]](p: Rep[FunctorConverter[A, B, F]])(implicit F: Functor[F]) {
-    def toData: Rep[FunctorConverterData[A, B, F]] = {
+  implicit class ExtendedFunctorConverter[A, B, F[_]](p: Ref[FunctorConverter[A, B, F]])(implicit F: Functor[F]) {
+    def toData: Ref[FunctorConverterData[A, B, F]] = {
       implicit val eA = p.itemConv.eT;
 implicit val eB = p.itemConv.eR
       isoFunctorConverter(F, eA, eB).from(p)
@@ -686,10 +686,10 @@ implicit val eB = p.itemConv.eR
     reifyObject(new FunctorConverterIso[A, B, F]()(F, eA, eB))
 
   def mkFunctorConverter[A, B, F[_]]
-    (itemConv: Conv[A, B])(implicit F: Functor[F]): Rep[FunctorConverter[A, B, F]] = {
+    (itemConv: Conv[A, B])(implicit F: Functor[F]): Ref[FunctorConverter[A, B, F]] = {
     new FunctorConverterCtor[A, B, F](itemConv)
   }
-  def unmkFunctorConverter[A, B, F[_]](p: Rep[Converter[F[A], F[B]]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkFunctorConverter[A, B, F[_]](p: Ref[Converter[F[A], F[B]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: FunctorConverterElem[A, B, F] @unchecked =>
       Some((asRep[FunctorConverter[A, B, F]](p).itemConv))
     case _ =>
@@ -700,7 +700,7 @@ implicit val eB = p.itemConv.eR
 
 object NaturalConverter extends EntityObject("NaturalConverter") {
   case class NaturalConverterCtor[A, F[_], G[_]]
-      (override val convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
+  (override val convFun: Ref[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends NaturalConverter[A, F, G](convFun) with Def[NaturalConverter[A, F, G]] {
     lazy val resultType = element[NaturalConverter[A, F, G]]
     override def transform(t: Transformer) = NaturalConverterCtor[A, F, G](t(convFun))(eA, cF, cG)
@@ -720,10 +720,10 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   class NaturalConverterIso[A, F[_], G[_]](implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
     extends EntityIso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] with Def[NaturalConverterIso[A, F, G]] {
     override def transform(t: Transformer) = new NaturalConverterIso[A, F, G]()(eA, cF, cG)
-    private lazy val _safeFrom = fun { p: Rep[NaturalConverter[A, F, G]] => p.convFun }
-    override def from(p: Rep[NaturalConverter[A, F, G]]) =
+    private lazy val _safeFrom = fun { p: Ref[NaturalConverter[A, F, G]] => p.convFun }
+    override def from(p: Ref[NaturalConverter[A, F, G]]) =
       tryConvert[NaturalConverter[A, F, G], F[A] => G[A]](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[F[A] => G[A]]) = {
+    override def to(p: Ref[F[A] => G[A]]) = {
       val convFun = p
       RNaturalConverter(convFun)
     }
@@ -746,14 +746,14 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     override def toString = "NaturalConverterCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply[A, F[_], G[_]](convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Rep[NaturalConverter[A, F, G]] =
+    def apply[A, F[_], G[_]](convFun: Ref[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Ref[NaturalConverter[A, F, G]] =
       mkNaturalConverter(convFun)
 
-    def unapply[A, F[_], G[_]](p: Rep[Converter[F[A], G[A]]]) = unmkNaturalConverter(p)
+    def unapply[A, F[_], G[_]](p: Ref[Converter[F[A], G[A]]]) = unmkNaturalConverter(p)
   }
-  lazy val NaturalConverterRep: Rep[NaturalConverterCompanionCtor] = new NaturalConverterCompanionCtor
+  lazy val NaturalConverterRep: Ref[NaturalConverterCompanionCtor] = new NaturalConverterCompanionCtor
   lazy val RNaturalConverter: NaturalConverterCompanionCtor = proxyNaturalConverterCompanion(NaturalConverterRep)
-  implicit def proxyNaturalConverterCompanion(p: Rep[NaturalConverterCompanionCtor]): NaturalConverterCompanionCtor = {
+  implicit def proxyNaturalConverterCompanion(p: Ref[NaturalConverterCompanionCtor]): NaturalConverterCompanionCtor = {
     if (p.rhs.isInstanceOf[NaturalConverterCompanionCtor])
       p.rhs.asInstanceOf[NaturalConverterCompanionCtor]
     else
@@ -762,15 +762,15 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
 
   implicit case object NaturalConverterCompanionElem extends CompanionElem[NaturalConverterCompanionCtor]
 
-  implicit def proxyNaturalConverter[A, F[_], G[_]](p: Rep[NaturalConverter[A, F, G]]): NaturalConverter[A, F, G] = {
+  implicit def proxyNaturalConverter[A, F[_], G[_]](p: Ref[NaturalConverter[A, F, G]]): NaturalConverter[A, F, G] = {
     if (p.rhs.isInstanceOf[NaturalConverter[A, F, G]@unchecked])
       p.rhs.asInstanceOf[NaturalConverter[A, F, G]]
     else
       proxyOps[NaturalConverter[A, F, G]](p)
   }
 
-  implicit class ExtendedNaturalConverter[A, F[_], G[_]](p: Rep[NaturalConverter[A, F, G]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]) {
-    def toData: Rep[NaturalConverterData[A, F, G]] = {
+  implicit class ExtendedNaturalConverter[A, F[_], G[_]](p: Ref[NaturalConverter[A, F, G]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]) {
+    def toData: Ref[NaturalConverterData[A, F, G]] = {
       isoNaturalConverter(eA, cF, cG).from(p)
     }
   }
@@ -780,10 +780,10 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     reifyObject(new NaturalConverterIso[A, F, G]()(eA, cF, cG))
 
   def mkNaturalConverter[A, F[_], G[_]]
-    (convFun: Rep[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Rep[NaturalConverter[A, F, G]] = {
+      (convFun: Ref[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Ref[NaturalConverter[A, F, G]] = {
     new NaturalConverterCtor[A, F, G](convFun)
   }
-  def unmkNaturalConverter[A, F[_], G[_]](p: Rep[Converter[F[A], G[A]]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkNaturalConverter[A, F[_], G[_]](p: Ref[Converter[F[A], G[A]]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: NaturalConverterElem[A, F, G] @unchecked =>
       Some((asRep[NaturalConverter[A, F, G]](p).convFun))
     case _ =>

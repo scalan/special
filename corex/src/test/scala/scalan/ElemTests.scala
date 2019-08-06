@@ -107,7 +107,7 @@ class ElemTests extends AbstractElemTests {
   describe("Elem extraction from arguments") {
     it("in PairIso constructor") {
       type TIso = IsoUR[(Int, Int), Segment]
-      val p = fun { p: Rep[(TIso, TIso)] =>
+      val p = fun { p: Ref[(TIso, TIso)] =>
         val Pair(iso1, iso2) = p
         RPairIso(iso1, iso2)
       }

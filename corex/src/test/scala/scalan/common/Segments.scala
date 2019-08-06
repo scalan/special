@@ -10,25 +10,25 @@ trait Segments { self: SegmentsModule =>
   import Interval._
   import Centered._
 
-  type RSeg = Rep[Segment]
+  type RSeg = Ref[Segment]
   @scalan.Liftable
   @Convertible
   @WithMethodCallRecognizers
   trait Segment extends Def[Segment] { self =>
-    def start: Rep[Int]
-    def length: Rep[Int]
-    def end: Rep[Int]
-    def shift(ofs: Rep[Int]): Rep[Segment]
-    def attach(seg: Rep[Segment]): Rep[Segment]
+    def start: Ref[Int]
+    def length: Ref[Int]
+    def end: Ref[Int]
+    def shift(ofs: Ref[Int]): Ref[Segment]
+    def attach(seg: Ref[Segment]): Ref[Segment]
   }
   trait SegmentCompanion
 
   @WithMethodCallRecognizers
-  abstract class Interval(val start: Rep[Int], val end: Rep[Int]) extends Segment {
+  abstract class Interval(val start: Ref[Int], val end: Ref[Int]) extends Segment {
     def length = end - start
-    def shift(ofs: Rep[Int]) = RInterval(start + ofs, end + ofs)
+    def shift(ofs: Ref[Int]) = RInterval(start + ofs, end + ofs)
     @NeverInline
-    def attach(seg: Rep[Segment]): Rep[Segment] = seg match {
+    def attach(seg: Ref[Segment]): Ref[Segment] = seg match {
       case RInterval(start, end) =>
         seg
       case RSlice(start, length) =>
@@ -41,20 +41,20 @@ trait Segments { self: SegmentsModule =>
   trait IntervalCompanion
 
   @WithMethodCallRecognizers
-  abstract class Slice(val start: Rep[Int], val length: Rep[Int]) extends Segment {
+  abstract class Slice(val start: Ref[Int], val length: Ref[Int]) extends Segment {
     def end = start + length
-    def shift(ofs: Rep[Int]) = RSlice(start + ofs, length)
-    def attach(seg: Rep[Segment]): Rep[Segment] = self
+    def shift(ofs: Ref[Int]) = RSlice(start + ofs, length)
+    def attach(seg: Ref[Segment]): Ref[Segment] = self
   }
   trait SliceCompanion
 
   @WithMethodCallRecognizers
-  abstract class Centered(val center: Rep[Int], val radius: Rep[Int]) extends Segment {
+  abstract class Centered(val center: Ref[Int], val radius: Ref[Int]) extends Segment {
     def start = center - radius
     def end = center + radius
     def length = radius * 2
-    def shift(ofs: Rep[Int]) = RCentered(center + ofs, radius)
-    def attach(seg: Rep[Segment]): Rep[Segment] = self
+    def shift(ofs: Ref[Int]) = RCentered(center + ofs, radius)
+    def attach(seg: Ref[Segment]): Ref[Segment] = self
   }
   trait CenteredCompanion
 }

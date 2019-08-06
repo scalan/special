@@ -34,7 +34,7 @@ trait Metadata { self: Scalan =>
     * Returns the target for chaining.
     */
 
-  implicit class MetadataOps[A](target: Rep[A]) {
+  implicit class MetadataOps[A](target: Ref[A]) {
     def setMetadata[B](key: MetaKey[B])(value: B, mirrorWithDef: Option[Boolean] = None) = {
       self.setMetadata(target, key)(value, mirrorWithDef)
     }
@@ -44,7 +44,7 @@ trait Metadata { self: Scalan =>
   val MultipleArgsKey = MetaKey[Int]("emitMuplipleArgs")
   val symNameKey = MetaKey[String]("symName")
 
-  implicit class MultipleArgs(f: Rep[_ => _]) {
+  implicit class MultipleArgs(f: Ref[_ => _]) {
     def multipleArgs(n: Int) = f.setMetadata(MultipleArgsKey)(n)
   }
 
@@ -81,9 +81,9 @@ trait Metadata { self: Scalan =>
 
   private[scalan] var metadataPool = Map.empty[Sym, MetaNode]
 
-  def allMetadataOf(target: Rep[_]): MetaNode = metadataPool.getOrElse(target, MetaNode.empty)
+  def allMetadataOf(target: Ref[_]): MetaNode = metadataPool.getOrElse(target, MetaNode.empty)
 
-  protected[scalan] def setAllMetadata(target: Rep[_], node: MetaNode) = {
+  protected[scalan] def setAllMetadata(target: Ref[_], node: MetaNode) = {
     val newNode = metadataPool.get(target) match {
       case None => node
       case Some(oldNode) => oldNode.extendWith(node)
@@ -91,7 +91,7 @@ trait Metadata { self: Scalan =>
     metadataPool += target -> newNode
   }
 
-  def setMetadata[A, B](target: Rep[A], key: MetaKey[B])(value: B, mirrorWithDef: Option[Boolean] = None): Rep[A] = {
+  def setMetadata[A, B](target: Ref[A], key: MetaKey[B])(value: B, mirrorWithDef: Option[Boolean] = None): Ref[A] = {
     val node = allMetadataOf(target)
     metadataPool += target -> node.set(key)(value, mirrorWithDef)
     target
@@ -111,7 +111,7 @@ trait Metadata { self: Scalan =>
     }
   }
 
-  implicit class MetadataOpsExp(target: Rep[_]) {
+  implicit class MetadataOpsExp(target: Ref[_]) {
     def getMetadata[A](key: MetaKey[A]): Option[A] = self.getMetadata(target, key)
     def removeMetadata[A](key: MetaKey[A]): Unit = self.removeMetadata(target, key)
 

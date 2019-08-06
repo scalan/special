@@ -32,35 +32,35 @@ object Segment extends EntityObject("Segment") {
 
     private val SegmentClass = classOf[Segment]
 
-    override def start: Rep[Int] = {
+    override def start: Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         SegmentClass.getMethod("start"),
         WrappedArray.empty,
         true, false, element[Int]))
     }
 
-    override def length: Rep[Int] = {
+    override def length: Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         SegmentClass.getMethod("length"),
         WrappedArray.empty,
         true, false, element[Int]))
     }
 
-    override def end: Rep[Int] = {
+    override def end: Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         SegmentClass.getMethod("end"),
         WrappedArray.empty,
         true, false, element[Int]))
     }
 
-    override def shift(ofs: Rep[Int]): Rep[Segment] = {
+    override def shift(ofs: Ref[Int]): Ref[Segment] = {
       asRep[Segment](mkMethodCall(self,
         SegmentClass.getMethod("shift", classOf[Sym]),
         Array[AnyRef](ofs),
         true, false, element[Segment]))
     }
 
-    override def attach(seg: Rep[Segment]): Rep[Segment] = {
+    override def attach(seg: Ref[Segment]): Ref[Segment] = {
       asRep[Segment](mkMethodCall(self,
         SegmentClass.getMethod("attach", classOf[Sym]),
         Array[AnyRef](seg),
@@ -74,8 +74,8 @@ object Segment extends EntityObject("Segment") {
     lazy val sourceType: RType[SSegment] = {
       RType[SSegment]
     }
-    def lift(x: SSegment): Rep[Segment] = SegmentConst(x)
-    def unlift(w: Rep[Segment]): SSegment = w match {
+    def lift(x: SSegment): Ref[Segment] = SegmentConst(x)
+    def unlift(w: Ref[Segment]): SSegment = w match {
       case Def(SegmentConst(x: SSegment))
             => x.asInstanceOf[SSegment]
       case _ => unliftError(w)
@@ -85,41 +85,41 @@ object Segment extends EntityObject("Segment") {
   private val SegmentClass = classOf[Segment]
 
   // entityAdapter for Segment trait
-  case class SegmentAdapter(source: Rep[Segment])
+  case class SegmentAdapter(source: Ref[Segment])
       extends Segment
       with Def[Segment] {
     val resultType: Elem[Segment] = element[Segment]
     override def transform(t: Transformer) = SegmentAdapter(t(source))
 
-    def start: Rep[Int] = {
+    def start: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
         SegmentClass.getMethod("start"),
         WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def length: Rep[Int] = {
+    def length: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
         SegmentClass.getMethod("length"),
         WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def end: Rep[Int] = {
+    def end: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
         SegmentClass.getMethod("end"),
         WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def shift(ofs: Rep[Int]): Rep[Segment] = {
+    def shift(ofs: Ref[Int]): Ref[Segment] = {
       asRep[Segment](mkMethodCall(source,
         SegmentClass.getMethod("shift", classOf[Sym]),
         Array[AnyRef](ofs),
         true, true, element[Segment]))
     }
 
-    def attach(seg: Rep[Segment]): Rep[Segment] = {
+    def attach(seg: Ref[Segment]): Ref[Segment] = {
       asRep[Segment](mkMethodCall(source,
         SegmentClass.getMethod("attach", classOf[Sym]),
         Array[AnyRef](seg),
@@ -128,7 +128,7 @@ object Segment extends EntityObject("Segment") {
   }
 
   // entityProxy: single proxy for each type family
-  implicit def proxySegment(p: Rep[Segment]): Segment = {
+  implicit def proxySegment(p: Ref[Segment]): Segment = {
     if (p.rhs.isInstanceOf[Segment]) p.rhs.asInstanceOf[Segment]
     else
       SegmentAdapter(p)
@@ -146,12 +146,12 @@ object Segment extends EntityObject("Segment") {
         ))
     }
 
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Segment] => convertSegment(x) }
+    override def convert(x: Ref[Def[_]]) = {
+      val conv = fun {x: Ref[Segment] => convertSegment(x) }
       tryConvert(element[Segment], this, x, conv)
     }
 
-    def convertSegment(x: Rep[Segment]): Rep[To] = {
+    def convertSegment(x: Ref[Segment]): Ref[To] = {
       x.elem match {
         case _: SegmentElem[_] => asRep[To](x)
         case e => !!!(s"Expected $x to have SegmentElem[_], but got $e", x)
@@ -168,62 +168,62 @@ object Segment extends EntityObject("Segment") {
     def resultType = SegmentCompanionElem
     override def toString = "Segment"
   }
-  implicit def proxySegmentCompanionCtor(p: Rep[SegmentCompanionCtor]): SegmentCompanionCtor =
+  implicit def proxySegmentCompanionCtor(p: Ref[SegmentCompanionCtor]): SegmentCompanionCtor =
     p.rhs.asInstanceOf[SegmentCompanionCtor]
 
-  lazy val RSegment: Rep[SegmentCompanionCtor] = new SegmentCompanionCtor {
+  lazy val RSegment: Ref[SegmentCompanionCtor] = new SegmentCompanionCtor {
     private val thisClass = classOf[SegmentCompanion]
   }
 
   object SegmentMethods {
     object start {
-      def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Segment]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "start" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Segment]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Segment]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.rhs)
     }
 
     object length {
-      def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Segment]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Segment]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Segment]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.rhs)
     }
 
     object end {
-      def unapply(d: Def[_]): Nullable[Rep[Segment]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Segment]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "end" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Segment]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Segment]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Segment]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Segment]] = unapply(exp.rhs)
     }
 
     object shift {
-      def unapply(d: Def[_]): Nullable[(Rep[Segment], Rep[Int])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Segment], Ref[Int])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Int])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Segment], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Segment], Rep[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Segment], Ref[Int])] = unapply(exp.rhs)
     }
 
     object attach {
-      def unapply(d: Def[_]): Nullable[(Rep[Segment], Rep[Segment])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Segment], Ref[Segment])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[SegmentElem[_]] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Segment], Rep[Segment])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Segment], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Segment], Rep[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Segment], Ref[Segment])] = unapply(exp.rhs)
     }
   }
 
@@ -234,13 +234,13 @@ object Segment extends EntityObject("Segment") {
 
 object Interval extends EntityObject("Interval") {
   case class IntervalCtor
-      (override val start: Rep[Int], override val end: Rep[Int])
+      (override val start: Ref[Int], override val end: Ref[Int])
     extends Interval(start, end) with Def[Interval] {
     lazy val resultType = element[Interval]
     override def transform(t: Transformer) = IntervalCtor(t(start), t(end))
     private val thisClass = classOf[Segment]
 
-    override def attach(seg: Rep[Segment]): Rep[Segment] = {
+    override def attach(seg: Ref[Segment]): Ref[Segment] = {
       asRep[Segment](mkMethodCall(self,
         thisClass.getMethod("attach", classOf[Sym]),
         Array[AnyRef](seg),
@@ -253,7 +253,7 @@ object Interval extends EntityObject("Interval") {
     with ConcreteElem[IntervalData, Interval] {
     override lazy val parent: Option[Elem[_]] = Some(segmentElement)
 
-    override def convertSegment(x: Rep[Segment]) = RInterval(x.start, x.end)
+    override def convertSegment(x: Ref[Segment]) = RInterval(x.start, x.end)
   }
 
   // state representation type
@@ -263,10 +263,10 @@ object Interval extends EntityObject("Interval") {
   class IntervalIso
     extends EntityIso[IntervalData, Interval] with Def[IntervalIso] {
     override def transform(t: Transformer) = new IntervalIso()
-    private lazy val _safeFrom = fun { p: Rep[Interval] => (p.start, p.end) }
-    override def from(p: Rep[Interval]) =
+    private lazy val _safeFrom = fun { p: Ref[Interval] => (p.start, p.end) }
+    override def from(p: Ref[Interval]) =
       tryConvert[Interval, (Int, Int)](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Int, Int)]) = {
+    override def to(p: Ref[(Int, Int)]) = {
       val Pair(start, end) = p
       RInterval(start, end)
     }
@@ -283,19 +283,19 @@ object Interval extends EntityObject("Interval") {
     def resultType = IntervalCompanionElem
     override def toString = "IntervalCompanion"
     @scalan.OverloadId("fromData")
-    def apply(p: Rep[IntervalData]): Rep[Interval] = {
+    def apply(p: Ref[IntervalData]): Ref[Interval] = {
       isoInterval.to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply(start: Rep[Int], end: Rep[Int]): Rep[Interval] =
+    def apply(start: Ref[Int], end: Ref[Int]): Ref[Interval] =
       mkInterval(start, end)
 
-    def unapply(p: Rep[Segment]) = unmkInterval(p)
+    def unapply(p: Ref[Segment]) = unmkInterval(p)
   }
-  lazy val IntervalRep: Rep[IntervalCompanionCtor] = new IntervalCompanionCtor
+  lazy val IntervalRep: Ref[IntervalCompanionCtor] = new IntervalCompanionCtor
   lazy val RInterval: IntervalCompanionCtor = proxyIntervalCompanion(IntervalRep)
-  implicit def proxyIntervalCompanion(p: Rep[IntervalCompanionCtor]): IntervalCompanionCtor = {
+  implicit def proxyIntervalCompanion(p: Ref[IntervalCompanionCtor]): IntervalCompanionCtor = {
     if (p.rhs.isInstanceOf[IntervalCompanionCtor])
       p.rhs.asInstanceOf[IntervalCompanionCtor]
     else
@@ -304,15 +304,15 @@ object Interval extends EntityObject("Interval") {
 
   implicit case object IntervalCompanionElem extends CompanionElem[IntervalCompanionCtor]
 
-  implicit def proxyInterval(p: Rep[Interval]): Interval = {
+  implicit def proxyInterval(p: Ref[Interval]): Interval = {
     if (p.rhs.isInstanceOf[Interval])
       p.rhs.asInstanceOf[Interval]
     else
       proxyOps[Interval](p)
   }
 
-  implicit class ExtendedInterval(p: Rep[Interval]) {
-    def toData: Rep[IntervalData] = {
+  implicit class ExtendedInterval(p: Ref[Interval]) {
+    def toData: Ref[IntervalData] = {
       isoInterval.from(p)
     }
   }
@@ -322,10 +322,10 @@ object Interval extends EntityObject("Interval") {
     reifyObject(new IntervalIso())
 
   def mkInterval
-    (start: Rep[Int], end: Rep[Int]): Rep[Interval] = {
+    (start: Ref[Int], end: Ref[Int]): Ref[Interval] = {
     new IntervalCtor(start, end)
   }
-  def unmkInterval(p: Rep[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkInterval(p: Ref[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IntervalElem @unchecked =>
       Some((asRep[Interval](p).start, asRep[Interval](p).end))
     case _ =>
@@ -334,33 +334,33 @@ object Interval extends EntityObject("Interval") {
 
     object IntervalMethods {
     object length {
-      def unapply(d: Def[_]): Nullable[Rep[Interval]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Interval]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[IntervalElem] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Interval]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Interval]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Interval]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Interval]] = unapply(exp.rhs)
     }
 
     object shift {
-      def unapply(d: Def[_]): Nullable[(Rep[Interval], Rep[Int])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Interval], Ref[Int])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[IntervalElem] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Int])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Interval], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Interval], Rep[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Interval], Ref[Int])] = unapply(exp.rhs)
     }
 
     object attach {
-      def unapply(d: Def[_]): Nullable[(Rep[Interval], Rep[Segment])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Interval], Ref[Segment])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[IntervalElem] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Interval], Rep[Segment])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Interval], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Interval], Rep[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Interval], Ref[Segment])] = unapply(exp.rhs)
     }
   }
 
@@ -371,7 +371,7 @@ object Interval extends EntityObject("Interval") {
 
 object Slice extends EntityObject("Slice") {
   case class SliceCtor
-      (override val start: Rep[Int], override val length: Rep[Int])
+      (override val start: Ref[Int], override val length: Ref[Int])
     extends Slice(start, length) with Def[Slice] {
     lazy val resultType = element[Slice]
     override def transform(t: Transformer) = SliceCtor(t(start), t(length))
@@ -382,7 +382,7 @@ object Slice extends EntityObject("Slice") {
     with ConcreteElem[SliceData, Slice] {
     override lazy val parent: Option[Elem[_]] = Some(segmentElement)
 
-    override def convertSegment(x: Rep[Segment]) = RSlice(x.start, x.length)
+    override def convertSegment(x: Ref[Segment]) = RSlice(x.start, x.length)
   }
 
   // state representation type
@@ -392,10 +392,10 @@ object Slice extends EntityObject("Slice") {
   class SliceIso
     extends EntityIso[SliceData, Slice] with Def[SliceIso] {
     override def transform(t: Transformer) = new SliceIso()
-    private lazy val _safeFrom = fun { p: Rep[Slice] => (p.start, p.length) }
-    override def from(p: Rep[Slice]) =
+    private lazy val _safeFrom = fun { p: Ref[Slice] => (p.start, p.length) }
+    override def from(p: Ref[Slice]) =
       tryConvert[Slice, (Int, Int)](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Int, Int)]) = {
+    override def to(p: Ref[(Int, Int)]) = {
       val Pair(start, length) = p
       RSlice(start, length)
     }
@@ -412,19 +412,19 @@ object Slice extends EntityObject("Slice") {
     def resultType = SliceCompanionElem
     override def toString = "SliceCompanion"
     @scalan.OverloadId("fromData")
-    def apply(p: Rep[SliceData]): Rep[Slice] = {
+    def apply(p: Ref[SliceData]): Ref[Slice] = {
       isoSlice.to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply(start: Rep[Int], length: Rep[Int]): Rep[Slice] =
+    def apply(start: Ref[Int], length: Ref[Int]): Ref[Slice] =
       mkSlice(start, length)
 
-    def unapply(p: Rep[Segment]) = unmkSlice(p)
+    def unapply(p: Ref[Segment]) = unmkSlice(p)
   }
-  lazy val SliceRep: Rep[SliceCompanionCtor] = new SliceCompanionCtor
+  lazy val SliceRep: Ref[SliceCompanionCtor] = new SliceCompanionCtor
   lazy val RSlice: SliceCompanionCtor = proxySliceCompanion(SliceRep)
-  implicit def proxySliceCompanion(p: Rep[SliceCompanionCtor]): SliceCompanionCtor = {
+  implicit def proxySliceCompanion(p: Ref[SliceCompanionCtor]): SliceCompanionCtor = {
     if (p.rhs.isInstanceOf[SliceCompanionCtor])
       p.rhs.asInstanceOf[SliceCompanionCtor]
     else
@@ -433,15 +433,15 @@ object Slice extends EntityObject("Slice") {
 
   implicit case object SliceCompanionElem extends CompanionElem[SliceCompanionCtor]
 
-  implicit def proxySlice(p: Rep[Slice]): Slice = {
+  implicit def proxySlice(p: Ref[Slice]): Slice = {
     if (p.rhs.isInstanceOf[Slice])
       p.rhs.asInstanceOf[Slice]
     else
       proxyOps[Slice](p)
   }
 
-  implicit class ExtendedSlice(p: Rep[Slice]) {
-    def toData: Rep[SliceData] = {
+  implicit class ExtendedSlice(p: Ref[Slice]) {
+    def toData: Ref[SliceData] = {
       isoSlice.from(p)
     }
   }
@@ -451,10 +451,10 @@ object Slice extends EntityObject("Slice") {
     reifyObject(new SliceIso())
 
   def mkSlice
-    (start: Rep[Int], length: Rep[Int]): Rep[Slice] = {
+    (start: Ref[Int], length: Ref[Int]): Ref[Slice] = {
     new SliceCtor(start, length)
   }
-  def unmkSlice(p: Rep[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkSlice(p: Ref[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: SliceElem @unchecked =>
       Some((asRep[Slice](p).start, asRep[Slice](p).length))
     case _ =>
@@ -463,33 +463,33 @@ object Slice extends EntityObject("Slice") {
 
     object SliceMethods {
     object end {
-      def unapply(d: Def[_]): Nullable[Rep[Slice]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Slice]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "end" && receiver.elem.isInstanceOf[SliceElem] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Slice]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Slice]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Slice]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Slice]] = unapply(exp.rhs)
     }
 
     object shift {
-      def unapply(d: Def[_]): Nullable[(Rep[Slice], Rep[Int])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Slice], Ref[Int])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[SliceElem] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Int])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Slice], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Slice], Rep[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Slice], Ref[Int])] = unapply(exp.rhs)
     }
 
     object attach {
-      def unapply(d: Def[_]): Nullable[(Rep[Slice], Rep[Segment])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Slice], Ref[Segment])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[SliceElem] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Slice], Rep[Segment])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Slice], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Slice], Rep[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Slice], Ref[Segment])] = unapply(exp.rhs)
     }
   }
 
@@ -500,7 +500,7 @@ object Slice extends EntityObject("Slice") {
 
 object Centered extends EntityObject("Centered") {
   case class CenteredCtor
-      (override val center: Rep[Int], override val radius: Rep[Int])
+      (override val center: Ref[Int], override val radius: Ref[Int])
     extends Centered(center, radius) with Def[Centered] {
     lazy val resultType = element[Centered]
     override def transform(t: Transformer) = CenteredCtor(t(center), t(radius))
@@ -511,7 +511,7 @@ object Centered extends EntityObject("Centered") {
     with ConcreteElem[CenteredData, Centered] {
     override lazy val parent: Option[Elem[_]] = Some(segmentElement)
 
-    override def convertSegment(x: Rep[Segment]) = // Converter is not generated by meta
+    override def convertSegment(x: Ref[Segment]) = // Converter is not generated by meta
 !!!("Cannot convert from Segment to Centered: missing fields List(center, radius)")
   }
 
@@ -522,10 +522,10 @@ object Centered extends EntityObject("Centered") {
   class CenteredIso
     extends EntityIso[CenteredData, Centered] with Def[CenteredIso] {
     override def transform(t: Transformer) = new CenteredIso()
-    private lazy val _safeFrom = fun { p: Rep[Centered] => (p.center, p.radius) }
-    override def from(p: Rep[Centered]) =
+    private lazy val _safeFrom = fun { p: Ref[Centered] => (p.center, p.radius) }
+    override def from(p: Ref[Centered]) =
       tryConvert[Centered, (Int, Int)](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Int, Int)]) = {
+    override def to(p: Ref[(Int, Int)]) = {
       val Pair(center, radius) = p
       RCentered(center, radius)
     }
@@ -542,19 +542,19 @@ object Centered extends EntityObject("Centered") {
     def resultType = CenteredCompanionElem
     override def toString = "CenteredCompanion"
     @scalan.OverloadId("fromData")
-    def apply(p: Rep[CenteredData]): Rep[Centered] = {
+    def apply(p: Ref[CenteredData]): Ref[Centered] = {
       isoCentered.to(p)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply(center: Rep[Int], radius: Rep[Int]): Rep[Centered] =
+    def apply(center: Ref[Int], radius: Ref[Int]): Ref[Centered] =
       mkCentered(center, radius)
 
-    def unapply(p: Rep[Segment]) = unmkCentered(p)
+    def unapply(p: Ref[Segment]) = unmkCentered(p)
   }
-  lazy val CenteredRep: Rep[CenteredCompanionCtor] = new CenteredCompanionCtor
+  lazy val CenteredRep: Ref[CenteredCompanionCtor] = new CenteredCompanionCtor
   lazy val RCentered: CenteredCompanionCtor = proxyCenteredCompanion(CenteredRep)
-  implicit def proxyCenteredCompanion(p: Rep[CenteredCompanionCtor]): CenteredCompanionCtor = {
+  implicit def proxyCenteredCompanion(p: Ref[CenteredCompanionCtor]): CenteredCompanionCtor = {
     if (p.rhs.isInstanceOf[CenteredCompanionCtor])
       p.rhs.asInstanceOf[CenteredCompanionCtor]
     else
@@ -563,15 +563,15 @@ object Centered extends EntityObject("Centered") {
 
   implicit case object CenteredCompanionElem extends CompanionElem[CenteredCompanionCtor]
 
-  implicit def proxyCentered(p: Rep[Centered]): Centered = {
+  implicit def proxyCentered(p: Ref[Centered]): Centered = {
     if (p.rhs.isInstanceOf[Centered])
       p.rhs.asInstanceOf[Centered]
     else
       proxyOps[Centered](p)
   }
 
-  implicit class ExtendedCentered(p: Rep[Centered]) {
-    def toData: Rep[CenteredData] = {
+  implicit class ExtendedCentered(p: Ref[Centered]) {
+    def toData: Ref[CenteredData] = {
       isoCentered.from(p)
     }
   }
@@ -581,10 +581,10 @@ object Centered extends EntityObject("Centered") {
     reifyObject(new CenteredIso())
 
   def mkCentered
-    (center: Rep[Int], radius: Rep[Int]): Rep[Centered] = {
+    (center: Ref[Int], radius: Ref[Int]): Ref[Centered] = {
     new CenteredCtor(center, radius)
   }
-  def unmkCentered(p: Rep[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkCentered(p: Ref[Segment]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: CenteredElem @unchecked =>
       Some((asRep[Centered](p).center, asRep[Centered](p).radius))
     case _ =>
@@ -593,53 +593,53 @@ object Centered extends EntityObject("Centered") {
 
     object CenteredMethods {
     object start {
-      def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Centered]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "start" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Centered]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Centered]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.rhs)
     }
 
     object end {
-      def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Centered]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "end" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Centered]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Centered]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.rhs)
     }
 
     object length {
-      def unapply(d: Def[_]): Nullable[Rep[Centered]] = d match {
+      def unapply(d: Def[_]): Nullable[Ref[Centered]] = d match {
         case MethodCall(receiver, method, _, _) if method.getName == "length" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Centered]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Centered]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Centered]] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[Ref[Centered]] = unapply(exp.rhs)
     }
 
     object shift {
-      def unapply(d: Def[_]): Nullable[(Rep[Centered], Rep[Int])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Centered], Ref[Int])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "shift" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Int])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Centered], Ref[Int])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Centered], Rep[Int])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Centered], Ref[Int])] = unapply(exp.rhs)
     }
 
     object attach {
-      def unapply(d: Def[_]): Nullable[(Rep[Centered], Rep[Segment])] = d match {
+      def unapply(d: Def[_]): Nullable[(Ref[Centered], Ref[Segment])] = d match {
         case MethodCall(receiver, method, args, _) if method.getName == "attach" && receiver.elem.isInstanceOf[CenteredElem] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[Centered], Rep[Segment])]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[Centered], Ref[Segment])]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[Centered], Rep[Segment])] = unapply(exp.rhs)
+      def unapply(exp: Sym): Nullable[(Ref[Centered], Ref[Segment])] = unapply(exp.rhs)
     }
   }
 
