@@ -231,7 +231,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |""".stripAndTrim
   }
 
-  def entityProxy(e: EntityTemplateData) = {
+  def entityUnref(e: EntityTemplateData) = {
     val entityName = e.name
     val typesDecl = e.tpeArgsDecl
     val uncheckedOpt = e.tpeArgs.nonEmpty.opt("@unchecked")
@@ -520,7 +520,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |
       |${entityAdapter(e)}
       |
-      |${entityProxy(e)}
+      |${entityUnref(e)}
       |
       |${if (e.isCont) familyCont(e) else ""}
       |

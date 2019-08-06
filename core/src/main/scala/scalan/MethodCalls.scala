@@ -152,44 +152,44 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
     reifyObject(NewObject[A](eA, args, true))
   }
 
-  def unrefDelegate[Ops <: AnyRef](x: Ref[Ops])(implicit ct: ClassTag[Ops]): Ops = {
+  def unrefDelegate[T <: AnyRef](x: Ref[T])(implicit ct: ClassTag[T]): T = {
     val d = x.rhs
     if (d.isInstanceOf[Const[_]])
-      d.asInstanceOf[Const[Ops]@unchecked].x
+      d.asInstanceOf[Const[T]@unchecked].x
     else
-      getProxy(x, ct)
+      getDelegate(x, ct)
   }
 
-  /** Used to cache generated proxy classes along with instantiated instances of the class.*/
-  case class CachedProxyClass(proxyClass: Class[_ <: AnyRef], instances: AVHashMap[Sym, AnyRef])
+  /** Used to cache generated delegate classes along with instantiated instances of the class.*/
+  case class CachedDelegateClass(delegateClass: Class[_ <: AnyRef], instances: AVHashMap[Sym, AnyRef])
 
-  private lazy val proxyCache = AVHashMap[ClassTag[_], CachedProxyClass](100)
+  private lazy val delegateCache = AVHashMap[ClassTag[_], CachedDelegateClass](100)
   private lazy val objenesis = new ObjenesisStd
 
-  private def getProxy[Ops](x: Ref[Ops], ct: ClassTag[Ops]): Ops = {
-    val cachedOpt = proxyCache.get(ct)
+  private def getDelegate[T](x: Ref[T], ct: ClassTag[T]): T = {
+    val cachedOpt = delegateCache.get(ct)
     val entry = if (cachedOpt.isEmpty) {
       val clazz = ct.runtimeClass
       val e = new Enhancer
       e.setClassLoader(clazz.getClassLoader)
       e.setSuperclass(clazz)
-      e.setCallbackType(classOf[ExpInvocationHandler[_]])
-      val proxyClass = e.createClass().asSubclass(classOf[AnyRef])
-      val entry = CachedProxyClass(proxyClass, AVHashMap[Sym, AnyRef](100))
-      proxyCache.put(ct, entry)
+      e.setCallbackType(classOf[DelegatedInvocationHandler[_]])
+      val delegateClass = e.createClass().asSubclass(classOf[AnyRef])
+      val entry = CachedDelegateClass(delegateClass, AVHashMap[Sym, AnyRef](100))
+      delegateCache.put(ct, entry)
       entry
     } else
       cachedOpt.get
 
-    val proxyOpt = entry.instances.get(x)
-    if (proxyOpt.isEmpty) {
-      val proxyInstance = objenesis.newInstance(entry.proxyClass).asInstanceOf[Factory]
-      proxyInstance.setCallback(0, new ExpInvocationHandler(x))
-      entry.instances.put(x, proxyInstance)
-      proxyInstance.asInstanceOf[Ops]
+    val delegateOpt = entry.instances.get(x)
+    if (delegateOpt.isEmpty) {
+      val delegateInstance = objenesis.newInstance(entry.delegateClass).asInstanceOf[Factory]
+      delegateInstance.setCallback(0, new DelegatedInvocationHandler(x))
+      entry.instances.put(x, delegateInstance)
+      delegateInstance.asInstanceOf[T]
     }
     else
-      proxyOpt.get.asInstanceOf[Ops]
+      delegateOpt.get.asInstanceOf[T]
   }
 
   private def invokeMethod[A](receiver: Sym, m: Method, args: Array[AnyRef],
@@ -319,17 +319,17 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
   case class InvokeFailure(exception: Throwable) extends InvokeResult
   case object InvokeImpossible extends InvokeResult
 
-  class ExpInvocationHandler[T](receiver: Ref[T]) extends InvocationHandler {
+  class DelegatedInvocationHandler[T](receiver: Ref[T]) extends InvocationHandler {
     override def toString = s"ExpInvocationHandler(${receiver.toStringWithDefinition})"
 
-    def invoke(proxy: AnyRef, m: Method, _args: Array[AnyRef]) = {
+    def invoke(delegate: AnyRef, m: Method, _args: Array[AnyRef]) = {
       val args = if (_args == null) Array.empty[AnyRef] else _args
 
       val res = invokeMethod(receiver, m, args, identity, {
         case cause =>
           throwInvocationException("Method invocation", cause, receiver, m, args)
       }, {
-        !!!(s"Invocation handler is only supported for successful pass: ExpInvocationHandler($receiver).invoke($proxy, $m, ${args.toSeq})")
+        !!!(s"Invocation handler is only supported for successful pass: ExpInvocationHandler($receiver).invoke($delegate, $m, ${args.toSeq})")
       })
       res
     }
