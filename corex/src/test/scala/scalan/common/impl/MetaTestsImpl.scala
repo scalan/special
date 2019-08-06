@@ -8,7 +8,6 @@ package impl {
 trait MetaTestsDefs extends scalan.Scalan with MetaTests {
   self: MetaTestsModule =>
 import IsoUR._
-import Converter._
 import MT0._
 import MT1._
 import MT2._

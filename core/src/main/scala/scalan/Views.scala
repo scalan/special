@@ -6,8 +6,7 @@ import scala.language.higherKinds
 
 trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =>
   import IsoUR._
-  import Converter._
-  
+
   type Iso[From, To] = Ref[IsoUR[From, To]]
 
   // TODO try to find a way to generate eTo such that equals and hashCode can refer to it (see commented code)
@@ -165,22 +164,6 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     }
   }
 
-  abstract class ConverterIso[A, B](val convTo: Conv[A,B], val convFrom: Conv[B,A])
-    extends IsoUR[A,B] {
-    def eA: Elem[A]; def eB: Elem[B]
-    def eFrom: Elem[A] = eA
-    def eTo: Elem[B] = eB
-    def to(a: Ref[A]) = convTo(a)
-    def from(b: Ref[B]) = convFrom(b)
-    override lazy val toFun = convTo.convFun
-    override lazy val fromFun = convFrom.convFun
-    override def isIdentity = false
-    override def equals(other: Any) = other match {
-      case i: Views#ConverterIso[_, _] => (this eq i) || (convTo == i.convTo && convFrom == i.convFrom)
-      case _ => false
-    }
-  }
-
   type Iso1[A, B, C[_]] = Ref[Iso1UR[A, B, C]]
 
   trait Iso1UR[A, B, C[_]]
@@ -215,9 +198,7 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
   import SumIso._
   import ComposeIso._
   import FuncIso._
-  import ConverterIso._
   import ThunkIso._
-  import Converter._
   /**
     * The base type of all isos for user-defined types
     */
@@ -274,47 +255,11 @@ trait ViewsModule extends impl.ViewsDefs { self: Scalan =>
       }
   }.asInstanceOf[Iso[A, C]]
 
-  def tryComposeIso[A, B, C](iso2: Iso[B, C], iso1: Iso[A, B]): Option[Iso[A, C]] = try {
-    val eB1 = iso1.eTo
-    val eB2 = iso2.eFrom
-    if (eB1 == eB2)
-      Some(composeIso(iso2, iso1))
-    else {
-      val HasConv(conv1) = eB1 -> eB2
-      val HasConv(conv2) = eB2 -> eB1
-      val iso = converterIso(conv1, conv2)
-      Some(iso1 >> iso >> iso2)
-    }
-  } catch {
-    case _: Throwable => None
-  }
 
   def funcIso[A, B, C, D](iso1: Iso[A, B], iso2: Iso[C, D]): Iso[A => C, B => D] =
     RFuncIso[A, B, C, D](iso1, iso2)
 
   def thunkIso[A,B](iso: Iso[A, B]) = RThunkIso[A, B](iso).asInstanceOf[Iso1[A, B, Thunk]]
-
-  def converterIso[A, B](convTo: Conv[A,B], convFrom: Conv[B,A]): Iso[A,B] = {
-    val convToElem = convTo.elem.asInstanceOf[ConverterElem[A, B, _]]
-    RConverterIso[A, B](convTo, convFrom)
-  }
-
-  def convertBeforeIso[A, B, C](convTo: Conv[A,B], convFrom: Conv[B,A], iso0: Iso[B,C]): Iso[A, C] = composeIso(iso0, converterIso(convTo, convFrom))
-
-  def convertAfterIso[A,B,C](iso0: Iso[A,B], convTo: Conv[B,C], convFrom: Conv[C,B]): Iso[A, C] = composeIso(converterIso(convTo, convFrom), iso0)
-
-  def unifyIsos[A,B,C,D](iso1: Iso[A,C], iso2: Iso[B,D],
-                         toD: Conv[C,D], toC: Conv[D,C]): (Iso[A,C], Iso[B,C]) = {
-    val ea = iso1.eFrom
-    val eb = iso2.eFrom
-    implicit val ec = iso1.eTo
-    val (i1, i2) =
-      if (ec == iso2.eTo)
-        (iso1, iso2.asInstanceOf[Iso[B,C]])
-      else
-        (iso1, convertAfterIso(iso2, toC, toD))
-    (i1, i2)
-  }
 
   type Unpacked[T] = (Ref[Source], Iso[Source, T]) forSome { type Source }
   type UnpackedLambdaResult[T,R] = (Ref[T => R], Iso[Source, R]) forSome { type Source }

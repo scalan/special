@@ -9,7 +9,6 @@ package impl {
 trait SegmentsDefs extends scalan.Scalan with Segments {
   self: SegmentsModule =>
 import IsoUR._
-import Converter._
 import Segment._
 import Slice._
 import Interval._

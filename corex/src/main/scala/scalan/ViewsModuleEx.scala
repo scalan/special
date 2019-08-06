@@ -4,9 +4,11 @@ import scala.collection.mutable.{Map => MutMap}
 
 trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
   import IsoUR._
+  import Converter._
   import AbsorbFirstUnitIso._
   import AbsorbSecondUnitIso._
-  
+
+
   object HasViews {
     def unapply[T](s: Ref[T]): Option[Unpacked[T]] =
       if (performViewsLifting)
@@ -143,6 +145,21 @@ trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
       case _ => !!!(s"Don't know how to build iso for element $e")
     }
     ).asInstanceOf[Iso[_,T]]
+
+  def tryComposeIso[A, B, C](iso2: Iso[B, C], iso1: Iso[A, B]): Option[Iso[A, C]] = try {
+    val eB1 = iso1.eTo
+    val eB2 = iso2.eFrom
+    if (eB1 == eB2)
+      Some(composeIso(iso2, iso1))
+    else {
+      val HasConv(conv1) = eB1 -> eB2
+      val HasConv(conv2) = eB2 -> eB1
+      val iso = converterIso(conv1, conv2)
+      Some(iso1 >> iso >> iso2)
+    }
+  } catch {
+    case _: Throwable => None
+  }
 
   // for simplifying unapplyViews
   protected def trivialUnapply[T](s: Ref[T]) = (s, identityIso(s.elem))

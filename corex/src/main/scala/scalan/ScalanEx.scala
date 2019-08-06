@@ -18,6 +18,7 @@ trait BaseEx extends Base with DefRewriting { self: ScalanEx =>
 
 class ScalanEx extends Scalan
   with Blocks
+  with ConvertersModule
   with StringOps
   with Metadata
   with RewriteRules

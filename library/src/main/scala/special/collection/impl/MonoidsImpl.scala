@@ -10,7 +10,6 @@ package impl {
 trait MonoidsDefs extends scalan.Scalan with Monoids {
   self: Library =>
 import IsoUR._
-import Converter._
 import Monoid._
 import MonoidBuilder._
 

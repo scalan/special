@@ -8,7 +8,6 @@ package impl {
 trait KindsDefs extends scalan.Scalan with Kinds {
   self: KindsModule =>
 import IsoUR._
-import Converter._
 import Kind._
 import Bind._
 import Return._

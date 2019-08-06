@@ -13,7 +13,6 @@ package impl {
 trait WOptionsDefs extends scalan.Scalan with WOptions {
   self: WrappersModule =>
 import IsoUR._
-import Converter._
 import WOption._
 
 object WOption extends EntityObject("WOption") {

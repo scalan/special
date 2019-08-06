@@ -37,7 +37,8 @@ class Scalan
   with Thunks
   with Entities
   with Structs
-  with ConvertersModule
+  with TypeSum
+//  with ConvertersModule
   with Modules
   with DefRewriting
 

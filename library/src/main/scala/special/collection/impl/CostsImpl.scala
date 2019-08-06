@@ -10,7 +10,6 @@ package impl {
 trait CostsDefs extends scalan.Scalan with Costs {
   self: Library =>
 import IsoUR._
-import Converter._
 import Coll._
 import Costed._
 import CostedBuilder._

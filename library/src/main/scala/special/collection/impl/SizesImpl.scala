@@ -10,7 +10,6 @@ package impl {
 trait SizesDefs extends scalan.Scalan with Sizes {
   self: Library =>
 import IsoUR._
-import Converter._
 import Coll._
 import Size._
 import WOption._

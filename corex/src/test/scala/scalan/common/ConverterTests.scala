@@ -3,14 +3,14 @@ package scalan.common
 import scala.language.reflectiveCalls
 import scalan._
 
-class ConverterTests extends BaseCtxTests {
+class ConverterTests extends BaseCtxTestsEx {
 
   trait ConvProg extends CommonExamples {
   //TODO uncomment after convertTo works not only for Def[_]
 //    lazy val t20 = fun { in: Ref[Array[Interval]] => in.convertTo[Array[Slice]] }
   }
 
-  class ConvProgStaged extends TestContext with ConvProg with SegmentsModule {
+  class ConvProgStaged extends TestContextEx with ConvProg with SegmentsModule {
   }
 //  class ConvProgStd extends ScalanDslStd with ConvProg with SegmentsDslStd {
 //  }

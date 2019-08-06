@@ -7,8 +7,7 @@ import scala.language.higherKinds
 import scalan.util.ReflectionUtil
 
 trait Entities extends TypeDescs { self: Scalan =>
-  import BaseConverter._
-  
+
   abstract class EntityElem[A] extends Elem[A] with scala.Equals {
     def parent: Option[Elem[_]] = None
     def entityName: String = {
@@ -47,21 +46,13 @@ trait Entities extends TypeDescs { self: Scalan =>
     override def hashCode = eItem.hashCode * 41 + cont.hashCode
   }
   trait ConcreteElem[TData, TClass] extends EntityElem[TClass] with ViewElem[TData, TClass] { eClass =>
-    def getConverterFrom[E](eEntity: EntityElem[E]): Option[Conv[E, TClass]] = {
-      try {
-        val convFun: Ref[E => TClass] =
-          fun({ x: Ref[E] => eClass.convert(asRep[Def[_]](x))})(Lazy(eEntity))
-        Some(RBaseConverter(convFun))
-      }
-      catch {
-        case e: RuntimeException => None
-      }
-    }
+
   }
   trait ConcreteElem1[A, TData, TClass, C[_]]
     extends EntityElem1[A, TClass, C]
        with ViewElem1[A, TData, TClass, C] { eClass =>
   }
+
 
   implicit class EntityElemExtensions[A <: Def[_]](e: Elem[A]) {
     def asEntityElem = e.asInstanceOf[EntityElem[A]]

@@ -109,6 +109,22 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
       case _ => false
     }
   }
+
+  abstract class ConverterIso[A, B](val convTo: Conv[A,B], val convFrom: Conv[B,A])
+      extends IsoUR[A,B] {
+    def eA: Elem[A]; def eB: Elem[B]
+    def eFrom: Elem[A] = eA
+    def eTo: Elem[B] = eB
+    def to(a: Ref[A]) = convTo(a)
+    def from(b: Ref[B]) = convFrom(b)
+    override lazy val toFun = convTo.convFun
+    override lazy val fromFun = convFrom.convFun
+    override def isIdentity = false
+    override def equals(other: Any) = other match {
+      case i: Converters#ConverterIso[_, _] => (this eq i) || (convTo == i.convTo && convFrom == i.convFrom)
+      case _ => false
+    }
+  }
 }
 
 trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
@@ -121,7 +137,6 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
   import SumIso._
   import ComposeIso._
   import FuncIso._
-  import ConverterIso._
   import ThunkIso._
   import Converter._
   import IdentityConv._
@@ -131,6 +146,7 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
   import ComposeConverter._
   import FunctorConverter._
   import NaturalConverter._
+  import ConverterIso._
 
   def identityConv[A](implicit elem: Elem[A]): Conv[A, A] = RIdentityConv[A]()(elem)
 
@@ -169,6 +185,17 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
         yield (c1, c2)
   }
 
+  def getConverterFrom[TData, TClass, E](eEntity: EntityElem[E], eClass: ConcreteElem[TData, TClass]): Option[Conv[E, TClass]] = {
+    try {
+      val convFun: Ref[E => TClass] =
+        fun({ x: Ref[E] => eClass.convert(asRep[Def[_]](x))})(Lazy(eEntity))
+      Some(RBaseConverter(convFun))
+    }
+    catch {
+      case e: RuntimeException => None
+    }
+  }
+
   def getConverter[A,B](eA: Elem[A], eB: Elem[B]): Option[Conv[A,B]] = {
     (eA, eB) match {
       case (e1, e2) if e1 == e2 =>
@@ -199,11 +226,34 @@ trait ConvertersModule extends impl.ConvertersDefs { self: Scalan =>
         for { c <- getConverter(ea1, ea2) }
           yield asRep[Converter[A,B]](RFunctorConverter(c)(F))
       case (eEntity: EntityElem[_], eClass: ConcreteElem[tData,tClass]) =>
-        val convOpt = eClass.getConverterFrom(eEntity)
+        val convOpt = getConverterFrom(eEntity, eClass)
         convOpt
       case (eClass: ConcreteElem[tData,tClass], eEntity: EntityElem[_]) if eClass <:< eEntity =>
         Some(asRep[Converter[A,B]](RBaseConverter(identityFun(eClass))))
       case _ => None
     }
   }
+
+  def converterIso[A, B](convTo: Conv[A,B], convFrom: Conv[B,A]): Iso[A,B] = {
+    val convToElem = convTo.elem.asInstanceOf[ConverterElem[A, B, _]]
+    RConverterIso[A, B](convTo, convFrom)
+  }
+
+  def convertBeforeIso[A, B, C](convTo: Conv[A,B], convFrom: Conv[B,A], iso0: Iso[B,C]): Iso[A, C] = composeIso(iso0, converterIso(convTo, convFrom))
+
+  def convertAfterIso[A,B,C](iso0: Iso[A,B], convTo: Conv[B,C], convFrom: Conv[C,B]): Iso[A, C] = composeIso(converterIso(convTo, convFrom), iso0)
+
+  def unifyIsos[A,B,C,D](iso1: Iso[A,C], iso2: Iso[B,D],
+                         toD: Conv[C,D], toC: Conv[D,C]): (Iso[A,C], Iso[B,C]) = {
+    val ea = iso1.eFrom
+    val eb = iso2.eFrom
+    implicit val ec = iso1.eTo
+    val (i1, i2) =
+      if (ec == iso2.eTo)
+        (iso1, iso2.asInstanceOf[Iso[B,C]])
+      else
+        (iso1, convertAfterIso(iso2, toC, toD))
+    (i1, i2)
+  }
+
 }
