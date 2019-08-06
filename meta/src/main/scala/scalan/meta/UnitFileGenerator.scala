@@ -236,8 +236,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val typesDecl = e.tpeArgsDecl
     val uncheckedOpt = e.tpeArgs.nonEmpty.opt("@unchecked")
     s"""
-      |  // entityProxy: single proxy for each type family
-      |  implicit def proxy$entityName${typesDecl}(p: Ref[${e.typeUse}]): ${e.typeUse} = {
+      |  // entityUnref: single unref method for each type family
+      |  implicit def unref$entityName${typesDecl}(p: Ref[${e.typeUse}]): ${e.typeUse} = {
       |    if (p.rhs.isInstanceOf[${e.typeUse}$uncheckedOpt]) p.rhs.asInstanceOf[${e.typeUse}]
       |    else
       |      ${entityName}Adapter(p)
@@ -489,7 +489,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${
       hasCompanion.opt
       s"""
-        |  implicit def proxy${e.companionCtorName}(p: Ref[${e.companionCtorName}]): ${e.companionCtorName} =
+        |  implicit def unref${e.companionCtorName}(p: Ref[${e.companionCtorName}]): ${e.companionCtorName} =
         |    p.rhs.asInstanceOf[${e.companionCtorName}]
         |""".stripAndTrim
     }
@@ -720,21 +720,21 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    def unapply${tpeArgsDecl}(p: Ref[$parent]) = unmk$className(p)
         |  }
         |  lazy val ${c.name}Ref: Ref[${c.companionCtorName}] = new ${c.companionCtorName}
-        |  lazy val R${c.name}: ${c.companionCtorName} = proxy${className}Companion(${c.name}Ref)
-        |  implicit def proxy${className}Companion(p: Ref[${c.companionCtorName}]): ${c.companionCtorName} = {
+        |  lazy val R${c.name}: ${c.companionCtorName} = unref${className}Companion(${c.name}Ref)
+        |  implicit def unref${className}Companion(p: Ref[${c.companionCtorName}]): ${c.companionCtorName} = {
         |    if (p.rhs.isInstanceOf[${c.companionCtorName}])
         |      p.rhs.asInstanceOf[${c.companionCtorName}]
         |    else
-        |      proxyOps[${c.companionCtorName}](p)
+        |      unrefDelegate[${c.companionCtorName}](p)
         |  }
         |
         |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}]
         |
-        |  implicit def proxy${c.typeDecl}(p: Ref[${c.typeUse}]): ${c.typeUse} = {
+        |  implicit def unref${c.typeDecl}(p: Ref[${c.typeUse}]): ${c.typeUse} = {
         |    if (p.rhs.isInstanceOf[${c.typeUse}$uncheckedOpt])
         |      p.rhs.asInstanceOf[${c.typeUse}]
         |    else
-        |      proxyOps[${c.typeUse}](p)
+        |      unrefDelegate[${c.typeUse}](p)
         |  }
         |
         |  implicit class Extended${c.typeDecl}(p: Ref[${c.typeUse}])${c.optimizeImplicits().implicitArgsDecl()} {

@@ -52,8 +52,8 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyIsoFunc[T, R, M](p: Ref[IsoFunc[T, R, M]]): IsoFunc[T, R, M] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefIsoFunc[T, R, M](p: Ref[IsoFunc[T, R, M]]): IsoFunc[T, R, M] = {
     if (p.rhs.isInstanceOf[IsoFunc[T, R, M]@unchecked]) p.rhs.asInstanceOf[IsoFunc[T, R, M]]
     else
       IsoFuncAdapter(p)
@@ -78,7 +78,7 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
     def resultType = IsoFuncCompanionElem
     override def toString = "IsoFunc"
   }
-  implicit def proxyIsoFuncCompanionCtor(p: Ref[IsoFuncCompanionCtor]): IsoFuncCompanionCtor =
+  implicit def unrefIsoFuncCompanionCtor(p: Ref[IsoFuncCompanionCtor]): IsoFuncCompanionCtor =
     p.rhs.asInstanceOf[IsoFuncCompanionCtor]
 
   lazy val RIsoFunc: Ref[IsoFuncCompanionCtor] = new IsoFuncCompanionCtor {
@@ -151,21 +151,21 @@ implicit val eM = p._2.elem.eRange
     def unapply[T, R, M](p: Ref[IsoFunc[T, R, M]]) = unmkIsoFuncBase(p)
   }
   lazy val IsoFuncBaseRef: Ref[IsoFuncBaseCompanionCtor] = new IsoFuncBaseCompanionCtor
-  lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = proxyIsoFuncBaseCompanion(IsoFuncBaseRef)
-  implicit def proxyIsoFuncBaseCompanion(p: Ref[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
+  lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = unrefIsoFuncBaseCompanion(IsoFuncBaseRef)
+  implicit def unrefIsoFuncBaseCompanion(p: Ref[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
     if (p.rhs.isInstanceOf[IsoFuncBaseCompanionCtor])
       p.rhs.asInstanceOf[IsoFuncBaseCompanionCtor]
     else
-      proxyOps[IsoFuncBaseCompanionCtor](p)
+      unrefDelegate[IsoFuncBaseCompanionCtor](p)
   }
 
   implicit case object IsoFuncBaseCompanionElem extends CompanionElem[IsoFuncBaseCompanionCtor]
 
-  implicit def proxyIsoFuncBase[T, R, M](p: Ref[IsoFuncBase[T, R, M]]): IsoFuncBase[T, R, M] = {
+  implicit def unrefIsoFuncBase[T, R, M](p: Ref[IsoFuncBase[T, R, M]]): IsoFuncBase[T, R, M] = {
     if (p.rhs.isInstanceOf[IsoFuncBase[T, R, M]@unchecked])
       p.rhs.asInstanceOf[IsoFuncBase[T, R, M]]
     else
-      proxyOps[IsoFuncBase[T, R, M]](p)
+      unrefDelegate[IsoFuncBase[T, R, M]](p)
   }
 
   implicit class ExtendedIsoFuncBase[T, R, M](p: Ref[IsoFuncBase[T, R, M]]) {

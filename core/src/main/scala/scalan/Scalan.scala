@@ -7,7 +7,7 @@ import scalan.staged.{Transforming}
 class Scalan
   extends Base
   with TypeDescs
-  with Proxy
+  with MethodCalls
   with Tuples
   with NumericOps
   with UnBinOps

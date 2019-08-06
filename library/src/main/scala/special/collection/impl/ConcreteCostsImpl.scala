@@ -108,7 +108,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     if (p.rhs.isInstanceOf[CCostedPrimCompanionCtor])
       p.rhs.asInstanceOf[CCostedPrimCompanionCtor]
     else
-      proxyOps[CCostedPrimCompanionCtor](p)
+      unrefDelegate[CCostedPrimCompanionCtor](p)
   }
 
   implicit case object CCostedPrimCompanionElem extends CompanionElem[CCostedPrimCompanionCtor]
@@ -117,7 +117,7 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     if (p.rhs.isInstanceOf[CCostedPrim[Val]@unchecked])
       p.rhs.asInstanceOf[CCostedPrim[Val]]
     else
-      proxyOps[CCostedPrim[Val]](p)
+      unrefDelegate[CCostedPrim[Val]](p)
   }
 
   implicit class ExtendedCCostedPrim[Val](p: Ref[CCostedPrim[Val]]) {
@@ -226,7 +226,7 @@ implicit val eR = p._2.eVal
     if (p.rhs.isInstanceOf[CCostedPairCompanionCtor])
       p.rhs.asInstanceOf[CCostedPairCompanionCtor]
     else
-      proxyOps[CCostedPairCompanionCtor](p)
+      unrefDelegate[CCostedPairCompanionCtor](p)
   }
 
   implicit case object CCostedPairCompanionElem extends CompanionElem[CCostedPairCompanionCtor]
@@ -235,7 +235,7 @@ implicit val eR = p._2.eVal
     if (p.rhs.isInstanceOf[CCostedPair[L, R]@unchecked])
       p.rhs.asInstanceOf[CCostedPair[L, R]]
     else
-      proxyOps[CCostedPair[L, R]](p)
+      unrefDelegate[CCostedPair[L, R]](p)
   }
 
   implicit class ExtendedCCostedPair[L, R](p: Ref[CCostedPair[L, R]]) {
@@ -341,7 +341,7 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
     if (p.rhs.isInstanceOf[CCostedFuncCompanionCtor])
       p.rhs.asInstanceOf[CCostedFuncCompanionCtor]
     else
-      proxyOps[CCostedFuncCompanionCtor](p)
+      unrefDelegate[CCostedFuncCompanionCtor](p)
   }
 
   implicit case object CCostedFuncCompanionElem extends CompanionElem[CCostedFuncCompanionCtor]
@@ -350,7 +350,7 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
     if (p.rhs.isInstanceOf[CCostedFunc[Env, Arg, Res]@unchecked])
       p.rhs.asInstanceOf[CCostedFunc[Env, Arg, Res]]
     else
-      proxyOps[CCostedFunc[Env, Arg, Res]](p)
+      unrefDelegate[CCostedFunc[Env, Arg, Res]](p)
   }
 
   implicit class ExtendedCCostedFunc[Env, Arg, Res](p: Ref[CCostedFunc[Env, Arg, Res]]) {
@@ -475,7 +475,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     if (p.rhs.isInstanceOf[CCostedCollCompanionCtor])
       p.rhs.asInstanceOf[CCostedCollCompanionCtor]
     else
-      proxyOps[CCostedCollCompanionCtor](p)
+      unrefDelegate[CCostedCollCompanionCtor](p)
   }
 
   implicit case object CCostedCollCompanionElem extends CompanionElem[CCostedCollCompanionCtor]
@@ -484,7 +484,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     if (p.rhs.isInstanceOf[CCostedColl[Item]@unchecked])
       p.rhs.asInstanceOf[CCostedColl[Item]]
     else
-      proxyOps[CCostedColl[Item]](p)
+      unrefDelegate[CCostedColl[Item]](p)
   }
 
   implicit class ExtendedCCostedColl[Item](p: Ref[CCostedColl[Item]]) {
@@ -592,7 +592,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     if (p.rhs.isInstanceOf[CCostedBuilderCompanionCtor])
       p.rhs.asInstanceOf[CCostedBuilderCompanionCtor]
     else
-      proxyOps[CCostedBuilderCompanionCtor](p)
+      unrefDelegate[CCostedBuilderCompanionCtor](p)
   }
 
   implicit case object CCostedBuilderCompanionElem extends CompanionElem[CCostedBuilderCompanionCtor]
@@ -601,7 +601,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     if (p.rhs.isInstanceOf[CCostedBuilder])
       p.rhs.asInstanceOf[CCostedBuilder]
     else
-      proxyOps[CCostedBuilder](p)
+      unrefDelegate[CCostedBuilder](p)
   }
 
   implicit class ExtendedCCostedBuilder(p: Ref[CCostedBuilder]) {

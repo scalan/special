@@ -127,8 +127,8 @@ object Segment extends EntityObject("Segment") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySegment(p: Ref[Segment]): Segment = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSegment(p: Ref[Segment]): Segment = {
     if (p.rhs.isInstanceOf[Segment]) p.rhs.asInstanceOf[Segment]
     else
       SegmentAdapter(p)
@@ -168,7 +168,7 @@ object Segment extends EntityObject("Segment") {
     def resultType = SegmentCompanionElem
     override def toString = "Segment"
   }
-  implicit def proxySegmentCompanionCtor(p: Ref[SegmentCompanionCtor]): SegmentCompanionCtor =
+  implicit def unrefSegmentCompanionCtor(p: Ref[SegmentCompanionCtor]): SegmentCompanionCtor =
     p.rhs.asInstanceOf[SegmentCompanionCtor]
 
   lazy val RSegment: Ref[SegmentCompanionCtor] = new SegmentCompanionCtor {
@@ -294,21 +294,21 @@ object Interval extends EntityObject("Interval") {
     def unapply(p: Ref[Segment]) = unmkInterval(p)
   }
   lazy val IntervalRef: Ref[IntervalCompanionCtor] = new IntervalCompanionCtor
-  lazy val RInterval: IntervalCompanionCtor = proxyIntervalCompanion(IntervalRef)
-  implicit def proxyIntervalCompanion(p: Ref[IntervalCompanionCtor]): IntervalCompanionCtor = {
+  lazy val RInterval: IntervalCompanionCtor = unrefIntervalCompanion(IntervalRef)
+  implicit def unrefIntervalCompanion(p: Ref[IntervalCompanionCtor]): IntervalCompanionCtor = {
     if (p.rhs.isInstanceOf[IntervalCompanionCtor])
       p.rhs.asInstanceOf[IntervalCompanionCtor]
     else
-      proxyOps[IntervalCompanionCtor](p)
+      unrefDelegate[IntervalCompanionCtor](p)
   }
 
   implicit case object IntervalCompanionElem extends CompanionElem[IntervalCompanionCtor]
 
-  implicit def proxyInterval(p: Ref[Interval]): Interval = {
+  implicit def unrefInterval(p: Ref[Interval]): Interval = {
     if (p.rhs.isInstanceOf[Interval])
       p.rhs.asInstanceOf[Interval]
     else
-      proxyOps[Interval](p)
+      unrefDelegate[Interval](p)
   }
 
   implicit class ExtendedInterval(p: Ref[Interval]) {
@@ -423,21 +423,21 @@ object Slice extends EntityObject("Slice") {
     def unapply(p: Ref[Segment]) = unmkSlice(p)
   }
   lazy val SliceRef: Ref[SliceCompanionCtor] = new SliceCompanionCtor
-  lazy val RSlice: SliceCompanionCtor = proxySliceCompanion(SliceRef)
-  implicit def proxySliceCompanion(p: Ref[SliceCompanionCtor]): SliceCompanionCtor = {
+  lazy val RSlice: SliceCompanionCtor = unrefSliceCompanion(SliceRef)
+  implicit def unrefSliceCompanion(p: Ref[SliceCompanionCtor]): SliceCompanionCtor = {
     if (p.rhs.isInstanceOf[SliceCompanionCtor])
       p.rhs.asInstanceOf[SliceCompanionCtor]
     else
-      proxyOps[SliceCompanionCtor](p)
+      unrefDelegate[SliceCompanionCtor](p)
   }
 
   implicit case object SliceCompanionElem extends CompanionElem[SliceCompanionCtor]
 
-  implicit def proxySlice(p: Ref[Slice]): Slice = {
+  implicit def unrefSlice(p: Ref[Slice]): Slice = {
     if (p.rhs.isInstanceOf[Slice])
       p.rhs.asInstanceOf[Slice]
     else
-      proxyOps[Slice](p)
+      unrefDelegate[Slice](p)
   }
 
   implicit class ExtendedSlice(p: Ref[Slice]) {
@@ -553,21 +553,21 @@ object Centered extends EntityObject("Centered") {
     def unapply(p: Ref[Segment]) = unmkCentered(p)
   }
   lazy val CenteredRef: Ref[CenteredCompanionCtor] = new CenteredCompanionCtor
-  lazy val RCentered: CenteredCompanionCtor = proxyCenteredCompanion(CenteredRef)
-  implicit def proxyCenteredCompanion(p: Ref[CenteredCompanionCtor]): CenteredCompanionCtor = {
+  lazy val RCentered: CenteredCompanionCtor = unrefCenteredCompanion(CenteredRef)
+  implicit def unrefCenteredCompanion(p: Ref[CenteredCompanionCtor]): CenteredCompanionCtor = {
     if (p.rhs.isInstanceOf[CenteredCompanionCtor])
       p.rhs.asInstanceOf[CenteredCompanionCtor]
     else
-      proxyOps[CenteredCompanionCtor](p)
+      unrefDelegate[CenteredCompanionCtor](p)
   }
 
   implicit case object CenteredCompanionElem extends CompanionElem[CenteredCompanionCtor]
 
-  implicit def proxyCentered(p: Ref[Centered]): Centered = {
+  implicit def unrefCentered(p: Ref[Centered]): Centered = {
     if (p.rhs.isInstanceOf[Centered])
       p.rhs.asInstanceOf[Centered]
     else
-      proxyOps[Centered](p)
+      unrefDelegate[Centered](p)
   }
 
   implicit class ExtendedCentered(p: Ref[Centered]) {

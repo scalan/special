@@ -44,8 +44,8 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyStructItem[Val, Schema <: Struct](p: Ref[StructItem[Val, Schema]]): StructItem[Val, Schema] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefStructItem[Val, Schema <: Struct](p: Ref[StructItem[Val, Schema]]): StructItem[Val, Schema] = {
     if (p.rhs.isInstanceOf[StructItem[Val, Schema]@unchecked]) p.rhs.asInstanceOf[StructItem[Val, Schema]]
     else
       StructItemAdapter(p)
@@ -69,7 +69,7 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
     def resultType = StructItemCompanionElem
     override def toString = "StructItem"
   }
-  implicit def proxyStructItemCompanionCtor(p: Ref[StructItemCompanionCtor]): StructItemCompanionCtor =
+  implicit def unrefStructItemCompanionCtor(p: Ref[StructItemCompanionCtor]): StructItemCompanionCtor =
     p.rhs.asInstanceOf[StructItemCompanionCtor]
 
   lazy val RStructItem: Ref[StructItemCompanionCtor] = new StructItemCompanionCtor {
@@ -139,21 +139,21 @@ implicit val eSchema = p._1.eSchema
     def unapply[Val, Schema <: Struct](p: Ref[StructItem[Val, Schema]]) = unmkStructItemBase(p)
   }
   lazy val StructItemBaseRef: Ref[StructItemBaseCompanionCtor] = new StructItemBaseCompanionCtor
-  lazy val RStructItemBase: StructItemBaseCompanionCtor = proxyStructItemBaseCompanion(StructItemBaseRef)
-  implicit def proxyStructItemBaseCompanion(p: Ref[StructItemBaseCompanionCtor]): StructItemBaseCompanionCtor = {
+  lazy val RStructItemBase: StructItemBaseCompanionCtor = unrefStructItemBaseCompanion(StructItemBaseRef)
+  implicit def unrefStructItemBaseCompanion(p: Ref[StructItemBaseCompanionCtor]): StructItemBaseCompanionCtor = {
     if (p.rhs.isInstanceOf[StructItemBaseCompanionCtor])
       p.rhs.asInstanceOf[StructItemBaseCompanionCtor]
     else
-      proxyOps[StructItemBaseCompanionCtor](p)
+      unrefDelegate[StructItemBaseCompanionCtor](p)
   }
 
   implicit case object StructItemBaseCompanionElem extends CompanionElem[StructItemBaseCompanionCtor]
 
-  implicit def proxyStructItemBase[Val, Schema <: Struct](p: Ref[StructItemBase[Val, Schema]]): StructItemBase[Val, Schema] = {
+  implicit def unrefStructItemBase[Val, Schema <: Struct](p: Ref[StructItemBase[Val, Schema]]): StructItemBase[Val, Schema] = {
     if (p.rhs.isInstanceOf[StructItemBase[Val, Schema]@unchecked])
       p.rhs.asInstanceOf[StructItemBase[Val, Schema]]
     else
-      proxyOps[StructItemBase[Val, Schema]](p)
+      unrefDelegate[StructItemBase[Val, Schema]](p)
   }
 
   implicit class ExtendedStructItemBase[Val, Schema <: Struct](p: Ref[StructItemBase[Val, Schema]]) {

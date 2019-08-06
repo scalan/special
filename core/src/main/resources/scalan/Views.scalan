@@ -4,7 +4,7 @@ import java.lang.reflect.Method
 
 import scala.language.higherKinds
 
-trait Views extends TypeDescs with Proxy { self: ViewsModule with Scalan =>
+trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =>
   import IsoUR._
   import Converter._
   

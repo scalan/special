@@ -27,10 +27,10 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
     override def transform(t: Transformer) = KindAdapter[F, A](t(source))
   }
 
-  // entityProxy: single proxy for each type family
+  // entityUnref: single unref method for each type family
   val createKindAdapter = (x: Ref[Kind[Array, Any]]) => KindAdapter(x)
 
-  implicit def proxyKind[F[_], A](p: Ref[Kind[F, A]]): Kind[F, A] = {
+  implicit def unrefKind[F[_], A](p: Ref[Kind[F, A]]): Kind[F, A] = {
     val sym = p.asInstanceOf[SingleRef[Kind[F, A]]]
     sym.getAdapter(
       p.rhs.isInstanceOf[Kind[F, A]@unchecked],
@@ -67,7 +67,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
     def resultType = KindCompanionElem
     override def toString = "Kind"
   }
-  implicit def proxyKindCompanionCtor(p: Ref[KindCompanionCtor]): KindCompanionCtor =
+  implicit def unrefKindCompanionCtor(p: Ref[KindCompanionCtor]): KindCompanionCtor =
     p.rhs.asInstanceOf[KindCompanionCtor]
 
   lazy val RKind: Ref[KindCompanionCtor] = new KindCompanionCtor {
@@ -150,21 +150,21 @@ object Return extends EntityObject("Return") {
     def unapply[F[_], A](p: Ref[Kind[F, A]]) = unmkReturn(p)
   }
   lazy val ReturnRef: Ref[ReturnCompanionCtor] = new ReturnCompanionCtor
-  lazy val RReturn: ReturnCompanionCtor = proxyReturnCompanion(ReturnRef)
-  implicit def proxyReturnCompanion(p: Ref[ReturnCompanionCtor]): ReturnCompanionCtor = {
+  lazy val RReturn: ReturnCompanionCtor = unrefReturnCompanion(ReturnRef)
+  implicit def unrefReturnCompanion(p: Ref[ReturnCompanionCtor]): ReturnCompanionCtor = {
     if (p.rhs.isInstanceOf[ReturnCompanionCtor])
       p.rhs.asInstanceOf[ReturnCompanionCtor]
     else
-      proxyOps[ReturnCompanionCtor](p)
+      unrefDelegate[ReturnCompanionCtor](p)
   }
 
   implicit case object ReturnCompanionElem extends CompanionElem[ReturnCompanionCtor]
 
-  implicit def proxyReturn[F[_], A](p: Ref[Return[F, A]]): Return[F, A] = {
+  implicit def unrefReturn[F[_], A](p: Ref[Return[F, A]]): Return[F, A] = {
     if (p.rhs.isInstanceOf[Return[F, A]@unchecked])
       p.rhs.asInstanceOf[Return[F, A]]
     else
-      proxyOps[Return[F, A]](p)
+      unrefDelegate[Return[F, A]](p)
   }
 
   implicit class ExtendedReturn[F[_], A](p: Ref[Return[F, A]])(implicit cF: Cont[F]) {
@@ -265,21 +265,21 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
     def unapply[F[_], S, B](p: Ref[Kind[F, B]]) = unmkBind(p)
   }
   lazy val BindRef: Ref[BindCompanionCtor] = new BindCompanionCtor
-  lazy val RBind: BindCompanionCtor = proxyBindCompanion(BindRef)
-  implicit def proxyBindCompanion(p: Ref[BindCompanionCtor]): BindCompanionCtor = {
+  lazy val RBind: BindCompanionCtor = unrefBindCompanion(BindRef)
+  implicit def unrefBindCompanion(p: Ref[BindCompanionCtor]): BindCompanionCtor = {
     if (p.rhs.isInstanceOf[BindCompanionCtor])
       p.rhs.asInstanceOf[BindCompanionCtor]
     else
-      proxyOps[BindCompanionCtor](p)
+      unrefDelegate[BindCompanionCtor](p)
   }
 
   implicit case object BindCompanionElem extends CompanionElem[BindCompanionCtor]
 
-  implicit def proxyBind[F[_], S, B](p: Ref[Bind[F, S, B]]): Bind[F, S, B] = {
+  implicit def unrefBind[F[_], S, B](p: Ref[Bind[F, S, B]]): Bind[F, S, B] = {
     if (p.rhs.isInstanceOf[Bind[F, S, B]@unchecked])
       p.rhs.asInstanceOf[Bind[F, S, B]]
     else
-      proxyOps[Bind[F, S, B]](p)
+      unrefDelegate[Bind[F, S, B]](p)
   }
 
   implicit class ExtendedBind[F[_], S, B](p: Ref[Bind[F, S, B]]) {

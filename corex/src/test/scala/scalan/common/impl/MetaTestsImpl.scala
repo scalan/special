@@ -121,8 +121,8 @@ object MetaTest extends EntityObject("MetaTest") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyMetaTest[T](p: Ref[MetaTest[T]]): MetaTest[T] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefMetaTest[T](p: Ref[MetaTest[T]]): MetaTest[T] = {
     if (p.rhs.isInstanceOf[MetaTest[T]@unchecked]) p.rhs.asInstanceOf[MetaTest[T]]
     else
       MetaTestAdapter(p)
@@ -166,7 +166,7 @@ object MetaTest extends EntityObject("MetaTest") {
     def resultType = MetaTestCompanionElem
     override def toString = "MetaTest"
   }
-  implicit def proxyMetaTestCompanionCtor(p: Ref[MetaTestCompanionCtor]): MetaTestCompanionCtor =
+  implicit def unrefMetaTestCompanionCtor(p: Ref[MetaTestCompanionCtor]): MetaTestCompanionCtor =
     p.rhs.asInstanceOf[MetaTestCompanionCtor]
 
   lazy val RMetaTest: Ref[MetaTestCompanionCtor] = new MetaTestCompanionCtor {
@@ -338,8 +338,8 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyMetaPair[A, B](p: Ref[MetaPair[A, B]]): MetaPair[A, B] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefMetaPair[A, B](p: Ref[MetaPair[A, B]]): MetaPair[A, B] = {
     if (p.rhs.isInstanceOf[MetaPair[A, B]@unchecked]) p.rhs.asInstanceOf[MetaPair[A, B]]
     else
       MetaPairAdapter(p)
@@ -373,7 +373,7 @@ implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
     def resultType = MetaPairCompanionElem
     override def toString = "MetaPair"
   }
-  implicit def proxyMetaPairCompanionCtor(p: Ref[MetaPairCompanionCtor]): MetaPairCompanionCtor =
+  implicit def unrefMetaPairCompanionCtor(p: Ref[MetaPairCompanionCtor]): MetaPairCompanionCtor =
     p.rhs.asInstanceOf[MetaPairCompanionCtor]
 
   lazy val RMetaPair: Ref[MetaPairCompanionCtor] = new MetaPairCompanionCtor {
@@ -463,21 +463,21 @@ object MT0 extends EntityObject("MT0") {
     def unapply(p: Ref[MetaTest[Unit]]) = unmkMT0(p)
   }
   lazy val MT0Ref: Ref[MT0CompanionCtor] = new MT0CompanionCtor
-  lazy val RMT0: MT0CompanionCtor = proxyMT0Companion(MT0Ref)
-  implicit def proxyMT0Companion(p: Ref[MT0CompanionCtor]): MT0CompanionCtor = {
+  lazy val RMT0: MT0CompanionCtor = unrefMT0Companion(MT0Ref)
+  implicit def unrefMT0Companion(p: Ref[MT0CompanionCtor]): MT0CompanionCtor = {
     if (p.rhs.isInstanceOf[MT0CompanionCtor])
       p.rhs.asInstanceOf[MT0CompanionCtor]
     else
-      proxyOps[MT0CompanionCtor](p)
+      unrefDelegate[MT0CompanionCtor](p)
   }
 
   implicit case object MT0CompanionElem extends CompanionElem[MT0CompanionCtor]
 
-  implicit def proxyMT0(p: Ref[MT0]): MT0 = {
+  implicit def unrefMT0(p: Ref[MT0]): MT0 = {
     if (p.rhs.isInstanceOf[MT0])
       p.rhs.asInstanceOf[MT0]
     else
-      proxyOps[MT0](p)
+      unrefDelegate[MT0](p)
   }
 
   implicit class ExtendedMT0(p: Ref[MT0]) {
@@ -607,21 +607,21 @@ object MT1 extends EntityObject("MT1") {
     def unapply[T](p: Ref[MetaTest[T]]) = unmkMT1(p)
   }
   lazy val MT1Ref: Ref[MT1CompanionCtor] = new MT1CompanionCtor
-  lazy val RMT1: MT1CompanionCtor = proxyMT1Companion(MT1Ref)
-  implicit def proxyMT1Companion(p: Ref[MT1CompanionCtor]): MT1CompanionCtor = {
+  lazy val RMT1: MT1CompanionCtor = unrefMT1Companion(MT1Ref)
+  implicit def unrefMT1Companion(p: Ref[MT1CompanionCtor]): MT1CompanionCtor = {
     if (p.rhs.isInstanceOf[MT1CompanionCtor])
       p.rhs.asInstanceOf[MT1CompanionCtor]
     else
-      proxyOps[MT1CompanionCtor](p)
+      unrefDelegate[MT1CompanionCtor](p)
   }
 
   implicit case object MT1CompanionElem extends CompanionElem[MT1CompanionCtor]
 
-  implicit def proxyMT1[T](p: Ref[MT1[T]]): MT1[T] = {
+  implicit def unrefMT1[T](p: Ref[MT1[T]]): MT1[T] = {
     if (p.rhs.isInstanceOf[MT1[T]@unchecked])
       p.rhs.asInstanceOf[MT1[T]]
     else
-      proxyOps[MT1[T]](p)
+      unrefDelegate[MT1[T]](p)
   }
 
   implicit class ExtendedMT1[T](p: Ref[MT1[T]]) {
@@ -742,21 +742,21 @@ implicit val eB = p._2.elem
     def unapply[A, B](p: Ref[MetaPair[A, B]]) = unmkMT2(p)
   }
   lazy val MT2Ref: Ref[MT2CompanionCtor] = new MT2CompanionCtor
-  lazy val RMT2: MT2CompanionCtor = proxyMT2Companion(MT2Ref)
-  implicit def proxyMT2Companion(p: Ref[MT2CompanionCtor]): MT2CompanionCtor = {
+  lazy val RMT2: MT2CompanionCtor = unrefMT2Companion(MT2Ref)
+  implicit def unrefMT2Companion(p: Ref[MT2CompanionCtor]): MT2CompanionCtor = {
     if (p.rhs.isInstanceOf[MT2CompanionCtor])
       p.rhs.asInstanceOf[MT2CompanionCtor]
     else
-      proxyOps[MT2CompanionCtor](p)
+      unrefDelegate[MT2CompanionCtor](p)
   }
 
   implicit case object MT2CompanionElem extends CompanionElem[MT2CompanionCtor]
 
-  implicit def proxyMT2[A, B](p: Ref[MT2[A, B]]): MT2[A, B] = {
+  implicit def unrefMT2[A, B](p: Ref[MT2[A, B]]): MT2[A, B] = {
     if (p.rhs.isInstanceOf[MT2[A, B]@unchecked])
       p.rhs.asInstanceOf[MT2[A, B]]
     else
-      proxyOps[MT2[A, B]](p)
+      unrefDelegate[MT2[A, B]](p)
   }
 
   implicit class ExtendedMT2[A, B](p: Ref[MT2[A, B]]) {

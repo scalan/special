@@ -92,7 +92,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     if (p.rhs.isInstanceOf[CCostedOptionCompanionCtor])
       p.rhs.asInstanceOf[CCostedOptionCompanionCtor]
     else
-      proxyOps[CCostedOptionCompanionCtor](p)
+      unrefDelegate[CCostedOptionCompanionCtor](p)
   }
 
   implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor]
@@ -101,7 +101,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
     if (p.rhs.isInstanceOf[CCostedOption[T]@unchecked])
       p.rhs.asInstanceOf[CCostedOption[T]]
     else
-      proxyOps[CCostedOption[T]](p)
+      unrefDelegate[CCostedOption[T]](p)
   }
 
   implicit class ExtendedCCostedOption[T](p: Ref[CCostedOption[T]]) {

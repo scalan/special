@@ -41,8 +41,8 @@ object StructKey extends EntityObject("StructKey") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyStructKey[Schema <: Struct](p: Ref[StructKey[Schema]]): StructKey[Schema] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefStructKey[Schema <: Struct](p: Ref[StructKey[Schema]]): StructKey[Schema] = {
     if (p.rhs.isInstanceOf[StructKey[Schema]@unchecked]) p.rhs.asInstanceOf[StructKey[Schema]]
     else
       StructKeyAdapter(p)
@@ -65,7 +65,7 @@ object StructKey extends EntityObject("StructKey") {
     def resultType = StructKeyCompanionElem
     override def toString = "StructKey"
   }
-  implicit def proxyStructKeyCompanionCtor(p: Ref[StructKeyCompanionCtor]): StructKeyCompanionCtor =
+  implicit def unrefStructKeyCompanionCtor(p: Ref[StructKeyCompanionCtor]): StructKeyCompanionCtor =
     p.rhs.asInstanceOf[StructKeyCompanionCtor]
 
   lazy val RStructKey: Ref[StructKeyCompanionCtor] = new StructKeyCompanionCtor {
@@ -123,21 +123,21 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkIndexStructKey(p)
   }
   lazy val IndexStructKeyRef: Ref[IndexStructKeyCompanionCtor] = new IndexStructKeyCompanionCtor
-  lazy val RIndexStructKey: IndexStructKeyCompanionCtor = proxyIndexStructKeyCompanion(IndexStructKeyRef)
-  implicit def proxyIndexStructKeyCompanion(p: Ref[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
+  lazy val RIndexStructKey: IndexStructKeyCompanionCtor = unrefIndexStructKeyCompanion(IndexStructKeyRef)
+  implicit def unrefIndexStructKeyCompanion(p: Ref[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
     if (p.rhs.isInstanceOf[IndexStructKeyCompanionCtor])
       p.rhs.asInstanceOf[IndexStructKeyCompanionCtor]
     else
-      proxyOps[IndexStructKeyCompanionCtor](p)
+      unrefDelegate[IndexStructKeyCompanionCtor](p)
   }
 
   implicit case object IndexStructKeyCompanionElem extends CompanionElem[IndexStructKeyCompanionCtor]
 
-  implicit def proxyIndexStructKey[Schema <: Struct](p: Ref[IndexStructKey[Schema]]): IndexStructKey[Schema] = {
+  implicit def unrefIndexStructKey[Schema <: Struct](p: Ref[IndexStructKey[Schema]]): IndexStructKey[Schema] = {
     if (p.rhs.isInstanceOf[IndexStructKey[Schema]@unchecked])
       p.rhs.asInstanceOf[IndexStructKey[Schema]]
     else
-      proxyOps[IndexStructKey[Schema]](p)
+      unrefDelegate[IndexStructKey[Schema]](p)
   }
 
   implicit class ExtendedIndexStructKey[Schema <: Struct](p: Ref[IndexStructKey[Schema]])(implicit eSchema: Elem[Schema]) {
@@ -213,21 +213,21 @@ object NameStructKey extends EntityObject("NameStructKey") {
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkNameStructKey(p)
   }
   lazy val NameStructKeyRef: Ref[NameStructKeyCompanionCtor] = new NameStructKeyCompanionCtor
-  lazy val RNameStructKey: NameStructKeyCompanionCtor = proxyNameStructKeyCompanion(NameStructKeyRef)
-  implicit def proxyNameStructKeyCompanion(p: Ref[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
+  lazy val RNameStructKey: NameStructKeyCompanionCtor = unrefNameStructKeyCompanion(NameStructKeyRef)
+  implicit def unrefNameStructKeyCompanion(p: Ref[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
     if (p.rhs.isInstanceOf[NameStructKeyCompanionCtor])
       p.rhs.asInstanceOf[NameStructKeyCompanionCtor]
     else
-      proxyOps[NameStructKeyCompanionCtor](p)
+      unrefDelegate[NameStructKeyCompanionCtor](p)
   }
 
   implicit case object NameStructKeyCompanionElem extends CompanionElem[NameStructKeyCompanionCtor]
 
-  implicit def proxyNameStructKey[Schema <: Struct](p: Ref[NameStructKey[Schema]]): NameStructKey[Schema] = {
+  implicit def unrefNameStructKey[Schema <: Struct](p: Ref[NameStructKey[Schema]]): NameStructKey[Schema] = {
     if (p.rhs.isInstanceOf[NameStructKey[Schema]@unchecked])
       p.rhs.asInstanceOf[NameStructKey[Schema]]
     else
-      proxyOps[NameStructKey[Schema]](p)
+      unrefDelegate[NameStructKey[Schema]](p)
   }
 
   implicit class ExtendedNameStructKey[Schema <: Struct](p: Ref[NameStructKey[Schema]])(implicit eSchema: Elem[Schema]) {

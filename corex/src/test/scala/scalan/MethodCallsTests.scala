@@ -6,7 +6,7 @@ import scalan.util.ReflectionUtil
 
 //import scalan.monads.{FreesDslExp, MonadsDslExp}
 
-class ProxyTests extends BaseCtxTests {
+class MethodCallsTests extends BaseCtxTests {
   class Ctx extends TestContext with SegmentsModule /*with FreesDslExp with MonadsDslExp*/ {
 
     /**

@@ -90,7 +90,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
     if (p.rhs.isInstanceOf[CSizePrimCompanionCtor])
       p.rhs.asInstanceOf[CSizePrimCompanionCtor]
     else
-      proxyOps[CSizePrimCompanionCtor](p)
+      unrefDelegate[CSizePrimCompanionCtor](p)
   }
 
   implicit case object CSizePrimCompanionElem extends CompanionElem[CSizePrimCompanionCtor]
@@ -99,7 +99,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
     if (p.rhs.isInstanceOf[CSizePrim[Val]@unchecked])
       p.rhs.asInstanceOf[CSizePrim[Val]]
     else
-      proxyOps[CSizePrim[Val]](p)
+      unrefDelegate[CSizePrim[Val]](p)
   }
 
   implicit class ExtendedCSizePrim[Val](p: Ref[CSizePrim[Val]]) {
@@ -205,7 +205,7 @@ implicit val eR = p._2.eVal
     if (p.rhs.isInstanceOf[CSizePairCompanionCtor])
       p.rhs.asInstanceOf[CSizePairCompanionCtor]
     else
-      proxyOps[CSizePairCompanionCtor](p)
+      unrefDelegate[CSizePairCompanionCtor](p)
   }
 
   implicit case object CSizePairCompanionElem extends CompanionElem[CSizePairCompanionCtor]
@@ -214,7 +214,7 @@ implicit val eR = p._2.eVal
     if (p.rhs.isInstanceOf[CSizePair[L, R]@unchecked])
       p.rhs.asInstanceOf[CSizePair[L, R]]
     else
-      proxyOps[CSizePair[L, R]](p)
+      unrefDelegate[CSizePair[L, R]](p)
   }
 
   implicit class ExtendedCSizePair[L, R](p: Ref[CSizePair[L, R]]) {
@@ -307,7 +307,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     if (p.rhs.isInstanceOf[CSizeCollCompanionCtor])
       p.rhs.asInstanceOf[CSizeCollCompanionCtor]
     else
-      proxyOps[CSizeCollCompanionCtor](p)
+      unrefDelegate[CSizeCollCompanionCtor](p)
   }
 
   implicit case object CSizeCollCompanionElem extends CompanionElem[CSizeCollCompanionCtor]
@@ -316,7 +316,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     if (p.rhs.isInstanceOf[CSizeColl[Item]@unchecked])
       p.rhs.asInstanceOf[CSizeColl[Item]]
     else
-      proxyOps[CSizeColl[Item]](p)
+      unrefDelegate[CSizeColl[Item]](p)
   }
 
   implicit class ExtendedCSizeColl[Item](p: Ref[CSizeColl[Item]]) {
@@ -421,7 +421,7 @@ implicit val eRes = p._4.eA
     if (p.rhs.isInstanceOf[CSizeFuncCompanionCtor])
       p.rhs.asInstanceOf[CSizeFuncCompanionCtor]
     else
-      proxyOps[CSizeFuncCompanionCtor](p)
+      unrefDelegate[CSizeFuncCompanionCtor](p)
   }
 
   implicit case object CSizeFuncCompanionElem extends CompanionElem[CSizeFuncCompanionCtor]
@@ -430,7 +430,7 @@ implicit val eRes = p._4.eA
     if (p.rhs.isInstanceOf[CSizeFunc[Env, Arg, Res]@unchecked])
       p.rhs.asInstanceOf[CSizeFunc[Env, Arg, Res]]
     else
-      proxyOps[CSizeFunc[Env, Arg, Res]](p)
+      unrefDelegate[CSizeFunc[Env, Arg, Res]](p)
   }
 
   implicit class ExtendedCSizeFunc[Env, Arg, Res](p: Ref[CSizeFunc[Env, Arg, Res]]) {
@@ -525,7 +525,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     if (p.rhs.isInstanceOf[CSizeOptionCompanionCtor])
       p.rhs.asInstanceOf[CSizeOptionCompanionCtor]
     else
-      proxyOps[CSizeOptionCompanionCtor](p)
+      unrefDelegate[CSizeOptionCompanionCtor](p)
   }
 
   implicit case object CSizeOptionCompanionElem extends CompanionElem[CSizeOptionCompanionCtor]
@@ -534,7 +534,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     if (p.rhs.isInstanceOf[CSizeOption[Item]@unchecked])
       p.rhs.asInstanceOf[CSizeOption[Item]]
     else
-      proxyOps[CSizeOption[Item]](p)
+      unrefDelegate[CSizeOption[Item]](p)
   }
 
   implicit class ExtendedCSizeOption[Item](p: Ref[CSizeOption[Item]]) {

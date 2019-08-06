@@ -16,7 +16,7 @@ import spire.syntax.all.cfor
 
 import scala.collection.mutable.ArrayBuffer
 
-trait Proxy extends Base with GraphVizExport { self: Scalan =>
+trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
 
   def getStagedFunc(name: String): Ref[_] = {
     val clazz = this.getClass
@@ -27,8 +27,8 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
   def delayInvoke = throw new DelayInvokeException
 
   // call mkMethodCall instead of constructor
-  case class MethodCall private[Proxy](receiver: Sym, method: Method, args: Seq[AnyRef], neverInvoke: Boolean)
-                                      (val resultType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
+  case class MethodCall private[MethodCalls](receiver: Sym, method: Method, args: Seq[AnyRef], neverInvoke: Boolean)
+                                            (val resultType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
 
     override def mirror(t: Transformer): Ref[Any] = {
       val len = args.length
@@ -152,7 +152,7 @@ trait Proxy extends Base with GraphVizExport { self: Scalan =>
     reifyObject(NewObject[A](eA, args, true))
   }
 
-  def proxyOps[Ops <: AnyRef](x: Ref[Ops])(implicit ct: ClassTag[Ops]): Ops = {
+  def unrefDelegate[Ops <: AnyRef](x: Ref[Ops])(implicit ct: ClassTag[Ops]): Ops = {
     val d = x.rhs
     if (d.isInstanceOf[Const[_]])
       d.asInstanceOf[Const[Ops]@unchecked].x
