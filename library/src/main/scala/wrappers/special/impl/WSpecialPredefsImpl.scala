@@ -28,8 +28,8 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     override def transform(t: Transformer) = WSpecialPredefAdapter(t(source))
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyWSpecialPredef(p: Ref[WSpecialPredef]): WSpecialPredef = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefWSpecialPredef(p: Ref[WSpecialPredef]): WSpecialPredef = {
     if (p.rhs.isInstanceOf[WSpecialPredef]) p.rhs.asInstanceOf[WSpecialPredef]
     else
       WSpecialPredefAdapter(p)
@@ -49,7 +49,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     def resultType = WSpecialPredefCompanionElem
     override def toString = "WSpecialPredef"
   }
-  implicit def proxyWSpecialPredefCompanionCtor(p: Ref[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
+  implicit def unrefWSpecialPredefCompanionCtor(p: Ref[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
     p.rhs.asInstanceOf[WSpecialPredefCompanionCtor]
 
   lazy val RWSpecialPredef: Ref[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {

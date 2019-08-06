@@ -188,8 +188,8 @@ object WOption extends EntityObject("WOption") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyWOption[A](p: Ref[WOption[A]]): WOption[A] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefWOption[A](p: Ref[WOption[A]]): WOption[A] = {
     if (p.rhs.isInstanceOf[WOption[A]@unchecked]) p.rhs.asInstanceOf[WOption[A]]
     else
       WOptionAdapter(p)
@@ -239,7 +239,7 @@ object WOption extends EntityObject("WOption") {
     def resultType = WOptionCompanionElem
     override def toString = "WOption"
   }
-  implicit def proxyWOptionCompanionCtor(p: Ref[WOptionCompanionCtor]): WOptionCompanionCtor =
+  implicit def unrefWOptionCompanionCtor(p: Ref[WOptionCompanionCtor]): WOptionCompanionCtor =
     p.rhs.asInstanceOf[WOptionCompanionCtor]
 
   lazy val RWOption: Ref[WOptionCompanionCtor] = new WOptionCompanionCtor {

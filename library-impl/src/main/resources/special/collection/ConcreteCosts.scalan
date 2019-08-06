@@ -31,46 +31,46 @@ package special.collection {
     import WOption._;
     import WRType._;
     import WSpecialPredef._;
-    abstract class CCostedPrim[Val](val value: Rep[Val], val cost: Rep[Int], val size: Rep[Size[Val]]) extends CostedPrim[Val] {
-      def builder: Rep[CostedBuilder] = RCCostedBuilder()
+    abstract class CCostedPrim[Val](val value: Ref[Val], val cost: Ref[Int], val size: Ref[Size[Val]]) extends CostedPrim[Val] {
+      def builder: Ref[CostedBuilder] = RCCostedBuilder()
     };
-    abstract class CCostedPair[L, R](val l: Rep[Costed[L]], val r: Rep[Costed[R]], val accCost: Rep[Int]) extends CostedPair[L, R] {
-      def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      def value: Rep[scala.Tuple2[L, R]] = Pair(CCostedPair.this.l.value, CCostedPair.this.r.value);
-      @NeverInline def cost: Rep[Int] = delayInvoke;
-      def size: Rep[Size[scala.Tuple2[L, R]]] = CCostedPair.this.builder.mkSizePair[L, R](CCostedPair.this.l.size, CCostedPair.this.r.size)
+    abstract class CCostedPair[L, R](val l: Ref[Costed[L]], val r: Ref[Costed[R]], val accCost: Ref[Int]) extends CostedPair[L, R] {
+      def builder: Ref[CostedBuilder] = RCCostedBuilder();
+      def value: Ref[scala.Tuple2[L, R]] = Pair(CCostedPair.this.l.value, CCostedPair.this.r.value);
+      @NeverInline def cost: Ref[Int] = delayInvoke;
+      def size: Ref[Size[scala.Tuple2[L, R]]] = CCostedPair.this.builder.mkSizePair[L, R](CCostedPair.this.l.size, CCostedPair.this.r.size)
     };
-    abstract class CCostedFunc[Env, Arg, Res](val envCosted: Rep[Costed[Env]], val func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], val cost: Rep[Int], val size: Rep[Size[scala.Function1[Arg, Res]]]) extends CostedFunc[Env, Arg, Res] {
-      def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      @NeverInline def value: Rep[scala.Function1[Arg, Res]] = delayInvoke;
-      override def sliceCalc: Rep[scala.Function1[Arg, Res]] = RWSpecialPredef.rewritableMethod;
-      override def sliceCost: Rep[scala.Function1[scala.Tuple2[Int, Size[Arg]], Int]] = RWSpecialPredef.rewritableMethod;
-      override def sliceCostEx: Rep[scala.Function1[scala.Tuple2[Arg, scala.Tuple2[Int, Size[Arg]]], Int]] = RWSpecialPredef.rewritableMethod;
-      override def sliceSize: Rep[scala.Function1[Size[Arg], Size[Res]]] = RWSpecialPredef.rewritableMethod
+    abstract class CCostedFunc[Env, Arg, Res](val envCosted: Ref[Costed[Env]], val func: Ref[scala.Function1[Costed[Arg], Costed[Res]]], val cost: Ref[Int], val size: Ref[Size[scala.Function1[Arg, Res]]]) extends CostedFunc[Env, Arg, Res] {
+      def builder: Ref[CostedBuilder] = RCCostedBuilder();
+      @NeverInline def value: Ref[scala.Function1[Arg, Res]] = delayInvoke;
+      override def sliceCalc: Ref[scala.Function1[Arg, Res]] = RWSpecialPredef.rewritableMethod;
+      override def sliceCost: Ref[scala.Function1[scala.Tuple2[Int, Size[Arg]], Int]] = RWSpecialPredef.rewritableMethod;
+      override def sliceCostEx: Ref[scala.Function1[scala.Tuple2[Arg, scala.Tuple2[Int, Size[Arg]]], Int]] = RWSpecialPredef.rewritableMethod;
+      override def sliceSize: Ref[scala.Function1[Size[Arg], Size[Res]]] = RWSpecialPredef.rewritableMethod
     };
-    abstract class CCostedColl[Item](val values: Rep[Coll[Item]], val costs: Rep[Coll[Int]], val sizes: Rep[Coll[Size[Item]]], val valuesCost: Rep[Int]) extends CostedColl[Item] {
-      def builder: Rep[CostedBuilder] = RCCostedBuilder();
-      def value: Rep[Coll[Item]] = CCostedColl.this.values;
-      @NeverInline def cost: Rep[Int] = delayInvoke;
-      def size: Rep[Size[Coll[Item]]] = CCostedColl.this.builder.mkSizeColl[Item](CCostedColl.this.sizes);
-      @NeverInline def mapCosted[Res](f: Rep[scala.Function1[Costed[Item], Costed[Res]]]): Rep[CostedColl[Res]] = delayInvoke;
-      @NeverInline def filterCosted(f: Rep[scala.Function1[Costed[Item], Costed[Boolean]]]): Rep[CostedColl[Item]] = delayInvoke;
-      @NeverInline def foldCosted[B](zero: Rep[Costed[B]], op: Rep[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Rep[Costed[B]] = delayInvoke
+    abstract class CCostedColl[Item](val values: Ref[Coll[Item]], val costs: Ref[Coll[Int]], val sizes: Ref[Coll[Size[Item]]], val valuesCost: Ref[Int]) extends CostedColl[Item] {
+      def builder: Ref[CostedBuilder] = RCCostedBuilder();
+      def value: Ref[Coll[Item]] = CCostedColl.this.values;
+      @NeverInline def cost: Ref[Int] = delayInvoke;
+      def size: Ref[Size[Coll[Item]]] = CCostedColl.this.builder.mkSizeColl[Item](CCostedColl.this.sizes);
+      @NeverInline def mapCosted[Res](f: Ref[scala.Function1[Costed[Item], Costed[Res]]]): Ref[CostedColl[Res]] = delayInvoke;
+      @NeverInline def filterCosted(f: Ref[scala.Function1[Costed[Item], Costed[Boolean]]]): Ref[CostedColl[Item]] = delayInvoke;
+      @NeverInline def foldCosted[B](zero: Ref[Costed[B]], op: Ref[scala.Function1[Costed[scala.Tuple2[B, Item]], Costed[B]]]): Ref[Costed[B]] = delayInvoke
     };
     abstract class CCostedBuilder extends CostedBuilder {
-      @NeverInline def monoidBuilder: Rep[MonoidBuilder] = delayInvoke;
-      @NeverInline def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = delayInvoke;
-      @NeverInline def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = delayInvoke;
-      def mkSizePrim[T](dataSize: Rep[Long], tT: Rep[WRType[T]]): Rep[SizePrim[T]] = RCSizePrim(dataSize, tT);
-      def mkSizePair[L, R](l: Rep[Size[L]], r: Rep[Size[R]]): Rep[SizePair[L, R]] = RCSizePair(l, r);
-      def mkSizeColl[T](sizes: Rep[Coll[Size[T]]]): Rep[SizeColl[T]] = RCSizeColl(sizes);
-      def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long], tA: Rep[WRType[A]], tR: Rep[WRType[R]]): Rep[SizeFunc[E, A, R]] = RCSizeFunc(sizeEnv, sizeFunc, tA, tR);
-      def mkSizeOption[T](sizeOpt: Rep[WOption[Size[T]]]): Rep[SizeOption[T]] = RCSizeOption(sizeOpt);
-      def mkCostedPrim[T](value: Rep[T], cost: Rep[Int], size: Rep[Size[T]]): Rep[CostedPrim[T]] = RCCostedPrim(value, cost, size);
-      def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]], accCost: Rep[Int]): Rep[CostedPair[L, R]] = RCCostedPair(first, second, accCost);
-      def mkCostedFunc[Env, Arg, Res](envCosted: Rep[Costed[Env]], func: Rep[scala.Function1[Costed[Arg], Costed[Res]]], cost: Rep[Int], size: Rep[Size[scala.Function1[Arg, Res]]]): Rep[CostedFunc[Env, Arg, Res]] = RCCostedFunc(envCosted, func, cost, size);
-      def mkCostedColl[T](values: Rep[Coll[T]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Size[T]]], valuesCost: Rep[Int]): Rep[CostedColl[T]] = RCCostedColl(values, costs, sizes, valuesCost);
-      def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]] = RCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
+      @NeverInline def monoidBuilder: Ref[MonoidBuilder] = delayInvoke;
+      @NeverInline def costedValue[T](x: Ref[T], optCost: Ref[WOption[Int]]): Ref[Costed[T]] = delayInvoke;
+      @NeverInline def defaultValue[T](valueType: Ref[WRType[T]]): Ref[T] = delayInvoke;
+      def mkSizePrim[T](dataSize: Ref[Long], tT: Ref[WRType[T]]): Ref[SizePrim[T]] = RCSizePrim(dataSize, tT);
+      def mkSizePair[L, R](l: Ref[Size[L]], r: Ref[Size[R]]): Ref[SizePair[L, R]] = RCSizePair(l, r);
+      def mkSizeColl[T](sizes: Ref[Coll[Size[T]]]): Ref[SizeColl[T]] = RCSizeColl(sizes);
+      def mkSizeFunc[E, A, R](sizeEnv: Ref[Size[E]], sizeFunc: Ref[Long], tA: Ref[WRType[A]], tR: Ref[WRType[R]]): Ref[SizeFunc[E, A, R]] = RCSizeFunc(sizeEnv, sizeFunc, tA, tR);
+      def mkSizeOption[T](sizeOpt: Ref[WOption[Size[T]]]): Ref[SizeOption[T]] = RCSizeOption(sizeOpt);
+      def mkCostedPrim[T](value: Ref[T], cost: Ref[Int], size: Ref[Size[T]]): Ref[CostedPrim[T]] = RCCostedPrim(value, cost, size);
+      def mkCostedPair[L, R](first: Ref[Costed[L]], second: Ref[Costed[R]], accCost: Ref[Int]): Ref[CostedPair[L, R]] = RCCostedPair(first, second, accCost);
+      def mkCostedFunc[Env, Arg, Res](envCosted: Ref[Costed[Env]], func: Ref[scala.Function1[Costed[Arg], Costed[Res]]], cost: Ref[Int], size: Ref[Size[scala.Function1[Arg, Res]]]): Ref[CostedFunc[Env, Arg, Res]] = RCCostedFunc(envCosted, func, cost, size);
+      def mkCostedColl[T](values: Ref[Coll[T]], costs: Ref[Coll[Int]], sizes: Ref[Coll[Size[T]]], valuesCost: Ref[Int]): Ref[CostedColl[T]] = RCCostedColl(values, costs, sizes, valuesCost);
+      def mkCostedOption[T](value: Ref[WOption[T]], costOpt: Ref[WOption[Int]], sizeOpt: Ref[WOption[Size[T]]], accumulatedCost: Ref[Int]): Ref[CostedOption[T]] = RCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
     };
     trait CCostedPrimCompanion;
     trait CCostedPairCompanion;

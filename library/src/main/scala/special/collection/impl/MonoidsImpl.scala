@@ -48,8 +48,8 @@ object Monoid extends EntityObject("Monoid") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyMonoid[T](p: Ref[Monoid[T]]): Monoid[T] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefMonoid[T](p: Ref[Monoid[T]]): Monoid[T] = {
     if (p.rhs.isInstanceOf[Monoid[T]@unchecked]) p.rhs.asInstanceOf[Monoid[T]]
     else
       MonoidAdapter(p)
@@ -72,7 +72,7 @@ object Monoid extends EntityObject("Monoid") {
     def resultType = MonoidCompanionElem
     override def toString = "Monoid"
   }
-  implicit def proxyMonoidCompanionCtor(p: Ref[MonoidCompanionCtor]): MonoidCompanionCtor =
+  implicit def unrefMonoidCompanionCtor(p: Ref[MonoidCompanionCtor]): MonoidCompanionCtor =
     p.rhs.asInstanceOf[MonoidCompanionCtor]
 
   lazy val RMonoid: Ref[MonoidCompanionCtor] = new MonoidCompanionCtor {
@@ -143,8 +143,8 @@ implicit val eB = m2.eT
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyMonoidBuilder(p: Ref[MonoidBuilder]): MonoidBuilder = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefMonoidBuilder(p: Ref[MonoidBuilder]): MonoidBuilder = {
     if (p.rhs.isInstanceOf[MonoidBuilder]) p.rhs.asInstanceOf[MonoidBuilder]
     else
       MonoidBuilderAdapter(p)
@@ -164,7 +164,7 @@ implicit val eB = m2.eT
     def resultType = MonoidBuilderCompanionElem
     override def toString = "MonoidBuilder"
   }
-  implicit def proxyMonoidBuilderCompanionCtor(p: Ref[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
+  implicit def unrefMonoidBuilderCompanionCtor(p: Ref[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
     p.rhs.asInstanceOf[MonoidBuilderCompanionCtor]
 
   lazy val RMonoidBuilder: Ref[MonoidBuilderCompanionCtor] = new MonoidBuilderCompanionCtor {

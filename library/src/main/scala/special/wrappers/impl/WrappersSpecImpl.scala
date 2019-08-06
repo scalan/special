@@ -30,8 +30,8 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     override def transform(t: Transformer) = WrapSpecBaseAdapter(t(source))
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyWrapSpecBase(p: Ref[WrapSpecBase]): WrapSpecBase = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefWrapSpecBase(p: Ref[WrapSpecBase]): WrapSpecBase = {
     if (p.rhs.isInstanceOf[WrapSpecBase]) p.rhs.asInstanceOf[WrapSpecBase]
     else
       WrapSpecBaseAdapter(p)
@@ -51,7 +51,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     def resultType = WrapSpecBaseCompanionElem
     override def toString = "WrapSpecBase"
   }
-  implicit def proxyWrapSpecBaseCompanionCtor(p: Ref[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
+  implicit def unrefWrapSpecBaseCompanionCtor(p: Ref[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
     p.rhs.asInstanceOf[WrapSpecBaseCompanionCtor]
 
   lazy val RWrapSpecBase: Ref[WrapSpecBaseCompanionCtor] = new WrapSpecBaseCompanionCtor {
@@ -88,8 +88,8 @@ implicit val eB = ifEmpty.elem.eItem
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyOptionWrapSpec(p: Ref[OptionWrapSpec]): OptionWrapSpec = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefOptionWrapSpec(p: Ref[OptionWrapSpec]): OptionWrapSpec = {
     if (p.rhs.isInstanceOf[OptionWrapSpec]) p.rhs.asInstanceOf[OptionWrapSpec]
     else
       OptionWrapSpecAdapter(p)
@@ -110,7 +110,7 @@ implicit val eB = ifEmpty.elem.eItem
     def resultType = OptionWrapSpecCompanionElem
     override def toString = "OptionWrapSpec"
   }
-  implicit def proxyOptionWrapSpecCompanionCtor(p: Ref[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
+  implicit def unrefOptionWrapSpecCompanionCtor(p: Ref[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
     p.rhs.asInstanceOf[OptionWrapSpecCompanionCtor]
 
   lazy val ROptionWrapSpec: Ref[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor {
@@ -130,8 +130,8 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     override def transform(t: Transformer) = SpecialPredefWrapSpecAdapter(t(source))
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySpecialPredefWrapSpec(p: Ref[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSpecialPredefWrapSpec(p: Ref[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
     if (p.rhs.isInstanceOf[SpecialPredefWrapSpec]) p.rhs.asInstanceOf[SpecialPredefWrapSpec]
     else
       SpecialPredefWrapSpecAdapter(p)
@@ -152,7 +152,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     def resultType = SpecialPredefWrapSpecCompanionElem
     override def toString = "SpecialPredefWrapSpec"
   }
-  implicit def proxySpecialPredefWrapSpecCompanionCtor(p: Ref[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
+  implicit def unrefSpecialPredefWrapSpecCompanionCtor(p: Ref[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
     p.rhs.asInstanceOf[SpecialPredefWrapSpecCompanionCtor]
 
   lazy val RSpecialPredefWrapSpec: Ref[SpecialPredefWrapSpecCompanionCtor] = new SpecialPredefWrapSpecCompanionCtor {
@@ -172,8 +172,8 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
     override def transform(t: Transformer) = RTypeWrapSpecAdapter(t(source))
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyRTypeWrapSpec(p: Ref[RTypeWrapSpec]): RTypeWrapSpec = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefRTypeWrapSpec(p: Ref[RTypeWrapSpec]): RTypeWrapSpec = {
     if (p.rhs.isInstanceOf[RTypeWrapSpec]) p.rhs.asInstanceOf[RTypeWrapSpec]
     else
       RTypeWrapSpecAdapter(p)
@@ -194,7 +194,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
     def resultType = RTypeWrapSpecCompanionElem
     override def toString = "RTypeWrapSpec"
   }
-  implicit def proxyRTypeWrapSpecCompanionCtor(p: Ref[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
+  implicit def unrefRTypeWrapSpecCompanionCtor(p: Ref[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
     p.rhs.asInstanceOf[RTypeWrapSpecCompanionCtor]
 
   lazy val RRTypeWrapSpec: Ref[RTypeWrapSpecCompanionCtor] = new RTypeWrapSpecCompanionCtor {

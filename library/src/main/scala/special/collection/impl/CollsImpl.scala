@@ -577,10 +577,10 @@ implicit val eV = proj.elem.eRange
     }
   }
 
-  // entityProxy: single proxy for each type family
+  // entityUnref: single unref method for each type family
   val createCollAdapter: Ref[Coll[Any]] => Coll[Any] = x => CollAdapter(x)
 
-  implicit def proxyColl[A](p: Ref[Coll[A]]): Coll[A] = {
+  implicit def unrefColl[A](p: Ref[Coll[A]]): Coll[A] = {
     val sym = p.asInstanceOf[SingleRef[Coll[A]]]
     sym.getAdapter(
       p.rhs.isInstanceOf[Coll[A]@unchecked],
@@ -631,7 +631,7 @@ implicit val eV = proj.elem.eRange
     def resultType = CollCompanionElem
     override def toString = "Coll"
   }
-  implicit def proxyCollCompanionCtor(p: Ref[CollCompanionCtor]): CollCompanionCtor =
+  implicit def unrefCollCompanionCtor(p: Ref[CollCompanionCtor]): CollCompanionCtor =
     p.rhs.asInstanceOf[CollCompanionCtor]
 
   lazy val RColl: Ref[CollCompanionCtor] = new CollCompanionCtor {
@@ -1313,8 +1313,8 @@ implicit val eV = proj.elem.eRange
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyPairColl[L, R](p: Ref[PairColl[L, R]]): PairColl[L, R] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefPairColl[L, R](p: Ref[PairColl[L, R]]): PairColl[L, R] = {
     if (p.rhs.isInstanceOf[PairColl[L, R]@unchecked]) p.rhs.asInstanceOf[PairColl[L, R]]
     else
       PairCollAdapter(p)
@@ -1339,7 +1339,7 @@ implicit val eV = proj.elem.eRange
     def resultType = PairCollCompanionElem
     override def toString = "PairColl"
   }
-  implicit def proxyPairCollCompanionCtor(p: Ref[PairCollCompanionCtor]): PairCollCompanionCtor =
+  implicit def unrefPairCollCompanionCtor(p: Ref[PairCollCompanionCtor]): PairCollCompanionCtor =
     p.rhs.asInstanceOf[PairCollCompanionCtor]
 
   lazy val RPairColl: Ref[PairCollCompanionCtor] = new PairCollCompanionCtor {
@@ -1725,8 +1725,8 @@ implicit val eV = proj.elem.eRange
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyReplColl[A](p: Ref[ReplColl[A]]): ReplColl[A] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefReplColl[A](p: Ref[ReplColl[A]]): ReplColl[A] = {
     if (p.rhs.isInstanceOf[ReplColl[A]@unchecked]) p.rhs.asInstanceOf[ReplColl[A]]
     else
       ReplCollAdapter(p)
@@ -1759,7 +1759,7 @@ implicit val eV = proj.elem.eRange
     def resultType = ReplCollCompanionElem
     override def toString = "ReplColl"
   }
-  implicit def proxyReplCollCompanionCtor(p: Ref[ReplCollCompanionCtor]): ReplCollCompanionCtor =
+  implicit def unrefReplCollCompanionCtor(p: Ref[ReplCollCompanionCtor]): ReplCollCompanionCtor =
     p.rhs.asInstanceOf[ReplCollCompanionCtor]
 
   lazy val RReplColl: Ref[ReplCollCompanionCtor] = new ReplCollCompanionCtor {
@@ -1991,10 +1991,10 @@ implicit val eO = l.elem.eRange
     }
   }
 
-  // entityProxy: single proxy for each type family
+  // entityUnref: single unref method for each type family
   val createCollBuilderAdapter: Ref[CollBuilder] => CollBuilder = x => CollBuilderAdapter(x)
 
-  implicit def proxyCollBuilder(p: Ref[CollBuilder]): CollBuilder =
+  implicit def unrefCollBuilder(p: Ref[CollBuilder]): CollBuilder =
     p.asInstanceOf[SingleRef[CollBuilder]].getAdapter(
       p.rhs.isInstanceOf[CollBuilder],
       createCollBuilderAdapter.asInstanceOf[Ref[CollBuilder] => CollBuilder])
@@ -2021,7 +2021,7 @@ implicit val eO = l.elem.eRange
     def resultType = CollBuilderCompanionElem
     override def toString = "CollBuilder"
   }
-  implicit def proxyCollBuilderCompanionCtor(p: Ref[CollBuilderCompanionCtor]): CollBuilderCompanionCtor =
+  implicit def unrefCollBuilderCompanionCtor(p: Ref[CollBuilderCompanionCtor]): CollBuilderCompanionCtor =
     p.rhs.asInstanceOf[CollBuilderCompanionCtor]
 
   lazy val RCollBuilder: Ref[CollBuilderCompanionCtor] = new CollBuilderCompanionCtor {

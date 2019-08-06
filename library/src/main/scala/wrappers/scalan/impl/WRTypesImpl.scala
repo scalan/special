@@ -83,8 +83,8 @@ object WRType extends EntityObject("WRType") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyWRType[A](p: Ref[WRType[A]]): WRType[A] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefWRType[A](p: Ref[WRType[A]]): WRType[A] = {
     if (p.rhs.isInstanceOf[WRType[A]@unchecked]) p.rhs.asInstanceOf[WRType[A]]
     else
       WRTypeAdapter(p)
@@ -116,7 +116,7 @@ object WRType extends EntityObject("WRType") {
     def resultType = WRTypeCompanionElem
     override def toString = "WRType"
   }
-  implicit def proxyWRTypeCompanionCtor(p: Ref[WRTypeCompanionCtor]): WRTypeCompanionCtor =
+  implicit def unrefWRTypeCompanionCtor(p: Ref[WRTypeCompanionCtor]): WRTypeCompanionCtor =
     p.rhs.asInstanceOf[WRTypeCompanionCtor]
 
   lazy val RWRType: Ref[WRTypeCompanionCtor] = new WRTypeCompanionCtor {

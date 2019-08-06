@@ -86,9 +86,9 @@ object CCostedOption extends EntityObject("CCostedOption") {
 
     def unapply[T](p: Ref[CostedOption[T]]) = unmkCCostedOption(p)
   }
-  lazy val CCostedOptionRep: Ref[CCostedOptionCompanionCtor] = new CCostedOptionCompanionCtor
-  lazy val RCCostedOption: CCostedOptionCompanionCtor = proxyCCostedOptionCompanion(CCostedOptionRep)
-  implicit def proxyCCostedOptionCompanion(p: Ref[CCostedOptionCompanionCtor]): CCostedOptionCompanionCtor = {
+  lazy val CCostedOptionRef: Ref[CCostedOptionCompanionCtor] = new CCostedOptionCompanionCtor
+  lazy val RCCostedOption: CCostedOptionCompanionCtor = unrefCCostedOptionCompanion(CCostedOptionRef)
+  implicit def unrefCCostedOptionCompanion(p: Ref[CCostedOptionCompanionCtor]): CCostedOptionCompanionCtor = {
     if (p.rhs.isInstanceOf[CCostedOptionCompanionCtor])
       p.rhs.asInstanceOf[CCostedOptionCompanionCtor]
     else
@@ -97,7 +97,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
 
   implicit case object CCostedOptionCompanionElem extends CompanionElem[CCostedOptionCompanionCtor]
 
-  implicit def proxyCCostedOption[T](p: Ref[CCostedOption[T]]): CCostedOption[T] = {
+  implicit def unrefCCostedOption[T](p: Ref[CCostedOption[T]]): CCostedOption[T] = {
     if (p.rhs.isInstanceOf[CCostedOption[T]@unchecked])
       p.rhs.asInstanceOf[CCostedOption[T]]
     else

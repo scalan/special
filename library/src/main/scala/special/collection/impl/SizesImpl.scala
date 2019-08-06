@@ -85,8 +85,8 @@ object Size extends EntityObject("Size") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySize[Val](p: Ref[Size[Val]]): Size[Val] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSize[Val](p: Ref[Size[Val]]): Size[Val] = {
     if (p.rhs.isInstanceOf[Size[Val]@unchecked]) p.rhs.asInstanceOf[Size[Val]]
     else
       SizeAdapter(p)
@@ -118,7 +118,7 @@ object Size extends EntityObject("Size") {
     def resultType = SizeCompanionElem
     override def toString = "Size"
   }
-  implicit def proxySizeCompanionCtor(p: Ref[SizeCompanionCtor]): SizeCompanionCtor =
+  implicit def unrefSizeCompanionCtor(p: Ref[SizeCompanionCtor]): SizeCompanionCtor =
     p.rhs.asInstanceOf[SizeCompanionCtor]
 
   lazy val RSize: Ref[SizeCompanionCtor] = new SizeCompanionCtor {
@@ -220,8 +220,8 @@ object SizePrim extends EntityObject("SizePrim") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySizePrim[Val](p: Ref[SizePrim[Val]]): SizePrim[Val] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSizePrim[Val](p: Ref[SizePrim[Val]]): SizePrim[Val] = {
     if (p.rhs.isInstanceOf[SizePrim[Val]@unchecked]) p.rhs.asInstanceOf[SizePrim[Val]]
     else
       SizePrimAdapter(p)
@@ -254,7 +254,7 @@ object SizePrim extends EntityObject("SizePrim") {
     def resultType = SizePrimCompanionElem
     override def toString = "SizePrim"
   }
-  implicit def proxySizePrimCompanionCtor(p: Ref[SizePrimCompanionCtor]): SizePrimCompanionCtor =
+  implicit def unrefSizePrimCompanionCtor(p: Ref[SizePrimCompanionCtor]): SizePrimCompanionCtor =
     p.rhs.asInstanceOf[SizePrimCompanionCtor]
 
   lazy val RSizePrim: Ref[SizePrimCompanionCtor] = new SizePrimCompanionCtor {
@@ -353,8 +353,8 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySizePair[L, R](p: Ref[SizePair[L, R]]): SizePair[L, R] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSizePair[L, R](p: Ref[SizePair[L, R]]): SizePair[L, R] = {
     if (p.rhs.isInstanceOf[SizePair[L, R]@unchecked]) p.rhs.asInstanceOf[SizePair[L, R]]
     else
       SizePairAdapter(p)
@@ -388,7 +388,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def resultType = SizePairCompanionElem
     override def toString = "SizePair"
   }
-  implicit def proxySizePairCompanionCtor(p: Ref[SizePairCompanionCtor]): SizePairCompanionCtor =
+  implicit def unrefSizePairCompanionCtor(p: Ref[SizePairCompanionCtor]): SizePairCompanionCtor =
     p.rhs.asInstanceOf[SizePairCompanionCtor]
 
   lazy val RSizePair: Ref[SizePairCompanionCtor] = new SizePairCompanionCtor {
@@ -494,8 +494,8 @@ object SizeColl extends EntityObject("SizeColl") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySizeColl[Item](p: Ref[SizeColl[Item]]): SizeColl[Item] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSizeColl[Item](p: Ref[SizeColl[Item]]): SizeColl[Item] = {
     if (p.rhs.isInstanceOf[SizeColl[Item]@unchecked]) p.rhs.asInstanceOf[SizeColl[Item]]
     else
       SizeCollAdapter(p)
@@ -528,7 +528,7 @@ object SizeColl extends EntityObject("SizeColl") {
     def resultType = SizeCollCompanionElem
     override def toString = "SizeColl"
   }
-  implicit def proxySizeCollCompanionCtor(p: Ref[SizeCollCompanionCtor]): SizeCollCompanionCtor =
+  implicit def unrefSizeCollCompanionCtor(p: Ref[SizeCollCompanionCtor]): SizeCollCompanionCtor =
     p.rhs.asInstanceOf[SizeCollCompanionCtor]
 
   lazy val RSizeColl: Ref[SizeCollCompanionCtor] = new SizeCollCompanionCtor {
@@ -632,8 +632,8 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySizeFunc[Env, Arg, Res](p: Ref[SizeFunc[Env, Arg, Res]]): SizeFunc[Env, Arg, Res] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSizeFunc[Env, Arg, Res](p: Ref[SizeFunc[Env, Arg, Res]]): SizeFunc[Env, Arg, Res] = {
     if (p.rhs.isInstanceOf[SizeFunc[Env, Arg, Res]@unchecked]) p.rhs.asInstanceOf[SizeFunc[Env, Arg, Res]]
     else
       SizeFuncAdapter(p)
@@ -668,7 +668,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     def resultType = SizeFuncCompanionElem
     override def toString = "SizeFunc"
   }
-  implicit def proxySizeFuncCompanionCtor(p: Ref[SizeFuncCompanionCtor]): SizeFuncCompanionCtor =
+  implicit def unrefSizeFuncCompanionCtor(p: Ref[SizeFuncCompanionCtor]): SizeFuncCompanionCtor =
     p.rhs.asInstanceOf[SizeFuncCompanionCtor]
 
   lazy val RSizeFunc: Ref[SizeFuncCompanionCtor] = new SizeFuncCompanionCtor {
@@ -764,8 +764,8 @@ object SizeOption extends EntityObject("SizeOption") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxySizeOption[T](p: Ref[SizeOption[T]]): SizeOption[T] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefSizeOption[T](p: Ref[SizeOption[T]]): SizeOption[T] = {
     if (p.rhs.isInstanceOf[SizeOption[T]@unchecked]) p.rhs.asInstanceOf[SizeOption[T]]
     else
       SizeOptionAdapter(p)
@@ -798,7 +798,7 @@ object SizeOption extends EntityObject("SizeOption") {
     def resultType = SizeOptionCompanionElem
     override def toString = "SizeOption"
   }
-  implicit def proxySizeOptionCompanionCtor(p: Ref[SizeOptionCompanionCtor]): SizeOptionCompanionCtor =
+  implicit def unrefSizeOptionCompanionCtor(p: Ref[SizeOptionCompanionCtor]): SizeOptionCompanionCtor =
     p.rhs.asInstanceOf[SizeOptionCompanionCtor]
 
   lazy val RSizeOption: Ref[SizeOptionCompanionCtor] = new SizeOptionCompanionCtor {

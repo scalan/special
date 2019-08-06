@@ -70,8 +70,8 @@ object Costed extends EntityObject("Costed") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCosted[Val](p: Ref[Costed[Val]]): Costed[Val] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefCosted[Val](p: Ref[Costed[Val]]): Costed[Val] = {
     if (p.rhs.isInstanceOf[Costed[Val]@unchecked]) p.rhs.asInstanceOf[Costed[Val]]
     else
       CostedAdapter(p)
@@ -94,7 +94,7 @@ object Costed extends EntityObject("Costed") {
     def resultType = CostedCompanionElem
     override def toString = "Costed"
   }
-  implicit def proxyCostedCompanionCtor(p: Ref[CostedCompanionCtor]): CostedCompanionCtor =
+  implicit def unrefCostedCompanionCtor(p: Ref[CostedCompanionCtor]): CostedCompanionCtor =
     p.rhs.asInstanceOf[CostedCompanionCtor]
 
   lazy val RCosted: Ref[CostedCompanionCtor] = new CostedCompanionCtor {
@@ -189,8 +189,8 @@ object CostedPrim extends EntityObject("CostedPrim") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedPrim[Val](p: Ref[CostedPrim[Val]]): CostedPrim[Val] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefCostedPrim[Val](p: Ref[CostedPrim[Val]]): CostedPrim[Val] = {
     if (p.rhs.isInstanceOf[CostedPrim[Val]@unchecked]) p.rhs.asInstanceOf[CostedPrim[Val]]
     else
       CostedPrimAdapter(p)
@@ -214,7 +214,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
     def resultType = CostedPrimCompanionElem
     override def toString = "CostedPrim"
   }
-  implicit def proxyCostedPrimCompanionCtor(p: Ref[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
+  implicit def unrefCostedPrimCompanionCtor(p: Ref[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
     p.rhs.asInstanceOf[CostedPrimCompanionCtor]
 
   lazy val RCostedPrim: Ref[CostedPrimCompanionCtor] = new CostedPrimCompanionCtor {
@@ -286,8 +286,8 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedPair[L, R](p: Ref[CostedPair[L, R]]): CostedPair[L, R] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefCostedPair[L, R](p: Ref[CostedPair[L, R]]): CostedPair[L, R] = {
     if (p.rhs.isInstanceOf[CostedPair[L, R]@unchecked]) p.rhs.asInstanceOf[CostedPair[L, R]]
     else
       CostedPairAdapter(p)
@@ -312,7 +312,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     def resultType = CostedPairCompanionElem
     override def toString = "CostedPair"
   }
-  implicit def proxyCostedPairCompanionCtor(p: Ref[CostedPairCompanionCtor]): CostedPairCompanionCtor =
+  implicit def unrefCostedPairCompanionCtor(p: Ref[CostedPairCompanionCtor]): CostedPairCompanionCtor =
     p.rhs.asInstanceOf[CostedPairCompanionCtor]
 
   lazy val RCostedPair: Ref[CostedPairCompanionCtor] = new CostedPairCompanionCtor {
@@ -406,8 +406,8 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedFunc[Env, Arg, Res](p: Ref[CostedFunc[Env, Arg, Res]]): CostedFunc[Env, Arg, Res] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefCostedFunc[Env, Arg, Res](p: Ref[CostedFunc[Env, Arg, Res]]): CostedFunc[Env, Arg, Res] = {
     if (p.rhs.isInstanceOf[CostedFunc[Env, Arg, Res]@unchecked]) p.rhs.asInstanceOf[CostedFunc[Env, Arg, Res]]
     else
       CostedFuncAdapter(p)
@@ -433,7 +433,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
     def resultType = CostedFuncCompanionElem
     override def toString = "CostedFunc"
   }
-  implicit def proxyCostedFuncCompanionCtor(p: Ref[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
+  implicit def unrefCostedFuncCompanionCtor(p: Ref[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
     p.rhs.asInstanceOf[CostedFuncCompanionCtor]
 
   lazy val RCostedFunc: Ref[CostedFuncCompanionCtor] = new CostedFuncCompanionCtor {
@@ -534,8 +534,8 @@ object CostedColl extends EntityObject("CostedColl") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedColl[Item](p: Ref[CostedColl[Item]]): CostedColl[Item] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefCostedColl[Item](p: Ref[CostedColl[Item]]): CostedColl[Item] = {
     if (p.rhs.isInstanceOf[CostedColl[Item]@unchecked]) p.rhs.asInstanceOf[CostedColl[Item]]
     else
       CostedCollAdapter(p)
@@ -559,7 +559,7 @@ object CostedColl extends EntityObject("CostedColl") {
     def resultType = CostedCollCompanionElem
     override def toString = "CostedColl"
   }
-  implicit def proxyCostedCollCompanionCtor(p: Ref[CostedCollCompanionCtor]): CostedCollCompanionCtor =
+  implicit def unrefCostedCollCompanionCtor(p: Ref[CostedCollCompanionCtor]): CostedCollCompanionCtor =
     p.rhs.asInstanceOf[CostedCollCompanionCtor]
 
   lazy val RCostedColl: Ref[CostedCollCompanionCtor] = new CostedCollCompanionCtor {
@@ -705,8 +705,8 @@ object CostedOption extends EntityObject("CostedOption") {
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedOption[T](p: Ref[CostedOption[T]]): CostedOption[T] = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefCostedOption[T](p: Ref[CostedOption[T]]): CostedOption[T] = {
     if (p.rhs.isInstanceOf[CostedOption[T]@unchecked]) p.rhs.asInstanceOf[CostedOption[T]]
     else
       CostedOptionAdapter(p)
@@ -730,7 +730,7 @@ object CostedOption extends EntityObject("CostedOption") {
     def resultType = CostedOptionCompanionElem
     override def toString = "CostedOption"
   }
-  implicit def proxyCostedOptionCompanionCtor(p: Ref[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
+  implicit def unrefCostedOptionCompanionCtor(p: Ref[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
     p.rhs.asInstanceOf[CostedOptionCompanionCtor]
 
   lazy val RCostedOption: Ref[CostedOptionCompanionCtor] = new CostedOptionCompanionCtor {
@@ -859,8 +859,8 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedBuilder(p: Ref[CostedBuilder]): CostedBuilder = {
+  // entityUnref: single unref method for each type family
+  implicit def unrefCostedBuilder(p: Ref[CostedBuilder]): CostedBuilder = {
     if (p.rhs.isInstanceOf[CostedBuilder]) p.rhs.asInstanceOf[CostedBuilder]
     else
       CostedBuilderAdapter(p)
@@ -880,7 +880,7 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     def resultType = CostedBuilderCompanionElem
     override def toString = "CostedBuilder"
   }
-  implicit def proxyCostedBuilderCompanionCtor(p: Ref[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
+  implicit def unrefCostedBuilderCompanionCtor(p: Ref[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
     p.rhs.asInstanceOf[CostedBuilderCompanionCtor]
 
   lazy val RCostedBuilder: Ref[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
