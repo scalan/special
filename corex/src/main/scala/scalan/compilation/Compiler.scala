@@ -36,11 +36,11 @@ abstract class Compiler[+ScalanCake <: ScalanEx](val scalan: ScalanCake) extends
   }
   // Can it return ProgramGraph[Ctx] for some other Ctx?
   // If so, may want to add Ctx as type argument or type member
-  protected def buildInitialGraph[A, B](func: Rep[A => B])(compilerConfig: CompilerConfig): PGraph = {
+  protected def buildInitialGraph[A, B](func: Ref[A => B])(compilerConfig: CompilerConfig): PGraph = {
     new PGraph(func)
   }
 
-  def buildGraph[A, B](sourcesDir: File, functionName: String, func: => Rep[A => B], graphVizConfig: GraphVizConfig)(compilerConfig: CompilerConfig): CommonCompilerOutput[A, B] = {
+  def buildGraph[A, B](sourcesDir: File, functionName: String, func: => Ref[A => B], graphVizConfig: GraphVizConfig)(compilerConfig: CompilerConfig): CommonCompilerOutput[A, B] = {
     // G is PGraph with some extra information
     def emittingGraph[G](fileName: String, passName: String, emitMetadata: Boolean, toGraph: G => PGraph)(mkGraph: => G): G = {
       val graphVizConfig1 = graphVizConfig.copy(emitMetadata = emitMetadata)
@@ -92,7 +92,7 @@ abstract class Compiler[+ScalanCake <: ScalanEx](val scalan: ScalanCake) extends
     CommonCompilerOutput(finalGraph, sourcesDir, functionName, eInput, eOutput)
   }
 
-  def buildExecutable[A, B](sourcesDir: File, executableDir: File, functionName: String, func: => Rep[A => B], graphVizConfig: GraphVizConfig)
+  def buildExecutable[A, B](sourcesDir: File, executableDir: File, functionName: String, func: => Ref[A => B], graphVizConfig: GraphVizConfig)
                            (implicit compilerConfig: CompilerConfig): CompilerOutput[A, B] = {
     sourcesDir.mkdirs()
     executableDir.mkdirs()
@@ -101,7 +101,7 @@ abstract class Compiler[+ScalanCake <: ScalanEx](val scalan: ScalanCake) extends
     CompilerOutput(commonOutput, customOutput, compilerConfig)
   }
 
-  def buildExecutable[A, B](sourcesAndExecutableDir: File, functionName: String, func: => Rep[A => B], graphVizConfig: GraphVizConfig)
+  def buildExecutable[A, B](sourcesAndExecutableDir: File, functionName: String, func: => Ref[A => B], graphVizConfig: GraphVizConfig)
                            (implicit compilerConfig: CompilerConfig): CompilerOutput[A, B] = {
     buildExecutable(sourcesAndExecutableDir, sourcesAndExecutableDir, functionName, func, graphVizConfig)(compilerConfig)
   }

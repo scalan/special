@@ -4,7 +4,7 @@ import scalan._
 
 trait Kinds extends Base { self: KindsModule =>
   import Kind._; import Bind._; import Return._;
-  type RKind[F[_],A] = Rep[Kind[F,A]]
+  type RKind[F[_],A] = Ref[Kind[F,A]]
 
   @Convertible
   @WithMethodCallRecognizers
@@ -12,27 +12,27 @@ trait Kinds extends Base { self: KindsModule =>
     implicit def eA: Elem[A]
     implicit def cF: Cont[F]
 
-    def flatMap[B](f: Rep[A] => Rep[Kind[F,B]]): Rep[Kind[F,B]] = RBind(self, fun(f))
+    def flatMap[B](f: Ref[A] => Ref[Kind[F,B]]): Ref[Kind[F,B]] = RBind(self, fun(f))
 
-    def mapBy[B](f: Rep[A => B]): Rep[Kind[F,B]] =
+    def mapBy[B](f: Ref[A => B]): Ref[Kind[F,B]] =
       flatMap(a => RReturn(f(a)))
   }
   trait KindCompanion
 
   @WithMethodCallRecognizers
   abstract class Return[F[_],A]
-        (val a: Rep[A])
+        (val a: Ref[A])
         (implicit val cF: Cont[F]) extends Kind[F,A]
   {
-    override def flatMap[B](f: Rep[A] => Rep[Kind[F,B]]): Rep[Kind[F,B]] = f(a)
+    override def flatMap[B](f: Ref[A] => Ref[Kind[F,B]]): Ref[Kind[F,B]] = f(a)
   }
   trait ReturnCompanion
 
   @WithMethodCallRecognizers
   abstract class Bind[F[_],S,B]
-        (val a: Rep[Kind[F, S]], val f: Rep[S => Kind[F,B]]) extends Kind[F,B] {
-    override def flatMap[R](f1: Rep[B] => Rep[Kind[F,R]]): Rep[Kind[F,R]] = {
-      a.flatMap((s: Rep[S]) => f(s).flatMap(f1))
+        (val a: Ref[Kind[F, S]], val f: Ref[S => Kind[F,B]]) extends Kind[F,B] {
+    override def flatMap[R](f1: Ref[B] => Ref[Kind[F,R]]): Ref[Kind[F,R]] = {
+      a.flatMap((s: Ref[S]) => f(s).flatMap(f1))
     }
   }
   trait BindCompanion

@@ -10,12 +10,12 @@ trait StructItems extends ViewsModule with Entities with BaseEx { self: Structs 
   trait StructItem[@uncheckedVariance +Val, Schema <: Struct] extends Def[StructItem[Val @uncheckedVariance, Schema]] {
     def eVal: Elem[Val @uncheckedVariance]
     def eSchema: Elem[Schema]
-    def key: Rep[StructKey[Schema]]
-    def value: Rep[Val]
+    def key: Ref[StructKey[Schema]]
+    def value: Ref[Val]
   }
 
   abstract class StructItemBase[Val, Schema <: Struct]
-        (val key: Rep[StructKey[Schema]], val value: Rep[Val])
+        (val key: Ref[StructKey[Schema]], val value: Ref[Val])
     extends StructItem[Val, Schema]
 
 }
@@ -27,14 +27,14 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
   import StructItem._
   import StructItemBase._
 
-  def struct_getItem[S <: Struct](s: Rep[S], i: Int)(implicit o1: Overloaded1): Rep[StructItem[_,S]] = {
+  def struct_getItem[S <: Struct](s: Ref[S], i: Int)(implicit o1: Overloaded1): Ref[StructItem[_,S]] = {
     val value = s.getUntyped(i)
     val eS = s.elem
     val key = RIndexStructKey[S](i)(eS)
     RStructItemBase(key, value)
   }
 
-  def struct_setItem[S <: Struct](s: Rep[S], i: Rep[Int], v: Rep[_]): Rep[S] = {
+  def struct_setItem[S <: Struct](s: Ref[S], i: Ref[Int], v: Ref[_]): Ref[S] = {
     updateField(s, s.elem.fieldNames(valueFromRep(i)), v)
   }
 
@@ -43,12 +43,12 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
     def tag[T](implicit tT: WeakTypeTag[T]) = weakTypeTag[StructItem[T,S]]
     def lift[T](implicit eT: Elem[T]) = element[StructItem[T,S]]
     def unlift[T](implicit eFT: Elem[StructItem[T,S]]) = eFT.asInstanceOf[StructItemElem[T,S,_]].eVal
-    def getElem[T](fa: Rep[StructItem[T,S]]) = fa.elem
+    def getElem[T](fa: Ref[StructItem[T,S]]) = fa.elem
     def unapply[T](e: Elem[_]) = e match {
       case e: StructItemElem[_, _, _] => Some(e.asElem[StructItem[T,S]])
       case _ => None
     }
-    def map[A,B](xs: Rep[StructItem[A,S]])(f: Rep[A] => Rep[B]) = {
+    def map[A,B](xs: Ref[StructItem[A,S]])(f: Ref[A] => Ref[B]) = {
       val res = f(xs.value)
       implicit val eB = res.elem
       RStructItemBase(xs.key, res)
@@ -68,18 +68,18 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
     }
   }
 
-  implicit class StructExtensionsForStructItem[S <: Struct](s: Rep[S]) {
-    def getItem[A](i: Int): Rep[StructItem[A, S]] = {
+  implicit class StructExtensionsForStructItem[S <: Struct](s: Ref[S]) {
+    def getItem[A](i: Int): Ref[StructItem[A, S]] = {
       val item = struct_getItem(s, i)
-      item.asInstanceOf[Rep[StructItem[A,S]]]
+      item.asInstanceOf[Ref[StructItem[A,S]]]
     }
-    def getItem[A](i: Rep[Int]): Rep[StructItem[A, S]] = struct_getItem(s, i).asInstanceOf[Rep[StructItem[A,S]]]
-    def getItem[A](k: Rep[StructKey[S]])(implicit o: Overloaded2): Rep[StructItem[A,S]] = struct_getItem(s, k.index).asInstanceOf[Rep[StructItem[A,S]]]
-    def setItem(i: Rep[Int], v: Rep[_]): Rep[S] = struct_setItem(s, i, v)
-    def setItem(k: Rep[StructKey[S]], v: Rep[_])(implicit o: Overloaded2): Rep[S] = struct_setItem(s, k.index, v)
+    def getItem[A](i: Ref[Int]): Ref[StructItem[A, S]] = struct_getItem(s, i).asInstanceOf[Ref[StructItem[A,S]]]
+    def getItem[A](k: Ref[StructKey[S]])(implicit o: Overloaded2): Ref[StructItem[A,S]] = struct_getItem(s, k.index).asInstanceOf[Ref[StructItem[A,S]]]
+    def setItem(i: Ref[Int], v: Ref[_]): Ref[S] = struct_setItem(s, i, v)
+    def setItem(k: Ref[StructKey[S]], v: Ref[_])(implicit o: Overloaded2): Ref[S] = struct_setItem(s, k.index, v)
   }
 
-  def struct_getItem[S <: Struct](s: Rep[S], i: Rep[Int]): Rep[StructItem[_,S]] =
+  def struct_getItem[S <: Struct](s: Ref[S], i: Ref[Int]): Ref[StructItem[_,S]] =
     i match {
       case Def(Const(i: Int)) => struct_getItem(s, i)
       case _ =>

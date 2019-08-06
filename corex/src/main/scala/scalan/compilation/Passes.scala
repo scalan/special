@@ -9,7 +9,7 @@ trait Passes {
   import scalan._
 
   // to avoid need to import compiler.scalan.Exp in many places
-  type Rep[+T] = scalan.Ref[T]
+  type Ref[+T] = scalan.Ref[T]
 
   abstract class GraphPass extends Pass {
     def builder: PassBuilder[GraphPass]
@@ -58,7 +58,7 @@ trait Passes {
       extends GraphPassBuilder[P](name, createPass)
 
   trait ExpPass extends Pass {
-    def apply[A](s: Rep[A]): Sym
+    def apply[A](s: Ref[A]): Sym
   }
 
   class GraphTransformPass(val builder: PassBuilder[GraphPass], val name: String, mirror: Mirror[MapTransformer], rewriter: Rewriter) extends GraphPass {

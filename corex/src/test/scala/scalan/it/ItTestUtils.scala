@@ -60,7 +60,7 @@ trait ItTestUtils[Prog <: ScalanEx] extends TestUtils {
                         functionName: String = currentTestNameAsFileName) =
     compilersWithSourceDirs(compilers, functionName).foreach { case (cwc, dir) =>
       cwc.compiler.buildGraph(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]], graphVizConfig)(cwc.config)
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Ref[A => B]], graphVizConfig)(cwc.config)
     }
 
   def compileSource[A, B](f: Prog => Prog#Ref[A => B],
@@ -69,7 +69,7 @@ trait ItTestUtils[Prog <: ScalanEx] extends TestUtils {
                           functionName: String = currentTestNameAsFileName) =
     compilersWithSourceDirs(compilers, functionName).map { case (cwc, dir) =>
       cwc.compiler.buildExecutable(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]], graphVizConfig)(cwc.config)
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Ref[A => B]], graphVizConfig)(cwc.config)
     }
 
   def getStagedOutput[A, B](f: Prog => Prog#Ref[A => B],
@@ -78,7 +78,7 @@ trait ItTestUtils[Prog <: ScalanEx] extends TestUtils {
                             functionName: String = currentTestNameAsFileName)(inputs: A*) = {
     val compiled = compilersWithSourceDirs(compilers, functionName).map { case (cwc, dir) =>
       val out = cwc.compiler.buildExecutable(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]],
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Ref[A => B]],
         graphVizConfig)(cwc.config)
       (cwc.compiler, out)
     }
@@ -106,7 +106,7 @@ trait ItTestUtils[Prog <: ScalanEx] extends TestUtils {
                                      (expectedOutputs: (A, B)*) = {
     val compiled = compilersWithSourceDirs(compilers, functionName).map { case (cwc, dir) =>
       val out = cwc.compiler.buildExecutable(dir, functionName,
-        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Rep[A => B]], graphVizConfig)(cwc.config)
+        f(cwc.compiler.scalan).asInstanceOf[cwc.compiler.Ref[A => B]], graphVizConfig)(cwc.config)
       (cwc.compiler, out)
     }
 
@@ -142,7 +142,7 @@ trait ItTestUtils[Prog <: ScalanEx] extends TestUtils {
 
   final class CompileSource[S <: ScalanEx, Back <: Compiler[S with ScalanEx]](val back: Back) {
     def apply[A, B](f: S => S#Ref[A => B], functionName: String, compilerConfig: back.CompilerConfig = back.defaultCompilerConfig): back.CompilerOutput[A, B] = {
-      back.buildExecutable(sourceDir(functionName), functionName, f(back.scalan).asInstanceOf[back.Rep[A => B]], defaultGraphVizConfig)(compilerConfig)
+      back.buildExecutable(sourceDir(functionName), functionName, f(back.scalan).asInstanceOf[back.Ref[A => B]], defaultGraphVizConfig)(compilerConfig)
     }
 
     @deprecated("Use the overload taking f: S => S#Ref[A => B] instead", "0.2.10")

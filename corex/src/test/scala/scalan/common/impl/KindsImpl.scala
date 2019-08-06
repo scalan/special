@@ -95,7 +95,7 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
 
 object Return extends EntityObject("Return") {
   case class ReturnCtor[F[_], A]
-  (override val a: Ref[A])(implicit cF: Cont[F])
+      (override val a: Ref[A])(implicit cF: Cont[F])
     extends Return[F, A](a) with Def[Return[F, A]] {
     implicit lazy val eA = a.elem
 
@@ -149,8 +149,8 @@ object Return extends EntityObject("Return") {
 
     def unapply[F[_], A](p: Ref[Kind[F, A]]) = unmkReturn(p)
   }
-  lazy val ReturnRep: Ref[ReturnCompanionCtor] = new ReturnCompanionCtor
-  lazy val RReturn: ReturnCompanionCtor = proxyReturnCompanion(ReturnRep)
+  lazy val ReturnRef: Ref[ReturnCompanionCtor] = new ReturnCompanionCtor
+  lazy val RReturn: ReturnCompanionCtor = proxyReturnCompanion(ReturnRef)
   implicit def proxyReturnCompanion(p: Ref[ReturnCompanionCtor]): ReturnCompanionCtor = {
     if (p.rhs.isInstanceOf[ReturnCompanionCtor])
       p.rhs.asInstanceOf[ReturnCompanionCtor]
@@ -179,7 +179,7 @@ object Return extends EntityObject("Return") {
     reifyObject(new ReturnIso[F, A]()(cF, eA))
 
   def mkReturn[F[_], A]
-      (a: Ref[A])(implicit cF: Cont[F]): Ref[Return[F, A]] = {
+    (a: Ref[A])(implicit cF: Cont[F]): Ref[Return[F, A]] = {
     new ReturnCtor[F, A](a)
   }
   def unmkReturn[F[_], A](p: Ref[Kind[F, A]]) = p.elem.asInstanceOf[Elem[_]] match {
@@ -264,8 +264,8 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
 
     def unapply[F[_], S, B](p: Ref[Kind[F, B]]) = unmkBind(p)
   }
-  lazy val BindRep: Ref[BindCompanionCtor] = new BindCompanionCtor
-  lazy val RBind: BindCompanionCtor = proxyBindCompanion(BindRep)
+  lazy val BindRef: Ref[BindCompanionCtor] = new BindCompanionCtor
+  lazy val RBind: BindCompanionCtor = proxyBindCompanion(BindRef)
   implicit def proxyBindCompanion(p: Ref[BindCompanionCtor]): BindCompanionCtor = {
     if (p.rhs.isInstanceOf[BindCompanionCtor])
       p.rhs.asInstanceOf[BindCompanionCtor]

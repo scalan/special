@@ -293,8 +293,8 @@ object Interval extends EntityObject("Interval") {
 
     def unapply(p: Ref[Segment]) = unmkInterval(p)
   }
-  lazy val IntervalRep: Ref[IntervalCompanionCtor] = new IntervalCompanionCtor
-  lazy val RInterval: IntervalCompanionCtor = proxyIntervalCompanion(IntervalRep)
+  lazy val IntervalRef: Ref[IntervalCompanionCtor] = new IntervalCompanionCtor
+  lazy val RInterval: IntervalCompanionCtor = proxyIntervalCompanion(IntervalRef)
   implicit def proxyIntervalCompanion(p: Ref[IntervalCompanionCtor]): IntervalCompanionCtor = {
     if (p.rhs.isInstanceOf[IntervalCompanionCtor])
       p.rhs.asInstanceOf[IntervalCompanionCtor]
@@ -422,8 +422,8 @@ object Slice extends EntityObject("Slice") {
 
     def unapply(p: Ref[Segment]) = unmkSlice(p)
   }
-  lazy val SliceRep: Ref[SliceCompanionCtor] = new SliceCompanionCtor
-  lazy val RSlice: SliceCompanionCtor = proxySliceCompanion(SliceRep)
+  lazy val SliceRef: Ref[SliceCompanionCtor] = new SliceCompanionCtor
+  lazy val RSlice: SliceCompanionCtor = proxySliceCompanion(SliceRef)
   implicit def proxySliceCompanion(p: Ref[SliceCompanionCtor]): SliceCompanionCtor = {
     if (p.rhs.isInstanceOf[SliceCompanionCtor])
       p.rhs.asInstanceOf[SliceCompanionCtor]
@@ -552,8 +552,8 @@ object Centered extends EntityObject("Centered") {
 
     def unapply(p: Ref[Segment]) = unmkCentered(p)
   }
-  lazy val CenteredRep: Ref[CenteredCompanionCtor] = new CenteredCompanionCtor
-  lazy val RCentered: CenteredCompanionCtor = proxyCenteredCompanion(CenteredRep)
+  lazy val CenteredRef: Ref[CenteredCompanionCtor] = new CenteredCompanionCtor
+  lazy val RCentered: CenteredCompanionCtor = proxyCenteredCompanion(CenteredRef)
   implicit def proxyCenteredCompanion(p: Ref[CenteredCompanionCtor]): CenteredCompanionCtor = {
     if (p.rhs.isInstanceOf[CenteredCompanionCtor])
       p.rhs.asInstanceOf[CenteredCompanionCtor]

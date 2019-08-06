@@ -156,10 +156,7 @@ case class UnitConfig(
     resourcePath: String, // example: <module>/<ModuleConf.ResourcesDir>
     entityFile: String, // the package path and file name (example: scalan/collection/Col.scala)
     baseContextTrait: String = "scalan.Scalan",
-    extraImports: List[String] = List(
-      "scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}",
-      "scalan.meta.ScalanAst._",
-      "scala.collection.mutable.WrappedArray"),
+    extraImports: List[String] = List("scala.collection.mutable.WrappedArray"),
     isVirtualized: Boolean = true,
     wrappers: Map[String, WrapperConf] = Map()
 ) extends Conf with Updatable[UnitConfig]

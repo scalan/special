@@ -462,8 +462,8 @@ object MT0 extends EntityObject("MT0") {
 
     def unapply(p: Ref[MetaTest[Unit]]) = unmkMT0(p)
   }
-  lazy val MT0Rep: Ref[MT0CompanionCtor] = new MT0CompanionCtor
-  lazy val RMT0: MT0CompanionCtor = proxyMT0Companion(MT0Rep)
+  lazy val MT0Ref: Ref[MT0CompanionCtor] = new MT0CompanionCtor
+  lazy val RMT0: MT0CompanionCtor = proxyMT0Companion(MT0Ref)
   implicit def proxyMT0Companion(p: Ref[MT0CompanionCtor]): MT0CompanionCtor = {
     if (p.rhs.isInstanceOf[MT0CompanionCtor])
       p.rhs.asInstanceOf[MT0CompanionCtor]
@@ -606,8 +606,8 @@ object MT1 extends EntityObject("MT1") {
 
     def unapply[T](p: Ref[MetaTest[T]]) = unmkMT1(p)
   }
-  lazy val MT1Rep: Ref[MT1CompanionCtor] = new MT1CompanionCtor
-  lazy val RMT1: MT1CompanionCtor = proxyMT1Companion(MT1Rep)
+  lazy val MT1Ref: Ref[MT1CompanionCtor] = new MT1CompanionCtor
+  lazy val RMT1: MT1CompanionCtor = proxyMT1Companion(MT1Ref)
   implicit def proxyMT1Companion(p: Ref[MT1CompanionCtor]): MT1CompanionCtor = {
     if (p.rhs.isInstanceOf[MT1CompanionCtor])
       p.rhs.asInstanceOf[MT1CompanionCtor]
@@ -741,8 +741,8 @@ implicit val eB = p._2.elem
 
     def unapply[A, B](p: Ref[MetaPair[A, B]]) = unmkMT2(p)
   }
-  lazy val MT2Rep: Ref[MT2CompanionCtor] = new MT2CompanionCtor
-  lazy val RMT2: MT2CompanionCtor = proxyMT2Companion(MT2Rep)
+  lazy val MT2Ref: Ref[MT2CompanionCtor] = new MT2CompanionCtor
+  lazy val RMT2: MT2CompanionCtor = proxyMT2Companion(MT2Ref)
   implicit def proxyMT2Companion(p: Ref[MT2CompanionCtor]): MT2CompanionCtor = {
     if (p.rhs.isInstanceOf[MT2CompanionCtor])
       p.rhs.asInstanceOf[MT2CompanionCtor]

@@ -6,16 +6,16 @@ import scala.reflect.classTag
 trait StructKeys extends ViewsModule with Entities with BaseEx { self: Structs with ScalanEx =>
   import IsoUR._
   
-  type SKey[S <: Struct] = Rep[StructKey[S]]
+  type SKey[S <: Struct] = Ref[StructKey[S]]
   trait StructKey[Schema <: Struct] extends Def[StructKey[Schema]] {
     def eSchema: Elem[Schema]
-    def index: Rep[Int]
-    def name: Rep[String]
+    def index: Ref[Int]
+    def name: Ref[String]
   }
   abstract class IndexStructKey[Schema <: Struct]
-      (val index: Rep[Int])
+      (val index: Ref[Int])
       (implicit val eSchema: Elem[Schema]) extends StructKey[Schema] {
-    def name: Rep[String] = {
+    def name: Ref[String] = {
       val i = valueFromRep(index)
       eSchema.fieldNames(i)
     }
@@ -23,9 +23,9 @@ trait StructKeys extends ViewsModule with Entities with BaseEx { self: Structs w
   }
 
   abstract class NameStructKey[Schema <: Struct]
-      (val name: Rep[String])
+      (val name: Ref[String])
       (implicit val eSchema: Elem[Schema]) extends StructKey[Schema] {
-    def index: Rep[Int] = {
+    def index: Ref[Int] = {
       val n = valueFromRep(name)
       eSchema.findFieldIndex(n)
     }
@@ -35,7 +35,7 @@ trait StructKeys extends ViewsModule with Entities with BaseEx { self: Structs w
 }
 
 trait StructKeysModule extends impl.StructKeysDefs {self: Structs with ScalanEx =>
-  type KSet = Rep[KeySet]
+  type KSet = Ref[KeySet]
   trait KeySet {
     def keys: Seq[String]
   }
@@ -50,7 +50,7 @@ trait StructKeysModule extends impl.StructKeysDefs {self: Structs with ScalanEx 
 
   class KeySetElem extends BaseElemLiftable[KeySet](KeySetSeq(Seq()), KeySetRType)
   implicit lazy val KeySetElement: Elem[KeySet] = new KeySetElem
-  def keyset_create(keys: Seq[String]): Rep[KeySet] = KeySetDef(keys)
+  def keyset_create(keys: Seq[String]): Ref[KeySet] = KeySetDef(keys)
   case class KeySetDef(keys: Seq[String]) extends BaseDef[KeySet] {
     override def transform(t: Transformer) = KeySetDef(keys)
     override def toString = s"KeySet(${keys.mkString(",")})"

@@ -135,7 +135,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
        }}
       |    val liftable: Liftable[$SName$tyUseS, $EName$tyUse] = $liftableMethod${
                                                                 optArgs(zipped)("(", (_,a) => s"l$a", ",", ")")}
-      |    val selfType: Elem[$EName$tyUse] = liftable.eW
+      |    val resultType: Elem[$EName$tyUse] = liftable.eW
       |  }
       |
       |  trait ${EName}ConstMethods$typesDecl extends $EName$tyUse ${liftableAncestors.opt { as =>
@@ -224,7 +224,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |      with Def[${e.typeUse}] {
       |    ${b.emitExtractableImplicits(inClassBody = true) }
       |    ${adapC.elemDefs}
-      |    val selfType: Elem[${e.typeUse}] = element[${e.typeUse}]
+      |    val resultType: Elem[${e.typeUse}] = element[${e.typeUse}]
       |    override def transform(t: Transformer) = ${entityName}Adapter$typesUse(t(source))
       |    ${methods.rep({ m => s"""|    ${externalMethod("source", m, isAdapter = true, entityClassFieldName)}""".stripAndTrim },"\n")}
       |  }
@@ -370,7 +370,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  ${container(e.name, e.isFunctor)}
       |
       |  case class ${e.name}Iso[A, B](innerIso: Iso[A, B]) extends Iso1UR[A, B, ${e.name}] {
-      |    lazy val selfType = new ConcreteIsoElem[${e.name}[A], ${e.name}[B], ${e.name}Iso[A, B]](eFrom, eTo).
+      |    lazy val resultType = new ConcreteIsoElem[${e.name}[A], ${e.name}[B], ${e.name}Iso[A, B]](eFrom, eTo).
       |      asInstanceOf[Elem[IsoUR[${e.name}[A], ${e.name}[B]]]]
       |    def cC = container[${e.name}]
       |    def from(x: Ref[${e.name}[B]]) = x.map(innerIso.fromFun)
@@ -482,7 +482,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  implicit case object ${e.companionName}Elem extends CompanionElem[${e.companionCtorName}]
       |
       |  abstract class ${e.companionCtorName} extends CompanionDef[${e.companionCtorName}]${hasCompanion.opt(s" with ${e.companionName}")} {
-      |    def selfType = ${e.companionName}Elem
+      |    def resultType = ${e.companionName}Elem
       |    override def toString = "${e.name}"
       |    ${entityCompOpt.opt(_ => "")}
       |  }
@@ -645,7 +645,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    extends ${c.typeUse }(${fields.rep() })${clazz.selfType.opt(t => s" with ${t.tpe }") } with Def[${c.typeUse }] {
         |    ${b.emitExtractableImplicits(inClassBody = true) }
         |    ${c.elemDefs}
-        |    lazy val selfType = element[${c.typeUse }]
+        |    lazy val resultType = element[${c.typeUse }]
         |    override def transform(t: Transformer) = ${c.typeUse("Ctor") }(${fields.rep(a => s"t($a)")})${optC.implicitArgsUse}
         |    ${
           if (methods.nonEmpty) liftableAnc match {
@@ -689,7 +689,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    }
         |    lazy val eFrom = $eFrom
         |    lazy val eTo = new ${c.elemTypeUse}(self)
-        |    lazy val selfType = new ${className}IsoElem$tpeArgsUse$implicitArgsUse
+        |    lazy val resultType = new ${className}IsoElem$tpeArgsUse$implicitArgsUse
         |    def productArity = $isoProductArity
         |    def productElement(n: Int) = $isoProductElementBody
         |  }
@@ -698,7 +698,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  }
         |  // 4) constructor and deconstructor
         |  class ${c.companionCtorName} extends CompanionDef[${c.companionCtorName}]${hasCompanion.opt(s" with ${c.companionName}")} {
-        |    def selfType = ${className}CompanionElem
+        |    def resultType = ${className}CompanionElem
         |    override def toString = "${className}Companion"
         |${
           (fields.length != 1).opt({

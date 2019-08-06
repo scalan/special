@@ -75,7 +75,7 @@ object StructKey extends EntityObject("StructKey") {
 
 object IndexStructKey extends EntityObject("IndexStructKey") {
   case class IndexStructKeyCtor[Schema <: Struct]
-  (override val index: Ref[Int])(implicit eSchema: Elem[Schema])
+      (override val index: Ref[Int])(implicit eSchema: Elem[Schema])
     extends IndexStructKey[Schema](index) with Def[IndexStructKey[Schema]] {
     lazy val resultType = element[IndexStructKey[Schema]]
     override def transform(t: Transformer) = IndexStructKeyCtor[Schema](t(index))(eSchema)
@@ -122,8 +122,8 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
 
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkIndexStructKey(p)
   }
-  lazy val IndexStructKeyRep: Ref[IndexStructKeyCompanionCtor] = new IndexStructKeyCompanionCtor
-  lazy val RIndexStructKey: IndexStructKeyCompanionCtor = proxyIndexStructKeyCompanion(IndexStructKeyRep)
+  lazy val IndexStructKeyRef: Ref[IndexStructKeyCompanionCtor] = new IndexStructKeyCompanionCtor
+  lazy val RIndexStructKey: IndexStructKeyCompanionCtor = proxyIndexStructKeyCompanion(IndexStructKeyRef)
   implicit def proxyIndexStructKeyCompanion(p: Ref[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
     if (p.rhs.isInstanceOf[IndexStructKeyCompanionCtor])
       p.rhs.asInstanceOf[IndexStructKeyCompanionCtor]
@@ -151,7 +151,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     reifyObject(new IndexStructKeyIso[Schema]()(eSchema))
 
   def mkIndexStructKey[Schema <: Struct]
-      (index: Ref[Int])(implicit eSchema: Elem[Schema]): Ref[IndexStructKey[Schema]] = {
+    (index: Ref[Int])(implicit eSchema: Elem[Schema]): Ref[IndexStructKey[Schema]] = {
     new IndexStructKeyCtor[Schema](index)
   }
   def unmkIndexStructKey[Schema <: Struct](p: Ref[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {
@@ -165,7 +165,7 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
 
 object NameStructKey extends EntityObject("NameStructKey") {
   case class NameStructKeyCtor[Schema <: Struct]
-  (override val name: Ref[String])(implicit eSchema: Elem[Schema])
+      (override val name: Ref[String])(implicit eSchema: Elem[Schema])
     extends NameStructKey[Schema](name) with Def[NameStructKey[Schema]] {
     lazy val resultType = element[NameStructKey[Schema]]
     override def transform(t: Transformer) = NameStructKeyCtor[Schema](t(name))(eSchema)
@@ -212,8 +212,8 @@ object NameStructKey extends EntityObject("NameStructKey") {
 
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkNameStructKey(p)
   }
-  lazy val NameStructKeyRep: Ref[NameStructKeyCompanionCtor] = new NameStructKeyCompanionCtor
-  lazy val RNameStructKey: NameStructKeyCompanionCtor = proxyNameStructKeyCompanion(NameStructKeyRep)
+  lazy val NameStructKeyRef: Ref[NameStructKeyCompanionCtor] = new NameStructKeyCompanionCtor
+  lazy val RNameStructKey: NameStructKeyCompanionCtor = proxyNameStructKeyCompanion(NameStructKeyRef)
   implicit def proxyNameStructKeyCompanion(p: Ref[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
     if (p.rhs.isInstanceOf[NameStructKeyCompanionCtor])
       p.rhs.asInstanceOf[NameStructKeyCompanionCtor]
@@ -241,7 +241,7 @@ object NameStructKey extends EntityObject("NameStructKey") {
     reifyObject(new NameStructKeyIso[Schema]()(eSchema))
 
   def mkNameStructKey[Schema <: Struct]
-      (name: Ref[String])(implicit eSchema: Elem[Schema]): Ref[NameStructKey[Schema]] = {
+    (name: Ref[String])(implicit eSchema: Elem[Schema]): Ref[NameStructKey[Schema]] = {
     new NameStructKeyCtor[Schema](name)
   }
   def unmkNameStructKey[Schema <: Struct](p: Ref[StructKey[Schema]]) = p.elem.asInstanceOf[Elem[_]] match {

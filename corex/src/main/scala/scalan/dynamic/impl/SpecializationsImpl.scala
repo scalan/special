@@ -150,8 +150,8 @@ implicit val eM = p._2.elem.eRange
 
     def unapply[T, R, M](p: Ref[IsoFunc[T, R, M]]) = unmkIsoFuncBase(p)
   }
-  lazy val IsoFuncBaseRep: Ref[IsoFuncBaseCompanionCtor] = new IsoFuncBaseCompanionCtor
-  lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = proxyIsoFuncBaseCompanion(IsoFuncBaseRep)
+  lazy val IsoFuncBaseRef: Ref[IsoFuncBaseCompanionCtor] = new IsoFuncBaseCompanionCtor
+  lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = proxyIsoFuncBaseCompanion(IsoFuncBaseRef)
   implicit def proxyIsoFuncBaseCompanion(p: Ref[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
     if (p.rhs.isInstanceOf[IsoFuncBaseCompanionCtor])
       p.rhs.asInstanceOf[IsoFuncBaseCompanionCtor]
