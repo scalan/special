@@ -1,8 +1,8 @@
 package scalan.common
 
-import scalan.Scalan
+import scalan.ScalanEx
 
-trait CommonExamples extends Scalan with SegmentsModule {
+trait CommonExamples extends ScalanEx with SegmentsModule {
   import Segment._
   import Slice._
   import Interval._

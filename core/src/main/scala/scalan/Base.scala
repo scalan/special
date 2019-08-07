@@ -54,13 +54,10 @@ abstract class Base { scalan: Scalan =>
 
   @inline implicit def liftToRep[A:Elem](x: A): Ref[A] = toRep(x)
 
-  trait DefBase[+T] extends Product {
-  }
-
   /** Base type for all graph nodes (aka computable value definitions).
     * Each graph node or definition represent one operation node of the data flow graph.
     */
-  trait Def[+T] extends DefBase[T] {
+  trait Def[+T] extends Product {
     private[scalan] var _nodeId: Int = freshId
 
     /** Unique id of the graph node assigned for each new instance using
@@ -68,7 +65,7 @@ abstract class Base { scalan: Scalan =>
       * Doesn't participate in equality of this Def, thus definitions with
       * different ids may still be structurally equal.
       * Used to provide global Def numbering. */
-    @inline def nodeId: Int = _nodeId
+    @inline final def nodeId: Int = _nodeId
 
     /** Type of a resulting value produced by the operation represented by this definition.
       * For example, if this definition represents application of `+: (Int, Int) => Int` operation
@@ -78,7 +75,7 @@ abstract class Base { scalan: Scalan =>
     private var _self: Ref[T @uncheckedVariance] = _
 
     /** Reference to this definition created lazily on demand. */
-    def self: Ref[T] = {
+    final def self: Ref[T] = {
       if (_self == null) _self = freshSym(this)
       _self
     }
@@ -123,14 +120,14 @@ abstract class Base { scalan: Scalan =>
 
     /** References to other nodes in this Def instance.
       * Note: This is different form `deps` for compound definitions like Lambda and ThunkDef. */
-    def syms: Array[Sym] = {
+    final def syms: Array[Sym] = {
       if (null == _syms) initContent()
       _syms
     }
 
     /** All data elements of this graph node to be used in structural equality.
       * @see equals where elements are used.*/
-    def elements: Array[AnyRef] = {
+    final def elements: Array[AnyRef] = {
       if (null == _elements) initContent()
       _elements.asInstanceOf[Array[AnyRef]]
     }
@@ -590,19 +587,8 @@ abstract class Base { scalan: Scalan =>
   /** Lifting of data values to IR nodes. */
   def toRep[A](x: A)(implicit eA: Elem[A]): Ref[A] = eA match {
     case _: BaseElem[_] => Const(x)
-//    case _: FuncElem[_, _] => Const(x)
-//    case pe: PairElem[a, b] =>
-//      val x1 = x.asInstanceOf[(a, b)]
-//      implicit val eA = pe.eFst
-//      implicit val eB = pe.eSnd
-//      Pair(toRep(x1._1), toRep(x1._2))
     case _ =>
       !!!(s"Don't know how to create Ref for $x with element $eA")
-//      x match {
-//        // this may be called instead of reifyObject implicit in some cases
-//        case d: Base#Def[A @unchecked] => reifyObject(d.asInstanceOf[Def[A]])
-//        case _ =>
-//      }
   }
 
   /** Extract data value from Const node or throw an exception. */
@@ -727,17 +713,26 @@ abstract class Base { scalan: Scalan =>
     }
   }
 
+  /** Lookup node reference by its id.
+    * This is simple array access by index O(1) operation. */
   @inline final def getSym(id: Int): Sym = _symbolTable(id)
 
   val nInitialDefs = 10000
+  /** Auto growing array backed buffer with constant time lookup by nodeId. */
   private[this] val _symbolTable: DBuffer[Sym] = DBuffer.ofSize(nInitialDefs)
+
+  /** Hash map of all created definitions in this IR context.
+    * Note, that exactly the same instance of Def is used for both key an value of each entry.
+    * This helps to implement collapsing of equal Def instances. */
   private[this] var _globalDefs = AVHashMap[Def[_], Def[_]](nInitialDefs)
 
-  protected var globalThunkSym: Ref[_] = placeholder[Int] // we could use any type here
-
+  /** Returns a number of definitions added to this IR context. */
   def defCount = _globalDefs.hashMap.size
 
   private val _intZero = MutableLazy(0: Ref[Int])
+
+  /** Zero literal node, which is lazily created and can be efficiently reused.
+    * Much faster alternative to `(0: Rep[Int])` or `toRep(0)`.*/
   @inline final def IntZero = _intZero.value
 
   def resetContext() = {
@@ -745,7 +740,6 @@ abstract class Base { scalan: Scalan =>
     _symbolTable.clear()
     _symbolTable.splice(0, DBuffer.ofSize[Sym](nInitialDefs))
     resetIdCounter()
-    globalThunkSym = placeholder[Int]
     tuplesCache.clear()
     _intZero.reset()
     onReset()
@@ -757,6 +751,9 @@ abstract class Base { scalan: Scalan =>
   protected def onReset(): Unit = {
   }
 
+  /** Lookup definition in this IR context's hash table of definitions.
+    * @return node reference to an instance stored in hash table, which is equal to `d`
+    *         and null if there is no definition which is equal to `d` */
   def findGlobalDefinition[T](d: Def[T]): Ref[T] = {
     val existingOpt = _globalDefs.get(d)
     if (existingOpt.isDefined)
@@ -765,8 +762,8 @@ abstract class Base { scalan: Scalan =>
       null
   }
 
-  /** Lookup `d` in the heap of nodes. If the lookup is successfull, then `d.self`
-    * reference is returned. If the node is not found in the heap, then it is added
+  /** Lookup `d` in the heap of nodes. If the lookup is successfull, then
+    * its reference is returned. If the node is not found in the heap, then it is added
     * and `d.self` reference is returned.
     * @param  d       node to be added to the head of nodes
     * @param  newSym  producer of the reference to be used as the reference to `d` node.
@@ -787,9 +784,12 @@ abstract class Base { scalan: Scalan =>
     sym
   }
 
-  def createDefinition[T](s: Ref[T], d: Def[T]): Ref[T] =
-    createDefinition(thunkStack.top, s, d)
-
+  /** Create new definition entry in either given Thunk or in the global hash table.
+    * @param optScope  optional thunk scope to put given definition
+    * @param s         symbol refering to `d`
+    * @param d         definition node to add to the scope of globally
+    * @return  reference to `d` (which is `s`)
+    */
   protected def createDefinition[T](optScope: Nullable[ThunkScope], s: Ref[T], d: Def[T]): Ref[T] = {
     assert(_symbolTable(d.nodeId).node.nodeId == d.nodeId)
     assert(s.node eq d, s"Inconsistent Sym -> Def pair $s -> $d")
@@ -821,15 +821,6 @@ abstract class Base { scalan: Scalan =>
       currDef = ns.node
     } while (res != currSym)
     res
-  }
-
-  object IdSupply {
-    private var _nextId = 0
-
-    def nextId = {
-      _nextId += 1
-      _nextId
-    }
   }
 }
 

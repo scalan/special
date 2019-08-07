@@ -7,6 +7,50 @@ import scalan.util.{StringUtil, ReflectionUtil}
 import scala.reflect.runtime.universe._
 
 trait BaseEx extends Base with DefRewriting { self: ScalanEx =>
+
+  object IdSupply {
+    private var _nextId = 0
+    @inline final def nextId = { _nextId += 1; _nextId }
+  }
+
+  case class NumericRand[T](bound: Ref[T], id: Int = IdSupply.nextId)(implicit val eT: Elem[T]) extends BaseDef[T] {
+    override def transform(t: Transformer) = NumericRand(t(bound))
+  }
+
+  def random[T](bound: Ref[T])(implicit n: Numeric[T]): Ref[T] =
+    NumericRand(bound)(bound.elem)
+
+  implicit class EntityElemExtensions[A <: Def[_]](e: Elem[A]) {
+    def asEntityElem = e.asInstanceOf[EntityElem[A]]
+  }
+
+  implicit class ElemOpsForEntities[T](e: Elem[T]) {
+    def isConcrete = isConcreteElem(e)
+  }
+
+  def isConcreteElem(e: TypeDesc): Boolean = e match {
+    case _: BaseElem[_] =>
+      true
+    case e: EntityElem[_] if !isConcreteModuloTypeArgs(e) =>
+      false
+    case e: Elem[_] =>
+      e.typeArgsDescs.forall(isConcreteElem)
+    case _: Cont[_] => true
+  }
+
+  protected def isConcreteModuloTypeArgs(e: EntityElem[_]) = e match {
+    case _: ViewElem[_, _] => true
+    case _ => false
+  }
+
+  implicit class RepDefViewOps[T <: Def[_]](x: Ref[T]) {
+    def convertTo[R <: Def[_]](implicit eR: Elem[R]): Ref[R] =
+      eR match {
+        case entE: EntityElem[R] @unchecked => entE.convert(x)
+        case _ => !!!(s"Cannot convert $x to a value of type ${eR.name}: EntityElem expected but ${eR.getClass.getSimpleName} found", x)
+      }
+  }
+
   def decompose[T](d: Def[T]): Option[Ref[T]] = None
 
   val performViewsLifting: Boolean = true

@@ -2,6 +2,10 @@ package scalan
 
 trait DefRewriting { scalan: Scalan =>
 
+  /** Rewrites given node to another equivalent node and returns its reference.
+    * @param  d  node to be matched against rewrite patterns
+    * @return reference of new node if RW pattern is found and applied
+    *         null if no rewriting is defined. */
   def rewriteDef[T](d: Def[T]): Ref[_] = d match {
     case First(p) if p.node.isInstanceOf[Tup[_,_]] => p.node.asInstanceOf[Tup[_,_]].a
     case Second(p) if p.node.isInstanceOf[Tup[_,_]] => p.node.asInstanceOf[Tup[_,_]].b
@@ -43,6 +47,8 @@ trait DefRewriting { scalan: Scalan =>
     case _ => null
   }
 
+  /** Rewrites application of given unary operation to the given argument.
+    * @return null if no rewriting is defined. */
   final def rewriteUnOp[A,R](op: UnOp[A,R], x: Ref[A]): Ref[_] = {
     op match {
       case _: NumericNegate[_] => x.node match {
@@ -82,6 +88,8 @@ trait DefRewriting { scalan: Scalan =>
     }
   }
 
+  /** Rewrites application of given binary operation to the given arguments.
+    * @return null if no rewriting is defined. */
   final def rewriteBinOp[A,R](op: BinOp[A,R], x: Ref[A], y: Ref[A]): Ref[_] = {
     op.asInstanceOf[BinOp[_,_]] match {
       case _: Equals[_] =>

@@ -118,7 +118,7 @@ trait TypeDescs extends Base { self: Scalan =>
     res.result()
   }
 
-  trait TypeDesc extends Serializable {
+  abstract class TypeDesc extends Serializable {
     def getName(f: TypeDesc => String): String
     lazy val name: String = getName(_.name)
 

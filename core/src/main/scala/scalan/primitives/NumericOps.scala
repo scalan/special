@@ -61,12 +61,6 @@ trait NumericOps extends Base { self: Scalan =>
 
   case class IntegralMod[T](i: Integral[T])(implicit elem: Elem[T]) extends DivOp[T]("%", i.rem, i)
 
-  case class NumericRand[T](bound: Ref[T], id: Int = IdSupply.nextId)(implicit val eT: Elem[T]) extends BaseDef[T] {
-    override def transform(t: Transformer) = NumericRand(t(bound))
-  }
-
-  def random[T](bound: Ref[T])(implicit n: Numeric[T]): Ref[T] =
-    NumericRand(bound)(bound.elem)
 
   @inline final def isZero[T](x: T, n: Numeric[T]) = x == n.zero
   @inline final def isOne[T](x: T, n: Numeric[T]) = x == n.fromInt(1)

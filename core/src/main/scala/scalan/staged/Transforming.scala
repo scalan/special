@@ -232,7 +232,7 @@ trait Transforming { self: Scalan =>
           else if (newScope.isEmptyBody) DBuffer.ofSize(0)
           else newScope.scheduleForResult(newRoot)
 
-      createDefinition(newThunkSym, newThunk)
+      createDefinition(thunkStack.top, newThunkSym, newThunk)
       t1 + (node -> newThunkSym)
     }
 

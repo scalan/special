@@ -1,9 +1,9 @@
 package scalan.primitives
 
-import scalan.{Scalan, BaseTests}
+import scalan.{BaseTests, ScalanEx}
 
 class RewriteSuite extends BaseTests {
-  val scalan = new Scalan
+  val scalan = new ScalanEx
   import scalan._
   {
     val rand1 = random(5)

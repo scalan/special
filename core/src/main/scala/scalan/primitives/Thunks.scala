@@ -187,11 +187,6 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
   }
   protected val thunkStack = new ThunkStack
 
-  protected def currentThunkSym = thunkStack.top match {
-    case Nullable(scope) => scope.thunkSym
-    case _ => globalThunkSym
-  }
-
   implicit def repToThunk[A](block: Ref[A]): Ref[Thunk[A]] = thunk_create(block)
 
   def thunk_create[A](block: => Ref[A]): Ref[Thunk[A]] = {
