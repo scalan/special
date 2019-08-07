@@ -22,7 +22,7 @@ import spire.syntax.all.cfor
   * The Base trait houses common AST nodes. It also manages a list of encountered definitions which
   * allows for common sub-expression elimination (CSE).
   */
-trait Base { scalan: Scalan =>
+abstract class Base { scalan: Scalan =>
   type |[+A, +B] = Either[A, B]
   type RFunc[-A,+B] = Ref[Function1[A,B]]
   type RPair[+A, +B] = Ref[(A,B)]
@@ -54,10 +54,13 @@ trait Base { scalan: Scalan =>
 
   @inline implicit def liftToRep[A:Elem](x: A): Ref[A] = toRep(x)
 
+  trait DefBase[+T] extends Product {
+  }
+
   /** Base type for all graph nodes (aka computable value definitions).
     * Each graph node or definition represent one operation node of the data flow graph.
     */
-  trait Def[+T] extends Product {
+  trait Def[+T] extends DefBase[T] {
     private[scalan] var _nodeId: Int = freshId
 
     /** Unique id of the graph node assigned for each new instance using
@@ -587,18 +590,19 @@ trait Base { scalan: Scalan =>
   /** Lifting of data values to IR nodes. */
   def toRep[A](x: A)(implicit eA: Elem[A]): Ref[A] = eA match {
     case _: BaseElem[_] => Const(x)
-    case _: FuncElem[_, _] => Const(x)
-    case pe: PairElem[a, b] =>
-      val x1 = x.asInstanceOf[(a, b)]
-      implicit val eA = pe.eFst
-      implicit val eB = pe.eSnd
-      Pair(toRep(x1._1), toRep(x1._2))
+//    case _: FuncElem[_, _] => Const(x)
+//    case pe: PairElem[a, b] =>
+//      val x1 = x.asInstanceOf[(a, b)]
+//      implicit val eA = pe.eFst
+//      implicit val eB = pe.eSnd
+//      Pair(toRep(x1._1), toRep(x1._2))
     case _ =>
-      x match {
-        // this may be called instead of reifyObject implicit in some cases
-        case d: Base#Def[A @unchecked] => reifyObject(d.asInstanceOf[Def[A]])
-        case _ => !!!(s"Don't know how to create Ref for $x with element $eA")
-      }
+      !!!(s"Don't know how to create Ref for $x with element $eA")
+//      x match {
+//        // this may be called instead of reifyObject implicit in some cases
+//        case d: Base#Def[A @unchecked] => reifyObject(d.asInstanceOf[Def[A]])
+//        case _ =>
+//      }
   }
 
   /** Extract data value from Const node or throw an exception. */
@@ -618,19 +622,19 @@ trait Base { scalan: Scalan =>
     * Two symbols are equal if they refer to the nodes with the same id,
     * which is due to Def unification means equal symbols refer to the same instance of Def.
     * */
-  class SingleRef[+T] private[Base](private var _rhs: Def[T @uncheckedVariance]) extends Ref[T] {
-    override def elem: Elem[T @uncheckedVariance] = _rhs.resultType
-    override def node: Def[T] = _rhs
+  final class SingleRef[+T] private[Base](private var _node: Def[T @uncheckedVariance]) extends Ref[T] {
+    override def elem: Elem[T @uncheckedVariance] = _node.resultType
+    override def node: Def[T] = _node
 
     private[scalan] def assignDefInternal[B >: T](d: Def[B]): Unit = {
-      assert(_rhs.isInstanceOf[Placeholder[_]])
-      assert(_rhs.nodeId > 0)
+      assert(_node.isInstanceOf[Placeholder[_]])
+      assert(_node.nodeId > 0)
       val tab = _symbolTable
-      val oldId = _rhs.nodeId
+      val oldId = _node.nodeId
       if (tab(oldId) eq this) {
         tab.update(oldId, null)
       }
-      _rhs = d.asInstanceOf[Def[T]]
+      _node = d.asInstanceOf[Def[T]]
     }
 
     private[scalan] def assignDef[B >: T](d: Def[B]): Unit = {
@@ -648,9 +652,12 @@ trait Base { scalan: Scalan =>
 
     /** Helper method that lazily creates and attaches Adapter to this node reference.
       * The adapter is created conditionally and on demand.
+      * If T is trait or class (i.e. entity) then created adapter instance implements all its methods.
+      * The the adapter class is generated as part of EntityObject for the entity T.
+      * @see EntityObject
       */
     final def getAdapter[S >: T](isInstanceOfT: Boolean, createAdapter: Ref[S] => T @uncheckedVariance): T = {
-      if (isInstanceOfT) _rhs.asInstanceOf[T]
+      if (isInstanceOfT) _node.asInstanceOf[T]
       else {
         val adapter = _adapter
         if (adapter == null) {
@@ -660,21 +667,29 @@ trait Base { scalan: Scalan =>
       }
     }
 
-    override def varName = "s" + _rhs._nodeId
+    override def varName = "s" + _node._nodeId
     override def toString = varName
-    override def toStringWithDefinition = varNameWithType + s" = ${_rhs}"
+    override def toStringWithDefinition = varNameWithType + s" = ${_node}"
 
     override def equals(obj: scala.Any): Boolean = (this eq obj.asInstanceOf[AnyRef]) || (obj match {
-      case other: SingleRef[_] => _rhs._nodeId == other.node._nodeId
+      case other: Base#SingleRef[_] => _node._nodeId == other.node._nodeId
       case _ => false
     })
 
-    override def hashCode(): Int = _rhs._nodeId
+    override def hashCode(): Int = _node.nodeId
   }
 
+  /** Global counter (inside Scalan cake) of the last generated node id. */
   private var currId: Int = 0
+
+  /** Get next fresh node id */
   @inline final def freshId: Int = { currId += 1; currId }
 
+  /** Lookup of create reference to the given definition.
+    * To lookup `d.nodeId` is used as the index in the `_symbolTable`.
+    * If Ref is not found in `_symbolTable`, then new Ref instance is created
+    * and stored in `_symbolTable` at `d.nodeId` index.
+    */
   @inline final def freshSym[T](d: Def[T]): Ref[T] = {
     updateSymbolTable(null, d)
   }
@@ -682,7 +697,7 @@ trait Base { scalan: Scalan =>
   /** Should be invoked to reset IR global node counter. */
   @inline final private[scalan] def resetIdCounter() = { currId = 0 }
 
-  /** Create or find symbol in the table which refers to the given node.
+  /** Create or find symbol (node Ref) which refers to the given node in the table of all created symbols.
     * The d.nodeId is the index in the _symbolTable which is DBuffer (backed by Array)
     * @return   new of existing symbol
     * @hotspot  the method should be allocation-free (make it sure by examining the generated Java code)
