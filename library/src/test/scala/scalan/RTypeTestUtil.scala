@@ -37,7 +37,7 @@ object RTypeTestUtil {
       case _ => false
     }
     case replCollType: ReplCollType[a] => value match {
-      case coll: Coll[_] => coll.tItem == replCollType.tItem && coll.forall(item => valueMatchesRType(item, replCollType.tItem))
+      case coll: ReplColl[_] => coll.tItem == replCollType.tItem && coll.forall(item => valueMatchesRType(item, replCollType.tItem))
       case _ => false
     }
     case optionType: OptionType[a] => value match {
