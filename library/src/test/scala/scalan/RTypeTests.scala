@@ -40,10 +40,10 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
   }
 
   property("RType clone value") {
-    def checkCopy[T](value: T, tA: RType[_]): Unit = {
-      val copy: T = RTypeUtil.clone(tA, value).asInstanceOf[T]
+    def checkCopy[T](value: T, tA: RType[T]): Unit = {
+      val copy: T = RTypeUtil.clone(tA, value)
 
-      def deepEqualityChecker[A](value: A, copy: A)(implicit tA: RType[_]): Boolean = tA match {
+      def deepEqualityChecker[A](value: A, copy: A)(implicit tA: RType[A]): Boolean = tA match {
         case arrayType: ArrayType[a] =>
           val valInstance = value.asInstanceOf[Array[a]]
           val copyInstance = copy.asInstanceOf[Array[a]]
@@ -91,9 +91,9 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
     }
 
     val minSuccess = MinSuccessful(PosInt.from(coverageThreshold).get)
-    forAll(extendedTypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
+    forAll(extendedTypeGen(typeGenDepth), minSuccess) { t =>
       forAll(extendedValueGen(t)) { value =>
-        checkCopy(value, t)
+        checkCopy(value, t.asInstanceOf[RType[Any]])
       }
     }
   }
