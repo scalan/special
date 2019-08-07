@@ -36,8 +36,6 @@ class FullTypeCoverageChecker extends RTypeGenCoverageChecker {
   override def isFullyCovered(depth: Int): Boolean = {
     val names = Seq(classOf[PrimitiveType[_]], classOf[PairType[_, _]], classOf[ArrayType[_]],
       classOf[CollType[_]], classOf[ReplCollType[_]], classOf[OptionType[_]], StringType)
-    for (name <- names)
-      println(name)
     cfor(0)(_ < depth, _ + 1) { i =>
       for (name <- names) {
         if (!typePositions.contains(new TypePosition(name, i))) {
