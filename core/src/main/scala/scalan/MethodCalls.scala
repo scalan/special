@@ -18,15 +18,19 @@ import scala.collection.mutable.ArrayBuffer
 
 trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
 
-  def getStagedFunc(name: String): Ref[_] = {
-    val clazz = this.getClass
-    val f = clazz.getDeclaredMethod(name)
-    f.invoke(this).asInstanceOf[Ref[_]]
-  }
-
   def delayInvoke = throw new DelayInvokeException
 
-  // call mkMethodCall instead of constructor
+  /** Graph node to represent invocation of the method of some class.
+    * @param receiver    node ref representing instance on which the method is called
+    * @param method      method which is called (descriptor from `java.lang.reflect`)
+    * @param args        node refs representing arguments passed to the method
+    * @param neverInvoke it true this method cannot be performed, even if the
+    *                    receiver node allow this
+    * @param resultType  type descriptor of the method's result
+    * @param isAdapterCall whether this MC was created by generated adapter class.
+    *                      This typically means, that receiver node doesn't implement
+    *                      given `method`.
+    */
   case class MethodCall private[MethodCalls](receiver: Sym, method: Method, args: Seq[AnyRef], neverInvoke: Boolean)
                                             (val resultType: Elem[Any], val isAdapterCall: Boolean = false) extends Def[Any] {
 
@@ -47,6 +51,15 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
       s"MethodCall($receiver, $methodStr, [${args.mkString(", ")}], $neverInvoke)"
     }
 
+    /** Try invoke `method` on the node instance refered by `receiver`.
+      * Each MC node contains enough information to perform invocation using
+      * `java.lang.reflect.Method.invoke` method. However, this is not possible
+      * if the node pointed to by `receiver` don't implement this method,
+      * for example when receiver is Lambda variable pointing to Variable node
+      * instance (in which case this MC was created by adapter)
+      * @return invocation result descriptor.
+      * @see InvokeResult
+      */
     def tryInvoke: InvokeResult =
       if (neverInvoke && !isAdapterCall) {
         InvokeImpossible
@@ -58,16 +71,6 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
           { InvokeImpossible }
         )
       }
-
-//    override protected def initContent(): Unit = {
-//      _elements = Array()
-//      val buf = DBuffer.ofSize[Sym](100)
-//      buf += receiver
-//      Def.addSyms(args, buf)
-//      _syms = buf.toArray()
-//    }
-//
-//    override def elements: Array[AnyRef] = !!!(s"MethodCall.elements is not defined and shouldn't be called")
 
     import scalan.util.CollectionUtil.TraversableOps
     override def equals(other: Any): Boolean = (this eq other.asInstanceOf[AnyRef]) || {
@@ -94,13 +97,23 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
     }
   }
 
-  case class NewObject[A](eA: Elem[A], args: Seq[Any], neverInvoke: Boolean) extends BaseDef[A]()(eA) {
-    override def transform(t: Transformer) = NewObject(eA, t(args), neverInvoke)
+  /** Represents invocation of constructor of the class described by `eA`.
+    * @param  eA          class descriptor for new instance
+    * @param  args        arguments of class constructor
+    */
+  case class NewObject[A](eA: Elem[A], args: Seq[Any]) extends BaseDef[A]()(eA) {
+    override def transform(t: Transformer) = NewObject(eA, t(args))
   }
 
+  /** Creates new MethodCall node and returns its node ref. */
   def mkMethodCall(receiver: Sym, method: Method, args: Seq[AnyRef],
                    neverInvoke: Boolean, isAdapterCall: Boolean, resultElem: Elem[_]): Sym = {
     reifyObject(MethodCall(receiver, method, args, neverInvoke)(resultElem.asElem[Any], isAdapterCall))
+  }
+
+  /** Creates new NewObject node and returns its node ref. */
+  def newObjEx[A](args: Any*)(implicit eA: Elem[A]): Ref[A] = {
+    reifyObject(NewObject[A](eA, args))
   }
 
   @tailrec
@@ -112,18 +125,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
     case e => e
   }
 
-  def canBeInvoked(mc: MethodCall) = {
-    val okFlags = !(mc.neverInvoke && !mc.isAdapterCall)
-    val should = shouldInvoke(mc.receiver.node, mc.method, mc.args.toArray)
-    okFlags && should
-  }
-
-  override protected def nodeColor(td: TypeDesc, d: Def[_])(implicit config: GraphVizConfig) = d match {
-    case mc: MethodCall if !canBeInvoked(mc) => "blue"
-    case no: NewObject[_] if no.neverInvoke => "darkblue"
-    case _ => super.nodeColor(td, d)
-  }
-
+  /** Used by Graphviz dot file generator to format text label of the graph node. */
   override protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
     case MethodCall(obj, method, args, _) =>
       val methodCallStr =
@@ -134,7 +136,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
         val className = ScalaNameUtil.cleanNestedClassName(method.getDeclaringClass.getName)
         s"$obj.$className.$methodCallStr"
       }
-    case NewObject(eA, args, _) =>
+    case NewObject(eA, args) =>
       val className = ScalaNameUtil.cleanNestedClassName(eA.sourceType.name)
       s"new $className(${args.mkString(", ")})"
     case _ => super.formatDef(d)
@@ -148,10 +150,13 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
     * point we know that the first RW set didn't triggered any rewrite. */
   def rewriteNonInvokableMethodCall(mc: MethodCall): Ref[_] = null
 
-  def newObjEx[A](args: Any*)(implicit eA: Elem[A]): Ref[A] = {
-    reifyObject(NewObject[A](eA, args, true))
-  }
-
+  /** Create delegate instance suitable for method invocation.
+    * It is used when T is a class or a trait and the node refered by x doesn't conform to T.
+    * This method returns dynamically constructed instance, which conforms to T.
+    * Whenever a method of T is called on that instance, the call is intercepted and
+    * `DelegatedInterceptionHandler.invoke` method is called, then a new MethodCall can
+    * be constructed.
+    */
   def unrefDelegate[T <: AnyRef](x: Ref[T])(implicit ct: ClassTag[T]): T = {
     val d = x.node
     if (d.isInstanceOf[Const[_]])
@@ -166,6 +171,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
   private lazy val delegateCache = AVHashMap[ClassTag[_], CachedDelegateClass](100)
   private lazy val objenesis = new ObjenesisStd
 
+  /** Construct delegate instance for the given type and receiver object. */
   private def getDelegate[T](x: Ref[T], ct: ClassTag[T]): T = {
     val cachedOpt = delegateCache.get(ct)
     val entry = if (cachedOpt.isEmpty) {
@@ -192,125 +198,31 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
       delegateOpt.get.asInstanceOf[T]
   }
 
+  /** Generic helper to call the given method on the given receiver node. */
   private def invokeMethod[A](receiver: Sym, m: Method, args: Array[AnyRef],
                               onInvokeSuccess: AnyRef => A,
                               onInvokeException: Throwable => A,
-                              onNoMethodFound: => A): A = {
-    def tryInvoke(obj: Any, m: Method): A = {
+                              onInvokeImpossible: => A): A = {
+    val d = receiver.node
+    if (canBeInvoked(d, m, args)) {
       try {
-        val res = m.invoke(obj, args: _*)
+        val res = m.invoke(d, args: _*)
         onInvokeSuccess(res)
       } catch {
         case e: Exception => onInvokeException(baseCause(e))
       }
     }
-    val d = receiver.node
-    def findMethodLoop(m: Method): Option[Method] =
-      if (shouldInvoke(d, m, args))
-        Some(m)
-      else
-        None
-
-    findMethodLoop(m) match {
-      case Some(m1) =>
-        tryInvoke(d, m1)
-      case None =>
-        onNoMethodFound
-    }
-  }
-
-  // FIXME this is a hack, this should be handled in Passes
-  // The problem is that rewriting in ProgramGraph.transform is non-recursive
-  // We need some way to make isInvokeEnabled local to graph
-  type InvokeTester = (Def[_], Method) => Boolean
-
-  // we need to always invoke these for creating default values
-  case class NamedUnpackTester(name: String, tester: UnpackTester) extends UnpackTester {
-    def apply(e: Elem[_]) = tester(e)
-  }
-
-  case class NamedInvokeTester(name: String, tester: InvokeTester) extends InvokeTester {
-    def apply(d: Def[_], m: Method) = tester(d, m)
-  }
-
-  private val isCompanionApply: InvokeTester = NamedInvokeTester("isCompanionApply",
-    (_, m) => m.getName == "apply" && m.getDeclaringClass.getName.endsWith("CompanionCtor")
-  )
-
-  protected def initialInvokeTesters: ArrayBuffer[InvokeTester] = {
-    val res = new ArrayBuffer[InvokeTester](16)
-    res += isCompanionApply
-    res
-  }
-  private lazy val invokeTesters: ArrayBuffer[InvokeTester] = initialInvokeTesters
-
-  protected def invokeAll = true
-
-  def isInvokeEnabled(d: Def[_], m: Method) = invokeAll || {
-    if (_currentPass != null) {
-      _currentPass.isInvokeEnabled(d, m).getOrElse {
-        invokeTesters.exists(_(d, m))
-      }
-    }
     else
-      invokeTesters.exists(_(d, m))
+      onInvokeImpossible
   }
 
-  protected def shouldInvoke(d: Def[_], m: Method, args: Array[AnyRef]) = {
-    m.getDeclaringClass.isAssignableFrom(d.getClass) && {
-      isInvokeEnabled(d, m) ||
-      // If method arguments include Scala functions, the method can't be staged directly.
-      // In most cases it just stages the functions and calls a method which _can_ be staged.
-      hasFuncArg(args) || {
-        // Methods can only be staged if they return Ref[_]. For such methods
-        // the JVM return type is Object if the method is defined in abstract context
-        // and Exp if defined in staged context.
-        // If neither holds, the method again should be invoked immediately.
-        val returnClass = m.getReturnType
-        !(returnClass == classOf[AnyRef] || returnClass == classOf[Sym])
-      }
-    }
-  }
+  /** Method invocation enabler.
+    * @return  true if the given method can be invoked on the given node. */
+  def isInvokeEnabled(d: Def[_], m: Method) = true
 
-  def addInvokeTester(pred: InvokeTester): Unit = {
-    invokeTesters += pred
-  }
-
-  def removeInvokeTester(pred: InvokeTester): Unit = {
-    invokeTesters -= pred
-  }
-
-  def resetTesters() = {
-    invokeTesters.clear()
-    invokeTesters ++= initialInvokeTesters
-    unpackTesters = initialUnpackTesters
-  }
-
-  protected def hasFuncArg(args: Array[AnyRef]): Boolean =
-    args.exists {
-      case f: Function0[_] => true
-      case f: Function1[_, _] => true
-      case f: Function2[_, _, _] => true
-      case _ => false
-    }
-
-  // stack of receivers for which MethodCall nodes should be created by InvocationHandler
-  protected var methodCallReceivers: List[Sym] = Nil
-
-  private def invokeMethod(obj: AnyRef, methodName: String): AnyRef = {
-    try {
-      val method = obj.getClass.getMethod(methodName)
-      try {
-        val result = method.invoke(obj)
-        result
-      } catch {
-        case e: Exception =>
-          !!!(s"Failed to invoke $methodName of object $obj", e)
-      }
-    } catch {
-      case _: NoSuchMethodException =>
-        !!!(s"Failed to find method with name $methodName of object $obj")
-    }
+  /** Method invocation checker. */
+  protected def canBeInvoked(d: Def[_], m: Method, args: Array[AnyRef]) = {
+    m.getDeclaringClass.isAssignableFrom(d.getClass) && isInvokeEnabled(d, m)
   }
 
   sealed trait InvokeResult
@@ -319,6 +231,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
   case class InvokeFailure(exception: Throwable) extends InvokeResult
   case object InvokeImpossible extends InvokeResult
 
+  /** Handles intercepted invocations of method on delegates. */
   class DelegatedInvocationHandler[T](receiver: Ref[T]) extends InvocationHandler {
     override def toString = s"ExpInvocationHandler(${receiver.toStringWithDefinition})"
 

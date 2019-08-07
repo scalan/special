@@ -3,19 +3,19 @@ package scalan.primitives
 import java.io.File
 import java.lang.reflect.Method
 
-import scalan.{Scalan}
+import scalan.{ScalanEx}
 import scalan.BaseShouldTests
 import scalan.compilation.GraphVizExport
 
 class PrimitivesExamplesSuite extends BaseShouldTests {
 
-  def staged = new Scalan with PrimitiveExamples {}
+  def staged = new ScalanEx with PrimitiveExamples {}
   it should "be mixable in Staged context" in {
     val ctx = staged
   }
   
   def testMethod(name: String) = {
-    val ctx = new Scalan with PrimitiveExamples with GraphVizExport {
+    val ctx = new ScalanEx with PrimitiveExamples with GraphVizExport {
       //HACK: invoke all domain methods if possible //TODO this is not how it should be specified
       override def isInvokeEnabled(d: Def[_], m: Method) = true
     }

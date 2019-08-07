@@ -38,7 +38,6 @@ class Scalan
   with Entities
   with Structs
   with TypeSum
-//  with ConvertersModule
   with Modules
   with DefRewriting
 
