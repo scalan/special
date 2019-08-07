@@ -159,7 +159,7 @@ trait RTypeGens {
     case prim: PrimitiveType[a] =>
       primitiveValueGen(prim)(prim)
     case arrayType: ArrayType[a] =>
-      getArrayGen(rtypeValueGen(conf)(arrayType.tA).asInstanceOf[Gen[a]], conf.maxArrayLength)(arrayType.tA)
+      getArrayGen(innerRTypeValueGen(conf)(arrayType.tA).asInstanceOf[Gen[a]], conf.maxArrayLength)(arrayType.tA)
     case pairType: PairType[a, b] =>
       for { left <- rtypeValueGen(conf)(pairType.tFst); right <- rtypeValueGen(conf)(pairType.tSnd) }
         yield (left.asInstanceOf[a], right.asInstanceOf[b])
@@ -180,5 +180,10 @@ trait RTypeGens {
     case optionType: OptionType[a] =>
       Gen.option(rtypeValueGen(conf)(optionType.tA))
     case _ => throw new RuntimeException(s"Can't create generator for ${t}: this type is still not supported.")
+  }
+
+  def rtypeValueGen[T](t: RType[T], conf: GenConfiguration = new GenConfiguration()): Gen[T] = {
+    val item = innerRTypeValueGen(t, conf)
+    return item.asInstanceOf[Gen[T]]
   }
 }
