@@ -3,7 +3,7 @@ package scalan
 import org.scalacheck.util.Buildable
 import org.scalacheck.{Arbitrary, Gen}
 
-class GenConfiguration(val maxArrayLength: Int = 5) {}
+class GenConfiguration(val maxArrayLength: Int = 100) {}
 
 trait RTypeGens {
   import Gen._
