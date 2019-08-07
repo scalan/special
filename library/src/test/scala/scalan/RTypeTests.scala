@@ -4,7 +4,6 @@ import org.scalacheck.Gen
 import org.scalactic.anyvals.PosInt
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatest.prop.PropertyChecks
-
 import spire.syntax.all._
 
 class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGens {
@@ -12,6 +11,7 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
 
   import Gen._
   import RType._
+  import special.collection._
 
   val typeGenDepth = 5
   val coverageThreshold = 100
@@ -64,6 +64,24 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
           deepEqualityChecker(valInstance._1, copyInstance._1)(pairType.tFst) && deepEqualityChecker(valInstance._2, copyInstance._2)(pairType.tSnd)
         case StringType =>
           copy == value
+        case opt: OptionType[a] =>
+          val copyOpt = copy.asInstanceOf[Option[a]]
+          val valueOpt = value.asInstanceOf[Option[a]]
+          copyOpt.isDefined shouldBe valueOpt.isDefined
+          if (copyOpt.isDefined) deepEqualityChecker(copyOpt.get, valueOpt.get)(opt.tA) else true
+        case coll: CollType[a] =>
+          val copyColl = copy.asInstanceOf[Coll[a]]
+          val valueColl = value.asInstanceOf[Coll[a]]
+          copyColl.length shouldBe valueColl.length
+          cfor(0)(_ < valueColl.length, _ + 1) { i =>
+            if (!deepEqualityChecker(valueColl(i), copyColl(i))(coll.tItem))
+              return false
+          }
+          true
+        case coll: ReplCollType[a] =>
+          val copyColl = copy.asInstanceOf[ReplColl[a]]
+          val valueColl = value.asInstanceOf[ReplColl[a]]
+          copyColl.length == valueColl.length && deepEqualityChecker(valueColl.value, copyColl.value)(coll.tItem)
         case _ => copy == value
       }
       deepEqualityChecker(copy, value)(tA) shouldBe true
