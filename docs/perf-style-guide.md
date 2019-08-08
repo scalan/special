@@ -19,6 +19,12 @@ performance point of view.
 This is particularly important in those 20% of code which is known to be a hotspot or
 hotspot candidate.
 
+I’d like to point out that performance measurements referred in this guide are only to 
+highlight what’s possible to expect, and not to produce exact numbers. 
+Some optimizations can be easily measured, while others are not. Some measurements 
+might be distorted by other optimizations that are not taken into account in 
+micro-benchmarks. 
+
 ### Empty Seq
 
 It is quite often to see `Seq()` where empty collection is required.
@@ -81,8 +87,47 @@ Here `cfor` is a macros from [spire](https://github.com/non/spire) library.
 This is compiled to efficient Java `for` loop and avoids overhead points 1) - 4).
 Depending on xs.length it is 20-50x faster (see `BasicBenchmark.scala`)
 
-### Sequences
+### Creating Sequences
 
+It is tempting to use `Seq.apply` method where a Seq of items is required like 
+`Seq(1, 2, 3)` because it is easy and concise. You can pass it as method argument 
+or as method result.
+However, the following happens under the hood:
+1) new Array with 1, 2, 3 items is created, and each item is boxed into its own Integer object
+2) WrappedArray#ofInt wrapper created to pass it as vararg argument of `Seq.apply`
+3) the above mentioned method from `GenericCompanion` is called.
+4) new ListBuffer created and all items are copied from array to the buffer
+
+All this would be executed by JVM interpreter thousands of time before compilation
+threshold is reached and HotSpot optimizer hopefully optimizes it away.
+
+##### What to use instead
+
+Simple drop-in replacement `Array(1, 2, 3)` would do the job.
+The benchmark shows that this code is 4-10x faster than using `Seq(...)`.
+Even if `tail` method on the created sequence is used, it is still 3x faster.
+(see  performance of "Seq vs Array" in `BasicBenchmarks.scala`).
+
+What happens here is that 1) native unboxed Java array is created and then
+2) wrapped via implicit conversion `wrapIntArray` into `WrappedArray#ofInt` 
+object which is inherited from `Seq` trait so it can be used directly. 
+
+Why this is faster:
+1) Avoid additional allocations (vs only two new objects are allocated in Array case). 
+Note that not only each Int is boxed to java.lang.Integer (or other primitive type), 
+but also `scala.collection.immutable.::` instances are created for each item.
+2) Avoid boxing which is proportional to the size of Seq
+3) Cache local access to array items both when the array is created and 
+when it is later used
+4) Less allocations means less garbage to collect later. This is especially 
+important when the application is multi-threaded, because in this case garbage 
+collector will compete with application threads for CPU resources, thus further
+slowing down computations.
+
+This seems like universal acceleration recipe. It doesn't make your code less readable.
+The arrays created in this way are only accessible via `Seq` interface, 
+which is immutable. Thus, better performance is achieved without sacrificing other
+desirable code qualities like readability, safety, conciseness.
 
 ### Concluding remarks
 

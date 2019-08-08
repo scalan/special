@@ -52,6 +52,30 @@ trait BasicBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
       }
     }
   }
+
+  performance of "Seq vs Array" in {
+    var res: Seq[Int] = null
+    var head: Int = 0
+    var tail: Seq[Int] = null
+    measure method "Seq(...)" in {
+      using(sizes) in { n =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          res = Seq(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+          head = res.head
+          tail = res.tail
+        }
+      }
+    }
+    measure method "Array(...)" in {
+      using(sizes) in { n =>
+        cfor(0)(_ < n, _ + 1) { _ =>
+          res = Array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+          head = res.head
+          tail = res.tail
+        }
+      }
+    }
+  }
 }
 
 object FastBasicBenchmark extends Bench.LocalTime with BasicBenchmarkCases {
