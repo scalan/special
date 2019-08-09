@@ -24,7 +24,6 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
   }
 
   implicit val thunkCont: Cont[Thunk] = new Cont[Thunk] {
-    def tag[T](implicit tT: WeakTypeTag[T]) = weakTypeTag[Thunk[T]]
     def lift[T](implicit eT: Elem[T]) = element[Thunk[T]]
     def unlift[T](implicit eFT: Elem[Thunk[T]]) = eFT.eItem
     def getElem[T](fa: Ref[Thunk[T]]) = !!!("Operation is not supported by Thunk container " + fa)

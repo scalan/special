@@ -2,7 +2,7 @@ package scalan.primitives
 
 import scalan.{ScalanEx, BaseEx}
 
-trait ThunksEx extends Thunks with BaseEx { self: ScalanEx =>
+trait ThunksEx extends BaseEx with Thunks { self: ScalanEx =>
   import IsoUR._
 
   override def unapplyViews[T](s: Ref[T]): Option[Unpacked[T]] = (s match {

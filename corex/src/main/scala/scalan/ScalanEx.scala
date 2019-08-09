@@ -21,6 +21,34 @@ class ScalanEx extends Scalan
   with ConvertersModuleEx
 { self =>
 
+  type TypeArgSubst = Map[String, TypeDesc]
+  type TypePredicate = Elem[_] => Boolean
+  def AllTypes(e: Elem[_]): Boolean = true
+  val emptySubst = Map.empty[String, TypeDesc]
+
+  implicit class TypeDescOps(d: TypeDesc) {
+    def asElemOption[B]: Option[Elem[B]] = if (isElem) Some(d.asInstanceOf[Elem[B]]) else None
+    def asCont[C[_]]: Cont[C] = d.asInstanceOf[Cont[C]] // TODO remove
+    def asContOption[C[_]]: Option[Cont[C]] = if (isCont) Some(d.asInstanceOf[Cont[C]]) else None
+    def isElem: Boolean = d.isInstanceOf[Elem[_]]
+    def isCont: Boolean = d.isInstanceOf[Cont[Any] @unchecked]
+  }
+
+  def pairifyElems(es: Iterator[Elem[_]]): Elem[_] = {
+    def step(a: Elem[_], b: Elem[_], tail: Iterator[Elem[_]]): Elem[_] = {
+      if (tail.hasNext) {
+        val c = tail.next()
+        pairElement(a, step(b, c, tail))
+      }
+      else {
+        pairElement(a, b)
+      }
+    }
+    val a = es.next()
+    val b = es.next()
+    step(a, b, es)
+  }
+
   override def resetContext() = {
     super.resetContext()
     metadataPool = Map.empty[Sym, MetaNode]

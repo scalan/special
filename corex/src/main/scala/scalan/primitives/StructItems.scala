@@ -5,8 +5,7 @@ import scalan._
 import scala.reflect.runtime.universe._
 import OverloadHack.{Overloaded2, Overloaded1}
 
-trait StructItems extends ViewsModule with Entities with BaseEx { self: Structs with ScalanEx =>
-  import IsoUR._
+trait StructItems extends ViewsModule with Entities { self: Structs with ScalanEx =>
   trait StructItem[@uncheckedVariance +Val, Schema <: Struct] extends Def[StructItem[Val @uncheckedVariance, Schema]] {
     def eVal: Elem[Val @uncheckedVariance]
     def eSchema: Elem[Schema]
@@ -23,7 +22,6 @@ trait StructItems extends ViewsModule with Entities with BaseEx { self: Structs 
 trait StructItemsModule extends impl.StructItemsDefs { self: Structs with ScalanEx =>
   import StructKey._
   import IndexStructKey._
-  import NameStructKey._
   import StructItem._
   import StructItemBase._
 
@@ -40,7 +38,6 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
 
   trait StructItemFunctor[S <: Struct] extends Functor[({type f[x] = StructItem[x,S]})#f] {
     implicit def eS: Elem[S]
-    def tag[T](implicit tT: WeakTypeTag[T]) = weakTypeTag[StructItem[T,S]]
     def lift[T](implicit eT: Elem[T]) = element[StructItem[T,S]]
     def unlift[T](implicit eFT: Elem[StructItem[T,S]]) = eFT.asInstanceOf[StructItemElem[T,S,_]].eVal
     def getElem[T](fa: Ref[StructItem[T,S]]) = fa.elem

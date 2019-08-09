@@ -1,10 +1,10 @@
 package scalan
 
 import scala.reflect.ClassTag
-import scalan.util.CollectionUtil
-import scalan.util.ReflectionUtil.ClassOps
+import scala.annotation.implicitNotFound
 
 /** Base type for all runtime type descriptors. */
+@implicitNotFound(msg = "No Elem available for ${A}.")
 trait RType[A] {
   /** Class tag suitable for construct instances of Array[A]. */
   def classTag: ClassTag[A]

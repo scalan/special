@@ -198,7 +198,6 @@ object WOption extends EntityObject("WOption") {
     elem.asInstanceOf[WOptionElem[A, WOption[A]]]
 
   implicit lazy val containerWOption: Functor[WOption] = new Functor[WOption] {
-    def tag[A](implicit evA: WeakTypeTag[A]) = weakTypeTag[WOption[A]]
     def lift[A](implicit evA: Elem[A]) = element[WOption[A]]
     def unlift[A](implicit eFT: Elem[WOption[A]]) =
       castWOptionElement(eFT).eA

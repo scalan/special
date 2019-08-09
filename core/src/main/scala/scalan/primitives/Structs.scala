@@ -19,7 +19,7 @@ import special.Types
  - no SourceContext, withPos
  - mirroring implemented in Scalan way (though consistent with LMS)
  */
-trait Structs extends GraphVizExport { self: Scalan =>
+trait Structs extends TypeDescs with GraphVizExport { self: Scalan =>
   // TODO consider if T type parameter is needed here and for AbstractStruct
   // It's only useful if we'll have some static typing on structs later (Shapeless' records?)
   abstract class StructTag[T <: Struct](implicit val typeTag: TypeTag[T]) extends Product {
@@ -208,7 +208,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
     override def transform(t: Transformer): Def[T] = SimpleStruct(tag, fields.map { case (n, s) => (n, t(s)) })
   }
   case class FieldApply[T](struct: Ref[Struct], fieldName: String)
-    extends BaseDef[T]()(struct.elem(fieldName).asElem[T]) {
+    extends BaseDef[T]()(asElem[T](struct.elem(fieldName))) {
     override def transform(t: Transformer): Def[T] = FieldApply(t(struct), fieldName)
   }
 

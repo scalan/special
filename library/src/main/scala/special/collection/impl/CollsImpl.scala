@@ -590,7 +590,6 @@ implicit val eV = proj.elem.eRange
     elem.asInstanceOf[CollElem[A, Coll[A]]]
 
   implicit lazy val containerColl: Functor[Coll] = new Functor[Coll] {
-    def tag[A](implicit evA: WeakTypeTag[A]) = weakTypeTag[Coll[A]]
     def lift[A](implicit evA: Elem[A]) = element[Coll[A]]
     def unlift[A](implicit eFT: Elem[Coll[A]]) =
       castCollElement(eFT).eA

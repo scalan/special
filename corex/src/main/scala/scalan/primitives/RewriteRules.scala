@@ -1,8 +1,11 @@
 package scalan.primitives
 
-import scalan.{Base, ScalanEx}
+import scalan.{ScalanEx, Base}
+
 import scala.reflect.runtime.universe._
 import scalan.util.Invariant
+
+import scala.reflect.ClassTag
 
 trait RewriteRules extends Base { self: ScalanEx =>
   case class Rewrite[A](lhs: Ref[A], rhs: Ref[A])
@@ -12,6 +15,10 @@ trait RewriteRules extends Base { self: ScalanEx =>
 
   case class RewriteElem[A](eA: Elem[A]) extends Elem[Rewrite[A]] {
     override def buildTypeArgs = TypeArgs("A" -> (eA -> Invariant))
+  }
+
+  def cachedElem[E <: Elem[_]](args: AnyRef*)(implicit tag: ClassTag[E]) = {
+    cachedElem0(tag.runtimeClass, None, args).asInstanceOf[E]
   }
 
   implicit def rewriteElement[A](implicit eA: Elem[A]): Elem[Rewrite[A]] =
@@ -54,7 +61,7 @@ trait RewriteRules extends Base { self: ScalanEx =>
     var result: Sym = null
     while (iterator.hasNext && result == null) {
       val rule = iterator.next()
-      if (rule.eA >:> eT)
+      if (eT <:< rule.eA)
         result = rule.asInstanceOf[RewriteRule[T]](s)
     }
     result

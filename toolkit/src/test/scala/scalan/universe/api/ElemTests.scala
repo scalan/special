@@ -24,7 +24,7 @@ class ElemTests extends BaseCtxTestsEx { suite =>
 //    val tyCollectionDouble = Entity("Collection")(eDouble)
 
     def genElems[A](n: Int, e: Elem[A], f: Elem[A] => Iterator[Elem[_]]): Set[Elem[_]] = {
-      genTuples(List.fill(n)(e))(f).map(es => Elem.pairify(es.toIterator)).toSet
+      genTuples(List.fill(n)(e))(f).map(es => pairifyElems(es.toIterator)).toSet
     }
   }
 

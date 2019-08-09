@@ -10,31 +10,13 @@ import scalan.util._
 import scalan.RType._
 import scalan.util.ReflectionUtil.ClassOps
 import spire.syntax.all._
-import debox.{Buffer => DBuffer}
 import scala.collection.mutable
 
-trait TypeDescs extends Base { self: Scalan =>
-
-  type TypeArgSubst = Map[String, TypeDesc]
-  type TypePredicate = Elem[_] => Boolean
-  def AllTypes(e: Elem[_]): Boolean = true
-  val emptySubst = Map.empty[String, TypeDesc]
+abstract class TypeDescs extends Base { self: Scalan =>
 
   @inline final def asElem[T](d: TypeDesc): Elem[T] = d.asInstanceOf[Elem[T]]
 
-  implicit class TypeDescOps(d: TypeDesc) {
-    def asElemOption[B]: Option[Elem[B]] = if (isElem) Some(d.asInstanceOf[Elem[B]]) else None
-    def asCont[C[_]]: Cont[C] = d.asInstanceOf[Cont[C]] // TODO remove
-    def asContOption[C[_]]: Option[Cont[C]] = if (isCont) Some(d.asInstanceOf[Cont[C]]) else None
-    def isElem: Boolean = d.isInstanceOf[Elem[_]]
-    def isCont: Boolean = d.isInstanceOf[Cont[Any] @unchecked]
-  }
-
   type LElem[A] = Lazy[Elem[A]] // lazy element
-
-  val SymClass = classOf[Sym]
-  val CtClass = classOf[ClassTag[_]]
-
   type DataEnv = Map[Sym, AnyRef]
 
   /** State monad for symbols computed in an environment. */
@@ -56,12 +38,12 @@ trait TypeDescs extends Base { self: Scalan =>
 
     def lifted[ST, T](x: ST)(implicit lT: Liftables.Liftable[ST, T]): EnvRep[T] = EnvRep { env =>
       val xSym = lT.lift(x)
-      val resEnv = env + (xSym -> x.asInstanceOf[AnyRef])
+      val resEnv = env + ((xSym, x.asInstanceOf[AnyRef]))
       (resEnv, xSym)
     }
   }
 
-  sealed trait MethodDesc {
+  sealed abstract class MethodDesc {
     def method: Method
   }
   case class RMethodDesc(method: Method) extends MethodDesc
@@ -94,7 +76,7 @@ trait TypeDescs extends Base { self: Scalan =>
 //  }
 
   // TODO optimize performance hot spot (45% of invokeUnlifted time)
-  def getSourceValues(dataEnv: DataEnv, forWrapper: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
+  final def getSourceValues(dataEnv: DataEnv, forWrapper: Boolean, stagedValues: AnyRef*): Seq[AnyRef] = {
     import OverloadHack._
     val limit = stagedValues.length
     val res = mutable.ArrayBuilder.make[AnyRef]()
@@ -125,10 +107,9 @@ trait TypeDescs extends Base { self: Scalan =>
     override def toString = s"${getClass.safeSimpleName}<$name>"
   }
 
-  /**
-    * Reified type representation in Scalan.
-    *
-    * @tparam A The represented type
+  /** Type descriptor of staged types, which correspond to source (unstaged) RTypes
+    * defined outside of IR cake.
+    * @tparam A the type represented by this descriptor
     */
   @implicitNotFound(msg = "No Elem available for ${A}.")
   abstract class Elem[A] extends TypeDesc { _: scala.Equals =>
@@ -232,30 +213,13 @@ trait TypeDescs extends Base { self: Scalan =>
       if (mc.resultType == UnitElement) ().asInstanceOf[AnyRef] else res
     }
 
-
     def <:<(e: Elem[_]) = e.getClass.isAssignableFrom(this.getClass)
-    def >:>(e: Elem[_]) = e <:< this
   }
 
   object Elem {
     implicit def rtypeToElem[SA, A](tSA: RType[SA])(implicit lA: Liftables.Liftable[SA,A]): Elem[A] = lA.eW
 
-    def unapply[T, E <: Elem[T]](s: Ref[T]): Option[E] = Some(s.elem.asInstanceOf[E])
-
-    def pairify(es: Iterator[Elem[_]]): Elem[_] = {
-      def step(a: Elem[_], b: Elem[_], tail: Iterator[Elem[_]]): Elem[_] = {
-        if (tail.hasNext) {
-          val c = tail.next()
-          pairElement(a, step(b, c, tail))
-        }
-        else {
-          pairElement(a, b)
-        }
-      }
-      val a = es.next()
-      val b = es.next()
-      step(a, b, es)
-    }
+    final def unapply[T, E <: Elem[T]](s: Ref[T]): Nullable[E] = Nullable(s.elem.asInstanceOf[E])
 
     def methodKey(m: Method) = {
       val ann = m.getDeclaredAnnotation(classOf[OverloadId])
@@ -289,9 +253,7 @@ trait TypeDescs extends Base { self: Scalan =>
   def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef =
     e.invokeUnlifted(mc, dataEnv)
 
-//  private lazy val debug$ElementCounter = counter[Elem[_]]
-
-  private[scalan] def getConstructor(clazz: Class[_]) = {
+  private[scalan] final def getConstructor(clazz: Class[_]) = {
     val constructors = clazz.getDeclaredConstructors()
     if (constructors.length != 1)
       !!!(s"Element class $clazz has ${constructors.length} constructors, 1 expected")
@@ -299,31 +261,20 @@ trait TypeDescs extends Base { self: Scalan =>
       constructors(0)
   }
 
-  // FIXME See https://github.com/scalan/scalan/issues/252
-  def cachedElem[E <: Elem[_]](args: AnyRef*)(implicit tag: ClassTag[E]) = {
-    cachedElem0(tag.runtimeClass, None, args).asInstanceOf[E]
-  }
-
-  def cachedElemByClass[E <: Elem[_]](args: AnyRef*)(implicit clazz: Class[E]) = {
+  final def cachedElemByClass[E <: Elem[_]](args: AnyRef*)(implicit clazz: Class[E]) = {
     cachedElem0(clazz, None, args).asInstanceOf[E]
   }
 
-  private def cachedElemI(clazz: Class[_], argsIterator: Iterator[TypeDesc]) = {
-    val constructor = getConstructor(clazz)
-    // -1 because the constructor includes `self` argument, see cachedElem0 below
-    val args = argsIterator.take(constructor.getParameterTypes.length - 1).toSeq
-    cachedElem0(clazz, Some(constructor), args)
-  }
-
   class ElemCacheEntry(
-                          val constructor: java.lang.reflect.Constructor[_],
-                          val ownerType: OwnerKind,
-                          val elements: AVHashMap[Seq[AnyRef], AnyRef])
+    val constructor: java.lang.reflect.Constructor[_],
+    val ownerType: OwnerKind,
+    val elements: AVHashMap[Seq[AnyRef], AnyRef]
+  )
     
   protected val elemCache = AVHashMap[Class[_], ElemCacheEntry](1000)
 
   // TODO optimize: avoid tuple key in map since Tuple2.hashCode and equals takes 95% of lookup time
-  private def cachedElem0(clazz: Class[_], optConstructor: Option[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
+  private[scalan] final def cachedElem0(clazz: Class[_], optConstructor: Option[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
     val entry = elemCache.get(clazz) match {
       case Nullable(entry) => entry
       case _ =>
@@ -344,15 +295,7 @@ trait TypeDescs extends Base { self: Scalan =>
     e.asInstanceOf[Elem[_]]
   }
 
-  def cleanUpTypeName(tpe: Type) = tpe.toString.
-    replaceAll("[A-Za-z0-9_.]*this.", "").
-    replace("scala.math.Numeric$", "").
-    replace("scala.math.Ordering$", "").
-    replace("scala.", "").
-    replace("java.lang.", "").
-    replaceAll("""[^# \[\],>]*[#$]""", "")
-
-  def element[A](implicit ea: Elem[A]): Elem[A] = ea
+  final def element[A](implicit ea: Elem[A]): Elem[A] = ea
 
   abstract class BaseElem[A](defaultValue: A) extends Elem[A] with Serializable with scala.Equals
 
@@ -413,24 +356,22 @@ trait TypeDescs extends Base { self: Scalan =>
   implicit val StringElement: Elem[String] = new BaseElemLiftable("", StringType)
   implicit val CharElement: Elem[Char] = new BaseElemLiftable('\u0000', CharType)
 
-  implicit def pairElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[(A, B)] =
+  implicit final def pairElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[(A, B)] =
     cachedElemByClass[PairElem[A, B]](ea, eb)(classOf[PairElem[A, B]])
-  implicit def sumElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[A | B] =
+  implicit final def sumElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[A | B] =
     cachedElemByClass[SumElem[A, B]](ea, eb)(classOf[SumElem[A, B]])
-  implicit def funcElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[A => B] =
+  implicit final def funcElement[A, B](implicit ea: Elem[A], eb: Elem[B]): Elem[A => B] =
     cachedElemByClass[FuncElem[A, B]](ea, eb)(classOf[FuncElem[A, B]])
-  ///implicit def elemElement[A](implicit ea: Elem[A]): Elem[Elem[A]]
 
-  implicit def PairElemExtensions[A, B](eAB: Elem[(A, B)]): PairElem[A, B] = eAB.asInstanceOf[PairElem[A, B]]
-  implicit def SumElemExtensions[A, B](eAB: Elem[A | B]): SumElem[A, B] = eAB.asInstanceOf[SumElem[A, B]]
-  implicit def FuncElemExtensions[A, B](eAB: Elem[A => B]): FuncElem[A, B] = eAB.asInstanceOf[FuncElem[A, B]]
-  //  implicit def ElemElemExtensions[A](eeA: Elem[Elem[A]]): ElemElem[A] = eeA.asInstanceOf[ElemElem[A]]
+  implicit final def PairElemExtensions[A, B](eAB: Elem[(A, B)]): PairElem[A, B] = eAB.asInstanceOf[PairElem[A, B]]
+  implicit final def SumElemExtensions[A, B](eAB: Elem[A | B]): SumElem[A, B] = eAB.asInstanceOf[SumElem[A, B]]
+  implicit final def FuncElemExtensions[A, B](eAB: Elem[A => B]): FuncElem[A, B] = eAB.asInstanceOf[FuncElem[A, B]]
 
-  implicit def toLazyElem[A](implicit eA: Elem[A]): LElem[A] = Lazy(eA)
+  implicit final def toLazyElem[A](implicit eA: Elem[A]): LElem[A] = Lazy(eA)
 
   val EmptyTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap.empty
 
-  def TypeArgs(descs: (String, (TypeDesc, Variance))*) = ListMap(descs: _*)
+  final def TypeArgs(descs: (String, (TypeDesc, Variance))*) = ListMap(descs: _*)
 
   // can be removed and replaced with assert(value.elem == elem) after #72
   def assertElem(value: Ref[_], elem: Elem[_]): Unit = assertElem(value, elem, "")
@@ -441,12 +382,8 @@ trait TypeDescs extends Base { self: Scalan =>
   def assertEqualElems[A](e1: Elem[A], e2: Elem[A], m: => String): Unit =
     assert(e1 == e2, s"Element $e1 != $e2: $m")
 
-  def withElemOf[A, R](x: Ref[A])(block: Elem[A] => R): R = block(x.elem)
-  def withResultElem[A, B, R](f: Ref[A => B])(block: Elem[B] => R): R = block(withElemOf(f) { e => e.eRange })
-
   @implicitNotFound(msg = "No Cont available for ${F}.")
-  trait Cont[F[_]] extends TypeDesc {
-    def tag[T](implicit tT: WeakTypeTag[T]): WeakTypeTag[F[T]]
+  abstract class Cont[F[_]] extends TypeDesc {
     def lift[T](implicit eT: Elem[T]): Elem[F[T]]
     def unlift[T](implicit eFT: Elem[F[T]]): Elem[T]
     def getElem[T](fa: Ref[F[T]]): Elem[F[T]]
@@ -454,25 +391,16 @@ trait TypeDescs extends Base { self: Scalan =>
     def unapply[T](e: Elem[_]): Option[Elem[F[T]]]
 
     def getName(f: TypeDesc => String): String = {
-      // note: will use WeakTypeTag[x], so x type parameter ends up in the result
-      // instead of the actual type parameter it's called with (see below)
-      def tpeA[x] = tag[x].tpe
-
-      val tpe = tpeA[Nothing]
-
-      val str = cleanUpTypeName(tpe)
-
-      if (str.endsWith("[x]"))
-        str.stripSuffix("[x]")
-      else
-        "[x]" + str
+      val eFAny = lift(AnyElement)
+      val name = eFAny.getClass.getSimpleName.stripSuffix("Elem")
+      "[x]" + name
     }
     def isFunctor = this.isInstanceOf[Functor[F]]
   }
 
-  def container[F[_]: Cont] = implicitly[Cont[F]]
+  final def container[F[_]: Cont] = implicitly[Cont[F]]
 
-  implicit def containerElem[F[_]:Cont, A:Elem]: Elem[F[A]] = container[F].lift(element[A])
+  implicit final def containerElem[F[_]:Cont, A:Elem]: Elem[F[A]] = container[F].lift(element[A])
 
   trait Functor[F[_]] extends Cont[F] {
     def map[A,B](a: Ref[F[A]])(f: Ref[A] => Ref[B]): Ref[F[B]]

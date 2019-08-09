@@ -18,8 +18,7 @@ import scalan.staged.{Transforming}
   * *everything is global* design.
   */
 class Scalan
-  extends Base
-  with TypeDescs
+  extends TypeDescs
   with MethodCalls
   with Tuples
   with NumericOps

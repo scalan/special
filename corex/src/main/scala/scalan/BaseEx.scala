@@ -5,7 +5,7 @@ import java.lang.reflect.Method
 
 import spire.syntax.all.cfor
 
-trait BaseEx extends Base with DefRewriting { self: ScalanEx =>
+trait BaseEx extends TypeDescs with DefRewriting { self: ScalanEx =>
 
   object IdSupply {
     private var _nextId = 0
