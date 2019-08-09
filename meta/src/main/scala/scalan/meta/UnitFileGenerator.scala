@@ -238,7 +238,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |  // entityUnref: single unref method for each type family
       |  implicit def unref$entityName${typesDecl}(p: Ref[${e.typeUse}]): ${e.typeUse} = {
-      |    if (p.rhs.isInstanceOf[${e.typeUse}$uncheckedOpt]) p.rhs.asInstanceOf[${e.typeUse}]
+      |    if (p.node.isInstanceOf[${e.typeUse}$uncheckedOpt]) p.node.asInstanceOf[${e.typeUse}]
       |    else
       |      ${entityName}Adapter(p)
       |  }
@@ -354,7 +354,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |      cast${e.name}Element(eFT).${e.implicitArgs(0).name}
         |    def getElem[A](fa: Ref[$name[A]]) = fa.elem
         |    def unapply[T](e: Elem[_]) = e match {
-        |      case e: ${e.name}Elem[_,_] => Some(e.asElem[${e.name}[T]])
+        |      case e: ${e.name}Elem[_,_] => Some(asElem[${e.name}[T]](e))
         |      case _ => None
         |    }
         |    ${isFunctor.opt(s"def map[A,B](xs: Ref[$name[A]])(f: Ref[A] => Ref[B]) = { implicit val eA = unlift(xs.elem); xs.map(fun(f))}")}
@@ -490,7 +490,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       hasCompanion.opt
       s"""
         |  implicit def unref${e.companionCtorName}(p: Ref[${e.companionCtorName}]): ${e.companionCtorName} =
-        |    p.rhs.asInstanceOf[${e.companionCtorName}]
+        |    p.node.asInstanceOf[${e.companionCtorName}]
         |""".stripAndTrim
     }
       |""".stripAndTrim
@@ -722,8 +722,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  lazy val ${c.name}Ref: Ref[${c.companionCtorName}] = new ${c.companionCtorName}
         |  lazy val R${c.name}: ${c.companionCtorName} = unref${className}Companion(${c.name}Ref)
         |  implicit def unref${className}Companion(p: Ref[${c.companionCtorName}]): ${c.companionCtorName} = {
-        |    if (p.rhs.isInstanceOf[${c.companionCtorName}])
-        |      p.rhs.asInstanceOf[${c.companionCtorName}]
+        |    if (p.node.isInstanceOf[${c.companionCtorName}])
+        |      p.node.asInstanceOf[${c.companionCtorName}]
         |    else
         |      unrefDelegate[${c.companionCtorName}](p)
         |  }
@@ -731,8 +731,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}]
         |
         |  implicit def unref${c.typeDecl}(p: Ref[${c.typeUse}]): ${c.typeUse} = {
-        |    if (p.rhs.isInstanceOf[${c.typeUse}$uncheckedOpt])
-        |      p.rhs.asInstanceOf[${c.typeUse}]
+        |    if (p.node.isInstanceOf[${c.typeUse}$uncheckedOpt])
+        |      p.node.asInstanceOf[${c.typeUse}]
         |    else
         |      unrefDelegate[${c.typeUse}](p)
         |  }
@@ -774,7 +774,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       emitEntityDefs(e)
     }
     val imports = {
-      val predef = List("import IsoUR._", "import Converter._")
+      val predef = List("import IsoUR._")
       val declaredImports = unit.imports.filter(_.inCake)
       val used = unit.getUsedEntities
       val ts = unit.traits.map(t => context.newEntitySymbol(unit.symbol, t.name))

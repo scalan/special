@@ -261,7 +261,7 @@ trait Slicing extends ScalanEx {
       FuncMarking[a,b](AllMarking(fe.eDom), AllMarking(fe.eRange)).asMark[T]
     case se: StructElem[s] =>
       val fields = se.fields.map { case (fn, e) => (fn, AllMarking(e)) }
-      StructMarking[Struct](fields)(se.asElem[Struct]).asMark[T]
+      StructMarking[Struct](fields)(asElem[Struct](se)).asMark[T]
     case be: BaseElem[a] =>
       AllBaseMarking[a](be).asMark[T]
     case te: ThunkElem[a] =>
@@ -611,7 +611,7 @@ trait Slicing extends ScalanEx {
         val elem = f.elem
         implicit val eA = elem.eDom
         implicit val eB = elem.eRange
-        implicit val eC = m.projectedElem.asElem[C]
+        implicit val eC = asElem[C](m.projectedElem)
         val res = fun { x: Ref[C] =>
           val slot = m.makeSlot
           val init = m.set(slot, x)
@@ -625,7 +625,7 @@ trait Slicing extends ScalanEx {
     val elem = f.elem
     implicit val eA = elem.eDom
     implicit val eB = elem.eRange
-    implicit val eC = m.projectedElem.asElem[C]
+    implicit val eC = asElem[C](m.projectedElem)
     val res = fun { x: Ref[A] =>
       val y = f(x)
       asRep[C](m.projectToExp(y))
@@ -713,7 +713,7 @@ trait Slicing extends ScalanEx {
   }
 
   case class UnpackSliced[From, To](sliced: Ref[From], mark: SliceMarking[From]) extends Def[To] {
-    implicit def resultType = mark.projectedElem.asElem[To]
+    implicit def resultType = asElem[To](mark.projectedElem)
     override def transform(t: Transformer): Def[To] = UnpackSliced(t(sliced), mark)
   }
 

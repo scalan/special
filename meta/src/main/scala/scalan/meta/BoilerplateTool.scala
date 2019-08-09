@@ -38,8 +38,8 @@ class BoilerplateTool extends StrictLogging {
       baseContextTrait = "scalan.Scalan")
 
   lazy val viewsConfig           = coreMainConfig("views",      "scalan/Views.scala")
-  lazy val convertersConfig      = coreMainConfig("converters", "scalan/Converters.scala")
-
+  
+  lazy val convertersConfig      = corexMainConfig("converters", "scalan/Converters.scala")
   lazy val specializationsConfig = corexMainConfig("specializations", "scalan/dynamic/Specializations.scala")
 
   lazy val structKeysConfig  = corexMainConfig("structKeys",  "scalan/primitives/StructKeys.scala")

@@ -127,7 +127,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
 
   def getTypeSpecs(t: TypeDesc)(implicit params: QueryParams): List[Elem[_]] = {
     val inSpecs = t.allConcreteSpecs
-    inSpecs.map(_.asElem)
+    inSpecs.map(e => asElem(e))
   }
 
   def getAllReprIsos[A](eA: Elem[A])(implicit params: QueryParams): List[Iso[_,A]] = {
@@ -190,7 +190,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
     val specs = for {
       inE <- inElems
       outE <- outElems
-      k <- composeKernel(inE.asElem, outE.asElem, f, inFilter, outFilter)
+      k <- composeKernel(asElem(inE), asElem(outE), f, inFilter, outFilter)
     } yield k
     specs.distinct
   }
@@ -370,7 +370,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       yield {
         (inF equals c.eR) match {
           case false => {
-            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
+            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(asElem[Any](c.eR))) })(Lazy(asElem[Any](c.eT)))
             val new_key = SpecKey(c.eT, sKey.eOut, sKey.convTo, Some(c.eR))
             (new_key, kernel)
           }
@@ -386,7 +386,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       yield {
         (c.eT equals c.eR) match {
           case false => {
-            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
+            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(asElem[Any](c.eR))) })(Lazy(asElem[Any](c.eT)))
             val new_key = SpecKey(c.eT, sKey.eOut, sKey.convTo, Some(c.eR))
             (new_key, kernel)
           }
@@ -403,7 +403,7 @@ trait SpecializationsModule extends impl.SpecializationsDefs with TypesApi { sca
       yield {
         (c.eT equals c.eR) match {
           case false => {
-            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(c.eR.asElem[Any])) })(Lazy(c.eT.asElem[Any]))
+            val kernel = fun({ x: Ref[Any] => primK(no_fuse(csym(x))(asElem[Any](c.eR))) })(Lazy(asElem[Any](c.eT)))
             val new_key = SpecKey(c.eT, sKey.eOut, sKey.convTo, Some(c.eR))
             (new_key, kernel)
           }

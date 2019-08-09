@@ -134,7 +134,7 @@ class MetaCodegen {
         val argIndex = e.tpeArgs.indexByName(tyArg.name)
         val argTy = args(argIndex)
         val descName = tyArg.descName
-        emit(s"""$prefix.typeArgs("${tyArg.name}")._1.as$descName[$argTy]""", t, true)
+        emit(s"""$prefix.typeArgs("${tyArg.name}")._1.asInstanceOf[$descName[$argTy]]""", t, true)
       case _ => sys.error(s"emit($tailPath)")
     }
     emit(prefixExpr, tailPath, true)
@@ -316,7 +316,7 @@ class MetaCodegen {
               |          Nullable(res).asInstanceOf[Nullable[$returnType]]
               |        case _ => Nullable.None
               |      }
-              |      def unapply(exp: Sym): Nullable[$returnType] = unapply(exp.rhs)
+              |      def unapply(exp: Sym): Nullable[$returnType] = unapply(exp.node)
               |    }""".stripAndTrim
         }
       }

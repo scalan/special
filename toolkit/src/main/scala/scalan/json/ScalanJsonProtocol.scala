@@ -33,7 +33,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
     def read(json: JsValue) = json match {
       case JsString(tpeStr) =>
         val ty = parseType(helperUnitSym, tpeStr)
-        val elem = TypeDesc(ty, emptySubst).asElem[T]
+        val elem = asElem[T](TypeDesc(ty, emptySubst))
         elem
       case _ => deserializationError("String expected of type term")
     }

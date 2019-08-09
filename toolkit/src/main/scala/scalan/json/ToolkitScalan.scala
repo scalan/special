@@ -21,7 +21,7 @@ trait ParsedModules extends ModulesEx { scalan: ScalanEx =>
 
   override def getModules: mutable.Map[String, SUnitDef] = modules
 
-  override def registerModule(moduleInfo: ModuleInfo) = {
+  override protected def registerModule(moduleInfo: ModuleInfo) = {
     if (okRegisterModules) {
       val pack = moduleInfo.packageName
       val name = moduleInfo.moduleName

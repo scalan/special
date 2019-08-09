@@ -11,7 +11,6 @@ package impl {
 trait StructItemsDefs extends StructItems {
   self: Structs with ScalanEx =>
 import IsoUR._
-import Converter._
 import StructItem._
 import StructItemBase._
 import StructKey._
@@ -23,8 +22,8 @@ object StructItem extends EntityObject("StructItem") {
   case class StructItemAdapter[Val, Schema <: Struct](source: Ref[StructItem[Val, Schema]])
       extends StructItem[Val, Schema]
       with Def[StructItem[Val, Schema]] {
-    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val];
-implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]];
+implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asInstanceOf[Elem[Schema]]
 
     val resultType: Elem[StructItem[Val, Schema]] = element[StructItem[Val, Schema]]
     override def transform(t: Transformer) = StructItemAdapter[Val, Schema](t(source))

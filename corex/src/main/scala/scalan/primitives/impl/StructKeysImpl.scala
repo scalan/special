@@ -9,7 +9,6 @@ package impl {
 trait StructKeysDefs extends StructKeys {
   self: Structs with ScalanEx =>
 import IsoUR._
-import Converter._
 import IndexStructKey._
 import NameStructKey._
 import StructKey._
@@ -21,7 +20,7 @@ object StructKey extends EntityObject("StructKey") {
   case class StructKeyAdapter[Schema <: Struct](source: Ref[StructKey[Schema]])
       extends StructKey[Schema]
       with Def[StructKey[Schema]] {
-    implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asElem[Schema]
+    implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asInstanceOf[Elem[Schema]]
 
     val resultType: Elem[StructKey[Schema]] = element[StructKey[Schema]]
     override def transform(t: Transformer) = StructKeyAdapter[Schema](t(source))

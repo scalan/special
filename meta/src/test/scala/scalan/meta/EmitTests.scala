@@ -106,8 +106,8 @@ class EmitTests extends BaseMetaTests with Examples {
     val tStruct = STpeStruct(List(("a", parseType(us, "Int")), ("b", parseType(us, "(A,Int)"))))
     testEmit(module, tStruct, "A", """.asInstanceOf[StructElem[_]]("b").asInstanceOf[PairElem[_,_]].eFst""")
 
-    testEmit(module, "Observable[A]", "A", """.typeArgs("A")._1.asElem[A]""")
+    testEmit(module, "Observable[A]", "A", """.typeArgs("A")._1.asInstanceOf[Elem[A]]""")
     testEmit(module, "Observable[Observable[A]]", "A",
-      """.typeArgs("A")._1.asElem[Observable[A]].typeArgs("A")._1.asElem[A]""")
+      """.typeArgs("A")._1.asInstanceOf[Elem[Observable[A]]].typeArgs("A")._1.asInstanceOf[Elem[A]]""")
   }
 }

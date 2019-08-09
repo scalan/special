@@ -140,7 +140,7 @@ object Coll extends EntityObject("Coll") {
     }
 
     override def flatMap[B](f: Ref[A => Coll[B]]): Ref[Coll[B]] = {
-      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      implicit val eB = asElem[B](f.elem.eRange.typeArgs("A")._1)
       asRep[Coll[B]](mkMethodCall(self,
         CollClass.getMethod("flatMap", classOf[Sym]),
         Array[AnyRef](f),

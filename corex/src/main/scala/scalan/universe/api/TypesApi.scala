@@ -51,7 +51,7 @@ trait TypesApi { self: ScalanEx =>
         val res = for {
           x <- (if (a.isConcrete) List(a) else Nil) ::: a.directSpecsExclusive
           y <- b.directGens
-        } yield funcElement(x.asElem, y.asElem)
+        } yield funcElement(asElem(x), asElem(y))
         res.distinct
       case e: EntityElem[Def[_]]@unchecked =>
         val argSubst = e.typeArgs.toList
@@ -61,7 +61,7 @@ trait TypesApi { self: ScalanEx =>
           val res = (argName, e) :: (if (!params.checkVariance || a.isCovariant) e.allSpecs(params).diff(List(e)).map((argName, _)) else Nil)
           res.iterator
         }
-        val entitySpecs = argSpecs.map(as => ent(as.toMap).asElem)
+        val entitySpecs = argSpecs.map(as => asElem(ent(as.toMap)))
 
         val specs = for {
           e <- entitySpecs

@@ -20,7 +20,7 @@ trait TypeDescs extends Base { self: Scalan =>
   def AllTypes(e: Elem[_]): Boolean = true
   val emptySubst = Map.empty[String, TypeDesc]
 
-  @inline def asElem[T](d: TypeDesc): Elem[T] = d.asInstanceOf[Elem[T]]
+  @inline final def asElem[T](d: TypeDesc): Elem[T] = d.asInstanceOf[Elem[T]]
 
   implicit class TypeDescOps(d: TypeDesc) {
     def asElem[B]: Elem[B] = self.asElem[B](d)  // TODO remove
@@ -399,9 +399,9 @@ trait TypeDescs extends Base { self: Scalan =>
   // somewhat ugly casts, but they completely disappear after type erasure
   // (so not present in Java bytecode)
   val NothingElement: Elem[Nothing] =
-    new BaseElemLiftable[Null](
+  asElem[Nothing](new BaseElemLiftable[Null](
       null, NothingType.asInstanceOf[RType[Null]]
-    ).asElem[Nothing]
+    ))
 
   implicit val BooleanElement: Elem[Boolean] = new BaseElemLiftable(false, BooleanType)
   implicit val ByteElement: Elem[Byte] = new BaseElemLiftable(0.toByte, ByteType)

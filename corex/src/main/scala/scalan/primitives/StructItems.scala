@@ -45,7 +45,7 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
     def unlift[T](implicit eFT: Elem[StructItem[T,S]]) = eFT.asInstanceOf[StructItemElem[T,S,_]].eVal
     def getElem[T](fa: Ref[StructItem[T,S]]) = fa.elem
     def unapply[T](e: Elem[_]) = e match {
-      case e: StructItemElem[_, _, _] => Some(e.asElem[StructItem[T,S]])
+      case e: StructItemElem[_, _, _] => Some(asElem[StructItem[T,S]](e))
       case _ => None
     }
     def map[A,B](xs: Ref[StructItem[A,S]])(f: Ref[A] => Ref[B]) = {
@@ -59,11 +59,11 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
 
   implicit class StructElemExtensionsForStructItem[S <: Struct](eS: Elem[S]) {
     def getItemElem[V](i: Int): Elem[StructItem[V, S]] = {
-      val eV = eS(i).asElem[V]
+      val eV = asElem[V](eS(i))
       structItemElement(eV, eS)
     }
     def getItemElem[V](fieldName: String): Elem[StructItem[V, S]] = {
-      val eV = eS(fieldName).asElem[V]
+      val eV = asElem[V](eS(fieldName))
       structItemElement(eV, eS)
     }
   }

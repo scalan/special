@@ -12,7 +12,6 @@ package impl {
 trait SpecializationsDefs extends Specializations {
   self: ScalanEx =>
 import IsoUR._
-import Converter._
 import IsoFunc._
 import IsoFuncBase._
 
@@ -23,9 +22,9 @@ object IsoFunc extends EntityObject("IsoFunc") {
   case class IsoFuncAdapter[T, R, M](source: Ref[IsoFunc[T, R, M]])
       extends IsoFunc[T, R, M]
       with Def[IsoFunc[T, R, M]] {
-    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T];
-implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R];
-implicit lazy val eM = source.elem.typeArgs("M")._1.asElem[M]
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]];
+implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]];
+implicit lazy val eM = source.elem.typeArgs("M")._1.asInstanceOf[Elem[M]]
 
     val resultType: Elem[IsoFunc[T, R, M]] = element[IsoFunc[T, R, M]]
     override def transform(t: Transformer) = IsoFuncAdapter[T, R, M](t(source))

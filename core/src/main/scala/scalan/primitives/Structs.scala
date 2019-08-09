@@ -60,7 +60,7 @@ trait Structs extends GraphVizExport { self: Scalan =>
     override lazy val resultType = _selfType
     def tag = _selfType.structTag
     val fields: Seq[(String, Ref[Any])] =
-      constValue.toArray.zip(_selfType.fields).map { case (v, (fn, e)) => (fn, toRep(v)(e.asElem[Any])) }
+      constValue.toArray.zip(_selfType.fields).map { case (v, (fn, e)) => (fn, toRep(v)(asElem[Any](e))) }
     def liftable = liftableStruct(_selfType)
   }
 

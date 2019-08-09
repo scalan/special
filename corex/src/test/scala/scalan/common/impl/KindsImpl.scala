@@ -19,8 +19,8 @@ object Kind extends EntityObject("Kind") {
   case class KindAdapter[F[_], A](source: Ref[Kind[F, A]])
       extends Kind[F, A]
       with Def[Kind[F, A]] {
-    implicit lazy val cF = source.elem.typeArgs("F")._1.asCont[F];
-implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+    implicit lazy val cF = source.elem.typeArgs("F")._1.asInstanceOf[Cont[F]];
+implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 
     val resultType: Elem[Kind[F, A]] = element[Kind[F, A]]
     override def transform(t: Transformer) = KindAdapter[F, A](t(source))
@@ -203,7 +203,7 @@ object Bind extends EntityObject("Bind") {
     extends Bind[F, S, B](a, f) with Def[Bind[F, S, B]] {
     implicit lazy val cF = a.cF;
 implicit lazy val eS = a.eA;
-implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
     override lazy val eA: Elem[B] = eB
     lazy val resultType = element[Bind[F, S, B]]
     override def transform(t: Transformer) = BindCtor[F, S, B](t(a), t(f))
@@ -253,7 +253,7 @@ implicit lazy val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
     def apply[F[_], S, B](p: Ref[BindData[F, S, B]]): Ref[Bind[F, S, B]] = {
       implicit val cF = p._1.cF;
 implicit val eS = p._1.eA;
-implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
+implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       isoBind[F, S, B].to(p)
     }
 
@@ -285,7 +285,7 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asElem[B]
     def toData: Ref[BindData[F, S, B]] = {
       implicit val cF = p.a.cF;
 implicit val eS = p.a.eA;
-implicit val eB = p.f.elem.eRange.typeArgs("A")._1.asElem[B]
+implicit val eB = p.f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       isoBind(cF, eS, eB).from(p)
     }
   }

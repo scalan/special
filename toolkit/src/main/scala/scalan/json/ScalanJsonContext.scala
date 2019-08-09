@@ -97,7 +97,7 @@ trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
             val eVar = elementFormat.read(jsType)
             val defs = fields -- specialFields
             val res = roots.split(',').map(readId(_)).toSeq
-            Some((varId, eVar.asElem[Any], defs, res))
+            Some((varId, asElem[Any](eVar), defs, res))
           case _ => None
         }
       case _ => None

@@ -85,8 +85,8 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     implicit def eB2 = iso2.eTo
     lazy val eFrom = tuple2StructElement(iso1.eFrom, iso2.eFrom)
     lazy val eTo = element[(B1, B2)]
-    lazy val resultType = new ConcreteIsoElem[Struct, (B1, B2), StructToPairIso[A1, A2, B1, B2]](eFrom, eTo).
-        asElem[IsoUR[Struct, (B1, B2)]]
+    lazy val resultType = asElem[IsoUR[Struct, (B1, B2)]](new ConcreteIsoElem[Struct, (B1, B2), StructToPairIso[A1, A2, B1, B2]](eFrom, eTo))
+
 
     override def from(p: Ref[(B1, B2)]) =
       struct(tupleFN(0) -> iso1.from(p._1), tupleFN(1) -> iso2.from(p._2))
@@ -130,7 +130,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
       asRep[T](struct(items))
     }
 
-    lazy val resultType = new ConcreteIsoElem[S, T, StructIso[S, T]](eFrom, eTo).asElem[IsoUR[S, T]]
+    lazy val resultType = asElem[IsoUR[S, T]](new ConcreteIsoElem[S, T, StructIso[S, T]](eFrom, eTo))
   }
 
   def structIso[S <: Struct, T <: Struct](eFrom: StructElem[S], eTo: StructElem[T], itemIsos: Seq[Iso[_,_]]): Iso[S, T] =
@@ -148,7 +148,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
     }
 
     val eFrom = tupleStructElement(links.map(_.nestedElem): _*)
-    lazy val resultType = new ConcreteIsoElem[Struct, T, FlatteningIso[T]](eFrom, eTo).asElem[IsoUR[Struct, T]]
+    lazy val resultType = asElem[IsoUR[Struct, T]](new ConcreteIsoElem[Struct, T, FlatteningIso[T]](eFrom, eTo))
 
     val groups = links.groupBy(_.field)
 
@@ -284,7 +284,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
       case (_, nonStructElem) => !!!(s"StructElem expected but found $nonStructElem", self)
     })
 
-    lazy val resultType = new ConcreteIsoElem[Struct, T, MergeIso[T]](eFrom, eTo).asElem[IsoUR[Struct, T]]
+    lazy val resultType = asElem[IsoUR[Struct, T]](new ConcreteIsoElem[Struct, T, MergeIso[T]](eFrom, eTo))
 
     def to(x: Ref[Struct]) = {
       val items = eTo.fields.map {
@@ -309,7 +309,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
 
   def getStructMergeIso[T](implicit e: Elem[T]): Iso[_,T] = (e match {
     case se: StructElem[_] =>
-      reifyObject(MergeIso(se.asElem[Struct]))
+      reifyObject(MergeIso(asElem[Struct](se)))
     case _ =>
       !!!(s"Don't know how merge non struct $e")
   }).asInstanceOf[Iso[_,T]]
@@ -330,7 +330,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
   }
 
   case class PairifyIso[A, AS <: Struct](eTo: Elem[AS]) extends IsoUR[A, AS] {
-    val eFrom: Elem[A] = pairifyStruct(eTo).asElem[A]
+    val eFrom: Elem[A] = asElem[A](pairifyStruct(eTo))
     override def transform(t: Transformer) = PairifyIso(eTo)
 
     def from(y: Ref[AS]) =  {
@@ -351,7 +351,7 @@ trait StructsEx extends Structs with StructItemsModule with StructKeysModule { s
         (this eq iso) || (eFrom == iso.eFrom && eTo == iso.eTo)
       case _ => false
     }
-    lazy val resultType = new ConcreteIsoElem[A, AS, PairifyIso[A, AS]](eFrom, eTo).asElem[IsoUR[A, AS]]
+    lazy val resultType = asElem[IsoUR[A, AS]](new ConcreteIsoElem[A, AS, PairifyIso[A, AS]](eFrom, eTo))
   }
 
   def structWrapper[A,B](f: Ref[A => B]): Ref[Any => Any] = {

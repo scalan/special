@@ -108,7 +108,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
   /** Creates new MethodCall node and returns its node ref. */
   def mkMethodCall(receiver: Sym, method: Method, args: Seq[AnyRef],
                    neverInvoke: Boolean, isAdapterCall: Boolean, resultElem: Elem[_]): Sym = {
-    reifyObject(MethodCall(receiver, method, args, neverInvoke)(resultElem.asElem[Any], isAdapterCall))
+    reifyObject(MethodCall(receiver, method, args, neverInvoke)(asElem[Any](resultElem), isAdapterCall))
   }
 
   /** Creates new NewObject node and returns its node ref. */

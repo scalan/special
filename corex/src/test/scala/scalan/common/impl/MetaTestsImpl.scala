@@ -86,7 +86,7 @@ object MetaTest extends EntityObject("MetaTest") {
   case class MetaTestAdapter[T](source: Ref[MetaTest[T]])
       extends MetaTest[T]
       with Def[MetaTest[T]] {
-    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
 
     val resultType: Elem[MetaTest[T]] = element[MetaTest[T]]
     override def transform(t: Transformer) = MetaTestAdapter[T](t(source))
@@ -288,8 +288,8 @@ object MetaPair extends EntityObject("MetaPair") {
   case class MetaPairAdapter[A, B](source: Ref[MetaPair[A, B]])
       extends MetaPair[A, B]
       with Def[MetaPair[A, B]] {
-    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
-implicit lazy val eB = source.elem.typeArgs("B")._1.asElem[B]
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]];
+implicit lazy val eB = source.elem.typeArgs("B")._1.asInstanceOf[Elem[B]]
     override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
     val resultType: Elem[MetaPair[A, B]] = element[MetaPair[A, B]]
     override def transform(t: Transformer) = MetaPairAdapter[A, B](t(source))

@@ -26,8 +26,8 @@ object IsoUR extends EntityObject("IsoUR") {
   case class IsoURAdapter[From, To](source: Ref[IsoUR[From, To]])
       extends IsoUR[From, To]
       with Def[IsoUR[From, To]] {
-    implicit lazy val eFrom = source.elem.typeArgs("From")._1.asElem[From];
-implicit lazy val eTo = source.elem.typeArgs("To")._1.asElem[To]
+    implicit lazy val eFrom = source.elem.typeArgs("From")._1.asInstanceOf[Elem[From]];
+implicit lazy val eTo = source.elem.typeArgs("To")._1.asInstanceOf[Elem[To]]
 
     val resultType: Elem[IsoUR[From, To]] = element[IsoUR[From, To]]
     override def transform(t: Transformer) = IsoURAdapter[From, To](t(source))
@@ -87,9 +87,9 @@ object Iso1UR extends EntityObject("Iso1UR") {
   case class Iso1URAdapter[A, B, C[_]](source: Ref[Iso1UR[A, B, C]])
       extends Iso1UR[A, B, C]
       with Def[Iso1UR[A, B, C]] {
-    implicit override lazy val eA = source.elem.typeArgs("A")._1.asElem[A];
-implicit override lazy val eB = source.elem.typeArgs("B")._1.asElem[B];
-implicit lazy val cC = source.elem.typeArgs("C")._1.asCont[C]
+    implicit override lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]];
+implicit override lazy val eB = source.elem.typeArgs("B")._1.asInstanceOf[Elem[B]];
+implicit lazy val cC = source.elem.typeArgs("C")._1.asInstanceOf[Cont[C]]
 
     val resultType: Elem[Iso1UR[A, B, C]] = element[Iso1UR[A, B, C]]
     override def transform(t: Transformer) = Iso1URAdapter[A, B, C](t(source))
