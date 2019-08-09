@@ -35,7 +35,7 @@ object Costed extends EntityObject("Costed") {
   case class CostedAdapter[Val](source: Ref[Costed[Val]])
       extends Costed[Val]
       with Def[Costed[Val]] {
-    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
     val resultType: Elem[Costed[Val]] = element[Costed[Val]]
     override def transform(t: Transformer) = CostedAdapter[Val](t(source))
@@ -154,7 +154,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
   case class CostedPrimAdapter[Val](source: Ref[CostedPrim[Val]])
       extends CostedPrim[Val]
       with Def[CostedPrim[Val]] {
-    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
     val resultType: Elem[CostedPrim[Val]] = element[CostedPrim[Val]]
     override def transform(t: Transformer) = CostedPrimAdapter[Val](t(source))
@@ -229,8 +229,8 @@ object CostedPair extends EntityObject("CostedPair") {
   case class CostedPairAdapter[L, R](source: Ref[CostedPair[L, R]])
       extends CostedPair[L, R]
       with Def[CostedPair[L, R]] {
-    implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
-implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
+    implicit lazy val eL = source.elem.typeArgs("L")._1.asInstanceOf[Elem[L]];
+implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     val resultType: Elem[CostedPair[L, R]] = element[CostedPair[L, R]]
     override def transform(t: Transformer) = CostedPairAdapter[L, R](t(source))
@@ -327,9 +327,9 @@ object CostedFunc extends EntityObject("CostedFunc") {
   case class CostedFuncAdapter[Env, Arg, Res](source: Ref[CostedFunc[Env, Arg, Res]])
       extends CostedFunc[Env, Arg, Res]
       with Def[CostedFunc[Env, Arg, Res]] {
-    implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asElem[Env];
-implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asElem[Arg];
-implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
+    implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asInstanceOf[Elem[Env]];
+implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asInstanceOf[Elem[Arg]];
+implicit lazy val eRes = source.elem.typeArgs("Res")._1.asInstanceOf[Elem[Res]]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     val resultType: Elem[CostedFunc[Env, Arg, Res]] = element[CostedFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = CostedFuncAdapter[Env, Arg, Res](t(source))
@@ -448,7 +448,7 @@ object CostedColl extends EntityObject("CostedColl") {
   case class CostedCollAdapter[Item](source: Ref[CostedColl[Item]])
       extends CostedColl[Item]
       with Def[CostedColl[Item]] {
-    implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
+    implicit lazy val eItem = source.elem.typeArgs("Item")._1.asInstanceOf[Elem[Item]]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
     val resultType: Elem[CostedColl[Item]] = element[CostedColl[Item]]
     override def transform(t: Transformer) = CostedCollAdapter[Item](t(source))
@@ -482,7 +482,7 @@ object CostedColl extends EntityObject("CostedColl") {
     }
 
     def mapCosted[Res](f: Ref[Costed[Item] => Costed[Res]]): Ref[CostedColl[Res]] = {
-      implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
+      implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
       asRep[CostedColl[Res]](mkMethodCall(source,
         CostedCollClass.getMethod("mapCosted", classOf[Sym]),
         Array[AnyRef](f),
@@ -649,7 +649,7 @@ object CostedOption extends EntityObject("CostedOption") {
   case class CostedOptionAdapter[T](source: Ref[CostedOption[T]])
       extends CostedOption[T]
       with Def[CostedOption[T]] {
-    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     val resultType: Elem[CostedOption[T]] = element[CostedOption[T]]
     override def transform(t: Transformer) = CostedOptionAdapter[T](t(source))
@@ -789,7 +789,7 @@ implicit val eR = r.eVal
     }
 
     def mkSizeColl[T](sizes: Ref[Coll[Size[T]]]): Ref[SizeColl[T]] = {
-      implicit val eT = sizes.eA.typeArgs("Val")._1.asElem[T]
+      implicit val eT = sizes.eA.typeArgs("Val")._1.asInstanceOf[Elem[T]]
       asRep[SizeColl[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkSizeColl", classOf[Sym]),
         Array[AnyRef](sizes),
@@ -807,7 +807,7 @@ implicit val eR = tR.eA
     }
 
     def mkSizeOption[T](sizeOpt: Ref[WOption[Size[T]]]): Ref[SizeOption[T]] = {
-      implicit val eT = sizeOpt.eA.typeArgs("Val")._1.asElem[T]
+      implicit val eT = sizeOpt.eA.typeArgs("Val")._1.asInstanceOf[Elem[T]]
       asRep[SizeOption[T]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkSizeOption", classOf[Sym]),
         Array[AnyRef](sizeOpt),
@@ -833,8 +833,8 @@ implicit val eR = second.eVal
 
     def mkCostedFunc[Env, Arg, Res](envCosted: Ref[Costed[Env]], func: Ref[Costed[Arg] => Costed[Res]], cost: Ref[Int], size: Ref[Size[Arg => Res]]): Ref[CostedFunc[Env, Arg, Res]] = {
       implicit val eEnv = envCosted.eVal
-implicit val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg]
-implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
+implicit val eArg = func.elem.eDom.typeArgs("Val")._1.asInstanceOf[Elem[Arg]]
+implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
       asRep[CostedFunc[Env, Arg, Res]](mkMethodCall(source,
         CostedBuilderClass.getMethod("mkCostedFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
         Array[AnyRef](envCosted, func, cost, size),

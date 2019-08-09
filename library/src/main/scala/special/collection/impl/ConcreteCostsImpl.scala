@@ -267,8 +267,8 @@ object CCostedFunc extends EntityObject("CCostedFunc") {
       (override val envCosted: Ref[Costed[Env]], override val func: Ref[Costed[Arg] => Costed[Res]], override val cost: Ref[Int], override val size: Ref[Size[Arg => Res]])
     extends CCostedFunc[Env, Arg, Res](envCosted, func, cost, size) with Def[CCostedFunc[Env, Arg, Res]] {
     implicit lazy val eEnv = envCosted.eVal;
-implicit lazy val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg];
-implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
+implicit lazy val eArg = func.elem.eDom.typeArgs("Val")._1.asInstanceOf[Elem[Arg]];
+implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     lazy val resultType = element[CCostedFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = CCostedFuncCtor[Env, Arg, Res](t(envCosted), t(func), t(cost), t(size))
@@ -323,8 +323,8 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
     @scalan.OverloadId("fromData")
     def apply[Env, Arg, Res](p: Ref[CCostedFuncData[Env, Arg, Res]]): Ref[CCostedFunc[Env, Arg, Res]] = {
       implicit val eEnv = p._1.eVal;
-implicit val eArg = p._2.elem.eDom.typeArgs("Val")._1.asElem[Arg];
-implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
+implicit val eArg = p._2.elem.eDom.typeArgs("Val")._1.asInstanceOf[Elem[Arg]];
+implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
       isoCCostedFunc[Env, Arg, Res].to(p)
     }
 
@@ -355,8 +355,8 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asElem[Res]
   implicit class ExtendedCCostedFunc[Env, Arg, Res](p: Ref[CCostedFunc[Env, Arg, Res]]) {
     def toData: Ref[CCostedFuncData[Env, Arg, Res]] = {
       implicit val eEnv = p.envCosted.eVal;
-implicit val eArg = p.func.elem.eDom.typeArgs("Val")._1.asElem[Arg];
-implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asElem[Res]
+implicit val eArg = p.func.elem.eDom.typeArgs("Val")._1.asInstanceOf[Elem[Arg]];
+implicit val eRes = p.func.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
       isoCCostedFunc(eEnv, eArg, eRes).from(p)
     }
   }
@@ -396,7 +396,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
     }
 
     override def mapCosted[Res](f: Ref[Costed[Item] => Costed[Res]]): Ref[CostedColl[Res]] = {
-      implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
+      implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
       asRep[CostedColl[Res]](mkMethodCall(self,
         thisClass.getMethod("mapCosted", classOf[Sym]),
         Array[AnyRef](f),

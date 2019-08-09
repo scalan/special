@@ -140,7 +140,7 @@ object Coll extends EntityObject("Coll") {
     }
 
     override def flatMap[B](f: Ref[A => Coll[B]]): Ref[Coll[B]] = {
-      implicit val eB = asElem[B](f.elem.eRange.typeArgs("A")._1)
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       asRep[Coll[B]](mkMethodCall(self,
         CollClass.getMethod("flatMap", classOf[Sym]),
         Array[AnyRef](f),
@@ -316,7 +316,7 @@ implicit val eV = proj.elem.eRange
   case class CollAdapter[A](source: Ref[Coll[A]])
       extends Coll[A]
       with Def[Coll[A]] {
-    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 
     val resultType: Elem[Coll[A]] = element[Coll[A]]
     override def transform(t: Transformer) = CollAdapter[A](t(source))
@@ -423,7 +423,7 @@ implicit val eV = proj.elem.eRange
     }
 
     def flatMap[B](f: Ref[A => Coll[B]]): Ref[Coll[B]] = {
-      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       asRep[Coll[B]](mkMethodCall(source,
         CollClass.getMethod("flatMap", classOf[Sym]),
         Array[AnyRef](f),
@@ -596,7 +596,7 @@ implicit val eV = proj.elem.eRange
       castCollElement(eFT).eA
     def getElem[A](fa: Ref[Coll[A]]) = fa.elem
     def unapply[T](e: Elem[_]) = e match {
-      case e: CollElem[_,_] => Some(e.asElem[Coll[T]])
+      case e: CollElem[_,_] => Some(asElem[Coll[T]](e))
       case _ => None
     }
     def map[A,B](xs: Ref[Coll[A]])(f: Ref[A] => Ref[B]) = { implicit val eA = unlift(xs.elem); xs.map(fun(f))}
@@ -1018,8 +1018,8 @@ object PairColl extends EntityObject("PairColl") {
   case class PairCollAdapter[L, R](source: Ref[PairColl[L, R]])
       extends PairColl[L, R]
       with Def[PairColl[L, R]] {
-    implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
-implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
+    implicit lazy val eL = source.elem.typeArgs("L")._1.asInstanceOf[Elem[L]];
+implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
     override lazy val eA: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     val resultType: Elem[PairColl[L, R]] = element[PairColl[L, R]]
     override def transform(t: Transformer) = PairCollAdapter[L, R](t(source))
@@ -1157,7 +1157,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
     }
 
     def flatMap[B](f: Ref[((L, R)) => Coll[B]]): Ref[Coll[B]] = {
-      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       asRep[Coll[B]](mkMethodCall(source,
         PairCollClass.getMethod("flatMap", classOf[Sym]),
         Array[AnyRef](f),
@@ -1457,7 +1457,7 @@ object ReplColl extends EntityObject("ReplColl") {
   case class ReplCollAdapter[A](source: Ref[ReplColl[A]])
       extends ReplColl[A]
       with Def[ReplColl[A]] {
-    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 
     val resultType: Elem[ReplColl[A]] = element[ReplColl[A]]
     override def transform(t: Transformer) = ReplCollAdapter[A](t(source))
@@ -1578,7 +1578,7 @@ object ReplColl extends EntityObject("ReplColl") {
     }
 
     def flatMap[B](f: Ref[A => Coll[B]]): Ref[Coll[B]] = {
-      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       asRep[Coll[B]](mkMethodCall(source,
         ReplCollClass.getMethod("flatMap", classOf[Sym]),
         Array[AnyRef](f),
@@ -1885,7 +1885,7 @@ implicit val eO = l.elem.eRange
     }
 
     override def flattenColl[A](coll: Ref[Coll[Coll[A]]]): Ref[Coll[A]] = {
-      implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
+      implicit val eA = coll.eA.typeArgs("A")._1.asInstanceOf[Elem[A]]
       asRep[Coll[A]](mkMethodCall(self,
         CollBuilderClass.getMethod("flattenColl", classOf[Sym]),
         Array[AnyRef](coll),
@@ -1982,7 +1982,7 @@ implicit val eO = l.elem.eRange
     }
 
     def flattenColl[A](coll: Ref[Coll[Coll[A]]]): Ref[Coll[A]] = {
-      implicit val eA = coll.eA.typeArgs("A")._1.asElem[A]
+      implicit val eA = coll.eA.typeArgs("A")._1.asInstanceOf[Elem[A]]
       asRep[Coll[A]](mkMethodCall(source,
         CollBuilderClass.getMethod("flattenColl", classOf[Sym]),
         Array[AnyRef](coll),

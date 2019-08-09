@@ -20,7 +20,7 @@ object Monoid extends EntityObject("Monoid") {
   case class MonoidAdapter[T](source: Ref[Monoid[T]])
       extends Monoid[T]
       with Def[Monoid[T]] {
-    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
 
     val resultType: Elem[Monoid[T]] = element[Monoid[T]]
     override def transform(t: Transformer) = MonoidAdapter[T](t(source))

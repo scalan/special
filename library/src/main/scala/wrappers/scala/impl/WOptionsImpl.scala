@@ -65,7 +65,7 @@ object WOption extends EntityObject("WOption") {
     }
 
     override def flatMap[B](f: Ref[A => WOption[B]]): Ref[WOption[B]] = {
-      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       asRep[WOption[B]](mkMethodCall(self,
         WOptionClass.getMethod("flatMap", classOf[Sym]),
         Array[AnyRef](f),
@@ -121,7 +121,7 @@ object WOption extends EntityObject("WOption") {
   case class WOptionAdapter[A](source: Ref[WOption[A]])
       extends WOption[A]
       with Def[WOption[A]] {
-    implicit lazy val eA = source.elem.typeArgs("A")._1.asElem[A]
+    implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 
     val resultType: Elem[WOption[A]] = element[WOption[A]]
     override def transform(t: Transformer) = WOptionAdapter[A](t(source))
@@ -156,7 +156,7 @@ object WOption extends EntityObject("WOption") {
     }
 
     def flatMap[B](f: Ref[A => WOption[B]]): Ref[WOption[B]] = {
-      implicit val eB = f.elem.eRange.typeArgs("A")._1.asElem[B]
+      implicit val eB = f.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
       asRep[WOption[B]](mkMethodCall(source,
         WOptionClass.getMethod("flatMap", classOf[Sym]),
         Array[AnyRef](f),
@@ -204,7 +204,7 @@ object WOption extends EntityObject("WOption") {
       castWOptionElement(eFT).eA
     def getElem[A](fa: Ref[WOption[A]]) = fa.elem
     def unapply[T](e: Elem[_]) = e match {
-      case e: WOptionElem[_,_] => Some(e.asElem[WOption[T]])
+      case e: WOptionElem[_,_] => Some(asElem[WOption[T]](e))
       case _ => None
     }
     def map[A,B](xs: Ref[WOption[A]])(f: Ref[A] => Ref[B]) = { implicit val eA = unlift(xs.elem); xs.map(fun(f))}

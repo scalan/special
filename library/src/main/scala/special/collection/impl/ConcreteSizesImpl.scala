@@ -245,7 +245,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
   case class CSizeCollCtor[Item]
       (override val sizes: Ref[Coll[Size[Item]]])
     extends CSizeColl[Item](sizes) with Def[CSizeColl[Item]] {
-    implicit lazy val eItem = sizes.eA.typeArgs("Val")._1.asElem[Item]
+    implicit lazy val eItem = sizes.eA.typeArgs("Val")._1.asInstanceOf[Elem[Item]]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
     lazy val resultType = element[CSizeColl[Item]]
     override def transform(t: Transformer) = CSizeCollCtor[Item](t(sizes))
@@ -320,7 +320,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
 
   implicit class ExtendedCSizeColl[Item](p: Ref[CSizeColl[Item]]) {
     def toData: Ref[CSizeCollData[Item]] = {
-      implicit val eItem = p.sizes.eA.typeArgs("Val")._1.asElem[Item]
+      implicit val eItem = p.sizes.eA.typeArgs("Val")._1.asInstanceOf[Elem[Item]]
       isoCSizeColl(eItem).from(p)
     }
   }
@@ -462,7 +462,7 @@ object CSizeOption extends EntityObject("CSizeOption") {
   case class CSizeOptionCtor[Item]
       (override val sizeOpt: Ref[WOption[Size[Item]]])
     extends CSizeOption[Item](sizeOpt) with Def[CSizeOption[Item]] {
-    implicit lazy val eItem = sizeOpt.eA.typeArgs("Val")._1.asElem[Item]
+    implicit lazy val eItem = sizeOpt.eA.typeArgs("Val")._1.asInstanceOf[Elem[Item]]
     override lazy val eT: Elem[Item] = eItem
 override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     lazy val resultType = element[CSizeOption[Item]]
@@ -538,7 +538,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
 
   implicit class ExtendedCSizeOption[Item](p: Ref[CSizeOption[Item]]) {
     def toData: Ref[CSizeOptionData[Item]] = {
-      implicit val eItem = p.sizeOpt.eA.typeArgs("Val")._1.asElem[Item]
+      implicit val eItem = p.sizeOpt.eA.typeArgs("Val")._1.asInstanceOf[Elem[Item]]
       isoCSizeOption(eItem).from(p)
     }
   }

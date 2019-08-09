@@ -71,7 +71,7 @@ object Size extends EntityObject("Size") {
   case class SizeAdapter[Val](source: Ref[Size[Val]])
       extends Size[Val]
       with Def[Size[Val]] {
-    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
     val resultType: Elem[Size[Val]] = element[Size[Val]]
     override def transform(t: Transformer) = SizeAdapter[Val](t(source))
@@ -199,7 +199,7 @@ object SizePrim extends EntityObject("SizePrim") {
   case class SizePrimAdapter[Val](source: Ref[SizePrim[Val]])
       extends SizePrim[Val]
       with Def[SizePrim[Val]] {
-    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
     val resultType: Elem[SizePrim[Val]] = element[SizePrim[Val]]
     override def transform(t: Transformer) = SizePrimAdapter[Val](t(source))
@@ -324,8 +324,8 @@ object SizePair extends EntityObject("SizePair") {
   case class SizePairAdapter[L, R](source: Ref[SizePair[L, R]])
       extends SizePair[L, R]
       with Def[SizePair[L, R]] {
-    implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
-implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
+    implicit lazy val eL = source.elem.typeArgs("L")._1.asInstanceOf[Elem[L]];
+implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
     override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
     val resultType: Elem[SizePair[L, R]] = element[SizePair[L, R]]
     override def transform(t: Transformer) = SizePairAdapter[L, R](t(source))
@@ -473,7 +473,7 @@ object SizeColl extends EntityObject("SizeColl") {
   case class SizeCollAdapter[Item](source: Ref[SizeColl[Item]])
       extends SizeColl[Item]
       with Def[SizeColl[Item]] {
-    implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
+    implicit lazy val eItem = source.elem.typeArgs("Item")._1.asInstanceOf[Elem[Item]]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
     val resultType: Elem[SizeColl[Item]] = element[SizeColl[Item]]
     override def transform(t: Transformer) = SizeCollAdapter[Item](t(source))
@@ -609,9 +609,9 @@ object SizeFunc extends EntityObject("SizeFunc") {
   case class SizeFuncAdapter[Env, Arg, Res](source: Ref[SizeFunc[Env, Arg, Res]])
       extends SizeFunc[Env, Arg, Res]
       with Def[SizeFunc[Env, Arg, Res]] {
-    implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asElem[Env];
-implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asElem[Arg];
-implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
+    implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asInstanceOf[Elem[Env]];
+implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asInstanceOf[Elem[Arg]];
+implicit lazy val eRes = source.elem.typeArgs("Res")._1.asInstanceOf[Elem[Res]]
     override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
     val resultType: Elem[SizeFunc[Env, Arg, Res]] = element[SizeFunc[Env, Arg, Res]]
     override def transform(t: Transformer) = SizeFuncAdapter[Env, Arg, Res](t(source))
@@ -743,7 +743,7 @@ object SizeOption extends EntityObject("SizeOption") {
   case class SizeOptionAdapter[T](source: Ref[SizeOption[T]])
       extends SizeOption[T]
       with Def[SizeOption[T]] {
-    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
     val resultType: Elem[SizeOption[T]] = element[SizeOption[T]]
     override def transform(t: Transformer) = SizeOptionAdapter[T](t(source))

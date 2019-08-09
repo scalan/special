@@ -23,7 +23,6 @@ trait TypeDescs extends Base { self: Scalan =>
   @inline final def asElem[T](d: TypeDesc): Elem[T] = d.asInstanceOf[Elem[T]]
 
   implicit class TypeDescOps(d: TypeDesc) {
-    def asElem[B]: Elem[B] = self.asElem[B](d)  // TODO remove
     def asElemOption[B]: Option[Elem[B]] = if (isElem) Some(d.asInstanceOf[Elem[B]]) else None
     def asCont[C[_]]: Cont[C] = d.asInstanceOf[Cont[C]] // TODO remove
     def asContOption[C[_]]: Option[Cont[C]] = if (isCont) Some(d.asInstanceOf[Cont[C]]) else None
