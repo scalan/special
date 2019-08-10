@@ -352,7 +352,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    def lift[A](implicit evA: Elem[A]) = element[$name[A]]
         |    def unlift[A](implicit eFT: Elem[$name[A]]) =
         |      cast${e.name}Element(eFT).${e.implicitArgs(0).name}
-        |    def getElem[A](fa: Ref[$name[A]]) = fa.elem
         |    def unapply[T](e: Elem[_]) = e match {
         |      case e: ${e.name}Elem[_,_] => Some(asElem[${e.name}[T]](e))
         |      case _ => None

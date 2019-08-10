@@ -61,6 +61,6 @@ trait Entities extends TypeDescs { self: Scalan =>
 
   /** Base class for all descriptors of staged companions */
   abstract class CompanionElem[T] extends Elem[T] { _: scala.Equals =>
-    override def buildTypeArgs = TypeArgs()
+    override def buildTypeArgs = EmptyTypeArgs
   }
 }

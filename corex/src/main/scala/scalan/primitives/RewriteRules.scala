@@ -1,6 +1,6 @@
 package scalan.primitives
 
-import scalan.{ScalanEx, Base}
+import scalan.{ScalanEx, Base, Nullable}
 
 import scala.reflect.runtime.universe._
 import scalan.util.Invariant
@@ -18,7 +18,7 @@ trait RewriteRules extends Base { self: ScalanEx =>
   }
 
   def cachedElem[E <: Elem[_]](args: AnyRef*)(implicit tag: ClassTag[E]) = {
-    cachedElem0(tag.runtimeClass, None, args).asInstanceOf[E]
+    cachedElem0(tag.runtimeClass, Nullable.None, args).asInstanceOf[E]
   }
 
   implicit def rewriteElement[A](implicit eA: Elem[A]): Elem[Rewrite[A]] =

@@ -40,7 +40,6 @@ trait StructItemsModule extends impl.StructItemsDefs { self: Structs with Scalan
     implicit def eS: Elem[S]
     def lift[T](implicit eT: Elem[T]) = element[StructItem[T,S]]
     def unlift[T](implicit eFT: Elem[StructItem[T,S]]) = eFT.asInstanceOf[StructItemElem[T,S,_]].eVal
-    def getElem[T](fa: Ref[StructItem[T,S]]) = fa.elem
     def unapply[T](e: Elem[_]) = e match {
       case e: StructItemElem[_, _, _] => Some(asElem[StructItem[T,S]](e))
       case _ => None

@@ -106,7 +106,7 @@ trait Structs extends TypeDescs with GraphVizExport { self: Scalan =>
     lazy val fieldsString: String = fieldsString(_.name)
     def findFieldIndex(fieldName: String): Int = fields.iterator.map(_._1).indexOf(fieldName)
 
-    override def buildTypeArgs = TypeArgs()
+    override def buildTypeArgs = EmptyTypeArgs
   }
   implicit def StructElemExtensions[T <: Struct](e: Elem[T]): StructElem[T] = e.asInstanceOf[StructElem[T]]
 

@@ -14,12 +14,18 @@ import scala.collection.mutable
 
 abstract class TypeDescs extends Base { self: Scalan =>
 
+  /** Helper type case method. */
   @inline final def asElem[T](d: TypeDesc): Elem[T] = d.asInstanceOf[Elem[T]]
 
-  type LElem[A] = Lazy[Elem[A]] // lazy element
+  /** Type descriptor which is computed lazily on demand. */
+  type LElem[A] = Lazy[Elem[A]]
+
+  /** Immutable data environment used to assign data values to graph nodes. */
   type DataEnv = Map[Sym, AnyRef]
 
-  /** State monad for symbols computed in an environment. */
+  /** State monad for symbols computed in a data environment.
+    * `DataEnv` is used as the state of the state monad.
+    */
   case class EnvRep[A](run: DataEnv => (DataEnv, Ref[A])) {
     def flatMap[B](f: Ref[A] => EnvRep[B]): EnvRep[B] = EnvRep { env =>
       val (env1, x) = run(env)
@@ -183,6 +189,13 @@ abstract class TypeDescs extends Base { self: Scalan =>
     //      if (mc.selfType == UnitElement) ().asInstanceOf[AnyRef] else res
     //    }
 
+    /** Invoke source type method corresponding to the given MethodCall node.
+      * The instance of receiver is obtained from `dataEnv` using mc.receiver symbol.
+      * The Method descriptor of the source class is taken from `this.methods` mapping.
+      * @param mc   IR node representing method invocation
+      * @param dataEnv  environment where each symbol of 'mc' has associated data value
+      * @return  data value returned from invoked method
+      */
     def invokeUnlifted(mc: MethodCall, dataEnv: DataEnv): AnyRef = {
       val res = methods.get(mc.method) match {
         case Some(WMethodDesc(wrapSpec, method)) =>
@@ -217,10 +230,12 @@ abstract class TypeDescs extends Base { self: Scalan =>
   }
 
   object Elem {
+    /** Map source type desciptor to stated type descriptor using liftable instance. */
     implicit def rtypeToElem[SA, A](tSA: RType[SA])(implicit lA: Liftables.Liftable[SA,A]): Elem[A] = lA.eW
 
     final def unapply[T, E <: Elem[T]](s: Ref[T]): Nullable[E] = Nullable(s.elem.asInstanceOf[E])
 
+    /** Get unique method name suitable to be used as HashMap key. */
     def methodKey(m: Method) = {
       val ann = m.getDeclaredAnnotation(classOf[OverloadId])
       if (ann != null)
@@ -229,6 +244,16 @@ abstract class TypeDescs extends Base { self: Scalan =>
         m.getName
     }
 
+    /** Build a mapping between methods of staged class and the corresponding methods of source class.
+      * The methods are related using names.
+      * The computed mapping can be used to project MethodCalls IR nodes back to the corresponding
+      * methods of source classes and then making their invocation using Java Reflection (Method.invoke).
+      * @param cls         staged class where `methodNames` should be looked up
+      * @param srcCls      source class where `methodNames` should be looked up
+      * @param methodNames list of method names to lookup in both classes
+      * @return  a sequence of pairs relating for each staged method the corresponding method from
+      *          source classes.
+      */
     def declaredMethods(cls: Class[_], srcCls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
       val rmethods = cls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
       val smethods = srcCls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
@@ -238,6 +263,14 @@ abstract class TypeDescs extends Base { self: Scalan =>
       }.to[Seq]
     }
 
+    /** Build a mapping between methods of staged wrapper and the corresponding methods of wrapper spec class.
+      * The methods are related using names.
+      * @param wrapSpec    wrapper specification class where `methodNames` should be looked up
+      * @param wcls        wrapper class where `methodNames` should be looked up
+      * @param methodNames list of method names to lookup in both classes
+      * @return  a sequence of pairs relating for each wrapper method the corresponding method from
+      *          source classes.
+      */
     def declaredWrapperMethods(wrapSpec: WrapSpec, wcls: Class[_], methodNames: Set[String]): Seq[(Method, MethodDesc)] = {
       val specCls = wrapSpec.getClass
       val wMethods = wcls.getDeclaredMethods.filter(m => methodNames.contains(m.getName))
@@ -250,9 +283,17 @@ abstract class TypeDescs extends Base { self: Scalan =>
 
   }
 
+  /** Invoke source type method corresponding to the given MethodCall node.
+    * This method delegated the work to the given element instance.
+    * @param e    type descriptor of receiver node
+    * @param mc   IR node representing method invocation
+    * @param dataEnv  environment where each symbol of 'mc' has associated data value
+    * @return  data value returned from invoked method
+    */
   def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef =
     e.invokeUnlifted(mc, dataEnv)
 
+  /** Get first (and the only) constructor of the `clazz`. */
   private[scalan] final def getConstructor(clazz: Class[_]) = {
     val constructors = clazz.getDeclaredConstructors()
     if (constructors.length != 1)
@@ -261,20 +302,29 @@ abstract class TypeDescs extends Base { self: Scalan =>
       constructors(0)
   }
 
+  /** Retrieve an instance of the given Elem class by either looking up in the cache
+    * or creating a new one.
+    * We assume that all Elem instances are uniquely defined by (clazz, args)
+    * @param args  arguments of Elem class constructor
+    * @param clazz Elem class
+    */
   final def cachedElemByClass[E <: Elem[_]](args: AnyRef*)(implicit clazz: Class[E]) = {
-    cachedElem0(clazz, None, args).asInstanceOf[E]
+    cachedElem0(clazz, Nullable.None, args).asInstanceOf[E]
   }
 
+  /** Elements cache information for each Elem class. */
   class ElemCacheEntry(
+    /** Constructor of the class to create new instances. */
     val constructor: java.lang.reflect.Constructor[_],
+    /** Whether owner argument of constructor exists and of which kind. */
     val ownerType: OwnerKind,
+    /** Created instances of elements, one for each unique collection of args. */
     val elements: AVHashMap[Seq[AnyRef], AnyRef]
   )
     
   protected val elemCache = AVHashMap[Class[_], ElemCacheEntry](1000)
 
-  // TODO optimize: avoid tuple key in map since Tuple2.hashCode and equals takes 95% of lookup time
-  private[scalan] final def cachedElem0(clazz: Class[_], optConstructor: Option[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
+  private[scalan] final def cachedElem0(clazz: Class[_], optConstructor: Nullable[java.lang.reflect.Constructor[_]], args: Seq[AnyRef]) = {
     val entry = elemCache.get(clazz) match {
       case Nullable(entry) => entry
       case _ =>
@@ -299,6 +349,8 @@ abstract class TypeDescs extends Base { self: Scalan =>
 
   abstract class BaseElem[A](defaultValue: A) extends Elem[A] with Serializable with scala.Equals
 
+  /** Type descriptor for primitive types.
+    * There is implicit `val` declaration for each primitive type. */
   class BaseElemLiftable[A](defaultValue: A, val tA: RType[A]) extends BaseElem[A](defaultValue) {
     override def buildTypeArgs = EmptyTypeArgs
     override val liftable = new Liftables.BaseLiftable[A]()(this, tA)
@@ -310,6 +362,7 @@ abstract class TypeDescs extends Base { self: Scalan =>
     override val hashCode = tA.hashCode
   }
 
+  /** Type descriptor for `(A, B)` type where descriptors for `A` and `B` are given as arguments. */
   case class PairElem[A, B](eFst: Elem[A], eSnd: Elem[B]) extends Elem[(A, B)] {
     assert(eFst != null && eSnd != null)
     override def getName(f: TypeDesc => String) = s"(${f(eFst)}, ${f(eSnd)})"
@@ -318,11 +371,13 @@ abstract class TypeDescs extends Base { self: Scalan =>
       Liftables.asLiftable[(_,_), (A,B)](Liftables.PairIsLiftable(eFst.liftable, eSnd.liftable))
   }
 
+  /** Type descriptor for `A | B` type where descriptors for `A` and `B` are given as arguments. */
   case class SumElem[A, B](eLeft: Elem[A], eRight: Elem[B]) extends Elem[A | B] {
     override def getName(f: TypeDesc => String) = s"(${f(eLeft)} | ${f(eRight)})"
     override def buildTypeArgs = ListMap("A" -> (eLeft -> Covariant), "B" -> (eRight -> Covariant))
   }
 
+  /** Type descriptor for `A => B` type where descriptors for `A` and `B` are given as arguments. */
   case class FuncElem[A, B](eDom: Elem[A], eRange: Elem[B]) extends Elem[A => B] {
     import Liftables._
     override def getName(f: TypeDesc => String) = s"${f(eDom)} => ${f(eRange)}"
@@ -331,11 +386,13 @@ abstract class TypeDescs extends Base { self: Scalan =>
       asLiftable[_ => _, A => B](FuncIsLiftable(eDom.liftable, eRange.liftable))
   }
 
-
+  /** Type descriptor for `Any`, cannot be used implicitly. */
   val AnyElement: Elem[Any] = new BaseElemLiftable[Any](null, AnyType)
 
+  /** Predefined Lazy value saved here to be used in hotspot code. */
   val LazyAnyElement = Lazy(AnyElement)
 
+  /** Type descriptor for `AnyRef`, cannot be used implicitly. */
   val AnyRefElement: Elem[AnyRef] = new BaseElemLiftable[AnyRef](null, AnyRefType)
 
   // somewhat ugly casts, but they completely disappear after type erasure
@@ -369,9 +426,10 @@ abstract class TypeDescs extends Base { self: Scalan =>
 
   implicit final def toLazyElem[A](implicit eA: Elem[A]): LElem[A] = Lazy(eA)
 
+  /** Since ListMap is immutable this empty map can be shared by all other maps created from it. */
   val EmptyTypeArgs: ListMap[String, (TypeDesc, Variance)] = ListMap.empty
 
-  final def TypeArgs(descs: (String, (TypeDesc, Variance))*) = ListMap(descs: _*)
+  final def TypeArgs(descs: (String, (TypeDesc, Variance))*): ListMap[String, (TypeDesc, Variance)] = ListMap(descs: _*)
 
   // can be removed and replaced with assert(value.elem == elem) after #72
   def assertElem(value: Ref[_], elem: Elem[_]): Unit = assertElem(value, elem, "")
@@ -382,20 +440,31 @@ abstract class TypeDescs extends Base { self: Scalan =>
   def assertEqualElems[A](e1: Elem[A], e2: Elem[A], m: => String): Unit =
     assert(e1 == e2, s"Element $e1 != $e2: $m")
 
+  /** Descriptor of type constructor of `* -> *` kind. Type constructor is not a type,
+    * but rather a function from type to type.
+    * It contains methods which abstract relationship between types `T`, `F[T]` etc.
+    * @param F  high-kind type costructor which is described by this descriptor*/
   @implicitNotFound(msg = "No Cont available for ${F}.")
   abstract class Cont[F[_]] extends TypeDesc {
+    /** Given a descriptor of type `T` produced descriptor of type `F[T]`. */
     def lift[T](implicit eT: Elem[T]): Elem[F[T]]
+
+    /** Given a descriptor of type `F[T]` extracts a descriptor of type `T`. */
     def unlift[T](implicit eFT: Elem[F[T]]): Elem[T]
-    def getElem[T](fa: Ref[F[T]]): Elem[F[T]]
-    def getItemElem[T](fa: Ref[F[T]]): Elem[T] = unlift(getElem(fa))
+
+    /** Recogniser of type descriptors constructed by this type costructor.
+      * This can be used in generic code, where F is not known, but this descriptor is available. */
     def unapply[T](e: Elem[_]): Option[Elem[F[T]]]
 
+    /** Type string of this type constructor. */
     def getName(f: TypeDesc => String): String = {
       val eFAny = lift(AnyElement)
       val name = eFAny.getClass.getSimpleName.stripSuffix("Elem")
-      "[x]" + name
+      "[x] => " + name + "[x]"
     }
-    def isFunctor = this.isInstanceOf[Functor[F]]
+
+    /** Whether the type constructor `F` is an instance of Functor type class. */
+    final def isFunctor = this.isInstanceOf[Functor[F]]
   }
 
   final def container[F[_]: Cont] = implicitly[Cont[F]]

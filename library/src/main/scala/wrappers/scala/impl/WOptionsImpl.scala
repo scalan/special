@@ -201,7 +201,6 @@ object WOption extends EntityObject("WOption") {
     def lift[A](implicit evA: Elem[A]) = element[WOption[A]]
     def unlift[A](implicit eFT: Elem[WOption[A]]) =
       castWOptionElement(eFT).eA
-    def getElem[A](fa: Ref[WOption[A]]) = fa.elem
     def unapply[T](e: Elem[_]) = e match {
       case e: WOptionElem[_,_] => Some(asElem[WOption[T]](e))
       case _ => None

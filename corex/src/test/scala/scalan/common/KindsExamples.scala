@@ -11,7 +11,6 @@ trait KindsExamples extends Scalan with KindsModule {
   implicit val functorId: Functor[Id] = new Functor[Id] {
     def lift[A](implicit evA: Elem[A]) = evA
     def unlift[T](implicit eFT: Elem[Id[T]]) = eFT
-    def getElem[T](fa: Ref[Id[T]]) = !!!("Operation is not supported by Id container " + fa)
     def unapply[T](e: Elem[_]) = Some(asElem[Id[T]](e))
     def map[A, B](a: Ref[Id[A]])(f: (Ref[A]) => Ref[B]) = f(a)
   }

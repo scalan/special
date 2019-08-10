@@ -593,7 +593,6 @@ implicit val eV = proj.elem.eRange
     def lift[A](implicit evA: Elem[A]) = element[Coll[A]]
     def unlift[A](implicit eFT: Elem[Coll[A]]) =
       castCollElement(eFT).eA
-    def getElem[A](fa: Ref[Coll[A]]) = fa.elem
     def unapply[T](e: Elem[_]) = e match {
       case e: CollElem[_,_] => Some(asElem[Coll[T]](e))
       case _ => None
