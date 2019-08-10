@@ -1,6 +1,5 @@
 package scalan
 
-import java.io.Serializable
 import spire.syntax.all.cfor
 
 /**
@@ -10,13 +9,13 @@ import spire.syntax.all.cfor
 trait RTypeGenCoverageChecker {
   /** Take type into consideration.
     *
-    * @param    item     RType[_] value to be considered
+    * @param    item     RType[_] value to be marked as generated
     */
   def consider(item: RType[_]): Unit
 
   /** Check if all required types are generated.
     *
-    * @param    depth     depth of check
+    * @param    depth     There could be nested types. This parameter show how deep this nesting should be checked.
     * @return   `true` if every required types has been generated, `false` otherwise.
     */
   def isFullyCovered(depth: Int): Boolean
@@ -26,7 +25,7 @@ class FullTypeCoverageChecker extends RTypeGenCoverageChecker {
   import RType._
   import special.collection._
 
-  private type TypePosition = (Serializable, Int)
+  private type TypePosition = (Class[_], Int)
   private var typePositions: Set[TypePosition] = Set.empty
 
   override def consider(item: RType[_]): Unit = {
@@ -34,12 +33,12 @@ class FullTypeCoverageChecker extends RTypeGenCoverageChecker {
   }
 
   override def isFullyCovered(depth: Int): Boolean = {
-    val names = Seq(classOf[PrimitiveType[_]], classOf[PairType[_, _]], classOf[ArrayType[_]],
-      classOf[CollType[_]], classOf[ReplCollType[_]], classOf[OptionType[_]], StringType)
+    val typesForCoverage = Seq(classOf[PrimitiveType[_]], classOf[PairType[_, _]], classOf[ArrayType[_]],
+      classOf[CollType[_]], classOf[ReplCollType[_]], classOf[OptionType[_]], StringType.classTag.getClass)
     cfor(0)(_ < depth, _ + 1) { i =>
-      for (name <- names) {
-        if (!typePositions.contains(new TypePosition(name, i))) {
-          println(s"Type ${name} is not found at depth ${i}")
+      for (currentType <- typesForCoverage) {
+        if (!typePositions.contains(new TypePosition(currentType, i))) {
+          println(s"Type ${currentType} is not found at depth ${i}")
           return false
         }
       }
@@ -47,7 +46,7 @@ class FullTypeCoverageChecker extends RTypeGenCoverageChecker {
     true
   }
 
-  private def attachResult(typeName: Serializable, depth: Int) = {
+  private def attachResult(typeName: Class[_], depth: Int) = {
     val newTypePosition: TypePosition = (typeName, depth)
     typePositions = typePositions + newTypePosition
   }
@@ -70,7 +69,7 @@ class FullTypeCoverageChecker extends RTypeGenCoverageChecker {
     case replColl: ReplCollType[a] =>
       attachResult(classOf[ReplCollType[_]], depth)
       decomposeValue(replColl.tItem, depth + 1)
-    case StringType => attachResult(StringType, depth)
+    case StringType => attachResult(StringType.classTag.getClass, depth)
     case _ => throw new RuntimeException(s"Unknown generated RType: ${item}")
   }
 }
