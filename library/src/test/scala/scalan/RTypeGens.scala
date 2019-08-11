@@ -22,6 +22,12 @@ trait RTypeGens {
   // The reason why StringType is distiguished is that in type hierarchy StringType consists of Chars
   val dataTypeGen = Gen.oneOf[RType[_]](primitiveTypeGen, StringType)
 
+  def checkDepth(depth: Int): Unit = {
+    if (depth < 0) {
+      throw new RuntimeException(s"Generation depth can't be less then 0, found ${depth}")
+    }
+  }
+
   def pairTypeGen(itemGen: Gen[RType[_]], depth: Int): Gen[PairType[_, _]] = {
     def pairTypeGenFinal(itemGenLeft: Gen[RType[_]], itemGenRight: Gen[RType[_]]): Gen[PairType[_, _]] = {
       for { left <- itemGenLeft; right <- itemGenRight } yield new PairType(left, right)
@@ -30,6 +36,7 @@ trait RTypeGens {
       case 1 =>
         pairTypeGenFinal(itemGen, itemGen)
       case _ =>
+        checkDepth(depth)
         val lg = pairTypeGen(itemGen, depth - 1)
         val rg = pairTypeGen(itemGen, depth - 1)
         Gen.oneOf(
@@ -49,6 +56,7 @@ trait RTypeGens {
       case 1 =>
         arrayTypeGenFinal(itemGen)
       case _ =>
+        checkDepth(depth)
         Gen.oneOf(
           arrayTypeGenFinal(itemGen),
           arrayTypeGenFinal(arrayTypeGen(itemGen, depth - 1))
@@ -59,6 +67,7 @@ trait RTypeGens {
   def getFullTypeGen(depth: Int): Gen[RType[_]] = depth match {
     case 1 => Gen.oneOf(dataTypeGen, pairTypeGen(dataTypeGen, 1), arrayTypeGen(dataTypeGen, 1))
     case _ =>
+      checkDepth(depth)
       Gen.oneOf(dataTypeGen, pairTypeGen(getFullTypeGen(depth - 1), 1), arrayTypeGen(getFullTypeGen(depth - 1), 1))
   }
 
@@ -74,6 +83,7 @@ trait RTypeGens {
       case 1 =>
         optionTypeGenFinal(itemGen)
       case _ =>
+        checkDepth(depth)
         Gen.oneOf(
           optionTypeGenFinal(itemGen),
           optionTypeGenFinal(optionTypeGen(itemGen, depth - 1))
@@ -89,6 +99,7 @@ trait RTypeGens {
       case 1 =>
         collTypeGenFinal(itemGen)
       case _ =>
+        checkDepth(depth)
         Gen.oneOf(
           collTypeGenFinal(itemGen),
           collTypeGenFinal(collTypeGen(itemGen, depth - 1))
@@ -104,6 +115,7 @@ trait RTypeGens {
       case 1 =>
         replCollTypeGenFinal(itemGen)
       case _ =>
+        checkDepth(depth)
         Gen.oneOf(
           replCollTypeGenFinal(itemGen),
           replCollTypeGenFinal(replCollTypeGen(itemGen, depth - 1))
@@ -115,10 +127,16 @@ trait RTypeGens {
     case 1 => Gen.oneOf(dataTypeGen, pairTypeGen(dataTypeGen, 1), optionTypeGen(dataTypeGen, 1),
       arrayTypeGen(dataTypeGen, 1), collTypeGen(dataTypeGen, 1), replCollTypeGen(dataTypeGen, 1))
     case _ =>
+      checkDepth(depth)
       Gen.oneOf(dataTypeGen, pairTypeGen(extendedTypeGen(depth - 1), 1), optionTypeGen(extendedTypeGen(depth - 1), 1),
         arrayTypeGen(extendedTypeGen(depth - 1), 1), collTypeGen(extendedTypeGen(depth - 1), 1),
         replCollTypeGen(extendedTypeGen(depth - 1), 1)
       )
+  }
+
+  def extendedCollTypeGen(depth: Int): Gen[CollType[_]] = {
+    checkDepth(depth)
+    collTypeGen(extendedTypeGen(depth - 1), 1)
   }
 
   def primitiveValueGen[T: RType](t: PrimitiveType[T]): Gen[T] = t match {
