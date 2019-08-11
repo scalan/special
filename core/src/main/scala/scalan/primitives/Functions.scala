@@ -13,9 +13,15 @@ import spire.syntax.all.cfor
 trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   implicit class LambdaOps[A,B](f: Ref[A => B]) {
-    def apply(x: Ref[A]): Ref[B] = mkApply(f, x)
-    def >>[C](g: Ref[B => C]) = compose(g, f)
-    def <<[C](g: Ref[C => A]) = compose(f, g)
+    /** Apply given function symbol to the given argument symbol.
+      * @return  symbol representing result of function application */
+    final def apply(x: Ref[A]): Ref[B] = mkApply(f, x)
+
+    /** Build new function which applies `f` and then `g`*/
+    final def >>[C](g: Ref[B => C]): Ref[A => C] = compose(g, f)
+
+    /** Build new function which applies `g` and then `f`*/
+    final def <<[C](g: Ref[C => A]): Ref[C => B] = compose(f, g)
   }
 
   /** Global lambda equality mode used by default. It is used in `fun` and `fun2` lambda builders.
@@ -32,33 +38,33 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     * If this flag is `false` then this function cannot be used even if it is present in the node. */
   var unfoldWithOriginalFunc: Boolean = true
 
-  implicit def fun[A,B](f: Ref[A] => Ref[B])(implicit eA: LElem[A]): Ref[A => B] = mkLambda(f, true, useAlphaEquality, keepOriginalFunc)
-  implicit def fun2[A,B,C](f: (Ref[A], Ref[B])=>Ref[C])(implicit eA: LElem[A], eB: LElem[B]): Ref[((A,B))=>C] = mkLambda(f)
-  def funGlob[A,B](f: Ref[A] => Ref[B])(implicit eA: LElem[A]): Ref[A => B] = mkLambda(f, false, true, keepOriginalFunc)
+  /** Executes given lambda to construct Lambda node. The function `f` can be called with any symbol
+    * and has an effect of growing a graph starting from the argument symbol.
+    * If a reference to `Variable` node is passed as argument, then the constructed graph nodes
+    * can be collected to Lambda node forming its body and schedule.
+    * @param  f  function which execution will create body nodes
+    * @param  eA arguments type descriptor
+    */
+  implicit final def fun[A,B](f: Ref[A] => Ref[B])(implicit eA: LElem[A]): Ref[A => B] = mkLambda(f, true, useAlphaEquality, keepOriginalFunc)
+  implicit final def fun2[A,B,C](f: (Ref[A], Ref[B]) => Ref[C])(implicit eA: LElem[A], eB: LElem[B]): Ref[((A,B))=>C] = mkLambda(f)
 
-  // more convenient to call with explicit eA
-  def typedfun[A, B](eA: Elem[A])(f: Ref[A] => Ref[B]): Ref[A => B] =
-    fun(f)(Lazy(eA))
-
-  // see BooleanFunctionOps for example usage
-  def sameArgFun[A, B, C](sample: Ref[A => C])(f: Ref[A] => Ref[B]): Ref[A => B] =
-    typedfun(sample.elem.eDom)(f)
-
-  def composeBi[A, B, C, D](f: Ref[A => B], g: Ref[A => C])(h: (Ref[B], Ref[C]) => Ref[D]): Ref[A => D] = {
-    sameArgFun(f) { x => h(f(x), g(x)) }
-  }
-
+  /** Represent lambda expression as IR node.
+    * @param f   optional function, which was used to compute `y`
+    * @param x   lambda-bound variable
+    * @param y   symbol representing result of lambda invocation
+    * @param mayInline  whether this lambda can be inlined when applied
+    * @param alphaEquality  whether to use alpha-equality in `equals` */
   class Lambda[A, B](val f: Nullable[Ref[A] => Ref[B]], val x: Ref[A], val y: Ref[B], val mayInline: Boolean, val alphaEquality: Boolean = true)
     extends Def[A => B] with AstGraph with Product { thisLambda =>
     def eA = x.elem
     def eB = y.elem
 
-    private var _selfType: Elem[A => B] = _
+    private var _resultType: Elem[A => B] = _
     def resultType: Elem[A => B] = {
-      if (_selfType != null) _selfType
+      if (_resultType != null) _resultType
       else {
         val res = funcElement(eA, eB)
-        if (!y.isPlaceholder) _selfType = res  // memoize once y is assigned
+        if (!y.isPlaceholder) _resultType = res  // memoize once y is assigned
         res
       }
     }
@@ -392,6 +398,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     fun[A, B](_ => x)
   }
 
+  /** Composition of two functions (in mathematical notation), where first `g` is applied and them `f`. */
   def compose[A, B, C](f: Ref[B => C], g: Ref[A => B]): Ref[A => C] = {
     implicit val eA = g.elem.eDom
     implicit val eC = f.elem.eRange

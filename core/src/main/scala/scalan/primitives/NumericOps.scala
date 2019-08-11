@@ -10,13 +10,11 @@ trait NumericOps extends Base { self: Scalan =>
     def -(y: Ref[T]) = NumericMinus(n)(x.elem).apply(x, y)
     def *(y: Ref[T]) = NumericTimes(n)(x.elem).apply(x, y)
     def unary_- = NumericNegate(n)(x.elem).apply(x)
-    def abs = Math.abs(x)
+    def abs = Abs(n)(x.elem).apply(x)
     def toFloat = NumericToFloat(n).apply(x)
     def toDouble = NumericToDouble(n).apply(x)
     def toInt = NumericToInt(n).apply(x)
     def toLong = NumericToLong(n).apply(x)
-    def ceil = Math.ceil(toDouble)
-    def floor = Math.floor(toDouble)
   }
 
   implicit class FractionalOpsCls[T](x: Ref[T])(implicit f: Fractional[T]) {
@@ -55,11 +53,14 @@ trait NumericOps extends Base { self: Scalan =>
 
   case class NumericToLong[T](n: Numeric[T]) extends UnOp[T,Long]("ToLong", n.toLong)
 
+  case class Abs[T: Elem](n: Numeric[T]) extends UnOp[T, T]("Abs", n.abs)
+
   case class FractionalDivide[T](f: Fractional[T])(implicit elem: Elem[T]) extends DivOp[T]("/", f.div, f)
 
   case class IntegralDivide[T](i: Integral[T])(implicit elem: Elem[T]) extends DivOp[T]("/", i.quot, i)
 
   case class IntegralMod[T](i: Integral[T])(implicit elem: Elem[T]) extends DivOp[T]("%", i.rem, i)
+
 
 
   @inline final def isZero[T](x: T, n: Numeric[T]) = x == n.zero

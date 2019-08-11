@@ -1,10 +1,16 @@
 package scalan
 
+import java.lang.reflect.Method
+
+import net.sf.cglib.proxy.{Factory, Enhancer, InvocationHandler}
+import org.objenesis.ObjenesisStd
 import scalan.compilation.GraphVizConfig
 import scalan.meta.ScalanAst._
 import scalan.primitives._
 import scalan.staged.TransformingEx
 import scalan.util.StringUtil
+
+import scala.reflect.ClassTag
 
 class ScalanEx extends Scalan
   with Blocks
@@ -235,6 +241,95 @@ class ScalanEx extends Scalan
     def apply(name: String): ArgElem = new ArgElem(STpeArg(name, None, Nil))
     def apply(a: STpeArg) = new ArgElem(a)
     def unapply(t: ArgElem): Option[STpeArg] = Some(t.tyArg)
+  }
+
+  /** Create delegate instance suitable for method invocation.
+    * It is used when T is a class or a trait and the node referred by x doesn't conform to T.
+    * This method returns dynamically constructed instance, which conforms to T.
+    * Whenever a method of T is called on that instance, the call is intercepted and
+    * `DelegatedInterceptionHandler.invoke` method is called, then a new MethodCall can
+    * be constructed (which is befavior by default).
+    */
+  override protected def unrefDelegate[T <: AnyRef](x: Ref[T])(implicit ct: ClassTag[T]): T = {
+    val d = x.node
+    if (d.isInstanceOf[Const[_]])
+      d.asInstanceOf[Const[T]@unchecked].x
+    else
+      getDelegate(x, ct)
+  }
+
+  /** Used to cache generated delegate classes along with instantiated instances of the class.*/
+  case class CachedDelegateClass(delegateClass: Class[_ <: AnyRef], instances: AVHashMap[Sym, AnyRef])
+
+  private lazy val delegateCache = AVHashMap[ClassTag[_], CachedDelegateClass](100)
+  private lazy val objenesis = new ObjenesisStd
+
+  /** Construct delegate instance for the given type and receiver object. */
+  private def getDelegate[T](x: Ref[T], ct: ClassTag[T]): T = {
+    val cachedOpt = delegateCache.get(ct)
+    val entry = if (cachedOpt.isEmpty) {
+      val clazz = ct.runtimeClass
+      val e = new Enhancer
+      e.setClassLoader(clazz.getClassLoader)
+      e.setSuperclass(clazz)
+      e.setCallbackType(classOf[DelegatedInvocationHandler[_]])
+      val delegateClass = e.createClass().asSubclass(classOf[AnyRef])
+      val entry = CachedDelegateClass(delegateClass, AVHashMap[Sym, AnyRef](100))
+      delegateCache.put(ct, entry)
+      entry
+    } else
+      cachedOpt.get
+
+    val delegateOpt = entry.instances.get(x)
+    if (delegateOpt.isEmpty) {
+      val delegateInstance = objenesis.newInstance(entry.delegateClass).asInstanceOf[Factory]
+      delegateInstance.setCallback(0, new DelegatedInvocationHandler(x))
+      entry.instances.put(x, delegateInstance)
+      delegateInstance.asInstanceOf[T]
+    }
+    else
+      delegateOpt.get.asInstanceOf[T]
+  }
+
+  /** Handles intercepted invocations of method on delegates. */
+  class DelegatedInvocationHandler[T](receiver: Ref[T]) extends InvocationHandler {
+    override def toString = s"ExpInvocationHandler(${receiver.toStringWithDefinition})"
+
+    def invoke(delegate: AnyRef, m: Method, _args: Array[AnyRef]) = {
+      val args = if (_args == null) Array.empty[AnyRef] else _args
+
+      val res = invokeMethod(receiver, m, args, identity, {
+        case cause =>
+          throwInvocationException("Method invocation", cause, receiver, m, args)
+      }, {
+        !!!(s"Invocation handler is only supported for successful pass: ExpInvocationHandler($receiver).invoke($delegate, $m, ${args.toSeq})")
+      })
+      res
+    }
+  }
+
+  /** A more convenient then `fun` to call with explicit eA. */
+  final def typedfun[A, B](eA: Elem[A])(f: Ref[A] => Ref[B]): Ref[A => B] =
+    fun(f)(Lazy(eA))
+
+  def composeBi[A, B, C, D](f: Ref[A => B], g: Ref[A => C])(h: (Ref[B], Ref[C]) => Ref[D]): Ref[A => D] = {
+    typedfun(f.elem.eDom) { x => h(f(x), g(x)) }
+  }
+
+  implicit class BooleanFuncOps[A](f: Ref[A => Boolean]) {
+    def &&&(g: Ref[A => Boolean]) =
+      if (f == g)
+        f
+      else
+        composeBi(f, g)(_ && _)
+
+    def |||(g: Ref[A => Boolean]) =
+      if (f == g)
+        f
+      else
+        composeBi(f, g)(_ || _)
+
+    def !!! = typedfun(f.elem.eDom) { x => !f(x) }
   }
 
 }

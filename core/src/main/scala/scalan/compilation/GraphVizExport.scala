@@ -11,6 +11,9 @@ import scalan.{Plugins, Scalan, Base}
 import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
 import scala.collection.immutable.StringOps
 
+// TODO implement this outside of the cake
+
+/** Implementation of Graphviz's dot file generator. */
 trait GraphVizExport extends Base { self: Scalan =>
 
   case class GraphFile(file: File, fileType: String) {

@@ -25,21 +25,6 @@ trait LogicalOps extends Base { self: Scalan =>
     def toInt: Ref[Int] = BooleanToInt(value)
   }
 
-  implicit class BooleanFuncOps[A](f: Ref[A => Boolean]) {
-    def &&&(g: Ref[A => Boolean]) =
-      if (f == g)
-        f
-      else
-        composeBi(f, g)(_ && _)
-
-    def |||(g: Ref[A => Boolean]) =
-      if (f == g)
-        f
-      else
-        composeBi(f, g)(_ || _)
-
-    def !!! = sameArgFun(f) { x => !f(x) }
-  }
 
   @inline
   final def rewriteBoolConsts(lhs: Sym, rhs: Sym, ifTrue: Sym => Sym, ifFalse: Sym => Sym, ifEqual: Sym => Sym, ifNegated: Sym => Sym): Sym =

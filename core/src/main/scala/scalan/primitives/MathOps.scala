@@ -16,7 +16,7 @@ trait MathOps { self: Scalan =>
     def atan2(x: Ref[Double], y: Ref[Double]) = MathAtan2(x,y)
     def pow(x: Ref[Double], y: Ref[Double]) = MathPow(x,y)
     def tanh(x: Ref[Double]) = MathTanh(x)
-    def abs[A](x: Ref[A])(implicit n:Numeric[A]) = MathAbs(n)(x.elem).apply(x)
+
     def max[A](x: Ref[A], y: Ref[A])(implicit e: Elem[A], n:Ordering[A]) = x.max(y)
     def min[A](x: Ref[A], y: Ref[A])(implicit e: Elem[A], n:Ordering[A]) = x.min(y)
     val Pi = toRep(math.Pi)
@@ -50,5 +50,5 @@ trait MathOps { self: Scalan =>
 
   type BinDoubleOp = BinOp[Double, Double]
 
-  case class MathAbs[T: Elem](n: Numeric[T]) extends UnOp[T, T]("Abs", n.abs)
+
 }

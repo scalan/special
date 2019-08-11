@@ -145,56 +145,22 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
   def rewriteNonInvokableMethodCall(mc: MethodCall): Ref[_] = null
 
   /** Create delegate instance suitable for method invocation.
-    * It is used when T is a class or a trait and the node refered by x doesn't conform to T.
+    * It is used when T is a class or a trait and the node referred by x doesn't conform to T.
     * This method returns dynamically constructed instance, which conforms to T.
     * Whenever a method of T is called on that instance, the call is intercepted and
     * `DelegatedInterceptionHandler.invoke` method is called, then a new MethodCall can
-    * be constructed.
+    * be constructed (which is befavior by default).
     */
-  def unrefDelegate[T <: AnyRef](x: Ref[T])(implicit ct: ClassTag[T]): T = {
+  protected def unrefDelegate[T <: AnyRef](x: Ref[T])(implicit ct: ClassTag[T]): T = {
     val d = x.node
     if (d.isInstanceOf[Const[_]])
       d.asInstanceOf[Const[T]@unchecked].x
     else
       !!!(s"Cannot do undefDelegate($x -> ${x.node})")
-//      getDelegate(x, ct)
-  }
-
-  /** Used to cache generated delegate classes along with instantiated instances of the class.*/
-  case class CachedDelegateClass(delegateClass: Class[_ <: AnyRef], instances: AVHashMap[Sym, AnyRef])
-
-  private lazy val delegateCache = AVHashMap[ClassTag[_], CachedDelegateClass](100)
-  private lazy val objenesis = new ObjenesisStd
-
-  /** Construct delegate instance for the given type and receiver object. */
-  private def getDelegate[T](x: Ref[T], ct: ClassTag[T]): T = {
-    val cachedOpt = delegateCache.get(ct)
-    val entry = if (cachedOpt.isEmpty) {
-      val clazz = ct.runtimeClass
-      val e = new Enhancer
-      e.setClassLoader(clazz.getClassLoader)
-      e.setSuperclass(clazz)
-      e.setCallbackType(classOf[DelegatedInvocationHandler[_]])
-      val delegateClass = e.createClass().asSubclass(classOf[AnyRef])
-      val entry = CachedDelegateClass(delegateClass, AVHashMap[Sym, AnyRef](100))
-      delegateCache.put(ct, entry)
-      entry
-    } else
-      cachedOpt.get
-
-    val delegateOpt = entry.instances.get(x)
-    if (delegateOpt.isEmpty) {
-      val delegateInstance = objenesis.newInstance(entry.delegateClass).asInstanceOf[Factory]
-      delegateInstance.setCallback(0, new DelegatedInvocationHandler(x))
-      entry.instances.put(x, delegateInstance)
-      delegateInstance.asInstanceOf[T]
-    }
-    else
-      delegateOpt.get.asInstanceOf[T]
   }
 
   /** Generic helper to call the given method on the given receiver node. */
-  private def invokeMethod[A](receiver: Sym, m: Method, args: Array[AnyRef],
+  private[scalan] def invokeMethod[A](receiver: Sym, m: Method, args: Array[AnyRef],
                               onInvokeSuccess: AnyRef => A,
                               onInvokeException: Throwable => A,
                               onInvokeImpossible: => A): A = {
@@ -220,28 +186,15 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
     m.getDeclaringClass.isAssignableFrom(d.getClass) && isInvokeEnabled(d, m)
   }
 
+  /** Result of MethodCall invocation.
+    * @see tryInvoke */
   sealed trait InvokeResult
-
+  /** Successful MethodCall invocation with the given result. */
   case class InvokeSuccess(result: Ref[_]) extends InvokeResult
+  /** Exception thrown during MethodCall invocation. */
   case class InvokeFailure(exception: Throwable) extends InvokeResult
+  /** Invocation is not possible, e.g. when receiver doesn't implemented the method. */
   case object InvokeImpossible extends InvokeResult
-
-  /** Handles intercepted invocations of method on delegates. */
-  class DelegatedInvocationHandler[T](receiver: Ref[T]) extends InvocationHandler {
-    override def toString = s"ExpInvocationHandler(${receiver.toStringWithDefinition})"
-
-    def invoke(delegate: AnyRef, m: Method, _args: Array[AnyRef]) = {
-      val args = if (_args == null) Array.empty[AnyRef] else _args
-
-      val res = invokeMethod(receiver, m, args, identity, {
-        case cause =>
-          throwInvocationException("Method invocation", cause, receiver, m, args)
-      }, {
-        !!!(s"Invocation handler is only supported for successful pass: ExpInvocationHandler($receiver).invoke($delegate, $m, ${args.toSeq})")
-      })
-      res
-    }
-  }
 
   def throwInvocationException(whatFailed: String, cause: Throwable, receiver: Sym, m: Method, args: Seq[Any]) = {
     val buf = DBuffer.empty[Sym]

@@ -8,12 +8,14 @@ trait IfThenElse extends Base { self: Scalan =>
     * The representation uses Thunk for each branch */
   def IF(cond: Ref[Boolean]): IfBranch = new IfBranch(cond)
 
+  /** Defines syntax available after `IF (cond) ` */
   class IfBranch(cond: Ref[Boolean]) {
     def apply[T](thenp: => Ref[T]) = THEN(thenp)
 
     def THEN[T](thenp: => Ref[T]) = new ThenIfBranch[T](cond, thenp)
   }
 
+  /** Defines syntax available after `IF (cond) THEN thenp ELSEIF (cond1) ` */
   class ElseIfBranch[T](cond: Ref[Boolean], outer: ThenIfBranch[T]) {
     def apply(thenp: => Ref[T]) = THEN(thenp)
 
@@ -22,6 +24,7 @@ trait IfThenElse extends Base { self: Scalan =>
     }
   }
 
+  /** Defines syntax available after `IF (cond) THEN thenp ` */
   class ThenIfBranch[T](cond: Ref[Boolean], thenp: => Ref[T]) {
     def ELSE(elsep: => Ref[T]): Ref[T] = ifThenElseLazy(cond, thenp, elsep)
 
@@ -31,6 +34,7 @@ trait IfThenElse extends Base { self: Scalan =>
     def ELSEIF(cond1: => Ref[Boolean]) = new ElseIfBranch[T](cond1, this)
   }
 
+  /** IR node to represent IF condition with lazy branches. */
   case class IfThenElseLazy[T](cond: Ref[Boolean], thenp: Ref[Thunk[T]], elsep: Ref[Thunk[T]]) extends Def[T] {
     lazy val resultType = {
       val eThen = thenp.elem.eItem
@@ -41,6 +45,7 @@ trait IfThenElse extends Base { self: Scalan =>
     override def transform(t: Transformer) = IfThenElseLazy(t(cond), t(thenp), t(elsep))
   }
 
+  /** Constructs IfThenElse node wrapping by-name args into ThunkDef nodes. */
   def ifThenElseLazy[T](cond: Ref[Boolean], thenp: => Ref[T], elsep: => Ref[T]): Ref[T] = {
     val t = Thunk(thenp)
     val e = Thunk(elsep)

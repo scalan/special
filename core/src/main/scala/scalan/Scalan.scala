@@ -25,7 +25,7 @@ class Scalan
   with UnBinOps
   with LogicalOps
   with OrderingOps
-  with MathOps
+//  with MathOps
   with Equal
   with UniversalOps
   with Functions
