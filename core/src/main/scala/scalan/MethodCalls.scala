@@ -1,20 +1,14 @@
 package scalan
 
 import java.lang.reflect.{InvocationTargetException, Method}
-import java.util.Objects
-
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import scala.reflect.runtime.universe._
-import scala.util.{Success, Try}
 import org.objenesis.ObjenesisStd
 import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
-import scalan.util.{ReflectionUtil, StringUtil, ScalaNameUtil}
+import scalan.util.ScalaNameUtil
 import debox.{Buffer => DBuffer}
 import spire.syntax.all.cfor
-
-import scala.collection.mutable.ArrayBuffer
 
 trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
 
@@ -162,7 +156,8 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
     if (d.isInstanceOf[Const[_]])
       d.asInstanceOf[Const[T]@unchecked].x
     else
-      getDelegate(x, ct)
+      !!!(s"Cannot do undefDelegate($x -> ${x.node})")
+//      getDelegate(x, ct)
   }
 
   /** Used to cache generated delegate classes along with instantiated instances of the class.*/
