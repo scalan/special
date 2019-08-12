@@ -47,6 +47,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
+  // TODO: rework the following tests for every type, now it is adaptation
   property("Coll.flatMap") {
     forAll(containerOfN[Coll, Int](3, valueGen(IntType)), valueGen(intCollRtype)) { (zs, col) =>
       val matrix = zs.map(_ => col)
