@@ -129,6 +129,30 @@ The arrays created in this way are only accessible via `Seq` interface,
 which is immutable. Thus, better performance is achieved without sacrificing other
 desirable code qualities like readability, safety, conciseness.
 
+### Abstract class vs trait
+
+Traits are more flexible than classes because they can be mixed in various ways. 
+That is often convenient when the code is prototyped and when the code shape is 
+still changing. Also they are easier to type. 
+
+However traits come with inherent performance penalty. Invocation of trait's method
+results in `invokeinterface` opcode of JVM instead of `invokevirtual` opcode for 
+class method invocation. First, HotSpot JIT needs to do more work to optimize 
+execution of `invokeinterface`, which is not always possible. Second, if it fails 
+to optimize, then every call will have an additional method search before an actual 
+invocation takes place.
+
+##### What to use instead
+
+When prototyping use `abstract class` instead of `trait` declaration by default.
+This way you avoid over generalization of you type hierarchy, and you will have 
+better understanding of where you really need traits and why.
+
+Try changing `trait` declarations with `abstract class` declarations. In many cases
+this as simple as that, and you get performance gains almost for free.
+This however not always possible with published APIs as it may break compatibility.
+
+
 ### Concluding remarks
 
 Program performance is the result of everyday work, rather than one time job.
@@ -145,3 +169,4 @@ You may find it useful to examine the References section for more detailed infor
 7. [Scala library benchmarks](https://github.com/scala/scala/tree/2.13.x/test/benchmarks)
 8. [JITWatch](https://github.com/AdoptOpenJDK/jitwatch)
 9. [Parallel Collections: Measuring Performance](https://docs.scala-lang.org/overviews/parallel-collections/performance.html)
+10. [JVM JIT optimization techniques](https://advancedweb.hu/2016/05/27/jvm_jit_optimization_techniques/)
