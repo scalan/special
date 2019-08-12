@@ -45,12 +45,12 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
       val copy: T = RTypeUtil.clone(value)(tA)
 
       deepEqualityChecker(copy, value)(tA) shouldBe true
-      val checkResult = tA match {
+      val haveDifferentAddresses = tA match {
         case prim: PrimitiveType[a] => true
         case optionType: OptionType[a] if value.asInstanceOf[Option[a]].isEmpty => true
         case _ => !(copy.asInstanceOf[AnyRef] eq value.asInstanceOf[AnyRef])
       }
-      checkResult shouldBe true
+      haveDifferentAddresses shouldBe true
     }
 
     val minSuccess = MinSuccessful(PosInt.from(coverageThreshold).get)
