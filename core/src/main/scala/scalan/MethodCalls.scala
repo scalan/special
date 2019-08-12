@@ -3,8 +3,6 @@ package scalan
 import java.lang.reflect.{InvocationTargetException, Method}
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import org.objenesis.ObjenesisStd
-import net.sf.cglib.proxy.{InvocationHandler, Factory, Enhancer}
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.util.ScalaNameUtil
 import debox.{Buffer => DBuffer}
@@ -113,7 +111,6 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
   @tailrec
   private def baseCause(e: Throwable): Throwable = e match {
     case e: java.lang.reflect.UndeclaredThrowableException => baseCause(e.getCause)
-    case e: net.sf.cglib.proxy.UndeclaredThrowableException => baseCause(e.getCause)
     case e: InvocationTargetException => baseCause(e.getCause)
     case e: ExceptionInInitializerError => baseCause(e.getCause)
     case e => e
