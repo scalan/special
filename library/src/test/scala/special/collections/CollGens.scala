@@ -14,19 +14,7 @@ import scala.util.Random
 trait CollGens extends RTypeGens { testSuite =>
   import Gen._
 
-  val monoid = builder.Monoids.intPlusMonoid
-  val valGen = choose(-100, 100)
   val indexGen = choose(0, 100)
-  val replacedGen = choose(0, 100)
-  val lenGen = choose(0, 100)
-
-  val byteGen = choose[Byte](Byte.MinValue, Byte.MaxValue)
-  val shortGen = choose[Short](Short.MinValue, Short.MaxValue)
-  val intGen = choose[Int](Int.MinValue, Int.MaxValue)
-  val longGen = choose[Long](Long.MinValue, Long.MaxValue)
-  val charGen = choose[Char](Char.MinValue, Char.MaxValue)
-  val floatGen = choose[Float](Float.MinValue, Float.MaxValue)
-  val doubleGen = choose[Double](Double.MinValue, Double.MaxValue)
 
   //  val monoid = builder.Monoids.intPlusMonoid
 /*

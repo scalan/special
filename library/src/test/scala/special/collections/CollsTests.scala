@@ -25,7 +25,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   val intCollRtype = CollType(IntType)
 
-
   /* Test example:
 
   property("Some prop") {
@@ -75,16 +74,16 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       col.zip(col).indexWhere(p2, from) shouldBe col.toArray.zip(col.toArray).indexWhere(p2, from)
     }
   }
-
-  property("Coll.indexOf") {
-    forAll(extendedTypeGen(typeGenerationDepth), testMinSuccess) { t =>
-      forAll(getCollTypeGen(valueGen(t)), valueGen(t), indexGen, typeMinSuccess) { (col: Coll[_], elem, from) =>
-        col.indexOf(elem, from) shouldBe col.toArray.indexOf(elem, from)
-        col.zip(col).indexOf((elem, elem), from) shouldBe col.toArray.zip(col.toArray).indexOf((elem, elem), from)
-
-      }
-    }
-  }
+//
+//  property("Coll.indexOf") {
+//    forAll(extendedTypeGen(typeGenerationDepth), testMinSuccess) { t =>
+//      forAll(getCollTypeGen(valueGen(t)), valueGen(t), indexGen, typeMinSuccess) { (col: Coll[_], elem, from) =>
+//        col.indexOf(elem, from) shouldBe col.toArray.indexOf(elem, from)
+//        col.zip(col).indexOf((elem, elem), from) shouldBe col.toArray.zip(col.toArray).indexOf((elem, elem), from)
+//
+//      }
+//    }
+//  }
 //
 //  property("Coll.lastIndexWhere") {
 //    forAll(collGen, indexGen) { (col, end) =>
