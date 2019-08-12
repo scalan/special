@@ -134,9 +134,15 @@ trait RTypeGens {
       )
   }
 
-  def extendedCollTypeGen(depth: Int): Gen[CollType[_]] = {
+  def extendedCollTypeGen(depth: Int): Gen[RType[Coll[_]]] = {
     checkDepth(depth)
-    collTypeGen(extendedTypeGen(depth - 1), 1)
+    Gen.oneOf(collTypeGen(extendedTypeGen(depth - 1), 1).asInstanceOf[Gen[RType[Coll[_]]]],
+      replCollTypeGen(extendedTypeGen(depth - 1), 1).asInstanceOf[Gen[RType[Coll[_]]]])
+  }
+
+  def getCollTypeGen[T](itemGen: Gen[RType[T]]): Gen[RType[Coll[T]]] = {
+    Gen.oneOf(collTypeGen(itemGen, 1).asInstanceOf[Gen[RType[Coll[T]]]],
+      replCollTypeGen(itemGen, 1).asInstanceOf[Gen[RType[Coll[T]]]])
   }
 
   def primitiveValueGen[T: RType](t: PrimitiveType[T]): Gen[T] = t match {

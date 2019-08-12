@@ -7,8 +7,11 @@ import org.scalatest.prop.PropertyChecks
 import scalan.{GenConfiguration, RType}
 import scalan.RType.PairType
 
+import scala.reflect.ClassTag
+
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
+  import scalan.RType._
   import special.collection._
   import special.collection.ExtensionMethods._
 
@@ -18,22 +21,25 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   val testMinSuccess = MinSuccessful(100)
   val typeMinSuccess = MinSuccessful(5)
+  val onceMinSuccess = MinSuccessful(1)
+
+  val intCollRtype = CollType(IntType)
 
 
   /* Test example:
 
   property("Some prop") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: CollType[_] =>
+    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
       forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1: Coll[_], col2: Coll[_]) =>
       }
     }
   }
 
    */
-  property("Coll.indices") {
-    import scala.runtime.ScalaRunTime._
+  import scala.runtime.ScalaRunTime._
 
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: CollType[_] =>
+  property("Coll.indices") {
+    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
       forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1: Coll[_], col2: Coll[_]) =>
         col1.indices.toArray shouldBe col1.toArray.indices.toArray
         col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
@@ -43,33 +49,27 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.flatMap") {
-    /*forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: CollType[_] =>
-      forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1: Coll[_], col2: Coll[_]) =>
-        val matrix = zs.map(_ => col)
-        val res = zs.zip(matrix).flatMap(_._2)
-        res.toArray shouldBe zs.toArray.flatMap(_ => col.toArray)
-      }
-    }*/
-    forAll(containerOfN[Coll, Int](3, valGen), valueGen(new CollType[Int]())) { (zs, col) =>
+    forAll(containerOfN[Coll, Int](3, valueGen(IntType)), valueGen(intCollRtype)) { (zs, col) =>
       val matrix = zs.map(_ => col)
       val res = zs.zip(matrix).flatMap(_._2)
       res.toArray shouldBe zs.toArray.flatMap(_ => col.toArray)
     }
   }
-/*
+
   property("Coll.segmentLength") {
-    forAll(collGen, indexGen) { (col, from) =>
+    forAll(valueGen(intCollRtype), indexGen, testMinSuccess) { (col: Coll[Int], from: Int) =>
       col.segmentLength(lt0, from) shouldBe col.toArray.segmentLength(lt0, from)
     }
 
-    val minSuccess = minSuccessful(30)
-    forAll(superGen, indexGen, minSuccess) { (col, from) =>
-      col.segmentLength(collMatchRepl, from) shouldBe col.toArray.segmentLength(collMatchRepl, from)
+    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
+      forAll(valueGen(t), indexGen, typeMinSuccess) { (col: Coll[_], from: Int) =>
+        col.segmentLength(collMatchRepl, from) shouldBe col.toArray.segmentLength(collMatchRepl, from)
+      }
     }
   }
 
   property("Coll.indexWhere") {
-    forAll(collGen, indexGen) { (col, from) =>
+    forAll(valueGen(intCollRtype), indexGen, testMinSuccess) { (col: Coll[Int], from: Int) =>
       col.indexWhere(eq0, from) shouldBe col.toArray.indexWhere(eq0, from)
       def p2(ab: (Int, Int)) = eq0(ab._1) && eq0(ab._2)
       col.zip(col).indexWhere(p2, from) shouldBe col.toArray.zip(col.toArray).indexWhere(p2, from)
@@ -77,20 +77,23 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.indexOf") {
-    forAll(collGen, indexGen, valGen) { (col, from, elem) =>
-      col.indexOf(elem, from) shouldBe col.toArray.indexOf(elem, from)
-      col.zip(col).indexOf((elem, elem), from) shouldBe col.toArray.zip(col.toArray).indexOf((elem, elem), from)
+    forAll(extendedTypeGen(typeGenerationDepth), testMinSuccess) { t =>
+      forAll(getCollTypeGen(valueGen(t)), valueGen(t), indexGen, typeMinSuccess) { (col: Coll[_], elem, from) =>
+        col.indexOf(elem, from) shouldBe col.toArray.indexOf(elem, from)
+        col.zip(col).indexOf((elem, elem), from) shouldBe col.toArray.zip(col.toArray).indexOf((elem, elem), from)
+
+      }
     }
   }
-
-  property("Coll.lastIndexWhere") {
-    forAll(collGen, indexGen) { (col, end) =>
-      col.lastIndexWhere(eq0, end) shouldBe col.lastIndexWhere(eq0, end)
-      def p2(ab: (Int, Int)) = eq0(ab._1) && eq0(ab._2)
-      col.zip(col).lastIndexWhere(p2, end) shouldBe col.toArray.zip(col.toArray).lastIndexWhere(p2, end)
-    }
-  }
-
+//
+//  property("Coll.lastIndexWhere") {
+//    forAll(collGen, indexGen) { (col, end) =>
+//      col.lastIndexWhere(eq0, end) shouldBe col.lastIndexWhere(eq0, end)
+//      def p2(ab: (Int, Int)) = eq0(ab._1) && eq0(ab._2)
+//      col.zip(col).lastIndexWhere(p2, end) shouldBe col.toArray.zip(col.toArray).lastIndexWhere(p2, end)
+//    }
+//  }
+/*
   property("Coll.partition") {
     forAll(collGen) { col =>
       val (lsC, rsC) = col.partition(lt0)
