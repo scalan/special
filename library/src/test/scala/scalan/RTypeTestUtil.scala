@@ -71,6 +71,10 @@ object RTypeTestUtil {
       val valueOpt = value.asInstanceOf[Option[a]]
       if (copyOpt.isDefined != valueOpt.isDefined) return false
       if (copyOpt.isDefined) deepEqualityChecker(copyOpt.get, valueOpt.get)(opt.tA) else true
+    case coll: ReplCollType[a] =>
+      val copyColl = copy.asInstanceOf[ReplColl[a]]
+      val valueColl = value.asInstanceOf[ReplColl[a]]
+      copyColl.length == valueColl.length && deepEqualityChecker(valueColl.value, copyColl.value)(coll.tItem)
     case coll: CollType[a] =>
       val copyColl = copy.asInstanceOf[Coll[a]]
       val valueColl = value.asInstanceOf[Coll[a]]
@@ -80,10 +84,6 @@ object RTypeTestUtil {
           return false
       }
       true
-    case coll: ReplCollType[a] =>
-      val copyColl = copy.asInstanceOf[ReplColl[a]]
-      val valueColl = value.asInstanceOf[ReplColl[a]]
-      copyColl.length == valueColl.length && deepEqualityChecker(valueColl.value, copyColl.value)(coll.tItem)
     case _ => copy == value
   }
 }
