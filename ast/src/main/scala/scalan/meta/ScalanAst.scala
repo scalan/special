@@ -6,7 +6,7 @@ import scala.reflect.internal.ModifierFlags
 import java.util.Objects
 
 import scala.collection.immutable.{HashMap, HashSet}
-import scalan.{Constructor, ContainerType, WithMethodCallRecognizers, FunctorType, Liftable, Reified, NeverInline, External, Convertible}
+import scalan.{Constructor, ContainerType, FunctorType, Liftable, Reified, NeverInline, Isospec, External, Convertible, WithMethodCallRecognizers}
 import scalan.meta.Symbols._
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
 
@@ -334,6 +334,7 @@ object ScalanAst {
       args: List[SExpr]) extends SAnnotation
 
   final val LiftableAnnotation       = classOf[Liftable].getSimpleName
+  final val IsospecAnnotation        = classOf[Isospec].getSimpleName
   final val ConvertibleAnnotation    = classOf[Convertible].getSimpleName
   final val ConstructorAnnotation    = classOf[Constructor].getSimpleName
   final val ExternalAnnotation       = classOf[External].getSimpleName
@@ -1036,6 +1037,7 @@ object ScalanAst {
       isAbstract: Boolean,
       annotations: List[SEntityAnnotation] = Nil) extends SEntityDef with Updatable[SClassDef] {
     def isTrait = false
+    def hasIsospec(implicit ctx: AstContextBase): Boolean = hasAnnotation(IsospecAnnotation)
     def signature = DefSig(DefType.Entity, name, Nil)
     def clean = {
       val _companion = companion.map(_.clean)
