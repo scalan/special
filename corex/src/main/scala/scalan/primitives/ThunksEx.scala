@@ -5,6 +5,10 @@ import scalan.{ScalanEx, BaseEx}
 trait ThunksEx extends BaseEx with Thunks { self: ScalanEx =>
   import IsoUR._
 
+  case class ThunkView[A, B](source: Ref[Thunk[A]])(innerIso: Iso[A, B])
+      extends View1[A, B, Thunk](thunkIso(innerIso)) {
+  }
+
   override def unapplyViews[T](s: Ref[T]): Option[Unpacked[T]] = (s match {
     case Def(view: ThunkView[_,_]) =>
       Some((view.source, view.iso))

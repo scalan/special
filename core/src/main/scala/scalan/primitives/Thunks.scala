@@ -122,10 +122,6 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     }
   }
 
-  case class ThunkView[A, B](source: Ref[Thunk[A]])(innerIso: Iso[A, B])
-    extends View1[A, B, Thunk](thunkIso(innerIso)) {
-  }
-
   class ThunkScope(val parent: ThunkScope, val thunkSym: Ref[Any]) {
     private val bodyIds: DSet[Int] = DSet.ofSize(16)
     private val bodyDefs: AVHashMap[Def[_], Def[_]] = AVHashMap(32)
