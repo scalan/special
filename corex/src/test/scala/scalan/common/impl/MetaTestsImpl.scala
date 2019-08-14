@@ -420,36 +420,20 @@ object MT0 extends EntityObject("MT0") {
     override def transform(t: Transformer) = MT0Ctor(t(size))
   }
   // elem for concrete class
-  class MT0Elem(val iso: Iso[MT0Data, MT0])
+  implicit lazy val mT0Element: Elem[MT0] =
+    new MT0Elem
+
+  class MT0Elem
     extends MetaTestElem[Unit, MT0]
     with ConcreteElem[MT0Data, MT0] {
     override lazy val parent: Option[Elem[_]] = Some(metaTestElement(UnitElement))
-
+    def iso = ???
     override def convertMetaTest(x: Ref[MetaTest[Unit]]) = RMT0(x.size)
   }
 
   // state representation type
   type MT0Data = Int
 
-  // 3) Iso for concrete class
-  class MT0Iso
-    extends EntityIso[MT0Data, MT0] with Def[MT0Iso] {
-    override def transform(t: Transformer) = new MT0Iso()
-    private lazy val _safeFrom = fun { p: Ref[MT0] => p.size }
-    override def from(p: Ref[MT0]) =
-      tryConvert[MT0, Int](eTo, eFrom, p, _safeFrom)
-    override def to(p: Ref[Int]) = {
-      val size = p
-      RMT0(size)
-    }
-    lazy val eFrom = element[Int]
-    lazy val eTo = new MT0Elem(self)
-    lazy val resultType = new MT0IsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
-  }
-  case class MT0IsoElem() extends Elem[MT0Iso] {
-  }
   // 4) constructor and deconstructor
   class MT0CompanionCtor extends CompanionDef[MT0CompanionCtor] with MT0Companion {
     def resultType = MT0CompanionElem
@@ -478,16 +462,6 @@ object MT0 extends EntityObject("MT0") {
     else
       unrefDelegate[MT0](p)
   }
-
-  implicit class ExtendedMT0(p: Ref[MT0]) {
-    def toData: Ref[MT0Data] = {
-      isoMT0.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoMT0: Iso[MT0Data, MT0] =
-    reifyObject(new MT0Iso())
 
   def mkMT0
     (size: Ref[Int]): Ref[MT0] = {
