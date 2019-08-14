@@ -2,7 +2,11 @@ package scalan
 
 import scala.collection.mutable.{Map => MutMap}
 
-trait ViewsModuleEx extends ViewsModule with BaseEx { self: ScalanEx =>
+trait ViewsEx extends ViewsModule { self: ScalanEx =>
+
+}
+
+trait ViewsModuleEx extends ViewsEx with BaseEx { self: ScalanEx =>
   import IsoUR._
   import Converter._
   import AbsorbFirstUnitIso._

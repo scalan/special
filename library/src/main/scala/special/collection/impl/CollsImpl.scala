@@ -9,7 +9,6 @@ package impl {
 // Abs -----------------------------------
 trait CollsDefs extends scalan.Scalan with Colls {
   self: Library =>
-import IsoUR._
 import Coll._
 import CollBuilder._
 import Monoid._

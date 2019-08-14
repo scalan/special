@@ -45,5 +45,8 @@ trait TestContextsEx extends TestContexts {
   }
 }
 
-abstract class BaseCtxTestsEx extends BaseTests with TestContextsEx
+abstract class BaseCtxTestsEx extends BaseCtxTests with TestContextsEx
 
+abstract class BaseNestedCtxTestsEx extends BaseNestedTests with TestContextsEx
+
+abstract class BaseShouldCtxTestsEx extends BaseShouldTests with TestContextsEx

@@ -3,9 +3,9 @@ package scalan.common
 import scala.language.reflectiveCalls
 import scalan._
 
-class KindsTests extends BaseCtxTests {
+class KindsTests extends BaseCtxTestsEx {
 
-  class ConvProgStaged extends TestContext with KindsExamples with KindsModule {
+  class ConvProgStaged extends TestContextEx with KindsExamples with KindsModule {
   }
 //  class ConvProgStd extends ScalanDslStd with KindsExamples with KindsDslStd {
 //  }

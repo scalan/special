@@ -11,7 +11,6 @@ package impl {
   // Abs -----------------------------------
 trait ConcreteSizesDefs extends scalan.Scalan with ConcreteSizes {
   self: Library =>
-import IsoUR._
 import Size._  // manual fix
 import Coll._  // manual fix
 import WOption._  // manual fix

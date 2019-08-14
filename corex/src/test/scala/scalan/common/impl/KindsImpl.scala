@@ -5,7 +5,7 @@ import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
-trait KindsDefs extends scalan.Scalan with Kinds {
+trait KindsDefs extends scalan.ScalanEx with Kinds {
   self: KindsModule =>
 import IsoUR._
 import Kind._

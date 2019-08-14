@@ -25,14 +25,13 @@ class Scalan
   with UnBinOps
   with LogicalOps
   with OrderingOps
-//  with MathOps
   with Equal
   with UniversalOps
   with Functions
   with IfThenElse
   with Transforming
   with GraphVizExport
-  with ViewsModule
+//  with ViewsModule
   with Thunks
   with Entities
   with Structs

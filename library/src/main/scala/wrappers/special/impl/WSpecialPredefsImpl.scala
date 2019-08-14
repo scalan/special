@@ -12,7 +12,6 @@ package impl {
 // Abs -----------------------------------
 trait WSpecialPredefsDefs extends scalan.Scalan with WSpecialPredefs {
   self: WrappersModule =>
-import IsoUR._
 import WOption._
 import WSpecialPredef._
 

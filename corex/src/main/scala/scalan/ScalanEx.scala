@@ -14,6 +14,7 @@ import scala.reflect.ClassTag
 
 class ScalanEx extends Scalan
   with Blocks
+  with ViewsModule
   with ConvertersModule
   with StringOps
   with Metadata

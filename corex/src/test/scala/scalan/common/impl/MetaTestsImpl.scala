@@ -5,7 +5,7 @@ import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
-trait MetaTestsDefs extends scalan.Scalan with MetaTests {
+trait MetaTestsDefs extends scalan.ScalanEx with MetaTests {
   self: MetaTestsModule =>
 import IsoUR._
 import MT0._

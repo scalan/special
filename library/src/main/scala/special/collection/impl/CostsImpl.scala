@@ -9,7 +9,6 @@ package impl {
 // Abs -----------------------------------
 trait CostsDefs extends scalan.Scalan with Costs {
   self: Library =>
-import IsoUR._
 import Coll._
 import Costed._
 import CostedBuilder._

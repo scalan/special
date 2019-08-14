@@ -6,7 +6,7 @@ import scala.language.reflectiveCalls
 import scalan._
 import scalan.common.{SegmentsModule}
 
-class ThunkTests extends BaseCtxTests with BaseLiftableTests {
+class ThunkTests extends BaseCtxTestsEx with BaseLiftableTests {
   trait MyProg extends Scalan {
     lazy val t1 = fun { (in: Ref[Int]) =>
       Thunk { in }
@@ -142,7 +142,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
     ctx.emit("t11_inl", ctx.t11)
   }
 
-  trait MyDomainProg extends Scalan with SegmentsModule {
+  trait MyDomainProg extends ScalanEx with SegmentsModule {
     import Segment._
     import Slice._
     import Interval._
@@ -163,7 +163,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
   }
 
   ignore("thunksOfDomainTypes") {
-    val ctx = new TestContext with SegmentsModule with MyDomainProg {
+    val ctx = new TestContextEx with SegmentsModule with MyDomainProg {
       isInlineThunksOnForce = false
 
       def test() = {
@@ -186,7 +186,7 @@ class ThunkTests extends BaseCtxTests with BaseLiftableTests {
   }
 
   ignore("thunksOfDomainTypesWithoutIsoLifting") {
-    val ctx = new TestContext with SegmentsModule with MyDomainProg {
+    val ctx = new TestContextEx with SegmentsModule with MyDomainProg {
       isInlineThunksOnForce = false
       override def isInvokeEnabled(d: Def[_], m: Method) = true
       override def shouldUnpack(e: Elem[_]) = false

@@ -9,7 +9,6 @@ package impl {
 // Abs -----------------------------------
 trait WrappersSpecDefs extends scalan.Scalan with WrappersSpec {
   self: Library =>
-import IsoUR._
 import WOption._
 import WRType._
 import WSpecialPredef._

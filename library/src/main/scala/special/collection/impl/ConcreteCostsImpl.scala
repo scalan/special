@@ -11,7 +11,6 @@ import scalan.util.MemoizedFunc // manual fix
 // Abs -----------------------------------
 trait ConcreteCostsDefs extends scalan.Scalan with ConcreteCosts {
   self: Library =>
-import IsoUR._
 import CCostedBuilder._
 import CCostedColl._
 import CCostedFunc._

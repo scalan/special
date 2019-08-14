@@ -1,7 +1,7 @@
 package scalan.primitives
 
 import scalan.common.MetaTestsModule
-import scalan.{BaseTests, Base, Scalan, DefRewriting}
+import scalan.{BaseTests, DefRewriting, ScalanEx, Base, Scalan}
 
 abstract class IfThenElseTests[A <: Scalan](val ctx: A) extends BaseTests {
   import ctx._
@@ -43,7 +43,7 @@ trait IfThenElseLazyRewrites extends Base with DefRewriting { scalan: Scalan =>
 class IfThenElseTestsSeq extends IfThenElseTests(new Scalan with IfThenElseLazyRewrites)
 
 // Note: these tests pass thanks to rewriting of IF with constants
-class IfThenElseTestsExp extends IfThenElseTests(ctx = new Scalan with MetaTestsModule with IfThenElseLazyRewrites) {
+class IfThenElseTestsExp extends IfThenElseTests(ctx = new ScalanEx with MetaTestsModule with IfThenElseLazyRewrites) {
   import ctx._
   import MT0._; import MT1._; import MetaTest._
 

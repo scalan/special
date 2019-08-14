@@ -15,7 +15,7 @@ class SumTests extends BaseCtxTestsEx {
   }
 
   test("constant propagation from If to SumFold") {
-    val ctx = new TestContext("fromIfToSumFold") with SegmentsModule {
+    val ctx = new TestContextEx("fromIfToSumFold") with SegmentsModule {
       lazy val t1 = fun { x: Ref[Int] =>
         val s = IF (x > 0) THEN { (x + 1).asLeft[Int] } ELSE { (x + 2).asRight[Int] }
         s.fold(l => l + 1, r => r - 2)

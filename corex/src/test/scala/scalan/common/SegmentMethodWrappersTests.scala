@@ -3,7 +3,7 @@ package scalan.common
 import scala.language.reflectiveCalls
 import scalan._
 
-trait SegmentMethodWrappers extends Scalan with SegmentsModule {
+trait SegmentMethodWrappers extends ScalanEx with SegmentsModule {
   import Segment._
   import Slice._
   import Interval._
@@ -18,10 +18,10 @@ trait SegmentMethodWrappers extends Scalan with SegmentsModule {
   lazy val Slice_shift     = fun { (in: Ref[(SliceData, Int)]) => val Pair(i, o) = in; RSlice(i).shift(o) }
 }
 
-class SegmentMethodWrappersTests extends BaseNestedCtxTests {
+class SegmentMethodWrappersTests extends BaseNestedCtxTestsEx {
 
   class SegmentMethodWrappersStaged(testName: String)
-    extends TestContext(testName) with SegmentMethodWrappers with SegmentsModule {
+    extends TestContextEx(testName) with SegmentMethodWrappers with SegmentsModule {
   }
 
   val ctx = new SegmentMethodWrappersStaged("start")

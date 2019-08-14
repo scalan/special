@@ -6,8 +6,8 @@ import scalan.util.ReflectionUtil
 
 //import scalan.monads.{FreesDslExp, MonadsDslExp}
 
-class MethodCallsTests extends BaseCtxTests {
-  class Ctx extends TestContext with SegmentsModule /*with FreesDslExp with MonadsDslExp*/ {
+class MethodCallsTests extends BaseCtxTestsEx {
+  class Ctx extends TestContextEx with SegmentsModule /*with FreesDslExp with MonadsDslExp*/ {
 
     /**
      * Check that calling getResultElem on TReceiver.name produces expectedResultElem.

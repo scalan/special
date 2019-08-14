@@ -1,13 +1,13 @@
 package scalan.primitives
 
 import scala.language.reflectiveCalls
-import scalan.common.{SegmentsModule}
-import scalan.BaseCtxTests
+import scalan.common.SegmentsModule
+import scalan.{BaseCtxTests, BaseCtxTestsEx}
 
-class FunctionTests extends BaseCtxTests {
+class FunctionTests extends BaseCtxTestsEx {
 
   test("identity functions equality works") {
-    val ctx = new TestContext("identityFuns") with SegmentsModule {
+    val ctx = new TestContextEx("identityFuns") with SegmentsModule {
       lazy val t1 = identityFun[Int]
       lazy val t2 = identityFun[Int]
       lazy val t3 = identityFun[Double]

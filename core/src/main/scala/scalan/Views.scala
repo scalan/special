@@ -22,10 +22,6 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     def isIdentity: Boolean = false
     lazy val fromFun = fun { x: Ref[To] => from(x) }(Lazy(eTo))
     lazy val toFun = fun { x: Ref[From] => to(x) }(Lazy(eFrom))
-
-    //    if (isDebug) {
-    //      debug$IsoCounter(this) += 1
-    //    }
   }
 
   @Isospec

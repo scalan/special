@@ -1,8 +1,8 @@
 package scalan.common
 
-import scalan.Scalan
+import scalan.ScalanEx
 
-trait ViewExamples extends Scalan with SegmentsModule {
+trait ViewExamples extends ScalanEx with SegmentsModule {
   import Slice._
   import Interval._
   lazy val v1 = fun { (in: Ref[Interval]) => in }

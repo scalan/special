@@ -13,7 +13,6 @@ package impl {
 // Abs -----------------------------------
 trait WRTypesDefs extends scalan.Scalan with WRTypes {
   self: WrappersModule =>
-import IsoUR._
 import WRType._
 
 object WRType extends EntityObject("WRType") {

@@ -50,13 +50,12 @@ trait Entities extends TypeDescs { self: Scalan =>
   }
 
   /** Base class for all descriptors of staged classes. */
-  trait ConcreteElem[TData, TClass] extends EntityElem[TClass] with ViewElem[TData, TClass]
+  trait ConcreteElem[TData, TClass] extends EntityElem[TClass]
 
   /** Base class for all descriptors of staged classes with one type parameter.
     * Note, it doesn't inherit from ConcreteElem*/
   trait ConcreteElem1[A, TData, TClass, C[_]]
-    extends EntityElem1[A, TClass, C]
-       with ViewElem1[A, TData, TClass, C] { eClass =>
+    extends EntityElem1[A, TClass, C] { eClass =>
   }
 
   /** Base class for all descriptors of staged companions */

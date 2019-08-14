@@ -2,8 +2,8 @@ package scalan
 
 import scalan.common.{Segments, Interval, SegmentsModule}
 
-class BasicStaginTests extends BaseCtxTests {
-  lazy val ctx = new TestContext() with SegmentsModule {
+class BasicStaginTests extends BaseCtxTestsEx {
+  lazy val ctx = new TestContextEx() with SegmentsModule {
     beginPass(new DefaultPass("mypass", Pass.defaultPassConfig.copy(constantPropagation = false)))
     var defCounter = 0
     var defTime: Long = 0

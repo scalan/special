@@ -6,7 +6,7 @@ import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
-trait SegmentsDefs extends scalan.Scalan with Segments {
+trait SegmentsDefs extends scalan.ScalanEx with Segments {
   self: SegmentsModule =>
 import IsoUR._
 import Segment._

@@ -9,7 +9,6 @@ package impl {
 // Abs -----------------------------------
 trait CostedOptionsDefs extends scalan.Scalan with CostedOptions {
   self: Library =>
-import IsoUR._
 import CCostedBuilder._
 import CostedBuilder._
 import CostedOption._

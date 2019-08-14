@@ -1,10 +1,11 @@
 package scalan.common
 
 import scala.collection.Seq
-import scalan.Scalan
+import scalan.{ScalanEx}
+
 import scala.reflect.runtime.universe._
 
-trait KindsExamples extends Scalan with KindsModule {
+trait KindsExamples extends ScalanEx with KindsModule {
   import Kind._;
   type Id[A] = A
 

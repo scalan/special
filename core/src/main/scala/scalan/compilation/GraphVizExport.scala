@@ -30,12 +30,11 @@ trait GraphVizExport extends Base { self: Scalan =>
   // TODO it would be better to have nodeColor(elem: Elem[_], optDef: Option[Def[_]]) to
   // avoid looking up definition, but this leads to ClassFormatError (likely Scala bug)
   protected def nodeColor(td: TypeDesc, d: Def[_])(implicit config: GraphVizConfig): String = d match {
-    case _: View[_, _] => "darkgreen"
     case _ => nodeColor(td)
   }
 
   protected def nodeColor(td: TypeDesc): String = td match {
-    case _: ViewElem[_, _] => "green"
+    case _: ConcreteElem[_, _] => "green"
     case _: FuncElem[_, _] => "magenta"
     case _: CompanionElem[_] => "lightgray"
     case _ => "gray"
