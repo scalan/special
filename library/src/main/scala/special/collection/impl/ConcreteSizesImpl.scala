@@ -420,12 +420,6 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
   registerEntityObject("CSizeOption", CSizeOption)
 
   registerModule(ConcreteSizesModule)
-
-  // manual fix
-  override protected def onReset(): Unit = {
-    super.onReset()
-    CSizePrim._isoCSizePrimMemo.reset()
-  }
 }
 
 object ConcreteSizesModule extends scalan.ModuleInfo("special.collection", "ConcreteSizes")

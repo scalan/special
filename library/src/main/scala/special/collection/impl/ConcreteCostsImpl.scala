@@ -490,12 +490,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
   registerEntityObject("CCostedBuilder", CCostedBuilder)
 
   registerModule(ConcreteCostsModule)
-
-  // manual fix
-  override protected def onReset(): Unit = {
-    super.onReset()
-    CCostedPrim._isoCCostedPrimMemo.reset()
-  }
 }
 
 object ConcreteCostsModule extends scalan.ModuleInfo("special.collection", "ConcreteCosts")
