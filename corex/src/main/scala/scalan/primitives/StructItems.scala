@@ -13,6 +13,7 @@ trait StructItems extends ViewsModule with Entities { self: Structs with ScalanE
     def value: Ref[Val]
   }
 
+  @Isospec
   abstract class StructItemBase[Val, Schema <: Struct]
         (val key: Ref[StructKey[Schema]], val value: Ref[Val])
     extends StructItem[Val, Schema]

@@ -12,6 +12,7 @@ trait StructKeys extends ViewsModule with Entities with BaseEx { self: Structs w
     def index: Ref[Int]
     def name: Ref[String]
   }
+  @Isospec
   abstract class IndexStructKey[Schema <: Struct]
       (val index: Ref[Int])
       (implicit val eSchema: Elem[Schema]) extends StructKey[Schema] {
@@ -22,6 +23,7 @@ trait StructKeys extends ViewsModule with Entities with BaseEx { self: Structs w
     override def toString = s"${eSchema.fieldsString}[$index]"
   }
 
+  @Isospec
   abstract class NameStructKey[Schema <: Struct]
       (val name: Ref[String])
       (implicit val eSchema: Elem[Schema]) extends StructKey[Schema] {

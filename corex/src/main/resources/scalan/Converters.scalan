@@ -17,6 +17,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
   }
   trait ConverterCompanion
 
+  @Isospec
   abstract class IdentityConv[A](implicit val eT: Elem[A]) extends Converter[A, A] {
     def eR: Elem[A] = eT
     def apply(x: Ref[A]) = x
@@ -38,6 +39,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
     def asConv[C,D] = c.asInstanceOf[Conv[C,D]]
   }
 
+  @Isospec
   abstract class BaseConverter[T,R](override val convFun: Ref[T => R])
     extends Converter[T,R] {
     implicit def eT: Elem[T]
@@ -50,6 +52,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
   }
   trait BaseConverterCompanion
 
+  @Isospec
   abstract class PairConverter[A1, A2, B1, B2]
     (val conv1: Conv[A1, B1], val conv2: Conv[A2, B2])
     extends Converter[(A1, A2), (B1, B2)] {
@@ -59,6 +62,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
   }
   trait PairConverterCompanion
 
+  @Isospec
   abstract class SumConverter[A1, A2, B1, B2]
     (val conv1: Conv[A1, B1], val conv2: Conv[A2, B2])
     extends Converter[(A1 | A2), (B1 | B2)] {
@@ -68,6 +72,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
   }
   trait SumConverterCompanion
 
+  @Isospec
   abstract class ComposeConverter[A, B, C](val conv2: Conv[B, C], val conv1: Conv[A, B])
     extends Converter[A, C] {
     val eT: Elem[A] = conv1.eT
@@ -80,6 +85,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
     }
   }
 
+  @Isospec
   abstract class FunctorConverter[A,B,F[_]]
       (val itemConv: Conv[A, B])
       (implicit val F: Functor[F])
@@ -96,6 +102,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
   }
   trait FunctorConverterCompanion
 
+  @Isospec
   abstract class NaturalConverter[A,F[_],G[_]]
       (override val convFun: Ref[F[A] => G[A]])
       (implicit val eA: Elem[A], val cF: Cont[F], val cG: Cont[G])
@@ -110,6 +117,7 @@ trait Converters extends ViewsModule with TypeSum { self: Scalan with Converters
     }
   }
 
+  @Isospec
   abstract class ConverterIso[A, B](val convTo: Conv[A,B], val convFrom: Conv[B,A])
       extends IsoUR[A,B] {
     def eA: Elem[A]; def eB: Elem[B]

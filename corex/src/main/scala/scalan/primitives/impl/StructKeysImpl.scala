@@ -79,6 +79,10 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     lazy val resultType = element[IndexStructKey[Schema]]
     override def transform(t: Transformer) = IndexStructKeyCtor[Schema](t(index))(eSchema)
   }
+
+  // state representation type
+  type IndexStructKeyData[Schema <: Struct] = Int
+
   // elem for concrete class
   class IndexStructKeyElem[Schema <: Struct](val iso: Iso[IndexStructKeyData[Schema], IndexStructKey[Schema]])(implicit override val eSchema: Elem[Schema])
     extends StructKeyElem[Schema, IndexStructKey[Schema]]
@@ -86,9 +90,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type IndexStructKeyData[Schema <: Struct] = Int
 
   // 3) Iso for concrete class
   class IndexStructKeyIso[Schema <: Struct](implicit eSchema: Elem[Schema])
@@ -110,6 +111,17 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   case class IndexStructKeyIsoElem[Schema <: Struct](eSchema: Elem[Schema]) extends Elem[IndexStructKeyIso[Schema]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedIndexStructKey[Schema <: Struct](p: Ref[IndexStructKey[Schema]])(implicit eSchema: Elem[Schema]) {
+    def toData: Ref[IndexStructKeyData[Schema]] = {
+      isoIndexStructKey(eSchema).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoIndexStructKey[Schema <: Struct](implicit eSchema: Elem[Schema]): Iso[IndexStructKeyData[Schema], IndexStructKey[Schema]] =
+    reifyObject(new IndexStructKeyIso[Schema]()(eSchema))
+
   // 4) constructor and deconstructor
   class IndexStructKeyCompanionCtor extends CompanionDef[IndexStructKeyCompanionCtor] {
     def resultType = IndexStructKeyCompanionElem
@@ -139,16 +151,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
       unrefDelegate[IndexStructKey[Schema]](p)
   }
 
-  implicit class ExtendedIndexStructKey[Schema <: Struct](p: Ref[IndexStructKey[Schema]])(implicit eSchema: Elem[Schema]) {
-    def toData: Ref[IndexStructKeyData[Schema]] = {
-      isoIndexStructKey(eSchema).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIndexStructKey[Schema <: Struct](implicit eSchema: Elem[Schema]): Iso[IndexStructKeyData[Schema], IndexStructKey[Schema]] =
-    reifyObject(new IndexStructKeyIso[Schema]()(eSchema))
-
   def mkIndexStructKey[Schema <: Struct]
     (index: Ref[Int])(implicit eSchema: Elem[Schema]): Ref[IndexStructKey[Schema]] = {
     new IndexStructKeyCtor[Schema](index)
@@ -169,6 +171,10 @@ object NameStructKey extends EntityObject("NameStructKey") {
     lazy val resultType = element[NameStructKey[Schema]]
     override def transform(t: Transformer) = NameStructKeyCtor[Schema](t(name))(eSchema)
   }
+
+  // state representation type
+  type NameStructKeyData[Schema <: Struct] = String
+
   // elem for concrete class
   class NameStructKeyElem[Schema <: Struct](val iso: Iso[NameStructKeyData[Schema], NameStructKey[Schema]])(implicit override val eSchema: Elem[Schema])
     extends StructKeyElem[Schema, NameStructKey[Schema]]
@@ -176,9 +182,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type NameStructKeyData[Schema <: Struct] = String
 
   // 3) Iso for concrete class
   class NameStructKeyIso[Schema <: Struct](implicit eSchema: Elem[Schema])
@@ -200,6 +203,17 @@ object NameStructKey extends EntityObject("NameStructKey") {
   case class NameStructKeyIsoElem[Schema <: Struct](eSchema: Elem[Schema]) extends Elem[NameStructKeyIso[Schema]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedNameStructKey[Schema <: Struct](p: Ref[NameStructKey[Schema]])(implicit eSchema: Elem[Schema]) {
+    def toData: Ref[NameStructKeyData[Schema]] = {
+      isoNameStructKey(eSchema).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoNameStructKey[Schema <: Struct](implicit eSchema: Elem[Schema]): Iso[NameStructKeyData[Schema], NameStructKey[Schema]] =
+    reifyObject(new NameStructKeyIso[Schema]()(eSchema))
+
   // 4) constructor and deconstructor
   class NameStructKeyCompanionCtor extends CompanionDef[NameStructKeyCompanionCtor] {
     def resultType = NameStructKeyCompanionElem
@@ -228,16 +242,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
     else
       unrefDelegate[NameStructKey[Schema]](p)
   }
-
-  implicit class ExtendedNameStructKey[Schema <: Struct](p: Ref[NameStructKey[Schema]])(implicit eSchema: Elem[Schema]) {
-    def toData: Ref[NameStructKeyData[Schema]] = {
-      isoNameStructKey(eSchema).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoNameStructKey[Schema <: Struct](implicit eSchema: Elem[Schema]): Iso[NameStructKeyData[Schema], NameStructKey[Schema]] =
-    reifyObject(new NameStructKeyIso[Schema]()(eSchema))
 
   def mkNameStructKey[Schema <: Struct]
     (name: Ref[String])(implicit eSchema: Elem[Schema]): Ref[NameStructKey[Schema]] = {

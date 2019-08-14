@@ -24,6 +24,7 @@ trait Segments { self: SegmentsModule =>
   trait SegmentCompanion
 
   @WithMethodCallRecognizers
+  @Isospec
   abstract class Interval(val start: Ref[Int], val end: Ref[Int]) extends Segment {
     def length = end - start
     def shift(ofs: Ref[Int]) = RInterval(start + ofs, end + ofs)
@@ -41,6 +42,7 @@ trait Segments { self: SegmentsModule =>
   trait IntervalCompanion
 
   @WithMethodCallRecognizers
+  @Isospec
   abstract class Slice(val start: Ref[Int], val length: Ref[Int]) extends Segment {
     def end = start + length
     def shift(ofs: Ref[Int]) = RSlice(start + ofs, length)
@@ -49,6 +51,7 @@ trait Segments { self: SegmentsModule =>
   trait SliceCompanion
 
   @WithMethodCallRecognizers
+  @Isospec
   abstract class Centered(val center: Ref[Int], val radius: Ref[Int]) extends Segment {
     def start = center - radius
     def end = center + radius

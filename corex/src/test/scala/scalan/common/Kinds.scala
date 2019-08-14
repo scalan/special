@@ -20,6 +20,7 @@ trait Kinds extends Base { self: KindsModule =>
   trait KindCompanion
 
   @WithMethodCallRecognizers
+  @Isospec
   abstract class Return[F[_],A]
         (val a: Ref[A])
         (implicit val cF: Cont[F]) extends Kind[F,A]
@@ -29,6 +30,7 @@ trait Kinds extends Base { self: KindsModule =>
   trait ReturnCompanion
 
   @WithMethodCallRecognizers
+  @Isospec
   abstract class Bind[F[_],S,B]
         (val a: Ref[Kind[F, S]], val f: Ref[S => Kind[F,B]]) extends Kind[F,B] {
     override def flatMap[R](f1: Ref[B] => Ref[Kind[F,R]]): Ref[Kind[F,R]] = {

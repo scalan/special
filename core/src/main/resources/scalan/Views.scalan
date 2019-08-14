@@ -28,6 +28,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     //    }
   }
 
+  @Isospec
   abstract class IdentityIso[A](implicit val eA: Elem[A]) extends IsoUR[A, A] {
     def eFrom: Elem[A] = eA
     def eTo: Elem[A] = eA
@@ -49,6 +50,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
   // TODO we can get eA1 etc. from iso1 and iso2, but this won't work as default arguments
   // because this creates a compiler-generated companion object and conflicts with `def PairIsoUR`
   // in ViewsImpl.scala
+  @Isospec
   abstract class PairIso[A1, A2, B1, B2](val iso1: Iso[A1, B1], val iso2: Iso[A2, B2])
     extends IsoUR[(A1, A2), (B1, B2)] {
     implicit def eA1: Elem[A1]; implicit def eA2: Elem[A2]; implicit def eB1: Elem[B1]; implicit def eB2: Elem[B2]
@@ -91,6 +93,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
   }
   trait PairIsoCompanion
 
+  @Isospec
   abstract class AbsorbFirstUnitIso[A2,B2](val iso2: Iso[A2, B2]) extends IsoUR[A2, (Unit, B2)] {
     implicit def eA2: Elem[A2]; implicit def eB2: Elem[B2]
     def from(b: Ref[(Unit, B2)]) = {
@@ -106,6 +109,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     }
   }
 
+  @Isospec
   abstract class AbsorbSecondUnitIso[A1,B1](val iso1: Iso[A1, B1]) extends IsoUR[A1, (B1,Unit)] {
     implicit def eA1: Elem[A1]; implicit def eB1: Elem[B1]
     def from(b: Ref[(B1,Unit)]) = {
@@ -121,6 +125,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     }
   }
 
+  @Isospec
   abstract class SumIso[A1, A2, B1, B2](val iso1: Iso[A1, B1], val iso2: Iso[A2, B2])
     extends IsoUR[A1 | A2, B1 | B2] {
     implicit def eA1: Elem[A1]; implicit def eA2: Elem[A2]; implicit def eB1: Elem[B1]; implicit def eB2: Elem[B2]
@@ -135,6 +140,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     }
   }
 
+  @Isospec
   abstract class ComposeIso[A, B, C](val iso2: Iso[B, C], val iso1: Iso[A, B])
     extends IsoUR[A, C] {
     def eFrom: Elem[A] = iso1.eFrom
@@ -148,6 +154,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     }
   }
 
+  @Isospec
   abstract class FuncIso[A, B, C, D](val iso1: Iso[A, B], val iso2: Iso[C, D])
     extends IsoUR[A => C, B => D] {
     implicit def eA: Elem[A]; implicit def eB: Elem[B]; implicit def eC: Elem[C]; implicit def eD: Elem[D]
@@ -181,6 +188,7 @@ trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =
     }
   }
 
+  @Isospec
   abstract class ThunkIso[A,B](val innerIso: Iso[A,B]) extends Iso1UR[A, B, Thunk] {
     def cC = container[Thunk]
     def from(x: Th[B]) = x.map(innerIso.fromFun)

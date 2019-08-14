@@ -19,6 +19,7 @@ trait Specializations extends Views with Converters with DefRewriting { self: Sc
     def apply(x: Ref[T]): Ref[R]
   }
 
+  @Isospec
   abstract class IsoFuncBase[T,R,M]
         (val func: Ref[T => R], val metric: Ref[T => M])
 //        (implicit val eT: Elem[T], val eR: Elem[R], val eM: Elem[M])

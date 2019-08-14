@@ -158,6 +158,10 @@ object IdentityIso extends EntityObject("IdentityIso") {
     lazy val resultType = element[IdentityIso[A]]
     override def transform(t: Transformer) = IdentityIsoCtor[A]()(eA)
   }
+
+  // state representation type
+  type IdentityIsoData[A] = Unit
+
   // elem for concrete class
   class IdentityIsoElem[A](val iso: Iso[IdentityIsoData[A], IdentityIso[A]])(implicit val eA: Elem[A])
     extends IsoURElem[A, A, IdentityIso[A]]
@@ -165,9 +169,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A], element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type IdentityIsoData[A] = Unit
 
   // 3) Iso for concrete class
   class IdentityIsoIso[A](implicit eA: Elem[A])
@@ -189,6 +190,17 @@ object IdentityIso extends EntityObject("IdentityIso") {
   case class IdentityIsoIsoElem[A](eA: Elem[A]) extends Elem[IdentityIsoIso[A]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedIdentityIso[A](p: Ref[IdentityIso[A]])(implicit eA: Elem[A]) {
+    def toData: Ref[IdentityIsoData[A]] = {
+      isoIdentityIso(eA).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoIdentityIso[A](implicit eA: Elem[A]): Iso[IdentityIsoData[A], IdentityIso[A]] =
+    reifyObject(new IdentityIsoIso[A]()(eA))
+
   // 4) constructor and deconstructor
   class IdentityIsoCompanionCtor extends CompanionDef[IdentityIsoCompanionCtor] {
     def resultType = IdentityIsoCompanionElem
@@ -222,16 +234,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
       unrefDelegate[IdentityIso[A]](p)
   }
 
-  implicit class ExtendedIdentityIso[A](p: Ref[IdentityIso[A]])(implicit eA: Elem[A]) {
-    def toData: Ref[IdentityIsoData[A]] = {
-      isoIdentityIso(eA).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIdentityIso[A](implicit eA: Elem[A]): Iso[IdentityIsoData[A], IdentityIso[A]] =
-    reifyObject(new IdentityIsoIso[A]()(eA))
-
   def mkIdentityIso[A]
     ()(implicit eA: Elem[A]): Ref[IdentityIso[A]] = {
     new IdentityIsoCtor[A]()
@@ -258,6 +260,10 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     lazy val resultType = element[PairIso[A1, A2, B1, B2]]
     override def transform(t: Transformer) = PairIsoCtor[A1, A2, B1, B2](t(iso1), t(iso2))
   }
+
+  // state representation type
+  type PairIsoData[A1, A2, B1, B2] = (IsoUR[A1, B1], IsoUR[A2, B2])
+
   // elem for concrete class
   class PairIsoElem[A1, A2, B1, B2](val iso: Iso[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends IsoURElem[(A1, A2), (B1, B2), PairIso[A1, A2, B1, B2]]
@@ -265,9 +271,6 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(pairElement(element[A1],element[A2]), pairElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type PairIsoData[A1, A2, B1, B2] = (IsoUR[A1, B1], IsoUR[A2, B2])
 
   // 3) Iso for concrete class
   class PairIsoIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
@@ -294,6 +297,21 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   case class PairIsoIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[PairIsoIso[A1, A2, B1, B2]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedPairIso[A1, A2, B1, B2](p: Ref[PairIso[A1, A2, B1, B2]]) {
+    def toData: Ref[PairIsoData[A1, A2, B1, B2]] = {
+      implicit val eA1 = p.iso1.eFrom;
+implicit val eA2 = p.iso2.eFrom;
+implicit val eB1 = p.iso1.eTo;
+implicit val eB2 = p.iso2.eTo
+      isoPairIso(eA1, eA2, eB1, eB2).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoPairIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]] =
+    reifyObject(new PairIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
+
   // 4) constructor and deconstructor
   class PairIsoCompanionCtor extends CompanionDef[PairIsoCompanionCtor] with PairIsoCompanion {
     def resultType = PairIsoCompanionElem
@@ -331,20 +349,6 @@ implicit val eB2 = p._2.eTo
       unrefDelegate[PairIso[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedPairIso[A1, A2, B1, B2](p: Ref[PairIso[A1, A2, B1, B2]]) {
-    def toData: Ref[PairIsoData[A1, A2, B1, B2]] = {
-      implicit val eA1 = p.iso1.eFrom;
-implicit val eA2 = p.iso2.eFrom;
-implicit val eB1 = p.iso1.eTo;
-implicit val eB2 = p.iso2.eTo
-      isoPairIso(eA1, eA2, eB1, eB2).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoPairIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]] =
-    reifyObject(new PairIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
-
   def mkPairIso[A1, A2, B1, B2]
     (iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Ref[PairIso[A1, A2, B1, B2]] = {
     new PairIsoCtor[A1, A2, B1, B2](iso1, iso2)
@@ -369,6 +373,10 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     lazy val resultType = element[AbsorbFirstUnitIso[A2, B2]]
     override def transform(t: Transformer) = AbsorbFirstUnitIsoCtor[A2, B2](t(iso2))
   }
+
+  // state representation type
+  type AbsorbFirstUnitIsoData[A2, B2] = IsoUR[A2, B2]
+
   // elem for concrete class
   class AbsorbFirstUnitIsoElem[A2, B2](val iso: Iso[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]])(implicit val eA2: Elem[A2], val eB2: Elem[B2])
     extends IsoURElem[A2, (Unit, B2), AbsorbFirstUnitIso[A2, B2]]
@@ -376,9 +384,6 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A2], pairElement(UnitElement,element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A2" -> (eA2 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type AbsorbFirstUnitIsoData[A2, B2] = IsoUR[A2, B2]
 
   // 3) Iso for concrete class
   class AbsorbFirstUnitIsoIso[A2, B2](implicit eA2: Elem[A2], eB2: Elem[B2])
@@ -403,6 +408,19 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
   case class AbsorbFirstUnitIsoIsoElem[A2, B2](eA2: Elem[A2], eB2: Elem[B2]) extends Elem[AbsorbFirstUnitIsoIso[A2, B2]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A2" -> (eA2 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedAbsorbFirstUnitIso[A2, B2](p: Ref[AbsorbFirstUnitIso[A2, B2]]) {
+    def toData: Ref[AbsorbFirstUnitIsoData[A2, B2]] = {
+      implicit val eA2 = p.iso2.eFrom;
+implicit val eB2 = p.iso2.eTo
+      isoAbsorbFirstUnitIso(eA2, eB2).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoAbsorbFirstUnitIso[A2, B2](implicit eA2: Elem[A2], eB2: Elem[B2]): Iso[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]] =
+    reifyObject(new AbsorbFirstUnitIsoIso[A2, B2]()(eA2, eB2))
+
   // 4) constructor and deconstructor
   class AbsorbFirstUnitIsoCompanionCtor extends CompanionDef[AbsorbFirstUnitIsoCompanionCtor] {
     def resultType = AbsorbFirstUnitIsoCompanionElem
@@ -432,18 +450,6 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
       unrefDelegate[AbsorbFirstUnitIso[A2, B2]](p)
   }
 
-  implicit class ExtendedAbsorbFirstUnitIso[A2, B2](p: Ref[AbsorbFirstUnitIso[A2, B2]]) {
-    def toData: Ref[AbsorbFirstUnitIsoData[A2, B2]] = {
-      implicit val eA2 = p.iso2.eFrom;
-implicit val eB2 = p.iso2.eTo
-      isoAbsorbFirstUnitIso(eA2, eB2).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoAbsorbFirstUnitIso[A2, B2](implicit eA2: Elem[A2], eB2: Elem[B2]): Iso[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]] =
-    reifyObject(new AbsorbFirstUnitIsoIso[A2, B2]()(eA2, eB2))
-
   def mkAbsorbFirstUnitIso[A2, B2]
     (iso2: Iso[A2, B2]): Ref[AbsorbFirstUnitIso[A2, B2]] = {
     new AbsorbFirstUnitIsoCtor[A2, B2](iso2)
@@ -468,6 +474,10 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     lazy val resultType = element[AbsorbSecondUnitIso[A1, B1]]
     override def transform(t: Transformer) = AbsorbSecondUnitIsoCtor[A1, B1](t(iso1))
   }
+
+  // state representation type
+  type AbsorbSecondUnitIsoData[A1, B1] = IsoUR[A1, B1]
+
   // elem for concrete class
   class AbsorbSecondUnitIsoElem[A1, B1](val iso: Iso[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]])(implicit val eA1: Elem[A1], val eB1: Elem[B1])
     extends IsoURElem[A1, (B1, Unit), AbsorbSecondUnitIso[A1, B1]]
@@ -475,9 +485,6 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A1], pairElement(element[B1],UnitElement)))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type AbsorbSecondUnitIsoData[A1, B1] = IsoUR[A1, B1]
 
   // 3) Iso for concrete class
   class AbsorbSecondUnitIsoIso[A1, B1](implicit eA1: Elem[A1], eB1: Elem[B1])
@@ -502,6 +509,19 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
   case class AbsorbSecondUnitIsoIsoElem[A1, B1](eA1: Elem[A1], eB1: Elem[B1]) extends Elem[AbsorbSecondUnitIsoIso[A1, B1]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedAbsorbSecondUnitIso[A1, B1](p: Ref[AbsorbSecondUnitIso[A1, B1]]) {
+    def toData: Ref[AbsorbSecondUnitIsoData[A1, B1]] = {
+      implicit val eA1 = p.iso1.eFrom;
+implicit val eB1 = p.iso1.eTo
+      isoAbsorbSecondUnitIso(eA1, eB1).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoAbsorbSecondUnitIso[A1, B1](implicit eA1: Elem[A1], eB1: Elem[B1]): Iso[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]] =
+    reifyObject(new AbsorbSecondUnitIsoIso[A1, B1]()(eA1, eB1))
+
   // 4) constructor and deconstructor
   class AbsorbSecondUnitIsoCompanionCtor extends CompanionDef[AbsorbSecondUnitIsoCompanionCtor] {
     def resultType = AbsorbSecondUnitIsoCompanionElem
@@ -531,18 +551,6 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
       unrefDelegate[AbsorbSecondUnitIso[A1, B1]](p)
   }
 
-  implicit class ExtendedAbsorbSecondUnitIso[A1, B1](p: Ref[AbsorbSecondUnitIso[A1, B1]]) {
-    def toData: Ref[AbsorbSecondUnitIsoData[A1, B1]] = {
-      implicit val eA1 = p.iso1.eFrom;
-implicit val eB1 = p.iso1.eTo
-      isoAbsorbSecondUnitIso(eA1, eB1).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoAbsorbSecondUnitIso[A1, B1](implicit eA1: Elem[A1], eB1: Elem[B1]): Iso[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]] =
-    reifyObject(new AbsorbSecondUnitIsoIso[A1, B1]()(eA1, eB1))
-
   def mkAbsorbSecondUnitIso[A1, B1]
     (iso1: Iso[A1, B1]): Ref[AbsorbSecondUnitIso[A1, B1]] = {
     new AbsorbSecondUnitIsoCtor[A1, B1](iso1)
@@ -569,6 +577,10 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     lazy val resultType = element[SumIso[A1, A2, B1, B2]]
     override def transform(t: Transformer) = SumIsoCtor[A1, A2, B1, B2](t(iso1), t(iso2))
   }
+
+  // state representation type
+  type SumIsoData[A1, A2, B1, B2] = (IsoUR[A1, B1], IsoUR[A2, B2])
+
   // elem for concrete class
   class SumIsoElem[A1, A2, B1, B2](val iso: Iso[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends IsoURElem[$bar[A1, A2], $bar[B1, B2], SumIso[A1, A2, B1, B2]]
@@ -576,9 +588,6 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(sumElement(element[A1],element[A2]), sumElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type SumIsoData[A1, A2, B1, B2] = (IsoUR[A1, B1], IsoUR[A2, B2])
 
   // 3) Iso for concrete class
   class SumIsoIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
@@ -605,6 +614,21 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   case class SumIsoIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[SumIsoIso[A1, A2, B1, B2]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedSumIso[A1, A2, B1, B2](p: Ref[SumIso[A1, A2, B1, B2]]) {
+    def toData: Ref[SumIsoData[A1, A2, B1, B2]] = {
+      implicit val eA1 = p.iso1.eFrom;
+implicit val eA2 = p.iso2.eFrom;
+implicit val eB1 = p.iso1.eTo;
+implicit val eB2 = p.iso2.eTo
+      isoSumIso(eA1, eA2, eB1, eB2).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoSumIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]] =
+    reifyObject(new SumIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
+
   // 4) constructor and deconstructor
   class SumIsoCompanionCtor extends CompanionDef[SumIsoCompanionCtor] {
     def resultType = SumIsoCompanionElem
@@ -642,20 +666,6 @@ implicit val eB2 = p._2.eTo
       unrefDelegate[SumIso[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedSumIso[A1, A2, B1, B2](p: Ref[SumIso[A1, A2, B1, B2]]) {
-    def toData: Ref[SumIsoData[A1, A2, B1, B2]] = {
-      implicit val eA1 = p.iso1.eFrom;
-implicit val eA2 = p.iso2.eFrom;
-implicit val eB1 = p.iso1.eTo;
-implicit val eB2 = p.iso2.eTo
-      isoSumIso(eA1, eA2, eB1, eB2).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoSumIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]] =
-    reifyObject(new SumIsoIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
-
   def mkSumIso[A1, A2, B1, B2]
     (iso1: Iso[A1, B1], iso2: Iso[A2, B2]): Ref[SumIso[A1, A2, B1, B2]] = {
     new SumIsoCtor[A1, A2, B1, B2](iso1, iso2)
@@ -680,6 +690,10 @@ implicit lazy val eC = iso2.eTo
     lazy val resultType = element[ComposeIso[A, B, C]]
     override def transform(t: Transformer) = ComposeIsoCtor[A, B, C](t(iso2), t(iso1))
   }
+
+  // state representation type
+  type ComposeIsoData[A, B, C] = (IsoUR[B, C], IsoUR[A, B])
+
   // elem for concrete class
   class ComposeIsoElem[A, B, C](val iso: Iso[ComposeIsoData[A, B, C], ComposeIso[A, B, C]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])
     extends IsoURElem[A, C, ComposeIso[A, B, C]]
@@ -687,9 +701,6 @@ implicit lazy val eC = iso2.eTo
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A], element[C]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type ComposeIsoData[A, B, C] = (IsoUR[B, C], IsoUR[A, B])
 
   // 3) Iso for concrete class
   class ComposeIsoIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C])
@@ -715,6 +726,20 @@ implicit lazy val eC = iso2.eTo
   case class ComposeIsoIsoElem[A, B, C](eA: Elem[A], eB: Elem[B], eC: Elem[C]) extends Elem[ComposeIsoIso[A, B, C]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedComposeIso[A, B, C](p: Ref[ComposeIso[A, B, C]]) {
+    def toData: Ref[ComposeIsoData[A, B, C]] = {
+      implicit val eA = p.iso1.eFrom;
+implicit val eB = p.iso2.eFrom;
+implicit val eC = p.iso2.eTo
+      isoComposeIso(eA, eB, eC).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoComposeIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C]): Iso[ComposeIsoData[A, B, C], ComposeIso[A, B, C]] =
+    reifyObject(new ComposeIsoIso[A, B, C]()(eA, eB, eC))
+
   // 4) constructor and deconstructor
   class ComposeIsoCompanionCtor extends CompanionDef[ComposeIsoCompanionCtor] {
     def resultType = ComposeIsoCompanionElem
@@ -751,19 +776,6 @@ implicit val eC = p._1.eTo
       unrefDelegate[ComposeIso[A, B, C]](p)
   }
 
-  implicit class ExtendedComposeIso[A, B, C](p: Ref[ComposeIso[A, B, C]]) {
-    def toData: Ref[ComposeIsoData[A, B, C]] = {
-      implicit val eA = p.iso1.eFrom;
-implicit val eB = p.iso2.eFrom;
-implicit val eC = p.iso2.eTo
-      isoComposeIso(eA, eB, eC).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoComposeIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C]): Iso[ComposeIsoData[A, B, C], ComposeIso[A, B, C]] =
-    reifyObject(new ComposeIsoIso[A, B, C]()(eA, eB, eC))
-
   def mkComposeIso[A, B, C]
     (iso2: Iso[B, C], iso1: Iso[A, B]): Ref[ComposeIso[A, B, C]] = {
     new ComposeIsoCtor[A, B, C](iso2, iso1)
@@ -790,6 +802,10 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     lazy val resultType = element[FuncIso[A, B, C, D]]
     override def transform(t: Transformer) = FuncIsoCtor[A, B, C, D](t(iso1), t(iso2))
   }
+
+  // state representation type
+  type FuncIsoData[A, B, C, D] = (IsoUR[A, B], IsoUR[C, D])
+
   // elem for concrete class
   class FuncIsoElem[A, B, C, D](val iso: Iso[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C], val eD: Elem[D])
     extends IsoURElem[A => C, B => D, FuncIso[A, B, C, D]]
@@ -797,9 +813,6 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(funcElement(element[A],element[C]), funcElement(element[B],element[D])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant), "D" -> (eD -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type FuncIsoData[A, B, C, D] = (IsoUR[A, B], IsoUR[C, D])
 
   // 3) Iso for concrete class
   class FuncIsoIso[A, B, C, D](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D])
@@ -826,6 +839,21 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
   case class FuncIsoIsoElem[A, B, C, D](eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D]) extends Elem[FuncIsoIso[A, B, C, D]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant), "D" -> (eD -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedFuncIso[A, B, C, D](p: Ref[FuncIso[A, B, C, D]]) {
+    def toData: Ref[FuncIsoData[A, B, C, D]] = {
+      implicit val eA = p.iso1.eFrom;
+implicit val eB = p.iso1.eTo;
+implicit val eC = p.iso2.eFrom;
+implicit val eD = p.iso2.eTo
+      isoFuncIso(eA, eB, eC, eD).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoFuncIso[A, B, C, D](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D]): Iso[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]] =
+    reifyObject(new FuncIsoIso[A, B, C, D]()(eA, eB, eC, eD))
+
   // 4) constructor and deconstructor
   class FuncIsoCompanionCtor extends CompanionDef[FuncIsoCompanionCtor] {
     def resultType = FuncIsoCompanionElem
@@ -863,20 +891,6 @@ implicit val eD = p._2.eTo
       unrefDelegate[FuncIso[A, B, C, D]](p)
   }
 
-  implicit class ExtendedFuncIso[A, B, C, D](p: Ref[FuncIso[A, B, C, D]]) {
-    def toData: Ref[FuncIsoData[A, B, C, D]] = {
-      implicit val eA = p.iso1.eFrom;
-implicit val eB = p.iso1.eTo;
-implicit val eC = p.iso2.eFrom;
-implicit val eD = p.iso2.eTo
-      isoFuncIso(eA, eB, eC, eD).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoFuncIso[A, B, C, D](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C], eD: Elem[D]): Iso[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]] =
-    reifyObject(new FuncIsoIso[A, B, C, D]()(eA, eB, eC, eD))
-
   def mkFuncIso[A, B, C, D]
     (iso1: Iso[A, B], iso2: Iso[C, D]): Ref[FuncIso[A, B, C, D]] = {
     new FuncIsoCtor[A, B, C, D](iso1, iso2)
@@ -900,6 +914,10 @@ implicit override lazy val eB = innerIso.eTo
     lazy val resultType = element[ThunkIso[A, B]]
     override def transform(t: Transformer) = ThunkIsoCtor[A, B](t(innerIso))
   }
+
+  // state representation type
+  type ThunkIsoData[A, B] = IsoUR[A, B]
+
   // elem for concrete class
   class ThunkIsoElem[A, B](val iso: Iso[ThunkIsoData[A, B], ThunkIso[A, B]])(implicit override val eA: Elem[A], override val eB: Elem[B])
     extends Iso1URElem[A, B, Thunk, ThunkIso[A, B]]
@@ -907,9 +925,6 @@ implicit override lazy val eB = innerIso.eTo
     override lazy val parent: Option[Elem[_]] = Some(iso1URElement(element[A], element[B], container[Thunk]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type ThunkIsoData[A, B] = IsoUR[A, B]
 
   // 3) Iso for concrete class
   class ThunkIsoIso[A, B](implicit eA: Elem[A], eB: Elem[B])
@@ -934,6 +949,19 @@ implicit override lazy val eB = innerIso.eTo
   case class ThunkIsoIsoElem[A, B](eA: Elem[A], eB: Elem[B]) extends Elem[ThunkIsoIso[A, B]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedThunkIso[A, B](p: Ref[ThunkIso[A, B]]) {
+    def toData: Ref[ThunkIsoData[A, B]] = {
+      implicit val eA = p.innerIso.eFrom;
+implicit val eB = p.innerIso.eTo
+      isoThunkIso(eA, eB).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoThunkIso[A, B](implicit eA: Elem[A], eB: Elem[B]): Iso[ThunkIsoData[A, B], ThunkIso[A, B]] =
+    reifyObject(new ThunkIsoIso[A, B]()(eA, eB))
+
   // 4) constructor and deconstructor
   class ThunkIsoCompanionCtor extends CompanionDef[ThunkIsoCompanionCtor] {
     def resultType = ThunkIsoCompanionElem
@@ -962,18 +990,6 @@ implicit override lazy val eB = innerIso.eTo
     else
       unrefDelegate[ThunkIso[A, B]](p)
   }
-
-  implicit class ExtendedThunkIso[A, B](p: Ref[ThunkIso[A, B]]) {
-    def toData: Ref[ThunkIsoData[A, B]] = {
-      implicit val eA = p.innerIso.eFrom;
-implicit val eB = p.innerIso.eTo
-      isoThunkIso(eA, eB).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoThunkIso[A, B](implicit eA: Elem[A], eB: Elem[B]): Iso[ThunkIsoData[A, B], ThunkIso[A, B]] =
-    reifyObject(new ThunkIsoIso[A, B]()(eA, eB))
 
   def mkThunkIso[A, B]
     (innerIso: Iso[A, B]): Ref[ThunkIso[A, B]] = {

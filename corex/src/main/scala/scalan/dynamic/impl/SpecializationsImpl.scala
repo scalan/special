@@ -96,6 +96,10 @@ implicit lazy val eM = metric.elem.eRange
     lazy val resultType = element[IsoFuncBase[T, R, M]]
     override def transform(t: Transformer) = IsoFuncBaseCtor[T, R, M](t(func), t(metric))
   }
+
+  // state representation type
+  type IsoFuncBaseData[T, R, M] = (T => R, T => M)
+
   // elem for concrete class
   class IsoFuncBaseElem[T, R, M](val iso: Iso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]])(implicit override val eT: Elem[T], override val eR: Elem[R], override val eM: Elem[M])
     extends IsoFuncElem[T, R, M, IsoFuncBase[T, R, M]]
@@ -103,9 +107,6 @@ implicit lazy val eM = metric.elem.eRange
     override lazy val parent: Option[Elem[_]] = Some(isoFuncElement(element[T], element[R], element[M]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type IsoFuncBaseData[T, R, M] = (T => R, T => M)
 
   // 3) Iso for concrete class
   class IsoFuncBaseIso[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M])
@@ -131,6 +132,20 @@ implicit lazy val eM = metric.elem.eRange
   case class IsoFuncBaseIsoElem[T, R, M](eT: Elem[T], eR: Elem[R], eM: Elem[M]) extends Elem[IsoFuncBaseIso[T, R, M]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedIsoFuncBase[T, R, M](p: Ref[IsoFuncBase[T, R, M]]) {
+    def toData: Ref[IsoFuncBaseData[T, R, M]] = {
+      implicit val eT = p.func.elem.eDom;
+implicit val eR = p.func.elem.eRange;
+implicit val eM = p.metric.elem.eRange
+      isoIsoFuncBase(eT, eR, eM).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoIsoFuncBase[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Iso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] =
+    reifyObject(new IsoFuncBaseIso[T, R, M]()(eT, eR, eM))
+
   // 4) constructor and deconstructor
   class IsoFuncBaseCompanionCtor extends CompanionDef[IsoFuncBaseCompanionCtor] {
     def resultType = IsoFuncBaseCompanionElem
@@ -166,19 +181,6 @@ implicit val eM = p._2.elem.eRange
     else
       unrefDelegate[IsoFuncBase[T, R, M]](p)
   }
-
-  implicit class ExtendedIsoFuncBase[T, R, M](p: Ref[IsoFuncBase[T, R, M]]) {
-    def toData: Ref[IsoFuncBaseData[T, R, M]] = {
-      implicit val eT = p.func.elem.eDom;
-implicit val eR = p.func.elem.eRange;
-implicit val eM = p.metric.elem.eRange
-      isoIsoFuncBase(eT, eR, eM).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIsoFuncBase[T, R, M](implicit eT: Elem[T], eR: Elem[R], eM: Elem[M]): Iso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] =
-    reifyObject(new IsoFuncBaseIso[T, R, M]()(eT, eR, eM))
 
   def mkIsoFuncBase[T, R, M]
     (func: Ref[T => R], metric: Ref[T => M]): Ref[IsoFuncBase[T, R, M]] = {

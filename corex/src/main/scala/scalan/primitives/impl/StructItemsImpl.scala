@@ -86,6 +86,10 @@ implicit lazy val eSchema = key.eSchema
     lazy val resultType = element[StructItemBase[Val, Schema]]
     override def transform(t: Transformer) = StructItemBaseCtor[Val, Schema](t(key), t(value))
   }
+
+  // state representation type
+  type StructItemBaseData[Val, Schema <: Struct] = (StructKey[Schema], Val)
+
   // elem for concrete class
   class StructItemBaseElem[Val, Schema <: Struct](val iso: Iso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]])(implicit override val eVal: Elem[Val], override val eSchema: Elem[Schema])
     extends StructItemElem[Val, Schema, StructItemBase[Val, Schema]]
@@ -93,9 +97,6 @@ implicit lazy val eSchema = key.eSchema
     override lazy val parent: Option[Elem[_]] = Some(structItemElement(element[Val], element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type StructItemBaseData[Val, Schema <: Struct] = (StructKey[Schema], Val)
 
   // 3) Iso for concrete class
   class StructItemBaseIso[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema])
@@ -120,6 +121,19 @@ implicit lazy val eSchema = key.eSchema
   case class StructItemBaseIsoElem[Val, Schema <: Struct](eVal: Elem[Val], eSchema: Elem[Schema]) extends Elem[StructItemBaseIso[Val, Schema]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedStructItemBase[Val, Schema <: Struct](p: Ref[StructItemBase[Val, Schema]]) {
+    def toData: Ref[StructItemBaseData[Val, Schema]] = {
+      implicit val eVal = p.value.elem;
+implicit val eSchema = p.key.eSchema
+      isoStructItemBase(eVal, eSchema).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoStructItemBase[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema]): Iso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] =
+    reifyObject(new StructItemBaseIso[Val, Schema]()(eVal, eSchema))
+
   // 4) constructor and deconstructor
   class StructItemBaseCompanionCtor extends CompanionDef[StructItemBaseCompanionCtor] {
     def resultType = StructItemBaseCompanionElem
@@ -154,18 +168,6 @@ implicit val eSchema = p._1.eSchema
     else
       unrefDelegate[StructItemBase[Val, Schema]](p)
   }
-
-  implicit class ExtendedStructItemBase[Val, Schema <: Struct](p: Ref[StructItemBase[Val, Schema]]) {
-    def toData: Ref[StructItemBaseData[Val, Schema]] = {
-      implicit val eVal = p.value.elem;
-implicit val eSchema = p.key.eSchema
-      isoStructItemBase(eVal, eSchema).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoStructItemBase[Val, Schema <: Struct](implicit eVal: Elem[Val], eSchema: Elem[Schema]): Iso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] =
-    reifyObject(new StructItemBaseIso[Val, Schema]()(eVal, eSchema))
 
   def mkStructItemBase[Val, Schema <: Struct]
     (key: Ref[StructKey[Schema]], value: Ref[Val]): Ref[StructItemBase[Val, Schema]] = {

@@ -81,6 +81,10 @@ object IdentityConv extends EntityObject("IdentityConv") {
     lazy val resultType = element[IdentityConv[A]]
     override def transform(t: Transformer) = IdentityConvCtor[A]()(eT)
   }
+
+  // state representation type
+  type IdentityConvData[A] = Unit
+
   // elem for concrete class
   class IdentityConvElem[A](val iso: Iso[IdentityConvData[A], IdentityConv[A]])(implicit override val eT: Elem[A])
     extends ConverterElem[A, A, IdentityConv[A]]
@@ -88,9 +92,6 @@ object IdentityConv extends EntityObject("IdentityConv") {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[A], element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eT -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type IdentityConvData[A] = Unit
 
   // 3) Iso for concrete class
   class IdentityConvIso[A](implicit eT: Elem[A])
@@ -112,6 +113,17 @@ object IdentityConv extends EntityObject("IdentityConv") {
   case class IdentityConvIsoElem[A](eT: Elem[A]) extends Elem[IdentityConvIso[A]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eT -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedIdentityConv[A](p: Ref[IdentityConv[A]])(implicit eT: Elem[A]) {
+    def toData: Ref[IdentityConvData[A]] = {
+      isoIdentityConv(eT).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoIdentityConv[A](implicit eT: Elem[A]): Iso[IdentityConvData[A], IdentityConv[A]] =
+    reifyObject(new IdentityConvIso[A]()(eT))
+
   // 4) constructor and deconstructor
   class IdentityConvCompanionCtor extends CompanionDef[IdentityConvCompanionCtor] {
     def resultType = IdentityConvCompanionElem
@@ -145,16 +157,6 @@ object IdentityConv extends EntityObject("IdentityConv") {
       unrefDelegate[IdentityConv[A]](p)
   }
 
-  implicit class ExtendedIdentityConv[A](p: Ref[IdentityConv[A]])(implicit eT: Elem[A]) {
-    def toData: Ref[IdentityConvData[A]] = {
-      isoIdentityConv(eT).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIdentityConv[A](implicit eT: Elem[A]): Iso[IdentityConvData[A], IdentityConv[A]] =
-    reifyObject(new IdentityConvIso[A]()(eT))
-
   def mkIdentityConv[A]
     ()(implicit eT: Elem[A]): Ref[IdentityConv[A]] = {
     new IdentityConvCtor[A]()
@@ -178,6 +180,10 @@ implicit lazy val eR = convFun.elem.eRange
     lazy val resultType = element[BaseConverter[T, R]]
     override def transform(t: Transformer) = BaseConverterCtor[T, R](t(convFun))
   }
+
+  // state representation type
+  type BaseConverterData[T, R] = T => R
+
   // elem for concrete class
   class BaseConverterElem[T, R](val iso: Iso[BaseConverterData[T, R], BaseConverter[T, R]])(implicit override val eT: Elem[T], override val eR: Elem[R])
     extends ConverterElem[T, R, BaseConverter[T, R]]
@@ -185,9 +191,6 @@ implicit lazy val eR = convFun.elem.eRange
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[T], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type BaseConverterData[T, R] = T => R
 
   // 3) Iso for concrete class
   class BaseConverterIso[T, R](implicit eT: Elem[T], eR: Elem[R])
@@ -212,6 +215,19 @@ implicit lazy val eR = convFun.elem.eRange
   case class BaseConverterIsoElem[T, R](eT: Elem[T], eR: Elem[R]) extends Elem[BaseConverterIso[T, R]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedBaseConverter[T, R](p: Ref[BaseConverter[T, R]]) {
+    def toData: Ref[BaseConverterData[T, R]] = {
+      implicit val eT = p.convFun.elem.eDom;
+implicit val eR = p.convFun.elem.eRange
+      isoBaseConverter(eT, eR).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoBaseConverter[T, R](implicit eT: Elem[T], eR: Elem[R]): Iso[BaseConverterData[T, R], BaseConverter[T, R]] =
+    reifyObject(new BaseConverterIso[T, R]()(eT, eR))
+
   // 4) constructor and deconstructor
   class BaseConverterCompanionCtor extends CompanionDef[BaseConverterCompanionCtor] with BaseConverterCompanion {
     def resultType = BaseConverterCompanionElem
@@ -241,18 +257,6 @@ implicit lazy val eR = convFun.elem.eRange
       unrefDelegate[BaseConverter[T, R]](p)
   }
 
-  implicit class ExtendedBaseConverter[T, R](p: Ref[BaseConverter[T, R]]) {
-    def toData: Ref[BaseConverterData[T, R]] = {
-      implicit val eT = p.convFun.elem.eDom;
-implicit val eR = p.convFun.elem.eRange
-      isoBaseConverter(eT, eR).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoBaseConverter[T, R](implicit eT: Elem[T], eR: Elem[R]): Iso[BaseConverterData[T, R], BaseConverter[T, R]] =
-    reifyObject(new BaseConverterIso[T, R]()(eT, eR))
-
   def mkBaseConverter[T, R]
     (convFun: Ref[T => R]): Ref[BaseConverter[T, R]] = {
     new BaseConverterCtor[T, R](convFun)
@@ -279,6 +283,10 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     lazy val resultType = element[PairConverter[A1, A2, B1, B2]]
     override def transform(t: Transformer) = PairConverterCtor[A1, A2, B1, B2](t(conv1), t(conv2))
   }
+
+  // state representation type
+  type PairConverterData[A1, A2, B1, B2] = (Converter[A1, B1], Converter[A2, B2])
+
   // elem for concrete class
   class PairConverterElem[A1, A2, B1, B2](val iso: Iso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends ConverterElem[(A1, A2), (B1, B2), PairConverter[A1, A2, B1, B2]]
@@ -286,9 +294,6 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
     override lazy val parent: Option[Elem[_]] = Some(converterElement(pairElement(element[A1],element[A2]), pairElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type PairConverterData[A1, A2, B1, B2] = (Converter[A1, B1], Converter[A2, B2])
 
   // 3) Iso for concrete class
   class PairConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
@@ -315,6 +320,21 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   case class PairConverterIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[PairConverterIso[A1, A2, B1, B2]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedPairConverter[A1, A2, B1, B2](p: Ref[PairConverter[A1, A2, B1, B2]]) {
+    def toData: Ref[PairConverterData[A1, A2, B1, B2]] = {
+      implicit val eA1 = p.conv1.eT;
+implicit val eA2 = p.conv2.eT;
+implicit val eB1 = p.conv1.eR;
+implicit val eB2 = p.conv2.eR
+      isoPairConverter(eA1, eA2, eB1, eB2).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoPairConverter[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] =
+    reifyObject(new PairConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
+
   // 4) constructor and deconstructor
   class PairConverterCompanionCtor extends CompanionDef[PairConverterCompanionCtor] with PairConverterCompanion {
     def resultType = PairConverterCompanionElem
@@ -352,20 +372,6 @@ implicit val eB2 = p._2.eR
       unrefDelegate[PairConverter[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedPairConverter[A1, A2, B1, B2](p: Ref[PairConverter[A1, A2, B1, B2]]) {
-    def toData: Ref[PairConverterData[A1, A2, B1, B2]] = {
-      implicit val eA1 = p.conv1.eT;
-implicit val eA2 = p.conv2.eT;
-implicit val eB1 = p.conv1.eR;
-implicit val eB2 = p.conv2.eR
-      isoPairConverter(eA1, eA2, eB1, eB2).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoPairConverter[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] =
-    reifyObject(new PairConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
-
   def mkPairConverter[A1, A2, B1, B2]
     (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Ref[PairConverter[A1, A2, B1, B2]] = {
     new PairConverterCtor[A1, A2, B1, B2](conv1, conv2)
@@ -392,6 +398,10 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     lazy val resultType = element[SumConverter[A1, A2, B1, B2]]
     override def transform(t: Transformer) = SumConverterCtor[A1, A2, B1, B2](t(conv1), t(conv2))
   }
+
+  // state representation type
+  type SumConverterData[A1, A2, B1, B2] = (Converter[A1, B1], Converter[A2, B2])
+
   // elem for concrete class
   class SumConverterElem[A1, A2, B1, B2](val iso: Iso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends ConverterElem[$bar[A1, A2], $bar[B1, B2], SumConverter[A1, A2, B1, B2]]
@@ -399,9 +409,6 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
     override lazy val parent: Option[Elem[_]] = Some(converterElement(sumElement(element[A1],element[A2]), sumElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type SumConverterData[A1, A2, B1, B2] = (Converter[A1, B1], Converter[A2, B2])
 
   // 3) Iso for concrete class
   class SumConverterIso[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2])
@@ -428,6 +435,21 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   case class SumConverterIsoElem[A1, A2, B1, B2](eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]) extends Elem[SumConverterIso[A1, A2, B1, B2]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedSumConverter[A1, A2, B1, B2](p: Ref[SumConverter[A1, A2, B1, B2]]) {
+    def toData: Ref[SumConverterData[A1, A2, B1, B2]] = {
+      implicit val eA1 = p.conv1.eT;
+implicit val eA2 = p.conv2.eT;
+implicit val eB1 = p.conv1.eR;
+implicit val eB2 = p.conv2.eR
+      isoSumConverter(eA1, eA2, eB1, eB2).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoSumConverter[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] =
+    reifyObject(new SumConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
+
   // 4) constructor and deconstructor
   class SumConverterCompanionCtor extends CompanionDef[SumConverterCompanionCtor] with SumConverterCompanion {
     def resultType = SumConverterCompanionElem
@@ -465,20 +487,6 @@ implicit val eB2 = p._2.eR
       unrefDelegate[SumConverter[A1, A2, B1, B2]](p)
   }
 
-  implicit class ExtendedSumConverter[A1, A2, B1, B2](p: Ref[SumConverter[A1, A2, B1, B2]]) {
-    def toData: Ref[SumConverterData[A1, A2, B1, B2]] = {
-      implicit val eA1 = p.conv1.eT;
-implicit val eA2 = p.conv2.eT;
-implicit val eB1 = p.conv1.eR;
-implicit val eB2 = p.conv2.eR
-      isoSumConverter(eA1, eA2, eB1, eB2).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoSumConverter[A1, A2, B1, B2](implicit eA1: Elem[A1], eA2: Elem[A2], eB1: Elem[B1], eB2: Elem[B2]): Iso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] =
-    reifyObject(new SumConverterIso[A1, A2, B1, B2]()(eA1, eA2, eB1, eB2))
-
   def mkSumConverter[A1, A2, B1, B2]
     (conv1: Conv[A1, B1], conv2: Conv[A2, B2]): Ref[SumConverter[A1, A2, B1, B2]] = {
     new SumConverterCtor[A1, A2, B1, B2](conv1, conv2)
@@ -503,6 +511,10 @@ implicit lazy val eC = conv2.eR
     lazy val resultType = element[ComposeConverter[A, B, C]]
     override def transform(t: Transformer) = ComposeConverterCtor[A, B, C](t(conv2), t(conv1))
   }
+
+  // state representation type
+  type ComposeConverterData[A, B, C] = (Converter[B, C], Converter[A, B])
+
   // elem for concrete class
   class ComposeConverterElem[A, B, C](val iso: Iso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])
     extends ConverterElem[A, C, ComposeConverter[A, B, C]]
@@ -510,9 +522,6 @@ implicit lazy val eC = conv2.eR
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[A], element[C]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type ComposeConverterData[A, B, C] = (Converter[B, C], Converter[A, B])
 
   // 3) Iso for concrete class
   class ComposeConverterIso[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C])
@@ -538,6 +547,20 @@ implicit lazy val eC = conv2.eR
   case class ComposeConverterIsoElem[A, B, C](eA: Elem[A], eB: Elem[B], eC: Elem[C]) extends Elem[ComposeConverterIso[A, B, C]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedComposeConverter[A, B, C](p: Ref[ComposeConverter[A, B, C]]) {
+    def toData: Ref[ComposeConverterData[A, B, C]] = {
+      implicit val eA = p.conv1.eT;
+implicit val eB = p.conv2.eT;
+implicit val eC = p.conv2.eR
+      isoComposeConverter(eA, eB, eC).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoComposeConverter[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C]): Iso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] =
+    reifyObject(new ComposeConverterIso[A, B, C]()(eA, eB, eC))
+
   // 4) constructor and deconstructor
   class ComposeConverterCompanionCtor extends CompanionDef[ComposeConverterCompanionCtor] {
     def resultType = ComposeConverterCompanionElem
@@ -574,19 +597,6 @@ implicit val eC = p._1.eR
       unrefDelegate[ComposeConverter[A, B, C]](p)
   }
 
-  implicit class ExtendedComposeConverter[A, B, C](p: Ref[ComposeConverter[A, B, C]]) {
-    def toData: Ref[ComposeConverterData[A, B, C]] = {
-      implicit val eA = p.conv1.eT;
-implicit val eB = p.conv2.eT;
-implicit val eC = p.conv2.eR
-      isoComposeConverter(eA, eB, eC).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoComposeConverter[A, B, C](implicit eA: Elem[A], eB: Elem[B], eC: Elem[C]): Iso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] =
-    reifyObject(new ComposeConverterIso[A, B, C]()(eA, eB, eC))
-
   def mkComposeConverter[A, B, C]
     (conv2: Conv[B, C], conv1: Conv[A, B]): Ref[ComposeConverter[A, B, C]] = {
     new ComposeConverterCtor[A, B, C](conv2, conv1)
@@ -610,6 +620,10 @@ implicit lazy val eB = itemConv.eR
     lazy val resultType = element[FunctorConverter[A, B, F]]
     override def transform(t: Transformer) = FunctorConverterCtor[A, B, F](t(itemConv))(F)
   }
+
+  // state representation type
+  type FunctorConverterData[A, B, F[_]] = Converter[A, B]
+
   // elem for concrete class
   class FunctorConverterElem[A, B, F[_]](val iso: Iso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]])(implicit val F: Functor[F], val eA: Elem[A], val eB: Elem[B])
     extends ConverterElem[F[A], F[B], FunctorConverter[A, B, F]]
@@ -617,9 +631,6 @@ implicit lazy val eB = itemConv.eR
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[F[A]], element[F[B]]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "F" -> (F -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type FunctorConverterData[A, B, F[_]] = Converter[A, B]
 
   // 3) Iso for concrete class
   class FunctorConverterIso[A, B, F[_]](implicit F: Functor[F], eA: Elem[A], eB: Elem[B])
@@ -645,6 +656,19 @@ implicit lazy val eB = itemConv.eR
   case class FunctorConverterIsoElem[A, B, F[_]](F: Functor[F], eA: Elem[A], eB: Elem[B]) extends Elem[FunctorConverterIso[A, B, F]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "F" -> (F -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedFunctorConverter[A, B, F[_]](p: Ref[FunctorConverter[A, B, F]])(implicit F: Functor[F]) {
+    def toData: Ref[FunctorConverterData[A, B, F]] = {
+      implicit val eA = p.itemConv.eT;
+implicit val eB = p.itemConv.eR
+      isoFunctorConverter(F, eA, eB).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoFunctorConverter[A, B, F[_]](implicit F: Functor[F], eA: Elem[A], eB: Elem[B]): Iso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] =
+    reifyObject(new FunctorConverterIso[A, B, F]()(F, eA, eB))
+
   // 4) constructor and deconstructor
   class FunctorConverterCompanionCtor extends CompanionDef[FunctorConverterCompanionCtor] with FunctorConverterCompanion {
     def resultType = FunctorConverterCompanionElem
@@ -674,18 +698,6 @@ implicit lazy val eB = itemConv.eR
       unrefDelegate[FunctorConverter[A, B, F]](p)
   }
 
-  implicit class ExtendedFunctorConverter[A, B, F[_]](p: Ref[FunctorConverter[A, B, F]])(implicit F: Functor[F]) {
-    def toData: Ref[FunctorConverterData[A, B, F]] = {
-      implicit val eA = p.itemConv.eT;
-implicit val eB = p.itemConv.eR
-      isoFunctorConverter(F, eA, eB).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoFunctorConverter[A, B, F[_]](implicit F: Functor[F], eA: Elem[A], eB: Elem[B]): Iso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] =
-    reifyObject(new FunctorConverterIso[A, B, F]()(F, eA, eB))
-
   def mkFunctorConverter[A, B, F[_]]
     (itemConv: Conv[A, B])(implicit F: Functor[F]): Ref[FunctorConverter[A, B, F]] = {
     new FunctorConverterCtor[A, B, F](itemConv)
@@ -706,6 +718,10 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     lazy val resultType = element[NaturalConverter[A, F, G]]
     override def transform(t: Transformer) = NaturalConverterCtor[A, F, G](t(convFun))(eA, cF, cG)
   }
+
+  // state representation type
+  type NaturalConverterData[A, F[_], G[_]] = F[A] => G[A]
+
   // elem for concrete class
   class NaturalConverterElem[A, F[_], G[_]](val iso: Iso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]])(implicit val eA: Elem[A], val cF: Cont[F], val cG: Cont[G])
     extends ConverterElem[F[A], G[A], NaturalConverter[A, F, G]]
@@ -713,9 +729,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[F[A]], element[G[A]]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "F" -> (cF -> scalan.util.Invariant), "G" -> (cG -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type NaturalConverterData[A, F[_], G[_]] = F[A] => G[A]
 
   // 3) Iso for concrete class
   class NaturalConverterIso[A, F[_], G[_]](implicit eA: Elem[A], cF: Cont[F], cG: Cont[G])
@@ -741,6 +754,17 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   case class NaturalConverterIsoElem[A, F[_], G[_]](eA: Elem[A], cF: Cont[F], cG: Cont[G]) extends Elem[NaturalConverterIso[A, F, G]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "F" -> (cF -> scalan.util.Invariant), "G" -> (cG -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedNaturalConverter[A, F[_], G[_]](p: Ref[NaturalConverter[A, F, G]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]) {
+    def toData: Ref[NaturalConverterData[A, F, G]] = {
+      isoNaturalConverter(eA, cF, cG).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoNaturalConverter[A, F[_], G[_]](implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Iso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] =
+    reifyObject(new NaturalConverterIso[A, F, G]()(eA, cF, cG))
+
   // 4) constructor and deconstructor
   class NaturalConverterCompanionCtor extends CompanionDef[NaturalConverterCompanionCtor] {
     def resultType = NaturalConverterCompanionElem
@@ -770,16 +794,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
       unrefDelegate[NaturalConverter[A, F, G]](p)
   }
 
-  implicit class ExtendedNaturalConverter[A, F[_], G[_]](p: Ref[NaturalConverter[A, F, G]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]) {
-    def toData: Ref[NaturalConverterData[A, F, G]] = {
-      isoNaturalConverter(eA, cF, cG).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoNaturalConverter[A, F[_], G[_]](implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Iso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] =
-    reifyObject(new NaturalConverterIso[A, F, G]()(eA, cF, cG))
-
   def mkNaturalConverter[A, F[_], G[_]]
     (convFun: Ref[F[A] => G[A]])(implicit eA: Elem[A], cF: Cont[F], cG: Cont[G]): Ref[NaturalConverter[A, F, G]] = {
     new NaturalConverterCtor[A, F, G](convFun)
@@ -803,6 +817,10 @@ implicit lazy val eB = convTo.eR
     lazy val resultType = element[ConverterIso[A, B]]
     override def transform(t: Transformer) = ConverterIsoCtor[A, B](t(convTo), t(convFrom))
   }
+
+  // state representation type
+  type ConverterIsoData[A, B] = (Converter[A, B], Converter[B, A])
+
   // elem for concrete class
   class ConverterIsoElem[A, B](val iso: Iso[ConverterIsoData[A, B], ConverterIso[A, B]])(implicit val eA: Elem[A], val eB: Elem[B])
     extends IsoURElem[A, B, ConverterIso[A, B]]
@@ -810,9 +828,6 @@ implicit lazy val eB = convTo.eR
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A], element[B]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }
-
-  // state representation type
-  type ConverterIsoData[A, B] = (Converter[A, B], Converter[B, A])
 
   // 3) Iso for concrete class
   class ConverterIsoIso[A, B](implicit eA: Elem[A], eB: Elem[B])
@@ -837,6 +852,19 @@ implicit lazy val eB = convTo.eR
   case class ConverterIsoIsoElem[A, B](eA: Elem[A], eB: Elem[B]) extends Elem[ConverterIsoIso[A, B]] {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }
+
+  implicit class ExtendedConverterIso[A, B](p: Ref[ConverterIso[A, B]]) {
+    def toData: Ref[ConverterIsoData[A, B]] = {
+      implicit val eA = p.convTo.eT;
+implicit val eB = p.convTo.eR
+      isoConverterIso(eA, eB).from(p)
+    }
+  }
+
+  // 5) implicit resolution of Iso
+  implicit def isoConverterIso[A, B](implicit eA: Elem[A], eB: Elem[B]): Iso[ConverterIsoData[A, B], ConverterIso[A, B]] =
+    reifyObject(new ConverterIsoIso[A, B]()(eA, eB))
+
   // 4) constructor and deconstructor
   class ConverterIsoCompanionCtor extends CompanionDef[ConverterIsoCompanionCtor] {
     def resultType = ConverterIsoCompanionElem
@@ -871,18 +899,6 @@ implicit val eB = p._1.eR
     else
       unrefDelegate[ConverterIso[A, B]](p)
   }
-
-  implicit class ExtendedConverterIso[A, B](p: Ref[ConverterIso[A, B]]) {
-    def toData: Ref[ConverterIsoData[A, B]] = {
-      implicit val eA = p.convTo.eT;
-implicit val eB = p.convTo.eR
-      isoConverterIso(eA, eB).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoConverterIso[A, B](implicit eA: Elem[A], eB: Elem[B]): Iso[ConverterIsoData[A, B], ConverterIso[A, B]] =
-    reifyObject(new ConverterIsoIso[A, B]()(eA, eB))
 
   def mkConverterIso[A, B]
     (convTo: Conv[A, B], convFrom: Conv[B, A]): Ref[ConverterIso[A, B]] = {
