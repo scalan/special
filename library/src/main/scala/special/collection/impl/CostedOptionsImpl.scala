@@ -35,37 +35,22 @@ object CCostedOption extends EntityObject("CCostedOption") {
         true, false, element[Int]))
     }
   }
-  // elem for concrete class
-  class CCostedOptionElem[T](val iso: Iso[CCostedOptionData[T], CCostedOption[T]])(implicit override val eT: Elem[T])
-    extends CostedOptionElem[T, CCostedOption[T]]
-    with ConcreteElem[CCostedOptionData[T], CCostedOption[T]] {
-    override lazy val parent: Option[Elem[_]] = Some(costedOptionElement(element[T]))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-  }
 
   // state representation type
   type CCostedOptionData[T] = (WOption[T], (WOption[Int], (WOption[Size[T]], Int)))
 
-  // 3) Iso for concrete class
-  class CCostedOptionIso[T](implicit eT: Elem[T])
-    extends EntityIso[CCostedOptionData[T], CCostedOption[T]] with Def[CCostedOptionIso[T]] {
-    override def transform(t: Transformer) = new CCostedOptionIso[T]()(eT)
-    private lazy val _safeFrom = fun { p: Ref[CCostedOption[T]] => (p.value, p.costOpt, p.sizeOpt, p.accumulatedCost) }
-    override def from(p: Ref[CCostedOption[T]]) =
-      tryConvert[CCostedOption[T], (WOption[T], (WOption[Int], (WOption[Size[T]], Int)))](eTo, eFrom, p, _safeFrom)
-    override def to(p: Ref[(WOption[T], (WOption[Int], (WOption[Size[T]], Int)))]) = {
-      val Pair(value, Pair(costOpt, Pair(sizeOpt, accumulatedCost))) = p
-      RCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
-    }
-    lazy val eFrom = pairElement(element[WOption[T]], pairElement(element[WOption[Int]], pairElement(element[WOption[Size[T]]], element[Int])))
-    lazy val eTo = new CCostedOptionElem[T](self)
-    lazy val resultType = new CCostedOptionIsoElem[T](eT)
-    def productArity = 1
-    def productElement(n: Int) = eT
-  }
-  case class CCostedOptionIsoElem[T](eT: Elem[T]) extends Elem[CCostedOptionIso[T]] {
+  // elem for concrete class
+  class CCostedOptionElem[T](implicit override val eT: Elem[T])
+    extends CostedOptionElem[T, CCostedOption[T]]
+    with ConcreteElem[CCostedOptionData[T], CCostedOption[T]] {
+    override lazy val parent: Option[Elem[_]] = Some(costedOptionElement(element[T]))
+    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
   }
+
+  implicit def cCostedOptionElement[T](implicit eT: Elem[T]): Elem[CCostedOption[T]] =
+    cachedElemByClass(eT)(classOf[CCostedOptionElem[T]])
+
   // 4) constructor and deconstructor
   class CCostedOptionCompanionCtor extends CompanionDef[CCostedOptionCompanionCtor] with CCostedOptionCompanion {
     def resultType = CCostedOptionCompanionElem
@@ -73,7 +58,8 @@ object CCostedOption extends EntityObject("CCostedOption") {
     @scalan.OverloadId("fromData")
     def apply[T](p: Ref[CCostedOptionData[T]]): Ref[CCostedOption[T]] = {
       implicit val eT = p._1.eA
-      isoCCostedOption[T].to(p)
+      val Pair(value, Pair(costOpt, Pair(sizeOpt, accumulatedCost))) = p
+      mkCCostedOption(value, costOpt, sizeOpt, accumulatedCost)
     }
 
     // manual fix
@@ -102,17 +88,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
     else
       unrefDelegate[CCostedOption[T]](p)
   }
-
-  implicit class ExtendedCCostedOption[T](p: Ref[CCostedOption[T]]) {
-    def toData: Ref[CCostedOptionData[T]] = {
-      implicit val eT = p.value.eA
-      isoCCostedOption(eT).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoCCostedOption[T](implicit eT: Elem[T]): Iso[CCostedOptionData[T], CCostedOption[T]] =
-    reifyObject(new CCostedOptionIso[T]()(eT))
 
   def mkCCostedOption[T]
     (value: Ref[WOption[T]], costOpt: Ref[WOption[Int]], sizeOpt: Ref[WOption[Size[T]]], accumulatedCost: Ref[Int]): Ref[CCostedOption[T]] = {

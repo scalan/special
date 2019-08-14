@@ -348,7 +348,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       val contType = if (isFunctor) "Functor" else "Cont"
       s"""\n
         |  implicit lazy val container$name: $contType[$name] = new $contType[$name] {
-        |    def tag[A](implicit evA: WeakTypeTag[A]) = weakTypeTag[$name[A]]
         |    def lift[A](implicit evA: Elem[A]) = element[$name[A]]
         |    def unlift[A](implicit eFT: Elem[$name[A]]) =
         |      cast${e.name}Element(eFT).${e.implicitArgs(0).name}
