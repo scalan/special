@@ -45,6 +45,7 @@ trait MetaTests { self: MetaTestsModule =>
   }
 
   @WithMethodCallRecognizers
+  @Isospec
   abstract class MT2[A, B](val indices: Ref[A], val values: Ref[B], val size: Ref[Int])
     extends MetaPair[A, B] {
     implicit def eA: Elem[A]; implicit def eB: Elem[B]

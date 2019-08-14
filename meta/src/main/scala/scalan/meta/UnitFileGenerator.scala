@@ -382,6 +382,40 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |""".stripAndTrim
   }
 
+  def entityElemMethodDefinition(e: EntityTemplateData) = {
+    val elemMethodName = entityElemMethodName(e.name)
+    if (!unit.methods.exists(_.name == elemMethodName)) {
+      val elemType = e.elemTypeUse()
+      if (e.tpeArgs.isEmpty)
+        s"""
+          |  implicit lazy val $elemMethodName${e.tpeArgsDecl}: Elem[${e.typeUse}] =
+          |    new $elemType
+          |""".stripMargin
+      else
+        s"""
+          |  implicit def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
+          |    cachedElemByClass${e.implicitArgsOrParens}(classOf[$elemType])
+          |""".stripMargin
+    } else ""
+  }
+
+  def classElemMethodDefinition(c: ConcreteClassTemplateData) = {
+    val elemMethodName = entityElemMethodName(c.name)
+    if (!unit.methods.exists(_.name == elemMethodName)) {
+      val elemType = c.elemTypeUse
+      if (c.tpeArgs.isEmpty)
+        s"""
+          |  implicit lazy val $elemMethodName${c.tpeArgsDecl}: Elem[${c.typeUse}] =
+          |    new $elemType
+          |""".stripMargin
+      else
+        s"""
+          |  implicit def $elemMethodName${c.tpeArgsDecl}${c.implicitArgsDecl()}: Elem[${c.typeUse}] =
+          |    cachedElemByClass${c.implicitArgsOrParens}(classOf[$elemType])
+          |""".stripMargin
+    } else ""
+  }
+
   def familyElem(e: EntityTemplateData) = {
     val wildcardElem = s"${e.name}Elem[${Array.fill(e.tpeArgs.length + 1)("_").mkString(", ")}]"
     val toArgName = {
@@ -414,22 +448,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     )
 
     val overrideIfHasParent = optParent.ifDefined("override ")
-    val elemMethodName = entityElemMethodName(e.name)
-    val elemMethodDefinition = {
-      if (!unit.methods.exists(_.name == elemMethodName)) {
-        val elemType = e.elemTypeUse()
-        if (e.tpeArgs.isEmpty)
-          s"""
-            |  implicit lazy val $elemMethodName${e.tpeArgsDecl}: Elem[${e.typeUse}] =
-            |    new $elemType
-            |""".stripMargin
-        else
-          s"""
-            |  implicit def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
-            |    cachedElemByClass${e.implicitArgsOrParens}(classOf[$elemType])
-            |""".stripMargin
-      } else ""
-    }
+
     def liftableSupport() = {
       val info = new LiftableInfo(e); import info._
       val SNameForSome = SName + optArgs(zipped)("[",(_,_) => "_", ",", "]")
@@ -470,7 +489,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    ${e.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${e.emitTpeArgToDescPairs})")}
       ${e.entity.isConvertible.opt(convertMethods())}
       |  }
-      |$elemMethodDefinition
+      |${entityElemMethodDefinition(e)}
       |""".stripAndTrim
   }
 
@@ -663,38 +682,71 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         }
         |    ${ methods.rep({ m => externalMethod("self", m, isAdapter = false) }, "\n") }
         |  }
-        |  // elem for concrete class
-        |  class $elemTypeDecl(val iso: Iso[$dataTpe, ${c.typeUse}])${c.implicitArgsDeclConcreteElem}
-        |    extends ${parent.name}Elem[${join(parentTpeArgsStr, c.typeUse)}]
-        |    with $concreteElemSuperType {
-        |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
-        |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
-        |    ${e.entity.isConvertible.opt(s"override def convert${parent.name}(x: Ref[$parent]) = $converterBody")}
-        |  }
         |
         |  // state representation type
         |  type ${className}Data${tpeArgsDecl} = ${dataType(fieldTypes)}
         |
-        |  // 3) Iso for concrete class
-        |  class ${className}Iso${tpeArgsDecl}${implicitArgsDecl}
-        |    extends EntityIso[$dataTpe, ${c.typeUse}] with Def[${className}Iso$tpeArgsUse] {
-        |    override def transform(t: Transformer) = new ${className}Iso$tpeArgsUse()${implicitArgsUse}
-        |    private lazy val _safeFrom = fun { p: Ref[${c.typeUse }] => ${fields.map(fields => "p." + fields).opt(s => if (s.toList.length > 1) s"(${s.rep() })" else s.rep(), "()") } }
-        |    override def from(p: Ref[${c.typeUse}]) =
-        |      tryConvert[${c.typeUse}, ${dataType(fieldTypes)}](eTo, eFrom, p, _safeFrom)
-        |    override def to(p: Ref[${dataType(fieldTypes)}]) = {
-        |      val ${pairify(fields)} = p
-        |      R$className(${fields.rep()})
-        |    }
-        |    lazy val eFrom = $eFrom
-        |    lazy val eTo = new ${c.elemTypeUse}(self)
-        |    lazy val resultType = new ${className}IsoElem$tpeArgsUse$implicitArgsUse
-        |    def productArity = $isoProductArity
-        |    def productElement(n: Int) = $isoProductElementBody
-        |  }
-        |  case class ${className}IsoElem${tpeArgsDecl}(${c.implicitArgs.rep(a => s"${a.name}: ${a.tpe}")}) extends Elem[${className}Iso$tpeArgsUse] {
-        |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
-        |  }
+        |  // elem for concrete class
+        |${
+          if (c.c.hasIsospec) {
+            s"""  class $elemTypeDecl(val iso: Iso[$dataTpe, ${c.typeUse}])${c.implicitArgsDeclConcreteElem}
+              |    extends ${parent.name}Elem[${join(parentTpeArgsStr, c.typeUse)}]
+              |    with $concreteElemSuperType {
+              |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
+              |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
+              |    ${e.entity.isConvertible.opt(s"override def convert${parent.name}(x: Ref[$parent]) = $converterBody")}
+              |  }
+              |
+              |  // 3) Iso for concrete class
+              |  class ${className}Iso${tpeArgsDecl}${implicitArgsDecl}
+              |    extends EntityIso[$dataTpe, ${c.typeUse}] with Def[${className}Iso$tpeArgsUse] {
+              |    override def transform(t: Transformer) = new ${className}Iso$tpeArgsUse()${implicitArgsUse}
+              |    private lazy val _safeFrom = fun { p: Ref[${c.typeUse}] => ${ fields.map(fields => "p." + fields).opt(s => if (s.toList.length > 1) s"(${s.rep()})" else s.rep(), "()") } }
+              |    override def from(p: Ref[${c.typeUse}]) =
+              |      tryConvert[${c.typeUse}, ${dataType(fieldTypes)}](eTo, eFrom, p, _safeFrom)
+              |    override def to(p: Ref[${dataType(fieldTypes)}]) = {
+              |      val ${pairify(fields)} = p
+              |      R$className(${fields.rep()})
+              |    }
+              |    lazy val eFrom = $eFrom
+              |    lazy val eTo = new ${c.elemTypeUse}(self)
+              |    lazy val resultType = new ${className}IsoElem$tpeArgsUse$implicitArgsUse
+              |    def productArity = $isoProductArity
+              |    def productElement(n: Int) = $isoProductElementBody
+              |  }
+              |  case class ${className}IsoElem${tpeArgsDecl}(${c.implicitArgs.rep(a => s"${a.name}: ${a.tpe}")}) extends Elem[${className}Iso$tpeArgsUse] {
+              |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
+              |  }
+              |
+              |  implicit class Extended${c.typeDecl}(p: Ref[${c.typeUse}])${c.optimizeImplicits().implicitArgsDecl()} {
+              |    def toData: Ref[$dataTpe] = {
+              |      ${c.extractionBuilder(prefix = "p.").emitExtractableImplicits(false)}
+              |      iso$className${c.implicitArgsUse}.from(p)
+              |    }
+              |  }
+              |
+              |  // 5) implicit resolution of Iso
+              |  implicit def iso${c.typeDecl}${implicitArgsDecl}: Iso[$dataTpe, ${c.typeUse}] =
+              |    reifyObject(new ${className}Iso${tpeArgsUse}()$implicitArgsUse)
+             """.stripMargin
+          }
+          else {
+            s"""  class $elemTypeDecl${c.implicitArgsDeclConcreteElem}
+              |    extends ${parent.name}Elem[${join(parentTpeArgsStr, c.typeUse)}]
+              |    with $concreteElemSuperType {
+              |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
+              |    def iso = ???${
+                c.emitTpeArgToDescPairs.nonEmpty.opt(s"\n|    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")
+                } ${
+                e.entity.isConvertible.opt(s"\n|    override def convert${parent.name}(x: Ref[$parent]) = $converterBody")
+                }
+              |  }
+              |  ${classElemMethodDefinition(c)}
+             """.stripMargin
+          }
+        }
+        |
+
         |  // 4) constructor and deconstructor
         |  class ${c.companionCtorName} extends CompanionDef[${c.companionCtorName}]${hasCompanion.opt(s" with ${c.companionName}")} {
         |    def resultType = ${className}CompanionElem
@@ -707,7 +759,13 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
               |    @scalan.OverloadId("fromData")
               |    def apply${tpeArgsDecl}(p: Ref[$dataTpe])${c.optimizeImplicits().implicitArgsDecl()}: Ref[${c.typeUse}] = {
               |      ${sb.emitExtractableImplicits(false)}
-              |      iso$className${c.tpeArgNames.opt(ns => s"[${ns.rep()}]")}.to(p)
+              |${ if (c.c.hasIsospec)
+                    s"""      iso$className${c.tpeArgNames.opt(ns => s"[${ns.rep()}]")}.to(p)""".stripMargin
+                  else
+                    s"""      val ${pairify(fields)} = p
+                       |      mk$className(${fields.rep()})
+                     """.stripMargin
+                }
               |    }
               """.stripAndTrim
           })
@@ -735,17 +793,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    else
         |      unrefDelegate[${c.typeUse}](p)
         |  }
-        |
-        |  implicit class Extended${c.typeDecl}(p: Ref[${c.typeUse}])${c.optimizeImplicits().implicitArgsDecl()} {
-        |    def toData: Ref[$dataTpe] = {
-        |      ${c.extractionBuilder(prefix = "p.").emitExtractableImplicits(false)}
-        |      iso$className${c.implicitArgsUse}.from(p)
-        |    }
-        |  }
-        |
-        |  // 5) implicit resolution of Iso
-        |  implicit def iso${c.typeDecl}${implicitArgsDecl}: Iso[$dataTpe, ${c.typeUse}] =
-        |    reifyObject(new ${className}Iso${tpeArgsUse}()$implicitArgsUse)
         |
         |  def mk${c.typeDecl }
         |    (${fieldsWithType.rep() })${c.optimizeImplicits().implicitArgsDecl() }: Ref[${c.typeUse }] = {

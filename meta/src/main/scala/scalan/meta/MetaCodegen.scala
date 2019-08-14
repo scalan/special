@@ -388,6 +388,9 @@ class MetaCodegen {
     val implicitArgsOrParens = if (implicitArgs.nonEmpty) implicitArgsUse else "()"
     val firstAncestorType = entity.firstAncestorType
 
+    def elemTypeUse(toType: String = typeUse) =
+      s"${name}Elem[${PrintExtensions.join(tpeArgNames, toType)}]"
+
     def entityRepSynonym = STpeDef(unit.unitSym, "Ref" + name, tpeArgs, STraitCall("Ref", List(STraitCall(name, tpeArgs.map(_.toTraitCall)))))
 
     def isCont = tpeArgs.length == 1 && entity.hasAnnotation(ContainerTypeAnnotation)
@@ -428,7 +431,6 @@ class MetaCodegen {
   }
 
   case class EntityTemplateData(m: SUnitDef, t: SEntityDef) extends TemplateData(m, t) {
-    def elemTypeUse(toType: String = typeUse) = s"${name}Elem[${PrintExtensions.join(tpeArgNames, toType)}]"
     val typesWithElems = boundedTpeArgString(false)
     def optimizeImplicits(): EntityTemplateData = t match {
       case t: STraitDef =>

@@ -1037,7 +1037,7 @@ object ScalanAst {
       isAbstract: Boolean,
       annotations: List[SEntityAnnotation] = Nil) extends SEntityDef with Updatable[SClassDef] {
     def isTrait = false
-    def hasIsospec(implicit ctx: AstContextBase): Boolean = hasAnnotation(IsospecAnnotation)
+    def hasIsospec: Boolean = hasAnnotation(IsospecAnnotation)
     def signature = DefSig(DefType.Entity, name, Nil)
     def clean = {
       val _companion = companion.map(_.clean)
