@@ -37,8 +37,7 @@ class BoilerplateTool extends StrictLogging {
       resourcePath = "corex/src/test/resources",
       baseContextTrait = "scalan.ScalanEx")
 
-  lazy val viewsConfig           = coreMainConfig("views",      "scalan/Views.scala")
-  
+  lazy val viewsConfig           = corexMainConfig("views",      "scalan/Views.scala")
   lazy val convertersConfig      = corexMainConfig("converters", "scalan/Converters.scala")
   lazy val specializationsConfig = corexMainConfig("specializations", "scalan/dynamic/Specializations.scala")
 

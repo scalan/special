@@ -11,8 +11,15 @@ import scalan.util.StringUtil
 import scalan.util.StringUtil.StringUtilExtensions
 import scalan.util.CollectionUtil.TraversableOps
 
-class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanGens[G], val codegen: MetaCodegen, unit: SUnitDef, config: UnitConfig) {
+class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanGens[G], val codegen: MetaCodegen, unit: SUnitDef, _config: UnitConfig) {
   import codegen._
+  val config = {
+    // adapt config based on actual unit content
+    if (unit.classes.exists(_.hasIsospec) && _config.baseContextTrait == "scalan.Scalan")
+      _config.copy(baseContextTrait = "scalan.ScalanEx")
+    else
+      _config
+  }
   implicit val context = unit.context
 
   def getCompanionMethods(e: EntityTemplateData) = e.entity.companion.map { comp =>
@@ -824,7 +831,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       emitEntityDefs(e)
     }
     val imports = {
-      val predef = List("import IsoUR._")
+      val predef = if (unit.classes.exists(c => c.hasIsospec)) List("import IsoUR._") else Nil
       val declaredImports = unit.imports.filter(_.inCake)
       val used = unit.getUsedEntities
       val ts = unit.traits.map(t => context.newEntitySymbol(unit.symbol, t.name))
