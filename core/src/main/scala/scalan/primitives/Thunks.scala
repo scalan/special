@@ -71,7 +71,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
   implicit def extendThunkElement[T](elem: Elem[Thunk[T]]): ThunkElem[T] = elem.asInstanceOf[ThunkElem[T]]
 
   class ThunkDef[A](val root: Ref[A], _scheduleIds: =>ScheduleIds)
-    extends Def[Thunk[A]] with AstGraph with Product {
+    extends AstGraph with Def[Thunk[A]] {
 
     implicit def eA: Elem[A] = root.elem
     private var _selfType: Elem[Thunk[A]] = _

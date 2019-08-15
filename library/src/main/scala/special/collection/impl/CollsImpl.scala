@@ -25,8 +25,8 @@ object Coll extends EntityObject("Coll") {
   case class CollConst[SA, A](
         constValue: SColl[SA],
         lA: Liftable[SA, A]
-      ) extends Coll[A] with LiftedConst[SColl[SA], Coll[A]]
-        with Def[Coll[A]] with CollConstMethods[A] {
+      ) extends LiftedConst[SColl[SA], Coll[A]] with Coll[A]
+  with Def[Coll[A]] with CollConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
 
     val liftable: Liftable[SColl[SA], Coll[A]] = liftableColl(lA)
@@ -313,7 +313,7 @@ implicit val eV = proj.elem.eRange
 
   // entityAdapter for Coll trait
   case class CollAdapter[A](source: Ref[Coll[A]])
-      extends Coll[A]
+      extends Node with Coll[A]
       with Def[Coll[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 
@@ -1013,7 +1013,7 @@ object PairColl extends EntityObject("PairColl") {
 
   // entityAdapter for PairColl trait
   case class PairCollAdapter[L, R](source: Ref[PairColl[L, R]])
-      extends PairColl[L, R]
+      extends Node with PairColl[L, R]
       with Def[PairColl[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asInstanceOf[Elem[L]];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
@@ -1397,7 +1397,7 @@ object ReplColl extends EntityObject("ReplColl") {
   case class ReplCollConst[SA, A](
         constValue: SReplColl[SA],
         lA: Liftable[SA, A]
-      ) extends ReplColl[A] with LiftedConst[SReplColl[SA], ReplColl[A]]
+      ) extends LiftedConst[SReplColl[SA], ReplColl[A]] with ReplColl[A]
         with Def[ReplColl[A]] with ReplCollConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
 
@@ -1452,7 +1452,7 @@ object ReplColl extends EntityObject("ReplColl") {
 
   // entityAdapter for ReplColl trait
   case class ReplCollAdapter[A](source: Ref[ReplColl[A]])
-      extends ReplColl[A]
+      extends Node with ReplColl[A]
       with Def[ReplColl[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 
@@ -1806,7 +1806,7 @@ object CollBuilder extends EntityObject("CollBuilder") {
   type SCollBuilder = special.collection.CollBuilder
   case class CollBuilderConst(
         constValue: SCollBuilder
-      ) extends CollBuilder with LiftedConst[SCollBuilder, CollBuilder]
+      ) extends LiftedConst[SCollBuilder, CollBuilder] with CollBuilder
         with Def[CollBuilder] with CollBuilderConstMethods {
     val liftable: Liftable[SCollBuilder, CollBuilder] = LiftableCollBuilder
     val resultType: Elem[CollBuilder] = liftable.eW
@@ -1908,7 +1908,7 @@ implicit val eO = l.elem.eRange
 
   // entityAdapter for CollBuilder trait
   case class CollBuilderAdapter(source: Ref[CollBuilder])
-      extends CollBuilder
+      extends Node with CollBuilder
       with Def[CollBuilder] {
     val resultType: Elem[CollBuilder] = element[CollBuilder]
     override def transform(t: Transformer) = CollBuilderAdapter(t(source))

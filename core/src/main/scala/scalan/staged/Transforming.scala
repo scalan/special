@@ -12,7 +12,7 @@ import spire.syntax.all.cfor
 
 trait Transforming { self: Scalan =>
 
-  trait Pass {
+  abstract class Pass {
     def name: String
     def config: PassConfig = Pass.defaultPassConfig
     def doFinalization(): Unit = {}
@@ -56,7 +56,7 @@ trait Transforming { self: Scalan =>
   case class SingletonElem[T: WeakTypeTag: ClassTag](value: T)
     extends BaseElemLiftable[T](value, SingletonType(value, classTag[T]))
 
-  sealed trait KeyPath {
+  sealed abstract class KeyPath {
     def isNone = this == KeyPath.None
     def isAll = this == KeyPath.All
   }

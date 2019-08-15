@@ -20,7 +20,7 @@ class RewritingTests extends BaseCtxTestsEx {
     }
   }
 
-  trait Prog0 extends Scalan {
+  trait Prog0 extends ScalanEx {
 
     lazy val mkRightFun = fun { x: Ref[Int] => x.asRight[Int] }
 
@@ -54,7 +54,7 @@ class RewritingTests extends BaseCtxTestsEx {
     }
   }
 
-  trait Prog extends Scalan {
+  trait Prog extends ScalanEx {
     lazy val ifFold = fun { pp: Ref[Boolean] =>
       val e1 = toRep(1.0).asLeft[Int]
       val e2 = toRep(2).asRight[Double]

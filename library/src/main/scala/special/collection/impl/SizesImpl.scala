@@ -27,7 +27,7 @@ object Size extends EntityObject("Size") {
   case class SizeConst[SVal, Val](
         constValue: SSize[SVal],
         lVal: Liftable[SVal, Val]
-      ) extends Size[Val] with LiftedConst[SSize[SVal], Size[Val]]
+      ) extends LiftedConst[SSize[SVal], Size[Val]] with Size[Val]
         with Def[Size[Val]] with SizeConstMethods[Val] {
     implicit def eVal: Elem[Val] = lVal.eW
 
@@ -68,7 +68,7 @@ object Size extends EntityObject("Size") {
 
   // entityAdapter for Size trait
   case class SizeAdapter[Val](source: Ref[Size[Val]])
-      extends Size[Val]
+      extends Node with Size[Val]
       with Def[Size[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
@@ -148,7 +148,7 @@ object SizePrim extends EntityObject("SizePrim") {
   case class SizePrimConst[SVal, Val](
         constValue: SSizePrim[SVal],
         lVal: Liftable[SVal, Val]
-      ) extends SizePrim[Val] with LiftedConst[SSizePrim[SVal], SizePrim[Val]]
+      ) extends LiftedConst[SSizePrim[SVal], SizePrim[Val]] with SizePrim[Val]
         with Def[SizePrim[Val]] with SizePrimConstMethods[Val] {
     implicit def eVal: Elem[Val] = lVal.eW
 
@@ -196,7 +196,7 @@ object SizePrim extends EntityObject("SizePrim") {
 
   // entityAdapter for SizePrim trait
   case class SizePrimAdapter[Val](source: Ref[SizePrim[Val]])
-      extends SizePrim[Val]
+      extends Node with SizePrim[Val]
       with Def[SizePrim[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
@@ -269,7 +269,7 @@ object SizePair extends EntityObject("SizePair") {
   case class SizePairConst[SL, SR, L, R](
         constValue: SSizePair[SL, SR],
         lL: Liftable[SL, L], lR: Liftable[SR, R]
-      ) extends SizePair[L, R] with LiftedConst[SSizePair[SL, SR], SizePair[L, R]]
+      ) extends LiftedConst[SSizePair[SL, SR], SizePair[L, R]] with SizePair[L, R]
         with Def[SizePair[L, R]] with SizePairConstMethods[L, R] {
     implicit def eL: Elem[L] = lL.eW
     implicit def eR: Elem[R] = lR.eW
@@ -321,7 +321,7 @@ object SizePair extends EntityObject("SizePair") {
 
   // entityAdapter for SizePair trait
   case class SizePairAdapter[L, R](source: Ref[SizePair[L, R]])
-      extends SizePair[L, R]
+      extends Node with SizePair[L, R]
       with Def[SizePair[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asInstanceOf[Elem[L]];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
@@ -428,7 +428,7 @@ object SizeColl extends EntityObject("SizeColl") {
   case class SizeCollConst[SItem, Item](
         constValue: SSizeColl[SItem],
         lItem: Liftable[SItem, Item]
-      ) extends SizeColl[Item] with LiftedConst[SSizeColl[SItem], SizeColl[Item]]
+      ) extends LiftedConst[SSizeColl[SItem], SizeColl[Item]] with SizeColl[Item]
         with Def[SizeColl[Item]] with SizeCollConstMethods[Item] {
     implicit def eItem: Elem[Item] = lItem.eW
     implicit def eVal: Elem[Coll[Item]] = element[Coll[Item]]
@@ -470,7 +470,7 @@ object SizeColl extends EntityObject("SizeColl") {
 
   // entityAdapter for SizeColl trait
   case class SizeCollAdapter[Item](source: Ref[SizeColl[Item]])
-      extends SizeColl[Item]
+      extends Node with SizeColl[Item]
       with Def[SizeColl[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asInstanceOf[Elem[Item]]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
@@ -558,7 +558,7 @@ object SizeFunc extends EntityObject("SizeFunc") {
   case class SizeFuncConst[SEnv, SArg, SRes, Env, Arg, Res](
         constValue: SSizeFunc[SEnv, SArg, SRes],
         lEnv: Liftable[SEnv, Env], lArg: Liftable[SArg, Arg], lRes: Liftable[SRes, Res]
-      ) extends SizeFunc[Env, Arg, Res] with LiftedConst[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]]
+      ) extends LiftedConst[SSizeFunc[SEnv, SArg, SRes], SizeFunc[Env, Arg, Res]] with SizeFunc[Env, Arg, Res]
         with Def[SizeFunc[Env, Arg, Res]] with SizeFuncConstMethods[Env, Arg, Res] {
     implicit def eEnv: Elem[Env] = lEnv.eW
     implicit def eArg: Elem[Arg] = lArg.eW
@@ -606,7 +606,7 @@ object SizeFunc extends EntityObject("SizeFunc") {
 
   // entityAdapter for SizeFunc trait
   case class SizeFuncAdapter[Env, Arg, Res](source: Ref[SizeFunc[Env, Arg, Res]])
-      extends SizeFunc[Env, Arg, Res]
+      extends Node with SizeFunc[Env, Arg, Res]
       with Def[SizeFunc[Env, Arg, Res]] {
     implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asInstanceOf[Elem[Env]];
 implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asInstanceOf[Elem[Arg]];
@@ -698,7 +698,7 @@ object SizeOption extends EntityObject("SizeOption") {
   case class SizeOptionConst[ST, T](
         constValue: SSizeOption[ST],
         lT: Liftable[ST, T]
-      ) extends SizeOption[T] with LiftedConst[SSizeOption[ST], SizeOption[T]]
+      ) extends LiftedConst[SSizeOption[ST], SizeOption[T]] with SizeOption[T]
         with Def[SizeOption[T]] with SizeOptionConstMethods[T] {
     implicit def eT: Elem[T] = lT.eW
     implicit def eVal: Elem[WOption[T]] = element[WOption[T]]
@@ -740,7 +740,7 @@ object SizeOption extends EntityObject("SizeOption") {
 
   // entityAdapter for SizeOption trait
   case class SizeOptionAdapter[T](source: Ref[SizeOption[T]])
-      extends SizeOption[T]
+      extends Node with SizeOption[T]
       with Def[SizeOption[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]

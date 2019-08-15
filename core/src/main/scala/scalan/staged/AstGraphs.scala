@@ -26,7 +26,8 @@ trait AstGraphs extends Transforming { self: Scalan =>
   type Schedule = Seq[Sym]
   type ScheduleIds = DBuffer[Int]
 
-  trait AstGraph { thisGraph =>
+  /** Base class for all compound nodes with schedule (e.g. Lambda, ThunkDef) */
+  abstract class AstGraph extends Node { thisGraph =>
     def boundVars: Seq[Sym]
     def roots: Seq[Sym]
 

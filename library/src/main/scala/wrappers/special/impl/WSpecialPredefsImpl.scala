@@ -20,7 +20,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
 
   // entityAdapter for WSpecialPredef trait
   case class WSpecialPredefAdapter(source: Ref[WSpecialPredef])
-      extends WSpecialPredef
+      extends Node with WSpecialPredef
       with Def[WSpecialPredef] {
     val resultType: Elem[WSpecialPredef] = element[WSpecialPredef]
     override def transform(t: Transformer) = WSpecialPredefAdapter(t(source))

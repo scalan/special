@@ -22,7 +22,7 @@ object MetaTest extends EntityObject("MetaTest") {
   case class MetaTestConst[ST, T](
         constValue: SMetaTest[ST],
         lT: Liftable[ST, T]
-      ) extends MetaTest[T] with LiftedConst[SMetaTest[ST], MetaTest[T]]
+      ) extends LiftedConst[SMetaTest[ST], MetaTest[T]] with MetaTest[T]
         with Def[MetaTest[T]] with MetaTestConstMethods[T] {
     implicit def eT: Elem[T] = lT.eW
 
@@ -84,7 +84,7 @@ object MetaTest extends EntityObject("MetaTest") {
 
   // entityAdapter for MetaTest trait
   case class MetaTestAdapter[T](source: Ref[MetaTest[T]])
-      extends MetaTest[T]
+      extends Node with MetaTest[T]
       with Def[MetaTest[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
 
@@ -227,7 +227,7 @@ object MetaPair extends EntityObject("MetaPair") {
   case class MetaPairConst[SA, SB, A, B](
         constValue: SMetaPair[SA, SB],
         lA: Liftable[SA, A], lB: Liftable[SB, B]
-      ) extends MetaPair[A, B] with LiftedConst[SMetaPair[SA, SB], MetaPair[A, B]]
+      ) extends LiftedConst[SMetaPair[SA, SB], MetaPair[A, B]] with MetaPair[A, B]
         with Def[MetaPair[A, B]] with MetaPairConstMethods[A, B] {
     implicit def eA: Elem[A] = lA.eW
     implicit def eB: Elem[B] = lB.eW
@@ -286,7 +286,7 @@ object MetaPair extends EntityObject("MetaPair") {
 
   // entityAdapter for MetaPair trait
   case class MetaPairAdapter[A, B](source: Ref[MetaPair[A, B]])
-      extends MetaPair[A, B]
+      extends Node with MetaPair[A, B]
       with Def[MetaPair[A, B]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]];
 implicit lazy val eB = source.elem.typeArgs("B")._1.asInstanceOf[Elem[B]]

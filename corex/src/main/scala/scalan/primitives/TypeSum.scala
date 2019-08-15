@@ -110,5 +110,3 @@ trait TypeSum extends Base { self: Scalan =>
   implicit def pimpSum[A, B](s: Ref[A | B]): SumOps[A, B] = new SumOpsExp[A, B](s)
 
 }
-
-

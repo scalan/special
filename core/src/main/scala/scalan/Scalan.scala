@@ -31,11 +31,10 @@ class Scalan
   with IfThenElse
   with Transforming
   with GraphVizExport
-//  with ViewsModule
   with Thunks
   with Entities
   with Structs
-  with TypeSum
+//  with TypeSum
   with Modules
   with DefRewriting
 

@@ -17,7 +17,7 @@ object Monoid extends EntityObject("Monoid") {
 
   // entityAdapter for Monoid trait
   case class MonoidAdapter[T](source: Ref[Monoid[T]])
-      extends Monoid[T]
+      extends Node with Monoid[T]
       with Def[Monoid[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
 
@@ -84,7 +84,7 @@ object MonoidBuilder extends EntityObject("MonoidBuilder") {
 
   // entityAdapter for MonoidBuilder trait
   case class MonoidBuilderAdapter(source: Ref[MonoidBuilder])
-      extends MonoidBuilder
+      extends Node with MonoidBuilder
       with Def[MonoidBuilder] {
     val resultType: Elem[MonoidBuilder] = element[MonoidBuilder]
     override def transform(t: Transformer) = MonoidBuilderAdapter(t(source))

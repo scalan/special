@@ -20,6 +20,8 @@ class ScalanEx extends Scalan
   with Metadata
   with RewriteRules
   with BaseEx
+  with TuplesEx
+  with TypeSum
   with ModulesEx
   with TransformingEx
   with ViewsModuleEx

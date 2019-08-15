@@ -23,7 +23,7 @@ object WRType extends EntityObject("WRType") {
   case class WRTypeConst[SA, A](
         constValue: RType[SA],
         lA: Liftable[SA, A]
-      ) extends WRType[A] with LiftedConst[RType[SA], WRType[A]]
+      ) extends LiftedConst[RType[SA], WRType[A]] with WRType[A]
         with Def[WRType[A]] with WRTypeConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
 
@@ -66,7 +66,7 @@ object WRType extends EntityObject("WRType") {
 
   // entityAdapter for WRType trait
   case class WRTypeAdapter[A](source: Ref[WRType[A]])
-      extends WRType[A]
+      extends Node with WRType[A]
       with Def[WRType[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 

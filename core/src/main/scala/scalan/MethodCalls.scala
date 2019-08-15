@@ -185,7 +185,7 @@ trait MethodCalls extends Base with GraphVizExport { self: Scalan =>
 
   /** Result of MethodCall invocation.
     * @see tryInvoke */
-  sealed trait InvokeResult
+  sealed abstract class InvokeResult
   /** Successful MethodCall invocation with the given result. */
   case class InvokeSuccess(result: Ref[_]) extends InvokeResult
   /** Exception thrown during MethodCall invocation. */

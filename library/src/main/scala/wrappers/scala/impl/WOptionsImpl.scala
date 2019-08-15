@@ -22,7 +22,7 @@ object WOption extends EntityObject("WOption") {
   case class WOptionConst[SA, A](
         constValue: Option[SA],
         lA: Liftable[SA, A]
-      ) extends WOption[A] with LiftedConst[Option[SA], WOption[A]]
+      ) extends LiftedConst[Option[SA], WOption[A]] with WOption[A]
         with Def[WOption[A]] with WOptionConstMethods[A] {
     implicit def eA: Elem[A] = lA.eW
 
@@ -118,7 +118,7 @@ object WOption extends EntityObject("WOption") {
 
   // entityAdapter for WOption trait
   case class WOptionAdapter[A](source: Ref[WOption[A]])
-      extends WOption[A]
+      extends Node with WOption[A]
       with Def[WOption[A]] {
     implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
 

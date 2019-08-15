@@ -182,8 +182,6 @@ trait Structs extends TypeDescs with GraphVizExport { self: Scalan =>
     struct(defaultStructTag, fields)
   }
 
-
-
   abstract class AbstractStruct[T <: Struct] extends Def[T] {
     def tag: StructTag[T]
     def fields: Seq[StructField]
@@ -259,8 +257,5 @@ trait Structs extends TypeDescs with GraphVizExport { self: Scalan =>
     case FieldApply(struct, fn) => s"$struct.$fn"
     case _ => super.formatDef(d)
   }
-
-
-
 
 }

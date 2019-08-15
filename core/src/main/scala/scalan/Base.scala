@@ -54,10 +54,8 @@ abstract class Base { scalan: Scalan =>
 
   @inline implicit def liftToRep[A:Elem](x: A): Ref[A] = toRep(x)
 
-  /** Base type for all graph nodes (aka computable value definitions).
-    * Each graph node or definition represent one operation node of the data flow graph.
-    */
-  trait Def[+T] extends Product {
+  /** Base class for all IR nodes/operations/definitions. */
+  abstract class Node extends Product {
     private[scalan] var _nodeId: Int = freshId
 
     /** Unique id of the graph node assigned for each new instance using
@@ -66,19 +64,6 @@ abstract class Base { scalan: Scalan =>
       * different ids may still be structurally equal.
       * Used to provide global Def numbering. */
     @inline final def nodeId: Int = _nodeId
-
-    /** Type of a resulting value produced by the operation represented by this definition.
-      * For example, if this definition represents application of `+: (Int, Int) => Int` operation
-      * then the result type is Int and `resultType` should return IntElement. */
-    def resultType: Elem[T @uncheckedVariance]
-
-    private var _self: Ref[T @uncheckedVariance] = _
-
-    /** Reference to this definition created lazily on demand. */
-    final def self: Ref[T] = {
-      if (_self == null) _self = freshSym(this)
-      _self
-    }
 
     private var _deps: Array[Sym] = _
 
@@ -132,24 +117,10 @@ abstract class Base { scalan: Scalan =>
       _elements.asInstanceOf[Array[AnyRef]]
     }
 
-    /** Create a copy of this definition applying the given transformer to all `syms`. */
-    def transform(t: Transformer): Def[T] =
-      !!!(s"Cannot transfrom definition using transform($this)", self)
-
-    /** Clone this definition transforming all symbols using `t`.
-      * If new Def[A] is created, it is added to the graph with collapsing and rewriting.
-      * Can be overriden to implement node-specific mirroring (see MethodCall).
-      * @param  t  mapping of symbols to symbols (Ref[_] => Ref[_])
-      * @return  symbol of the logical clone. If `d` don't contain symbols, then d.self is returned. */
-    def mirror(t: Transformer): Ref[T] = {
-      val newD = transform(t)
-      reifyObject(newD)
-    }
-
     /** Default equality of definitions.
       * Two definitions are equal if they have same `elements`. */
     override def equals(other: Any) = (this eq other.asInstanceOf[AnyRef]) || {
-      val eq = canEqual(other) && Arrays.deepEquals(elements, other.asInstanceOf[Def[_]].elements)
+      val eq = canEqual(other) && Arrays.deepEquals(elements, other.asInstanceOf[Node].elements)
       eq
     }
 
@@ -179,6 +150,39 @@ abstract class Base { scalan: Scalan =>
       }
       sb.append(")")
       sb.toString
+    }
+  }
+
+  /** Base type for all graph nodes (aka computable value definitions).
+    * Each graph node or definition represent one operation node of the data flow graph.
+    */
+  trait Def[+T] extends Node {
+
+    /** Type of a resulting value produced by the operation represented by this definition.
+      * For example, if this definition represents application of `+: (Int, Int) => Int` operation
+      * then the result type is Int and `resultType` should return IntElement. */
+    def resultType: Elem[T @uncheckedVariance]
+
+    private var _self: Ref[T @uncheckedVariance] = _
+
+    /** Reference to this definition created lazily on demand. */
+    final def self: Ref[T] = {
+      if (_self == null) _self = freshSym(this)
+      _self
+    }
+
+    /** Create a copy of this definition applying the given transformer to all `syms`. */
+    def transform(t: Transformer): Def[T] =
+      !!!(s"Cannot transfrom definition using transform($this)", self)
+
+    /** Clone this definition transforming all symbols using `t`.
+      * If new Def[A] is created, it is added to the graph with collapsing and rewriting.
+      * Can be overriden to implement node-specific mirroring (see MethodCall).
+      * @param  t  mapping of symbols to symbols (Ref[_] => Ref[_])
+      * @return  symbol of the logical clone. If `d` don't contain symbols, then d.self is returned. */
+    def mirror(t: Transformer): Ref[T] = {
+      val newD = transform(t)
+      reifyObject(newD)
     }
   }
 
@@ -245,7 +249,7 @@ abstract class Base { scalan: Scalan =>
       * However ST can be the same as T as is the case for Byte, Int, String etc.
       */
     @implicitNotFound(msg = "Cannot find implicit for Liftable[${ST},${T}].")
-    trait Liftable[ST, T] {
+    abstract class Liftable[ST, T] {
       /** Type descriptor of the source type */
       def sourceType: RType[ST]
       /** Type descriptor of the IR type */
@@ -465,7 +469,7 @@ abstract class Base { scalan: Scalan =>
     }
   }
 
-  trait TransformerOps[Ctx <: Transformer] {
+  abstract class TransformerOps[Ctx <: Transformer] {
     def empty: Ctx
     def add[A](ctx: Ctx, kv: (Ref[A], Ref[A])): Ctx
     def merge(ctx1: Ctx, ctx2: Ctx): Ctx = ctx2.domain.foldLeft(ctx1) {
@@ -503,7 +507,7 @@ abstract class Base { scalan: Scalan =>
   /** Variants of `owner` parameter of constructors of nested classes:
     * 1) predefined node classes are owned by IR cake (ScalanOwner)
     * 2) entity classes are owned by enclosing EntityObject */
-  sealed trait OwnerKind
+  sealed abstract class OwnerKind
   case object NoOwner extends OwnerKind
   case object ScalanOwner extends OwnerKind
   case class  EntityObjectOwner(obj: EntityObject) extends OwnerKind
@@ -531,8 +535,6 @@ abstract class Base { scalan: Scalan =>
       }
     ownerParam
   }
-
-  import Liftables.LiftedConst
 
   /** Transforms this object into new one by applying `t` to every Ref inside
     * its structure. The structure is build out of Seq, Array, Option and Def values.

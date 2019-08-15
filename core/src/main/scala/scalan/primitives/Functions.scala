@@ -55,7 +55,7 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     * @param mayInline  whether this lambda can be inlined when applied
     * @param alphaEquality  whether to use alpha-equality in `equals` */
   class Lambda[A, B](val f: Nullable[Ref[A] => Ref[B]], val x: Ref[A], val y: Ref[B], val mayInline: Boolean, val alphaEquality: Boolean = true)
-    extends Def[A => B] with AstGraph with Product { thisLambda =>
+    extends AstGraph with Def[A => B] { thisLambda =>
     def eA = x.elem
     def eB = y.elem
 
@@ -354,8 +354,6 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
                                      mayInline: Boolean,
                                      alphaEquality: Boolean,
                                      keepOriginalFunc: Boolean)(implicit leA: LElem[A]): Ref[A=>B] = {
-//    implicit val eA = leA.value
-
     // ySym will be assigned after f is executed
     val ySym = placeholder(LazyAnyElement).asInstanceOf[Ref[B]]
 

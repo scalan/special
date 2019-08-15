@@ -32,7 +32,7 @@ object Costed extends EntityObject("Costed") {
 
   // entityAdapter for Costed trait
   case class CostedAdapter[Val](source: Ref[Costed[Val]])
-      extends Costed[Val]
+      extends Node with Costed[Val]
       with Def[Costed[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
@@ -151,7 +151,7 @@ object CostedPrim extends EntityObject("CostedPrim") {
 
   // entityAdapter for CostedPrim trait
   case class CostedPrimAdapter[Val](source: Ref[CostedPrim[Val]])
-      extends CostedPrim[Val]
+      extends Node with CostedPrim[Val]
       with Def[CostedPrim[Val]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
@@ -226,7 +226,7 @@ object CostedPair extends EntityObject("CostedPair") {
 
   // entityAdapter for CostedPair trait
   case class CostedPairAdapter[L, R](source: Ref[CostedPair[L, R]])
-      extends CostedPair[L, R]
+      extends Node with CostedPair[L, R]
       with Def[CostedPair[L, R]] {
     implicit lazy val eL = source.elem.typeArgs("L")._1.asInstanceOf[Elem[L]];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
@@ -324,7 +324,7 @@ object CostedFunc extends EntityObject("CostedFunc") {
 
   // entityAdapter for CostedFunc trait
   case class CostedFuncAdapter[Env, Arg, Res](source: Ref[CostedFunc[Env, Arg, Res]])
-      extends CostedFunc[Env, Arg, Res]
+      extends Node with CostedFunc[Env, Arg, Res]
       with Def[CostedFunc[Env, Arg, Res]] {
     implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asInstanceOf[Elem[Env]];
 implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asInstanceOf[Elem[Arg]];
@@ -445,7 +445,7 @@ object CostedColl extends EntityObject("CostedColl") {
 
   // entityAdapter for CostedColl trait
   case class CostedCollAdapter[Item](source: Ref[CostedColl[Item]])
-      extends CostedColl[Item]
+      extends Node with CostedColl[Item]
       with Def[CostedColl[Item]] {
     implicit lazy val eItem = source.elem.typeArgs("Item")._1.asInstanceOf[Elem[Item]]
     override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
@@ -646,7 +646,7 @@ object CostedOption extends EntityObject("CostedOption") {
 
   // entityAdapter for CostedOption trait
   case class CostedOptionAdapter[T](source: Ref[CostedOption[T]])
-      extends CostedOption[T]
+      extends Node with CostedOption[T]
       with Def[CostedOption[T]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
     override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
@@ -742,7 +742,7 @@ object CostedBuilder extends EntityObject("CostedBuilder") {
 
   // entityAdapter for CostedBuilder trait
   case class CostedBuilderAdapter(source: Ref[CostedBuilder])
-      extends CostedBuilder
+      extends Node with CostedBuilder
       with Def[CostedBuilder] {
     val resultType: Elem[CostedBuilder] = element[CostedBuilder]
     override def transform(t: Transformer) = CostedBuilderAdapter(t(source))

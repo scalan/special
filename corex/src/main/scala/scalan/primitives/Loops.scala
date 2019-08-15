@@ -1,8 +1,8 @@
 package scalan.primitives
 
-import scalan.{Lazy, Base, Scalan}
+import scalan.{Lazy, ScalanEx, BaseEx}
 
-trait Loops extends Base { self: Scalan =>
+trait Loops extends BaseEx { self: ScalanEx =>
 
   def loopUntilAux[A](s1: Ref[A])(isMatch: Ref[A] => Ref[Boolean], step: Ref[A] => Ref[A]): Ref[A] = {
     val eA = s1.elem
