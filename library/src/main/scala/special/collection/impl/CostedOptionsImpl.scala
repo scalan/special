@@ -43,7 +43,6 @@ object CCostedOption extends EntityObject("CCostedOption") {
     extends CostedOptionElem[T, CCostedOption[T]]
     with ConcreteElem[CCostedOptionData[T], CCostedOption[T]] {
     override lazy val parent: Option[Elem[_]] = Some(costedOptionElement(element[T]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
   }
 

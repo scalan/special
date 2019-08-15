@@ -59,7 +59,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     extends CostedPrimElem[Val, CCostedPrim[Val]]
     with ConcreteElem[CCostedPrimData[Val], CCostedPrim[Val]] {
     override lazy val parent: Option[Elem[_]] = Some(costedPrimElement(element[Val]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
   }
 
@@ -144,7 +143,6 @@ implicit lazy val eR = r.eVal
     extends CostedPairElem[L, R, CCostedPair[L, R]]
     with ConcreteElem[CCostedPairData[L, R], CCostedPair[L, R]] {
     override lazy val parent: Option[Elem[_]] = Some(costedPairElement(element[L], element[R]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
 
@@ -231,7 +229,6 @@ implicit lazy val eRes = func.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[R
     extends CostedFuncElem[Env, Arg, Res, CCostedFunc[Env, Arg, Res]]
     with ConcreteElem[CCostedFuncData[Env, Arg, Res], CCostedFunc[Env, Arg, Res]] {
     override lazy val parent: Option[Elem[_]] = Some(costedFuncElement(element[Env], element[Arg], element[Res]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
   }
 
@@ -337,7 +334,6 @@ object CCostedColl extends EntityObject("CCostedColl") {
     extends CostedCollElem[Item, CCostedColl[Item]]
     with ConcreteElem[CCostedCollData[Item], CCostedColl[Item]] {
     override lazy val parent: Option[Elem[_]] = Some(costedCollElement(element[Item]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
 
@@ -435,7 +431,6 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
     extends CostedBuilderElem[CCostedBuilder]
     with ConcreteElem[CCostedBuilderData, CCostedBuilder] {
     override lazy val parent: Option[Elem[_]] = Some(costedBuilderElement)
-    def iso = ???
   }
 
   implicit lazy val cCostedBuilderElement: Elem[CCostedBuilder] =

@@ -44,7 +44,6 @@ object CSizePrim extends EntityObject("CSizePrim") {
     extends SizePrimElem[Val, CSizePrim[Val]]
     with ConcreteElem[CSizePrimData[Val], CSizePrim[Val]] {
     override lazy val parent: Option[Elem[_]] = Some(sizePrimElement(element[Val]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
   }
 
@@ -126,7 +125,6 @@ implicit lazy val eR = r.eVal
     extends SizePairElem[L, R, CSizePair[L, R]]
     with ConcreteElem[CSizePairData[L, R], CSizePair[L, R]] {
     override lazy val parent: Option[Elem[_]] = Some(sizePairElement(element[L], element[R]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
 
@@ -208,7 +206,6 @@ object CSizeColl extends EntityObject("CSizeColl") {
     extends SizeCollElem[Item, CSizeColl[Item]]
     with ConcreteElem[CSizeCollData[Item], CSizeColl[Item]] {
     override lazy val parent: Option[Elem[_]] = Some(sizeCollElement(element[Item]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
 
@@ -285,7 +282,6 @@ implicit lazy val eRes = tRes.eA
     extends SizeFuncElem[Env, Arg, Res, CSizeFunc[Env, Arg, Res]]
     with ConcreteElem[CSizeFuncData[Env, Arg, Res], CSizeFunc[Env, Arg, Res]] {
     override lazy val parent: Option[Elem[_]] = Some(sizeFuncElement(element[Env], element[Arg], element[Res]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
   }
 
@@ -369,7 +365,6 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     extends SizeOptionElem[Item, CSizeOption[Item]]
     with ConcreteElem[CSizeOptionData[Item], CSizeOption[Item]] {
     override lazy val parent: Option[Elem[_]] = Some(sizeOptionElement(element[Item]))
-    def iso = ???
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
 
