@@ -103,7 +103,8 @@ implicit lazy val eM = metric.elem.eRange
   // elem for concrete class
   class IsoFuncBaseElem[T, R, M](val iso: Iso[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]])(implicit override val eT: Elem[T], override val eR: Elem[R], override val eM: Elem[M])
     extends IsoFuncElem[T, R, M, IsoFuncBase[T, R, M]]
-    with ConcreteElem[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] {
+    with ConcreteElem[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]]
+    with ViewElem[IsoFuncBaseData[T, R, M], IsoFuncBase[T, R, M]] {
     override lazy val parent: Option[Elem[_]] = Some(isoFuncElement(element[T], element[R], element[M]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant), "M" -> (eM -> scalan.util.Invariant))
   }

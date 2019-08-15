@@ -165,7 +165,8 @@ object IdentityIso extends EntityObject("IdentityIso") {
   // elem for concrete class
   class IdentityIsoElem[A](val iso: Iso[IdentityIsoData[A], IdentityIso[A]])(implicit val eA: Elem[A])
     extends IsoURElem[A, A, IdentityIso[A]]
-    with ConcreteElem[IdentityIsoData[A], IdentityIso[A]] {
+    with ConcreteElem[IdentityIsoData[A], IdentityIso[A]]
+    with ViewElem[IdentityIsoData[A], IdentityIso[A]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A], element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant))
   }
@@ -267,7 +268,8 @@ override lazy val eTo: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   // elem for concrete class
   class PairIsoElem[A1, A2, B1, B2](val iso: Iso[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends IsoURElem[(A1, A2), (B1, B2), PairIso[A1, A2, B1, B2]]
-    with ConcreteElem[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]] {
+    with ConcreteElem[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]]
+    with ViewElem[PairIsoData[A1, A2, B1, B2], PairIso[A1, A2, B1, B2]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(pairElement(element[A1],element[A2]), pairElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
@@ -380,7 +382,8 @@ override lazy val eTo: Elem[(Unit, B2)] = implicitly[Elem[(Unit, B2)]]
   // elem for concrete class
   class AbsorbFirstUnitIsoElem[A2, B2](val iso: Iso[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]])(implicit val eA2: Elem[A2], val eB2: Elem[B2])
     extends IsoURElem[A2, (Unit, B2), AbsorbFirstUnitIso[A2, B2]]
-    with ConcreteElem[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]] {
+    with ConcreteElem[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]]
+    with ViewElem[AbsorbFirstUnitIsoData[A2, B2], AbsorbFirstUnitIso[A2, B2]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A2], pairElement(UnitElement,element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A2" -> (eA2 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
@@ -481,7 +484,8 @@ override lazy val eTo: Elem[(B1, Unit)] = implicitly[Elem[(B1, Unit)]]
   // elem for concrete class
   class AbsorbSecondUnitIsoElem[A1, B1](val iso: Iso[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]])(implicit val eA1: Elem[A1], val eB1: Elem[B1])
     extends IsoURElem[A1, (B1, Unit), AbsorbSecondUnitIso[A1, B1]]
-    with ConcreteElem[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]] {
+    with ConcreteElem[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]]
+    with ViewElem[AbsorbSecondUnitIsoData[A1, B1], AbsorbSecondUnitIso[A1, B1]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A1], pairElement(element[B1],UnitElement)))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant))
   }
@@ -584,7 +588,8 @@ override lazy val eTo: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   // elem for concrete class
   class SumIsoElem[A1, A2, B1, B2](val iso: Iso[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends IsoURElem[$bar[A1, A2], $bar[B1, B2], SumIso[A1, A2, B1, B2]]
-    with ConcreteElem[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]] {
+    with ConcreteElem[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]]
+    with ViewElem[SumIsoData[A1, A2, B1, B2], SumIso[A1, A2, B1, B2]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(sumElement(element[A1],element[A2]), sumElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
@@ -697,7 +702,8 @@ implicit lazy val eC = iso2.eTo
   // elem for concrete class
   class ComposeIsoElem[A, B, C](val iso: Iso[ComposeIsoData[A, B, C], ComposeIso[A, B, C]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])
     extends IsoURElem[A, C, ComposeIso[A, B, C]]
-    with ConcreteElem[ComposeIsoData[A, B, C], ComposeIso[A, B, C]] {
+    with ConcreteElem[ComposeIsoData[A, B, C], ComposeIso[A, B, C]]
+    with ViewElem[ComposeIsoData[A, B, C], ComposeIso[A, B, C]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A], element[C]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
@@ -809,7 +815,8 @@ override lazy val eTo: Elem[B => D] = implicitly[Elem[B => D]]
   // elem for concrete class
   class FuncIsoElem[A, B, C, D](val iso: Iso[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C], val eD: Elem[D])
     extends IsoURElem[A => C, B => D, FuncIso[A, B, C, D]]
-    with ConcreteElem[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]] {
+    with ConcreteElem[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]]
+    with ViewElem[FuncIsoData[A, B, C, D], FuncIso[A, B, C, D]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(funcElement(element[A],element[C]), funcElement(element[B],element[D])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant), "D" -> (eD -> scalan.util.Invariant))
   }
@@ -921,7 +928,8 @@ implicit override lazy val eB = innerIso.eTo
   // elem for concrete class
   class ThunkIsoElem[A, B](val iso: Iso[ThunkIsoData[A, B], ThunkIso[A, B]])(implicit override val eA: Elem[A], override val eB: Elem[B])
     extends Iso1URElem[A, B, Thunk, ThunkIso[A, B]]
-    with ConcreteElem[ThunkIsoData[A, B], ThunkIso[A, B]] {
+    with ConcreteElem[ThunkIsoData[A, B], ThunkIso[A, B]]
+    with ViewElem[ThunkIsoData[A, B], ThunkIso[A, B]] {
     override lazy val parent: Option[Elem[_]] = Some(iso1URElement(element[A], element[B], container[Thunk]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }

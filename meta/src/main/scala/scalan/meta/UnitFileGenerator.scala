@@ -619,6 +619,11 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       else
         s"ConcreteElem[$dataTpe, ${c.typeUse}]"
 
+      val viewElemSuperType = if (e.isCont)
+        s"ViewElem1[${join(parentTpeArgsStr, dataTpe, c.typeUse, parent.name)}]"
+      else
+        s"ViewElem[$dataTpe, ${c.typeUse}]"
+
       def converterBody = {
         val entity = context.findModuleEntity(parent.name)
             .getOrElse(!!!(s"Cannot find parent entity ${parent.name} of class ${clazz.name}"))._2
@@ -690,7 +695,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
           if (c.c.hasIsospec) {
             s"""  class $elemTypeDecl(val iso: Iso[$dataTpe, ${c.typeUse}])${c.implicitArgsDeclConcreteElem}
               |    extends ${parent.name}Elem[${join(parentTpeArgsStr, c.typeUse)}]
-              |    with $concreteElemSuperType {
+              |    with $concreteElemSuperType
+              |    with $viewElemSuperType {
               |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
               |    ${c.emitTpeArgToDescPairs.nonEmpty.opt(s"override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")}
               |    ${e.entity.isConvertible.opt(s"override def convert${parent.name}(x: Ref[$parent]) = $converterBody")}
@@ -733,8 +739,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
             s"""  class $elemTypeDecl${c.implicitArgsDeclConcreteElem}
               |    extends ${parent.name}Elem[${join(parentTpeArgsStr, c.typeUse)}]
               |    with $concreteElemSuperType {
-              |    override lazy val parent: Option[Elem[_]] = Some($parentElem)
-              |    def iso = ???${
+              |    override lazy val parent: Option[Elem[_]] = Some($parentElem)${
                 c.emitTpeArgToDescPairs.nonEmpty.opt(s"\n|    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs(${c.emitTpeArgToDescPairs})")
                 } ${
                 e.entity.isConvertible.opt(s"\n|    override def convert${parent.name}(x: Ref[$parent]) = $converterBody")

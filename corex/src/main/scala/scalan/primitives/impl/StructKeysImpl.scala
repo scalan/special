@@ -86,7 +86,8 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
   // elem for concrete class
   class IndexStructKeyElem[Schema <: Struct](val iso: Iso[IndexStructKeyData[Schema], IndexStructKey[Schema]])(implicit override val eSchema: Elem[Schema])
     extends StructKeyElem[Schema, IndexStructKey[Schema]]
-    with ConcreteElem[IndexStructKeyData[Schema], IndexStructKey[Schema]] {
+    with ConcreteElem[IndexStructKeyData[Schema], IndexStructKey[Schema]]
+    with ViewElem[IndexStructKeyData[Schema], IndexStructKey[Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }
@@ -178,7 +179,8 @@ object NameStructKey extends EntityObject("NameStructKey") {
   // elem for concrete class
   class NameStructKeyElem[Schema <: Struct](val iso: Iso[NameStructKeyData[Schema], NameStructKey[Schema]])(implicit override val eSchema: Elem[Schema])
     extends StructKeyElem[Schema, NameStructKey[Schema]]
-    with ConcreteElem[NameStructKeyData[Schema], NameStructKey[Schema]] {
+    with ConcreteElem[NameStructKeyData[Schema], NameStructKey[Schema]]
+    with ViewElem[NameStructKeyData[Schema], NameStructKey[Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structKeyElement(element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Schema" -> (eSchema -> scalan.util.Invariant))
   }

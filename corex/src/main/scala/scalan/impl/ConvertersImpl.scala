@@ -88,7 +88,8 @@ object IdentityConv extends EntityObject("IdentityConv") {
   // elem for concrete class
   class IdentityConvElem[A](val iso: Iso[IdentityConvData[A], IdentityConv[A]])(implicit override val eT: Elem[A])
     extends ConverterElem[A, A, IdentityConv[A]]
-    with ConcreteElem[IdentityConvData[A], IdentityConv[A]] {
+    with ConcreteElem[IdentityConvData[A], IdentityConv[A]]
+    with ViewElem[IdentityConvData[A], IdentityConv[A]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[A], element[A]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eT -> scalan.util.Invariant))
   }
@@ -187,7 +188,8 @@ implicit lazy val eR = convFun.elem.eRange
   // elem for concrete class
   class BaseConverterElem[T, R](val iso: Iso[BaseConverterData[T, R], BaseConverter[T, R]])(implicit override val eT: Elem[T], override val eR: Elem[R])
     extends ConverterElem[T, R, BaseConverter[T, R]]
-    with ConcreteElem[BaseConverterData[T, R], BaseConverter[T, R]] {
+    with ConcreteElem[BaseConverterData[T, R], BaseConverter[T, R]]
+    with ViewElem[BaseConverterData[T, R], BaseConverter[T, R]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[T], element[R]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
@@ -290,7 +292,8 @@ override lazy val eR: Elem[(B1, B2)] = implicitly[Elem[(B1, B2)]]
   // elem for concrete class
   class PairConverterElem[A1, A2, B1, B2](val iso: Iso[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends ConverterElem[(A1, A2), (B1, B2), PairConverter[A1, A2, B1, B2]]
-    with ConcreteElem[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] {
+    with ConcreteElem[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]]
+    with ViewElem[PairConverterData[A1, A2, B1, B2], PairConverter[A1, A2, B1, B2]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(pairElement(element[A1],element[A2]), pairElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
@@ -405,7 +408,8 @@ override lazy val eR: Elem[$bar[B1, B2]] = implicitly[Elem[$bar[B1, B2]]]
   // elem for concrete class
   class SumConverterElem[A1, A2, B1, B2](val iso: Iso[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]])(implicit val eA1: Elem[A1], val eA2: Elem[A2], val eB1: Elem[B1], val eB2: Elem[B2])
     extends ConverterElem[$bar[A1, A2], $bar[B1, B2], SumConverter[A1, A2, B1, B2]]
-    with ConcreteElem[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] {
+    with ConcreteElem[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]]
+    with ViewElem[SumConverterData[A1, A2, B1, B2], SumConverter[A1, A2, B1, B2]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(sumElement(element[A1],element[A2]), sumElement(element[B1],element[B2])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A1" -> (eA1 -> scalan.util.Invariant), "A2" -> (eA2 -> scalan.util.Invariant), "B1" -> (eB1 -> scalan.util.Invariant), "B2" -> (eB2 -> scalan.util.Invariant))
   }
@@ -518,7 +522,8 @@ implicit lazy val eC = conv2.eR
   // elem for concrete class
   class ComposeConverterElem[A, B, C](val iso: Iso[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]])(implicit val eA: Elem[A], val eB: Elem[B], val eC: Elem[C])
     extends ConverterElem[A, C, ComposeConverter[A, B, C]]
-    with ConcreteElem[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] {
+    with ConcreteElem[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]]
+    with ViewElem[ComposeConverterData[A, B, C], ComposeConverter[A, B, C]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[A], element[C]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "C" -> (eC -> scalan.util.Invariant))
   }
@@ -627,7 +632,8 @@ implicit lazy val eB = itemConv.eR
   // elem for concrete class
   class FunctorConverterElem[A, B, F[_]](val iso: Iso[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]])(implicit val F: Functor[F], val eA: Elem[A], val eB: Elem[B])
     extends ConverterElem[F[A], F[B], FunctorConverter[A, B, F]]
-    with ConcreteElem[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] {
+    with ConcreteElem[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]]
+    with ViewElem[FunctorConverterData[A, B, F], FunctorConverter[A, B, F]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[F[A]], element[F[B]]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant), "F" -> (F -> scalan.util.Invariant))
   }
@@ -725,7 +731,8 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
   // elem for concrete class
   class NaturalConverterElem[A, F[_], G[_]](val iso: Iso[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]])(implicit val eA: Elem[A], val cF: Cont[F], val cG: Cont[G])
     extends ConverterElem[F[A], G[A], NaturalConverter[A, F, G]]
-    with ConcreteElem[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] {
+    with ConcreteElem[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]]
+    with ViewElem[NaturalConverterData[A, F, G], NaturalConverter[A, F, G]] {
     override lazy val parent: Option[Elem[_]] = Some(converterElement(element[F[A]], element[G[A]]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "F" -> (cF -> scalan.util.Invariant), "G" -> (cG -> scalan.util.Invariant))
   }
@@ -824,7 +831,8 @@ implicit lazy val eB = convTo.eR
   // elem for concrete class
   class ConverterIsoElem[A, B](val iso: Iso[ConverterIsoData[A, B], ConverterIso[A, B]])(implicit val eA: Elem[A], val eB: Elem[B])
     extends IsoURElem[A, B, ConverterIso[A, B]]
-    with ConcreteElem[ConverterIsoData[A, B], ConverterIso[A, B]] {
+    with ConcreteElem[ConverterIsoData[A, B], ConverterIso[A, B]]
+    with ViewElem[ConverterIsoData[A, B], ConverterIso[A, B]] {
     override lazy val parent: Option[Elem[_]] = Some(isoURElement(element[A], element[B]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }

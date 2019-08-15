@@ -93,7 +93,8 @@ implicit lazy val eSchema = key.eSchema
   // elem for concrete class
   class StructItemBaseElem[Val, Schema <: Struct](val iso: Iso[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]])(implicit override val eVal: Elem[Val], override val eSchema: Elem[Schema])
     extends StructItemElem[Val, Schema, StructItemBase[Val, Schema]]
-    with ConcreteElem[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] {
+    with ConcreteElem[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]]
+    with ViewElem[StructItemBaseData[Val, Schema], StructItemBase[Val, Schema]] {
     override lazy val parent: Option[Elem[_]] = Some(structItemElement(element[Val], element[Schema]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant), "Schema" -> (eSchema -> scalan.util.Invariant))
   }
