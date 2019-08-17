@@ -685,7 +685,7 @@ trait Slicing extends ScalanEx {
         if (!fm.isIdentity) {
           val fs = sliceFunc(node, fm)
           val res = Sliced(fs, fm)
-          t + (node -> res)
+          t + (node, res)
         }
         else
           super.mirrorLambda(t, rewriter, node, lam)

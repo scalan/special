@@ -60,11 +60,11 @@ trait Transforming { self: Scalan =>
     def isDefinedAt(x: Ref[_]) = subst.contains(x)
     def domain: Set[Ref[_]] = subst.keySet
 
-    def +[A](kv: (Sym, Sym)) = new MapTransformer(subst + kv)
+    def +[A](key: Sym, value: Sym) = new MapTransformer(subst.updated(key, value))
     def ++(kvs: Map[Sym, Sym]) = new MapTransformer(subst ++ kvs)
     def merge(other: Transformer): Transformer =
       other.domain.foldLeft(this) {
-        case (t, s: Sym) => t +  ((s, other(s)))
+        case (t, s: Sym) => t + (s, other(s))
       }
 
     override def toString = if (subst.isEmpty) "MapTransformer.Empty" else s"MapTransformer($subst)"
@@ -132,12 +132,12 @@ trait Transforming { self: Scalan =>
     // every mirrorXXX method should return a pair (t + (v -> v1), v1)
     protected def mirrorVar[A](t: Transformer, rewriter: Rewriter, v: Ref[A]): Transformer = {
       val newVar = variable(Lazy(mirrorElem(v)))
-      t + (v -> newVar)
+      t + (v, newVar)
     }
 
     protected def mirrorDef[A](t: Transformer, rewriter: Rewriter, node: Ref[A], d: Def[A]): Transformer = {
       val (t1, res) = apply(t, rewriter, node, d)
-      t1 + ((node, res))
+      t1 + (node, res)
     }
 
     protected def getMirroredLambdaSym[A, B](node: Ref[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
@@ -185,7 +185,7 @@ trait Transforming { self: Scalan =>
 //      val (tRes2, mirroredMetadata) = mirrorMetadata(tRes, node, newLambdaExp)
 //      val resLam = rewriteUntilFixPoint(newLambdaExp, mirroredMetadata, rewriter)
 
-      tRes + (node -> resLam)
+      tRes + (node, resLam)
     }
 
     protected def mirrorThunk[A](t: Transformer, rewriter: Rewriter, node: Ref[Thunk[A]], thunk: ThunkDef[A]): Transformer = {
@@ -207,7 +207,7 @@ trait Transforming { self: Scalan =>
           else newScope.scheduleForResult(newRoot)
 
       createDefinition(thunkStack.top, newThunkSym, newThunk)
-      t1 + (node -> newThunkSym)
+      t1 + (node, newThunkSym)
     }
 
     protected def isMirrored(t: Transformer, node: Sym): Boolean = t.isDefinedAt(node)

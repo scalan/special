@@ -474,7 +474,7 @@ abstract class Base { scalan: Scalan =>
       res
     }
 
-    def +[A](kv: (Sym, Sym)): Transformer
+    def +[A](key: Sym, value: Sym): Transformer
     def ++(kvs: Map[Sym, Sym]): Transformer
     def merge(other: Transformer): Transformer
   }
