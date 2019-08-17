@@ -1,11 +1,35 @@
 package scalan.staged
 
+import scalan.RType.SingletonType
 import scala.collection.{Seq, mutable}
 import scalan.{ScalanEx, RType}
 
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag, classTag}
 
 trait TransformingEx { self: ScalanEx =>
+
+  case class SingletonElem[T: ClassTag](value: T)
+      extends BaseElemLiftable[T](value, SingletonType(value, classTag[T]))
+
+  sealed abstract class KeyPath {
+    def isNone = this == KeyPath.None
+    def isAll = this == KeyPath.All
+  }
+  object KeyPath {
+    case object Root extends KeyPath
+    case object This extends KeyPath
+    case object All extends KeyPath
+    case object None extends KeyPath
+    case object First extends KeyPath
+    case object Second extends KeyPath
+    case class Field(name: String) extends KeyPath
+  }
+
+  def keyPathElem(kp: KeyPath): Elem[KeyPath] = SingletonElem(kp)
+
+  implicit class KeyPathElemOps(eKeyPath: Elem[KeyPath]) {
+    def keyPath = eKeyPath.asInstanceOf[SingletonElem[KeyPath]].value
+  }
 
   object DecomposeRewriter extends Rewriter {
     def apply[T](x: Ref[T]): Ref[T] = x match {

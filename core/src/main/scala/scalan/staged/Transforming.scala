@@ -1,12 +1,7 @@
 package scalan.staged
 
 import java.lang.reflect.Method
-
-import scala.collection.{Seq, mutable}
-import scalan.{Lazy, DelayInvokeException, Scalan, Nullable}
-import scala.reflect.{classTag, ClassTag}
-import scala.reflect.runtime.universe._
-import scalan.RType.SingletonType
+import scalan.{Lazy, DelayInvokeException, Nullable, Scalan}
 import debox.{Buffer => DBuffer}
 import spire.syntax.all.cfor
 
@@ -53,28 +48,6 @@ trait Transforming { self: Scalan =>
     _currentPass = Pass.defaultPass
   }
 
-  case class SingletonElem[T: WeakTypeTag: ClassTag](value: T)
-    extends BaseElemLiftable[T](value, SingletonType(value, classTag[T]))
-
-  sealed abstract class KeyPath {
-    def isNone = this == KeyPath.None
-    def isAll = this == KeyPath.All
-  }
-  object KeyPath {
-    case object Root extends KeyPath
-    case object This extends KeyPath
-    case object All extends KeyPath
-    case object None extends KeyPath
-    case object First extends KeyPath
-    case object Second extends KeyPath
-    case class Field(name: String) extends KeyPath
-  }
-
-  def keyPathElem(kp: KeyPath): Elem[KeyPath] = SingletonElem(kp)
-
-  implicit class KeyPathElemOps(eKeyPath: Elem[KeyPath]) {
-    def keyPath = eKeyPath.asInstanceOf[SingletonElem[KeyPath]].value
-  }
 
   case class MapTransformer(private val subst: Map[Sym, Sym]) extends Transformer {
     def this(substPairs: (Sym, Sym)*) {
@@ -99,12 +72,6 @@ trait Transforming { self: Scalan =>
 
   object MapTransformer {
     def empty = new MapTransformer(Map.empty[Sym, Sym])
-
-    implicit val ops: TransformerOps[MapTransformer] = new TransformerOps[MapTransformer] {
-      def empty = MapTransformer.empty
-      def add[A](t: MapTransformer, kv: (Ref[A], Ref[A])): MapTransformer =
-        new MapTransformer(t.subst + kv)
-    }
   }
 
   implicit class PartialRewriter(pf: PartialFunction[Sym, Sym]) extends Rewriter {

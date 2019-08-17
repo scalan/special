@@ -479,20 +479,6 @@ abstract class Base { scalan: Scalan =>
     def merge(other: Transformer): Transformer
   }
 
-  abstract class TransformerOps[Ctx <: Transformer] {
-    def empty: Ctx
-    def add[A](ctx: Ctx, kv: (Ref[A], Ref[A])): Ctx
-    def merge(ctx1: Ctx, ctx2: Ctx): Ctx = ctx2.domain.foldLeft(ctx1) {
-      case (t, s: Ref[a]) => add(t, (s, ctx2(s)))
-    }
-  }
-
-  implicit class TransformerExtensions[Ctx <: Transformer](self: Ctx)(implicit ops: TransformerOps[Ctx]) {
-    def +[A](kv: (Ref[A], Ref[A])) = ops.add(self, kv)
-    def ++(kvs: Map[Ref[A], Ref[A]] forSome {type A}) = kvs.foldLeft(self)((ctx, kv) => ops.add(ctx, kv))
-    def merge(other: Ctx): Ctx = ops.merge(self, other)
-  }
-
   /** Prettyprint exception message */
   protected def stagingExceptionMessage(message: String, syms: Seq[Ref[_]]) = {
     // Skip syms already in the message, assume that's the only source for s<N>
