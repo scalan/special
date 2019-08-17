@@ -59,7 +59,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
       new ProgramGraph(newRoots, Nullable(t1), filterNode)
     }
 
-    def transformOne(oldExp:Sym, newExp:Sym): ProgramGraph = {
+    def transformOne(oldExp: Sym, newExp: Sym): ProgramGraph = {
       val newRoots = roots map (x => x match {case v: Sym if v == oldExp => newExp; case t => t }  )
       new ProgramGraph(newRoots, mapping, filterNode)
     }
@@ -74,7 +74,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
   }
 
   object ProgramGraph {
-    def transform[A](s: Ref[A], rw: Rewriter = NoRewriting, t: MapTransformer = MapTransformer.empty): Ref[A] = {
+    def transform[A](s: Ref[A], rw: Rewriter = NoRewriting, t: MapTransformer = MapTransformer.empty()): Ref[A] = {
       val g = ProgramGraph(List(s), Nullable.None, Nullable.None)
       val g1 = g.transform(DefaultMirror, rw, t)
       g1.roots(0).asInstanceOf[Ref[A]]

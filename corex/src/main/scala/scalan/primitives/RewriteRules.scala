@@ -1,6 +1,6 @@
 package scalan.primitives
 
-import scalan.{ScalanEx, Base, Nullable}
+import scalan.{ScalanEx, Base, Nullable, AVHashMap}
 
 import scala.reflect.runtime.universe._
 import scalan.util.Invariant
@@ -89,7 +89,7 @@ trait RewriteRules extends Base { self: ScalanEx =>
       val optSubst = patternMatch(lhs, s)
       if (optSubst.isDefined) {
         val subst = optSubst.get
-        val g1 = g.transform(DefaultMirror, NoRewriting, new MapTransformer(subst.toImmutableMap))
+        val g1 = g.transform(DefaultMirror, NoRewriting, new MapTransformer(new AVHashMap(subst)))
         g1.roots.head
       } else null
     }

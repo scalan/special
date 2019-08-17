@@ -1,7 +1,8 @@
 package scalan.staged
 
 import java.lang.reflect.Method
-import scalan.{Lazy, DelayInvokeException, Nullable, Scalan}
+
+import scalan.{Nullable, DelayInvokeException, Lazy, Scalan, AVHashMap}
 import debox.{Buffer => DBuffer}
 import spire.syntax.all.cfor
 
@@ -49,21 +50,31 @@ trait Transforming { self: Scalan =>
   }
 
 
-  case class MapTransformer(private val subst: Map[Sym, Sym]) extends Transformer {
+  case class MapTransformer(private val subst: AVHashMap[Sym, Sym]) extends Transformer {
     def this(substPairs: (Sym, Sym)*) {
-      this(substPairs.toMap)
+      this({
+        val map = AVHashMap[Sym, Sym](10000)
+        val len = substPairs.length
+        cfor(0)(_ < len, _ + 1) { i =>
+          val kv = substPairs(i)
+          map.put(kv._1, kv._2)
+        }
+        map
+      })
     }
     def apply[A](x: Ref[A]): Ref[A] = subst.get(x) match {
-      case Some(y) if y != x => apply(y.asInstanceOf[Ref[A]]) // transitive closure
+      case Nullable(y) if y != x => apply(y.asInstanceOf[Ref[A]]) // transitive closure
       case _ => x
     }
-    def isDefinedAt(x: Ref[_]) = subst.contains(x)
-    def domain: Set[Ref[_]] = subst.keySet
+    def isDefinedAt(x: Ref[_]) = subst.containsKey(x)
+    def domain: Seq[Ref[_]] = subst.keySet.toArray(new Array[Sym](0))
 
-    def +[A](key: Sym, value: Sym) = new MapTransformer(subst.updated(key, value))
-    def ++(kvs: Map[Sym, Sym]) = new MapTransformer(subst ++ kvs)
+    def +[A](key: Sym, value: Sym): Transformer = {
+      subst.put(key, value)
+      this
+    }
     def merge(other: Transformer): Transformer =
-      other.domain.foldLeft(this) {
+      other.domain.foldLeft[Transformer](this) {
         case (t, s: Sym) => t + (s, other(s))
       }
 
@@ -71,7 +82,7 @@ trait Transforming { self: Scalan =>
   }
 
   object MapTransformer {
-    def empty = new MapTransformer(Map.empty[Sym, Sym])
+    def empty(initialCapacity: Int = 100) = new MapTransformer(AVHashMap[Sym, Sym](initialCapacity))
   }
 
   implicit class PartialRewriter(pf: PartialFunction[Sym, Sym]) extends Rewriter {

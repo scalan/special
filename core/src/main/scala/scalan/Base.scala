@@ -452,7 +452,7 @@ abstract class Base { scalan: Scalan =>
     /** Whether this transformer is defined for the given node. */
     def isDefinedAt(x: Sym): Boolean
     /** Set of nodes where this transformer is defined. */
-    def domain: Set[Sym]
+    def domain: Seq[Sym]
     /** Transform a sequence of nodes into new sequence of nodes. */
     def apply[A](xs: Seq[Ref[A]]): Seq[Ref[A]] = {
       val len = xs.length
@@ -475,7 +475,6 @@ abstract class Base { scalan: Scalan =>
     }
 
     def +[A](key: Sym, value: Sym): Transformer
-    def ++(kvs: Map[Sym, Sym]): Transformer
     def merge(other: Transformer): Transformer
   }
 

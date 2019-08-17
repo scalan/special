@@ -32,7 +32,7 @@ trait SlicingCompiler[+ScalanCake <: Scalan with Slicing] extends Compiler[Scala
     def apply(graph: PGraph): PGraph = {
       val rw = new SlicingRewriter(sliceAnalyzer, graph)
       val m = new SlicingMirror(sliceAnalyzer, graph)
-      graph.transform(m, rw, MapTransformer.empty)
+      graph.transform(m, rw, MapTransformer.empty())
     }
   }
   object SlicingPass {

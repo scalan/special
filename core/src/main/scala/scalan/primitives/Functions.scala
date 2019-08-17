@@ -3,9 +3,10 @@ package scalan.primitives
 import java.util
 
 import scalan.staged.ProgramGraphs
-import scalan.util.{GraphUtil, NeighbourFunc, Neighbours}
-import scalan.{Lazy, Base, Nullable, Scalan}
+import scalan.util.{Neighbours, GraphUtil, NeighbourFunc}
+import scalan.{Nullable, Base, Lazy, Scalan, AVHashMap}
 import debox.{Set => DSet, Buffer => DBuffer}
+
 import scala.collection.mutable
 import scala.language.implicitConversions
 import spire.syntax.all.cfor
@@ -315,7 +316,10 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def mirrorApply[A,B](lam: Lambda[A, B], s: Ref[A]): Ref[B] = {
     val body = lam.scheduleIds
-    val t = DefaultMirror.mirrorSymbols(new MapTransformer(lam.x -> s), NoRewriting, lam, body)
+    lam.x -> s
+    val m = AVHashMap[Sym, Sym](100)
+    val subst = new MapTransformer(m)
+    val t = DefaultMirror.mirrorSymbols(subst, NoRewriting, lam, body)
     t(lam.y)
   }
 

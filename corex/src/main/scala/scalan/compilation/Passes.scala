@@ -62,7 +62,7 @@ trait Passes {
   }
 
   class GraphTransformPass(val builder: PassBuilder[GraphPass], val name: String, mirror: Mirror, rewriter: Rewriter) extends GraphPass {
-    def apply(graph: PGraph): PGraph = graph.transform(mirror, rewriter, MapTransformer.empty)
+    def apply(graph: PGraph): PGraph = graph.transform(mirror, rewriter, MapTransformer.empty())
   }
 
   class EnableInvokePass(val builder: PassBuilder[GraphPass], methodsDescription: String)(invokePred: InvokeTester) extends GraphPass {
@@ -70,7 +70,7 @@ trait Passes {
 
     def apply(graph: PGraph) = {
       addInvokeTester(invokePred)
-      graph.transform(DefaultMirror, InvokeRewriter, MapTransformer.empty)
+      graph.transform(DefaultMirror, InvokeRewriter, MapTransformer.empty())
     }
 
     override def doFinalization(): Unit = {
@@ -83,7 +83,7 @@ trait Passes {
 
     def apply(graph: PGraph) = {
       addUnpackTester(unpackPred)
-      graph.transform(DefaultMirror, NoRewriting, MapTransformer.empty)
+      graph.transform(DefaultMirror, NoRewriting, MapTransformer.empty())
     }
 
     override def doFinalization(): Unit = {

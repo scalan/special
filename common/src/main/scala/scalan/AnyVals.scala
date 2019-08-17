@@ -24,14 +24,15 @@ object Nullable {
 /** Allocation free alternative to scala.collection.mutable.Map with similar interface.
   * This simplifies optimization of performance critical code. */
 class AVHashMap[K,V](val hashMap: HashMap[K,V]) extends AnyVal {
-  @inline def get(key: K): Nullable[V] = Nullable(hashMap.get(key))
-  @inline def apply(key: K): V = hashMap.get(key)
-  @inline def containsKey(key: K): Boolean = hashMap.containsKey(key)
-  @inline def put(key: K, value: V): V = hashMap.put(key, value)
-  @inline def clear(): Unit = {
+  @inline final def isEmpty: Boolean = hashMap.isEmpty
+  @inline final def get(key: K): Nullable[V] = Nullable(hashMap.get(key))
+  @inline final def apply(key: K): V = hashMap.get(key)
+  @inline final def containsKey(key: K): Boolean = hashMap.containsKey(key)
+  @inline final def put(key: K, value: V): V = hashMap.put(key, value)
+  @inline final def clear(): Unit = {
     hashMap.clear()
   }
-  def getOrElseUpdate(key: K, op: => V): V = {
+  final def getOrElseUpdate(key: K, op: => V): V = {
     var v = hashMap.get(key)
     if (v == null) {
       v = op
@@ -39,6 +40,7 @@ class AVHashMap[K,V](val hashMap: HashMap[K,V]) extends AnyVal {
     }
     v
   }
+  @inline final def keySet: java.util.Set[K] = hashMap.keySet()
 }
 object AVHashMap {
   def apply[K,V](initialCapacity: Int) = new AVHashMap[K,V](new HashMap[K,V](initialCapacity))

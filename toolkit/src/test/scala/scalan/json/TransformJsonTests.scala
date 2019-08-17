@@ -41,7 +41,7 @@ class TransformJsonTests extends JsonTests {
   abstract class SingleStagePipeline[C <: Scalan](c: C) extends TransformPipeline(c) {
     val rewriter: ctx.Rewriter
     override def apply(graph: ctx.PGraph): ctx.PGraph = {
-      graph.transform(ctx.DefaultMirror, rewriter, ctx.MapTransformer.empty)
+      graph.transform(ctx.DefaultMirror, rewriter, ctx.MapTransformer.empty())
     }
   }
 

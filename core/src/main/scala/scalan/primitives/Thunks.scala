@@ -217,14 +217,14 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
   var isInlineThunksOnForce = false
 
-  def forceThunkByMirror[A](thunk: Th[A], subst: MapTransformer = MapTransformer.empty): Ref[A] = {
+  def forceThunkByMirror[A](thunk: Th[A], subst: MapTransformer = MapTransformer.empty()): Ref[A] = {
     val th = thunk.node.asInstanceOf[ThunkDef[A]]
     forceThunkDefByMirror(th, subst)
   }
-  def forceThunkDefByMirror[A](th: ThunkDef[A], subst: MapTransformer = MapTransformer.empty): Ref[A] = {
+  def forceThunkDefByMirror[A](th: ThunkDef[A], subst: MapTransformer = MapTransformer.empty()): Ref[A] = {
     val body = th.scheduleIds
     val t = DefaultMirror.mirrorSymbols(subst, NoRewriting, th, body)
-    t(th.root).asInstanceOf[Ref[A]]
+    t(th.root)
   }
 
   def thunk_force[A](t: Th[A]): Ref[A] =

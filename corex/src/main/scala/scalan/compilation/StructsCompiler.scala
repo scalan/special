@@ -17,7 +17,7 @@ trait StructsCompiler[+ScalanCake <: ScalanEx with Structs] extends Compiler[Sca
     def name = StructsPass.name
     override val config = PassConfig(shouldUnpackTuples = true)
     def apply(graph: PGraph): PGraph = {
-      graph.transform(mirror, rewriter, MapTransformer.empty)
+      graph.transform(mirror, rewriter, MapTransformer.empty())
     }
   }
   object StructsPass {
