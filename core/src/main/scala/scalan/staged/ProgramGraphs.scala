@@ -1,12 +1,20 @@
 package scalan.staged
 
-import scalan.{Nullable, Scalan, DFunc}
+import scalan.{DFunc, Nullable, Scalan}
 import debox.{Buffer => DBuffer}
+import scalan.util.{NeighbourFunc, GraphUtil}
 import spire.syntax.all.cfor
 
 trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
   type PGraph = ProgramGraph
+
+  class PGraphUsageNeighbours(g: PGraph) extends NeighbourFunc[Int, Int] {
+    override def populate(x: Int, res: DBuffer[Int]): Unit = {
+      val ns = g.usagesOf(x)
+      res ++= ns
+    }
+  }
 
   // immutable program graph
   case class ProgramGraph(roots: Seq[Sym], mapping: Nullable[Transformer], filterNode: Nullable[Sym => Boolean])
@@ -45,7 +53,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
             res
           }
       }
-      val sch = buildScheduleForResult(rootIds, neighbours)
+      val sch = GraphUtil.depthFirstOrderFrom(rootIds, neighbours)
       sch
     }
 

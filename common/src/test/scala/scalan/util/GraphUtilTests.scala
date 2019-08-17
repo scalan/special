@@ -1,6 +1,6 @@
 package scalan.util
 
-import scalan.BaseNestedTests
+import scalan.{BaseNestedTests, DFunc}
 import debox.{Set => DSet, Buffer => DBuffer}
 
 class GraphUtilTests extends BaseNestedTests {
@@ -29,6 +29,14 @@ class GraphUtilTests extends BaseNestedTests {
       depthFirstSetFrom(DBuffer(3))(neighbours) shouldBe (DSet(3, 5, 6))
       depthFirstSetFrom(DBuffer(2))(neighbours) shouldBe (DSet(2, 4, 6))
       depthFirstSetFrom(DBuffer(0))(neighbours) shouldBe (DSet(0, 1, 2, 3, 4, 5, 6))
+    }
+    it("depthFirstOrderFrom") {
+      val succ: DFunc[Int, DBuffer[Int]] = {id: Int => DBuffer(graph(id):_*)}
+      depthFirstOrderFrom(DBuffer(6), succ) shouldBe (DBuffer(6))
+      depthFirstOrderFrom(DBuffer(5), succ) shouldBe (DBuffer(6, 5))
+      depthFirstOrderFrom(DBuffer(3), succ) shouldBe (DBuffer(6, 5, 3))
+      depthFirstOrderFrom(DBuffer(2), succ) shouldBe (DBuffer(6, 4, 2))
+      depthFirstOrderFrom(DBuffer(0), succ) shouldBe (DBuffer(6, 5, 3, 1, 4, 2, 0))
     }
   }
   describe("StronglyConnectedComponents") {

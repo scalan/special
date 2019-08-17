@@ -6,7 +6,7 @@ import spire.syntax.all.cfor
 
 import scala.reflect.ClassTag
 
-trait NeighbourFunc[@specialized(Int) A, B] {
+abstract class NeighbourFunc[@specialized(Int) A, B] {
   def populate(x: A, res: DBuffer[B]): Unit
 }
 class Neighbours[@specialized(Int) A, B](f: DFunc[A, DBuffer[B]]) extends NeighbourFunc[A, B] {
@@ -38,6 +38,30 @@ object GraphUtil {
 
    visited
  }
+
+  def depthFirstOrderFrom[@specialized(Int) A: ClassTag](starts: DBuffer[A], succ: DFunc[A, DBuffer[A]]): DBuffer[A] = {
+    val visited = DSet.ofSize[A](starts.length)
+    val res = DBuffer.ofSize[A](starts.length)
+    def visit(s: A): Unit = {
+      if (!(visited(s))) {
+        visited += s
+        // first visit all deps recursively
+        val ns = succ(s)
+        cfor(0)(_ < ns.length, _ + 1) { i =>
+          visit(ns(i))
+        }
+        // then append this node to result
+        res += s
+      }
+    }
+
+    val len = starts.length
+    cfor(0)(_ < len, _ + 1) { i =>
+      visit(starts(i))
+    }
+
+    res
+  }
 
   /**
    * Returns the strongly connected components
