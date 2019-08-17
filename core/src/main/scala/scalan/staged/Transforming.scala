@@ -125,7 +125,7 @@ trait Transforming { self: Scalan =>
   }
 
   abstract class Mirror {
-    def apply[A](t: Transformer, rewriter: Rewriter, node: Ref[A], d: Def[A]): (Transformer, Sym) = (t, d.mirror(t))
+    def apply[A](t: Transformer, rewriter: Rewriter, node: Ref[A], d: Def[A]): Sym = d.mirror(t)
 
     protected def mirrorElem(node: Sym): Elem[_] = node.elem
 
@@ -136,8 +136,8 @@ trait Transforming { self: Scalan =>
     }
 
     protected def mirrorDef[A](t: Transformer, rewriter: Rewriter, node: Ref[A], d: Def[A]): Transformer = {
-      val (t1, res) = apply(t, rewriter, node, d)
-      t1 + (node, res)
+      val res = apply(t, rewriter, node, d)
+      t + (node, res)
     }
 
     protected def getMirroredLambdaSym[A, B](node: Ref[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
