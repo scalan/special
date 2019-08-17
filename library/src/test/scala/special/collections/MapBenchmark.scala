@@ -6,6 +6,8 @@ import spire.syntax.all.cfor
 
 trait MapBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
   val obj = new Object()
+  var xOpt: Option[Object] = None
+  var xNullable: Nullable[Object] = Nullable.None
   performance of "put[Object]" in {
     measure method "of debox.Map" in {
       using(arrays) in { case (arr, n) =>
@@ -54,27 +56,25 @@ trait MapBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
     }
     measure method "of AVHashMap" in {
       val m = AVHashMap[Int, Object](maxSize)
-      var x: Nullable[Object] = Nullable.None
       cfor(0)(_ < maxSize, _ + 1) { i =>
         m.put(i, obj)
       }
       using(arrays) in { case (arr, n) =>
         val limit = arr.length
         cfor(0)(_ < limit, _ + 1) { i =>
-          x = m.get(i * 13 % limit)
+          xNullable = m.get(i * 13 % limit)
         }
       }
     }
     measure method "of immutable.Map" in {
       var m = Map.empty[Int, Object]
-      var x: Option[Object] = None
       cfor(0)(_ < maxSize, _ + 1) { i =>
         m = m + ((i, obj))
       }
       using(arrays) in { case (arr, n) =>
         val limit = arr.length
         cfor(0)(_ < limit, _ + 1) { i =>
-          x = m.get(i * 13 % limit)
+          xOpt = m.get(i * 13 % limit)
         }
       }
     }
