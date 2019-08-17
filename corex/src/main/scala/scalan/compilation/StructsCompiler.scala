@@ -13,11 +13,11 @@ trait StructsCompiler[+ScalanCake <: ScalanEx with Structs] extends Compiler[Sca
     passes.distinct
   }
 
-  class StructsPass(val builder: PassBuilder[GraphPass], mirror: Mirror[MapTransformer], rewriter: Rewriter) extends GraphPass {
+  class StructsPass(val builder: PassBuilder[GraphPass], mirror: Mirror, rewriter: Rewriter) extends GraphPass {
     def name = StructsPass.name
     override val config = PassConfig(shouldUnpackTuples = true)
     def apply(graph: PGraph): PGraph = {
-      graph.transform(mirror, rewriter, MapTransformer.Empty)
+      graph.transform(mirror, rewriter, MapTransformer.empty)
     }
   }
   object StructsPass {

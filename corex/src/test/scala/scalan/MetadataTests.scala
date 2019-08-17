@@ -33,8 +33,8 @@ class MetadataTests extends BaseNestedTests {
       val compiler = new DummyCompilerWithPasses(new ProgExp) {
         import scalan._
 
-        val functionNameMirror = new MirrorEx[MapTransformer] {
-          override protected def mirrorMetadata[A, B](t: MapTransformer, old: Ref[A], mirrored: Ref[B]) = {
+        val functionNameMirror = new MirrorEx {
+          override protected def mirrorMetadata[A, B](t: Transformer, old: Ref[A], mirrored: Ref[B]) = {
             val newMeta = old.allMetadata.updateIfExists(functionNameKey)(_ + "1")
             (t, newMeta)
           }

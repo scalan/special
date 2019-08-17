@@ -6,12 +6,12 @@ import spire.syntax.all.cfor
 
 trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
-  type PGraph = ProgramGraph[MapTransformer]
+  type PGraph = ProgramGraph
 
   // immutable program graph
-  case class ProgramGraph[Ctx <: Transformer : TransformerOps](roots: Seq[Sym], mapping: Ctx, filterNode: Nullable[Sym => Boolean])
+  case class ProgramGraph(roots: Seq[Sym], mapping: Transformer, filterNode: Nullable[Sym => Boolean])
   	  extends AstGraph {
-    def this(roots: Seq[Sym], filterNode: Nullable[Sym => Boolean] = Nullable.None) { this(roots, implicitly[TransformerOps[Ctx]].empty, filterNode) }
+    def this(roots: Seq[Sym], filterNode: Nullable[Sym => Boolean] = Nullable.None) { this(roots, MapTransformer.empty, filterNode) }
     def this(root: Sym) { this(List(root)) }
 
     override lazy val rootIds: DBuffer[Int] = super.rootIds
@@ -49,25 +49,25 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
       sch
     }
 
-    def transform(m: Mirror[Ctx], rw: Rewriter, t: Ctx): ProgramGraph[Ctx] = {
+    def transform(m: Mirror, rw: Rewriter, t: Transformer): ProgramGraph = {
       val t0 = t merge mapping
       val t1 = m.mirrorSymbols(t0, rw, this, scheduleIds)
       val newRoots = roots map { t1(_) }
       new ProgramGraph(newRoots, t1, filterNode)
     }
 
-    def transformOne(oldExp:Sym, newExp:Sym): ProgramGraph[Ctx] = {
+    def transformOne(oldExp:Sym, newExp:Sym): ProgramGraph = {
       val newRoots = roots map (x => x match {case v: Sym if v == oldExp => newExp; case t => t }  )
       new ProgramGraph(newRoots, mapping, filterNode)
     }
 
-    def withoutContext = ProgramGraph(roots, implicitly[TransformerOps[Ctx]].empty, filterNode)
+    def withoutContext = ProgramGraph(roots, MapTransformer.empty, filterNode)
 
     override def toString: String = s"ProgramGraph($roots, $mapping, ${if(filterNode.isDefined) filterNode.toString else "None"})"
   }
 
   object ProgramGraph {
-    def transform[A](s: Ref[A], rw: Rewriter = NoRewriting, t: MapTransformer = MapTransformer.Empty): Ref[A] = {
+    def transform[A](s: Ref[A], rw: Rewriter = NoRewriting, t: MapTransformer = MapTransformer.empty): Ref[A] = {
       val g = ProgramGraph(List(s), t, Nullable.None)
       val g1 = g.transform(DefaultMirror, rw, t)
       g1.roots(0).asInstanceOf[Ref[A]]

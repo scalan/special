@@ -87,14 +87,21 @@ trait Transforming { self: Scalan =>
     def isDefinedAt(x: Ref[_]) = subst.contains(x)
     def domain: Set[Ref[_]] = subst.keySet
 
+    def +[A](kv: (Sym, Sym)) = new MapTransformer(subst + kv)
+    def ++(kvs: Map[Sym, Sym]) = new MapTransformer(subst ++ kvs)
+    def merge(other: Transformer): Transformer =
+      other.domain.foldLeft(this) {
+        case (t, s: Sym) => t +  ((s, other(s)))
+      }
+
     override def toString = if (subst.isEmpty) "MapTransformer.Empty" else s"MapTransformer($subst)"
   }
 
   object MapTransformer {
-    val Empty = new MapTransformer(Map.empty[Sym, Sym])
+    def empty = new MapTransformer(Map.empty[Sym, Sym])
 
     implicit val ops: TransformerOps[MapTransformer] = new TransformerOps[MapTransformer] {
-      def empty = new MapTransformer(Map.empty[Sym,Sym])
+      def empty = MapTransformer.empty
       def add[A](t: MapTransformer, kv: (Ref[A], Ref[A])): MapTransformer =
         new MapTransformer(t.subst + kv)
     }
@@ -150,18 +157,18 @@ trait Transforming { self: Scalan =>
     def apply[T](x: Ref[T]) = x
   }
 
-  abstract class Mirror[Ctx <: Transformer : TransformerOps] {
-    def apply[A](t: Ctx, rewriter: Rewriter, node: Ref[A], d: Def[A]): (Ctx, Sym) = (t, d.mirror(t))
+  abstract class Mirror {
+    def apply[A](t: Transformer, rewriter: Rewriter, node: Ref[A], d: Def[A]): (Transformer, Sym) = (t, d.mirror(t))
 
     protected def mirrorElem(node: Sym): Elem[_] = node.elem
 
     // every mirrorXXX method should return a pair (t + (v -> v1), v1)
-    protected def mirrorVar[A](t: Ctx, rewriter: Rewriter, v: Ref[A]): Ctx = {
+    protected def mirrorVar[A](t: Transformer, rewriter: Rewriter, v: Ref[A]): Transformer = {
       val newVar = variable(Lazy(mirrorElem(v)))
       t + (v -> newVar)
     }
 
-    protected def mirrorDef[A](t: Ctx, rewriter: Rewriter, node: Ref[A], d: Def[A]): Ctx = {
+    protected def mirrorDef[A](t: Transformer, rewriter: Rewriter, node: Ref[A], d: Def[A]): Transformer = {
       val (t1, res) = apply(t, rewriter, node, d)
       t1 + ((node, res))
     }
@@ -169,14 +176,14 @@ trait Transforming { self: Scalan =>
     protected def getMirroredLambdaSym[A, B](node: Ref[A => B]): Sym = placeholder(Lazy(mirrorElem(node)))
 
     // require: should be called after oldlam.schedule is mirrored
-    private def getMirroredLambdaDef(t: Ctx, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
+    private def getMirroredLambdaDef(t: Transformer, oldLam: Lambda[_,_], newRoot: Sym): Lambda[_,_] = {
       val newVar = t(oldLam.x)
       val newLambdaDef = new Lambda(Nullable.None, newVar, newRoot, oldLam.mayInline, oldLam.alphaEquality)
       newLambdaDef
     }
 
-    protected def mirrorLambda[A, B](t: Ctx, rewriter: Rewriter, node: Ref[A => B], lam: Lambda[A, B]): Ctx = {
-      var tRes: Ctx = t
+    protected def mirrorLambda[A, B](t: Transformer, rewriter: Rewriter, node: Ref[A => B], lam: Lambda[A, B]): Transformer = {
+      var tRes: Transformer = t
       val t1 = mirrorNode(t, rewriter, lam, lam.x)
 
       // original root
@@ -214,7 +221,7 @@ trait Transforming { self: Scalan =>
       tRes + (node -> resLam)
     }
 
-    protected def mirrorThunk[A](t: Ctx, rewriter: Rewriter, node: Ref[Thunk[A]], thunk: ThunkDef[A]): Ctx = {
+    protected def mirrorThunk[A](t: Transformer, rewriter: Rewriter, node: Ref[Thunk[A]], thunk: ThunkDef[A]): Transformer = {
       var scheduleIdsPH: ScheduleIds = null
       val newRootPH = placeholder(Lazy(node.elem.eItem))
       val newThunk = new ThunkDef(newRootPH, { assert(scheduleIdsPH != null); scheduleIdsPH })
@@ -236,9 +243,9 @@ trait Transforming { self: Scalan =>
       t1 + (node -> newThunkSym)
     }
 
-    protected def isMirrored(t: Ctx, node: Sym): Boolean = t.isDefinedAt(node)
+    protected def isMirrored(t: Transformer, node: Sym): Boolean = t.isDefinedAt(node)
 
-    def mirrorNode(t: Ctx, rewriter: Rewriter, g: AstGraph, node: Sym): Ctx = {
+    def mirrorNode(t: Transformer, rewriter: Rewriter, g: AstGraph, node: Sym): Transformer = {
       if (isMirrored(t, node)) t
       else {
         node.node match {
@@ -255,8 +262,8 @@ trait Transforming { self: Scalan =>
     }
 
     /** @hotspot */
-    def mirrorSymbols(t0: Ctx, rewriter: Rewriter, g: AstGraph, nodes: DBuffer[Int]) = {
-      var t: Ctx = t0
+    def mirrorSymbols(t0: Transformer, rewriter: Rewriter, g: AstGraph, nodes: DBuffer[Int]) = {
+      var t: Transformer = t0
       cfor(0)(_ < nodes.length, _ + 1) { i =>
         val n = nodes(i)
         val s = getSym(n)
@@ -266,8 +273,7 @@ trait Transforming { self: Scalan =>
     }
   }
 
-  def mirror[Ctx <: Transformer : TransformerOps] = new Mirror[Ctx] {}
-  val DefaultMirror = mirror[MapTransformer]
+  val DefaultMirror = new Mirror {}
 
 }
 

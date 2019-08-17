@@ -655,7 +655,7 @@ trait Slicing extends ScalanEx {
     case _ => !!!(s"FuncMarking expected but found ${m}")
   }
 
-  class SlicingMirror(sliceAnalyzer: SliceAnalyzer, graph: PGraph) extends Mirror[MapTransformer] {
+  class SlicingMirror(sliceAnalyzer: SliceAnalyzer, graph: PGraph) extends Mirror {
 
 //    override def mirrorNode[A](t: MapTransformer, rewriter: Rewriter, g: AstGraph, node: Ref[A]): (MapTransformer, Sym) = {
 //      val (t1, mirrored) = super.mirrorNode(t, rewriter, g, node)
@@ -679,8 +679,7 @@ trait Slicing extends ScalanEx {
 //
 //      (t1, metaNode)
 //    }
-    override protected def mirrorLambda[A, B](
-                                                 t: MapTransformer, rewriter: Rewriter, node: Ref[(A) => B], lam: Lambda[A, B]): MapTransformer = {
+    override protected def mirrorLambda[A, B](t: Transformer, rewriter: Rewriter, node: Ref[(A) => B], lam: Lambda[A, B]): Transformer = {
       if (graph.roots.contains(node)) {
         val fm = sliceAnalyzer.getMark(node)
         if (!fm.isIdentity) {

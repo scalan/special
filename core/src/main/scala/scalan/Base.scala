@@ -465,8 +465,18 @@ abstract class Base { scalan: Scalan =>
     /** Apply this transformer to the nodes present in the sequence,
       * and leave non-Ref items unchanged. */
     def apply(xs: Seq[Any])(implicit o: Overloaded1): Seq[Any] = {
-      xs map (e => e match { case s: Ref[_] => apply(s); case _ => e })
+      val len = xs.length
+      val res = new Array[Any](len)
+      cfor(0)(_ < len, _ + 1) { i =>
+        val x = xs(i) match { case s: Ref[_] => apply(s); case s => s }
+        res(i) = x
+      }
+      res
     }
+
+    def +[A](kv: (Sym, Sym)): Transformer
+    def ++(kvs: Map[Sym, Sym]): Transformer
+    def merge(other: Transformer): Transformer
   }
 
   abstract class TransformerOps[Ctx <: Transformer] {

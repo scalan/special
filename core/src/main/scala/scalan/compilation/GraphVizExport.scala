@@ -235,7 +235,7 @@ trait GraphVizExport extends Base { self: Scalan =>
   }
 
   protected def clusterColor(g: AstGraph) = g match {
-    case _: ProgramGraph[_] => None
+    case _: ProgramGraph => None
     case _: Lambda[_, _] => Some("#FFCCFF")
     case _: ThunkDef[_] => Some("#FFCCCC")
     case _ => Some("lightgray")

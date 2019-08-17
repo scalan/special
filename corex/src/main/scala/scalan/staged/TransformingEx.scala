@@ -17,12 +17,12 @@ trait TransformingEx { self: ScalanEx =>
     }
   }
 
-  abstract class MirrorEx[Ctx <: Transformer : TransformerOps] extends Mirror[Ctx] {
+  abstract class MirrorEx extends Mirror {
 
-    protected def mirrorMetadata[A, B](t: Ctx, old: Ref[A], mirrored: Ref[B]) =
+    protected def mirrorMetadata[A, B](t: Transformer, old: Ref[A], mirrored: Ref[B]) =
       (t, allMetadataOf(old))
 
-    private def setMirroredMetadata(t1: Ctx, node: Sym, mirrored: Sym): (Ctx, Sym) = {
+    private def setMirroredMetadata(t1: Transformer, node: Sym, mirrored: Sym): (Transformer, Sym) = {
       val (t2, mirroredMetadata) = mirrorMetadata(t1, node, mirrored)
       setAllMetadata(mirrored, mirroredMetadata.filterSinglePass)
       (t2, mirrored)

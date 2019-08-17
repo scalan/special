@@ -150,7 +150,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
       case JsProgramGraph(fields, rootIds) =>
         SymFormat.readDefs(sortedSchedule(fields))
         val rootSyms = rootIds.map(mapId(_))
-        new PGraph(rootSyms.toList)(MapTransformer.ops)
+        new PGraph(rootSyms.toList)
       case _ => deserializationError("String expected of type term")
     }
   }
