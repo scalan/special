@@ -76,7 +76,7 @@ trait Transforming { self: Scalan =>
     def keyPath = eKeyPath.asInstanceOf[SingletonElem[KeyPath]].value
   }
 
-  class MapTransformer(private val subst: Map[Sym, Sym]) extends Transformer {
+  case class MapTransformer(private val subst: Map[Sym, Sym]) extends Transformer {
     def this(substPairs: (Sym, Sym)*) {
       this(substPairs.toMap)
     }
@@ -94,7 +94,7 @@ trait Transforming { self: Scalan =>
     val Empty = new MapTransformer(Map.empty[Sym, Sym])
 
     implicit val ops: TransformerOps[MapTransformer] = new TransformerOps[MapTransformer] {
-      def empty = Empty//new MapTransformer(Map.empty)
+      def empty = new MapTransformer(Map.empty[Sym,Sym])
       def add[A](t: MapTransformer, kv: (Ref[A], Ref[A])): MapTransformer =
         new MapTransformer(t.subst + kv)
     }
