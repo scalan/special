@@ -1,6 +1,7 @@
 package scalan.staged
 
 import java.lang.reflect.Method
+import java.util
 
 import scalan.{Nullable, DelayInvokeException, Lazy, Scalan, AVHashMap}
 import debox.{Buffer => DBuffer}
@@ -50,10 +51,10 @@ trait Transforming { self: Scalan =>
   }
 
 
-  case class MapTransformer(private val subst: AVHashMap[Sym, Sym]) extends Transformer {
+  case class MapTransformer(private val subst: util.HashMap[Sym, Sym]) extends Transformer {
     def this(substPairs: (Sym, Sym)*) {
       this({
-        val map = AVHashMap[Sym, Sym](10000)
+        val map = new util.HashMap[Sym, Sym](1000)
         val len = substPairs.length
         cfor(0)(_ < len, _ + 1) { i =>
           val kv = substPairs(i)
@@ -62,9 +63,10 @@ trait Transforming { self: Scalan =>
         map
       })
     }
-    def apply[A](x: Ref[A]): Ref[A] = subst.get(x) match {
-      case Nullable(y) if y != x => apply(y.asInstanceOf[Ref[A]]) // transitive closure
-      case _ => x
+    def apply[A](x: Ref[A]): Ref[A] = {
+      val y = subst.get(x)
+      if (y == null || y == x) return x
+      apply(y.asInstanceOf[Ref[A]]) // transitive closure
     }
     def isDefinedAt(x: Ref[_]) = subst.containsKey(x)
     def domain: Seq[Ref[_]] = subst.keySet.toArray(new Array[Sym](0))
@@ -82,7 +84,7 @@ trait Transforming { self: Scalan =>
   }
 
   object MapTransformer {
-    def empty(initialCapacity: Int = 100) = new MapTransformer(AVHashMap[Sym, Sym](initialCapacity))
+    def empty(initialCapacity: Int = 100) = new MapTransformer(new util.HashMap[Sym, Sym](initialCapacity))
   }
 
   implicit class PartialRewriter(pf: PartialFunction[Sym, Sym]) extends Rewriter {

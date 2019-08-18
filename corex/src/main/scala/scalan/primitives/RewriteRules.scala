@@ -1,10 +1,7 @@
 package scalan.primitives
 
-import scalan.{ScalanEx, Base, Nullable, AVHashMap}
-
-import scala.reflect.runtime.universe._
+import scalan.{ScalanEx, Base, Nullable}
 import scalan.util.Invariant
-
 import scala.reflect.ClassTag
 
 trait RewriteRules extends Base { self: ScalanEx =>
@@ -83,13 +80,12 @@ trait RewriteRules extends Base { self: ScalanEx =>
 
   case class PatternRewriteRule[A](lhs: Ref[A], rhs: Ref[A], eA: Elem[A]) extends RewriteRule[A] {
     val g = new PGraph(rhs)
-    import scalan.util.CollectionUtil._
     
     def apply(s: Ref[A]): Sym = {
       val optSubst = patternMatch(lhs, s)
       if (optSubst.isDefined) {
         val subst = optSubst.get
-        val g1 = g.transform(DefaultMirror, NoRewriting, new MapTransformer(new AVHashMap(subst)))
+        val g1 = g.transform(DefaultMirror, NoRewriting, new MapTransformer(subst))
         g1.roots.head
       } else null
     }
