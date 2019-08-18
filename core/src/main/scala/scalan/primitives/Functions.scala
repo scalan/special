@@ -316,8 +316,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
   def mirrorApply[A,B](lam: Lambda[A, B], s: Ref[A]): Ref[B] = {
     val body = lam.scheduleIds
-    lam.x -> s
     val m = AVHashMap[Sym, Sym](100)
+    m.put(lam.x, s)
     val subst = new MapTransformer(m)
     val t = DefaultMirror.mirrorSymbols(subst, NoRewriting, lam, body)
     t(lam.y)
