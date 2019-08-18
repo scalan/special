@@ -2,17 +2,17 @@ package scalan.staged
 
 import scalan.{DFunc, Nullable, Scalan}
 import debox.{Buffer => DBuffer}
-import scalan.util.{NeighbourFunc, GraphUtil}
+import scalan.util.GraphUtil
 import spire.syntax.all.cfor
 
 trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
   type PGraph = ProgramGraph
 
-  class PGraphUsageNeighbours(g: PGraph) extends NeighbourFunc[Int, Int] {
-    override def populate(x: Int, res: DBuffer[Int]): Unit = {
-      val ns = g.usagesOf(x)
-      res ++= ns
+  class PGraphUsages(g: PGraph) extends DFunc[Int, DBuffer[Int]] {
+    override def apply(x: Int) = {
+      val us = g.usagesOf(x)
+      us
     }
   }
 

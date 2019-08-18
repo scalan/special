@@ -146,9 +146,16 @@ trait AstGraphs extends Transforming { self: Scalan =>
 
     def hasManyUsagesGlobal(s: Sym): Boolean = globalUsagesOf(s).length > 1
 
+    /** This empty buffer is returned every time the usages are requested for the node
+      * that is not in usageMap.
+      * WARNING! Since it is mutable, special care should be taken to not change this buffer.
+      * @hotspot used havily in scheduling */
+    private val NoUsages = DBuffer.unsafe(new Array[Int](0))
+
+    /** @hotspot  for performance we return mutable structure, but it should never be changed. */
     def usagesOf(id: Int): DBuffer[Int] = {
       val node = usageMap.getOrElse(id, null)
-      if (node == null) return DBuffer.empty[Int]
+      if (node == null) return NoUsages
       node.usages
     }
 
@@ -161,17 +168,5 @@ trait AstGraphs extends Transforming { self: Scalan =>
   } // AstGraph
 
 
-  def buildScheduleForResult(startNodes: DBuffer[Int], neighbours: DFunc[Int, DBuffer[Int]]): DBuffer[Int] = {
-    val components = GraphUtil.stronglyConnectedComponents(startNodes, neighbours)
-    val nComponents = components.length
-    if (nComponents == 1) {
-      components(0)
-    } else {
-      val res = DBuffer.ofSize[Int](components(0).length)
-      cfor(0)(_ < nComponents, _ + 1) { i =>
-        res ++= components(i)
-      }
-      res
-    }
-  }
+
 }

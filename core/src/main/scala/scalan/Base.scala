@@ -1,21 +1,13 @@
 package scalan
 
-import java.lang.reflect.{Method, Constructor => Constr}
-import java.util.{HashMap, Objects, Arrays, function}
-
-import configs.syntax._
-import com.typesafe.config.{ConfigFactory, Config}
+import java.lang.reflect.{Constructor => Constr}
+import java.util.Arrays
 import scalan.OverloadHack.Overloaded1
-
 import scala.annotation.implicitNotFound
 import scala.annotation.unchecked.uncheckedVariance
-import scala.collection.{mutable, TraversableOnce}
-import scala.collection.mutable.ListBuffer
-import scala.reflect.{ClassTag, classTag}
 import scalan.compilation.GraphVizConfig
-import scalan.util.{ReflectionUtil, NeighbourFunc, StringUtil}
-import debox.{Buffer => DBuffer, Set => DSet}
-import scala.reflect.runtime.universe._
+import scalan.util.StringUtil
+import debox.{Buffer => DBuffer}
 import spire.syntax.all.cfor
 
 /**

@@ -1,6 +1,6 @@
 package scalan.meta
 
-import scalan.util.GraphUtil
+import scalan.util.GraphUtilEx
 import scalan.meta.Symbols.SNamedDefSymbol
 import scala.collection.mutable.ArrayBuffer
 import scalan.meta.ScalanAstTraversers.EntityUseTraverser
@@ -139,7 +139,7 @@ object ScalanAstExtensions {
         val as = e.getAncestorTypeNames.filter(n => localEntityNames.contains(n))
         DBuffer.fromIterable(as)
       }
-      val es = GraphUtil.stronglyConnectedComponents(unit.allEntities.map(_.name).toArray)(inherit)
+      val es = GraphUtilEx.stronglyConnectedComponents(unit.allEntities.map(_.name).toArray)(inherit)
         .toIterable()
         .map(_.toArray())
         .flatten
