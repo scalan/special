@@ -1,13 +1,10 @@
 package scalan.primitives
 
 import java.util
-
 import scalan.staged.ProgramGraphs
-import scalan.util.{Neighbours, GraphUtil, NeighbourFunc}
-import scalan.{Nullable, Base, Lazy, Scalan, AVHashMap}
-import debox.{Set => DSet, Buffer => DBuffer}
-
-import scala.collection.mutable
+import scalan.util.GraphUtil
+import scalan.{Lazy, Base, Nullable, Scalan}
+import debox.{Buffer => DBuffer}
 import scala.language.implicitConversions
 import spire.syntax.all.cfor
 
@@ -124,9 +121,8 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
         // 1) we build g.schedule and then g.usageMap
         // 2) collect set of nodes, which depend on `x`
         val g = new PGraph(roots, filterNode = Nullable(s => s.node._nodeId >= boundVarId))
-        val locals = GraphUtil.depthFirstSetFrom[Int](DBuffer(boundVarId))(
-          new Neighbours({ id => g.usagesOf(id) })
-        )
+        val usages = new PGraphUsageNeighbours(g)
+        val locals = GraphUtil.depthFirstSetFrom[Int](DBuffer(boundVarId))(usages)
         val gschedule = g.schedule.toArray
         val len = gschedule.length
         val sch = DBuffer.ofSize[Int](len)

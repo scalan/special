@@ -4,8 +4,9 @@ import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import scalan.{Liftable => _, _}
 import debox.{Set => DSet, Buffer => DBuffer}
 import spire.syntax.all.cfor
+
 import scala.reflect.runtime.universe._
-import scalan.util.Covariant
+import scalan.util.{Covariant, GraphUtil}
 
 trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
@@ -135,9 +136,9 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     }
 
     def scheduleForResult(root: Ref[Any]): DBuffer[Int] = {
-      val sch = buildScheduleForResult(
+      val sch = GraphUtil.depthFirstOrderFrom(
         DBuffer(root.node.nodeId),
-        { id =>
+        { id: Int =>
           val deps = getSym(id).node.deps
           val res = DBuffer.ofSize[Int](deps.length)
           cfor(0)(_ < deps.length, _ + 1) { i =>

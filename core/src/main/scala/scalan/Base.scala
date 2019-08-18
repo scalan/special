@@ -454,7 +454,7 @@ abstract class Base { scalan: Scalan =>
     /** Set of nodes where this transformer is defined. */
     def domain: Seq[Sym]
     /** Transform a sequence of nodes into new sequence of nodes. */
-    def apply[A](xs: Seq[Ref[A]]): Seq[Ref[A]] = {
+    final def apply[A](xs: Seq[Ref[A]]): Seq[Ref[A]] = {
       val len = xs.length
       val res = new Array[Ref[A]](len)
       cfor(0)(_ < len, _ + 1) { i =>
@@ -464,7 +464,7 @@ abstract class Base { scalan: Scalan =>
     }
     /** Apply this transformer to the nodes present in the sequence,
       * and leave non-Ref items unchanged. */
-    def apply(xs: Seq[Any])(implicit o: Overloaded1): Seq[Any] = {
+    final def apply(xs: Seq[Any])(implicit o: Overloaded1): Seq[Any] = {
       val len = xs.length
       val res = new Array[Any](len)
       cfor(0)(_ < len, _ + 1) { i =>
