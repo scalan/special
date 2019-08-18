@@ -11,9 +11,7 @@ import scala.annotation.tailrec
 
 trait AstGraphs extends Transforming { self: Scalan =>
 
-  /**
-   * GraphNode is created for each symbol of the AstGraph and represents graph linking structure
-   */
+  /** GraphNode is created for each symbol of the AstGraph and represents graph linking structure */
   case class GraphNode(
           sym: Sym, // this symbol
           usages: DBuffer[Int]) {
@@ -23,14 +21,24 @@ trait AstGraphs extends Transforming { self: Scalan =>
     }
   }
 
+  /** Type synonim for graph schedules. */
   type Schedule = Seq[Sym]
+
+  /** Alternative representation of schedules using node ids. */
   type ScheduleIds = DBuffer[Int]
 
-  /** Base class for all compound nodes with schedule (e.g. Lambda, ThunkDef) */
+  /** Base class for all compound nodes with schedule (e.g. Lambda, ThunkDef).
+    * The graph is directed acyclic (i.e. DAG) in which edges go from `boundVars` down to `roots`.
+    */
   abstract class AstGraph extends Node { thisGraph =>
+    /** If this graph represent Lambda abstraction, the boundVars is lambda bound symbols.
+      * otherwise this is empty set. */
     def boundVars: Seq[Sym]
+
+    /** Terminal nodes of the graph. There are incoming, but no outgoing edges. */
     def roots: Seq[Sym]
 
+    /** Extract identifies out of `roots`. */
     def rootIds: DBuffer[Int] = {
       val rs = roots.toArray
       val len = rs.length
@@ -39,26 +47,45 @@ trait AstGraphs extends Transforming { self: Scalan =>
       DBuffer.unsafe(res)
     }
 
-    /** @hotspot */
-    def freeVars: Set[Sym] = {
-      val res = mutable.HashSet.empty[Sym]
-      cfor(0)(_ < schedule.length, _ + 1) { i =>
-        val sym = schedule(i)
+    /** Collect a set of symbols used in the graph but which are not part of its schedule.
+      * If the graph represents a compound definition (Lambda, Thunk etc),
+      * then each item in `freeVars` is used in the body, but not part of it.
+      * Intersection of free vars with bound vars is empty.
+      * @hotspot don't beautify the code
+      */
+    def freeVars: Seq[Sym] = {
+      val sch = schedule.toArray
+      val len = sch.length
+      val resSet = DSet.ofSize[Int](len)
+      cfor(0)(_ < len, _ + 1) { i =>
+        val sym = sch(i)
         val deps = sym.node.deps
         cfor(0)(_ < deps.length, _ + 1) { j =>
           val s = deps(j)
-          if (!res.contains(s)) {
-            if (!(isLocalDef(s) || isBoundVar(s))) {
-              res += s
+          val sId = s.node.nodeId
+          if (!resSet(sId)) {
+            if (!(isLocalDefId(sId) || isBoundVar(s))) {
+              resSet += sId
             }
           }
         }
       }
+      val resIds = resSet.toArray()
+      val res = new Array[Sym](resIds.length)
+      cfor(0)(_ < resIds.length, _ + 1) { i =>
+        res(i) = getSym(resIds(i))
+      }
       res
     }
 
+    /** Schedule represents a body of compound definition - topologically ordered
+      * sequence of nodes of the graph. It is implemented differently depending
+      * on node type.
+      * @see Lambda, ThunkDef */
     def scheduleIds: DBuffer[Int]
 
+    /** Sequence of node references forming a schedule.
+      * @hotspot don't beautify the code */
     lazy val schedule: Schedule = {
       val len = scheduleIds.length
       val res = new Array[Sym](len)
@@ -68,14 +95,16 @@ trait AstGraphs extends Transforming { self: Scalan =>
       res
     }
 
-
-    /** Set of scheduleSyms */
+    /** Set of symbol ids in the schedule. Can be used to quickly recognize
+      * symbols belonging to the body of this definition.
+      */
     lazy val domain: DSet[Int] = {
       val res = DSet.ofSize[Int](scheduleIds.length)
       res ++= scheduleIds.toArray
       res
     }
 
+    /** Whether this graph represents identity function. */
     @inline final def isIdentity: Boolean = boundVars == roots
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
 
@@ -104,6 +133,10 @@ trait AstGraphs extends Transforming { self: Scalan =>
       flatBuf.toArray
     }
 
+    /** Build usage information induced by the given schedule.
+      * For each symbol of the schedule a GraphNode is created and usages are collected.
+      * @hotspot don't beautify the code
+      */
     def buildUsageMap(schedule: Schedule, usingDeps: Boolean): DMap[Int, GraphNode] = {
       val len = schedule.length
       val nodeMap = DMap.ofSize[Int, GraphNode](len)

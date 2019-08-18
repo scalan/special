@@ -5,6 +5,8 @@ import debox.{Buffer => DBuffer}
 import scalan.util.GraphUtil
 import spire.syntax.all.cfor
 
+import scala.collection.mutable
+
 trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
   type PGraph = ProgramGraph
@@ -25,7 +27,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
     override lazy val rootIds: DBuffer[Int] = super.rootIds
 
     override def boundVars = Nil
-    override def freeVars = Set()
+    override def freeVars = mutable.WrappedArray.empty[Sym]
     override lazy val scheduleIds = {
       val neighbours: DFunc[Int, DBuffer[Int]] = filterNode match {
         case Nullable(pred) =>

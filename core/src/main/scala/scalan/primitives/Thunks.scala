@@ -109,7 +109,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
     def productArity: Int = 1
 
     override def boundVars = Nil
-    override lazy val freeVars = if (schedule.isEmpty) Set(root) else super.freeVars
+    override lazy val freeVars = if (schedule.isEmpty) Array(root) else super.freeVars
 
     override protected def getDeps: Array[Sym] = freeVars.toArray
 
