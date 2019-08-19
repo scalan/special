@@ -104,11 +104,13 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
     // AstGraph implementation
     val boundVars = Array(x)
     val boundVarId = x.node._nodeId
-    val roots = y :: Nil
+    val roots = Array(y)
 
     override lazy val rootIds: DBuffer[Int] = super.rootIds
 
     override lazy val freeVars = super.freeVars
+
+    override def isIdentity: Boolean = x == y
 
     @inline override def isBoundVar(s: Sym) = s.node.nodeId == boundVarId
 

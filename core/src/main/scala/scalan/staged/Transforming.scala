@@ -9,9 +9,16 @@ import spire.syntax.all.cfor
 
 trait Transforming { self: Scalan =>
 
+  /** Descriptor of a current compiler pass.
+    * Compiler can be configured to perform one pass after another.
+    * Each pass has name, configuration parameters, finalizaton logic etc.
+    */
   abstract class Pass {
+    /** Unique name of the pass. */
     def name: String
+    /** Configuration parameters of this pass. */
     def config: PassConfig = Pass.defaultPassConfig
+    /** Called when this pass is being finalized. */
     def doFinalization(): Unit = {}
     /**
       * Pass specific optional decision.
@@ -23,34 +30,47 @@ trait Transforming { self: Scalan =>
   }
   object Pass {
     val defaultPassName = "default"
+    /** When this IR is used without a compiler this pass is used as current pass. */
     val defaultPass = new DefaultPass(defaultPassName)
     val defaultPassConfig = defaultPass.config
   }
 
+  /** Configuration parameters of the Pass descriptor. */
   case class PassConfig(
-                         shouldUnpackTuples: Boolean = false,
-                         shouldExtractFields: Boolean = true,
-                         constantPropagation: Boolean = true,
-                         shouldSlice: Boolean = false
-                       )
+    /** Whether the pair type `(A,B)` should be specialized to `{_1: A, _2:B} struct type.`.
+      * This is used in structs flattening transformation and can also be used in other way. */
+    shouldUnpackTuples: Boolean = false,
+    /** Turn on/off the RW rule to extract a value of the field if the value is known in the graph. */
+    shouldExtractFields: Boolean = true,
+    /** Turn on/off constant propagation RW rules. */
+    constantPropagation: Boolean = true,
+    /** Used in SlicingPass */
+    shouldSlice: Boolean = false)
   {
     def withConstantPropagation(value: Boolean) = this.copy(constantPropagation = value)
   }
 
+  /** Default pass to be used when IR is used without special compiler configuration. */
   class DefaultPass(val name: String, override val config: PassConfig = PassConfig()) extends Pass
 
   //TODO Current design doesn't allow to run through passes in two Compilers in parallel
   var _currentPass: Pass = Pass.defaultPass
+
+  /** IR global current Pass, changes when the compier switches from one pass to the next one.
+    * Should remain constant during the whole pass execution. */
   def currentPass = _currentPass
 
+  /** Called to setup IR before the new pass is executed. */
   def beginPass(pass: Pass): Unit = {
     _currentPass = pass
   }
+  /** Called to let this IR context to finalized the given pass. */
   def endPass(pass: Pass): Unit = {
     _currentPass = Pass.defaultPass
   }
 
-
+  /** Concrete and default implementation of Transformer using underlying HashMap.
+    * @hotspot  don't beatify the code */
   case class MapTransformer(private val subst: util.HashMap[Sym, Sym]) extends Transformer {
     def this(substPairs: (Sym, Sym)*) {
       this({
@@ -66,7 +86,7 @@ trait Transforming { self: Scalan =>
     def apply[A](x: Ref[A]): Ref[A] = {
       val y = subst.get(x)
       if (y == null || y == x) return x
-      apply(y.asInstanceOf[Ref[A]]) // transitive closure
+      apply(y.asInstanceOf[Ref[A]]) // apply recursively to obtain transitive closure
     }
     def isDefinedAt(x: Ref[_]) = subst.containsKey(x)
     def domain: Seq[Ref[_]] = subst.keySet.toArray(new Array[Sym](0))
@@ -85,31 +105,6 @@ trait Transforming { self: Scalan =>
 
   object MapTransformer {
     def empty(initialCapacity: Int = 100) = new MapTransformer(new util.HashMap[Sym, Sym](initialCapacity))
-  }
-
-  implicit class PartialRewriter(pf: PartialFunction[Sym, Sym]) extends Rewriter {
-    def apply[T](x: Ref[T]): Ref[T] =
-      if (pf.isDefinedAt(x))
-        pf(x).asInstanceOf[Ref[T]]
-      else
-        x
-  }
-
-  object InvokeRewriter extends Rewriter {
-    def apply[T](x: Ref[T]): Ref[T] = x.node match {
-      case call: MethodCall =>
-        call.tryInvoke match {
-          case InvokeSuccess(res) =>
-            res.asInstanceOf[Ref[T]]
-          case InvokeFailure(e) =>
-            if (e.isInstanceOf[DelayInvokeException])
-              x
-            else
-              !!!(s"Failed to invoke $call", e, x)
-          case _ => x
-        }
-      case _ => x
-    }
   }
 
   abstract class Rewriter { self =>
@@ -133,10 +128,23 @@ trait Transforming { self: Scalan =>
     def ~(other: Rewriter) = andThen(other)
   }
 
+  /** Turns partial function into rewriter (i.e. set of rewriting rules) */
+  implicit class PartialRewriter(pf: PartialFunction[Sym, Sym]) extends Rewriter {
+    def apply[T](x: Ref[T]): Ref[T] =
+      if (pf.isDefinedAt(x))
+        pf(x).asInstanceOf[Ref[T]]
+      else
+        x
+  }
+
+  /** Identity rewriter, i.e. doesn't change the graph when applied. */
   val NoRewriting: Rewriter = new Rewriter {
     def apply[T](x: Ref[T]) = x
   }
 
+  /** Base class for mirrors of graph nodes. Provides default implementations which can be
+    * overriden if special logic is required.
+    * @hotspot don't beautify the code */
   abstract class Mirror {
     def apply[A](t: Transformer, rewriter: Rewriter, node: Ref[A], d: Def[A]): Sym = d.mirror(t)
 
@@ -194,10 +202,6 @@ trait Transforming { self: Scalan =>
       // we don't use toExp here to avoid rewriting pass for new Lambda
       val resLam = findOrCreateDefinition(newLambdaCandidate, newLambdaSym)
 
-// TODO metadata is not processed (for performance, since we don't need it yet)
-//      val (tRes2, mirroredMetadata) = mirrorMetadata(tRes, node, newLambdaExp)
-//      val resLam = rewriteUntilFixPoint(newLambdaExp, mirroredMetadata, rewriter)
-
       tRes + (node, resLam)
     }
 
@@ -253,6 +257,7 @@ trait Transforming { self: Scalan =>
     }
   }
 
+  /** Default Mirror instance which is used in core IR methods. */
   val DefaultMirror = new Mirror {}
 
 }

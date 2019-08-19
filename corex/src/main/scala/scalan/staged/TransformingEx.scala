@@ -1,8 +1,9 @@
 package scalan.staged
 
 import scalan.RType.SingletonType
+
 import scala.collection.{Seq, mutable}
-import scalan.{ScalanEx, RType}
+import scalan.{ScalanEx, RType, DelayInvokeException}
 
 import scala.reflect.{ClassTag, classTag}
 
@@ -157,6 +158,25 @@ trait TransformingEx { self: ScalanEx =>
           Some(TupleTree(s, List(l, r)))
         case _ => Some(TupleTree(s, Nil))
       }
+    }
+  }
+
+  /** Rewriter of the MethodCall nodes that can be invoked.
+    * For such nodes has an effect of inlining the method body in place of MethodCall node. */
+  object InvokeRewriter extends Rewriter {
+    def apply[T](x: Ref[T]): Ref[T] = x.node match {
+      case call: MethodCall =>
+        call.tryInvoke match {
+          case InvokeSuccess(res) =>
+            res.asInstanceOf[Ref[T]]
+          case InvokeFailure(e) =>
+            if (e.isInstanceOf[DelayInvokeException])
+              x
+            else
+              !!!(s"Failed to invoke $call", e, x)
+          case _ => x
+        }
+      case _ => x
     }
   }
 

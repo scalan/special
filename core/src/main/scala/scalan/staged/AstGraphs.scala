@@ -105,7 +105,9 @@ trait AstGraphs extends Transforming { self: Scalan =>
     }
 
     /** Whether this graph represents identity function. */
-    @inline final def isIdentity: Boolean = boundVars == roots
+    @inline def isIdentity: Boolean
+
+    /** Checks the symbol is lambda bound. */
     @inline def isBoundVar(s: Sym) = boundVars.contains(s)
 
     @inline final def isLocalDef(s: Sym): Boolean = domain(s.node.nodeId)

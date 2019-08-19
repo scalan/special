@@ -115,6 +115,7 @@ trait Thunks extends Functions with GraphVizExport { self: Scalan =>
 
     val roots = Array(root)
     override lazy val rootIds: DBuffer[Int] = super.rootIds
+    override def isIdentity: Boolean = false
   }
   object ThunkDef {
     def unapply(d: ThunkDef[_]): Option[(Ref[T], Schedule) forSome {type T}] = d match {

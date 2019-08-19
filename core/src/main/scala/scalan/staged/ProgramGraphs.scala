@@ -11,14 +11,17 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
 
   type PGraph = ProgramGraph
 
-  class PGraphUsages(g: PGraph) extends DFunc[Int, DBuffer[Int]] {
-    override def apply(x: Int) = {
-      val us = g.usagesOf(x)
+  /** Deboxed function to obtain usages of a given node.
+    * Represents adjacency matrix of the reversed graph `g`.
+    * @param  g  original graph whose usages are computed */
+  class PGraphUsages(g: AstGraph) extends DFunc[Int, DBuffer[Int]] {
+    override def apply(nodeId: Int) = {
+      val us = g.usagesOf(nodeId)
       us
     }
   }
 
-  // immutable program graph
+  /** Immutable graph collected from `roots` following Ref.node.deps links. */
   case class ProgramGraph(roots: Seq[Sym], mapping: Nullable[Transformer], filterNode: Nullable[Sym => Boolean])
   	  extends AstGraph {
     def this(roots: Seq[Sym], filterNode: Nullable[Sym => Boolean] = Nullable.None) { this(roots, Nullable.None, filterNode) }
@@ -27,6 +30,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
     override lazy val rootIds: DBuffer[Int] = super.rootIds
 
     override def boundVars = Nil
+    override def isIdentity: Boolean = false
     override def freeVars = mutable.WrappedArray.empty[Sym]
     override lazy val scheduleIds = {
       val neighbours: DFunc[Int, DBuffer[Int]] = filterNode match {
@@ -37,7 +41,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
             val res = DBuffer.ofSize[Int](len)
             cfor(0)(_ < len, _ + 1) { i =>
               val sym = deps(i)
-              if (pred(sym) && !sym.isVar)
+              if (pred(sym) && !sym.isVar)  // TODO remove isVar condition here and below
                 res += sym.node.nodeId
             }
             res
@@ -59,6 +63,15 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
       sch
     }
 
+    /** Mirror all the nodes of this graph applying transformer and performing rewriting.
+      * @param m   mirror instance to be used for mirroring of nodes
+      * @param rw  rewriter to be tried for each new created mirrored node
+      * @param t   transformer of symbols, to be used for substitution of symbols in the new nodes.
+      * @return   new graph which is not necessary clone of this graph, but should be semantically
+      *           equivalent to this graph (provided all rw rules preserve equivalence).
+      *           If rw is identity, then the resulting graph is alpha-equivalent to this graph
+      *           as long as t is bijection.
+      */
     def transform(m: Mirror, rw: Rewriter, t: Transformer): ProgramGraph = {
       val t0 = mapping match {
         case Nullable(mapping) => t merge mapping
@@ -69,11 +82,7 @@ trait ProgramGraphs extends AstGraphs { self: Scalan =>
       new ProgramGraph(newRoots, Nullable(t1), filterNode)
     }
 
-    def transformOne(oldExp: Sym, newExp: Sym): ProgramGraph = {
-      val newRoots = roots map (x => x match {case v: Sym if v == oldExp => newExp; case t => t }  )
-      new ProgramGraph(newRoots, mapping, filterNode)
-    }
-
+    /** Remove transformer component of the graph. */
     def withoutContext = ProgramGraph(roots, Nullable.None, filterNode)
 
     override def toString: String = {
