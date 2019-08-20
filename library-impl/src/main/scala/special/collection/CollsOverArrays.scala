@@ -684,6 +684,8 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   override def updated(index: Int, elem: A): Coll[A] = {
+    if (index < 0 || index >= length)
+      throw new IndexOutOfBoundsException
     if (elem == value) this
     else {
       val res = toArray.updated(index, elem)

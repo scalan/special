@@ -1,9 +1,17 @@
 package scalan
 
-import org.scalacheck.util.Buildable
 import org.scalacheck.{Arbitrary, Gen}
 
-class GenConfiguration(val maxArrayLength: Int = 100) {}
+class GenConfiguration(
+                        val maxArrayLength: Int = 100,
+                        val byteBorders: (Byte, Byte) = (Byte.MinValue, Byte.MaxValue),
+                        val shortBorders: (Short, Short) = (Short.MinValue, Short.MaxValue),
+                        val intBorders: (Int, Int) = (Int.MinValue, Int.MaxValue),
+                        val longBorders: (Long, Long) = (Long.MinValue, Long.MaxValue),
+                        val charBorders: (Char, Char) = (Char.MinValue, Char.MaxValue),
+                        val floatBorders: (Float, Float) = (Float.MinValue, Float.MaxValue),
+                        val doubleBorders: (Double, Double) = (Double.MinValue, Double.MaxValue)
+                      ) {}
 
 trait RTypeGens {
   import Gen._
@@ -23,7 +31,7 @@ trait RTypeGens {
   val dataTypeGen = Gen.oneOf[RType[_]](primitiveTypeGen, StringType)
 
   def checkDepth(depth: Int): Unit = {
-    if (depth < 0) {
+    if (depth <= 0) {
       throw new RuntimeException(s"Generation depth can't be less then 0, found ${depth}")
     }
   }
@@ -136,8 +144,9 @@ trait RTypeGens {
 
   def extendedCollTypeGen(depth: Int): Gen[RType[Coll[_]]] = {
     checkDepth(depth)
-    Gen.oneOf(collTypeGen(extendedTypeGen(depth - 1), 1).asInstanceOf[Gen[RType[Coll[_]]]],
-      replCollTypeGen(extendedTypeGen(depth - 1), 1).asInstanceOf[Gen[RType[Coll[_]]]])
+    val innerGen = extendedTypeGen(depth - 1)
+    Gen.oneOf(collTypeGen(innerGen, 1).asInstanceOf[Gen[RType[Coll[_]]]],
+      replCollTypeGen(innerGen, 1).asInstanceOf[Gen[RType[Coll[_]]]])
   }
 
   def getCollTypeGen[T](itemGen: Gen[RType[T]]): Gen[RType[Coll[T]]] = {
@@ -145,14 +154,14 @@ trait RTypeGens {
       replCollTypeGen(itemGen, 1).asInstanceOf[Gen[RType[Coll[T]]]])
   }
 
-  def primitiveValueGen[T: RType](t: PrimitiveType[T]): Gen[T] = t match {
-    case ByteType => choose[Byte](Byte.MinValue, Byte.MaxValue).asInstanceOf[Gen[T]]
-    case ShortType => choose[Short](Short.MinValue, Short.MaxValue).asInstanceOf[Gen[T]]
-    case IntType => choose[Int](Int.MinValue, Int.MaxValue).asInstanceOf[Gen[T]]
-    case CharType => choose[Char](Char.MinValue, Char.MaxValue).asInstanceOf[Gen[T]]
-    case LongType => choose[Long](Long.MinValue, Long.MaxValue).asInstanceOf[Gen[T]]
-    case FloatType => choose[Float](Float.MinValue, Float.MaxValue).asInstanceOf[Gen[T]]
-    case DoubleType => choose[Double](Double.MinValue, Double.MaxValue).asInstanceOf[Gen[T]]
+  def primitiveValueGen[T](conf: GenConfiguration)(implicit t: PrimitiveType[T]): Gen[T] = t match {
+    case ByteType => choose[Byte](conf.byteBorders._1, conf.byteBorders._2).asInstanceOf[Gen[T]]
+    case ShortType => choose[Short](conf.shortBorders._1, conf.shortBorders._2).asInstanceOf[Gen[T]]
+    case IntType => choose[Int](conf.intBorders._1, conf.intBorders._2).asInstanceOf[Gen[T]]
+    case CharType => choose[Char](conf.charBorders._1, conf.charBorders._2).asInstanceOf[Gen[T]]
+    case LongType => choose[Long](conf.longBorders._1, conf.longBorders._2).asInstanceOf[Gen[T]]
+    case FloatType => choose[Float](conf.floatBorders._1, conf.floatBorders._2).asInstanceOf[Gen[T]]
+    case DoubleType => choose[Double](conf.doubleBorders._1, conf.doubleBorders._2).asInstanceOf[Gen[T]]
     case BooleanType => Gen.oneOf(true, false).asInstanceOf[Gen[T]]
     case _ => throw new RuntimeException(s"Can't interpret ${t} as non-unit primitive type.")
   }
@@ -181,7 +190,7 @@ trait RTypeGens {
 
   def rtypeValueGen[T](conf: GenConfiguration)(implicit t: RType[T]): Gen[T] = t match {
     case prim: PrimitiveType[a] =>
-      primitiveValueGen(prim)(prim)
+      primitiveValueGen(conf)(prim)
     case arrayType: ArrayType[a] =>
       getArrayGen(rtypeValueGen(conf)(arrayType.tA).asInstanceOf[Gen[a]], conf.maxArrayLength)(arrayType.tA)
     case pairType: PairType[a, b] =>
