@@ -1,23 +1,22 @@
 package scalan.primitives
 
-import scalan._
 import scala.reflect.runtime.universe._
-import scalan.util.CollectionUtil
-import OverloadHack._
 import scalan.compilation.{GraphVizConfig, GraphVizExport}
 import special.Types
+import scalan.OverloadHack.Overloaded1
+import scalan.{TypeDescs, Scalan}
 
 /**
- The code is inspired by LMS structs and is used in Scalan with the same semantics
- in order to easily translate operations to the equivalents via LmsBridge.
- Their usage in Scalan is limited to be consistent with functional semantics of Scalan.
- Don't expect everything possible in LMS to be also possible in Scalan in the same way.
- There are changes in the code:
- - Sym -> Exp
- - Manifest -> Elem
- - infix -> implicit class
- - no SourceContext, withPos
- - mirroring implemented in Scalan way (though consistent with LMS)
+  * The code is inspired by LMS structs and is used in Scalan with the same semantics
+ *in order to easily translate operations to the equivalents via LmsBridge.
+ *Their usage in Scalan is limited to be consistent with functional semantics of Scalan.
+ *Don't expect everything possible in LMS to be also possible in Scalan in the same way.
+ *There are changes in the code:
+ *- Sym -> Exp
+ *- Manifest -> Elem
+ *- infix -> implicit class
+ *- no SourceContext, withPos
+ *- mirroring implemented in Scalan way (though consistent with LMS)
  */
 trait Structs extends TypeDescs with GraphVizExport { self: Scalan =>
   // TODO consider if T type parameter is needed here and for AbstractStruct
@@ -51,7 +50,8 @@ trait Structs extends TypeDescs with GraphVizExport { self: Scalan =>
   type RStruct = Ref[Struct]
 
   import Liftables._
-  import scala.reflect.{ClassTag, classTag}
+
+  import scala.reflect.classTag
 
   type SStruct = special.collection.Coll[Any]
 

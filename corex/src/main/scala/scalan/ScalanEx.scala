@@ -22,6 +22,7 @@ class ScalanEx extends Scalan
   with BaseEx
   with TuplesEx
   with TypeSum
+  with Structs
   with ModulesEx
   with TransformingEx
   with ViewsModuleEx
@@ -76,6 +77,12 @@ class ScalanEx extends Scalan
       "Metadata:" :: metadata.map { case (k, v) => s"$k:${formatConst(v.value)}" }.toList
     else
       Nil
+  }
+
+  override protected def partsIterator(td: TypeDesc) = td match {
+    case se: StructElem[_] =>
+      se.fieldElems.iterator
+    case _ => super.partsIterator(td)
   }
 
   protected def rewriteUntilFixPoint[T](start: Ref[T], mn: MetaNode, rw: Rewriter): Ref[T] = {
