@@ -79,7 +79,7 @@ class ElemTests extends BaseCtxTestsEx { suite =>
       assertResult(expected)(ent.extendsTypes.map(_.name).toSet)
     }
     test[Segment](Set())
-    test[Interval](Set("SegmentElem"))
+    test[Interval](Set("Segment"))
 
 //    test[Collection[Int]](Set())
 //    test[CollectionOverArray[Int]](Set("Collection[Item]"))
@@ -244,8 +244,8 @@ class ElemTests extends BaseCtxTestsEx { suite =>
 //    testAllSpecs[(Seq[Int], Double)](Set("(Seq[Int], Double)"))
 //    testAllSpecs[(SSeq[Int], Double)](Set("(SSeqImpl[Int], Double)"))
 
-    testAllSpecs[Segment](Set("IntervalElem", "SliceElem", "CenteredElem"))
-    testAllSpecs[(Segment, Double)](Set("(IntervalElem, Double)", "(SliceElem, Double)", "(CenteredElem, Double)"))
+    testAllSpecs[Segment](Set("Interval", "Slice", "Centered"))
+    testAllSpecs[(Segment, Double)](Set("(Interval, Double)", "(Slice, Double)", "(Centered, Double)"))
 //    testAllSpecs[Array[Segment]](Set("Array[Interval]", "Array[Slice]", "Array[Centered]"))
 
 //    testAllSpecs[Collection[Int]](Set("CollectionOverArray[Int]", "CollectionOverList[Int]", "CollectionOverSeq[Int]"))

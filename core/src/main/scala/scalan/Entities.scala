@@ -4,7 +4,7 @@ import java.util.Objects
 
 import scala.annotation.tailrec
 import scala.language.higherKinds
-import scalan.util.ReflectionUtil
+import scalan.util.ReflectionUtil.ClassOps
 
 trait Entities extends TypeDescs { self: Scalan =>
 
@@ -14,7 +14,7 @@ trait Entities extends TypeDescs { self: Scalan =>
     def parent: Option[Elem[_]] = None
     /** Name of the entity type without `Elem` suffix. */
     def entityName: String = {
-      val n = this.getClass.getSimpleName.stripSuffix("Elem")
+      val n = this.getClass.safeSimpleName.stripSuffix("Elem")
       n
     }
     def convert(x: Ref[Def[_]]): Ref[A] = !!!("should not be called")
@@ -35,7 +35,7 @@ trait Entities extends TypeDescs { self: Scalan =>
   abstract class EntityElem1[A, To, C[_]](val eItem: Elem[A], val cont: Cont[C])
     extends EntityElem[To] {
     override def getName(f: TypeDesc => String) = {
-      s"${f(cont)}[${f(eItem)}]"
+      s"$entityName[${f(eItem)}]"
     }
     override def canEqual(other: Any) = other match {
       case _: EntityElem1[_, _, _] => true

@@ -1,13 +1,10 @@
 package scalan.primitives
 
-import java.io.File
 import java.util
-
 import scalan.staged.ProgramGraphs
-import scalan.util.{GraphUtil, FileUtil}
+import scalan.util.GraphUtil
 import scalan.{Lazy, Base, Nullable, Scalan}
 import debox.{Buffer => DBuffer}
-
 import scala.language.implicitConversions
 import spire.syntax.all.cfor
 
@@ -147,12 +144,15 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
             case l: Lambda[_,_] =>
               val varDeps = l.deps intersect(boundVars ++ sch.map(getSym(_)).toArray)
               if (varDeps.isEmpty) {
-                val cwd = new File("").getAbsoluteFile
-                val dir = "test-out/errors"
-                emitDepGraph(roots, FileUtil.file(cwd, dir), "nested_lambda")(defaultGraphVizConfig)
+                //                val cwd = new File("").getAbsoluteFile
+                //                val dir = "test-out/errors"
+                //                emitDepGraph(roots, FileUtil.file(cwd, dir), "nested_lambda")(defaultGraphVizConfig)
                 assert(false, s"Invalid nested lambda $l inside $this")
               }
-//              println(s"Nested lambda $l inside $this")
+            case op @ OpCost(_, _, args, opCost) =>
+              if (args.contains(opCost)) {
+                !!!(s"Invalid OpCost($op)")
+              }
             case _ =>
           }
         }
@@ -164,8 +164,10 @@ trait Functions extends Base with ProgramGraphs { self: Scalan =>
 
     def isGlobalLambda: Boolean = {
       freeVars.forall { x =>
-        val xIsGlobalLambda = x.isLambda && { val lam = x.node.asInstanceOf[Lambda[_, _]]; lam.isGlobalLambda }
-        x.isConst || xIsGlobalLambda
+        x.isConst || {
+          val xIsGlobalLambda = x.isLambda && { val lam = x.node.asInstanceOf[Lambda[_, _]]; lam.isGlobalLambda }
+          xIsGlobalLambda
+        }
       }
     }
   }
