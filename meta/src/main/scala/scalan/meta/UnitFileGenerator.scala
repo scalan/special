@@ -129,7 +129,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |  case class ${EName}Const$typesDeclAll(
       |        constValue: $SName$tyUseS${zipped.opt(z => s""",
       |        ${repArgs(z)({(sa,a) => s"l$a: Liftable[$sa, $a]"},", ")}""".stripAndTrim)}
-      |      ) extends $EName$tyUse with LiftedConst[$SName$tyUseS, $EName$tyUse]
+      |      ) extends LiftedConst[$SName$tyUseS, $EName$tyUse] with $EName$tyUse
       |        with Def[$EName$tyUse] with ${EName}ConstMethods$tyUse {
       |${e.tpeArgs.rep(a =>
          s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
@@ -214,7 +214,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     s"""
       |  // entityAdapter for $entityName trait
       |  case class ${entityName}Adapter$typesDecl(source: Ref[${e.typeUse}])
-      |      extends ${e match {
+      |      extends Node with ${e match {
       case c: ConcreteClassTemplateData =>
         c.typeUse + c.c.args.args.opt(as => s"(${as.rep(_ => "null")})")
 //        s"""${c.typeUse }(
