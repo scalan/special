@@ -238,7 +238,7 @@ object WOption extends EntityObject("WOption") {
   implicit final def unrefWOptionCompanionCtor(p: Ref[WOptionCompanionCtor]): WOptionCompanionCtor =
     p.node.asInstanceOf[WOptionCompanionCtor]
 
-  val RWOption: MutableLazy[WOptionCompanionCtor] = MutableLazy(new WOptionCompanionCtor {
+  lazy val RWOption: MutableLazy[WOptionCompanionCtor] = MutableLazy(new WOptionCompanionCtor {
     private val thisClass = classOf[WOptionCompanion]
   })
 

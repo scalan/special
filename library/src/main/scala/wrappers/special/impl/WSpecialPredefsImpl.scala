@@ -50,7 +50,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   implicit final def unrefWSpecialPredefCompanionCtor(p: Ref[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
     p.node.asInstanceOf[WSpecialPredefCompanionCtor]
 
-  val RWSpecialPredef: MutableLazy[WSpecialPredefCompanionCtor] = MutableLazy(new WSpecialPredefCompanionCtor {
+  lazy val RWSpecialPredef: MutableLazy[WSpecialPredefCompanionCtor] = MutableLazy(new WSpecialPredefCompanionCtor {
     private val thisClass = classOf[WSpecialPredefCompanion]
 
     def optionGetOrElse[A](opt: Ref[WOption[A]], default: Ref[A]): Ref[A] = {

@@ -630,7 +630,7 @@ implicit val eV = proj.elem.eRange
   implicit final def unrefCollCompanionCtor(p: Ref[CollCompanionCtor]): CollCompanionCtor =
     p.node.asInstanceOf[CollCompanionCtor]
 
-  val RColl: MutableLazy[CollCompanionCtor] = MutableLazy(new CollCompanionCtor {
+  lazy val RColl: MutableLazy[CollCompanionCtor] = MutableLazy(new CollCompanionCtor {
     private val thisClass = classOf[CollCompanion]
   })
 
@@ -1338,7 +1338,7 @@ implicit val eV = proj.elem.eRange
   implicit final def unrefPairCollCompanionCtor(p: Ref[PairCollCompanionCtor]): PairCollCompanionCtor =
     p.node.asInstanceOf[PairCollCompanionCtor]
 
-  val RPairColl: MutableLazy[PairCollCompanionCtor] = MutableLazy(new PairCollCompanionCtor {
+  lazy val RPairColl: MutableLazy[PairCollCompanionCtor] = MutableLazy(new PairCollCompanionCtor {
     private val thisClass = classOf[PairCollCompanion]
   })
 
@@ -1758,7 +1758,7 @@ implicit val eV = proj.elem.eRange
   implicit final def unrefReplCollCompanionCtor(p: Ref[ReplCollCompanionCtor]): ReplCollCompanionCtor =
     p.node.asInstanceOf[ReplCollCompanionCtor]
 
-  val RReplColl: MutableLazy[ReplCollCompanionCtor] = MutableLazy(new ReplCollCompanionCtor {
+  lazy val RReplColl: MutableLazy[ReplCollCompanionCtor] = MutableLazy(new ReplCollCompanionCtor {
     private val thisClass = classOf[ReplCollCompanion]
   })
 
@@ -2020,7 +2020,7 @@ implicit val eO = l.elem.eRange
   implicit final def unrefCollBuilderCompanionCtor(p: Ref[CollBuilderCompanionCtor]): CollBuilderCompanionCtor =
     p.node.asInstanceOf[CollBuilderCompanionCtor]
 
-  val RCollBuilder: MutableLazy[CollBuilderCompanionCtor] = MutableLazy(new CollBuilderCompanionCtor {
+  lazy val RCollBuilder: MutableLazy[CollBuilderCompanionCtor] = MutableLazy(new CollBuilderCompanionCtor {
     private val thisClass = classOf[CollBuilderCompanion]
   })
 

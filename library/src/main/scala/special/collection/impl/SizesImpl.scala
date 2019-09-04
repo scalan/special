@@ -119,7 +119,7 @@ object Size extends EntityObject("Size") {
   implicit final def unrefSizeCompanionCtor(p: Ref[SizeCompanionCtor]): SizeCompanionCtor =
     p.node.asInstanceOf[SizeCompanionCtor]
 
-  val RSize: MutableLazy[SizeCompanionCtor] = MutableLazy(new SizeCompanionCtor {
+  lazy val RSize: MutableLazy[SizeCompanionCtor] = MutableLazy(new SizeCompanionCtor {
     private val thisClass = classOf[SizeCompanion]
   })
 
@@ -255,7 +255,7 @@ object SizePrim extends EntityObject("SizePrim") {
   implicit final def unrefSizePrimCompanionCtor(p: Ref[SizePrimCompanionCtor]): SizePrimCompanionCtor =
     p.node.asInstanceOf[SizePrimCompanionCtor]
 
-  val RSizePrim: MutableLazy[SizePrimCompanionCtor] = MutableLazy(new SizePrimCompanionCtor {
+  lazy val RSizePrim: MutableLazy[SizePrimCompanionCtor] = MutableLazy(new SizePrimCompanionCtor {
     private val thisClass = classOf[SizePrimCompanion]
   })
 } // of object SizePrim
@@ -389,7 +389,7 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
   implicit final def unrefSizePairCompanionCtor(p: Ref[SizePairCompanionCtor]): SizePairCompanionCtor =
     p.node.asInstanceOf[SizePairCompanionCtor]
 
-  val RSizePair: MutableLazy[SizePairCompanionCtor] = MutableLazy(new SizePairCompanionCtor {
+  lazy val RSizePair: MutableLazy[SizePairCompanionCtor] = MutableLazy(new SizePairCompanionCtor {
     private val thisClass = classOf[SizePairCompanion]
   })
 
@@ -529,7 +529,7 @@ object SizeColl extends EntityObject("SizeColl") {
   implicit final def unrefSizeCollCompanionCtor(p: Ref[SizeCollCompanionCtor]): SizeCollCompanionCtor =
     p.node.asInstanceOf[SizeCollCompanionCtor]
 
-  val RSizeColl: MutableLazy[SizeCollCompanionCtor] = MutableLazy(new SizeCollCompanionCtor {
+  lazy val RSizeColl: MutableLazy[SizeCollCompanionCtor] = MutableLazy(new SizeCollCompanionCtor {
     private val thisClass = classOf[SizeCollCompanion]
   })
 
@@ -669,7 +669,7 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asInstanceOf[Elem[Res]]
   implicit final def unrefSizeFuncCompanionCtor(p: Ref[SizeFuncCompanionCtor]): SizeFuncCompanionCtor =
     p.node.asInstanceOf[SizeFuncCompanionCtor]
 
-  val RSizeFunc: MutableLazy[SizeFuncCompanionCtor] = MutableLazy(new SizeFuncCompanionCtor {
+  lazy val RSizeFunc: MutableLazy[SizeFuncCompanionCtor] = MutableLazy(new SizeFuncCompanionCtor {
     private val thisClass = classOf[SizeFuncCompanion]
   })
 
@@ -799,7 +799,7 @@ object SizeOption extends EntityObject("SizeOption") {
   implicit final def unrefSizeOptionCompanionCtor(p: Ref[SizeOptionCompanionCtor]): SizeOptionCompanionCtor =
     p.node.asInstanceOf[SizeOptionCompanionCtor]
 
-  val RSizeOption: MutableLazy[SizeOptionCompanionCtor] = MutableLazy(new SizeOptionCompanionCtor {
+  lazy val RSizeOption: MutableLazy[SizeOptionCompanionCtor] = MutableLazy(new SizeOptionCompanionCtor {
     private val thisClass = classOf[SizeOptionCompanion]
   })
 

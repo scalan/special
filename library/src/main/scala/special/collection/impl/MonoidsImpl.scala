@@ -73,7 +73,7 @@ object Monoid extends EntityObject("Monoid") {
   implicit final def unrefMonoidCompanionCtor(p: Ref[MonoidCompanionCtor]): MonoidCompanionCtor =
     p.node.asInstanceOf[MonoidCompanionCtor]
 
-  val RMonoid: MutableLazy[MonoidCompanionCtor] = MutableLazy(new MonoidCompanionCtor {
+  lazy val RMonoid: MutableLazy[MonoidCompanionCtor] = MutableLazy(new MonoidCompanionCtor {
     private val thisClass = classOf[MonoidCompanion]
   })
 } // of object Monoid
@@ -165,7 +165,7 @@ implicit val eB = m2.eT
   implicit final def unrefMonoidBuilderCompanionCtor(p: Ref[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
     p.node.asInstanceOf[MonoidBuilderCompanionCtor]
 
-  val RMonoidBuilder: MutableLazy[MonoidBuilderCompanionCtor] = MutableLazy(new MonoidBuilderCompanionCtor {
+  lazy val RMonoidBuilder: MutableLazy[MonoidBuilderCompanionCtor] = MutableLazy(new MonoidBuilderCompanionCtor {
     private val thisClass = classOf[MonoidBuilderCompanion]
   })
 
