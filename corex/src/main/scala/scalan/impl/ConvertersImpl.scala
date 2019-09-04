@@ -141,7 +141,6 @@ object IdentityConv extends EntityObject("IdentityConv") {
     def unapply[A](p: Ref[Converter[A, A]]) = unmkIdentityConv(p)
   }
   val RIdentityConv: MutableLazy[IdentityConvCompanionCtor] = MutableLazy(new IdentityConvCompanionCtor)
-  val IdentityConvRef: MutableLazy[Ref[IdentityConvCompanionCtor]] = MutableLazy(RIdentityConv.value)
   implicit def unrefIdentityConvCompanion(p: Ref[IdentityConvCompanionCtor]): IdentityConvCompanionCtor = {
     if (p.node.isInstanceOf[IdentityConvCompanionCtor])
       p.node.asInstanceOf[IdentityConvCompanionCtor]
@@ -242,7 +241,6 @@ implicit val eR = p.convFun.elem.eRange
     def unapply[T, R](p: Ref[Converter[T, R]]) = unmkBaseConverter(p)
   }
   val RBaseConverter: MutableLazy[BaseConverterCompanionCtor] = MutableLazy(new BaseConverterCompanionCtor)
-  val BaseConverterRef: MutableLazy[Ref[BaseConverterCompanionCtor]] = MutableLazy(RBaseConverter.value)
   implicit def unrefBaseConverterCompanion(p: Ref[BaseConverterCompanionCtor]): BaseConverterCompanionCtor = {
     if (p.node.isInstanceOf[BaseConverterCompanionCtor])
       p.node.asInstanceOf[BaseConverterCompanionCtor]
@@ -358,7 +356,6 @@ implicit val eB2 = p._2.eR
     def unapply[A1, A2, B1, B2](p: Ref[Converter[(A1, A2), (B1, B2)]]) = unmkPairConverter(p)
   }
   val RPairConverter: MutableLazy[PairConverterCompanionCtor] = MutableLazy(new PairConverterCompanionCtor)
-  val PairConverterRef: MutableLazy[Ref[PairConverterCompanionCtor]] = MutableLazy(RPairConverter.value)
   implicit def unrefPairConverterCompanion(p: Ref[PairConverterCompanionCtor]): PairConverterCompanionCtor = {
     if (p.node.isInstanceOf[PairConverterCompanionCtor])
       p.node.asInstanceOf[PairConverterCompanionCtor]
@@ -474,7 +471,6 @@ implicit val eB2 = p._2.eR
     def unapply[A1, A2, B1, B2](p: Ref[Converter[$bar[A1, A2], $bar[B1, B2]]]) = unmkSumConverter(p)
   }
   val RSumConverter: MutableLazy[SumConverterCompanionCtor] = MutableLazy(new SumConverterCompanionCtor)
-  val SumConverterRef: MutableLazy[Ref[SumConverterCompanionCtor]] = MutableLazy(RSumConverter.value)
   implicit def unrefSumConverterCompanion(p: Ref[SumConverterCompanionCtor]): SumConverterCompanionCtor = {
     if (p.node.isInstanceOf[SumConverterCompanionCtor])
       p.node.asInstanceOf[SumConverterCompanionCtor]
@@ -585,7 +581,6 @@ implicit val eC = p._1.eR
     def unapply[A, B, C](p: Ref[Converter[A, C]]) = unmkComposeConverter(p)
   }
   val RComposeConverter: MutableLazy[ComposeConverterCompanionCtor] = MutableLazy(new ComposeConverterCompanionCtor)
-  val ComposeConverterRef: MutableLazy[Ref[ComposeConverterCompanionCtor]] = MutableLazy(RComposeConverter.value)
   implicit def unrefComposeConverterCompanion(p: Ref[ComposeConverterCompanionCtor]): ComposeConverterCompanionCtor = {
     if (p.node.isInstanceOf[ComposeConverterCompanionCtor])
       p.node.asInstanceOf[ComposeConverterCompanionCtor]
@@ -687,7 +682,6 @@ implicit val eB = p.itemConv.eR
     def unapply[A, B, F[_]](p: Ref[Converter[F[A], F[B]]]) = unmkFunctorConverter(p)
   }
   val RFunctorConverter: MutableLazy[FunctorConverterCompanionCtor] = MutableLazy(new FunctorConverterCompanionCtor)
-  val FunctorConverterRef: MutableLazy[Ref[FunctorConverterCompanionCtor]] = MutableLazy(RFunctorConverter.value)
   implicit def unrefFunctorConverterCompanion(p: Ref[FunctorConverterCompanionCtor]): FunctorConverterCompanionCtor = {
     if (p.node.isInstanceOf[FunctorConverterCompanionCtor])
       p.node.asInstanceOf[FunctorConverterCompanionCtor]
@@ -784,7 +778,6 @@ object NaturalConverter extends EntityObject("NaturalConverter") {
     def unapply[A, F[_], G[_]](p: Ref[Converter[F[A], G[A]]]) = unmkNaturalConverter(p)
   }
   val RNaturalConverter: MutableLazy[NaturalConverterCompanionCtor] = MutableLazy(new NaturalConverterCompanionCtor)
-  val NaturalConverterRef: MutableLazy[Ref[NaturalConverterCompanionCtor]] = MutableLazy(RNaturalConverter.value)
   implicit def unrefNaturalConverterCompanion(p: Ref[NaturalConverterCompanionCtor]): NaturalConverterCompanionCtor = {
     if (p.node.isInstanceOf[NaturalConverterCompanionCtor])
       p.node.asInstanceOf[NaturalConverterCompanionCtor]
@@ -891,7 +884,6 @@ implicit val eB = p._1.eR
     def unapply[A, B](p: Ref[IsoUR[A, B]]) = unmkConverterIso(p)
   }
   val RConverterIso: MutableLazy[ConverterIsoCompanionCtor] = MutableLazy(new ConverterIsoCompanionCtor)
-  val ConverterIsoRef: MutableLazy[Ref[ConverterIsoCompanionCtor]] = MutableLazy(RConverterIso.value)
   implicit def unrefConverterIsoCompanion(p: Ref[ConverterIsoCompanionCtor]): ConverterIsoCompanionCtor = {
     if (p.node.isInstanceOf[ConverterIsoCompanionCtor])
       p.node.asInstanceOf[ConverterIsoCompanionCtor]

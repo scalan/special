@@ -153,7 +153,6 @@ implicit val eSchema = p._1.eSchema
     def unapply[Val, Schema <: Struct](p: Ref[StructItem[Val, Schema]]) = unmkStructItemBase(p)
   }
   val RStructItemBase: MutableLazy[StructItemBaseCompanionCtor] = MutableLazy(new StructItemBaseCompanionCtor)
-  val StructItemBaseRef: MutableLazy[Ref[StructItemBaseCompanionCtor]] = MutableLazy(RStructItemBase.value)
   implicit def unrefStructItemBaseCompanion(p: Ref[StructItemBaseCompanionCtor]): StructItemBaseCompanionCtor = {
     if (p.node.isInstanceOf[StructItemBaseCompanionCtor])
       p.node.asInstanceOf[StructItemBaseCompanionCtor]

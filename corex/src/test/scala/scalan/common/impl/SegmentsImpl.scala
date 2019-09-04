@@ -306,7 +306,6 @@ object Interval extends EntityObject("Interval") {
     def unapply(p: Ref[Segment]) = unmkInterval(p)
   }
   val RInterval: MutableLazy[IntervalCompanionCtor] = MutableLazy(new IntervalCompanionCtor)
-  val IntervalRef: MutableLazy[Ref[IntervalCompanionCtor]] = MutableLazy(RInterval.value)
   implicit def unrefIntervalCompanion(p: Ref[IntervalCompanionCtor]): IntervalCompanionCtor = {
     if (p.node.isInstanceOf[IntervalCompanionCtor])
       p.node.asInstanceOf[IntervalCompanionCtor]
@@ -438,7 +437,6 @@ object Slice extends EntityObject("Slice") {
     def unapply(p: Ref[Segment]) = unmkSlice(p)
   }
   val RSlice: MutableLazy[SliceCompanionCtor] = MutableLazy(new SliceCompanionCtor)
-  val SliceRef: MutableLazy[Ref[SliceCompanionCtor]] = MutableLazy(RSlice.value)
   implicit def unrefSliceCompanion(p: Ref[SliceCompanionCtor]): SliceCompanionCtor = {
     if (p.node.isInstanceOf[SliceCompanionCtor])
       p.node.asInstanceOf[SliceCompanionCtor]
@@ -571,7 +569,6 @@ object Centered extends EntityObject("Centered") {
     def unapply(p: Ref[Segment]) = unmkCentered(p)
   }
   val RCentered: MutableLazy[CenteredCompanionCtor] = MutableLazy(new CenteredCompanionCtor)
-  val CenteredRef: MutableLazy[Ref[CenteredCompanionCtor]] = MutableLazy(RCentered.value)
   implicit def unrefCenteredCompanion(p: Ref[CenteredCompanionCtor]): CenteredCompanionCtor = {
     if (p.node.isInstanceOf[CenteredCompanionCtor])
       p.node.asInstanceOf[CenteredCompanionCtor]

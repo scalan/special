@@ -163,7 +163,6 @@ object Return extends EntityObject("Return") {
     def unapply[F[_], A](p: Ref[Kind[F, A]]) = unmkReturn(p)
   }
   val RReturn: MutableLazy[ReturnCompanionCtor] = MutableLazy(new ReturnCompanionCtor)
-  val ReturnRef: MutableLazy[Ref[ReturnCompanionCtor]] = MutableLazy(RReturn.value)
   implicit def unrefReturnCompanion(p: Ref[ReturnCompanionCtor]): ReturnCompanionCtor = {
     if (p.node.isInstanceOf[ReturnCompanionCtor])
       p.node.asInstanceOf[ReturnCompanionCtor]
@@ -283,7 +282,6 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
     def unapply[F[_], S, B](p: Ref[Kind[F, B]]) = unmkBind(p)
   }
   val RBind: MutableLazy[BindCompanionCtor] = MutableLazy(new BindCompanionCtor)
-  val BindRef: MutableLazy[Ref[BindCompanionCtor]] = MutableLazy(RBind.value)
   implicit def unrefBindCompanion(p: Ref[BindCompanionCtor]): BindCompanionCtor = {
     if (p.node.isInstanceOf[BindCompanionCtor])
       p.node.asInstanceOf[BindCompanionCtor]

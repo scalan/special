@@ -788,7 +788,6 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |    def unapply${tpeArgsDecl}(p: Ref[$parent]) = unmk$className(p)
         |  }
         |  val R${c.name}: MutableLazy[${c.companionCtorName}] = MutableLazy(new ${c.companionCtorName})
-        |  val ${c.name}Ref: MutableLazy[Ref[${c.companionCtorName}]] = MutableLazy(R${c.name}.value)
         |  implicit def unref${className}Companion(p: Ref[${c.companionCtorName}]): ${c.companionCtorName} = {
         |    if (p.node.isInstanceOf[${c.companionCtorName}])
         |      p.node.asInstanceOf[${c.companionCtorName}]

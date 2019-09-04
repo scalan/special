@@ -219,7 +219,6 @@ object IdentityIso extends EntityObject("IdentityIso") {
     def unapply[A](p: Ref[IsoUR[A, A]]) = unmkIdentityIso(p)
   }
   val RIdentityIso: MutableLazy[IdentityIsoCompanionCtor] = MutableLazy(new IdentityIsoCompanionCtor)
-  val IdentityIsoRef: MutableLazy[Ref[IdentityIsoCompanionCtor]] = MutableLazy(RIdentityIso.value)
   implicit def unrefIdentityIsoCompanion(p: Ref[IdentityIsoCompanionCtor]): IdentityIsoCompanionCtor = {
     if (p.node.isInstanceOf[IdentityIsoCompanionCtor])
       p.node.asInstanceOf[IdentityIsoCompanionCtor]
@@ -335,7 +334,6 @@ implicit val eB2 = p._2.eTo
     def unapply[A1, A2, B1, B2](p: Ref[IsoUR[(A1, A2), (B1, B2)]]) = unmkPairIso(p)
   }
   val RPairIso: MutableLazy[PairIsoCompanionCtor] = MutableLazy(new PairIsoCompanionCtor)
-  val PairIsoRef: MutableLazy[Ref[PairIsoCompanionCtor]] = MutableLazy(RPairIso.value)
   implicit def unrefPairIsoCompanion(p: Ref[PairIsoCompanionCtor]): PairIsoCompanionCtor = {
     if (p.node.isInstanceOf[PairIsoCompanionCtor])
       p.node.asInstanceOf[PairIsoCompanionCtor]
@@ -437,7 +435,6 @@ implicit val eB2 = p.iso2.eTo
     def unapply[A2, B2](p: Ref[IsoUR[A2, (Unit, B2)]]) = unmkAbsorbFirstUnitIso(p)
   }
   val RAbsorbFirstUnitIso: MutableLazy[AbsorbFirstUnitIsoCompanionCtor] = MutableLazy(new AbsorbFirstUnitIsoCompanionCtor)
-  val AbsorbFirstUnitIsoRef: MutableLazy[Ref[AbsorbFirstUnitIsoCompanionCtor]] = MutableLazy(RAbsorbFirstUnitIso.value)
   implicit def unrefAbsorbFirstUnitIsoCompanion(p: Ref[AbsorbFirstUnitIsoCompanionCtor]): AbsorbFirstUnitIsoCompanionCtor = {
     if (p.node.isInstanceOf[AbsorbFirstUnitIsoCompanionCtor])
       p.node.asInstanceOf[AbsorbFirstUnitIsoCompanionCtor]
@@ -539,7 +536,6 @@ implicit val eB1 = p.iso1.eTo
     def unapply[A1, B1](p: Ref[IsoUR[A1, (B1, Unit)]]) = unmkAbsorbSecondUnitIso(p)
   }
   val RAbsorbSecondUnitIso: MutableLazy[AbsorbSecondUnitIsoCompanionCtor] = MutableLazy(new AbsorbSecondUnitIsoCompanionCtor)
-  val AbsorbSecondUnitIsoRef: MutableLazy[Ref[AbsorbSecondUnitIsoCompanionCtor]] = MutableLazy(RAbsorbSecondUnitIso.value)
   implicit def unrefAbsorbSecondUnitIsoCompanion(p: Ref[AbsorbSecondUnitIsoCompanionCtor]): AbsorbSecondUnitIsoCompanionCtor = {
     if (p.node.isInstanceOf[AbsorbSecondUnitIsoCompanionCtor])
       p.node.asInstanceOf[AbsorbSecondUnitIsoCompanionCtor]
@@ -655,7 +651,6 @@ implicit val eB2 = p._2.eTo
     def unapply[A1, A2, B1, B2](p: Ref[IsoUR[$bar[A1, A2], $bar[B1, B2]]]) = unmkSumIso(p)
   }
   val RSumIso: MutableLazy[SumIsoCompanionCtor] = MutableLazy(new SumIsoCompanionCtor)
-  val SumIsoRef: MutableLazy[Ref[SumIsoCompanionCtor]] = MutableLazy(RSumIso.value)
   implicit def unrefSumIsoCompanion(p: Ref[SumIsoCompanionCtor]): SumIsoCompanionCtor = {
     if (p.node.isInstanceOf[SumIsoCompanionCtor])
       p.node.asInstanceOf[SumIsoCompanionCtor]
@@ -766,7 +761,6 @@ implicit val eC = p._1.eTo
     def unapply[A, B, C](p: Ref[IsoUR[A, C]]) = unmkComposeIso(p)
   }
   val RComposeIso: MutableLazy[ComposeIsoCompanionCtor] = MutableLazy(new ComposeIsoCompanionCtor)
-  val ComposeIsoRef: MutableLazy[Ref[ComposeIsoCompanionCtor]] = MutableLazy(RComposeIso.value)
   implicit def unrefComposeIsoCompanion(p: Ref[ComposeIsoCompanionCtor]): ComposeIsoCompanionCtor = {
     if (p.node.isInstanceOf[ComposeIsoCompanionCtor])
       p.node.asInstanceOf[ComposeIsoCompanionCtor]
@@ -882,7 +876,6 @@ implicit val eD = p._2.eTo
     def unapply[A, B, C, D](p: Ref[IsoUR[A => C, B => D]]) = unmkFuncIso(p)
   }
   val RFuncIso: MutableLazy[FuncIsoCompanionCtor] = MutableLazy(new FuncIsoCompanionCtor)
-  val FuncIsoRef: MutableLazy[Ref[FuncIsoCompanionCtor]] = MutableLazy(RFuncIso.value)
   implicit def unrefFuncIsoCompanion(p: Ref[FuncIsoCompanionCtor]): FuncIsoCompanionCtor = {
     if (p.node.isInstanceOf[FuncIsoCompanionCtor])
       p.node.asInstanceOf[FuncIsoCompanionCtor]
@@ -983,7 +976,6 @@ implicit val eB = p.innerIso.eTo
     def unapply[A, B](p: Ref[Iso1UR[A, B, Thunk]]) = unmkThunkIso(p)
   }
   val RThunkIso: MutableLazy[ThunkIsoCompanionCtor] = MutableLazy(new ThunkIsoCompanionCtor)
-  val ThunkIsoRef: MutableLazy[Ref[ThunkIsoCompanionCtor]] = MutableLazy(RThunkIso.value)
   implicit def unrefThunkIsoCompanion(p: Ref[ThunkIsoCompanionCtor]): ThunkIsoCompanionCtor = {
     if (p.node.isInstanceOf[ThunkIsoCompanionCtor])
       p.node.asInstanceOf[ThunkIsoCompanionCtor]

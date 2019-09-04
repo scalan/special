@@ -135,7 +135,6 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkIndexStructKey(p)
   }
   val RIndexStructKey: MutableLazy[IndexStructKeyCompanionCtor] = MutableLazy(new IndexStructKeyCompanionCtor)
-  val IndexStructKeyRef: MutableLazy[Ref[IndexStructKeyCompanionCtor]] = MutableLazy(RIndexStructKey.value)
   implicit def unrefIndexStructKeyCompanion(p: Ref[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
     if (p.node.isInstanceOf[IndexStructKeyCompanionCtor])
       p.node.asInstanceOf[IndexStructKeyCompanionCtor]
@@ -228,7 +227,6 @@ object NameStructKey extends EntityObject("NameStructKey") {
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkNameStructKey(p)
   }
   val RNameStructKey: MutableLazy[NameStructKeyCompanionCtor] = MutableLazy(new NameStructKeyCompanionCtor)
-  val NameStructKeyRef: MutableLazy[Ref[NameStructKeyCompanionCtor]] = MutableLazy(RNameStructKey.value)
   implicit def unrefNameStructKeyCompanion(p: Ref[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
     if (p.node.isInstanceOf[NameStructKeyCompanionCtor])
       p.node.asInstanceOf[NameStructKeyCompanionCtor]

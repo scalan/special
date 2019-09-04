@@ -166,7 +166,6 @@ implicit val eM = p._2.elem.eRange
     def unapply[T, R, M](p: Ref[IsoFunc[T, R, M]]) = unmkIsoFuncBase(p)
   }
   val RIsoFuncBase: MutableLazy[IsoFuncBaseCompanionCtor] = MutableLazy(new IsoFuncBaseCompanionCtor)
-  val IsoFuncBaseRef: MutableLazy[Ref[IsoFuncBaseCompanionCtor]] = MutableLazy(RIsoFuncBase.value)
   implicit def unrefIsoFuncBaseCompanion(p: Ref[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
     if (p.node.isInstanceOf[IsoFuncBaseCompanionCtor])
       p.node.asInstanceOf[IsoFuncBaseCompanionCtor]
