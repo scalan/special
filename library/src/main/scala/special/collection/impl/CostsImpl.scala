@@ -1062,6 +1062,17 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
 } // of object CostedBuilder
   registerEntityObject("CostedBuilder", CostedBuilder)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RCosted.reset()
+    RCostedPrim.reset()
+    RCostedPair.reset()
+    RCostedFunc.reset()
+    RCostedColl.reset()
+    RCostedOption.reset()
+    RCostedBuilder.reset()
+  }
+
   registerModule(CostsModule)
 }
 

@@ -408,6 +408,16 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
 } // of object CSizeOption
   registerEntityObject("CSizeOption", CSizeOption)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+
+    RCSizePrim.reset()
+    RCSizePair.reset()
+    RCSizeColl.reset()
+    RCSizeFunc.reset()
+    RCSizeOption.reset()
+  }
+
   registerModule(ConcreteSizesModule)
 }
 

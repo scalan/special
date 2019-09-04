@@ -126,9 +126,9 @@ class CollsStagingTests extends WrappersTests {
 
   test("measure: unfoldLambda") {
     val dummyCtx = new Ctx  // to force class loading
-//    runMeasure(100, "default", true, true, true)
-//    runMeasure(1000, "noAlpha", false, true, true)
-    runMeasure(10000, "noAlpha_noKeepOrig", false, false, true)
+    runMeasure(100, "default", true, true, true)
+    runMeasure(1000, "noAlpha", false, true, true)
+    runMeasure(1000, "noAlpha_noKeepOrig", false, false, true)
   }
 /*
 runMeasure(noAlpha_noKeepOrig, alphaEq = false, keepOrig = false, unfoldWithOrig = true)

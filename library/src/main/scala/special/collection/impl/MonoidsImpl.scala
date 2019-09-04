@@ -246,6 +246,12 @@ implicit val eB = m2.eT
 } // of object MonoidBuilder
   registerEntityObject("MonoidBuilder", MonoidBuilder)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RMonoid.reset()
+    RMonoidBuilder.reset()
+  }
+
   registerModule(MonoidsModule)
 }
 

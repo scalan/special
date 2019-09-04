@@ -824,6 +824,15 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     concreteClasses.mkString("\n\n")
   }
 
+  def emitResetContext = {
+    s"""  override def resetContext(): Unit = {
+      |    super.resetContext()
+      ${unit.traits.rep(t => s"|    R${t.name}.reset()\n", "")}
+      ${unit.classes.rep(c => s"|    R${c.name}.reset()\n", "")}
+      |  }
+      |""".stripMargin
+  }
+
   def emitModuleDefs = {
     val entities = for {entity <- unit.traits} yield {
       val e = EntityTemplateData(unit, entity)
@@ -850,6 +859,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${entities.mkString("\n\n")}
       |
       |${emitClasses}
+      |
+      |${emitResetContext}
       |
       |  registerModule(${unit.name}Module)
       |}

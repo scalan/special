@@ -475,6 +475,16 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
 } // of object CCostedBuilder
   registerEntityObject("CCostedBuilder", CCostedBuilder)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+
+    RCCostedPrim.reset()
+    RCCostedPair.reset()
+    RCCostedFunc.reset()
+    RCCostedColl.reset()
+    RCCostedBuilder.reset()
+  }
+
   registerModule(ConcreteCostsModule)
 }
 

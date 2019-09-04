@@ -820,6 +820,16 @@ object SizeOption extends EntityObject("SizeOption") {
 } // of object SizeOption
   registerEntityObject("SizeOption", SizeOption)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RSize.reset()
+    RSizePrim.reset()
+    RSizePair.reset()
+    RSizeColl.reset()
+    RSizeFunc.reset()
+    RSizeOption.reset()
+  }
+
   registerModule(SizesModule)
 }
 

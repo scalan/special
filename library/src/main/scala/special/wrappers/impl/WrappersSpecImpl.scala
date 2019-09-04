@@ -201,6 +201,14 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
 } // of object RTypeWrapSpec
   registerEntityObject("RTypeWrapSpec", RTypeWrapSpec)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RWrapSpecBase.reset()
+    ROptionWrapSpec.reset()
+    RSpecialPredefWrapSpec.reset()
+    RRTypeWrapSpec.reset()
+  }
+
   registerModule(WrappersSpecModule)
 }
 

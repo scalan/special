@@ -99,6 +99,12 @@ object CCostedOption extends EntityObject("CCostedOption") {
 } // of object CCostedOption
   registerEntityObject("CCostedOption", CCostedOption)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+
+    RCCostedOption.reset()
+  }
+
   registerModule(CostedOptionsModule)
 }
 

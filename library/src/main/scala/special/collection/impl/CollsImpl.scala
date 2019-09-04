@@ -2121,6 +2121,14 @@ implicit val eO = l.elem.eRange
 } // of object CollBuilder
   registerEntityObject("CollBuilder", CollBuilder)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RColl.reset()
+    RPairColl.reset()
+    RReplColl.reset()
+    RCollBuilder.reset()
+  }
+
   registerModule(CollsModule)
 }
 

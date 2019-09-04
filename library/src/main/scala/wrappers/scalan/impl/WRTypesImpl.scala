@@ -138,6 +138,11 @@ object WRType extends EntityObject("WRType") {
 } // of object WRType
   registerEntityObject("WRType", WRType)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RWRType.reset()
+  }
+
   registerModule(WRTypesModule)
 }
 

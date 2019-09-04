@@ -149,6 +149,11 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
 } // of object WSpecialPredef
   registerEntityObject("WSpecialPredef", WSpecialPredef)
 
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RWSpecialPredef.reset()
+  }
+
   registerModule(WSpecialPredefsModule)
 }
 
