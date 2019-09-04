@@ -530,10 +530,10 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val entityName = e.name
     val companionExpString =
       s"""
-        |  lazy val R$entityName: Ref[${e.companionCtorName}] = new ${e.companionCtorName} {
+        |  val R$entityName: MutableLazy[${e.companionCtorName}] = MutableLazy(new ${e.companionCtorName} {
         |    ${entityCompOpt.opt(comp => s"private val thisClass = classOf[${comp.name}]")}
         |    $companionMethods
-        |  }
+        |  })
        """.stripMargin
 
     s"""
@@ -787,8 +787,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |
         |    def unapply${tpeArgsDecl}(p: Ref[$parent]) = unmk$className(p)
         |  }
-        |  lazy val ${c.name}Ref: Ref[${c.companionCtorName}] = new ${c.companionCtorName}
-        |  lazy val R${c.name}: ${c.companionCtorName} = unref${className}Companion(${c.name}Ref)
+        |  val R${c.name}: MutableLazy[${c.companionCtorName}] = MutableLazy(new ${c.companionCtorName})
+        |  val ${c.name}Ref: MutableLazy[Ref[${c.companionCtorName}]] = MutableLazy(R${c.name}.value)
         |  implicit def unref${className}Companion(p: Ref[${c.companionCtorName}]): ${c.companionCtorName} = {
         |    if (p.node.isInstanceOf[${c.companionCtorName}])
         |      p.node.asInstanceOf[${c.companionCtorName}]

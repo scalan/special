@@ -20,7 +20,7 @@ object IsoFunc extends EntityObject("IsoFunc") {
 
   // entityAdapter for IsoFunc trait
   case class IsoFuncAdapter[T, R, M](source: Ref[IsoFunc[T, R, M]])
-      extends IsoFunc[T, R, M]
+      extends Node with IsoFunc[T, R, M]
       with Def[IsoFunc[T, R, M]] {
     implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]];
 implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]];
@@ -80,8 +80,8 @@ implicit lazy val eM = source.elem.typeArgs("M")._1.asInstanceOf[Elem[M]]
   implicit def unrefIsoFuncCompanionCtor(p: Ref[IsoFuncCompanionCtor]): IsoFuncCompanionCtor =
     p.node.asInstanceOf[IsoFuncCompanionCtor]
 
-  lazy val RIsoFunc: Ref[IsoFuncCompanionCtor] = new IsoFuncCompanionCtor {
-  }
+  val RIsoFunc: MutableLazy[IsoFuncCompanionCtor] = MutableLazy(new IsoFuncCompanionCtor {
+  })
 } // of object IsoFunc
   registerEntityObject("IsoFunc", IsoFunc)
 
@@ -165,8 +165,8 @@ implicit val eM = p._2.elem.eRange
 
     def unapply[T, R, M](p: Ref[IsoFunc[T, R, M]]) = unmkIsoFuncBase(p)
   }
-  lazy val IsoFuncBaseRef: Ref[IsoFuncBaseCompanionCtor] = new IsoFuncBaseCompanionCtor
-  lazy val RIsoFuncBase: IsoFuncBaseCompanionCtor = unrefIsoFuncBaseCompanion(IsoFuncBaseRef)
+  val RIsoFuncBase: MutableLazy[IsoFuncBaseCompanionCtor] = MutableLazy(new IsoFuncBaseCompanionCtor)
+  val IsoFuncBaseRef: MutableLazy[Ref[IsoFuncBaseCompanionCtor]] = MutableLazy(RIsoFuncBase.value)
   implicit def unrefIsoFuncBaseCompanion(p: Ref[IsoFuncBaseCompanionCtor]): IsoFuncBaseCompanionCtor = {
     if (p.node.isInstanceOf[IsoFuncBaseCompanionCtor])
       p.node.asInstanceOf[IsoFuncBaseCompanionCtor]

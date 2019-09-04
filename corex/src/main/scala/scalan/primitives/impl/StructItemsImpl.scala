@@ -20,7 +20,7 @@ object StructItem extends EntityObject("StructItem") {
 
   // entityAdapter for StructItem trait
   case class StructItemAdapter[Val, Schema <: Struct](source: Ref[StructItem[Val, Schema]])
-      extends StructItem[Val, Schema]
+      extends Node with StructItem[Val, Schema]
       with Def[StructItem[Val, Schema]] {
     implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]];
 implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asInstanceOf[Elem[Schema]]
@@ -71,8 +71,8 @@ implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asInstanceOf[Elem[
   implicit def unrefStructItemCompanionCtor(p: Ref[StructItemCompanionCtor]): StructItemCompanionCtor =
     p.node.asInstanceOf[StructItemCompanionCtor]
 
-  lazy val RStructItem: Ref[StructItemCompanionCtor] = new StructItemCompanionCtor {
-  }
+  val RStructItem: MutableLazy[StructItemCompanionCtor] = MutableLazy(new StructItemCompanionCtor {
+  })
 } // of object StructItem
   registerEntityObject("StructItem", StructItem)
 
@@ -152,8 +152,8 @@ implicit val eSchema = p._1.eSchema
 
     def unapply[Val, Schema <: Struct](p: Ref[StructItem[Val, Schema]]) = unmkStructItemBase(p)
   }
-  lazy val StructItemBaseRef: Ref[StructItemBaseCompanionCtor] = new StructItemBaseCompanionCtor
-  lazy val RStructItemBase: StructItemBaseCompanionCtor = unrefStructItemBaseCompanion(StructItemBaseRef)
+  val RStructItemBase: MutableLazy[StructItemBaseCompanionCtor] = MutableLazy(new StructItemBaseCompanionCtor)
+  val StructItemBaseRef: MutableLazy[Ref[StructItemBaseCompanionCtor]] = MutableLazy(RStructItemBase.value)
   implicit def unrefStructItemBaseCompanion(p: Ref[StructItemBaseCompanionCtor]): StructItemBaseCompanionCtor = {
     if (p.node.isInstanceOf[StructItemBaseCompanionCtor])
       p.node.asInstanceOf[StructItemBaseCompanionCtor]

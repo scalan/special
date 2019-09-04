@@ -2,9 +2,11 @@ package scalan
 
 import java.lang.reflect.Method
 
+import scalan.primitives.TypeSum
+
 import scala.language.higherKinds
 
-trait Views extends TypeDescs with MethodCalls { self: ViewsModule with Scalan =>
+trait Views extends TypeDescs with MethodCalls with TypeSum { self: ViewsModule with Scalan =>
   import IsoUR._
 
   type Iso[From, To] = Ref[IsoUR[From, To]]

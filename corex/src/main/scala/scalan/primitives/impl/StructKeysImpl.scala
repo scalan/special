@@ -18,7 +18,7 @@ object StructKey extends EntityObject("StructKey") {
 
   // entityAdapter for StructKey trait
   case class StructKeyAdapter[Schema <: Struct](source: Ref[StructKey[Schema]])
-      extends StructKey[Schema]
+      extends Node with StructKey[Schema]
       with Def[StructKey[Schema]] {
     implicit lazy val eSchema = source.elem.typeArgs("Schema")._1.asInstanceOf[Elem[Schema]]
 
@@ -67,8 +67,8 @@ object StructKey extends EntityObject("StructKey") {
   implicit def unrefStructKeyCompanionCtor(p: Ref[StructKeyCompanionCtor]): StructKeyCompanionCtor =
     p.node.asInstanceOf[StructKeyCompanionCtor]
 
-  lazy val RStructKey: Ref[StructKeyCompanionCtor] = new StructKeyCompanionCtor {
-  }
+  val RStructKey: MutableLazy[StructKeyCompanionCtor] = MutableLazy(new StructKeyCompanionCtor {
+  })
 } // of object StructKey
   registerEntityObject("StructKey", StructKey)
 
@@ -134,8 +134,8 @@ object IndexStructKey extends EntityObject("IndexStructKey") {
 
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkIndexStructKey(p)
   }
-  lazy val IndexStructKeyRef: Ref[IndexStructKeyCompanionCtor] = new IndexStructKeyCompanionCtor
-  lazy val RIndexStructKey: IndexStructKeyCompanionCtor = unrefIndexStructKeyCompanion(IndexStructKeyRef)
+  val RIndexStructKey: MutableLazy[IndexStructKeyCompanionCtor] = MutableLazy(new IndexStructKeyCompanionCtor)
+  val IndexStructKeyRef: MutableLazy[Ref[IndexStructKeyCompanionCtor]] = MutableLazy(RIndexStructKey.value)
   implicit def unrefIndexStructKeyCompanion(p: Ref[IndexStructKeyCompanionCtor]): IndexStructKeyCompanionCtor = {
     if (p.node.isInstanceOf[IndexStructKeyCompanionCtor])
       p.node.asInstanceOf[IndexStructKeyCompanionCtor]
@@ -227,8 +227,8 @@ object NameStructKey extends EntityObject("NameStructKey") {
 
     def unapply[Schema <: Struct](p: Ref[StructKey[Schema]]) = unmkNameStructKey(p)
   }
-  lazy val NameStructKeyRef: Ref[NameStructKeyCompanionCtor] = new NameStructKeyCompanionCtor
-  lazy val RNameStructKey: NameStructKeyCompanionCtor = unrefNameStructKeyCompanion(NameStructKeyRef)
+  val RNameStructKey: MutableLazy[NameStructKeyCompanionCtor] = MutableLazy(new NameStructKeyCompanionCtor)
+  val NameStructKeyRef: MutableLazy[Ref[NameStructKeyCompanionCtor]] = MutableLazy(RNameStructKey.value)
   implicit def unrefNameStructKeyCompanion(p: Ref[NameStructKeyCompanionCtor]): NameStructKeyCompanionCtor = {
     if (p.node.isInstanceOf[NameStructKeyCompanionCtor])
       p.node.asInstanceOf[NameStructKeyCompanionCtor]

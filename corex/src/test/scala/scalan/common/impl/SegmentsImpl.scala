@@ -21,7 +21,7 @@ object Segment extends EntityObject("Segment") {
   type SSegment = scalan.common.Segment
   case class SegmentConst(
         constValue: SSegment
-      ) extends Segment with LiftedConst[SSegment, Segment]
+      ) extends LiftedConst[SSegment, Segment] with Segment
         with Def[Segment] with SegmentConstMethods {
     val liftable: Liftable[SSegment, Segment] = LiftableSegment
     val resultType: Elem[Segment] = liftable.eW
@@ -85,7 +85,7 @@ object Segment extends EntityObject("Segment") {
 
   // entityAdapter for Segment trait
   case class SegmentAdapter(source: Ref[Segment])
-      extends Segment
+      extends Node with Segment
       with Def[Segment] {
     val resultType: Elem[Segment] = element[Segment]
     override def transform(t: Transformer) = SegmentAdapter(t(source))
@@ -170,9 +170,9 @@ object Segment extends EntityObject("Segment") {
   implicit def unrefSegmentCompanionCtor(p: Ref[SegmentCompanionCtor]): SegmentCompanionCtor =
     p.node.asInstanceOf[SegmentCompanionCtor]
 
-  lazy val RSegment: Ref[SegmentCompanionCtor] = new SegmentCompanionCtor {
+  val RSegment: MutableLazy[SegmentCompanionCtor] = MutableLazy(new SegmentCompanionCtor {
     private val thisClass = classOf[SegmentCompanion]
-  }
+  })
 
   object SegmentMethods {
     object start {
@@ -305,8 +305,8 @@ object Interval extends EntityObject("Interval") {
 
     def unapply(p: Ref[Segment]) = unmkInterval(p)
   }
-  lazy val IntervalRef: Ref[IntervalCompanionCtor] = new IntervalCompanionCtor
-  lazy val RInterval: IntervalCompanionCtor = unrefIntervalCompanion(IntervalRef)
+  val RInterval: MutableLazy[IntervalCompanionCtor] = MutableLazy(new IntervalCompanionCtor)
+  val IntervalRef: MutableLazy[Ref[IntervalCompanionCtor]] = MutableLazy(RInterval.value)
   implicit def unrefIntervalCompanion(p: Ref[IntervalCompanionCtor]): IntervalCompanionCtor = {
     if (p.node.isInstanceOf[IntervalCompanionCtor])
       p.node.asInstanceOf[IntervalCompanionCtor]
@@ -437,8 +437,8 @@ object Slice extends EntityObject("Slice") {
 
     def unapply(p: Ref[Segment]) = unmkSlice(p)
   }
-  lazy val SliceRef: Ref[SliceCompanionCtor] = new SliceCompanionCtor
-  lazy val RSlice: SliceCompanionCtor = unrefSliceCompanion(SliceRef)
+  val RSlice: MutableLazy[SliceCompanionCtor] = MutableLazy(new SliceCompanionCtor)
+  val SliceRef: MutableLazy[Ref[SliceCompanionCtor]] = MutableLazy(RSlice.value)
   implicit def unrefSliceCompanion(p: Ref[SliceCompanionCtor]): SliceCompanionCtor = {
     if (p.node.isInstanceOf[SliceCompanionCtor])
       p.node.asInstanceOf[SliceCompanionCtor]
@@ -570,8 +570,8 @@ object Centered extends EntityObject("Centered") {
 
     def unapply(p: Ref[Segment]) = unmkCentered(p)
   }
-  lazy val CenteredRef: Ref[CenteredCompanionCtor] = new CenteredCompanionCtor
-  lazy val RCentered: CenteredCompanionCtor = unrefCenteredCompanion(CenteredRef)
+  val RCentered: MutableLazy[CenteredCompanionCtor] = MutableLazy(new CenteredCompanionCtor)
+  val CenteredRef: MutableLazy[Ref[CenteredCompanionCtor]] = MutableLazy(RCentered.value)
   implicit def unrefCenteredCompanion(p: Ref[CenteredCompanionCtor]): CenteredCompanionCtor = {
     if (p.node.isInstanceOf[CenteredCompanionCtor])
       p.node.asInstanceOf[CenteredCompanionCtor]

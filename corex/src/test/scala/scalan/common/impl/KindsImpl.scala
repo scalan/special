@@ -17,7 +17,7 @@ object Kind extends EntityObject("Kind") {
 
   // entityAdapter for Kind trait
   case class KindAdapter[F[_], A](source: Ref[Kind[F, A]])
-      extends Kind[F, A]
+      extends Node with Kind[F, A]
       with Def[Kind[F, A]] {
     implicit lazy val cF = source.elem.typeArgs("F")._1.asInstanceOf[Cont[F]];
 implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
@@ -69,9 +69,9 @@ implicit lazy val eA = source.elem.typeArgs("A")._1.asInstanceOf[Elem[A]]
   implicit def unrefKindCompanionCtor(p: Ref[KindCompanionCtor]): KindCompanionCtor =
     p.node.asInstanceOf[KindCompanionCtor]
 
-  lazy val RKind: Ref[KindCompanionCtor] = new KindCompanionCtor {
+  val RKind: MutableLazy[KindCompanionCtor] = MutableLazy(new KindCompanionCtor {
     private val thisClass = classOf[KindCompanion]
-  }
+  })
 
   object KindMethods {
     // WARNING: Cannot generate matcher for method `flatMap`: Method has function arguments f
@@ -162,8 +162,8 @@ object Return extends EntityObject("Return") {
 
     def unapply[F[_], A](p: Ref[Kind[F, A]]) = unmkReturn(p)
   }
-  lazy val ReturnRef: Ref[ReturnCompanionCtor] = new ReturnCompanionCtor
-  lazy val RReturn: ReturnCompanionCtor = unrefReturnCompanion(ReturnRef)
+  val RReturn: MutableLazy[ReturnCompanionCtor] = MutableLazy(new ReturnCompanionCtor)
+  val ReturnRef: MutableLazy[Ref[ReturnCompanionCtor]] = MutableLazy(RReturn.value)
   implicit def unrefReturnCompanion(p: Ref[ReturnCompanionCtor]): ReturnCompanionCtor = {
     if (p.node.isInstanceOf[ReturnCompanionCtor])
       p.node.asInstanceOf[ReturnCompanionCtor]
@@ -282,8 +282,8 @@ implicit val eB = p._2.elem.eRange.typeArgs("A")._1.asInstanceOf[Elem[B]]
 
     def unapply[F[_], S, B](p: Ref[Kind[F, B]]) = unmkBind(p)
   }
-  lazy val BindRef: Ref[BindCompanionCtor] = new BindCompanionCtor
-  lazy val RBind: BindCompanionCtor = unrefBindCompanion(BindRef)
+  val RBind: MutableLazy[BindCompanionCtor] = MutableLazy(new BindCompanionCtor)
+  val BindRef: MutableLazy[Ref[BindCompanionCtor]] = MutableLazy(RBind.value)
   implicit def unrefBindCompanion(p: Ref[BindCompanionCtor]): BindCompanionCtor = {
     if (p.node.isInstanceOf[BindCompanionCtor])
       p.node.asInstanceOf[BindCompanionCtor]

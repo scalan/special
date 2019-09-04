@@ -28,13 +28,18 @@ trait Segments { self: SegmentsModule =>
   abstract class Interval(val start: Ref[Int], val end: Ref[Int]) extends Segment {
     def length = end - start
     def shift(ofs: Ref[Int]) = RInterval(start + ofs, end + ofs)
+
+    @scalan.Internal val RIntervalCtor = RInterval.value
+    @scalan.Internal val RSliceCtor    = RSlice.value
+    @scalan.Internal val RCenteredCtor = RCentered.value
+
     @NeverInline
     def attach(seg: Ref[Segment]): Ref[Segment] = seg match {
-      case RInterval(start, end) =>
+      case RIntervalCtor(start, end) =>
         seg
-      case RSlice(start, length) =>
+      case RSliceCtor(start, length) =>
         self
-      case RCentered(center, radius) =>
+      case RCenteredCtor(center, radius) =>
         self
       case _ => seg attach self
     }
