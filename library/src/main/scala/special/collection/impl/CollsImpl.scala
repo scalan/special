@@ -630,9 +630,9 @@ implicit val eV = proj.elem.eRange
   implicit def unrefCollCompanionCtor(p: Ref[CollCompanionCtor]): CollCompanionCtor =
     p.node.asInstanceOf[CollCompanionCtor]
 
-  lazy val RColl: Ref[CollCompanionCtor] = new CollCompanionCtor {
+  val RColl: MutableLazy[CollCompanionCtor] = MutableLazy(new CollCompanionCtor {
     private val thisClass = classOf[CollCompanion]
-  }
+  })
 
   // manual fix: ViewColl
 

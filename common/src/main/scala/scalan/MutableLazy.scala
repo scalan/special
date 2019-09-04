@@ -28,4 +28,6 @@ class MutableLazy[A] private (block: => A) {
 
 object MutableLazy {
   def apply[A](block: => A): MutableLazy[A] = new MutableLazy(block)
+
+  implicit def mutableLazyToValue[T](ml: MutableLazy[T]): T = ml.value
 }

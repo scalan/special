@@ -51,7 +51,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     p.node.asInstanceOf[WSpecialPredefCompanionCtor]
 
   // manual fix
-  def RWSpecialPredef: Ref[WSpecialPredefCompanionCtor] = new WSpecialPredefCompanionCtor {
+  val RWSpecialPredef: MutableLazy[WSpecialPredefCompanionCtor] = MutableLazy(new WSpecialPredefCompanionCtor {
     private val thisClass = classOf[WSpecialPredefCompanion]
 
     def optionGetOrElse[A](opt: Ref[WOption[A]], default: Ref[A]): Ref[A] = {
@@ -91,7 +91,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
         Array[AnyRef](s1, isMatch, step),
         true, false, element[A]))
     }
-  }
+  })
 
   object WSpecialPredefMethods {
   }

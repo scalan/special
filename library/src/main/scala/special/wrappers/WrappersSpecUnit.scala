@@ -1,6 +1,7 @@
 package special.wrappers {
   import scalan._
-
+  import scalan.MutableLazy
+  
   trait WrappersSpec extends Base { self: Library =>
     import WOption._;
     import WRType._;
