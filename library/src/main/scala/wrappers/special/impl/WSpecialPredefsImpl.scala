@@ -27,7 +27,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
   }
 
   // entityUnref: single unref method for each type family
-  implicit def unrefWSpecialPredef(p: Ref[WSpecialPredef]): WSpecialPredef = {
+  implicit final def unrefWSpecialPredef(p: Ref[WSpecialPredef]): WSpecialPredef = {
     if (p.node.isInstanceOf[WSpecialPredef]) p.node.asInstanceOf[WSpecialPredef]
     else
       WSpecialPredefAdapter(p)
@@ -47,7 +47,7 @@ object WSpecialPredef extends EntityObject("WSpecialPredef") {
     def resultType = WSpecialPredefCompanionElem
     override def toString = "WSpecialPredef"
   }
-  implicit def unrefWSpecialPredefCompanionCtor(p: Ref[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
+  implicit final def unrefWSpecialPredefCompanionCtor(p: Ref[WSpecialPredefCompanionCtor]): WSpecialPredefCompanionCtor =
     p.node.asInstanceOf[WSpecialPredefCompanionCtor]
 
   val RWSpecialPredef: MutableLazy[WSpecialPredefCompanionCtor] = MutableLazy(new WSpecialPredefCompanionCtor {

@@ -47,7 +47,7 @@ object Monoid extends EntityObject("Monoid") {
   }
 
   // entityUnref: single unref method for each type family
-  implicit def unrefMonoid[T](p: Ref[Monoid[T]]): Monoid[T] = {
+  implicit final def unrefMonoid[T](p: Ref[Monoid[T]]): Monoid[T] = {
     if (p.node.isInstanceOf[Monoid[T]@unchecked]) p.node.asInstanceOf[Monoid[T]]
     else
       MonoidAdapter(p)
@@ -61,7 +61,7 @@ object Monoid extends EntityObject("Monoid") {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
   }
 
-  implicit def monoidElement[T](implicit eT: Elem[T]): Elem[Monoid[T]] =
+  implicit final def monoidElement[T](implicit eT: Elem[T]): Elem[Monoid[T]] =
     cachedElemByClass(eT)(classOf[MonoidElem[T, Monoid[T]]])
 
   implicit case object MonoidCompanionElem extends CompanionElem[MonoidCompanionCtor]
@@ -70,7 +70,7 @@ object Monoid extends EntityObject("Monoid") {
     def resultType = MonoidCompanionElem
     override def toString = "Monoid"
   }
-  implicit def unrefMonoidCompanionCtor(p: Ref[MonoidCompanionCtor]): MonoidCompanionCtor =
+  implicit final def unrefMonoidCompanionCtor(p: Ref[MonoidCompanionCtor]): MonoidCompanionCtor =
     p.node.asInstanceOf[MonoidCompanionCtor]
 
   val RMonoid: MutableLazy[MonoidCompanionCtor] = MutableLazy(new MonoidCompanionCtor {
@@ -142,7 +142,7 @@ implicit val eB = m2.eT
   }
 
   // entityUnref: single unref method for each type family
-  implicit def unrefMonoidBuilder(p: Ref[MonoidBuilder]): MonoidBuilder = {
+  implicit final def unrefMonoidBuilder(p: Ref[MonoidBuilder]): MonoidBuilder = {
     if (p.node.isInstanceOf[MonoidBuilder]) p.node.asInstanceOf[MonoidBuilder]
     else
       MonoidBuilderAdapter(p)
@@ -162,7 +162,7 @@ implicit val eB = m2.eT
     def resultType = MonoidBuilderCompanionElem
     override def toString = "MonoidBuilder"
   }
-  implicit def unrefMonoidBuilderCompanionCtor(p: Ref[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
+  implicit final def unrefMonoidBuilderCompanionCtor(p: Ref[MonoidBuilderCompanionCtor]): MonoidBuilderCompanionCtor =
     p.node.asInstanceOf[MonoidBuilderCompanionCtor]
 
   val RMonoidBuilder: MutableLazy[MonoidBuilderCompanionCtor] = MutableLazy(new MonoidBuilderCompanionCtor {

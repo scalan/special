@@ -132,12 +132,12 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |      ) extends LiftedConst[$SName$tyUseS, $EName$tyUse] with $EName$tyUse
       |        with Def[$EName$tyUse] with ${EName}ConstMethods$tyUse {
       |${e.tpeArgs.rep(a =>
-         s"""|    implicit def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
+         s"""|    implicit final def e${a.name}: Elem[${a.name}] = l${a.name}.eW""".stripAndTrim, "\n"
        )}
        ${liftableAncestors.opt { ancs =>
          val (ancEnt, args) = ancs.head;
          ancEnt.tpeArgs.zip(args).filterNot(p => e.tpeArgNames.contains(p._1.name)).rep { case (ta, tpe) =>
-           s"|    implicit def e${ta.name}: Elem[$tpe] = element[$tpe]\n"
+           s"|    implicit final def e${ta.name}: Elem[$tpe] = element[$tpe]\n"
          }
        }}
       |    val liftable: Liftable[$SName$tyUseS, $EName$tyUse] = $liftableMethod${
@@ -175,7 +175,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |    }
       |  }
       |${isGeneric.opt(s"""
-      |  implicit def $liftableMethod$typesDeclAll${
+      |  implicit final def $liftableMethod$typesDeclAll${
              optArgs(zipped)("(implicit ", (sa,a) => s"l$a: Liftable[$sa,$a]", ",", ")")}: Liftable[$SName$tyUseS, $EName$tyUse] =
       |    Liftable$sName${optArgs(zipped)("(", (sa,a) => s"l$a", ",", ")")}
          """.stripAndTrim)}
@@ -244,7 +244,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val uncheckedOpt = e.tpeArgs.nonEmpty.opt("@unchecked")
     s"""
       |  // entityUnref: single unref method for each type family
-      |  implicit def unref$entityName${typesDecl}(p: Ref[${e.typeUse}]): ${e.typeUse} = {
+      |  implicit final def unref$entityName${typesDecl}(p: Ref[${e.typeUse}]): ${e.typeUse} = {
       |    if (p.node.isInstanceOf[${e.typeUse}$uncheckedOpt]) p.node.asInstanceOf[${e.typeUse}]
       |    else
       |      ${entityName}Adapter(p)
@@ -369,7 +369,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
 
     val entityElem = e.elemTypeUse()
     s"""
-      |  implicit def cast${e.name}Element${e.tpeArgsDecl}(elem: Elem[${e.typeUse}]): $entityElem =
+      |  implicit final def cast${e.name}Element${e.tpeArgsDecl}(elem: Elem[${e.typeUse}]): $entityElem =
       |    elem.asInstanceOf[$entityElem]
       |
       |  ${container(e.name, e.isFunctor)}
@@ -399,7 +399,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
           |""".stripMargin
       else
         s"""
-          |  implicit def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
+          |  implicit final def $elemMethodName${e.tpeArgsDecl}${e.implicitArgsDecl()}: Elem[${e.typeUse}] =
           |    cachedElemByClass${e.implicitArgsOrParens}(classOf[$elemType])
           |""".stripMargin
     } else ""
@@ -416,7 +416,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
           |""".stripMargin
       else
         s"""
-          |  implicit def $elemMethodName${c.tpeArgsDecl}${c.implicitArgsDecl()}: Elem[${c.typeUse}] =
+          |  implicit final def $elemMethodName${c.tpeArgsDecl}${c.implicitArgsDecl()}: Elem[${c.typeUse}] =
           |    cachedElemByClass${c.implicitArgsOrParens}(classOf[$elemType])
           |""".stripMargin
     } else ""
@@ -513,7 +513,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
       |${
       hasCompanion.opt
       s"""
-        |  implicit def unref${e.companionCtorName}(p: Ref[${e.companionCtorName}]): ${e.companionCtorName} =
+        |  implicit final def unref${e.companionCtorName}(p: Ref[${e.companionCtorName}]): ${e.companionCtorName} =
         |    p.node.asInstanceOf[${e.companionCtorName}]
         |""".stripAndTrim
     }
@@ -530,7 +530,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
     val entityName = e.name
     val companionExpString =
       s"""
-        |  val R$entityName: MutableLazy[${e.companionCtorName}] = MutableLazy(new ${e.companionCtorName} {
+        |  lazy val R$entityName: MutableLazy[${e.companionCtorName}] = MutableLazy(new ${e.companionCtorName} {
         |    ${entityCompOpt.opt(comp => s"private val thisClass = classOf[${comp.name}]")}
         |    $companionMethods
         |  })
@@ -787,8 +787,8 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |
         |    def unapply${tpeArgsDecl}(p: Ref[$parent]) = unmk$className(p)
         |  }
-        |  val R${c.name}: MutableLazy[${c.companionCtorName}] = MutableLazy(new ${c.companionCtorName})
-        |  implicit def unref${className}Companion(p: Ref[${c.companionCtorName}]): ${c.companionCtorName} = {
+        |  lazy val R${c.name}: MutableLazy[${c.companionCtorName}] = MutableLazy(new ${c.companionCtorName})
+        |  implicit final def unref${className}Companion(p: Ref[${c.companionCtorName}]): ${c.companionCtorName} = {
         |    if (p.node.isInstanceOf[${c.companionCtorName}])
         |      p.node.asInstanceOf[${c.companionCtorName}]
         |    else
@@ -797,7 +797,7 @@ class UnitFileGenerator[+G <: Global](val parsers: ScalanParsers[G] with ScalanG
         |
         |  implicit case object ${className}CompanionElem extends CompanionElem[${c.companionCtorName}]
         |
-        |  implicit def unref${c.typeDecl}(p: Ref[${c.typeUse}]): ${c.typeUse} = {
+        |  implicit final def unref${c.typeDecl}(p: Ref[${c.typeUse}]): ${c.typeUse} = {
         |    if (p.node.isInstanceOf[${c.typeUse}$uncheckedOpt])
         |      p.node.asInstanceOf[${c.typeUse}]
         |    else

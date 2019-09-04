@@ -47,7 +47,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
   }
 
-  implicit def cSizePrimElement[Val](implicit eVal: Elem[Val]): Elem[CSizePrim[Val]] =
+  implicit final def cSizePrimElement[Val](implicit eVal: Elem[Val]): Elem[CSizePrim[Val]] =
     cachedElemByClass(eVal)(classOf[CSizePrimElem[Val]])
 
   // 4) constructor and deconstructor
@@ -68,7 +68,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
     def unapply[Val](p: Ref[SizePrim[Val]]) = unmkCSizePrim(p)
   }
   val RCSizePrim: MutableLazy[CSizePrimCompanionCtor] = MutableLazy(new CSizePrimCompanionCtor)
-  implicit def unrefCSizePrimCompanion(p: Ref[CSizePrimCompanionCtor]): CSizePrimCompanionCtor = {
+  implicit final def unrefCSizePrimCompanion(p: Ref[CSizePrimCompanionCtor]): CSizePrimCompanionCtor = {
     if (p.node.isInstanceOf[CSizePrimCompanionCtor])
       p.node.asInstanceOf[CSizePrimCompanionCtor]
     else
@@ -77,7 +77,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
 
   implicit case object CSizePrimCompanionElem extends CompanionElem[CSizePrimCompanionCtor]
 
-  implicit def unrefCSizePrim[Val](p: Ref[CSizePrim[Val]]): CSizePrim[Val] = {
+  implicit final def unrefCSizePrim[Val](p: Ref[CSizePrim[Val]]): CSizePrim[Val] = {
     if (p.node.isInstanceOf[CSizePrim[Val]@unchecked])
       p.node.asInstanceOf[CSizePrim[Val]]
     else
@@ -127,7 +127,7 @@ implicit lazy val eR = r.eVal
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
   }
 
-  implicit def cSizePairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[CSizePair[L, R]] =
+  implicit final def cSizePairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[CSizePair[L, R]] =
     cachedElemByClass(eL, eR)(classOf[CSizePairElem[L, R]])
 
   // 4) constructor and deconstructor
@@ -149,7 +149,7 @@ implicit val eR = p._2.eVal
     def unapply[L, R](p: Ref[SizePair[L, R]]) = unmkCSizePair(p)
   }
   val RCSizePair: MutableLazy[CSizePairCompanionCtor] = MutableLazy(new CSizePairCompanionCtor)
-  implicit def unrefCSizePairCompanion(p: Ref[CSizePairCompanionCtor]): CSizePairCompanionCtor = {
+  implicit final def unrefCSizePairCompanion(p: Ref[CSizePairCompanionCtor]): CSizePairCompanionCtor = {
     if (p.node.isInstanceOf[CSizePairCompanionCtor])
       p.node.asInstanceOf[CSizePairCompanionCtor]
     else
@@ -158,7 +158,7 @@ implicit val eR = p._2.eVal
 
   implicit case object CSizePairCompanionElem extends CompanionElem[CSizePairCompanionCtor]
 
-  implicit def unrefCSizePair[L, R](p: Ref[CSizePair[L, R]]): CSizePair[L, R] = {
+  implicit final def unrefCSizePair[L, R](p: Ref[CSizePair[L, R]]): CSizePair[L, R] = {
     if (p.node.isInstanceOf[CSizePair[L, R]@unchecked])
       p.node.asInstanceOf[CSizePair[L, R]]
     else
@@ -207,7 +207,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
 
-  implicit def cSizeCollElement[Item](implicit eItem: Elem[Item]): Elem[CSizeColl[Item]] =
+  implicit final def cSizeCollElement[Item](implicit eItem: Elem[Item]): Elem[CSizeColl[Item]] =
     cachedElemByClass(eItem)(classOf[CSizeCollElem[Item]])
 
   // 4) constructor and deconstructor
@@ -222,7 +222,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
     def unapply[Item](p: Ref[SizeColl[Item]]) = unmkCSizeColl(p)
   }
   val RCSizeColl: MutableLazy[CSizeCollCompanionCtor] = MutableLazy(new CSizeCollCompanionCtor)
-  implicit def unrefCSizeCollCompanion(p: Ref[CSizeCollCompanionCtor]): CSizeCollCompanionCtor = {
+  implicit final def unrefCSizeCollCompanion(p: Ref[CSizeCollCompanionCtor]): CSizeCollCompanionCtor = {
     if (p.node.isInstanceOf[CSizeCollCompanionCtor])
       p.node.asInstanceOf[CSizeCollCompanionCtor]
     else
@@ -231,7 +231,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
 
   implicit case object CSizeCollCompanionElem extends CompanionElem[CSizeCollCompanionCtor]
 
-  implicit def unrefCSizeColl[Item](p: Ref[CSizeColl[Item]]): CSizeColl[Item] = {
+  implicit final def unrefCSizeColl[Item](p: Ref[CSizeColl[Item]]): CSizeColl[Item] = {
     if (p.node.isInstanceOf[CSizeColl[Item]@unchecked])
       p.node.asInstanceOf[CSizeColl[Item]]
     else
@@ -282,7 +282,7 @@ implicit lazy val eRes = tRes.eA
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
   }
 
-  implicit def cSizeFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[CSizeFunc[Env, Arg, Res]] =
+  implicit final def cSizeFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[CSizeFunc[Env, Arg, Res]] =
     cachedElemByClass(eEnv, eArg, eRes)(classOf[CSizeFuncElem[Env, Arg, Res]])
 
   // 4) constructor and deconstructor
@@ -305,7 +305,7 @@ implicit val eRes = p._4.eA
     def unapply[Env, Arg, Res](p: Ref[SizeFunc[Env, Arg, Res]]) = unmkCSizeFunc(p)
   }
   val RCSizeFunc: MutableLazy[CSizeFuncCompanionCtor] = MutableLazy(new CSizeFuncCompanionCtor)
-  implicit def unrefCSizeFuncCompanion(p: Ref[CSizeFuncCompanionCtor]): CSizeFuncCompanionCtor = {
+  implicit final def unrefCSizeFuncCompanion(p: Ref[CSizeFuncCompanionCtor]): CSizeFuncCompanionCtor = {
     if (p.node.isInstanceOf[CSizeFuncCompanionCtor])
       p.node.asInstanceOf[CSizeFuncCompanionCtor]
     else
@@ -314,7 +314,7 @@ implicit val eRes = p._4.eA
 
   implicit case object CSizeFuncCompanionElem extends CompanionElem[CSizeFuncCompanionCtor]
 
-  implicit def unrefCSizeFunc[Env, Arg, Res](p: Ref[CSizeFunc[Env, Arg, Res]]): CSizeFunc[Env, Arg, Res] = {
+  implicit final def unrefCSizeFunc[Env, Arg, Res](p: Ref[CSizeFunc[Env, Arg, Res]]): CSizeFunc[Env, Arg, Res] = {
     if (p.node.isInstanceOf[CSizeFunc[Env, Arg, Res]@unchecked])
       p.node.asInstanceOf[CSizeFunc[Env, Arg, Res]]
     else
@@ -364,7 +364,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
   }
 
-  implicit def cSizeOptionElement[Item](implicit eItem: Elem[Item]): Elem[CSizeOption[Item]] =
+  implicit final def cSizeOptionElement[Item](implicit eItem: Elem[Item]): Elem[CSizeOption[Item]] =
     cachedElemByClass(eItem)(classOf[CSizeOptionElem[Item]])
 
   // 4) constructor and deconstructor
@@ -379,7 +379,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
     def unapply[Item](p: Ref[SizeOption[Item]]) = unmkCSizeOption(p)
   }
   val RCSizeOption: MutableLazy[CSizeOptionCompanionCtor] = MutableLazy(new CSizeOptionCompanionCtor)
-  implicit def unrefCSizeOptionCompanion(p: Ref[CSizeOptionCompanionCtor]): CSizeOptionCompanionCtor = {
+  implicit final def unrefCSizeOptionCompanion(p: Ref[CSizeOptionCompanionCtor]): CSizeOptionCompanionCtor = {
     if (p.node.isInstanceOf[CSizeOptionCompanionCtor])
       p.node.asInstanceOf[CSizeOptionCompanionCtor]
     else
@@ -388,7 +388,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
 
   implicit case object CSizeOptionCompanionElem extends CompanionElem[CSizeOptionCompanionCtor]
 
-  implicit def unrefCSizeOption[Item](p: Ref[CSizeOption[Item]]): CSizeOption[Item] = {
+  implicit final def unrefCSizeOption[Item](p: Ref[CSizeOption[Item]]): CSizeOption[Item] = {
     if (p.node.isInstanceOf[CSizeOption[Item]@unchecked])
       p.node.asInstanceOf[CSizeOption[Item]]
     else

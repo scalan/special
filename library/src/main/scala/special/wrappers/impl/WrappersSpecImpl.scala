@@ -29,7 +29,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   }
 
   // entityUnref: single unref method for each type family
-  implicit def unrefWrapSpecBase(p: Ref[WrapSpecBase]): WrapSpecBase = {
+  implicit final def unrefWrapSpecBase(p: Ref[WrapSpecBase]): WrapSpecBase = {
     if (p.node.isInstanceOf[WrapSpecBase]) p.node.asInstanceOf[WrapSpecBase]
     else
       WrapSpecBaseAdapter(p)
@@ -49,7 +49,7 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
     def resultType = WrapSpecBaseCompanionElem
     override def toString = "WrapSpecBase"
   }
-  implicit def unrefWrapSpecBaseCompanionCtor(p: Ref[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
+  implicit final def unrefWrapSpecBaseCompanionCtor(p: Ref[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
     p.node.asInstanceOf[WrapSpecBaseCompanionCtor]
 
   val RWrapSpecBase: MutableLazy[WrapSpecBaseCompanionCtor] = MutableLazy(new WrapSpecBaseCompanionCtor {
@@ -87,7 +87,7 @@ implicit val eB = ifEmpty.elem.eItem
   }
 
   // entityUnref: single unref method for each type family
-  implicit def unrefOptionWrapSpec(p: Ref[OptionWrapSpec]): OptionWrapSpec = {
+  implicit final def unrefOptionWrapSpec(p: Ref[OptionWrapSpec]): OptionWrapSpec = {
     if (p.node.isInstanceOf[OptionWrapSpec]) p.node.asInstanceOf[OptionWrapSpec]
     else
       OptionWrapSpecAdapter(p)
@@ -108,7 +108,7 @@ implicit val eB = ifEmpty.elem.eItem
     def resultType = OptionWrapSpecCompanionElem
     override def toString = "OptionWrapSpec"
   }
-  implicit def unrefOptionWrapSpecCompanionCtor(p: Ref[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
+  implicit final def unrefOptionWrapSpecCompanionCtor(p: Ref[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
     p.node.asInstanceOf[OptionWrapSpecCompanionCtor]
 
   val ROptionWrapSpec: MutableLazy[OptionWrapSpecCompanionCtor] = MutableLazy(new OptionWrapSpecCompanionCtor {
@@ -129,7 +129,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   }
 
   // entityUnref: single unref method for each type family
-  implicit def unrefSpecialPredefWrapSpec(p: Ref[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
+  implicit final def unrefSpecialPredefWrapSpec(p: Ref[SpecialPredefWrapSpec]): SpecialPredefWrapSpec = {
     if (p.node.isInstanceOf[SpecialPredefWrapSpec]) p.node.asInstanceOf[SpecialPredefWrapSpec]
     else
       SpecialPredefWrapSpecAdapter(p)
@@ -150,7 +150,7 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
     def resultType = SpecialPredefWrapSpecCompanionElem
     override def toString = "SpecialPredefWrapSpec"
   }
-  implicit def unrefSpecialPredefWrapSpecCompanionCtor(p: Ref[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
+  implicit final def unrefSpecialPredefWrapSpecCompanionCtor(p: Ref[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
     p.node.asInstanceOf[SpecialPredefWrapSpecCompanionCtor]
 
   val RSpecialPredefWrapSpec: MutableLazy[SpecialPredefWrapSpecCompanionCtor] = MutableLazy(new SpecialPredefWrapSpecCompanionCtor {
@@ -171,7 +171,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   }
 
   // entityUnref: single unref method for each type family
-  implicit def unrefRTypeWrapSpec(p: Ref[RTypeWrapSpec]): RTypeWrapSpec = {
+  implicit final def unrefRTypeWrapSpec(p: Ref[RTypeWrapSpec]): RTypeWrapSpec = {
     if (p.node.isInstanceOf[RTypeWrapSpec]) p.node.asInstanceOf[RTypeWrapSpec]
     else
       RTypeWrapSpecAdapter(p)
@@ -192,7 +192,7 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
     def resultType = RTypeWrapSpecCompanionElem
     override def toString = "RTypeWrapSpec"
   }
-  implicit def unrefRTypeWrapSpecCompanionCtor(p: Ref[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
+  implicit final def unrefRTypeWrapSpecCompanionCtor(p: Ref[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
     p.node.asInstanceOf[RTypeWrapSpecCompanionCtor]
 
   val RRTypeWrapSpec: MutableLazy[RTypeWrapSpecCompanionCtor] = MutableLazy(new RTypeWrapSpecCompanionCtor {
