@@ -67,8 +67,7 @@ object CSizePrim extends EntityObject("CSizePrim") {
 
     def unapply[Val](p: Ref[SizePrim[Val]]) = unmkCSizePrim(p)
   }
-  lazy val CSizePrimRef: Ref[CSizePrimCompanionCtor] = new CSizePrimCompanionCtor
-  lazy val RCSizePrim: CSizePrimCompanionCtor = unrefCSizePrimCompanion(CSizePrimRef)
+  val RCSizePrim: MutableLazy[CSizePrimCompanionCtor] = MutableLazy(new CSizePrimCompanionCtor)
   implicit def unrefCSizePrimCompanion(p: Ref[CSizePrimCompanionCtor]): CSizePrimCompanionCtor = {
     if (p.node.isInstanceOf[CSizePrimCompanionCtor])
       p.node.asInstanceOf[CSizePrimCompanionCtor]
@@ -149,8 +148,7 @@ implicit val eR = p._2.eVal
 
     def unapply[L, R](p: Ref[SizePair[L, R]]) = unmkCSizePair(p)
   }
-  lazy val CSizePairRef: Ref[CSizePairCompanionCtor] = new CSizePairCompanionCtor
-  lazy val RCSizePair: CSizePairCompanionCtor = unrefCSizePairCompanion(CSizePairRef)
+  val RCSizePair: MutableLazy[CSizePairCompanionCtor] = MutableLazy(new CSizePairCompanionCtor)
   implicit def unrefCSizePairCompanion(p: Ref[CSizePairCompanionCtor]): CSizePairCompanionCtor = {
     if (p.node.isInstanceOf[CSizePairCompanionCtor])
       p.node.asInstanceOf[CSizePairCompanionCtor]
@@ -223,8 +221,7 @@ object CSizeColl extends EntityObject("CSizeColl") {
 
     def unapply[Item](p: Ref[SizeColl[Item]]) = unmkCSizeColl(p)
   }
-  lazy val CSizeCollRef: Ref[CSizeCollCompanionCtor] = new CSizeCollCompanionCtor
-  lazy val RCSizeColl: CSizeCollCompanionCtor = unrefCSizeCollCompanion(CSizeCollRef)
+  val RCSizeColl: MutableLazy[CSizeCollCompanionCtor] = MutableLazy(new CSizeCollCompanionCtor)
   implicit def unrefCSizeCollCompanion(p: Ref[CSizeCollCompanionCtor]): CSizeCollCompanionCtor = {
     if (p.node.isInstanceOf[CSizeCollCompanionCtor])
       p.node.asInstanceOf[CSizeCollCompanionCtor]
@@ -307,8 +304,7 @@ implicit val eRes = p._4.eA
 
     def unapply[Env, Arg, Res](p: Ref[SizeFunc[Env, Arg, Res]]) = unmkCSizeFunc(p)
   }
-  lazy val CSizeFuncRef: Ref[CSizeFuncCompanionCtor] = new CSizeFuncCompanionCtor
-  lazy val RCSizeFunc: CSizeFuncCompanionCtor = unrefCSizeFuncCompanion(CSizeFuncRef)
+  val RCSizeFunc: MutableLazy[CSizeFuncCompanionCtor] = MutableLazy(new CSizeFuncCompanionCtor)
   implicit def unrefCSizeFuncCompanion(p: Ref[CSizeFuncCompanionCtor]): CSizeFuncCompanionCtor = {
     if (p.node.isInstanceOf[CSizeFuncCompanionCtor])
       p.node.asInstanceOf[CSizeFuncCompanionCtor]
@@ -382,8 +378,7 @@ override lazy val eVal: Elem[WOption[Item]] = implicitly[Elem[WOption[Item]]]
 
     def unapply[Item](p: Ref[SizeOption[Item]]) = unmkCSizeOption(p)
   }
-  lazy val CSizeOptionRef: Ref[CSizeOptionCompanionCtor] = new CSizeOptionCompanionCtor
-  lazy val RCSizeOption: CSizeOptionCompanionCtor = unrefCSizeOptionCompanion(CSizeOptionRef)
+  val RCSizeOption: MutableLazy[CSizeOptionCompanionCtor] = MutableLazy(new CSizeOptionCompanionCtor)
   implicit def unrefCSizeOptionCompanion(p: Ref[CSizeOptionCompanionCtor]): CSizeOptionCompanionCtor = {
     if (p.node.isInstanceOf[CSizeOptionCompanionCtor])
       p.node.asInstanceOf[CSizeOptionCompanionCtor]

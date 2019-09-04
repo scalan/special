@@ -52,9 +52,9 @@ object WrapSpecBase extends EntityObject("WrapSpecBase") {
   implicit def unrefWrapSpecBaseCompanionCtor(p: Ref[WrapSpecBaseCompanionCtor]): WrapSpecBaseCompanionCtor =
     p.node.asInstanceOf[WrapSpecBaseCompanionCtor]
 
-  lazy val RWrapSpecBase: Ref[WrapSpecBaseCompanionCtor] = new WrapSpecBaseCompanionCtor {
+  val RWrapSpecBase: MutableLazy[WrapSpecBaseCompanionCtor] = MutableLazy(new WrapSpecBaseCompanionCtor {
     private val thisClass = classOf[WrapSpecBaseCompanion]
-  }
+  })
 } // of object WrapSpecBase
   registerEntityObject("WrapSpecBase", WrapSpecBase)
 
@@ -111,9 +111,9 @@ implicit val eB = ifEmpty.elem.eItem
   implicit def unrefOptionWrapSpecCompanionCtor(p: Ref[OptionWrapSpecCompanionCtor]): OptionWrapSpecCompanionCtor =
     p.node.asInstanceOf[OptionWrapSpecCompanionCtor]
 
-  lazy val ROptionWrapSpec: Ref[OptionWrapSpecCompanionCtor] = new OptionWrapSpecCompanionCtor {
+  val ROptionWrapSpec: MutableLazy[OptionWrapSpecCompanionCtor] = MutableLazy(new OptionWrapSpecCompanionCtor {
     private val thisClass = classOf[OptionWrapSpecCompanion]
-  }
+  })
 } // of object OptionWrapSpec
   registerEntityObject("OptionWrapSpec", OptionWrapSpec)
 
@@ -153,9 +153,9 @@ object SpecialPredefWrapSpec extends EntityObject("SpecialPredefWrapSpec") {
   implicit def unrefSpecialPredefWrapSpecCompanionCtor(p: Ref[SpecialPredefWrapSpecCompanionCtor]): SpecialPredefWrapSpecCompanionCtor =
     p.node.asInstanceOf[SpecialPredefWrapSpecCompanionCtor]
 
-  lazy val RSpecialPredefWrapSpec: Ref[SpecialPredefWrapSpecCompanionCtor] = new SpecialPredefWrapSpecCompanionCtor {
+  val RSpecialPredefWrapSpec: MutableLazy[SpecialPredefWrapSpecCompanionCtor] = MutableLazy(new SpecialPredefWrapSpecCompanionCtor {
     private val thisClass = classOf[SpecialPredefWrapSpecCompanion]
-  }
+  })
 } // of object SpecialPredefWrapSpec
   registerEntityObject("SpecialPredefWrapSpec", SpecialPredefWrapSpec)
 
@@ -195,9 +195,9 @@ object RTypeWrapSpec extends EntityObject("RTypeWrapSpec") {
   implicit def unrefRTypeWrapSpecCompanionCtor(p: Ref[RTypeWrapSpecCompanionCtor]): RTypeWrapSpecCompanionCtor =
     p.node.asInstanceOf[RTypeWrapSpecCompanionCtor]
 
-  lazy val RRTypeWrapSpec: Ref[RTypeWrapSpecCompanionCtor] = new RTypeWrapSpecCompanionCtor {
+  val RRTypeWrapSpec: MutableLazy[RTypeWrapSpecCompanionCtor] = MutableLazy(new RTypeWrapSpecCompanionCtor {
     private val thisClass = classOf[RTypeWrapSpecCompanion]
-  }
+  })
 } // of object RTypeWrapSpec
   registerEntityObject("RTypeWrapSpec", RTypeWrapSpec)
 

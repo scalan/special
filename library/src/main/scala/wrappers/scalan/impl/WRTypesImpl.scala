@@ -117,9 +117,9 @@ object WRType extends EntityObject("WRType") {
   implicit def unrefWRTypeCompanionCtor(p: Ref[WRTypeCompanionCtor]): WRTypeCompanionCtor =
     p.node.asInstanceOf[WRTypeCompanionCtor]
 
-  lazy val RWRType: Ref[WRTypeCompanionCtor] = new WRTypeCompanionCtor {
+  val RWRType: MutableLazy[WRTypeCompanionCtor] = MutableLazy(new WRTypeCompanionCtor {
     private val thisClass = classOf[WRTypeCompanion]
-  }
+  })
 
   object WRTypeMethods {
     object name {

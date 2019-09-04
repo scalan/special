@@ -69,8 +69,7 @@ object CCostedOption extends EntityObject("CCostedOption") {
 
     def unapply[T](p: Ref[CostedOption[T]]) = unmkCCostedOption(p)
   }
-  lazy val CCostedOptionRef: Ref[CCostedOptionCompanionCtor] = new CCostedOptionCompanionCtor
-  lazy val RCCostedOption: CCostedOptionCompanionCtor = unrefCCostedOptionCompanion(CCostedOptionRef)
+  val RCCostedOption: MutableLazy[CCostedOptionCompanionCtor] = MutableLazy(new CCostedOptionCompanionCtor)
   implicit def unrefCCostedOptionCompanion(p: Ref[CCostedOptionCompanionCtor]): CCostedOptionCompanionCtor = {
     if (p.node.isInstanceOf[CCostedOptionCompanionCtor])
       p.node.asInstanceOf[CCostedOptionCompanionCtor]

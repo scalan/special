@@ -95,9 +95,9 @@ object Costed extends EntityObject("Costed") {
   implicit def unrefCostedCompanionCtor(p: Ref[CostedCompanionCtor]): CostedCompanionCtor =
     p.node.asInstanceOf[CostedCompanionCtor]
 
-  lazy val RCosted: Ref[CostedCompanionCtor] = new CostedCompanionCtor {
+  val RCosted: MutableLazy[CostedCompanionCtor] = MutableLazy(new CostedCompanionCtor {
     private val thisClass = classOf[CostedCompanion]
-  }
+  })
 
   object CostedMethods {
     object builder {
@@ -215,9 +215,9 @@ object CostedPrim extends EntityObject("CostedPrim") {
   implicit def unrefCostedPrimCompanionCtor(p: Ref[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
     p.node.asInstanceOf[CostedPrimCompanionCtor]
 
-  lazy val RCostedPrim: Ref[CostedPrimCompanionCtor] = new CostedPrimCompanionCtor {
+  val RCostedPrim: MutableLazy[CostedPrimCompanionCtor] = MutableLazy(new CostedPrimCompanionCtor {
     private val thisClass = classOf[CostedPrimCompanion]
-  }
+  })
 } // of object CostedPrim
   registerEntityObject("CostedPrim", CostedPrim)
 
@@ -313,9 +313,9 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
   implicit def unrefCostedPairCompanionCtor(p: Ref[CostedPairCompanionCtor]): CostedPairCompanionCtor =
     p.node.asInstanceOf[CostedPairCompanionCtor]
 
-  lazy val RCostedPair: Ref[CostedPairCompanionCtor] = new CostedPairCompanionCtor {
+  val RCostedPair: MutableLazy[CostedPairCompanionCtor] = MutableLazy(new CostedPairCompanionCtor {
     private val thisClass = classOf[CostedPairCompanion]
-  }
+  })
 } // of object CostedPair
   registerEntityObject("CostedPair", CostedPair)
 
@@ -434,9 +434,9 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asInstanceOf[Elem[Res]]
   implicit def unrefCostedFuncCompanionCtor(p: Ref[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
     p.node.asInstanceOf[CostedFuncCompanionCtor]
 
-  lazy val RCostedFunc: Ref[CostedFuncCompanionCtor] = new CostedFuncCompanionCtor {
+  val RCostedFunc: MutableLazy[CostedFuncCompanionCtor] = MutableLazy(new CostedFuncCompanionCtor {
     private val thisClass = classOf[CostedFuncCompanion]
-  }
+  })
 } // of object CostedFunc
   registerEntityObject("CostedFunc", CostedFunc)
 
@@ -560,9 +560,9 @@ object CostedColl extends EntityObject("CostedColl") {
   implicit def unrefCostedCollCompanionCtor(p: Ref[CostedCollCompanionCtor]): CostedCollCompanionCtor =
     p.node.asInstanceOf[CostedCollCompanionCtor]
 
-  lazy val RCostedColl: Ref[CostedCollCompanionCtor] = new CostedCollCompanionCtor {
+  val RCostedColl: MutableLazy[CostedCollCompanionCtor] = MutableLazy(new CostedCollCompanionCtor {
     private val thisClass = classOf[CostedCollCompanion]
-  }
+  })
 
   object CostedCollMethods {
     object values {
@@ -731,9 +731,9 @@ object CostedOption extends EntityObject("CostedOption") {
   implicit def unrefCostedOptionCompanionCtor(p: Ref[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
     p.node.asInstanceOf[CostedOptionCompanionCtor]
 
-  lazy val RCostedOption: Ref[CostedOptionCompanionCtor] = new CostedOptionCompanionCtor {
+  val RCostedOption: MutableLazy[CostedOptionCompanionCtor] = MutableLazy(new CostedOptionCompanionCtor {
     private val thisClass = classOf[CostedOptionCompanion]
-  }
+  })
 } // of object CostedOption
   registerEntityObject("CostedOption", CostedOption)
 
@@ -881,9 +881,9 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
   implicit def unrefCostedBuilderCompanionCtor(p: Ref[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
     p.node.asInstanceOf[CostedBuilderCompanionCtor]
 
-  lazy val RCostedBuilder: Ref[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
+  val RCostedBuilder: MutableLazy[CostedBuilderCompanionCtor] = MutableLazy(new CostedBuilderCompanionCtor {
     private val thisClass = classOf[CostedBuilderCompanion]
-  }
+  })
 
   object CostedBuilderMethods {
     object ConstructTupleCost {

@@ -86,7 +86,6 @@ object CCostedPrim extends EntityObject("CCostedPrim") {
     def unapply[Val](p: Ref[CostedPrim[Val]]) = unmkCCostedPrim(p)
   }
   val RCCostedPrim: MutableLazy[CCostedPrimCompanionCtor] = MutableLazy(new CCostedPrimCompanionCtor)
-  val CCostedPrimRef: MutableLazy[Ref[CCostedPrimCompanionCtor]] = MutableLazy(RCCostedPrim.value)
   implicit def unrefCCostedPrimCompanion(p: Ref[CCostedPrimCompanionCtor]): CCostedPrimCompanionCtor = {
     if (p.node.isInstanceOf[CCostedPrimCompanionCtor])
       p.node.asInstanceOf[CCostedPrimCompanionCtor]
@@ -170,8 +169,7 @@ implicit val eR = p._2.eVal
 
     def unapply[L, R](p: Ref[CostedPair[L, R]]) = unmkCCostedPair(p)
   }
-  lazy val CCostedPairRef: Ref[CCostedPairCompanionCtor] = new CCostedPairCompanionCtor
-  lazy val RCCostedPair: CCostedPairCompanionCtor = unrefCCostedPairCompanion(CCostedPairRef)
+  val RCCostedPair: MutableLazy[CCostedPairCompanionCtor] = MutableLazy(new CCostedPairCompanionCtor)
   implicit def unrefCCostedPairCompanion(p: Ref[CCostedPairCompanionCtor]): CCostedPairCompanionCtor = {
     if (p.node.isInstanceOf[CCostedPairCompanionCtor])
       p.node.asInstanceOf[CCostedPairCompanionCtor]
@@ -254,8 +252,7 @@ implicit val eRes = p._2.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
 
     def unapply[Env, Arg, Res](p: Ref[CostedFunc[Env, Arg, Res]]) = unmkCCostedFunc(p)
   }
-  lazy val CCostedFuncRef: Ref[CCostedFuncCompanionCtor] = new CCostedFuncCompanionCtor
-  lazy val RCCostedFunc: CCostedFuncCompanionCtor = unrefCCostedFuncCompanion(CCostedFuncRef)
+  val RCCostedFunc: MutableLazy[CCostedFuncCompanionCtor] = MutableLazy(new CCostedFuncCompanionCtor)
   implicit def unrefCCostedFuncCompanion(p: Ref[CCostedFuncCompanionCtor]): CCostedFuncCompanionCtor = {
     if (p.node.isInstanceOf[CCostedFuncCompanionCtor])
       p.node.asInstanceOf[CCostedFuncCompanionCtor]
@@ -360,8 +357,7 @@ object CCostedColl extends EntityObject("CCostedColl") {
 
     def unapply[Item](p: Ref[CostedColl[Item]]) = unmkCCostedColl(p)
   }
-  lazy val CCostedCollRef: Ref[CCostedCollCompanionCtor] = new CCostedCollCompanionCtor
-  lazy val RCCostedColl: CCostedCollCompanionCtor = unrefCCostedCollCompanion(CCostedCollRef)
+  val RCCostedColl: MutableLazy[CCostedCollCompanionCtor] = MutableLazy(new CCostedCollCompanionCtor)
   implicit def unrefCCostedCollCompanion(p: Ref[CCostedCollCompanionCtor]): CCostedCollCompanionCtor = {
     if (p.node.isInstanceOf[CCostedCollCompanionCtor])
       p.node.asInstanceOf[CCostedCollCompanionCtor]
@@ -452,8 +448,7 @@ object CCostedBuilder extends EntityObject("CCostedBuilder") {
 
     def unapply(p: Ref[CostedBuilder]) = unmkCCostedBuilder(p)
   }
-  lazy val CCostedBuilderRef: Ref[CCostedBuilderCompanionCtor] = new CCostedBuilderCompanionCtor
-  lazy val RCCostedBuilder: CCostedBuilderCompanionCtor = unrefCCostedBuilderCompanion(CCostedBuilderRef)
+  val RCCostedBuilder: MutableLazy[CCostedBuilderCompanionCtor] = MutableLazy(new CCostedBuilderCompanionCtor)
   implicit def unrefCCostedBuilderCompanion(p: Ref[CCostedBuilderCompanionCtor]): CCostedBuilderCompanionCtor = {
     if (p.node.isInstanceOf[CCostedBuilderCompanionCtor])
       p.node.asInstanceOf[CCostedBuilderCompanionCtor]
