@@ -6,7 +6,7 @@ class Benchmark[T <: Scalan](createContext: => T) {
   def run() = {
     val (ctx, total) = measureTime {
       var ctx = createContext
-      measure(1000000, false) { i =>
+      measure(100000, false) { i =>
         ctx = createContext
       }
       ctx
