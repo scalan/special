@@ -16,7 +16,6 @@ trait CollGens extends RTypeGens { testSuite =>
 
   val monoid = builder.Monoids.intPlusMonoid
 
-  def hashCodeZeroEnd[T](x: T) = x.hashCode() % 10 == 0
   def hashCodeLt0[T](x: T) = x.hashCode() < 0
   def hashCodeInc[T](x: T) = x.hashCode() + 1
   def plusHashcode[T](p: (T,T)) = plus(p._1.hashCode(), p._2.hashCode())

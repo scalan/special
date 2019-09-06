@@ -11,13 +11,13 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   import special.collection._
   import special.collection.ExtensionMethods._
 
-  val typeGenerationDepth = 4
-  val testConfiguration = new GenConfiguration(maxArrayLength = 7)
+  val typeGenerationDepth = 5
+  val testConfiguration = new GenConfiguration(maxArrayLength = 10)
   def valueGen[T](t: RType[T]): Gen[T] = rtypeValueGen(testConfiguration)(t)
 
   val testMinSuccess = MinSuccessful(100)
   val typeMinSuccess = MinSuccessful(5)
-  val oneTimeRunMinSuccess = MinSuccessful(1)
+  val successfulAtLeastOnce = MinSuccessful(1)
 
   val intCollRtype = CollType(IntType)
 
@@ -44,9 +44,18 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     case _ => throw new RuntimeException("Not a collection")
   }
 
+  property("Coll.slice") {
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), indexGen, indexGen, typeMinSuccess) { (col, from, until) =>
+        val res = col.slice(from, until)
+        res.toArray shouldBe col.toArray.slice(from, until)
+      }
+    }
+  }
+
   property("Coll.indices") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1: Coll[_], col2: Coll[_]) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), valueGen(tCol), typeMinSuccess) { (col1: Coll[_], col2: Coll[_]) =>
         col1.indices.toArray shouldBe col1.toArray.indices.toArray
         col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
         col1.zip(col2).indices.toArray shouldBe col1.toArray.zip(col2.toArray).indices.toArray
@@ -55,54 +64,42 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.flatMap") {
-    def runTest[T](externalCol: Coll[Coll[T]], internalCol: Coll[T])(implicit tC: RType[Coll[T]], t: RType[T]) = {
+    def runTest[T](externalCol: Coll[Coll[T]], internalCol: Coll[T])(implicit tC: RType[Coll[T]]) = {
       val matrix = externalCol.map(_ => internalCol)(tC)
       val res = externalCol.zip(matrix)
-      val ret = res.flatMap(x => x._2)(t)
+      val ret = res.flatMap(x => x._2)(tItem(tC.asInstanceOf[RType[Coll[_]]]).asInstanceOf[RType[T]])
+
       val first = ret.toArray
       val second = externalCol.toArray.flatMap(_ => internalCol.toArray).array.asInstanceOf[Array[T]]
       arrayEq(first, second)
     }
-    forAll(arrayTypeGen(extendedCollTypeGen(typeGenerationDepth - 1), 1).asInstanceOf[Gen[ArrayType[Coll[_]]]], testMinSuccess) { t =>
-      forAll(valueGen(t), typeMinSuccess) { arr =>
-        whenever(arr.length > 3) {
-          val col = arr(0)
-          val zsArr = arr.slice(1, arr.length)
-          val arrayItemType = t.tA
-          val collItemType = tItem(arrayItemType)
-          val zs = builder.fromArray(zsArr)(arrayItemType)
-          runTest(zs.asInstanceOf[Coll[Coll[Any]]], col.asInstanceOf[Coll[Any]])(arrayItemType.asInstanceOf[RType[Coll[Any]]], collItemType.asInstanceOf[RType[Any]])
-        }
+    forAll(arrayTypeGen(collTypeGen(typeGenerationDepth - 1), 1).asInstanceOf[Gen[ArrayType[Coll[_]]]], testMinSuccess) { t =>
+      forAll(valueGen(t.tA), valueGen(t), typeMinSuccess) { (col, zsArr) =>
+        val arrayItemType = t.tA
+        val zs = builder.fromArray(zsArr)(arrayItemType)
+        runTest(zs.asInstanceOf[Coll[Coll[Any]]], col.asInstanceOf[Coll[Any]])(arrayItemType.asInstanceOf[RType[Coll[Any]]])
       }
     }
   }
 
   property("Coll.segmentLength") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, typeMinSuccess) { (extendedColl, from) =>
-        whenever(extendedColl.length > 1) {
-          val item = extendedColl(0)
-          val col = extendedColl.slice(1, extendedColl.length)
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tItem(tCol)), valueGen(tCol), indexGen, typeMinSuccess) { (item, col, from) =>
           col.segmentLength(_.equals(item), from) shouldBe col.toArray.segmentLength(_.equals(item), from)
-        }
       }
     }
 
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, typeMinSuccess) { (col, from) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), indexGen, typeMinSuccess) { (col, from) =>
         col.segmentLength(collMatchRepl, from) shouldBe col.toArray.segmentLength(collMatchRepl, from)
       }
     }
   }
 
   property("Coll.indexWhere") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, typeMinSuccess) { (extendedColl, from) =>
-        whenever(extendedColl.length > 1) {
-          val item = extendedColl(0)
-          val col = extendedColl.slice(1, extendedColl.length)
-          col.segmentLength(_.equals(item), from) shouldBe col.toArray.segmentLength(_.equals(item), from)
-        }
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tItem(tCol)), valueGen(tCol), indexGen, typeMinSuccess) { (item, col, from) =>
+        col.segmentLength(_.equals(item), from) shouldBe col.toArray.segmentLength(_.equals(item), from)
       }
     }
 
@@ -114,30 +111,22 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.indexOf") {
-    def runTest[T](usualCol: Coll[T], from: Int)(implicit t: RType[T]) = {
-      val colItem = RTypeUtil.clone(usualCol(0))(usualCol.tItem)
-      val col = usualCol.slice(1, usualCol.length)
+    def runTest[T](colItem: T, col: Coll[T], from: Int)(implicit t: RType[T]) = {
       col.indexOf(colItem, from) shouldBe col.toArray.indexOf(colItem, from)
       col.zip(col).indexOf((colItem, colItem), from) shouldBe col.toArray.zip(col.toArray).indexOf((colItem, colItem), from)
     }
 
-    forAll(extendedCollTypeGen(typeGenerationDepth - 1), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, typeMinSuccess) { (extendedColl, from) =>
-        whenever(extendedColl.length > 1) {
-          runTest(extendedColl.asInstanceOf[Coll[Any]], from)(t.asInstanceOf[RType[Any]])
-        }
+    forAll(collTypeGen(typeGenerationDepth - 1), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tItem(tCol)), valueGen(tCol), indexGen, typeMinSuccess) { (item, col, from) =>
+        runTest(item, col.asInstanceOf[Coll[Any]], from)(tCol.asInstanceOf[RType[Any]])
       }
     }
   }
 
   property("Coll.lastIndexWhere") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, typeMinSuccess) { (extendedColl, end) =>
-        whenever(extendedColl.length > 0) {
-          val item = extendedColl(0)
-          val col = extendedColl.slice(1, extendedColl.length)
-          col.lastIndexWhere(_.equals(item), end) shouldBe col.lastIndexWhere(_.equals(item), end)
-        }
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tItem(tCol)), valueGen(tCol), indexGen, typeMinSuccess) { (item, col, end) =>
+        col.lastIndexWhere(_.equals(item), end) shouldBe col.lastIndexWhere(_.equals(item), end)
       }
     }
     forAll(valueGen(intCollRtype), indexGen, testMinSuccess) { (col: Coll[Int], end: Int) =>
@@ -148,8 +137,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.partition") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { (col) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { (col) =>
         val (lsC, rsC) = col.partition(equals)
         val (ls, rs) = col.toArray.partition(equals)
         lsC.toArray shouldBe ls
@@ -170,10 +159,10 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val patched = col.toArray.patch(from, patch.toArray, replaced)
       arrayEq(patchedC.toArray, patched.array.asInstanceOf[Array[T]])
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), valueGen(t), choose(-100, 100), indexGen, typeMinSuccess) { (col, patch, from, replaced) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), valueGen(tCol), choose(-100, 100), indexGen, typeMinSuccess) { (col, patch, from, replaced) =>
         whenever(from < col.length) {
-          runTest(col.asInstanceOf[Coll[Any]], patch.asInstanceOf[Coll[Any]], from, replaced)(tItem(t).asInstanceOf[RType[Any]])
+          runTest(col.asInstanceOf[Coll[Any]], patch.asInstanceOf[Coll[Any]], from, replaced)(tItem(tCol).asInstanceOf[RType[Any]])
         }
       }
     }
@@ -194,13 +183,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         }
       }
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, typeMinSuccess) { (col, index) =>
-        whenever(col.length > 0) {
-          val patch = col(0)
-          val testColl = col.slice(1, col.length)
-          runTest(testColl.asInstanceOf[Coll[Any]], patch.asInstanceOf[Any], index)(tItem(t).asInstanceOf[RType[Any]])
-        }
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tItem(tCol)), valueGen(tCol), indexGen, typeMinSuccess) { (patch, testColl, index) =>
+        runTest(testColl.asInstanceOf[Coll[Any]], patch.asInstanceOf[Any], index)(tItem(tCol).asInstanceOf[RType[Any]])
       }
     }
   }
@@ -224,9 +209,12 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         }
       }
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), valueGen(CollType(IntType)), typeMinSuccess) { (col, indexes) =>
-        runTest(col.asInstanceOf[Coll[Any]], col.reverse.slice(0, indexes.length).asInstanceOf[Coll[Any]], indexes)(tItem(t).asInstanceOf[RType[Any]])
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), valueGen(tCol), valueGen(CollType(IntType)), typeMinSuccess) { (col, update, indexes) =>
+        runTest(col.asInstanceOf[Coll[Any]],
+          update.slice(0,
+            if (indexes.length > update.length) update.length else indexes.length
+          ).asInstanceOf[Coll[Any]], indexes)(tItem(tCol).asInstanceOf[RType[Any]])
       }
     }
   }
@@ -287,15 +275,6 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     }
   }
 
-  property("Coll.slice") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, indexGen, typeMinSuccess) { (col, from, until) =>
-        val res = col.slice(from, until)
-        res.toArray shouldBe col.toArray.slice(from, until)
-      }
-    }
-  }
-
   property("Coll.apply") {
     def runTest[T](col: Coll[T], index: Int)(implicit t: RType[T]) = {
       if (index < col.length) {
@@ -307,9 +286,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         }
       }
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), indexGen, typeMinSuccess) { (col, index) =>
-          runTest(col.asInstanceOf[Coll[Any]], index)(tItem(t).asInstanceOf[RType[Any]])
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), indexGen, typeMinSuccess) { (col, index) =>
+          runTest(col.asInstanceOf[Coll[Any]], index)(tItem(tCol).asInstanceOf[RType[Any]])
       }
     }
   }
@@ -323,9 +302,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val apairs = pairs1.append(pairs2)
       arrayEq(apairs.toArray, (pairs1.toArray ++ pairs2.toArray))
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1, col2) =>
-        val collItemType = tItem(t)
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), valueGen(tCol), typeMinSuccess) { (col1, col2) =>
+        val collItemType = tItem(tCol)
         runTest(col1.asInstanceOf[Coll[Any]], col2.asInstanceOf[Coll[Any]])(collItemType.asInstanceOf[RType[Any]])
       }
     }
@@ -342,9 +321,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       ks.length <= 10 shouldBe true
       res.toArray shouldBe col.toArray.toIterable.mapReduce(m)(takeSnd[T]).toArray
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { (col) =>
-        val collItemType = tItem(t)
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { (col) =>
+        val collItemType = tItem(tCol)
         runTest(col.asInstanceOf[Coll[Any]])(collItemType.asInstanceOf[RType[Any]])
       }
     }
@@ -363,17 +342,17 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       vs shouldBe vs2
     }
     def key[T](x: T) = x.hashCode() % 10
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { (col) =>
-        val collItemType = tItem(t)
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { (col) =>
+        val collItemType = tItem(tCol)
         runTest(col.asInstanceOf[Coll[Any]])(collItemType.asInstanceOf[RType[Any]])
       }
     }
   }
 
   property("Coll.reverse") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { (col) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { (col) =>
         val res = col.reverse
         res.toArray shouldBe col.toArray.reverse
         val pairs = col.zip(col)
@@ -387,8 +366,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.take") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { (col) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { (col) =>
         val n = col.length / 2
         val res = col.take(n)
         res.toArray shouldBe col.toArray.take(n)
@@ -399,8 +378,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.distinct") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { (col) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { (col) =>
         val res = col.distinct
         res.toArray shouldBe col.toArray.distinct
         val pairs = col.zip(col)
@@ -429,7 +408,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       zip3.hashCode() shouldBe zip4.hashCode()
       zip4.hashCode() shouldBe zip1.hashCode()
     }
-    forAll(extendedTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[_] =>
+    forAll(rtypeGen(typeGenerationDepth), testMinSuccess) { t: RType[_] =>
       forAll(valueGen(t), indexGen, typeMinSuccess) { (item, n) =>
         val repl = new CReplColl(item.asInstanceOf[Any], n)(t.asInstanceOf[RType[Any]])
         val coll = new CollOverArray(Array.fill(n)(item.asInstanceOf[Any]))(t.asInstanceOf[RType[Any]])
@@ -440,8 +419,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("PairColl.mapFirst") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { col =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { col =>
         val pairs = col.zip(col)
         pairs.mapFirst(hashCodeInc).toArray shouldBe pairs.toArray.map { case (x, y) => (hashCodeInc(x), y) }
         pairs.mapSecond(hashCodeInc).toArray shouldBe pairs.toArray.map { case (x, y) => (x, hashCodeInc(y)) }
@@ -454,9 +433,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val res = col1.unionSet(col2)
       arrayEq(res.toArray, (col1.toArray.union(col2.toArray).distinct).array.asInstanceOf[Array[T]])
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1, col2) =>
-        runTest(col1.asInstanceOf[Coll[Any]], col2.asInstanceOf[Coll[Any]])(tItem(t).asInstanceOf[RType[Any]])
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), valueGen(tCol), typeMinSuccess) { (col1, col2) =>
+        runTest(col1.asInstanceOf[Coll[Any]], col2.asInstanceOf[Coll[Any]])(tItem(tCol).asInstanceOf[RType[Any]])
       }
     }
   }
@@ -466,9 +445,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val res = col1.diff(col2)
       res.toArray shouldBe (col1.toArray.diff(col2.toArray))
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1, col2) =>
-        runTest(col1.asInstanceOf[Coll[Any]], col2.asInstanceOf[Coll[Any]])(tItem(t).asInstanceOf[RType[Any]])
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), valueGen(tCol), typeMinSuccess) { (col1, col2) =>
+        runTest(col1.asInstanceOf[Coll[Any]], col2.asInstanceOf[Coll[Any]])(tItem(tCol).asInstanceOf[RType[Any]])
       }
     }
   }
@@ -478,9 +457,9 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       val res = col1.intersect(col2)
       res.toArray shouldBe (col1.toArray.intersect(col2.toArray))
     }
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), valueGen(t), typeMinSuccess) { (col1, col2) =>
-        runTest(col1.asInstanceOf[Coll[Any]], col2.asInstanceOf[Coll[Any]])(tItem(t).asInstanceOf[RType[Any]])
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), valueGen(tCol), typeMinSuccess) { (col1, col2) =>
+        runTest(col1.asInstanceOf[Coll[Any]], col2.asInstanceOf[Coll[Any]])(tItem(tCol).asInstanceOf[RType[Any]])
       }
     }
   }
@@ -528,8 +507,8 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("CViewColl.correctWork") {
-    forAll(extendedCollTypeGen(typeGenerationDepth), testMinSuccess) { t: RType[Coll[_]] =>
-      forAll(valueGen(t), typeMinSuccess) { (col) =>
+    forAll(collTypeGen(typeGenerationDepth), testMinSuccess) { tCol: RType[Coll[_]] =>
+      forAll(valueGen(tCol), typeMinSuccess) { (col) =>
         val view = builder.makeView(col, hashCodeInc)
         val usual = col.map(hashCodeInc)
         view.toArray shouldBe usual.toArray

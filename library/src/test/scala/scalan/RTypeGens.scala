@@ -11,7 +11,7 @@ class GenConfiguration(
                         val charBorders: (Char, Char) = (Char.MinValue, Char.MaxValue),
                         val floatBorders: (Float, Float) = (Float.MinValue, Float.MaxValue),
                         val doubleBorders: (Double, Double) = (Double.MinValue, Double.MaxValue)
-                      ) {}
+                      )
 
 trait RTypeGens {
   import Gen._
@@ -27,12 +27,12 @@ trait RTypeGens {
 
   val primitiveTypeWithUnitGen = Gen.oneOf[RType[_]](primitiveTypeGen, UnitType)
 
-  // The reason why StringType is distiguished is that in type hierarchy StringType consists of Chars
+  // The reason why StringType is distinguished is that in type hierarchy StringType consists of Chars
   val dataTypeGen = Gen.oneOf[RType[_]](primitiveTypeGen, StringType)
 
   def checkDepth(depth: Int): Unit = {
     if (depth <= 0) {
-      throw new RuntimeException(s"Generation depth can't be less then 0, found ${depth}")
+      throw new RuntimeException(s"Generation depth should be positive, found ${depth}")
     }
   }
 
@@ -131,25 +131,25 @@ trait RTypeGens {
     }
   }
 
-  def extendedTypeGen(depth: Int): Gen[RType[_]] = depth match {
+  def rtypeGen(depth: Int): Gen[RType[_]] = depth match {
     case 1 => Gen.oneOf(dataTypeGen, pairTypeGen(dataTypeGen, 1), optionTypeGen(dataTypeGen, 1),
       arrayTypeGen(dataTypeGen, 1), collTypeGen(dataTypeGen, 1), replCollTypeGen(dataTypeGen, 1))
     case _ =>
       checkDepth(depth)
-      Gen.oneOf(dataTypeGen, pairTypeGen(extendedTypeGen(depth - 1), 1), optionTypeGen(extendedTypeGen(depth - 1), 1),
-        arrayTypeGen(extendedTypeGen(depth - 1), 1), collTypeGen(extendedTypeGen(depth - 1), 1),
-        replCollTypeGen(extendedTypeGen(depth - 1), 1)
+      Gen.oneOf(dataTypeGen, pairTypeGen(rtypeGen(depth - 1), 1), optionTypeGen(rtypeGen(depth - 1), 1),
+        arrayTypeGen(rtypeGen(depth - 1), 1), collTypeGen(rtypeGen(depth - 1), 1),
+        replCollTypeGen(rtypeGen(depth - 1), 1)
       )
   }
 
-  def extendedCollTypeGen(depth: Int): Gen[RType[Coll[_]]] = {
+  def collTypeGen(depth: Int): Gen[RType[Coll[_]]] = {
     checkDepth(depth)
-    val innerGen = extendedTypeGen(depth - 1)
+    val innerGen = rtypeGen(depth - 1)
     Gen.oneOf(collTypeGen(innerGen, 1).asInstanceOf[Gen[RType[Coll[_]]]],
       replCollTypeGen(innerGen, 1).asInstanceOf[Gen[RType[Coll[_]]]])
   }
 
-  def getCollTypeGen[T](itemGen: Gen[RType[T]]): Gen[RType[Coll[T]]] = {
+  def collTypeGen[T](itemGen: Gen[RType[T]]): Gen[RType[Coll[T]]] = {
     Gen.oneOf(collTypeGen(itemGen, 1).asInstanceOf[Gen[RType[Coll[T]]]],
       replCollTypeGen(itemGen, 1).asInstanceOf[Gen[RType[Coll[T]]]])
   }

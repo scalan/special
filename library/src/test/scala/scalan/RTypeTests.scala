@@ -24,7 +24,7 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
     val minSuccess = MinSuccessful(PosInt.from(coverageThreshold).get)
 
     val typeCoverageChecker = new FullTypeCoverageChecker()
-    forAll(extendedTypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
+    forAll(rtypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
       typeCoverageChecker.consider(t)
     }
     typeCoverageChecker.isFullyCovered(typeGenDepth) shouldBe true
@@ -33,7 +33,7 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
   property("RType generate value by type") {
     import scala.runtime.ScalaRunTime._
     val minSuccess = MinSuccessful(PosInt.from(coverageThreshold).get)
-    forAll(extendedTypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
+    forAll(rtypeGen(typeGenDepth), minSuccess) { t: RType[_] =>
       forAll(extendedValueGen(t)) { value =>
         RTypeTestUtil.valueMatchesRType(value, t) shouldBe true
       }
@@ -54,7 +54,7 @@ class RTypeTests extends PropSpec with PropertyChecks with Matchers with RTypeGe
     }
 
     val minSuccess = MinSuccessful(PosInt.from(coverageThreshold).get)
-    forAll(extendedTypeGen(typeGenDepth), minSuccess) { t =>
+    forAll(rtypeGen(typeGenDepth), minSuccess) { t =>
       forAll(extendedValueGen(t)) { value =>
         checkCopy(value, t.asInstanceOf[RType[Any]])
       }
