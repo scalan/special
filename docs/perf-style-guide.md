@@ -3,7 +3,7 @@
 ### Motivation
 
 Scala is high-level language with powerful constructs and idioms to
-create abstractions which allow to achieve code clarity.
+create abstractions which allow to achieve code correctness and clarity.
 
 However, many abstractions come with performance penalty to be payed at runtime.
 Meanwhile, a given task can often be solved in many different ways. 
@@ -11,8 +11,8 @@ And it turns out that for many constructions there exists much faster alternativ
 which, at the same time, have comparable abstraction level and code clarity.
 
 This document is a collection of such alternatives. The recommendations can be used
-similar to a classical Style Guide, these recipes are recommendations only, there are
-always exceptions.
+in addition to the classical Style Guide [1], these recipes are recommendations only, 
+there are always exceptions.
 
 This guide can be used by code writers and reviewers to reason about code quality from
 performance point of view.
@@ -22,8 +22,8 @@ hotspot candidate.
 I’d like to point out that performance measurements referred in this guide are only to 
 highlight what’s possible to expect, and not to produce exact numbers. 
 Some optimizations can be easily measured, while others are not. Some measurements 
-might be distorted by other optimizations that are not taken into account in 
-micro-benchmarks. 
+might be distorted in real world code by other optimizations that are not taken into 
+account in the micro-benchmarks. 
 
 ### Empty Seq
 
@@ -63,7 +63,7 @@ Calling `Map.empty` is 50-70% faster depending on the context
 ### Looping using `for`
 
 Looping pattern `for (x <- xs) { ... }` is used quite often due to it's convenience.
-If looks like `x is bound to each element and block of code is executed`.
+It looks like `x is bound to each element and block of code is executed`.
 However it is desugared to `xs.foreach { x => ... }` which, besides
 execution of the block of code involves the following overhead points:
 1) `foreach` method call
@@ -73,7 +73,8 @@ execution of the block of code involves the following overhead points:
 
 ##### What to use instead
 
-The following code is recommended replacement if xs provides O(1) indexing operation.
+The following code is recommended replacement if xs provides O(1) indexing operation,
+especially if `xs` is `Array` wrapped into `Seq`.
 
 ```scala
 import spire.syntax.all.cfor
@@ -85,9 +86,11 @@ cfor(0)(_ < xs.length, _ + 1) { i =>
 
 Here `cfor` is a macros from [spire](https://github.com/non/spire) library.
 This is compiled to efficient Java `for` loop and avoids overhead points 1) - 4).
-Depending on xs.length it is 20-50x faster (see `BasicBenchmark.scala`)
+Depending on xs.length it is 20-50x faster (see `BasicBenchmark.scala`).
+And since `foreach` already implies a side effect operation `cfor` doesn't make 
+the code less readable.
 
-### Creating Sequences
+### Creating Sequences with Seq(...)
 
 It is tempting to use `Seq.apply` method where a Seq of items is required like 
 `Seq(1, 2, 3)` because it is easy and concise. You can pass it as method argument 
@@ -117,7 +120,7 @@ Why this is faster:
 Note that not only each Int is boxed to java.lang.Integer (or other primitive type), 
 but also `scala.collection.immutable.::` instances are created for each item.
 2) Avoid boxing which is proportional to the size of Seq
-3) Cache local access to array items both when the array is created and 
+3) The access to array items is cache local both when the array is created and 
 when it is later used
 4) Less allocations means less garbage to collect later. This is especially 
 important when the application is multi-threaded, because in this case garbage 
@@ -149,7 +152,7 @@ This way you avoid over generalization of you type hierarchy, and you will have
 better understanding of where you really need traits and why.
 
 Try changing `trait` declarations with `abstract class` declarations. In many cases
-this as simple as that, and you get performance gains almost for free.
+this is as simple as that, and you get performance gains almost for free.
 This however not always possible with published APIs as it may break compatibility.
 
 
@@ -160,13 +163,14 @@ There is no *one size fits all* solution as there are many trade-offs along the 
 You may find it useful to examine the References section for more detailed information.
 
 ### References
-1. [Scala High Performance Programming](https://www.amazon.com/Scala-Performance-Programming-Vincent-Theron/dp/178646604X)
-2. [Optimizing Higher-Order Functions in Scala](https://infoscience.epfl.ch/record/128135/files/paper.pdf) (somewhat outdated)
-3. [Where to look first when optimizing Scala code?](https://stackoverflow.com/questions/15112604/where-to-look-first-when-optimizing-scala-code)
-4. [Scala for comprehension performance](https://stackoverflow.com/questions/15137360/scala-for-comprehension-performance)
-5. [Performance characteristics of Scala collections](https://docs.scala-lang.org/overviews/collections/performance-characteristics.html)
-6. [Java Performance: The Definitive Guide: Getting the Most Out of Your Code](https://www.amazon.com/Java-Performance-Definitive-Guide-Getting/dp/1449358454)
-7. [Scala library benchmarks](https://github.com/scala/scala/tree/2.13.x/test/benchmarks)
-8. [JITWatch](https://github.com/AdoptOpenJDK/jitwatch)
-9. [Parallel Collections: Measuring Performance](https://docs.scala-lang.org/overviews/parallel-collections/performance.html)
-10. [JVM JIT optimization techniques](https://advancedweb.hu/2016/05/27/jvm_jit_optimization_techniques/)
+1. [Scala Style Guide](https://docs.scala-lang.org/style/)
+2. [Scala High Performance Programming](https://www.amazon.com/Scala-Performance-Programming-Vincent-Theron/dp/178646604X)
+3. [Optimizing Higher-Order Functions in Scala](https://infoscience.epfl.ch/record/128135/files/paper.pdf) (somewhat outdated)
+4. [Where to look first when optimizing Scala code?](https://stackoverflow.com/questions/15112604/where-to-look-first-when-optimizing-scala-code)
+5. [Scala for comprehension performance](https://stackoverflow.com/questions/15137360/scala-for-comprehension-performance)
+6. [Performance characteristics of Scala collections](https://docs.scala-lang.org/overviews/collections/performance-characteristics.html)
+7. [Java Performance: The Definitive Guide: Getting the Most Out of Your Code](https://www.amazon.com/Java-Performance-Definitive-Guide-Getting/dp/1449358454)
+8. [Scala library benchmarks](https://github.com/scala/scala/tree/2.13.x/test/benchmarks)
+9. [JITWatch](https://github.com/AdoptOpenJDK/jitwatch)
+10. [Parallel Collections: Measuring Performance](https://docs.scala-lang.org/overviews/parallel-collections/performance.html)
+11. [JVM JIT optimization techniques](https://advancedweb.hu/2016/05/27/jvm_jit_optimization_techniques/)
