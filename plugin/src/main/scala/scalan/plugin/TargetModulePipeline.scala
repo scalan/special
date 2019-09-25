@@ -54,7 +54,7 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
     val code = showCode(preparedTree)
 //    saveCode(target.getResourcesRootDir,
 //        preparedUnit.packageName, preparedUnit.name, ".scalan", code)
-    saveCode(targetSrcRoot, preparedUnit.packageName, preparedUnit.name, ".scala", code)
+    saveCode(targetSrcRoot, preparedUnit.packageName, preparedUnit.name + "Unit", ".scala", code)
 
     /** produce boilerplate code using ModuleFileGenerator
       * NOTE: we need a unit with all implicits argument for classes and methods for correct boilerplate generation */
@@ -130,21 +130,16 @@ class TargetModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
 
       // 1) gen boilerplate and save for all merged wrappers
       // 2) build wrappers cake
-//      var wrappersCake = initWrapperCake()
-      for (wUnit <- wrappers.values) {
-        val wPackage = genPackageDef(wUnit, isVirtualized = true)(context)
-//        val resourcesRoot = target.getResourcesRootDir
-//        saveCode(resourcesRoot, wUnit.packageName, wUnit.name, ".scalan", showCode(wPackage))
+      for (wrapperUnit <- wrappers.values) {
+        val wPackage = genPackageDef(wrapperUnit, isVirtualized = true)(context)
 
-        val wOptiUnit = optimizeUnitImplicits(wUnit)
-        val optiPackage = genPackageDef(wOptiUnit, isVirtualized = true)(context)
-        saveCode(sourceRoot, wOptiUnit.packageName, wOptiUnit.name, ".scala", showCode(optiPackage))
+        val wrapperOptiUnit = optimizeUnitImplicits(wrapperUnit)
+        val wrapperOptiPackage = genPackageDef(wrapperOptiUnit, isVirtualized = true)(context)
+        saveCode(sourceRoot, wrapperOptiUnit.packageName, wrapperOptiUnit.name, ".scala", showCode(wrapperOptiPackage))
 
         // NOTE: we use original UnitDef with all implicits (non optimized)
-        val boilerplateText = genUnitBoilerplateText(target, wUnit, isVirtualized = true)
-        saveImplCode(sourceRoot, wUnit.packageName, wUnit.name, ".scala", boilerplateText)
-
-//        wrappersCake = updateWrappersCake(wrappersCake, wUnit)
+        val boilerplateText = genUnitBoilerplateText(target, wrapperUnit, isVirtualized = true)
+        saveImplCode(sourceRoot, wrapperUnit.packageName, wrapperUnit.name, ".scala", boilerplateText)
       }
 
       // generate WrappersModule cake

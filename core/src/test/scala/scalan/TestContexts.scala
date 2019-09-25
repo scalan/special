@@ -2,7 +2,7 @@ package scalan
 
 import java.lang.reflect.Method
 
-import scalan.compilation.{GraphVizConfig, Compiler}
+import scalan.compilation.GraphVizConfig
 import scalan.util.FileUtil
 
 trait TestContexts extends TestUtils {
@@ -28,10 +28,16 @@ trait TestContexts extends TestUtils {
     def invokeAll: Boolean
     def isInvokeEnabled(d: Def[_], m: Method): Boolean
     def shouldUnpack(e: Elem[_]): Boolean
-
-    def emit(name: String, ss: Sym*): Unit
-    def emit(s1: => Sym): Unit
-    def emit(s1: => Sym, s2: Sym*): Unit
+    def testName: String
+    def emitF(name: String, sfs: (() => Sym)*): Unit
+    //    def emit(name: String, s1: => Sym): Unit = emitF(name, () => s1)
+    def emit(name: String, ss: Sym*): Unit = {
+      emitF(name, ss.map((s: Ref[_]) => () => s): _*)
+    }
+    def emit(s1: => Sym): Unit = emitF(testName, () => s1)
+    def emit(s1: => Sym, s2: Sym*): Unit = {
+      emitF(testName, Seq(() => s1) ++ s2.map((s: Ref[_]) => () => s): _*)
+    }
   }
   abstract class TestContext(val testName: String) extends Scalan with TestContextApi {
     def this() = this(currentTestNameAsFileName)
@@ -42,41 +48,9 @@ trait TestContexts extends TestUtils {
 
     // workaround for non-existence of by-name repeated parameters
     def emitF(name: String, sfs: (() => Sym)*): Unit = stage(this)(testName, name, sfs)
-//    def emit(name: String, s1: => Sym): Unit = emitF(name, () => s1)
-    def emit(name: String, ss: Sym*): Unit = {
-      emitF(name, ss.map((s: Rep[_]) => () => s): _*)
-    }
-    def emit(s1: => Sym): Unit = emitF(testName, () => s1)
-    def emit(s1: => Sym, s2: Sym*): Unit = {
-      emitF(testName, Seq(() => s1) ++ s2.map((s: Rep[_]) => () => s): _*)
-    }
   }
 
-  // TODO change API to use defaultCompilers here! See JNI_MsfItTests and others
-  abstract class TestCompilerContext(testName: String) {
-    def this() = this(currentTestNameAsFileName)
 
-    val compiler: Compiler[_ <: Scalan]
-    import compiler._
-
-    def test[A,B](functionName: String, f: => scalan.Exp[A => B]): CompilerOutput[A, B] = {
-      buildExecutable(FileUtil.file(prefix + "/" + testName, functionName), functionName, f, GraphVizConfig.default)(defaultCompilerConfig)
-    }
-    def test[A,B](f: => scalan.Exp[A => B]): CompilerOutput[A, B] = test(testName, f)
-
-    // workaround for non-existence of by-name repeated parameters
-    def emitF(name: String, sfs: (() => scalan.Sym)*): Unit = stage(scalan)(testName, name, sfs)
-    def emit(name: String, s1: => scalan.Sym): Unit = emitF(name, () => s1)
-    def emit(name: String, s1: => scalan.Sym, s2: => scalan.Sym): Unit =
-      emitF(name, () => s1, () => s2)
-    def emit(name: String, s1: => scalan.Sym, s2: => scalan.Sym, s3: => scalan.Sym): Unit =
-      emitF(name, () => s1, () => s2, () => s3)
-    def emit(s1: => scalan.Sym): Unit = emitF(testName, () => s1)
-    def emit(s1: => scalan.Sym, s2: => scalan.Sym): Unit =
-      emitF(testName, () => s1, () => s2)
-    def emit(s1: => scalan.Sym, s2: => scalan.Sym, s3: => scalan.Sym): Unit =
-      emitF(testName, () => s1, () => s2, () => s3)
-  }
 }
 
 abstract class BaseCtxTests extends BaseTests with TestContexts

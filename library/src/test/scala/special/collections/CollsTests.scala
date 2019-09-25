@@ -1,11 +1,9 @@
 package special.collections
 
-import special.collection.{Coll, PairColl, ReplColl}
-import org.scalacheck.{Gen, Shrink}
+import special.collection.{Coll, PairOfCols, CollOverArray, CReplColl}
+import org.scalacheck.Gen
 import org.scalatest.{PropSpec, Matchers}
 import org.scalatest.prop.PropertyChecks
-import scalan.RType
-import scalan.RType.PairType
 
 class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGens { testSuite =>
   import Gen._
@@ -15,12 +13,14 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
     val minSuccess = MinSuccessful(30)
     forAll(collGen, collGen, minSuccess) { (col1: Coll[Int], col2: Coll[Int]) =>
       col1.indices.toArray shouldBe col1.toArray.indices.toArray
-//      col1.zip(col2).length shouldBe math.min(col1.length, col2.length)
-// TODO     col1.zip(col2).indices.arr shouldBe col1.arr.zip(col2.arr).indices.toArray
     }
     forAll(superGen, minSuccess) { cl =>
       cl.indices.toArray shouldBe cl.toArray.indices.toArray
     }
+  }
+
+  // TODO col1.zip(col2).length shouldBe col1.arr.zip(col2.arr).length
+  property("Coll.zip") {
   }
 
   property("Coll.flatMap") {
@@ -76,7 +76,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.patch") {
     forAll(collGen, choose(-100, 100), collGen, replacedGen) { (col, from, patch, replaced) =>
-      whenever(from < col.length ) {
+      whenever(col.isValidIndex(from)) {
         val patchedC = col.patch(from, patch, replaced)
         val patched = col.toArray.patch(from, patch.toArray, replaced)
         patchedC.toArray shouldBe patched
@@ -85,35 +85,39 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.updated") {
-    forAll(collGen, indexGen, valGen) { (col, index, elem) =>
-      whenever(index < col.length ) {
+    forAll(collGen, indexGen, valGen, MinSuccessful(200)) { (col, index, elem) =>
+      whenever(col.isValidIndex(index)) {
         val patchedC = col.updated(index, elem)
         val patched = col.toArray.updated(index, elem)
         patchedC.toArray shouldBe patched
       }
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updated(col.length, elem)
-      }
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updated(-1, elem)
+      whenever(col.isInstanceOf[CollOverArray[_]]) {
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updated(col.length, elem)
+        }
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updated(-1, elem)
+        }
       }
     }
   }
 
   property("Coll.updateMany") {
-    forAll(collGen, indexesGen) { (col, indexes) =>
-      whenever(indexes.forall(_ < col.length)) {
+    forAll(collGen, indexesGen, MinSuccessful(200)) { (col, indexes) =>
+      whenever(indexes.forall(col.isValidIndex(_))) {
         val updatedC = col.updateMany(indexes, indexes)
         val updated = col.toArray.clone()
         for (i <- indexes)
           updated.update(i, i)
         updatedC.toArray shouldBe updated
       }
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updateMany(builder.fromItems(col.length), builder.fromItems(0))
-      }      
-      an[IndexOutOfBoundsException] should be thrownBy {
-        col.updateMany(builder.fromItems(-1), builder.fromItems(0))
+      whenever(col.isInstanceOf[CollOverArray[_]]) {
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updateMany(builder.fromItems(col.length), builder.fromItems(0))
+        }
+        an[IndexOutOfBoundsException] should be thrownBy {
+          col.updateMany(builder.fromItems(-1), builder.fromItems(0))
+        }
       }
     }
   }
@@ -157,7 +161,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val op = (in: (Int,(Int,Int))) => in._1 + in._2._1 + in._2._2
         pairs.foldLeft(0, op) shouldBe pairs.toArray.foldLeft(0)((b,a) => op((b,a)))
       }
-      whenever(index < col.length) {
+      whenever(col.isValidIndex(index)) {
         val res = col(index)
         res shouldBe col.toArray(index)
 
@@ -169,7 +173,7 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       col.getOrElse(-1, index) shouldBe index
     }
     forAll(superGen, indexGen) { (col, index) =>
-      whenever(index < col.length) {
+      whenever(col.isValidIndex(index)) {
         val res = col(index)
         res shouldBe col.toArray(index)
       }
@@ -178,14 +182,14 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
 
   property("Coll.slice") {
     forAll(collGen, indexGen, indexGen) { (col, from, until) =>
-      whenever(until < col.length) {
+      whenever(col.isValidIndex(until)) {
         val res = col.slice(from, until)
         res.toArray shouldBe col.toArray.slice(from, until)
       }
     }
 
     forAll(superGen, indexGen, indexGen) { (col, from, until) =>
-      whenever(until < col.length) {
+      whenever(col.isValidIndex(until)) {
         val res = col.slice(from, until)
         res.toArray shouldBe col.toArray.slice(from, until)
       }
@@ -193,9 +197,37 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
   }
 
   property("Coll.append") {
-    forAll(collGen, collGen) { (col1, col2) =>
-      val res = col1.append(col2)
-      res.toArray shouldBe (col1.toArray ++ col2.toArray)
+    forAll(collGen, collGen, valGen, MinSuccessful(50)) { (col1, col2, v) =>
+
+      {
+        val res = col1.append(col2)
+        res.toArray shouldBe (col1.toArray ++ col2.toArray)
+        val pairs1 = col1.zip(col1)
+        val pairs2 = col2.zip(col2)
+        val apairs = pairs1.append(pairs2)
+        apairs.toArray shouldBe (pairs1.toArray ++ pairs2.toArray)
+      }
+
+      {
+        val repl1 = builder.replicate(col1.length, v)
+        val repl2 = builder.replicate(col2.length, v)
+        val arepl = repl1.append(repl2)
+        assert(arepl.isInstanceOf[CReplColl[Int]])
+        arepl.toArray shouldBe (repl1.toArray ++ repl2.toArray)
+        
+        val pairs1 = repl1.zip(repl1)
+        val pairs2 = repl2.zip(repl2)
+        val apairs = pairs1.append(pairs2)
+        apairs.toArray shouldBe (pairs1.toArray ++ pairs2.toArray)
+
+        apairs match {
+          case ps: PairOfCols[_,_] =>
+            assert(ps.ls.isInstanceOf[CReplColl[Int]])
+            assert(ps.rs.isInstanceOf[CReplColl[Int]])
+          case _ =>
+            assert(false, "Invalid type")
+        }
+      }
     }
   }
 
@@ -233,6 +265,10 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
       res.toArray shouldBe col.toArray.reverse
       val pairs = col.zip(col)
       pairs.reverse.toArray shouldBe pairs.toArray.reverse
+// TODO should work
+//      val c1 = col.asInstanceOf[Coll[Any]]
+//      val appended = c1.append(c1)
+//      appended.toArray shouldBe (c1.toArray ++ c1.toArray)
     }
   }
 

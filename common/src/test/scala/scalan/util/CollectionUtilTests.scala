@@ -195,6 +195,10 @@ class CollectionUtilTests extends BaseTests {
 
   }
 
+  def unboxedArray[T:ClassTag](in: Seq[T]): Array[T] = {
+    in.toArray[T]
+  }
+
   test("unboxedArray") {
     // empty list
     unboxedArray(Seq[Any]()).isInstanceOf[Array[Any]] shouldBe true

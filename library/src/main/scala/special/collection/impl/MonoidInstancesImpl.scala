@@ -3,13 +3,12 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
 trait MonoidInstancesDefs extends scalan.Scalan with MonoidInstances {
   self: Library =>
-import IsoUR._
-import Converter._
 import IntMaxMonoid._
 import IntMinMonoid._
 import IntPlusMonoid._
@@ -25,1200 +24,592 @@ object MonoidBuilderInst extends EntityObject("MonoidBuilderInst") {
   case class MonoidBuilderInstCtor
       ()
     extends MonoidBuilderInst() with Def[MonoidBuilderInst] {
-    lazy val selfType = element[MonoidBuilderInst]
+    lazy val resultType = element[MonoidBuilderInst]
     override def transform(t: Transformer) = MonoidBuilderInstCtor()
-  }
-  // elem for concrete class
-  class MonoidBuilderInstElem(val iso: Iso[MonoidBuilderInstData, MonoidBuilderInst])
-    extends MonoidBuilderElem[MonoidBuilderInst]
-    with ConcreteElem[MonoidBuilderInstData, MonoidBuilderInst] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidBuilderElement)
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoidBuilder(x: Rep[MonoidBuilder]) = RMonoidBuilderInst()
-    override def getDefaultRep = RMonoidBuilderInst()
-    override lazy val tag = {
-      weakTypeTag[MonoidBuilderInst]
-    }
   }
 
   // state representation type
   type MonoidBuilderInstData = Unit
 
-  // 3) Iso for concrete class
-  class MonoidBuilderInstIso
-    extends EntityIso[MonoidBuilderInstData, MonoidBuilderInst] with Def[MonoidBuilderInstIso] {
-    override def transform(t: Transformer) = new MonoidBuilderInstIso()
-    private lazy val _safeFrom = fun { p: Rep[MonoidBuilderInst] => () }
-    override def from(p: Rep[MonoidBuilderInst]) =
-      tryConvert[MonoidBuilderInst, Unit](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Unit]) = {
-      val unit = p
-      RMonoidBuilderInst()
-    }
-    lazy val eFrom = UnitElement
-    lazy val eTo = new MonoidBuilderInstElem(self)
-    lazy val selfType = new MonoidBuilderInstIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+  // elem for concrete class
+  class MonoidBuilderInstElem
+    extends MonoidBuilderElem[MonoidBuilderInst]
+    with ConcreteElem[MonoidBuilderInstData, MonoidBuilderInst] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidBuilderElement)
   }
-  case class MonoidBuilderInstIsoElem() extends Elem[MonoidBuilderInstIso] {
-    def getDefaultRep = reifyObject(new MonoidBuilderInstIso())
-    lazy val tag = {
-      weakTypeTag[MonoidBuilderInstIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
+
+  implicit lazy val monoidBuilderInstElement: Elem[MonoidBuilderInst] =
+    new MonoidBuilderInstElem
+
   // 4) constructor and deconstructor
   class MonoidBuilderInstCompanionCtor extends CompanionDef[MonoidBuilderInstCompanionCtor] with MonoidBuilderInstCompanion {
-    def selfType = MonoidBuilderInstCompanionElem
+    def resultType = MonoidBuilderInstCompanionElem
     override def toString = "MonoidBuilderInstCompanion"
     @scalan.OverloadId("fromData")
-    def apply(p: Rep[MonoidBuilderInstData]): Rep[MonoidBuilderInst] = {
-      isoMonoidBuilderInst.to(p)
+    def apply(p: Ref[MonoidBuilderInstData]): Ref[MonoidBuilderInst] = {
+      val unit = p
+      mkMonoidBuilderInst()
     }
 
     @scalan.OverloadId("fromFields")
-    def apply(): Rep[MonoidBuilderInst] =
+    def apply(): Ref[MonoidBuilderInst] =
       mkMonoidBuilderInst()
 
-    def unapply(p: Rep[MonoidBuilder]) = unmkMonoidBuilderInst(p)
+    def unapply(p: Ref[MonoidBuilder]) = unmkMonoidBuilderInst(p)
   }
-  lazy val MonoidBuilderInstRep: Rep[MonoidBuilderInstCompanionCtor] = new MonoidBuilderInstCompanionCtor
-  lazy val RMonoidBuilderInst: MonoidBuilderInstCompanionCtor = proxyMonoidBuilderInstCompanion(MonoidBuilderInstRep)
-  implicit def proxyMonoidBuilderInstCompanion(p: Rep[MonoidBuilderInstCompanionCtor]): MonoidBuilderInstCompanionCtor = {
-    if (p.rhs.isInstanceOf[MonoidBuilderInstCompanionCtor])
-      p.rhs.asInstanceOf[MonoidBuilderInstCompanionCtor]
+  lazy val RMonoidBuilderInst: MutableLazy[MonoidBuilderInstCompanionCtor] = MutableLazy(new MonoidBuilderInstCompanionCtor)
+  implicit final def unrefMonoidBuilderInstCompanion(p: Ref[MonoidBuilderInstCompanionCtor]): MonoidBuilderInstCompanionCtor = {
+    if (p.node.isInstanceOf[MonoidBuilderInstCompanionCtor])
+      p.node.asInstanceOf[MonoidBuilderInstCompanionCtor]
     else
-      proxyOps[MonoidBuilderInstCompanionCtor](p)
+      unrefDelegate[MonoidBuilderInstCompanionCtor](p)
   }
 
-  implicit case object MonoidBuilderInstCompanionElem extends CompanionElem[MonoidBuilderInstCompanionCtor] {
-    lazy val tag = weakTypeTag[MonoidBuilderInstCompanionCtor]
-    protected def getDefaultRep = MonoidBuilderInstRep
+  implicit case object MonoidBuilderInstCompanionElem extends CompanionElem[MonoidBuilderInstCompanionCtor]
+
+  implicit final def unrefMonoidBuilderInst(p: Ref[MonoidBuilderInst]): MonoidBuilderInst = {
+    if (p.node.isInstanceOf[MonoidBuilderInst])
+      p.node.asInstanceOf[MonoidBuilderInst]
+    else
+      unrefDelegate[MonoidBuilderInst](p)
   }
-
-  implicit def proxyMonoidBuilderInst(p: Rep[MonoidBuilderInst]): MonoidBuilderInst =
-    proxyOps[MonoidBuilderInst](p)
-
-  implicit class ExtendedMonoidBuilderInst(p: Rep[MonoidBuilderInst]) {
-    def toData: Rep[MonoidBuilderInstData] = {
-      isoMonoidBuilderInst.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoMonoidBuilderInst: Iso[MonoidBuilderInstData, MonoidBuilderInst] =
-    reifyObject(new MonoidBuilderInstIso())
 
   def mkMonoidBuilderInst
-    (): Rep[MonoidBuilderInst] = {
+    (): Ref[MonoidBuilderInst] = {
     new MonoidBuilderInstCtor()
   }
-  def unmkMonoidBuilderInst(p: Rep[MonoidBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkMonoidBuilderInst(p: Ref[MonoidBuilder]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: MonoidBuilderInstElem @unchecked =>
       Some(())
     case _ =>
       None
-  }
-
-    object MonoidBuilderInstMethods {
-    object pairMonoid {
-      def unapply(d: Def[_]): Nullable[(Rep[MonoidBuilderInst], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "pairMonoid" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[MonoidBuilderInst], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[MonoidBuilderInst], Rep[Monoid[A]], Rep[Monoid[B]]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object intPlusMonoid {
-      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "intPlusMonoid" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object intMaxMonoid {
-      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "intMaxMonoid" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object intMinMonoid {
-      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "intMinMonoid" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object longPlusMonoid {
-      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "longPlusMonoid" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object longMaxMonoid {
-      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "longMaxMonoid" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object longMinMonoid {
-      def unapply(d: Def[_]): Nullable[Rep[MonoidBuilderInst]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[MonoidBuilderInstElem] && method.getName == "longMinMonoid" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[MonoidBuilderInst]]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[MonoidBuilderInst]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object MonoidBuilderInstCompanionMethods {
   }
 } // of object MonoidBuilderInst
   registerEntityObject("MonoidBuilderInst", MonoidBuilderInst)
 
 object IntPlusMonoid extends EntityObject("IntPlusMonoid") {
   case class IntPlusMonoidCtor
-      (override val zero: Rep[Int])
+      (override val zero: Ref[Int])
     extends IntPlusMonoid(zero) with Def[IntPlusMonoid] {
     override lazy val eT: Elem[Int] = implicitly[Elem[Int]]
-    lazy val selfType = element[IntPlusMonoid]
+    lazy val resultType = element[IntPlusMonoid]
     override def transform(t: Transformer) = IntPlusMonoidCtor(t(zero))
-  }
-  // elem for concrete class
-  class IntPlusMonoidElem(val iso: Iso[IntPlusMonoidData, IntPlusMonoid])
-    extends MonoidElem[Int, IntPlusMonoid]
-    with ConcreteElem[IntPlusMonoidData, IntPlusMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Int]]) = RIntPlusMonoid(x.zero)
-    override def getDefaultRep = RIntPlusMonoid(0)
-    override lazy val tag = {
-      weakTypeTag[IntPlusMonoid]
-    }
   }
 
   // state representation type
   type IntPlusMonoidData = Int
 
-  // 3) Iso for concrete class
-  class IntPlusMonoidIso
-    extends EntityIso[IntPlusMonoidData, IntPlusMonoid] with Def[IntPlusMonoidIso] {
-    override def transform(t: Transformer) = new IntPlusMonoidIso()
-    private lazy val _safeFrom = fun { p: Rep[IntPlusMonoid] => p.zero }
-    override def from(p: Rep[IntPlusMonoid]) =
-      tryConvert[IntPlusMonoid, Int](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Int]) = {
-      val zero = p
-      RIntPlusMonoid(zero)
-    }
-    lazy val eFrom = element[Int]
-    lazy val eTo = new IntPlusMonoidElem(self)
-    lazy val selfType = new IntPlusMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+  // elem for concrete class
+  class IntPlusMonoidElem
+    extends MonoidElem[Int, IntPlusMonoid]
+    with ConcreteElem[IntPlusMonoidData, IntPlusMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
   }
-  case class IntPlusMonoidIsoElem() extends Elem[IntPlusMonoidIso] {
-    def getDefaultRep = reifyObject(new IntPlusMonoidIso())
-    lazy val tag = {
-      weakTypeTag[IntPlusMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
+
+  implicit lazy val intPlusMonoidElement: Elem[IntPlusMonoid] =
+    new IntPlusMonoidElem
+
   // 4) constructor and deconstructor
   class IntPlusMonoidCompanionCtor extends CompanionDef[IntPlusMonoidCompanionCtor] with IntPlusMonoidCompanion {
-    def selfType = IntPlusMonoidCompanionElem
+    def resultType = IntPlusMonoidCompanionElem
     override def toString = "IntPlusMonoidCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Int]): Rep[IntPlusMonoid] =
+    def apply(zero: Ref[Int]): Ref[IntPlusMonoid] =
       mkIntPlusMonoid(zero)
 
-    def unapply(p: Rep[Monoid[Int]]) = unmkIntPlusMonoid(p)
+    def unapply(p: Ref[Monoid[Int]]) = unmkIntPlusMonoid(p)
   }
-  lazy val IntPlusMonoidRep: Rep[IntPlusMonoidCompanionCtor] = new IntPlusMonoidCompanionCtor
-  lazy val RIntPlusMonoid: IntPlusMonoidCompanionCtor = proxyIntPlusMonoidCompanion(IntPlusMonoidRep)
-  implicit def proxyIntPlusMonoidCompanion(p: Rep[IntPlusMonoidCompanionCtor]): IntPlusMonoidCompanionCtor = {
-    if (p.rhs.isInstanceOf[IntPlusMonoidCompanionCtor])
-      p.rhs.asInstanceOf[IntPlusMonoidCompanionCtor]
+  lazy val RIntPlusMonoid: MutableLazy[IntPlusMonoidCompanionCtor] = MutableLazy(new IntPlusMonoidCompanionCtor)
+  implicit final def unrefIntPlusMonoidCompanion(p: Ref[IntPlusMonoidCompanionCtor]): IntPlusMonoidCompanionCtor = {
+    if (p.node.isInstanceOf[IntPlusMonoidCompanionCtor])
+      p.node.asInstanceOf[IntPlusMonoidCompanionCtor]
     else
-      proxyOps[IntPlusMonoidCompanionCtor](p)
+      unrefDelegate[IntPlusMonoidCompanionCtor](p)
   }
 
-  implicit case object IntPlusMonoidCompanionElem extends CompanionElem[IntPlusMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[IntPlusMonoidCompanionCtor]
-    protected def getDefaultRep = IntPlusMonoidRep
+  implicit case object IntPlusMonoidCompanionElem extends CompanionElem[IntPlusMonoidCompanionCtor]
+
+  implicit final def unrefIntPlusMonoid(p: Ref[IntPlusMonoid]): IntPlusMonoid = {
+    if (p.node.isInstanceOf[IntPlusMonoid])
+      p.node.asInstanceOf[IntPlusMonoid]
+    else
+      unrefDelegate[IntPlusMonoid](p)
   }
-
-  implicit def proxyIntPlusMonoid(p: Rep[IntPlusMonoid]): IntPlusMonoid =
-    proxyOps[IntPlusMonoid](p)
-
-  implicit class ExtendedIntPlusMonoid(p: Rep[IntPlusMonoid]) {
-    def toData: Rep[IntPlusMonoidData] = {
-      isoIntPlusMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIntPlusMonoid: Iso[IntPlusMonoidData, IntPlusMonoid] =
-    reifyObject(new IntPlusMonoidIso())
 
   def mkIntPlusMonoid
-    (zero: Rep[Int]): Rep[IntPlusMonoid] = {
+    (zero: Ref[Int]): Ref[IntPlusMonoid] = {
     new IntPlusMonoidCtor(zero)
   }
-  def unmkIntPlusMonoid(p: Rep[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkIntPlusMonoid(p: Ref[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IntPlusMonoidElem @unchecked =>
       Some((asRep[IntPlusMonoid](p).zero))
     case _ =>
       None
-  }
-
-    object IntPlusMonoidMethods {
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "plus" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntPlusMonoidElem] && method.getName == "power" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IntPlusMonoid], Rep[Int], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object IntPlusMonoidCompanionMethods {
   }
 } // of object IntPlusMonoid
   registerEntityObject("IntPlusMonoid", IntPlusMonoid)
 
 object IntMaxMonoid extends EntityObject("IntMaxMonoid") {
   case class IntMaxMonoidCtor
-      (override val zero: Rep[Int])
+      (override val zero: Ref[Int])
     extends IntMaxMonoid(zero) with Def[IntMaxMonoid] {
     override lazy val eT: Elem[Int] = implicitly[Elem[Int]]
-    lazy val selfType = element[IntMaxMonoid]
+    lazy val resultType = element[IntMaxMonoid]
     override def transform(t: Transformer) = IntMaxMonoidCtor(t(zero))
     private val thisClass = classOf[Monoid[_]]
 
-    override def plus(x: Rep[Int], y: Rep[Int]): Rep[Int] = {
+    override def plus(x: Ref[Int], y: Ref[Int]): Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("plus", classOf[Sym], classOf[Sym]),
-        List(x, y),
+        Array[AnyRef](x, y),
         true, false, element[Int]))
     }
 
-    override def power(x: Rep[Int], n: Rep[Int]): Rep[Int] = {
+    override def power(x: Ref[Int], n: Ref[Int]): Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("power", classOf[Sym], classOf[Sym]),
-        List(x, n),
+        Array[AnyRef](x, n),
         true, false, element[Int]))
-    }
-  }
-  // elem for concrete class
-  class IntMaxMonoidElem(val iso: Iso[IntMaxMonoidData, IntMaxMonoid])
-    extends MonoidElem[Int, IntMaxMonoid]
-    with ConcreteElem[IntMaxMonoidData, IntMaxMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Int]]) = RIntMaxMonoid(x.zero)
-    override def getDefaultRep = RIntMaxMonoid(0)
-    override lazy val tag = {
-      weakTypeTag[IntMaxMonoid]
     }
   }
 
   // state representation type
   type IntMaxMonoidData = Int
 
-  // 3) Iso for concrete class
-  class IntMaxMonoidIso
-    extends EntityIso[IntMaxMonoidData, IntMaxMonoid] with Def[IntMaxMonoidIso] {
-    override def transform(t: Transformer) = new IntMaxMonoidIso()
-    private lazy val _safeFrom = fun { p: Rep[IntMaxMonoid] => p.zero }
-    override def from(p: Rep[IntMaxMonoid]) =
-      tryConvert[IntMaxMonoid, Int](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Int]) = {
-      val zero = p
-      RIntMaxMonoid(zero)
-    }
-    lazy val eFrom = element[Int]
-    lazy val eTo = new IntMaxMonoidElem(self)
-    lazy val selfType = new IntMaxMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+  // elem for concrete class
+  class IntMaxMonoidElem
+    extends MonoidElem[Int, IntMaxMonoid]
+    with ConcreteElem[IntMaxMonoidData, IntMaxMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
   }
-  case class IntMaxMonoidIsoElem() extends Elem[IntMaxMonoidIso] {
-    def getDefaultRep = reifyObject(new IntMaxMonoidIso())
-    lazy val tag = {
-      weakTypeTag[IntMaxMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
+
+  implicit lazy val intMaxMonoidElement: Elem[IntMaxMonoid] =
+    new IntMaxMonoidElem
+
   // 4) constructor and deconstructor
   class IntMaxMonoidCompanionCtor extends CompanionDef[IntMaxMonoidCompanionCtor] with IntMaxMonoidCompanion {
-    def selfType = IntMaxMonoidCompanionElem
+    def resultType = IntMaxMonoidCompanionElem
     override def toString = "IntMaxMonoidCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Int]): Rep[IntMaxMonoid] =
+    def apply(zero: Ref[Int]): Ref[IntMaxMonoid] =
       mkIntMaxMonoid(zero)
 
-    def unapply(p: Rep[Monoid[Int]]) = unmkIntMaxMonoid(p)
+    def unapply(p: Ref[Monoid[Int]]) = unmkIntMaxMonoid(p)
   }
-  lazy val IntMaxMonoidRep: Rep[IntMaxMonoidCompanionCtor] = new IntMaxMonoidCompanionCtor
-  lazy val RIntMaxMonoid: IntMaxMonoidCompanionCtor = proxyIntMaxMonoidCompanion(IntMaxMonoidRep)
-  implicit def proxyIntMaxMonoidCompanion(p: Rep[IntMaxMonoidCompanionCtor]): IntMaxMonoidCompanionCtor = {
-    if (p.rhs.isInstanceOf[IntMaxMonoidCompanionCtor])
-      p.rhs.asInstanceOf[IntMaxMonoidCompanionCtor]
+  lazy val RIntMaxMonoid: MutableLazy[IntMaxMonoidCompanionCtor] = MutableLazy(new IntMaxMonoidCompanionCtor)
+  implicit final def unrefIntMaxMonoidCompanion(p: Ref[IntMaxMonoidCompanionCtor]): IntMaxMonoidCompanionCtor = {
+    if (p.node.isInstanceOf[IntMaxMonoidCompanionCtor])
+      p.node.asInstanceOf[IntMaxMonoidCompanionCtor]
     else
-      proxyOps[IntMaxMonoidCompanionCtor](p)
+      unrefDelegate[IntMaxMonoidCompanionCtor](p)
   }
 
-  implicit case object IntMaxMonoidCompanionElem extends CompanionElem[IntMaxMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[IntMaxMonoidCompanionCtor]
-    protected def getDefaultRep = IntMaxMonoidRep
+  implicit case object IntMaxMonoidCompanionElem extends CompanionElem[IntMaxMonoidCompanionCtor]
+
+  implicit final def unrefIntMaxMonoid(p: Ref[IntMaxMonoid]): IntMaxMonoid = {
+    if (p.node.isInstanceOf[IntMaxMonoid])
+      p.node.asInstanceOf[IntMaxMonoid]
+    else
+      unrefDelegate[IntMaxMonoid](p)
   }
-
-  implicit def proxyIntMaxMonoid(p: Rep[IntMaxMonoid]): IntMaxMonoid =
-    proxyOps[IntMaxMonoid](p)
-
-  implicit class ExtendedIntMaxMonoid(p: Rep[IntMaxMonoid]) {
-    def toData: Rep[IntMaxMonoidData] = {
-      isoIntMaxMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIntMaxMonoid: Iso[IntMaxMonoidData, IntMaxMonoid] =
-    reifyObject(new IntMaxMonoidIso())
 
   def mkIntMaxMonoid
-    (zero: Rep[Int]): Rep[IntMaxMonoid] = {
+    (zero: Ref[Int]): Ref[IntMaxMonoid] = {
     new IntMaxMonoidCtor(zero)
   }
-  def unmkIntMaxMonoid(p: Rep[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkIntMaxMonoid(p: Ref[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IntMaxMonoidElem @unchecked =>
       Some((asRep[IntMaxMonoid](p).zero))
     case _ =>
       None
-  }
-
-    object IntMaxMonoidMethods {
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[IntMaxMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntMaxMonoidElem] && method.getName == "plus" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IntMaxMonoid], Rep[Int], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IntMaxMonoid], Rep[Int], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[IntMaxMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntMaxMonoidElem] && method.getName == "power" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IntMaxMonoid], Rep[Int], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IntMaxMonoid], Rep[Int], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object IntMaxMonoidCompanionMethods {
   }
 } // of object IntMaxMonoid
   registerEntityObject("IntMaxMonoid", IntMaxMonoid)
 
 object IntMinMonoid extends EntityObject("IntMinMonoid") {
   case class IntMinMonoidCtor
-      (override val zero: Rep[Int])
+      (override val zero: Ref[Int])
     extends IntMinMonoid(zero) with Def[IntMinMonoid] {
     override lazy val eT: Elem[Int] = implicitly[Elem[Int]]
-    lazy val selfType = element[IntMinMonoid]
+    lazy val resultType = element[IntMinMonoid]
     override def transform(t: Transformer) = IntMinMonoidCtor(t(zero))
     private val thisClass = classOf[Monoid[_]]
 
-    override def plus(x: Rep[Int], y: Rep[Int]): Rep[Int] = {
+    override def plus(x: Ref[Int], y: Ref[Int]): Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("plus", classOf[Sym], classOf[Sym]),
-        List(x, y),
+        Array[AnyRef](x, y),
         true, false, element[Int]))
     }
 
-    override def power(x: Rep[Int], n: Rep[Int]): Rep[Int] = {
+    override def power(x: Ref[Int], n: Ref[Int]): Ref[Int] = {
       asRep[Int](mkMethodCall(self,
         thisClass.getMethod("power", classOf[Sym], classOf[Sym]),
-        List(x, n),
+        Array[AnyRef](x, n),
         true, false, element[Int]))
-    }
-  }
-  // elem for concrete class
-  class IntMinMonoidElem(val iso: Iso[IntMinMonoidData, IntMinMonoid])
-    extends MonoidElem[Int, IntMinMonoid]
-    with ConcreteElem[IntMinMonoidData, IntMinMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Int]]) = RIntMinMonoid(x.zero)
-    override def getDefaultRep = RIntMinMonoid(0)
-    override lazy val tag = {
-      weakTypeTag[IntMinMonoid]
     }
   }
 
   // state representation type
   type IntMinMonoidData = Int
 
-  // 3) Iso for concrete class
-  class IntMinMonoidIso
-    extends EntityIso[IntMinMonoidData, IntMinMonoid] with Def[IntMinMonoidIso] {
-    override def transform(t: Transformer) = new IntMinMonoidIso()
-    private lazy val _safeFrom = fun { p: Rep[IntMinMonoid] => p.zero }
-    override def from(p: Rep[IntMinMonoid]) =
-      tryConvert[IntMinMonoid, Int](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Int]) = {
-      val zero = p
-      RIntMinMonoid(zero)
-    }
-    lazy val eFrom = element[Int]
-    lazy val eTo = new IntMinMonoidElem(self)
-    lazy val selfType = new IntMinMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+  // elem for concrete class
+  class IntMinMonoidElem
+    extends MonoidElem[Int, IntMinMonoid]
+    with ConcreteElem[IntMinMonoidData, IntMinMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(IntElement))
   }
-  case class IntMinMonoidIsoElem() extends Elem[IntMinMonoidIso] {
-    def getDefaultRep = reifyObject(new IntMinMonoidIso())
-    lazy val tag = {
-      weakTypeTag[IntMinMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
+
+  implicit lazy val intMinMonoidElement: Elem[IntMinMonoid] =
+    new IntMinMonoidElem
+
   // 4) constructor and deconstructor
   class IntMinMonoidCompanionCtor extends CompanionDef[IntMinMonoidCompanionCtor] with IntMinMonoidCompanion {
-    def selfType = IntMinMonoidCompanionElem
+    def resultType = IntMinMonoidCompanionElem
     override def toString = "IntMinMonoidCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Int]): Rep[IntMinMonoid] =
+    def apply(zero: Ref[Int]): Ref[IntMinMonoid] =
       mkIntMinMonoid(zero)
 
-    def unapply(p: Rep[Monoid[Int]]) = unmkIntMinMonoid(p)
+    def unapply(p: Ref[Monoid[Int]]) = unmkIntMinMonoid(p)
   }
-  lazy val IntMinMonoidRep: Rep[IntMinMonoidCompanionCtor] = new IntMinMonoidCompanionCtor
-  lazy val RIntMinMonoid: IntMinMonoidCompanionCtor = proxyIntMinMonoidCompanion(IntMinMonoidRep)
-  implicit def proxyIntMinMonoidCompanion(p: Rep[IntMinMonoidCompanionCtor]): IntMinMonoidCompanionCtor = {
-    if (p.rhs.isInstanceOf[IntMinMonoidCompanionCtor])
-      p.rhs.asInstanceOf[IntMinMonoidCompanionCtor]
+  lazy val RIntMinMonoid: MutableLazy[IntMinMonoidCompanionCtor] = MutableLazy(new IntMinMonoidCompanionCtor)
+  implicit final def unrefIntMinMonoidCompanion(p: Ref[IntMinMonoidCompanionCtor]): IntMinMonoidCompanionCtor = {
+    if (p.node.isInstanceOf[IntMinMonoidCompanionCtor])
+      p.node.asInstanceOf[IntMinMonoidCompanionCtor]
     else
-      proxyOps[IntMinMonoidCompanionCtor](p)
+      unrefDelegate[IntMinMonoidCompanionCtor](p)
   }
 
-  implicit case object IntMinMonoidCompanionElem extends CompanionElem[IntMinMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[IntMinMonoidCompanionCtor]
-    protected def getDefaultRep = IntMinMonoidRep
+  implicit case object IntMinMonoidCompanionElem extends CompanionElem[IntMinMonoidCompanionCtor]
+
+  implicit final def unrefIntMinMonoid(p: Ref[IntMinMonoid]): IntMinMonoid = {
+    if (p.node.isInstanceOf[IntMinMonoid])
+      p.node.asInstanceOf[IntMinMonoid]
+    else
+      unrefDelegate[IntMinMonoid](p)
   }
-
-  implicit def proxyIntMinMonoid(p: Rep[IntMinMonoid]): IntMinMonoid =
-    proxyOps[IntMinMonoid](p)
-
-  implicit class ExtendedIntMinMonoid(p: Rep[IntMinMonoid]) {
-    def toData: Rep[IntMinMonoidData] = {
-      isoIntMinMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoIntMinMonoid: Iso[IntMinMonoidData, IntMinMonoid] =
-    reifyObject(new IntMinMonoidIso())
 
   def mkIntMinMonoid
-    (zero: Rep[Int]): Rep[IntMinMonoid] = {
+    (zero: Ref[Int]): Ref[IntMinMonoid] = {
     new IntMinMonoidCtor(zero)
   }
-  def unmkIntMinMonoid(p: Rep[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkIntMinMonoid(p: Ref[Monoid[Int]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: IntMinMonoidElem @unchecked =>
       Some((asRep[IntMinMonoid](p).zero))
     case _ =>
       None
-  }
-
-    object IntMinMonoidMethods {
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[IntMinMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntMinMonoidElem] && method.getName == "plus" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IntMinMonoid], Rep[Int], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IntMinMonoid], Rep[Int], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[IntMinMonoid], Rep[Int], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[IntMinMonoidElem] && method.getName == "power" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[IntMinMonoid], Rep[Int], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[IntMinMonoid], Rep[Int], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object IntMinMonoidCompanionMethods {
   }
 } // of object IntMinMonoid
   registerEntityObject("IntMinMonoid", IntMinMonoid)
 
 object LongPlusMonoid extends EntityObject("LongPlusMonoid") {
   case class LongPlusMonoidCtor
-      (override val zero: Rep[Long])
+      (override val zero: Ref[Long])
     extends LongPlusMonoid(zero) with Def[LongPlusMonoid] {
     override lazy val eT: Elem[Long] = implicitly[Elem[Long]]
-    lazy val selfType = element[LongPlusMonoid]
+    lazy val resultType = element[LongPlusMonoid]
     override def transform(t: Transformer) = LongPlusMonoidCtor(t(zero))
-  }
-  // elem for concrete class
-  class LongPlusMonoidElem(val iso: Iso[LongPlusMonoidData, LongPlusMonoid])
-    extends MonoidElem[Long, LongPlusMonoid]
-    with ConcreteElem[LongPlusMonoidData, LongPlusMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Long]]) = RLongPlusMonoid(x.zero)
-    override def getDefaultRep = RLongPlusMonoid(0l)
-    override lazy val tag = {
-      weakTypeTag[LongPlusMonoid]
-    }
   }
 
   // state representation type
   type LongPlusMonoidData = Long
 
-  // 3) Iso for concrete class
-  class LongPlusMonoidIso
-    extends EntityIso[LongPlusMonoidData, LongPlusMonoid] with Def[LongPlusMonoidIso] {
-    override def transform(t: Transformer) = new LongPlusMonoidIso()
-    private lazy val _safeFrom = fun { p: Rep[LongPlusMonoid] => p.zero }
-    override def from(p: Rep[LongPlusMonoid]) =
-      tryConvert[LongPlusMonoid, Long](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Long]) = {
-      val zero = p
-      RLongPlusMonoid(zero)
-    }
-    lazy val eFrom = element[Long]
-    lazy val eTo = new LongPlusMonoidElem(self)
-    lazy val selfType = new LongPlusMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+  // elem for concrete class
+  class LongPlusMonoidElem
+    extends MonoidElem[Long, LongPlusMonoid]
+    with ConcreteElem[LongPlusMonoidData, LongPlusMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
   }
-  case class LongPlusMonoidIsoElem() extends Elem[LongPlusMonoidIso] {
-    def getDefaultRep = reifyObject(new LongPlusMonoidIso())
-    lazy val tag = {
-      weakTypeTag[LongPlusMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
+
+  implicit lazy val longPlusMonoidElement: Elem[LongPlusMonoid] =
+    new LongPlusMonoidElem
+
   // 4) constructor and deconstructor
   class LongPlusMonoidCompanionCtor extends CompanionDef[LongPlusMonoidCompanionCtor] with LongPlusMonoidCompanion {
-    def selfType = LongPlusMonoidCompanionElem
+    def resultType = LongPlusMonoidCompanionElem
     override def toString = "LongPlusMonoidCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Long]): Rep[LongPlusMonoid] =
+    def apply(zero: Ref[Long]): Ref[LongPlusMonoid] =
       mkLongPlusMonoid(zero)
 
-    def unapply(p: Rep[Monoid[Long]]) = unmkLongPlusMonoid(p)
+    def unapply(p: Ref[Monoid[Long]]) = unmkLongPlusMonoid(p)
   }
-  lazy val LongPlusMonoidRep: Rep[LongPlusMonoidCompanionCtor] = new LongPlusMonoidCompanionCtor
-  lazy val RLongPlusMonoid: LongPlusMonoidCompanionCtor = proxyLongPlusMonoidCompanion(LongPlusMonoidRep)
-  implicit def proxyLongPlusMonoidCompanion(p: Rep[LongPlusMonoidCompanionCtor]): LongPlusMonoidCompanionCtor = {
-    if (p.rhs.isInstanceOf[LongPlusMonoidCompanionCtor])
-      p.rhs.asInstanceOf[LongPlusMonoidCompanionCtor]
+  lazy val RLongPlusMonoid: MutableLazy[LongPlusMonoidCompanionCtor] = MutableLazy(new LongPlusMonoidCompanionCtor)
+  implicit final def unrefLongPlusMonoidCompanion(p: Ref[LongPlusMonoidCompanionCtor]): LongPlusMonoidCompanionCtor = {
+    if (p.node.isInstanceOf[LongPlusMonoidCompanionCtor])
+      p.node.asInstanceOf[LongPlusMonoidCompanionCtor]
     else
-      proxyOps[LongPlusMonoidCompanionCtor](p)
+      unrefDelegate[LongPlusMonoidCompanionCtor](p)
   }
 
-  implicit case object LongPlusMonoidCompanionElem extends CompanionElem[LongPlusMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[LongPlusMonoidCompanionCtor]
-    protected def getDefaultRep = LongPlusMonoidRep
+  implicit case object LongPlusMonoidCompanionElem extends CompanionElem[LongPlusMonoidCompanionCtor]
+
+  implicit final def unrefLongPlusMonoid(p: Ref[LongPlusMonoid]): LongPlusMonoid = {
+    if (p.node.isInstanceOf[LongPlusMonoid])
+      p.node.asInstanceOf[LongPlusMonoid]
+    else
+      unrefDelegate[LongPlusMonoid](p)
   }
-
-  implicit def proxyLongPlusMonoid(p: Rep[LongPlusMonoid]): LongPlusMonoid =
-    proxyOps[LongPlusMonoid](p)
-
-  implicit class ExtendedLongPlusMonoid(p: Rep[LongPlusMonoid]) {
-    def toData: Rep[LongPlusMonoidData] = {
-      isoLongPlusMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoLongPlusMonoid: Iso[LongPlusMonoidData, LongPlusMonoid] =
-    reifyObject(new LongPlusMonoidIso())
 
   def mkLongPlusMonoid
-    (zero: Rep[Long]): Rep[LongPlusMonoid] = {
+    (zero: Ref[Long]): Ref[LongPlusMonoid] = {
     new LongPlusMonoidCtor(zero)
   }
-  def unmkLongPlusMonoid(p: Rep[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkLongPlusMonoid(p: Ref[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: LongPlusMonoidElem @unchecked =>
       Some((asRep[LongPlusMonoid](p).zero))
     case _ =>
       None
-  }
-
-    object LongPlusMonoidMethods {
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "plus" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Long])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongPlusMonoidElem] && method.getName == "power" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[LongPlusMonoid], Rep[Long], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object LongPlusMonoidCompanionMethods {
   }
 } // of object LongPlusMonoid
   registerEntityObject("LongPlusMonoid", LongPlusMonoid)
 
 object LongMaxMonoid extends EntityObject("LongMaxMonoid") {
   case class LongMaxMonoidCtor
-      (override val zero: Rep[Long])
+      (override val zero: Ref[Long])
     extends LongMaxMonoid(zero) with Def[LongMaxMonoid] {
     override lazy val eT: Elem[Long] = implicitly[Elem[Long]]
-    lazy val selfType = element[LongMaxMonoid]
+    lazy val resultType = element[LongMaxMonoid]
     override def transform(t: Transformer) = LongMaxMonoidCtor(t(zero))
     private val thisClass = classOf[Monoid[_]]
 
-    override def plus(x: Rep[Long], y: Rep[Long]): Rep[Long] = {
+    override def plus(x: Ref[Long], y: Ref[Long]): Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("plus", classOf[Sym], classOf[Sym]),
-        List(x, y),
+        Array[AnyRef](x, y),
         true, false, element[Long]))
     }
 
-    override def power(x: Rep[Long], n: Rep[Int]): Rep[Long] = {
+    override def power(x: Ref[Long], n: Ref[Int]): Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("power", classOf[Sym], classOf[Sym]),
-        List(x, n),
+        Array[AnyRef](x, n),
         true, false, element[Long]))
-    }
-  }
-  // elem for concrete class
-  class LongMaxMonoidElem(val iso: Iso[LongMaxMonoidData, LongMaxMonoid])
-    extends MonoidElem[Long, LongMaxMonoid]
-    with ConcreteElem[LongMaxMonoidData, LongMaxMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Long]]) = RLongMaxMonoid(x.zero)
-    override def getDefaultRep = RLongMaxMonoid(0l)
-    override lazy val tag = {
-      weakTypeTag[LongMaxMonoid]
     }
   }
 
   // state representation type
   type LongMaxMonoidData = Long
 
-  // 3) Iso for concrete class
-  class LongMaxMonoidIso
-    extends EntityIso[LongMaxMonoidData, LongMaxMonoid] with Def[LongMaxMonoidIso] {
-    override def transform(t: Transformer) = new LongMaxMonoidIso()
-    private lazy val _safeFrom = fun { p: Rep[LongMaxMonoid] => p.zero }
-    override def from(p: Rep[LongMaxMonoid]) =
-      tryConvert[LongMaxMonoid, Long](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Long]) = {
-      val zero = p
-      RLongMaxMonoid(zero)
-    }
-    lazy val eFrom = element[Long]
-    lazy val eTo = new LongMaxMonoidElem(self)
-    lazy val selfType = new LongMaxMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+  // elem for concrete class
+  class LongMaxMonoidElem
+    extends MonoidElem[Long, LongMaxMonoid]
+    with ConcreteElem[LongMaxMonoidData, LongMaxMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
   }
-  case class LongMaxMonoidIsoElem() extends Elem[LongMaxMonoidIso] {
-    def getDefaultRep = reifyObject(new LongMaxMonoidIso())
-    lazy val tag = {
-      weakTypeTag[LongMaxMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
+
+  implicit lazy val longMaxMonoidElement: Elem[LongMaxMonoid] =
+    new LongMaxMonoidElem
+
   // 4) constructor and deconstructor
   class LongMaxMonoidCompanionCtor extends CompanionDef[LongMaxMonoidCompanionCtor] with LongMaxMonoidCompanion {
-    def selfType = LongMaxMonoidCompanionElem
+    def resultType = LongMaxMonoidCompanionElem
     override def toString = "LongMaxMonoidCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Long]): Rep[LongMaxMonoid] =
+    def apply(zero: Ref[Long]): Ref[LongMaxMonoid] =
       mkLongMaxMonoid(zero)
 
-    def unapply(p: Rep[Monoid[Long]]) = unmkLongMaxMonoid(p)
+    def unapply(p: Ref[Monoid[Long]]) = unmkLongMaxMonoid(p)
   }
-  lazy val LongMaxMonoidRep: Rep[LongMaxMonoidCompanionCtor] = new LongMaxMonoidCompanionCtor
-  lazy val RLongMaxMonoid: LongMaxMonoidCompanionCtor = proxyLongMaxMonoidCompanion(LongMaxMonoidRep)
-  implicit def proxyLongMaxMonoidCompanion(p: Rep[LongMaxMonoidCompanionCtor]): LongMaxMonoidCompanionCtor = {
-    if (p.rhs.isInstanceOf[LongMaxMonoidCompanionCtor])
-      p.rhs.asInstanceOf[LongMaxMonoidCompanionCtor]
+  lazy val RLongMaxMonoid: MutableLazy[LongMaxMonoidCompanionCtor] = MutableLazy(new LongMaxMonoidCompanionCtor)
+  implicit final def unrefLongMaxMonoidCompanion(p: Ref[LongMaxMonoidCompanionCtor]): LongMaxMonoidCompanionCtor = {
+    if (p.node.isInstanceOf[LongMaxMonoidCompanionCtor])
+      p.node.asInstanceOf[LongMaxMonoidCompanionCtor]
     else
-      proxyOps[LongMaxMonoidCompanionCtor](p)
+      unrefDelegate[LongMaxMonoidCompanionCtor](p)
   }
 
-  implicit case object LongMaxMonoidCompanionElem extends CompanionElem[LongMaxMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[LongMaxMonoidCompanionCtor]
-    protected def getDefaultRep = LongMaxMonoidRep
+  implicit case object LongMaxMonoidCompanionElem extends CompanionElem[LongMaxMonoidCompanionCtor]
+
+  implicit final def unrefLongMaxMonoid(p: Ref[LongMaxMonoid]): LongMaxMonoid = {
+    if (p.node.isInstanceOf[LongMaxMonoid])
+      p.node.asInstanceOf[LongMaxMonoid]
+    else
+      unrefDelegate[LongMaxMonoid](p)
   }
-
-  implicit def proxyLongMaxMonoid(p: Rep[LongMaxMonoid]): LongMaxMonoid =
-    proxyOps[LongMaxMonoid](p)
-
-  implicit class ExtendedLongMaxMonoid(p: Rep[LongMaxMonoid]) {
-    def toData: Rep[LongMaxMonoidData] = {
-      isoLongMaxMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoLongMaxMonoid: Iso[LongMaxMonoidData, LongMaxMonoid] =
-    reifyObject(new LongMaxMonoidIso())
 
   def mkLongMaxMonoid
-    (zero: Rep[Long]): Rep[LongMaxMonoid] = {
+    (zero: Ref[Long]): Ref[LongMaxMonoid] = {
     new LongMaxMonoidCtor(zero)
   }
-  def unmkLongMaxMonoid(p: Rep[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkLongMaxMonoid(p: Ref[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: LongMaxMonoidElem @unchecked =>
       Some((asRep[LongMaxMonoid](p).zero))
     case _ =>
       None
-  }
-
-    object LongMaxMonoidMethods {
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[LongMaxMonoid], Rep[Long], Rep[Long])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongMaxMonoidElem] && method.getName == "plus" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[LongMaxMonoid], Rep[Long], Rep[Long])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[LongMaxMonoid], Rep[Long], Rep[Long])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[LongMaxMonoid], Rep[Long], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongMaxMonoidElem] && method.getName == "power" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[LongMaxMonoid], Rep[Long], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[LongMaxMonoid], Rep[Long], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object LongMaxMonoidCompanionMethods {
   }
 } // of object LongMaxMonoid
   registerEntityObject("LongMaxMonoid", LongMaxMonoid)
 
 object LongMinMonoid extends EntityObject("LongMinMonoid") {
   case class LongMinMonoidCtor
-      (override val zero: Rep[Long])
+      (override val zero: Ref[Long])
     extends LongMinMonoid(zero) with Def[LongMinMonoid] {
     override lazy val eT: Elem[Long] = implicitly[Elem[Long]]
-    lazy val selfType = element[LongMinMonoid]
+    lazy val resultType = element[LongMinMonoid]
     override def transform(t: Transformer) = LongMinMonoidCtor(t(zero))
     private val thisClass = classOf[Monoid[_]]
 
-    override def plus(x: Rep[Long], y: Rep[Long]): Rep[Long] = {
+    override def plus(x: Ref[Long], y: Ref[Long]): Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("plus", classOf[Sym], classOf[Sym]),
-        List(x, y),
+        Array[AnyRef](x, y),
         true, false, element[Long]))
     }
 
-    override def power(x: Rep[Long], n: Rep[Int]): Rep[Long] = {
+    override def power(x: Ref[Long], n: Ref[Int]): Ref[Long] = {
       asRep[Long](mkMethodCall(self,
         thisClass.getMethod("power", classOf[Sym], classOf[Sym]),
-        List(x, n),
+        Array[AnyRef](x, n),
         true, false, element[Long]))
-    }
-  }
-  // elem for concrete class
-  class LongMinMonoidElem(val iso: Iso[LongMinMonoidData, LongMinMonoid])
-    extends MonoidElem[Long, LongMinMonoid]
-    with ConcreteElem[LongMinMonoidData, LongMinMonoid] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override def convertMonoid(x: Rep[Monoid[Long]]) = RLongMinMonoid(x.zero)
-    override def getDefaultRep = RLongMinMonoid(0l)
-    override lazy val tag = {
-      weakTypeTag[LongMinMonoid]
     }
   }
 
   // state representation type
   type LongMinMonoidData = Long
 
-  // 3) Iso for concrete class
-  class LongMinMonoidIso
-    extends EntityIso[LongMinMonoidData, LongMinMonoid] with Def[LongMinMonoidIso] {
-    override def transform(t: Transformer) = new LongMinMonoidIso()
-    private lazy val _safeFrom = fun { p: Rep[LongMinMonoid] => p.zero }
-    override def from(p: Rep[LongMinMonoid]) =
-      tryConvert[LongMinMonoid, Long](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[Long]) = {
-      val zero = p
-      RLongMinMonoid(zero)
-    }
-    lazy val eFrom = element[Long]
-    lazy val eTo = new LongMinMonoidElem(self)
-    lazy val selfType = new LongMinMonoidIsoElem
-    def productArity = 0
-    def productElement(n: Int) = ???
+  // elem for concrete class
+  class LongMinMonoidElem
+    extends MonoidElem[Long, LongMinMonoid]
+    with ConcreteElem[LongMinMonoidData, LongMinMonoid] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(LongElement))
   }
-  case class LongMinMonoidIsoElem() extends Elem[LongMinMonoidIso] {
-    def getDefaultRep = reifyObject(new LongMinMonoidIso())
-    lazy val tag = {
-      weakTypeTag[LongMinMonoidIso]
-    }
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-  }
+
+  implicit lazy val longMinMonoidElement: Elem[LongMinMonoid] =
+    new LongMinMonoidElem
+
   // 4) constructor and deconstructor
   class LongMinMonoidCompanionCtor extends CompanionDef[LongMinMonoidCompanionCtor] with LongMinMonoidCompanion {
-    def selfType = LongMinMonoidCompanionElem
+    def resultType = LongMinMonoidCompanionElem
     override def toString = "LongMinMonoidCompanion"
 
     @scalan.OverloadId("fromFields")
-    def apply(zero: Rep[Long]): Rep[LongMinMonoid] =
+    def apply(zero: Ref[Long]): Ref[LongMinMonoid] =
       mkLongMinMonoid(zero)
 
-    def unapply(p: Rep[Monoid[Long]]) = unmkLongMinMonoid(p)
+    def unapply(p: Ref[Monoid[Long]]) = unmkLongMinMonoid(p)
   }
-  lazy val LongMinMonoidRep: Rep[LongMinMonoidCompanionCtor] = new LongMinMonoidCompanionCtor
-  lazy val RLongMinMonoid: LongMinMonoidCompanionCtor = proxyLongMinMonoidCompanion(LongMinMonoidRep)
-  implicit def proxyLongMinMonoidCompanion(p: Rep[LongMinMonoidCompanionCtor]): LongMinMonoidCompanionCtor = {
-    if (p.rhs.isInstanceOf[LongMinMonoidCompanionCtor])
-      p.rhs.asInstanceOf[LongMinMonoidCompanionCtor]
+  lazy val RLongMinMonoid: MutableLazy[LongMinMonoidCompanionCtor] = MutableLazy(new LongMinMonoidCompanionCtor)
+  implicit final def unrefLongMinMonoidCompanion(p: Ref[LongMinMonoidCompanionCtor]): LongMinMonoidCompanionCtor = {
+    if (p.node.isInstanceOf[LongMinMonoidCompanionCtor])
+      p.node.asInstanceOf[LongMinMonoidCompanionCtor]
     else
-      proxyOps[LongMinMonoidCompanionCtor](p)
+      unrefDelegate[LongMinMonoidCompanionCtor](p)
   }
 
-  implicit case object LongMinMonoidCompanionElem extends CompanionElem[LongMinMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[LongMinMonoidCompanionCtor]
-    protected def getDefaultRep = LongMinMonoidRep
+  implicit case object LongMinMonoidCompanionElem extends CompanionElem[LongMinMonoidCompanionCtor]
+
+  implicit final def unrefLongMinMonoid(p: Ref[LongMinMonoid]): LongMinMonoid = {
+    if (p.node.isInstanceOf[LongMinMonoid])
+      p.node.asInstanceOf[LongMinMonoid]
+    else
+      unrefDelegate[LongMinMonoid](p)
   }
-
-  implicit def proxyLongMinMonoid(p: Rep[LongMinMonoid]): LongMinMonoid =
-    proxyOps[LongMinMonoid](p)
-
-  implicit class ExtendedLongMinMonoid(p: Rep[LongMinMonoid]) {
-    def toData: Rep[LongMinMonoidData] = {
-      isoLongMinMonoid.from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoLongMinMonoid: Iso[LongMinMonoidData, LongMinMonoid] =
-    reifyObject(new LongMinMonoidIso())
 
   def mkLongMinMonoid
-    (zero: Rep[Long]): Rep[LongMinMonoid] = {
+    (zero: Ref[Long]): Ref[LongMinMonoid] = {
     new LongMinMonoidCtor(zero)
   }
-  def unmkLongMinMonoid(p: Rep[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkLongMinMonoid(p: Ref[Monoid[Long]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: LongMinMonoidElem @unchecked =>
       Some((asRep[LongMinMonoid](p).zero))
     case _ =>
       None
-  }
-
-    object LongMinMonoidMethods {
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[LongMinMonoid], Rep[Long], Rep[Long])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongMinMonoidElem] && method.getName == "plus" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[LongMinMonoid], Rep[Long], Rep[Long])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[LongMinMonoid], Rep[Long], Rep[Long])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[LongMinMonoid], Rep[Long], Rep[Int])] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[LongMinMonoidElem] && method.getName == "power" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[LongMinMonoid], Rep[Long], Rep[Int])]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[LongMinMonoid], Rep[Long], Rep[Int])] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object LongMinMonoidCompanionMethods {
   }
 } // of object LongMinMonoid
   registerEntityObject("LongMinMonoid", LongMinMonoid)
 
 object PairMonoid extends EntityObject("PairMonoid") {
   case class PairMonoidCtor[A, B]
-      (override val m1: Rep[Monoid[A]], override val m2: Rep[Monoid[B]])
+      (override val m1: Ref[Monoid[A]], override val m2: Ref[Monoid[B]])
     extends PairMonoid[A, B](m1, m2) with Def[PairMonoid[A, B]] {
     implicit lazy val eA = m1.eT;
 implicit lazy val eB = m2.eT
     override lazy val eT: Elem[(A, B)] = implicitly[Elem[(A, B)]]
-    lazy val selfType = element[PairMonoid[A, B]]
+    lazy val resultType = element[PairMonoid[A, B]]
     override def transform(t: Transformer) = PairMonoidCtor[A, B](t(m1), t(m2))
-  }
-  // elem for concrete class
-  class PairMonoidElem[A, B](val iso: Iso[PairMonoidData[A, B], PairMonoid[A, B]])(implicit val eA: Elem[A], val eB: Elem[B])
-    extends MonoidElem[(A, B), PairMonoid[A, B]]
-    with ConcreteElem[PairMonoidData[A, B], PairMonoid[A, B]] {
-    override lazy val parent: Option[Elem[_]] = Some(monoidElement(pairElement(element[A],element[B])))
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
-    override def convertMonoid(x: Rep[Monoid[(A, B)]]) = // Converter is not generated by meta
-!!!("Cannot convert from Monoid to PairMonoid: missing fields List(m1, m2)")
-    override def getDefaultRep = RPairMonoid(element[Monoid[A]].defaultRepValue, element[Monoid[B]].defaultRepValue)
-    override lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[PairMonoid[A, B]]
-    }
   }
 
   // state representation type
   type PairMonoidData[A, B] = (Monoid[A], Monoid[B])
 
-  // 3) Iso for concrete class
-  class PairMonoidIso[A, B](implicit eA: Elem[A], eB: Elem[B])
-    extends EntityIso[PairMonoidData[A, B], PairMonoid[A, B]] with Def[PairMonoidIso[A, B]] {
-    override def transform(t: Transformer) = new PairMonoidIso[A, B]()(eA, eB)
-    private lazy val _safeFrom = fun { p: Rep[PairMonoid[A, B]] => (p.m1, p.m2) }
-    override def from(p: Rep[PairMonoid[A, B]]) =
-      tryConvert[PairMonoid[A, B], (Monoid[A], Monoid[B])](eTo, eFrom, p, _safeFrom)
-    override def to(p: Rep[(Monoid[A], Monoid[B])]) = {
-      val Pair(m1, m2) = p
-      RPairMonoid(m1, m2)
-    }
-    lazy val eFrom = pairElement(element[Monoid[A]], element[Monoid[B]])
-    lazy val eTo = new PairMonoidElem[A, B](self)
-    lazy val selfType = new PairMonoidIsoElem[A, B](eA, eB)
-    def productArity = 2
-    def productElement(n: Int) = n match {
-      case 0 => eA
-      case 1 => eB
-    }
-  }
-  case class PairMonoidIsoElem[A, B](eA: Elem[A], eB: Elem[B]) extends Elem[PairMonoidIso[A, B]] {
-    def getDefaultRep = reifyObject(new PairMonoidIso[A, B]()(eA, eB))
-    lazy val tag = {
-      implicit val tagA = eA.tag
-      implicit val tagB = eB.tag
-      weakTypeTag[PairMonoidIso[A, B]]
-    }
+  // elem for concrete class
+  class PairMonoidElem[A, B](implicit val eA: Elem[A], val eB: Elem[B])
+    extends MonoidElem[(A, B), PairMonoid[A, B]]
+    with ConcreteElem[PairMonoidData[A, B], PairMonoid[A, B]] {
+    override lazy val parent: Option[Elem[_]] = Some(monoidElement(pairElement(element[A],element[B])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("A" -> (eA -> scalan.util.Invariant), "B" -> (eB -> scalan.util.Invariant))
   }
+
+  implicit final def pairMonoidElement[A, B](implicit eA: Elem[A], eB: Elem[B]): Elem[PairMonoid[A, B]] =
+    cachedElemByClass(eA, eB)(classOf[PairMonoidElem[A, B]])
+
   // 4) constructor and deconstructor
   class PairMonoidCompanionCtor extends CompanionDef[PairMonoidCompanionCtor] with PairMonoidCompanion {
-    def selfType = PairMonoidCompanionElem
+    def resultType = PairMonoidCompanionElem
     override def toString = "PairMonoidCompanion"
     @scalan.OverloadId("fromData")
-    def apply[A, B](p: Rep[PairMonoidData[A, B]]): Rep[PairMonoid[A, B]] = {
+    def apply[A, B](p: Ref[PairMonoidData[A, B]]): Ref[PairMonoid[A, B]] = {
       implicit val eA = p._1.eT;
 implicit val eB = p._2.eT
-      isoPairMonoid[A, B].to(p)
+      val Pair(m1, m2) = p
+      mkPairMonoid(m1, m2)
     }
 
     @scalan.OverloadId("fromFields")
-    def apply[A, B](m1: Rep[Monoid[A]], m2: Rep[Monoid[B]]): Rep[PairMonoid[A, B]] =
+    def apply[A, B](m1: Ref[Monoid[A]], m2: Ref[Monoid[B]]): Ref[PairMonoid[A, B]] =
       mkPairMonoid(m1, m2)
 
-    def unapply[A, B](p: Rep[Monoid[(A, B)]]) = unmkPairMonoid(p)
+    def unapply[A, B](p: Ref[Monoid[(A, B)]]) = unmkPairMonoid(p)
   }
-  lazy val PairMonoidRep: Rep[PairMonoidCompanionCtor] = new PairMonoidCompanionCtor
-  lazy val RPairMonoid: PairMonoidCompanionCtor = proxyPairMonoidCompanion(PairMonoidRep)
-  implicit def proxyPairMonoidCompanion(p: Rep[PairMonoidCompanionCtor]): PairMonoidCompanionCtor = {
-    if (p.rhs.isInstanceOf[PairMonoidCompanionCtor])
-      p.rhs.asInstanceOf[PairMonoidCompanionCtor]
+  lazy val RPairMonoid: MutableLazy[PairMonoidCompanionCtor] = MutableLazy(new PairMonoidCompanionCtor)
+  implicit final def unrefPairMonoidCompanion(p: Ref[PairMonoidCompanionCtor]): PairMonoidCompanionCtor = {
+    if (p.node.isInstanceOf[PairMonoidCompanionCtor])
+      p.node.asInstanceOf[PairMonoidCompanionCtor]
     else
-      proxyOps[PairMonoidCompanionCtor](p)
+      unrefDelegate[PairMonoidCompanionCtor](p)
   }
 
-  implicit case object PairMonoidCompanionElem extends CompanionElem[PairMonoidCompanionCtor] {
-    lazy val tag = weakTypeTag[PairMonoidCompanionCtor]
-    protected def getDefaultRep = PairMonoidRep
+  implicit case object PairMonoidCompanionElem extends CompanionElem[PairMonoidCompanionCtor]
+
+  implicit final def unrefPairMonoid[A, B](p: Ref[PairMonoid[A, B]]): PairMonoid[A, B] = {
+    if (p.node.isInstanceOf[PairMonoid[A, B]@unchecked])
+      p.node.asInstanceOf[PairMonoid[A, B]]
+    else
+      unrefDelegate[PairMonoid[A, B]](p)
   }
-
-  implicit def proxyPairMonoid[A, B](p: Rep[PairMonoid[A, B]]): PairMonoid[A, B] =
-    proxyOps[PairMonoid[A, B]](p)
-
-  implicit class ExtendedPairMonoid[A, B](p: Rep[PairMonoid[A, B]]) {
-    def toData: Rep[PairMonoidData[A, B]] = {
-      implicit val eA = p.m1.eT;
-implicit val eB = p.m2.eT
-      isoPairMonoid(eA, eB).from(p)
-    }
-  }
-
-  // 5) implicit resolution of Iso
-  implicit def isoPairMonoid[A, B](implicit eA: Elem[A], eB: Elem[B]): Iso[PairMonoidData[A, B], PairMonoid[A, B]] =
-    reifyObject(new PairMonoidIso[A, B]()(eA, eB))
 
   def mkPairMonoid[A, B]
-    (m1: Rep[Monoid[A]], m2: Rep[Monoid[B]]): Rep[PairMonoid[A, B]] = {
+    (m1: Ref[Monoid[A]], m2: Ref[Monoid[B]]): Ref[PairMonoid[A, B]] = {
     new PairMonoidCtor[A, B](m1, m2)
   }
-  def unmkPairMonoid[A, B](p: Rep[Monoid[(A, B)]]) = p.elem.asInstanceOf[Elem[_]] match {
+  def unmkPairMonoid[A, B](p: Ref[Monoid[(A, B)]]) = p.elem.asInstanceOf[Elem[_]] match {
     case _: PairMonoidElem[A, B] @unchecked =>
       Some((asRep[PairMonoid[A, B]](p).m1, asRep[PairMonoid[A, B]](p).m2))
     case _ =>
       None
   }
-
-    object PairMonoidMethods {
-    object zero {
-      def unapply(d: Def[_]): Nullable[Rep[PairMonoid[A, B]] forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[PairMonoidElem[_, _]] && method.getName == "zero" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[PairMonoid[A, B]] forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[PairMonoid[A, B]] forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object plus {
-      def unapply(d: Def[_]): Nullable[(Rep[PairMonoid[A, B]], Rep[(A, B)], Rep[(A, B)]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairMonoidElem[_, _]] && method.getName == "plus" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[PairMonoid[A, B]], Rep[(A, B)], Rep[(A, B)]) forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[PairMonoid[A, B]], Rep[(A, B)], Rep[(A, B)]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object power {
-      def unapply(d: Def[_]): Nullable[(Rep[PairMonoid[A, B]], Rep[(A, B)], Rep[Int]) forSome {type A; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[PairMonoidElem[_, _]] && method.getName == "power" =>
-          val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[PairMonoid[A, B]], Rep[(A, B)], Rep[Int]) forSome {type A; type B}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[(Rep[PairMonoid[A, B]], Rep[(A, B)], Rep[Int]) forSome {type A; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object PairMonoidCompanionMethods {
-  }
 } // of object PairMonoid
   registerEntityObject("PairMonoid", PairMonoid)
+
+  override def resetContext(): Unit = {
+    super.resetContext()
+
+    RMonoidBuilderInst.reset()
+    RIntPlusMonoid.reset()
+    RIntMaxMonoid.reset()
+    RIntMinMonoid.reset()
+    RLongPlusMonoid.reset()
+    RLongMaxMonoid.reset()
+    RLongMinMonoid.reset()
+    RPairMonoid.reset()
+  }
 
   registerModule(MonoidInstancesModule)
 }

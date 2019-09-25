@@ -7,32 +7,34 @@ import configs.Configs
 import configs.syntax._
 import com.typesafe.config.{ConfigUtil, Config}
 import configs.Result.{Success, Failure}
-import scalan.{Base, Scalan, TypeDesc}
+import scalan.{Plugins, Scalan, Base}
 import scalan.util.{ProcessUtil, FileUtil, StringUtil, ScalaNameUtil}
 import scala.collection.immutable.StringOps
 
-case class GraphFile(file: File, fileType: String) {
-  def open() = {
-    Base.config.get[String](ConfigUtil.joinPath("graphviz", "viewer", fileType)) match {
-      case Failure(_) =>
-        Desktop.getDesktop.open(file)
-      case Success(command) =>
-        ProcessUtil.launch(Seq(command, file.getAbsolutePath))
+// TODO implement this outside of the cake
+
+/** Implementation of Graphviz's dot file generator. */
+trait GraphVizExport extends Base { self: Scalan =>
+
+  case class GraphFile(file: File, fileType: String) {
+    def open() = {
+      Plugins.configWithPlugins.get[String](ConfigUtil.joinPath("graphviz", "viewer", fileType)) match {
+        case Failure(_) =>
+          Desktop.getDesktop.open(file)
+        case Success(command) =>
+          ProcessUtil.launch(Seq(command, file.getAbsolutePath))
+      }
     }
   }
-}
-
-trait GraphVizExport { self: Scalan =>
 
   // TODO it would be better to have nodeColor(elem: Elem[_], optDef: Option[Def[_]]) to
   // avoid looking up definition, but this leads to ClassFormatError (likely Scala bug)
   protected def nodeColor(td: TypeDesc, d: Def[_])(implicit config: GraphVizConfig): String = d match {
-    case _: View[_, _] => "darkgreen"
     case _ => nodeColor(td)
   }
 
   protected def nodeColor(td: TypeDesc): String = td match {
-    case _: ViewElem[_, _] => "green"
+    case _: ConcreteElem[_, _] => "green"
     case _: FuncElem[_, _] => "magenta"
     case _: CompanionElem[_] => "lightgray"
     case _ => "gray"
@@ -52,7 +54,7 @@ trait GraphVizExport { self: Scalan =>
       case Some(rhs) =>
         val lhsStr = s"$x: $label ="
         val rhsStr = formatDef(rhs)
-        val rhsElem = rhs.selfType
+        val rhsElem = rhs.resultType
         if (rhsElem != xElem) {
           List(lhsStr, s"$rhsStr:", acc1.typeString(rhsElem))
         } else {
@@ -72,7 +74,7 @@ trait GraphVizExport { self: Scalan =>
         ("oval", nodeColor(xElem))
     }
     // use full type name for the tooltip
-    stream.println(s"shape=$shape, color=$color, tooltip=${StringUtil.quote(x.toStringWithType)}, style=filled, fillcolor=white")
+    stream.println(s"shape=$shape, color=$color, tooltip=${StringUtil.quote(x.varNameWithType)}, style=filled, fillcolor=white")
     stream.println("]")
     acc1
   }
@@ -87,13 +89,7 @@ trait GraphVizExport { self: Scalan =>
     emitNode0(sym, Some(rhs), acc1)
   }
 
-  protected def formatMetadata(s: Sym): List[String] = {
-    val metadata = s.allMetadata.meta
-    if (metadata.nonEmpty)
-      "Metadata:" :: metadata.map { case (k, v) => s"$k:${formatConst(v.value)}" }.toList
-    else
-      Nil
-  }
+  protected def formatMetadata(s: Sym): List[String] = Nil
 
   protected def formatDef(d: Def[_])(implicit config: GraphVizConfig): String = d match {
     case Const(x) =>
@@ -111,16 +107,10 @@ trait GraphVizExport { self: Scalan =>
         case _ => y.toString
       }
       s"${l.x} => $bodyStr"
-    /*case v: View[_,_] =>
-      val viewStr = d.toString
-      val isoStr = v.iso.toString
-      s"$viewStr (iso: $isoStr)" */
     case Apply(f, arg, _) => s"$f($arg)"
     case Tup(a, b) => s"($a, $b)"
     case First(pair) => s"$pair._1"
     case Second(pair) => s"$pair._2"
-    case IfThenElse(c, t, e) => s"if ($c) $t else $e"
-    case LoopUntil(start, step, isMatch) => s"from $start do $step until $isMatch"
     case ApplyBinOp(op, lhs, rhs) => s"$lhs ${op.opName} $rhs"
     case ApplyUnOp(op, arg) => op match {
       case NumericToFloat(_) => s"$arg.toFloat"
@@ -160,7 +150,7 @@ trait GraphVizExport { self: Scalan =>
   private def emitDepEdges(sym: Sym, rhs: Def[_])(implicit stream: PrintWriter, config: GraphVizConfig) = {
     val (deps, lambdaVars) = rhs match {
       case l: Lambda[_, _] => lambdaDeps(l)
-      case _ => (dep(rhs), Nil)
+      case _ => (rhs.deps.toList, Nil)
     }
     emitEdges(lambdaVars, sym, "[style=dashed, color=lightgray, weight=0]")
     emitEdges(deps, sym, "[style=solid]")
@@ -177,7 +167,7 @@ trait GraphVizExport { self: Scalan =>
     GraphVizConfig.default
 
   def emitDepGraph(d: Def[_], directory: File, fileName: String)(implicit config: GraphVizConfig): Option[GraphFile] =
-    emitDepGraph(dep(d), directory, fileName)(config)
+    emitDepGraph(d.deps, directory, fileName)(config)
   def emitDepGraph(start: Sym, directory: File, fileName: String)(implicit config: GraphVizConfig): Option[GraphFile] =
     emitDepGraph(List(start), directory, fileName)(config)
   def emitDepGraph(ss: Seq[Sym], directory: File, fileName: String)(implicit config: GraphVizConfig): Option[GraphFile] =
@@ -211,7 +201,7 @@ trait GraphVizExport { self: Scalan =>
             GraphFile(new File(directory, convertedFileName), format)
           } catch {
             case e: Exception =>
-              logger.warn(s"Failed to convert ${dotFile.getAbsolutePath} to $format: ${e.getMessage}")
+              logWarn(s"Failed to convert ${dotFile.getAbsolutePath} to $format: ${e.getMessage}")
               dotGraphFile
           }
       })
@@ -241,18 +231,18 @@ trait GraphVizExport { self: Scalan =>
     case Def(l1: Lambda[_, _]) =>
       val (ds, vs) = lambdaDeps(l1)
       (ds, l.x :: vs)
-    case _ => (dep(l.y), List(l.x))
+    case _ => (l.y.node.deps.toList, List(l.x))
   }
 
   protected def clusterColor(g: AstGraph) = g match {
-    case _: ProgramGraph[_] => None
+    case _: ProgramGraph => None
     case _: Lambda[_, _] => Some("#FFCCFF")
     case _: ThunkDef[_] => Some("#FFCCCC")
     case _ => Some("lightgray")
   }
 
   protected def clusterSchedule(g: AstGraph) = g match {
-    case lam: Lambda[_, _] => lam.schedule.filter(_.sym != lam.y)
+    case lam: Lambda[_, _] => lam.schedule.filter(_ != lam.y)
     case _ => g.schedule
   }
 
@@ -266,10 +256,9 @@ trait GraphVizExport { self: Scalan =>
   private def emitCluster(g: AstGraph, acc: GraphData)(implicit stream: PrintWriter, config: GraphVizConfig): GraphData = {
     val schedule = clusterSchedule(g)
 
-    schedule.foldLeft(acc) { case (acc1, te: TableEntry[_]) =>
-      val d = te.rhs
-      val s = te.sym
-      te.rhs match {
+    schedule.foldLeft(acc) { case (acc1, s) =>
+      val d = s.node
+      d match {
         case g: AstGraph if shouldEmitCluster(g) =>
           if (config.subgraphClusters) {
             stream.println(s"subgraph cluster_$s {")
@@ -346,7 +335,7 @@ trait GraphVizExport { self: Scalan =>
     def addNode(s: Sym, d: Option[Def[_]]): GraphData = {
       val withType = config.maxTypeNameLength match {
         case Some(maxLength) =>
-          val elems = d.map(_.selfType).toSet + s.elem
+          val elems = d.map(_.resultType).toSet + s.elem
           elems.foldLeft(this)(_.registerType(_, maxLength))
         case None =>
           this
@@ -371,15 +360,6 @@ trait GraphVizExport { self: Scalan =>
         }
 
       f(td, true)
-    }
-
-    private def partsIterator(td: TypeDesc) = td match {
-      case se: StructElem[_] =>
-        se.fieldElems.iterator
-      case e: Elem[_] =>
-        e.typeArgsIterator
-      case _: Cont[_] =>
-        Iterator.empty
     }
 
     private def registerType(td: TypeDesc, maxLength: Int): GraphData = {
@@ -446,6 +426,13 @@ trait GraphVizExport { self: Scalan =>
   }
   private object GraphData {
     def empty(implicit config: GraphVizConfig) = GraphData(Map.empty, Map.empty, Nil, 0)
+  }
+
+  protected def partsIterator(td: TypeDesc) = td match {
+    case e: Elem[_] =>
+      e.typeArgsDescs
+    case _: Cont[_] =>
+      Iterator.empty
   }
 
   private def emitDepGraph(exceptionOrGraph: Either[Throwable, AstGraph], name: String)(implicit stream: PrintWriter, config: GraphVizConfig): Unit = {
@@ -535,7 +522,7 @@ case class GraphVizConfig(emitGraphs: Boolean,
 }
 
 object GraphVizConfig {
-  val config = Base.config.getConfig("graphviz")
+  lazy val config = Plugins.configWithPlugins.getConfig("graphviz")
   // not made implicit because it would be too easy to use
   // it accidentally instead of passing up
   // For some reason, return type has to be given explicitly

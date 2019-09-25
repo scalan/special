@@ -9,11 +9,13 @@ package wrappers.scalan {
 
   import special.wrappers.RTypeWrapSpec
 
+  import scala.collection.mutable.WrappedArray
+
   trait WRTypes extends Base { self: WrappersModule =>
     import WRType._;
-    @External("RType") @Liftable trait WRType[A] extends Def[WRType[A]] {
+    @External("RType") @Liftable @WithMethodCallRecognizers trait WRType[A] extends Def[WRType[A]] {
       implicit def eA: Elem[A];
-      @External def name: Rep[String]
+      @External def name: Ref[String]
     };
     trait WRTypeCompanion
   }

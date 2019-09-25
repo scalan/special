@@ -1,14 +1,8 @@
 package scalan.json
 
 import java.lang.reflect.Method
-
-import scalan.meta.Parsers
-import scalan.meta.ScalanAst.SUnitDef
 import spray.json.{JsObject, JsArray, JsString, JsValue, JsBoolean}
-
-import scala.collection.{Seq, mutable}
-import scalan.{TypeDesc, Scalan, ModuleInfo}
-
+import scala.collection.Seq
 import scala.collection.mutable.{Map => MMap}
 
 trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
@@ -103,7 +97,7 @@ trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
             val eVar = elementFormat.read(jsType)
             val defs = fields -- specialFields
             val res = roots.split(',').map(readId(_)).toSeq
-            Some((varId, eVar.asElem[Any], defs, res))
+            Some((varId, asElem[Any](eVar), defs, res))
           case _ => None
         }
       case _ => None
@@ -185,7 +179,7 @@ trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
 
     def unapply(in: (String, Seq[Sym], Element)): Option[ApplyUnOp[_, _]] = declaredOps.get(in._1) match {
       case Some(op: UnOp[a, b]) =>
-        Some(ApplyUnOp[a, b](op, in._2(0).asRep[a]))
+        Some(ApplyUnOp[a, b](op, asRep[a](in._2(0))))
       case _ => None
     }
   }
@@ -196,7 +190,7 @@ trait ScalanJsonContext[C <: ToolkitScalan] { self: ScalanJsonProtocol[C] =>
       BinOps.get(opName) match {
         case Some(elems) => elems.get(eRes) match {
           case Some(op: BinOp[a, b]) =>
-            Some(ApplyBinOp[a, b](op, args(0).asRep[a], args(1).asRep[a]))
+            Some(ApplyBinOp[a, b](op, asRep[a](args(0)), asRep[a](args(1))))
           case _ => None
         }
         case None => None

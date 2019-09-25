@@ -21,13 +21,13 @@ class PatternMatchingMacro(val c: blackbox.Context) {
               pat1 match {
                 // FIXME
                 case pq"$name @ (_: $tpt)" =>
-                  (false, q"(classOf[$tpt], fun { ${name.toTermName}: Rep[$tpt] => $body })")
+                  (false, q"(classOf[$tpt], fun { ${name.toTermName}: Ref[$tpt] => $body })")
                 case pq"$ref(..$pats)" => // TODO (false, )
                   c.abort(expr.pos, "Extractor patterns are not supported in MATCH yet")
               }
-            case pq"_" => (true, q"fun { _: Rep[${weakTypeOf[A]}] => $body }")
+            case pq"_" => (true, q"fun { _: Ref[${weakTypeOf[A]}] => $body }")
             // ???
-            case pq"$name @ $pat1" => (true, q"fun { ${name.toTermName}: Rep[${weakTypeOf[A]}] => $body }")
+            case pq"$name @ $pat1" => (true, q"fun { ${name.toTermName}: Ref[${weakTypeOf[A]}] => $body }")
             case pq"_: $tpt" => ???
             case pq"$first │ ..$rest" => ???
             case pq"(..$pats)" => c.abort(pat.pos, s"Unexpected tuple pattern:\n$pat\n${pats.mkString("\n")}")

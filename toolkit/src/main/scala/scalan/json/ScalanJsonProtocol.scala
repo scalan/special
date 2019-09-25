@@ -33,7 +33,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
     def read(json: JsValue) = json match {
       case JsString(tpeStr) =>
         val ty = parseType(helperUnitSym, tpeStr)
-        val elem = TypeDesc(ty, emptySubst).asElem[T]
+        val elem = asElem[T](TypeDesc(ty, emptySubst))
         elem
       case _ => deserializationError("String expected of type term")
     }
@@ -61,7 +61,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
         JsArray(JsString("Const"), JsString(c.toString), elementFormat.write(sym.elem))
       case Def(MethodCall(obj, m, args, neverInvoke)) =>
         val params = "MethodCall" :: mapSym(obj) :: m.getDeclaringClass.getName :: m.getName :: neverInvoke.toString ::
-              args.map(mapMCallArg(_)(mapSym(_)))
+            (args.toList).map(mapMCallArg(_)(mapSym(_)))
 //            args.map { _ match {
 //              case s: Sym => mapSym(s)
 //              case x => ctx.!!!(s"MethodCall with non-Sym argument $x is not supported for Json serialization of $d")
@@ -69,11 +69,11 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
         JsArray(params.map(JsString(_)) :+ elementFormat.write(sym.elem): _*)
       case Def(d @ Variable(id)) =>
         val str = s"${opName(d)}(s${id})"
-        JsArray(JsString(str), elementFormat.write(d.selfType))
+        JsArray(JsString(str), elementFormat.write(d.resultType))
       case Def(d) =>
-        val args = syms(d).map(mapSym(_))
+        val args = d.syms.map(mapSym(_)).toSeq
         val str = s"${opName(d)}(${args.rep()})"
-        JsArray(JsString(str), elementFormat.write(d.selfType))
+        JsArray(JsString(str), elementFormat.write(d.resultType))
     }
 
     def readDefs(defs: Seq[(Int, JsValue)]): Unit =
@@ -113,11 +113,11 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
 
   implicit object LambdaFormat extends JsonFormat[Lambda[_, _]] {
     def write(lam: Lambda[_, _]) = {
-      val fields = lam.schedule.map { te => te.rhs match {
+      val fields = lam.schedule.map { sym => sym.node match {
         case Lambda(l, _, x, y) =>
-          (mapSym(te.sym), LambdaFormat.write(l))
+          (mapSym(sym), LambdaFormat.write(l))
         case _ =>
-          (mapSym(te.sym), SymFormat.write(te.sym))
+          (mapSym(sym), SymFormat.write(sym))
       }}
       JsObject(ListMap(Seq( // ListMap to preserve order
         ("type", JsString("Lambda")),
@@ -134,11 +134,11 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
 
   implicit object ProgramGraphFormat extends JsonFormat[PGraph] {
     def write(g: PGraph) = {
-      val fields = g.schedule.map { te => te.rhs match {
+      val fields = g.schedule.map { sym => sym.node match {
         case Lambda(l, _, x, y) =>
-          (mapSym(te.sym), LambdaFormat.write(l))
+          (mapSym(sym), LambdaFormat.write(l))
         case _ =>
-          (mapSym(te.sym), SymFormat.write(te.sym))
+          (mapSym(sym), SymFormat.write(sym))
       }}
       val roots = g.roots.map(mapSym(_))
       JsObject(ListMap( // ListMap to preserve order
@@ -150,7 +150,7 @@ class ScalanJsonProtocol[C <: ToolkitScalan](val ctx: C) extends DefaultJsonProt
       case JsProgramGraph(fields, rootIds) =>
         SymFormat.readDefs(sortedSchedule(fields))
         val rootSyms = rootIds.map(mapId(_))
-        new PGraph(rootSyms.toList)(MapTransformer.ops)
+        new PGraph(rootSyms.toList)
       case _ => deserializationError("String expected of type term")
     }
   }

@@ -413,7 +413,7 @@ object ScalanAstTransformers {
     }
   }
 
-  /** Removes all Rep types including RFunc and type synonims. */
+  /** Removes all Ref types including RFunc and type synonims. */
   class RepTypeRemover(implicit ctx: AstContextBase) extends TypeTransformer {
     override def typeTransform(tpe: STpeExpr): STpeExpr = {
       val t = tpe match {

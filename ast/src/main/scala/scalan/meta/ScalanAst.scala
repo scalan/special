@@ -4,13 +4,15 @@ import com.trueaccord.lenses.Updatable
 
 import scala.reflect.internal.ModifierFlags
 import java.util.Objects
+
 import scala.collection.immutable.{HashMap, HashSet}
-import scalan.{ArgList, Constructor, ContainerType, FunctorType, Liftable, Reified, NeverInline, External}
+import scalan.{Constructor, ContainerType, FunctorType, Liftable, Reified, NeverInline, Isospec, External, Convertible, WithMethodCallRecognizers}
 import scalan.meta.Symbols._
 import scalan.meta.ScalanAstTransformers.{TypeNameCollector, SubstTypeTransformer, TypeTransformerInAst}
+
 import scala.collection.{mutable, GenIterable}
 import com.typesafe.config.ConfigUtil
-import scalan.util.{Covariant, Contravariant, Invariant, PrintExtensions}
+import scalan.util.{Covariant, Contravariant, PrintExtensions, Invariant}
 import PrintExtensions._
 import ScalanAstExtensions._
 import scalan.util.CollectionUtil._
@@ -162,7 +164,7 @@ object ScalanAst {
     }
 
     def isTupledFunc = self match {
-      case STraitCall("Rep", List(STpeFunc(STpeTuple(a1 :: a2 :: tail), _))) => true
+      case STraitCall("Ref", List(STpeFunc(STpeTuple(a1 :: a2 :: tail), _))) => true
       case STpeFunc(STpeTuple(a1 :: a2 :: tail), _) => true
       case _ => false
     }
@@ -276,7 +278,7 @@ object ScalanAst {
           None
         }
         findInTuple(t)
-      case STraitCall("Rep", List(tT)) =>
+      case STraitCall("Ref", List(tT)) =>
         find(tT, argName)
       case STraitCall("Thunk", List(tT)) =>
         find(tT, argName).map(tail => SThunkPath(tpe, tail))
@@ -331,15 +333,16 @@ object ScalanAst {
       tpeArgs: List[STpeExpr],
       args: List[SExpr]) extends SAnnotation
 
-  final val EntityAnnotation         = classOf[scalan.Entity].getSimpleName
   final val LiftableAnnotation       = classOf[Liftable].getSimpleName
+  final val IsospecAnnotation        = classOf[Isospec].getSimpleName
+  final val ConvertibleAnnotation    = classOf[Convertible].getSimpleName
   final val ConstructorAnnotation    = classOf[Constructor].getSimpleName
   final val ExternalAnnotation       = classOf[External].getSimpleName
-  final val ArgListAnnotation        = classOf[ArgList].getSimpleName
   final val ContainerTypeAnnotation  = classOf[ContainerType].getSimpleName
   final val FunctorTypeAnnotation    = classOf[FunctorType].getSimpleName
   final val ReifiedTypeArgAnnotation = classOf[Reified].getSimpleName
   final val NeverInlineAnnotation    = classOf[NeverInline].getSimpleName
+  final val WithMethodCallRecognizersAnnotation = classOf[WithMethodCallRecognizers].getSimpleName
   final val SpecializedAnnotation    = classOf[specialized].getSimpleName
   final val InlineAnnotation         = classOf[inline].getSimpleName
 
@@ -466,6 +469,7 @@ object ScalanAst {
     def isMonomorphic = tpeArgs.isEmpty
     override def isAbstract: Boolean = body.isEmpty
     def isNeverInline: Boolean = hasAnnotation(NeverInlineAnnotation)
+    def withMethodCallRecognizers: Boolean = hasAnnotation(WithMethodCallRecognizersAnnotation)
     override def argss: List[List[SMethodOrClassArg]] = argSections.map(_.args)
     override def rhs: Option[SExpr] = body
     override def exprType = ??? // TODO build STpeFunc for this method type
@@ -473,10 +477,6 @@ object ScalanAst {
 
     def getAnnotation(annotName: String): Option[SMethodAnnotation] = annotations.find(a => a.annotationClass == annotName)
     def hasAnnotation(annotName: String): Boolean = getAnnotation(annotName).isDefined
-
-//    def isExtractableArg(module: SModuleDef, tpeArg: STpeArg): Boolean = {
-//      allArgs.exists(a => STpePath.find(module, a.tpe, tpeArg.name).isDefined)
-//    }
 
     def explicitArgs: List[SMethodArg] = argSections.flatMap(_.args.filterNot(_.impFlag))
     def implicitArgs: List[SMethodArg] = argSections.flatMap(_.args.filter(_.impFlag))
@@ -625,7 +625,6 @@ object ScalanAst {
     def tpe: STpeExpr
     def default: Option[SExpr]
     def annotations: List[SArgAnnotation]
-    def isArgList = annotations.exists(a => a.annotationClass == ArgListAnnotation)
     def isTypeDesc: Boolean
   }
   object SMethodOrClassArg {
@@ -779,11 +778,13 @@ object ScalanAst {
       case _ => false
     }
 
-    def isLiftable(implicit ctx: AstContextBase): Boolean = {
-      getAnnotation(LiftableAnnotation) match {
-        case Some(SEntityAnnotation(_,_,_)) => true
-        case _ => false
-      }
+    def isLiftable(implicit ctx: AstContextBase): Boolean = hasAnnotation(LiftableAnnotation)
+
+    def isConvertible(implicit ctx: AstContextBase): Boolean = hasAnnotation(ConvertibleAnnotation)
+
+    def hasMethodCallRecognizer: Boolean = {
+      val hasMethodRec =  body.collectFirst { case md: SMethodDef if md.withMethodCallRecognizers => md }.nonEmpty
+      hasMethodRec || hasAnnotation(WithMethodCallRecognizersAnnotation)
     }
 
     def asTrait: STraitDef = { assert(this.isInstanceOf[STraitDef], s"$this is not trait"); this.asInstanceOf[STraitDef] }
@@ -1036,6 +1037,7 @@ object ScalanAst {
       isAbstract: Boolean,
       annotations: List[SEntityAnnotation] = Nil) extends SEntityDef with Updatable[SClassDef] {
     def isTrait = false
+    def hasIsospec: Boolean = hasAnnotation(IsospecAnnotation)
     def signature = DefSig(DefType.Entity, name, Nil)
     def clean = {
       val _companion = companion.map(_.clean)

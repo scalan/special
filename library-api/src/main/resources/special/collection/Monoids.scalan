@@ -6,18 +6,18 @@ package special.collection {
     import MonoidBuilder._;
     trait Monoid[T] extends Def[Monoid[T]] {
       implicit def eT: Elem[T];
-      def zero: Rep[T];
-      def plus(x: Rep[T], y: Rep[T]): Rep[T];
-      def power(x: Rep[T], n: Rep[Int]): Rep[T]
+      def zero: Ref[T];
+      def plus(x: Ref[T], y: Ref[T]): Ref[T];
+      def power(x: Ref[T], n: Ref[Int]): Ref[T]
     };
-    trait MonoidBuilder extends Def[MonoidBuilder] {
-      def intPlusMonoid: Rep[Monoid[Int]];
-      def intMaxMonoid: Rep[Monoid[Int]];
-      def intMinMonoid: Rep[Monoid[Int]];
-      def longPlusMonoid: Rep[Monoid[Long]];
-      def longMaxMonoid: Rep[Monoid[Long]];
-      def longMinMonoid: Rep[Monoid[Long]];
-      def pairMonoid[A, B](m1: Rep[Monoid[A]], m2: Rep[Monoid[B]]): Rep[Monoid[scala.Tuple2[A, B]]]
+    @WithMethodCallRecognizers trait MonoidBuilder extends Def[MonoidBuilder] {
+      def intPlusMonoid: Ref[Monoid[Int]];
+      def intMaxMonoid: Ref[Monoid[Int]];
+      def intMinMonoid: Ref[Monoid[Int]];
+      def longPlusMonoid: Ref[Monoid[Long]];
+      def longMaxMonoid: Ref[Monoid[Long]];
+      def longMinMonoid: Ref[Monoid[Long]];
+      def pairMonoid[A, B](m1: Ref[Monoid[A]], m2: Ref[Monoid[B]]): Ref[Monoid[scala.Tuple2[A, B]]]
     };
     trait MonoidCompanion;
     trait MonoidBuilderCompanion

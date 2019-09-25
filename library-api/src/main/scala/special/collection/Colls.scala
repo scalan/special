@@ -14,8 +14,10 @@ import scala.collection.immutable
 @ContainerType
 @FunctorType
 @scalan.Liftable
+@WithMethodCallRecognizers
 trait Coll[@specialized A] {
   def builder: CollBuilder
+  @Internal
   def toArray: Array[A]
 
   /** The length of the collection. */
@@ -33,6 +35,11 @@ trait Coll[@specialized A] {
     *  @return    `true` if the $coll contains at least one element, `false` otherwise.
     */
   def nonEmpty: Boolean
+
+  /** Returns true if the index in the valid range.
+    * @param  i  index of an element of this collection */
+  @Internal
+  final def isValidIndex(i: Int): Boolean = 0 <= i && i < this.length
 
   /** The element at given index.
     *  Indices start at `0`; `xs.apply(0)` is the first element of collection `xs`.
@@ -401,6 +408,7 @@ trait Coll[@specialized A] {
   }
 }
 
+@WithMethodCallRecognizers
 trait PairColl[@specialized L, @specialized R] extends Coll[(L,R)] {
   def ls: Coll[L]
   def rs: Coll[R]
@@ -409,6 +417,7 @@ trait PairColl[@specialized L, @specialized R] extends Coll[(L,R)] {
 }
 
 @Liftable
+@WithMethodCallRecognizers
 trait ReplColl[@specialized A] extends Coll[A] {
   def value: A
   def length: Int
@@ -416,6 +425,7 @@ trait ReplColl[@specialized A] extends Coll[A] {
 }
 
 @scalan.Liftable
+@WithMethodCallRecognizers
 trait CollBuilder {
   def Monoids: MonoidBuilder
   def pairColl[@specialized A, @specialized B](as: Coll[A], bs: Coll[B]): PairColl[A,B]
@@ -442,6 +452,7 @@ trait CollBuilder {
   def xor(left: Coll[Byte], right: Coll[Byte]): Coll[Byte]
 
   /** Wrap array into collection. */
+  @Internal
   def fromArray[@specialized T: RType](arr: Array[T]): Coll[T]
 
   /** Creates a new collection by replicating value `v`.
@@ -457,10 +468,10 @@ trait CollBuilder {
     * This is O(1) operation, all executions of `f` are delayed until the corresponding
     * item of this collection is needed in some operation.
     */
-  @NeverInline
+  @Internal
   def makeView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B): Coll[B]
 
-  @NeverInline
+  @Internal
   def makePartialView[@specialized A, @specialized B: RType](source: Coll[A], f: A => B, calculated: Array[Boolean], calculatedItems: Array[B]): Coll[B]
 
   /** Create an empty collection with items of the given type.

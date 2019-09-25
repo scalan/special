@@ -524,9 +524,6 @@ trait ScalanParsers[+G <: Global] {
       }
   }
 
-  //  val HasExternalAnnotation = new ExtractAnnotation("External")
-  //  val HasConstructorAnnotation = new ExtractAnnotation("Constructor")
-  val HasArgListAnnotation  = new HasAnnotation(ArgListAnnotation)
   val OverloadIdAnnotation  = new HasAnnotation("OverloadId")
   val ReifiedAnnotation     = new HasAnnotation(ReifiedTypeArgAnnotation)
   val HasNeverInlineAnnotation = new HasAnnotation(NeverInlineAnnotation)

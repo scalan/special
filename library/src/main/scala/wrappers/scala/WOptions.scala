@@ -7,18 +7,20 @@ package wrappers.scala {
 
   import special.wrappers.OptionWrapSpec
 
+  import scala.collection.mutable.WrappedArray
+
   trait WOptions extends Base { self: WrappersModule =>
     import WOption._;
-    @External("Option") @ContainerType @FunctorType @Liftable trait WOption[A] extends Def[WOption[A]] {
+    @External("Option") @ContainerType @FunctorType @Liftable @WithMethodCallRecognizers trait WOption[A] extends Def[WOption[A]] {
       implicit def eA: Elem[A];
-      @External def fold[B](ifEmpty: Rep[Thunk[B]], f: Rep[scala.Function1[A, B]]): Rep[B];
-      @External def isEmpty: Rep[Boolean];
-      @External def isDefined: Rep[Boolean];
-      @External def filter(p: Rep[scala.Function1[A, Boolean]]): Rep[WOption[A]];
-      @External def flatMap[B](f: Rep[scala.Function1[A, WOption[B]]]): Rep[WOption[B]];
-      @External def map[B](f: Rep[scala.Function1[A, B]]): Rep[WOption[B]];
-      @External def getOrElse[B](default: Rep[Thunk[B]]): Rep[B];
-      @External def get: Rep[A]
+      @External def fold[B](ifEmpty: Ref[Thunk[B]], f: Ref[scala.Function1[A, B]]): Ref[B];
+      @External def isEmpty: Ref[Boolean];
+      @External def isDefined: Ref[Boolean];
+      @External def filter(p: Ref[scala.Function1[A, Boolean]]): Ref[WOption[A]];
+      @External def flatMap[B](f: Ref[scala.Function1[A, WOption[B]]]): Ref[WOption[B]];
+      @External def map[B](f: Ref[scala.Function1[A, B]]): Ref[WOption[B]];
+      @External def getOrElse[B](default: Ref[Thunk[B]]): Ref[B];
+      @External def get: Ref[A]
     };
     trait WOptionCompanion
   }

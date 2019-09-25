@@ -32,13 +32,13 @@ class AstContextTests extends BaseMetaTests with Examples {
       context.TypeDef.unapply(STraitCall("RepIter", List(TpeString))) should matchPattern { case None => }
     }
 
-    it("recognize Rep type") {
+    it("recognize Ref type") {
       def test(t: STpeExpr, expected: Option[STpeExpr]): Unit = {
         context.RepTypeOf.unapply(t) should be(expected)
       }
       test(TpeInt, None)
       test(STraitCall("Elem", List(TpeInt)), None)
-      test(STraitCall("Rep", List(TpeInt)), Some(TpeInt))
+      test(STraitCall("Ref", List(TpeInt)), Some(TpeInt))
       test(STraitCall("RFunc", List(TpeInt, TpeString)), Some(STpeFunc(TpeInt, TpeString)))
     }
 

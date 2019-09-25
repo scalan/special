@@ -2,11 +2,12 @@ package scalan.json
 
 import scalan.meta.{Parsers, AstContextBase}
 import scalan.meta.ScalanAst.SUnitDef
+import scalan.primitives.StringOps
 
 import scala.collection.mutable
-import scalan.{ModuleInfo, Scalan, Modules}
+import scalan.{ScalanEx, ModuleInfo, ModulesEx}
 
-trait ParsedModules extends Modules { scalan: Scalan =>
+trait ParsedModules extends ModulesEx { scalan: ScalanEx =>
   lazy val parsers = {
     val parsers = new Parsers(configs)
     implicit val parseCtx = new parsers.context.parsers.ParseCtx(true)(parsers.context)
@@ -20,7 +21,7 @@ trait ParsedModules extends Modules { scalan: Scalan =>
 
   override def getModules: mutable.Map[String, SUnitDef] = modules
 
-  override def registerModule(moduleInfo: ModuleInfo) = {
+  override protected def registerModule(moduleInfo: ModuleInfo) = {
     if (okRegisterModules) {
       val pack = moduleInfo.packageName
       val name = moduleInfo.moduleName
@@ -33,4 +34,4 @@ trait ParsedModules extends Modules { scalan: Scalan =>
   }
 }
 
-class ToolkitScalan extends Scalan with ParsedModules
+class ToolkitScalan extends ScalanEx with ParsedModules with StringOps

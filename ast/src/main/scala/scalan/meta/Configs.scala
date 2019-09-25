@@ -7,6 +7,7 @@ import scalan.util.{FileUtil, GraphUtil}
 import scalan.util.StringUtil._
 
 import scala.collection.mutable.{Map => MMap}
+import debox.{Buffer => DBuffer}
 import scalan.meta.ScalanAst.WrapperConf
 
 trait Conf {
@@ -59,7 +60,7 @@ abstract class ModuleConf extends Conf {
   def moduleDeps: ConfMap[ModuleConf]
 
   def dependsOnModules(): Set[ModuleConf] =
-    GraphUtil.depthFirstSetFrom(Set(this.dependencies.values.toSeq: _*))(m => m.dependencies.values)
+    GraphUtil.depthFirstSetFrom(DBuffer(this.dependencies.values.toSeq: _*))(m => DBuffer.fromIterable(m.dependencies.values)).toScalaSet()
 
   def getSourcesRootDir = s"${baseDir.opt(_ + "/")}$name/${ModuleConf.SourcesDir }"
 
@@ -74,7 +75,8 @@ abstract class ModuleConf extends Conf {
       baseContextTrait = "scalan.Scalan", // used like this: trait ${module.name}Defs extends ${config.baseContextTrait.opt(t => s"$t with ")}${module.name} {
       extraImports = List(
         "scala.reflect.runtime.universe._",
-        "scala.reflect._"
+        "scala.reflect._",
+        "scala.collection.mutable.WrappedArray"
       ),
       isVirtualized = false
     )
@@ -154,7 +156,7 @@ case class UnitConfig(
     resourcePath: String, // example: <module>/<ModuleConf.ResourcesDir>
     entityFile: String, // the package path and file name (example: scalan/collection/Col.scala)
     baseContextTrait: String = "scalan.Scalan",
-    extraImports: List[String] = List("scala.reflect.runtime.universe.{WeakTypeTag, weakTypeTag}", "scalan.meta.ScalanAst._"),
+    extraImports: List[String] = List("scala.collection.mutable.WrappedArray"),
     isVirtualized: Boolean = true,
     wrappers: Map[String, WrapperConf] = Map()
 ) extends Conf with Updatable[UnitConfig]

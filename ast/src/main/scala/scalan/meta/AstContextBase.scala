@@ -12,7 +12,7 @@ trait AstContextBase extends Symbols {
   /** Mapping of external type names to their wrappers ("Array" -> WrapperDescr). */
   private[scalan] val wrappers = MMap[String, WrapperDescr]()
 
-  /** Mapping of W-entities to the corresponding wrapped type name ("WArray" -> "Array") */
+  /** Mapping of W-entities to the corresponding wrapped type name (e.g. "WArray" -> "Array") */
   private[scalan] val entityToWrapper = MMap[String, String]()
 
   /** Mapping of <packageName>.<moduleName> to unit configuration.
@@ -179,11 +179,11 @@ trait AstContextBase extends Symbols {
 
   object RepTypeOf {
     def unapply(tpe: STpeExpr): Option[STpeExpr] = tpe match {
-      case STraitCall("Rep", Seq(t)) =>   // Rep[t] --> t
+      case STraitCall("Ref", Seq(t)) =>   // Ref[t] --> t
         Some(t)
       case STraitCall("RFunc", Seq(a, b)) =>  // RFunc[a,b] --> a => b
         Some(STpeFunc(a, b))
-      case TypeDef(td, RepTypeOf(t)) => // type RepCol[args] = Rep[Col[args]] then RepCol[args] --> Col[args]
+      case TypeDef(td, RepTypeOf(t)) => // type RepCol[args] = Ref[Col[args]] then RepCol[args] --> Col[args]
         Some(t)
       case _ => None
     }

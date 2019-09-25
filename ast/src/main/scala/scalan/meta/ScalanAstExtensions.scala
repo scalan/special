@@ -1,12 +1,13 @@
 package scalan.meta
 
-import scalan.util.GraphUtil
+import scalan.util.GraphUtilEx
 import scalan.meta.Symbols.SNamedDefSymbol
 import scala.collection.mutable.ArrayBuffer
 import scalan.meta.ScalanAstTraversers.EntityUseTraverser
 import scalan.meta.ScalanAst._
 import scalan.util.PrintExtensions._
 import scalan.meta.AstLenses._
+import debox.{Buffer => DBuffer}
 
 object ScalanAstExtensions {
 
@@ -28,7 +29,7 @@ object ScalanAstExtensions {
             if (config.isVirtualized || arg.isTypeDesc)
               s"${arg.name}: ${arg.tpe}"
             else
-              s"${arg.name}: Rep[${arg.tpe}]"
+              s"${arg.name}: Ref[${arg.tpe}]"
         }
       }
     }
@@ -37,7 +38,7 @@ object ScalanAstExtensions {
       if (isVirtualized) {
         as.args.map({ a =>
           val res = a.tpe.unRep(module, isVirtualized)
-          res.getOrElse { sys.error(s"Invalid field $a. Fields of concrete classes should be of type Rep[T] for some T.") }
+          res.getOrElse { sys.error(s"Invalid field $a. Fields of concrete classes should be of type Ref[T] for some T.") }
         })
       }
       else
@@ -108,7 +109,7 @@ object ScalanAstExtensions {
 
       val tRes = md.tpeRes.getOrElse(error)
       if (config.isVirtualized) tRes.toString
-      else s"Rep[$tRes]"
+      else s"Ref[$tRes]"
     }
 
     def declaration(config: UnitConfig, includeOverride: Boolean) = {
@@ -136,9 +137,13 @@ object ScalanAstExtensions {
       def inherit(n: String) = {
         val e = unit.getEntity(n)
         val as = e.getAncestorTypeNames.filter(n => localEntityNames.contains(n))
-        as
+        DBuffer.fromIterable(as)
       }
-      val es = GraphUtil.stronglyConnectedComponents(unit.allEntities.map(_.name))(inherit).flatten
+      val es = GraphUtilEx.stronglyConnectedComponents(unit.allEntities.map(_.name).toArray)(inherit)
+        .toIterable()
+        .map(_.toArray())
+        .flatten
+
       es.map(unit.getEntity).toList
     }
 

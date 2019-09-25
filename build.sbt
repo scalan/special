@@ -19,7 +19,7 @@ lazy val buildSettings = Seq(
     "-language:implicitConversions",
     "-language:existentials",
     "-language:experimental.macros",
-    "-opt:_"),
+    "-opt:l:inline"),
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (version.value.trim.endsWith("SNAPSHOT"))
@@ -55,7 +55,7 @@ lazy val itSettings = commonSettings ++ Defaults.itSettings ++
 
 def libraryDefSettings = commonSettings ++ Seq(
   scalacOptions ++= Seq(
-//    s"-Xplugin:${file(".").absolutePath }/scalanizer/target/scala-2.12/scalanizer-assembly-master-5f7cde71-SNAPSHOT.jar"
+//    s"-Xplugin:${file(".").absolutePath }/scalanizer/target/scala-2.12/scalanizer-assembly-core-opt-3c9f5c8a-SNAPSHOT.jar"
     //          , s"-P:scalanizer:module=$scalanizerOption"
     //    , "-Xgenerate-phase-graph"
   )
@@ -69,8 +69,8 @@ cancelable in Global := true
 lazy val common = Project("common", file("common"))
     .settings(commonSettings,
       libraryDependencies ++= Seq(
-        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
         "org.scala-lang" % "scala-reflect" % scalaVersion.value,
+        "org.spire-math" %% "debox" % "0.8.0",
         "commons-io" % "commons-io" % "2.5"
       ))
 
@@ -86,6 +86,7 @@ lazy val meta = Project("meta", file("meta"))
     .dependsOn(common % allConfigDependency, ast % allConfigDependency)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
+        "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
         "org.scala-lang" % "scala-compiler" % scalaVersion.value,
         "com.github.kxbmap" %% "configs" % "0.4.4",
         "com.trueaccord.lenses" %% "lenses" % "0.4.12"
@@ -106,17 +107,25 @@ lazy val libraryapi = Project("library-api", file("library-api"))
     .dependsOn(common % allConfigDependency)
     .settings(libraryDefSettings :+ addCompilerPlugin(paradise),
       libraryDependencies ++= Seq(
-        "org.typelevel" %% "macro-compat" % "1.1.1"
       ))
 
 lazy val core = Project("core", file("core"))
-    .dependsOn(common % allConfigDependency, ast % allConfigDependency, libraryapi % allConfigDependency, macros)
+    .dependsOn(common % allConfigDependency, libraryapi % allConfigDependency)
+    .settings(commonSettings,
+      libraryDependencies ++= Seq(
+        "com.github.kxbmap" %% "configs" % "0.4.4",
+        "org.spire-math" %% "debox" % "0.8.0",
+      ))
+      
+lazy val corex = Project("corex", file("corex"))
+    .dependsOn(
+      common % allConfigDependency, ast % allConfigDependency, 
+      libraryapi % allConfigDependency, core % allConfigDependency, macros)
     .settings(commonSettings,
       libraryDependencies ++= Seq(
         "cglib" % "cglib" % "3.2.3",
-        "org.objenesis" % "objenesis" % "2.4",
+        "org.objenesis" % "objenesis" % "3.0.1",
         "com.github.kxbmap" %% "configs" % "0.4.4",
-        "com.trueaccord.lenses" %% "lenses" % "0.4.12",
         "org.spire-math" %% "debox" % "0.8.0",
       ))
 
@@ -158,19 +167,19 @@ lazy val scalanizer = Project("scalanizer", file("scalanizer"))
     )
 
 lazy val kotlinBackend = Project("kotlin-backend", file("kotlin-backend")).
-    dependsOn(common % allConfigDependency, core % allConfigDependency, library)
+    dependsOn(common % allConfigDependency, core % allConfigDependency, corex % allConfigDependency, library)
     .configs(IntegrationTest)
     .settings(itSettings)
 
 lazy val toolkit = Project("toolkit", file("toolkit")).
-    dependsOn(common % allConfigDependency, meta % allConfigDependency, core % allConfigDependency, library % allConfigDependency)
+    dependsOn(common % allConfigDependency, meta % allConfigDependency, core % allConfigDependency, corex % allConfigDependency, library % allConfigDependency)
     .settings(commonSettings)
     .settings(
       libraryDependencies ++= Seq("io.spray" %% "spray-json" % "1.3.3")
     )
 
 lazy val root = Project("special", file("."))
-    .aggregate(common, ast, meta, macros, core, plugin,
+    .aggregate(common, ast, meta, macros, core, corex, plugin,
     libraryapi, libraryimpl, library, libraryconf, scalanizer, kotlinBackend, toolkit)
     .settings(buildSettings, publishArtifact := false)
 
