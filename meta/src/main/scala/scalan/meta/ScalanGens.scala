@@ -369,17 +369,17 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
   def genTypeByName(name: String)(implicit ctx: GenCtx) = tq"${TypeName(name)}"
 
   def repTypeExpr(tpeExpr: STpeExpr)(implicit ctx: GenCtx) = tpeExpr match {
-    case STpePrimitive(name: String, _) => tq"Rep[${TypeName(name)}]"
+    case STpePrimitive(name: String, _) => tq"Ref[${TypeName(name)}]"
     case STraitCall(name: String, args: List[STpeExpr]) =>
       val targs = args.map(genTypeExpr)
       val appliedType = tq"${TypeName(name)}[..$targs]"
       if (ctx.context.typeClasses.contains(name))
         appliedType
       else
-        tq"Rep[$appliedType]"
-    case STpeTuple(_) => tq"Rep[${genTypeExpr(tpeExpr)}]"
-    case STpeFunc(_, _) => tq"Rep[${genTypeExpr(tpeExpr)}]"
-    case STpeThis(fullName, _) => tq"Rep[${TypeName(fullName)}.this.type]"
+        tq"Ref[$appliedType]"
+    case STpeTuple(_) => tq"Ref[${genTypeExpr(tpeExpr)}]"
+    case STpeFunc(_, _) => tq"Ref[${genTypeExpr(tpeExpr)}]"
+    case STpeThis(fullName, _) => tq"Ref[${TypeName(fullName)}.this.type]"
     case unknown =>
       throw new NotImplementedError(s"repTypeExp($unknown)")
   }
@@ -430,7 +430,7 @@ trait ScalanGens[+G <: Global] { self: ScalanParsers[G] =>
         (acc._1 + 1, q"val ${TermName(param.name)}: $tres = $inval" :: acc._2)
       }
       val body = q"{ ..${vals.reverse}; ${genExpr(func.res)} }"
-      q"fun { (in: Rep[$tAst]) => $body }"
+      q"fun { (in: Ref[$tAst]) => $body }"
     }
   }
 

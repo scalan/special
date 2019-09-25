@@ -134,7 +134,7 @@ class MetaCodegen {
         val argIndex = e.tpeArgs.indexByName(tyArg.name)
         val argTy = args(argIndex)
         val descName = tyArg.descName
-        emit(s"""$prefix.typeArgs("${tyArg.name}")._1.as$descName[$argTy]""", t, true)
+        emit(s"""$prefix.typeArgs("${tyArg.name}")._1.asInstanceOf[$descName[$argTy]]""", t, true)
       case _ => sys.error(s"emit($tailPath)")
     }
     emit(prefixExpr, tailPath, true)
@@ -202,7 +202,7 @@ class MetaCodegen {
           }
         }.orElse {
           m.tpeRes.filter(!_.isRep(module, config.isVirtualized)).map {
-            returnTpe => s"Method's return type $returnTpe is not a Rep"
+            returnTpe => s"Method's return type $returnTpe is not a Ref"
           }
         }
 //        .orElse {
@@ -228,19 +228,19 @@ class MetaCodegen {
             }
             val typeVars = (e.tpeArgs ++ m.tpeArgs).map(_.declaration).toSet
             val returnType = {
-              val receiverType = s"Rep[${e.name + e.tpeArgs.asTypeParams(_.name)}]"
+              val receiverType = s"Ref[${e.name + e.tpeArgs.asTypeParams(_.name)}]"
               val argTypes = methodArgs.map { arg =>
                 arg.tpe match {
                   case RepeatedArgType(t) =>
                     if (config.isVirtualized)
                       s"Seq[$t]"
                     else
-                      s"Seq[Rep[$t]]"
+                      s"Seq[Ref[$t]]"
                   case _ =>
                     if (config.isVirtualized || arg.isTypeDesc)
                       arg.tpe.toString
                     else
-                      s"Rep[${arg.tpe}]"
+                      s"Ref[${arg.tpe}]"
                 }
               }
               val receiverAndArgTypes = ((if (isCompanion) Nil else List(receiverType)) ++ argTypes) match {
@@ -304,7 +304,7 @@ class MetaCodegen {
               } else {
                 s"receiver.elem.isInstanceOf[$traitElem]"
               }
-              s"""MethodCall(receiver, method, $methodArgsPattern, _) if $elemCheck && method.getName == "${m.name}"$annotationCheck"""
+              s"""MethodCall(receiver, method, $methodArgsPattern, _) if method.getName == "${m.name}" && $elemCheck$annotationCheck"""
             }
             // TODO we can use name-based extractor to improve performance when we switch to Scala 2.11
             // See http://hseeberger.github.io/blog/2013/10/04/name-based-extractors-in-scala-2-dot-11/
@@ -316,10 +316,7 @@ class MetaCodegen {
               |          Nullable(res).asInstanceOf[Nullable[$returnType]]
               |        case _ => Nullable.None
               |      }
-              |      def unapply(exp: Sym): Nullable[$returnType] = exp match {
-              |        case Def(d) => unapply(d)
-              |        case _ => Nullable.None
-              |      }
+              |      def unapply(exp: Sym): Nullable[$returnType] = unapply(exp.node)
               |    }""".stripAndTrim
         }
       }
@@ -391,7 +388,10 @@ class MetaCodegen {
     val implicitArgsOrParens = if (implicitArgs.nonEmpty) implicitArgsUse else "()"
     val firstAncestorType = entity.firstAncestorType
 
-    def entityRepSynonym = STpeDef(unit.unitSym, "Rep" + name, tpeArgs, STraitCall("Rep", List(STraitCall(name, tpeArgs.map(_.toTraitCall)))))
+    def elemTypeUse(toType: String = typeUse) =
+      s"${name}Elem[${PrintExtensions.join(tpeArgNames, toType)}]"
+
+    def entityRepSynonym = STpeDef(unit.unitSym, "Ref" + name, tpeArgs, STraitCall("Ref", List(STraitCall(name, tpeArgs.map(_.toTraitCall)))))
 
     def isCont = tpeArgs.length == 1 && entity.hasAnnotation(ContainerTypeAnnotation)
     def isFunctor = tpeArgs.length == 1 && entity.hasAnnotation(FunctorTypeAnnotation)
@@ -431,7 +431,6 @@ class MetaCodegen {
   }
 
   case class EntityTemplateData(m: SUnitDef, t: SEntityDef) extends TemplateData(m, t) {
-    def elemTypeUse(toType: String = typeUse) = s"${name}Elem[${PrintExtensions.join(tpeArgNames, toType)}]"
     val typesWithElems = boundedTpeArgString(false)
     def optimizeImplicits(): EntityTemplateData = t match {
       case t: STraitDef =>

@@ -34,7 +34,7 @@ class AstContext(val configs: List[UnitConfig], val parsers: ScalanParsers[Globa
   }
 
 
-  /** The types that shouldn't be Rep[].
+  /** The types that shouldn't be Ref[].
     * For example List("Elem", "Cont", "ClassTag") */
   val typeClasses = Set("Elem", "Cont", "ClassTag", "Functor")
 

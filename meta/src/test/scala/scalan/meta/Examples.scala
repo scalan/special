@@ -6,7 +6,7 @@ trait Examples { self: BaseMetaTests =>
     """package scalan.rx
      |import scalan._
      |trait Reactives extends Scalan {
-     |  type Obs[A] = Rep[Observable[A]]
+     |  type Obs[A] = Ref[Observable[A]]
      |  trait Observable[A] {
      |    implicit def eA: Elem[A]
      |  }
@@ -43,32 +43,32 @@ trait Examples { self: BaseMetaTests =>
     """package scalan.collection
      |import scalan._
      |trait Cols extends Scalan {
-     |  type Col[A] = Rep[Collection[A]]
-     |  abstract class ColOverArray[A](val arr: Rep[WArray[A]])(implicit val eA: Elem[A]) extends Collection[A] {
-     |    val list: Rep[WList[A]] = arr.toList
-     |    def length: Rep[Int] = ColOverArray.this.arr.length;
-     |    def apply(i: Rep[Int]): Rep[A] = ColOverArray.this.arr.apply(i)
-     |    def map[B](f: Rep[scala.Function1[A, B]]): Rep[Collection[B]] = ColOverArray(ColOverArray.this.arr.map(f))
+     |  type Col[A] = Ref[Collection[A]]
+     |  abstract class ColOverArray[A](val arr: Ref[WArray[A]])(implicit val eA: Elem[A]) extends Collection[A] {
+     |    val list: Ref[WList[A]] = arr.toList
+     |    def length: Ref[Int] = ColOverArray.this.arr.length;
+     |    def apply(i: Ref[Int]): Ref[A] = ColOverArray.this.arr.apply(i)
+     |    def map[B](f: Ref[scala.Function1[A, B]]): Ref[Collection[B]] = ColOverArray(ColOverArray.this.arr.map(f))
      |  };
      |  trait PairCollection[L, R] extends Collection[(L,R)]{
      |    implicit def eL: Elem[L];
      |    implicit def eR: Elem[R];
-     |    def ls: Rep[Collection[L]];
-     |    def rs: Rep[Collection[R]]
+     |    def ls: Ref[Collection[L]];
+     |    def rs: Ref[Collection[R]]
      |  }
      |  trait Collection[A] extends Def[Collection[A]] {
      |    implicit def eA: Elem[A]
-     |    def arr: Rep[WArray[A]];
-     |    def length: Rep[Int];
-     |    def apply(i: Rep[Int]): Rep[A]
-     |    def map[B](f: Rep[A => B]): Rep[Collection[B]]
+     |    def arr: Ref[WArray[A]];
+     |    def length: Ref[Int];
+     |    def apply(i: Ref[Int]): Ref[A]
+     |    def map[B](f: Ref[A => B]): Ref[Collection[B]]
      |  }
-     |  abstract class PairOfCols[L, R](val ls: Rep[Collection[L]], val rs: Rep[Collection[R]])
+     |  abstract class PairOfCols[L, R](val ls: Ref[Collection[L]], val rs: Ref[Collection[R]])
      |                                 (implicit val eL: Elem[L], val eR: Elem[R])
      |      extends PairCollection[L, R] with Collection[(L,R)] {
-     |    override def length: Rep[Int] = PairOfCols.this.ls.length;
-     |    override def apply(i: Rep[Int]): Rep[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
-     |    override def map[V](f: Rep[scala.Function1[scala.Tuple2[L, R], V]]): Rep[Collection[V]] = ColOverArray(PairOfCols.this.arr.map(f))
+     |    override def length: Ref[Int] = PairOfCols.this.ls.length;
+     |    override def apply(i: Ref[Int]): Ref[scala.Tuple2[L, R]] = Pair(PairOfCols.this.ls.apply(i), PairOfCols.this.rs.apply(i));
+     |    override def map[V](f: Ref[scala.Function1[scala.Tuple2[L, R], V]]): Ref[Collection[V]] = ColOverArray(PairOfCols.this.arr.map(f))
      |  };
      |}
     """.stripMargin, true)
@@ -106,16 +106,16 @@ trait Examples { self: BaseMetaTests =>
      |  import impl._
      |
      |  trait WArrays extends Base { self: WrappersModule =>
-     |    type RepWArray[T] = Rep[WArray[T]];
+     |    type RepWArray[T] = Ref[WArray[T]];
      |    @External("Array") @ContainerType @FunctorType trait WArray[T] extends Def[WArray[T]] { self =>
      |      implicit def eT: Elem[T];
-     |      @External def apply(i: Rep[Int]): Rep[T];
-     |      @External def zip[B](ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[T, B]]];
-     |      @External def map[B](f: Rep[scala.Function1[T, B]]): Rep[WArray[B]];
-     |      @External def length: Rep[Int]
+     |      @External def apply(i: Ref[Int]): Ref[T];
+     |      @External def zip[B](ys: Ref[WArray[B]]): Ref[WArray[scala.Tuple2[T, B]]];
+     |      @External def map[B](f: Ref[scala.Function1[T, B]]): Ref[WArray[B]];
+     |      @External def length: Ref[Int]
      |    };
      |    trait WArrayCompanion {
-     |      @External def fill[@Reified T](n: Rep[Int], elem: Rep[Thunk[T]]): Rep[WArray[T]]
+     |      @External def fill[@Reified T](n: Ref[Int], elem: Ref[Thunk[T]]): Ref[WArray[T]]
      |    }
      |  }
      |}
@@ -128,11 +128,11 @@ trait Examples { self: BaseMetaTests =>
      |  import scala.wrappers.WrappersModule
      |
      |  trait WArrays extends Base { self: WrappersModule =>
-     |    type RepWArray[T] = Rep[WArray[T]];
+     |    type RepWArray[T] = Ref[WArray[T]];
      |    @External("Array") @ContainerType trait WArray[T] extends Def[WArray[T]] { self =>
      |      implicit def eT: Elem[T];
-     |      @External def apply(i: Rep[Int]): Rep[T];
-     |      @External def zip[B](ys: Rep[WArray[B]]): Rep[WArray[scala.Tuple2[T, B]]];
+     |      @External def apply(i: Ref[Int]): Ref[T];
+     |      @External def zip[B](ys: Ref[WArray[B]]): Ref[WArray[scala.Tuple2[T, B]]];
      |    };
      |    trait WArrayCompanion {
      |    }
@@ -147,14 +147,14 @@ trait Examples { self: BaseMetaTests =>
      |  import impl._
      |
      |  trait WArrays extends Base { self: WrappersModule =>
-     |    type RepWArray[T] = Rep[WArray[T]];
+     |    type RepWArray[T] = Ref[WArray[T]];
      |    @External("Array") @FunctorType trait WArray[T] extends Def[WArray[T]] { self =>
-     |      @External def apply(i: Rep[Int]): Rep[T];
-     |      @External def map[B](f: Rep[scala.Function1[T, B]]): Rep[WArray[B]];
-     |      @External def length: Rep[Int]
+     |      @External def apply(i: Ref[Int]): Ref[T];
+     |      @External def map[B](f: Ref[scala.Function1[T, B]]): Ref[WArray[B]];
+     |      @External def length: Ref[Int]
      |    };
      |    trait WArrayCompanion {
-     |      @External def fill[@Reified T](n: Rep[Int], elem: Rep[Thunk[T]]): Rep[WArray[T]]
+     |      @External def fill[@Reified T](n: Ref[Int], elem: Ref[Thunk[T]]): Ref[WArray[T]]
      |    }
      |  }
      |}

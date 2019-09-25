@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Builtin {
-    String value() default "";  // default value interpreted as "external name is equal to annotated element name"
+    String value() default "";  // default value interpreted as "virtualized name is equal to annotated element name"
 }

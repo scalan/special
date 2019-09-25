@@ -1,13 +1,13 @@
 package scalan.universe.api
 
 import scala.language.reflectiveCalls
-import scalan.{TypeDesc, _}
+import scalan._
 import scalan.common.{SegmentsModule, KindsModule}
 import scalan.json.ParsedModules
 import scalan.universe.api.UniverseUtils._
 
-class ElemTests extends BaseCtxTests { suite =>
-  class Ctx extends TestContext with SegmentsModule with KindsModule with TypesApi with ParsedModules {
+class ElemTests extends BaseCtxTestsEx { suite =>
+  class Ctx extends TestContextEx with SegmentsModule with KindsModule with TypesApi with ParsedModules {
     import Segment._
     import Slice._
     import Interval._
@@ -24,7 +24,7 @@ class ElemTests extends BaseCtxTests { suite =>
 //    val tyCollectionDouble = Entity("Collection")(eDouble)
 
     def genElems[A](n: Int, e: Elem[A], f: Elem[A] => Iterator[Elem[_]]): Set[Elem[_]] = {
-      genTuples(List.fill(n)(e))(f).map(es => Elem.pairify(es.toIterator)).toSet
+      genTuples(List.fill(n)(e))(f).map(es => pairifyElems(es.toIterator)).toSet
     }
   }
 

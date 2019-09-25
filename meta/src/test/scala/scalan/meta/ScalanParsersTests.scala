@@ -22,7 +22,7 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
     testSTpe(us, "(Int,Boolean)=>Float", STpeFunc(STpeTuple(L(TpeInt, TpeBoolean)), TpeFloat))
     testSTpe(us, "Edge", TC("Edge", Nil))
     testSTpe(us, "Edge[V,E]", TC("Edge", L(TC("V", Nil), TC("E", Nil))))
-    testSTpe(us, "Rep[A=>B]", TC("Rep", L(STpeFunc(TC("A", Nil), TC("B", Nil)))))
+    testSTpe(us, "Ref[A=>B]", TC("Ref", L(STpeFunc(TC("A", Nil), TC("B", Nil)))))
   }
 
   describe("SMethodDef") {
@@ -68,14 +68,14 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
     testTrait(
       """trait A {
         |  import scalan._
-        |  type Rep[A] = A
+        |  type Ref[A] = A
         |  def f: (Int,A)
         |  @OverloadId("b")
         |  def g(x: Boolean): A
         |}""".stripMargin,
       TD(us, "A", Nil, Nil, L(
         IS("scalan._"),
-        STpeDef(ts, "Rep", L(STpeArg("A", None, Nil)), TC("A", Nil)),
+        STpeDef(ts, "Ref", L(STpeArg("A", None, Nil)), TC("A", Nil)),
         MD(ts, "f", Nil, Nil, Some(T(L(TpeInt, TC("A", Nil)))), false, false, None, Nil, None),
         MD(ts, "g", Nil, L(MAs(L(MA(false, false, "x", TpeBoolean, None)))), Some(TC("A", Nil)), false, false, Some("b"), L(SMethodAnnotation("OverloadId", Nil, List(SConst("b")))), None)), None, None))
 
@@ -83,7 +83,7 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
 
   val reactiveTrait =
     """trait Reactive extends Scalan {
-      |  type Obs[A] = Rep[Observable[A]]
+      |  type Obs[A] = Ref[Observable[A]]
       |  trait Observable[A] {
       |    implicit def eA: Elem[A]
       |  }
@@ -132,7 +132,7 @@ class ScalanParsersTests extends BaseMetaTests with Examples {
 
     testModule(reactiveModule,
       EMD("scalan.rx", L(SImportStat("scalan._")), reactiveModule.moduleName,
-        List(STpeDef(us, "Obs", L(STpeArg("A",None,Nil)) , TC("Rep", ancObsA))),
+        List(STpeDef(us, "Obs", L(STpeArg("A",None,Nil)) , TC("Ref", ancObsA))),
         List(entity),
         L(obsImpl1, obsImpl2),
         Nil,

@@ -50,7 +50,7 @@ class ScalanJsonTests extends JsonTests {
       import tester._
       import protocol._
       import ctx._
-      val f = fun { x: Rep[Int] => x + 1 }
+      val f = fun { x: Ref[Int] => x + 1 }
       val g = new PGraph(f)
       print(g, graphJson)
     }
@@ -59,7 +59,7 @@ class ScalanJsonTests extends JsonTests {
       import tester._
       import protocol._
       import ctx._
-      val f = fun { x: Rep[Int] => x + 1 }
+      val f = fun { x: Ref[Int] => x + 1 }
       val g = new PGraph(f)
       parse(graphJson, g)
     }
@@ -68,11 +68,11 @@ class ScalanJsonTests extends JsonTests {
       import tester._
       import protocol._
       import ctx._
-      def testLam[A,B](f: Rep[A => B], fileName: String = ""): Unit = {
+      def testLam[A,B](f: Ref[A => B], fileName: String = ""): Unit = {
         val g = new PGraph(f)
         test(g, fileName)
       }
-      testLam(fun { x: Rep[(Int,String)] => x._1 + x._2.length }, "lambda with Pair argument")
+      testLam(fun { x: Ref[(Int,String)] => x._1 + x._2.length }, "lambda with Pair argument")
     }
   }
 

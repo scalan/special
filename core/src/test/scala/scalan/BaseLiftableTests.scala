@@ -9,7 +9,7 @@ trait BaseLiftableTests { self: BaseCtxTests =>
 
     /** Check the MethodCall reified in f can be mapped to unlifted method which can be invoked.*/
     def check[ST, T](obj: ST, f: EnvRep[T] => EnvRep[_], expected: Any)(implicit lT: Liftable[ST,T]) = {
-      val objSym: Rep[T] = liftConst(obj)
+      val objSym: Ref[T] = liftConst(obj)
       val env = Map[Sym, AnyRef]()
       val resEnvSym = f(EnvRep.add(objSym -> obj.asInstanceOf[AnyRef]))
       val (resEnv, resSym) = resEnvSym.run(env)

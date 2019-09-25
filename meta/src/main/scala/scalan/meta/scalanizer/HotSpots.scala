@@ -139,7 +139,7 @@ package scalan.meta.scalanizer
 //  def getHotSpotManager(module: SModuleDef) = {
 //    val cakeName = getCakeName(module)
 //    val wrappers = hotSpots.getOrElse(module.name, Nil).map { method =>
-//      (method, q"lazy val ${TermName(method.name + "Wrapper")}: Rep[${method.wrappedTypeExpr}] = ??? ")
+//      (method, q"lazy val ${TermName(method.name + "Wrapper")}: Ref[${method.wrappedTypeExpr}] = ??? ")
 //    }.partition{w => w._1.kernel == KernelType.Scala}
 ////    val wrappers = hotSpots.getOrElse(module.name, Nil).map { method =>
 ////      (method, q"lazy val ${TermName(method.name + "Wrapper")} = ${method.toLambda}")

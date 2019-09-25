@@ -29,20 +29,6 @@ object CollectionUtil {
     result
   }
 
-//  def newUnboxedArray[T](len: Int)(implicit cT: Class[T]): Array[T] = (cT match {
-//    case ClassTag.Byte => new Array[Int](len)
-//    case ClassTag.Short => new Array[Short](len)
-//    case ClassTag.Char => new Array[Char](len)
-//    case ClassTag.Int => new Array[Int](len)
-//    case ClassTag.Long => new Array[Long](len)
-//    case ClassTag.Float => new Array[Float](len)
-//    case ClassTag.Double => new Array[Double](len)
-//    case ClassTag.Boolean => new Array[Boolean](len)
-//    case ClassTag.Any => new Array[Any](len)
-//    case ClassTag.AnyVal => new Array[AnyVal](len)
-//    case ClassTag.AnyRef => new Array[AnyRef](len)
-//  }).asInstanceOf[Array[T]]
-
   def deepHashCode[T](arr: Array[T]): Int = arr match {
     case arr: Array[AnyRef] => util.Arrays.deepHashCode(arr)
     case arr: Array[Byte] => util.Arrays.hashCode(arr)
@@ -132,28 +118,7 @@ object CollectionUtil {
     (ks zip vs).map(f.tupled)
   }
 
-  def unboxedArray[T:ClassTag](in: Seq[T]): Array[T] = {
-    in.toArray[T]
-    //TODO optimize intermediate allocation
-//    implicit val tagT = ClassTag.Any.asInstanceOf[ClassTag[T]]
-//    if (in.isEmpty)
-//      in.toArray
-//    else
-//      (in.head match {
-//        case _: java.lang.Byte => in.map(_.asInstanceOf[Byte]).toArray
-//        case _: java.lang.Short => in.map(_.asInstanceOf[Short]).toArray
-//        case _: java.lang.Integer => in.map(_.asInstanceOf[Int]).toArray
-//        case _: java.lang.Long => in.map(_.asInstanceOf[Long]).toArray
-//        case _: java.lang.Double => in.map(_.asInstanceOf[Double]).toArray
-//        case _: java.lang.Float => in.map(_.asInstanceOf[Float]).toArray
-//        case _: java.lang.Boolean => in.map(_.asInstanceOf[Boolean]).toArray
-//        case _: java.lang.Character => in.map(_.asInstanceOf[Char]).toArray
-//        case _: java.lang.String => in.map(_.asInstanceOf[String]).toArray
-//        case _ => in.toArray
-//      }).asInstanceOf[Array[T]]
-  }
-
-  implicit class AnyOps[A](x: A) {
+  implicit class AnyOps[A](val x: A) extends AnyVal {
     def zipWithExpandedBy[B](f: A => List[B]): List[(A,B)] = {
       val ys = f(x)
       List.fill(ys.length)(x) zip ys
@@ -176,21 +141,21 @@ object CollectionUtil {
     }
   }
   
-  implicit class AnyRefOps[A <: AnyRef](x: A) {
+  implicit class AnyRefOps[A <: AnyRef](val x: A) extends AnyVal {
     def transformConserve(f: A => A) = {
       val newX = f(x)
       if (newX eq x) x else newX
     }
   }
 
-  implicit class OptionOps[A](source: Option[A]) {
+  implicit class OptionOps[A](val source: Option[A]) extends AnyVal {
     def mergeWith[K](other: Option[A], merge: (A,A) => A): Option[A] = (source, other) match {
       case (_, None) => source
       case (None, Some(_)) => other
       case (Some(x), Some(y)) => Some(merge(x, y))
     }
   }
-  implicit class OptionOfAnyRefOps[A <: AnyRef](source: Option[A]) {
+  implicit class OptionOfAnyRefOps[A <: AnyRef](val source: Option[A]) extends AnyVal {
     def mapConserve[B <: AnyRef](f: A => B): Option[B] = source match {
       case Some(a) =>
         val b = f(a)
@@ -200,10 +165,7 @@ object CollectionUtil {
     }
   }
 
-  implicit class ListOps[A](source: List[A]) {
-  }
-
-  implicit class HashMapOps[K,V](source: java.util.HashMap[K,V]) {
+  implicit class HashMapOps[K,V](val source: java.util.HashMap[K,V]) extends AnyVal {
     def toImmutableMap: Map[K,V] = {
       var res = Map[K,V]()
       source.forEach((t: K, u: V) => res = res + (t -> u))
@@ -211,7 +173,7 @@ object CollectionUtil {
     }
   }
 
-  implicit class TraversableOps[A, Source[X] <: GenIterable[X]](xs: Source[A]) {
+  implicit class TraversableOps[A, Source[X] <: GenIterable[X]](val xs: Source[A]) extends AnyVal {
 
     def filterCast[B:ClassTag](implicit cbf: CanBuildFrom[Source[A], B, Source[B]]): Source[B] = {
       val b = cbf()
@@ -359,8 +321,9 @@ object CollectionUtil {
     }
   }
 
-  private def sameLengthErrorMsg[A,B](xs: Seq[A], ys: Seq[B]) =
+  private def sameLengthErrorMsg[A,B](xs: Seq[A], ys: Seq[B]) = {
     s"Collections should have same length but was ${xs.length} and ${ys.length}:\n xs=$xs;\n ys=$ys"
+  }
 
   def assertSameLength[A,B](xs: Seq[A], ys: Seq[B]) = {
     assert(xs.length == ys.length, sameLengthErrorMsg(xs, ys))

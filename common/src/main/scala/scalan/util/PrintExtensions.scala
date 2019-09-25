@@ -1,5 +1,6 @@
 package scalan.util
 
+/** Helper methods for pretty printing of collections and optional values. */
 object PrintExtensions {
   implicit class AnyExtension[A](x: A) {
       def when(p: A => Boolean, show: A => String, default: String = "") = if (p(x)) show(x) else default
@@ -10,13 +11,12 @@ object PrintExtensions {
       if (it.isEmpty) default else show(it)
 
     def rep(show: A => String = _.toString, sep: String = ", "): String = it.map(show).mkString(sep)
+
     def asTypeParams(show: A => String = _.toString) =
       if (it.nonEmpty) it.map(show).mkString("[", ", ", "]") else ""
 
     def optList(start: String, end: String, sep: String = ", ", show: A => String = _.toString) =
       if (it.nonEmpty) it.map(show).mkString(start, sep, end) else ""
-
-    def enumTypes(show: Int => String) = (1 to it.size).map(show)
   }
 
   implicit class OptionExtensions[A](val opt: Option[A]) extends AnyVal {

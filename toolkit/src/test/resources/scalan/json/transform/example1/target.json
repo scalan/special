@@ -3,11 +3,11 @@
   "roots": "s4",
   "s4": {
     "type": "Lambda",
-    "var": ["s6", "scala.Tuple2[WArray[Int], WArray[Int]]"],
-    "s5": ["First(s6)", "WArray[Int]"],
-    "s7": ["MethodCall", "s5", "wrappers.scala.WArrays$WArray", "length", "false", "Int"],
-    "s8": ["Second(s6)", "WArray[Int]"],
-    "s9": ["MethodCall", "s8", "wrappers.scala.WArrays$WArray", "length", "false", "Int"],
+    "var": ["s6", "scala.Tuple2[Coll[Int], Coll[Int]]"],
+    "s5": ["First(s6)", "Coll[Int]"],
+    "s7": ["MethodCall", "s5", "special.collection.Colls$Coll", "length", "false", "Int"],
+    "s8": ["Second(s6)", "Coll[Int]"],
+    "s9": ["MethodCall", "s8", "special.collection.Colls$Coll", "length", "false", "Int"],
     "s10": ["+(s7, s9)", "Int"],
     "roots": "s10"
   }

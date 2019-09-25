@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /** Relate annotated element with an external type or method given by `value` property.
-* For example WArray related to Array is annotated as @External("Array")
+* For example WOption related to Option is annotated as @External("Option")
 * This annotation is used to separate wrapper Entity from user defined virtualized Entity.
 * See WrapperEntity object. */
 @Target({ElementType.TYPE, ElementType.METHOD})

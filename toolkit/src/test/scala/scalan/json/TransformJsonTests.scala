@@ -1,16 +1,15 @@
 package scalan.json
 
 import special.wrappers.WrappersModule
-
-import scalan.Scalan
+import scalan.{Library, Scalan, TestLibrary}
 import spray.json._
-
 import scalan.util.FileUtil
+import special.collection.CollsModule
 
 class TransformJsonTests extends JsonTests {
   val transformDir = resourcesDir + "/transform"
 
-  class Ctx extends ToolkitScalan with WrappersModule
+  class Ctx extends ToolkitScalan with TestLibrary
 
   class PipelineTester[C <: ToolkitScalan](pipeline: TransformPipeline[C]) {
     val trans = new JsonTransformer(pipeline)
@@ -42,17 +41,17 @@ class TransformJsonTests extends JsonTests {
   abstract class SingleStagePipeline[C <: Scalan](c: C) extends TransformPipeline(c) {
     val rewriter: ctx.Rewriter
     override def apply(graph: ctx.PGraph): ctx.PGraph = {
-      graph.transform(ctx.DefaultMirror, rewriter, ctx.MapTransformer.Empty)
+      graph.transform(ctx.DefaultMirror, rewriter, ctx.MapTransformer.empty())
     }
   }
 
   describe("Single stage pipeline") {
     val pipeline = new SingleStagePipeline(new Ctx) {
-      import ctx.{Rewriter, Exp, Def, RepForSomeExtension}
+      import ctx.{Rewriter, Ref, asRep}
       val rewriter = new Rewriter {
-        def apply[T](x: Exp[T]): Exp[T] = (x match {
+        def apply[T](x: Ref[T]): Ref[T] = asRep[T](x match {
           case _ => x
-        }).asRep[T]
+        })
       }
     }
     val pt = new PipelineTester(pipeline)

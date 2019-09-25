@@ -1,17 +1,13 @@
 package scalan
 
-import java.lang.reflect.Method
-import java.util.Objects
-
 import special.collection._
 import special.wrappers.{WrappersSpecModule, WrappersModule}
-import scalan.util.{ReflectionUtil, MemoizedFunc}
+import scalan.util.{MemoizedFunc}
 
 trait Library extends Scalan
   with WrappersModule
   with WrappersSpecModule
   with CollsModule
-  with CollsOverArraysModule
   with SizesModule
   with CostsModule
   with ConcreteSizesModule
@@ -19,35 +15,29 @@ trait Library extends Scalan
   with MonoidsModule
   with MonoidInstancesModule
   with CostedOptionsModule {
-  import WArray._; import WOption._
+  import WOption._
   import WRType._
   import Coll._; import CollBuilder._;
-  import CReplColl._
   import Size._
   import Costed._; import CostedBuilder._
   import CostedFunc._;
   import WSpecialPredef._
 
-  type RSize[Val] = Rep[Size[Val]]
-  type RCosted[A] = Rep[Costed[A]]
-  type LazyRep[T] = MutableLazy[Rep[T]]
+  type RSize[Val] = Ref[Size[Val]]
+  type RCosted[A] = Ref[Costed[A]]
+  type LazyRep[T] = MutableLazy[Ref[T]]
 
   private val _liftElemMemo = new MemoizedFunc({
     case eT: Elem[t] =>
-      val lT = eT.liftable.asInstanceOf[Liftables.Liftable[Any, t]]
+      val lT = Liftables.asLiftable[Any, t](eT.liftable)
       liftableRType(lT).lift(eT.sourceType.asInstanceOf[RType[Any]])
   })
-  implicit def liftElem[T](eT: Elem[T]): Rep[WRType[T]] = {
-    _liftElemMemo(eT).asInstanceOf[Rep[WRType[T]]]
+  implicit def liftElem[T](eT: Elem[T]): Ref[WRType[T]] = {
+    _liftElemMemo(eT).asInstanceOf[Ref[WRType[T]]]  // asRep cannot be used for AnyRef
   }
 
-  override def equalValues[A](x: Any, y: Any)(implicit eA: Elem[A]) = eA match {
-    case ea: WArrayElem[_,_] => Objects.deepEquals(x, y)
-    case _ => super.equalValues[A](x, y)
-  }
-
-  private val _specialPredef: LazyRep[WSpecialPredefCompanionCtor] = MutableLazy(RWSpecialPredef)
-  def specialPredef: Rep[WSpecialPredefCompanionCtor] = _specialPredef.value
+  private val _specialPredef: LazyRep[WSpecialPredefCompanionCtor] = MutableLazy(RWSpecialPredef.value)
+  def specialPredef: Ref[WSpecialPredefCompanionCtor] = _specialPredef.value
 
   override protected def onReset(): Unit = {
     _specialPredef.reset()
@@ -65,153 +55,86 @@ trait Library extends Scalan
     case _ => !!!(s"Cannot create zeroSize($eVal)")
   })
 
-  override protected def getResultElem(receiver: Sym, m: Method, args: List[AnyRef]): Elem[_] = receiver.elem match {
-    case ae: WOptionElem[a, _] => m.getName match {
-      case "getOrElse" =>
-        val f = args(0).asInstanceOf[Rep[Thunk[Any]]]
-        f.elem.eItem
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case ae: WArrayElem[a, _] => m.getName match {
-      case "map" =>
-        val f = args(0).asInstanceOf[Rep[a => Any]]
-        wArrayElement(f.elem.eRange)
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case ce: CollElem[a, _] => m.getName match {
-      case "map" =>
-        val f = args(0).asInstanceOf[Rep[a => Any]]
-        collElement(f.elem.eRange)
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case b: CollBuilderElem[_] => m.getName match {
-      case "apply" =>
-        ReflectionUtil.overloadId(m) match {
-          case Some("apply_items") =>
-            val eItem = args(0).asInstanceOf[Seq[Sym]](0).elem
-            collElement(eItem)
-          case _ => super.getResultElem(receiver, m, args)
-        }
-      case _ => super.getResultElem(receiver, m, args)
-    }
-    case _ => super.getResultElem(receiver, m, args)
-  }
-
-  private val WA = WArrayMethods
-  private val CM = CollMethods
+  val CM = CollMethods
   private val CBM = CollBuilderMethods
   private val WOptionM = WOptionMethods
   private val SPCM = WSpecialPredefCompanionMethods
 
-  object IsProjectFirst {
-    def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-      case Def(Lambda(_,_,x, Def(First(p)))) if p == x => Some(f.asRep[A=>B])
-      case _ => None
-    }
-  }
-  object IsProjectSecond {
-    def unapply[A,B](f: Rep[_]): Option[Rep[A=>B]] = f match {
-      case Def(Lambda(_,_,x, Def(Second(p)))) if p == x => Some(f.asRep[A=>B])
-      case _ => None
-    }
-  }
-  object IsNumericToInt {
-    def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
-      case ApplyUnOp(_: NumericToInt[_], x) => Nullable(x.asInstanceOf[Rep[A] forSome {type A}])
-      case _ => Nullable.None
-    }
-  }
-  object IsNumericToLong {
-    def unapply(d: Def[_]): Nullable[Rep[A] forSome {type A}] = d match {
-      case ApplyUnOp(_: NumericToLong[_], x) => Nullable(x.asInstanceOf[Rep[A] forSome {type A}])
-      case _ => Nullable.None
-    }
-  }
-
-  def colBuilder: Rep[CollBuilder]
-  def costedBuilder: Rep[CostedBuilder]
-  def intPlusMonoid: Rep[Monoid[Int]]
-  def longPlusMonoid: Rep[Monoid[Long]]
+  def colBuilder: Ref[CollBuilder]
+  def costedBuilder: Ref[CostedBuilder]
+  def intPlusMonoid: Ref[Monoid[Int]]
+  def longPlusMonoid: Ref[Monoid[Long]]
 
   val intPlusMonoidValue = new special.collection.MonoidBuilderInst().intPlusMonoid
   val longPlusMonoidValue = new special.collection.MonoidBuilderInst().longPlusMonoid
 
   override def rewriteDef[T](d: Def[T]) = d match {
-    case WA.length(WA.map(xs, _)) => xs.length
-    case CM.length(CM.map(xs, _)) => xs.length
-
-    case CM.length(CBM.replicate(_, len, _)) => len
-    case CM.length(Def(CollConst(coll, _))) => coll.length
-    case CM.length(CBM.fromArray(_, arr)) => arr.length
-    case CM.length(CBM.fromItems(_, items, _)) => items.length
-    case IsNumericToLong(Def(IsNumericToInt(x))) if x.elem == LongElement => x
+    case CM.length(ys) => ys.node match {
+      // Rule: xs.map(f).length  ==> xs.length
+      case CM.map(xs, _) =>
+        xs.length
+      // Rule: replicate(len, v).length => len
+      case CBM.replicate(_, len, _) =>
+        len
+      // Rule: Const[Coll[T]](coll).length =>
+      case CollConst(coll, _) =>
+        coll.length
+      // Rule: Coll(items @ Seq(x1, x2, x3)).length => items.length
+      case CBM.fromItems(_, items, _) =>
+        items.length
+      case _ => super.rewriteDef(d)
+    }
 
     // Rule: replicate(l, x).zip(replicate(l, y)) ==> replicate(l, (x,y))
     case CM.zip(CBM.replicate(b1, l1, v1), CBM.replicate(b2, l2, v2)) if b1 == b2 && l1 == l2 =>
       b1.replicate(l1, Pair(v1, v2))
 
-    // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
-    case CM.map(CBM.replicate(b, l, v: Rep[a]), _f) =>
-      val f = asRep[a => Any](_f)
-      b.replicate(l, Apply(f, v, false))
+    case CM.map(xs, _f) => _f.node match {
+      case IdentityLambda() => xs
+      case _ => xs.node match {
+        // Rule: replicate(l, v).map(f) ==> replicate(l, f(v))
+        case CBM.replicate(b, l, v: Ref[a]) =>
+          val f = asRep[a => Any](_f)
+          b.replicate(l, Apply(f, v, false))
+        case _ => super.rewriteDef(d)
+      }
+    }
 
-    // Rule: xs.map(_._1).zip(xs.map(_._2)) ==> xs
-    case WA.zip(WA.map(xs, IsProjectFirst(_)), WA.map(ys, IsProjectSecond(_))) if xs == ys => xs
-    case CM.zip(CM.map(xs, IsProjectFirst(_)), CM.map(ys, IsProjectSecond(_))) if xs == ys => xs
+    case CM.sum(xs, m) => m.node match {
+      case _: IntPlusMonoid => xs.node match {
+        case CollConst(coll, lA) if lA.eW == IntElement =>
+          coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
+        case CBM.replicate(_, n, x: Ref[Int] @unchecked) =>
+          x * n
+        case _ => super.rewriteDef(d)
+      }
+      case _: LongPlusMonoid => xs.node match {
+        case CollConst(coll, lA) if lA.eW == LongElement =>
+          coll.asInstanceOf[SColl[Long]].sum(longPlusMonoidValue)
+        case CBM.replicate(_, n, x: Ref[Long] @unchecked) =>
+          x * n.toLong
+        case _ => super.rewriteDef(d)
+      }
+      case _ => super.rewriteDef(d)
+    }
 
-    case WA.map(WA.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
-      implicit val ea = f.elem.eDom
-      val xs = _xs.asRep[WArray[a]]
-      val g  = _g.asRep[b => c]
-      xs.map(fun { x: Rep[a] => g(f(x)) })
-    case CM.map(CM.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>
-      implicit val ea = f.elem.eDom
-      val xs = _xs.asRep[Coll[a]]
-      val g  = _g.asRep[b => c]
-      xs.map(fun { x: Rep[a] => g(f(x)) })
-
-    case CM.map(xs, Def(IdentityLambda())) => xs
-//    case CM.map(xs, Def(ConstantLambda(res))) =>
-//      RCReplColl(ThunkForce(Thunk(res)), xs.length)
-
-    case CM.sum(Def(CollConst(coll, lA)), Def(_: IntPlusMonoid)) if lA.eW == IntElement =>
-      coll.asInstanceOf[SColl[Int]].sum(intPlusMonoidValue)
-    case CM.sum(Def(CollConst(coll, lA)), Def(_: LongPlusMonoid)) if lA.eW == LongElement =>
-      coll.asInstanceOf[SColl[Long]].sum(longPlusMonoidValue)
-
-    case CM.sum(CBM.replicate(_, n, x: Rep[Int] @unchecked), Def(_: IntPlusMonoid)) =>
-      x * n
-    case CM.sum(CBM.replicate(_, n, x: Rep[Long] @unchecked), Def(_: LongPlusMonoid)) =>
-      x * n.toLong
-      
     // Rule: opt.fold(None, x => Some(x)) ==> opt
     case WOptionM.fold(opt, Def(ThunkDef(SPCM.none(_), _)), Def(Lambda(_, _, x, SPCM.some(y)))) if x == y => opt
 
-    // Rule: Some(x).getOrElse(_) ==> x
-    case WOptionM.getOrElse(SPCM.some(x), _) => x
-    case WOptionM.getOrElse(Def(WOptionConst(Some(x), lA)), _) => lA.lift(x)
+    case WOptionM.getOrElse(opt, _) => opt.node match {
+      // Rule: Some(x).getOrElse(_) ==> x
+      case SPCM.some(x) => x
+      case WOptionConst(Some(x), lA) => lA.lift(x)
+      case _ => super.rewriteDef(d)
+    }
 
     case _ => super.rewriteDef(d)
   }
 
   override def invokeUnlifted(e: Elem[_], mc: MethodCall, dataEnv: DataEnv): AnyRef = e match {
-    case _: CollBuilderElem[_] => mc match {
-      case CollBuilderMethods.fromArray(b, xs) =>
-        val newMC = mc.copy(args = mc.args :+ xs.elem.eItem)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(e, newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(e, mc, dataEnv)
-    }
     case _: CollElem[_,_] => mc match {
       case CollMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
-        super.invokeUnlifted(e, newMC, dataEnv)
-      case _ =>
-        super.invokeUnlifted(e, mc, dataEnv)
-    }
-    case _: WArrayElem[_,_] => mc match {
-      case WArrayMethods.map(xs, f) =>
-        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.selfType, mc.isAdapterCall)
+        val newMC = mc.copy(args = mc.args :+ f.elem.eRange)(mc.resultType, mc.isAdapterCall)
         super.invokeUnlifted(e, newMC, dataEnv)
       case _ =>
         super.invokeUnlifted(e, mc, dataEnv)
@@ -220,15 +143,4 @@ trait Library extends Scalan
       super.invokeUnlifted(e, mc, dataEnv)
   }
 
-  implicit class CostedFuncOps[A,B](fC: Rep[Costed[A => B]]) {
-    def applyCosted(x: Rep[Costed[A]]): Rep[Costed[B]] = {
-      val fC_elem = fC.elem.asInstanceOf[CostedElem[A => B,_]].eVal
-      implicit val eA = fC_elem.eDom
-      implicit val eB = fC_elem.eRange
-      val res = tryConvert(
-            element[CostedFunc[Unit,A,B]], element[Costed[B]], fC,
-            fun { f: Rep[CostedFunc[Unit,A,B]] => f.func(x) })
-      res
-    }
-  }
 }

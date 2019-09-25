@@ -149,7 +149,9 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
           val wSpecPackageName = wrapspecUnit.map(_.packageName).getOrElse("wrappers")
           val wUnit = u.copy(imports = u.imports ++ wconfig.imports.map(SImportStat(_)) ++
             List(SImportStat(s"$wSpecPackageName.WrappersModule"),
-                 SImportStat(s"$wSpecPackageName.${wconfig.name}WrapSpec")))
+                 SImportStat(s"$wSpecPackageName.${wconfig.name}WrapSpec"),
+                 SImportStat("scala.collection.mutable.WrappedArray")
+                 ))
 
           /** Build source code of the wrapper unit and store it in a file */
           val wUnitWithoutImpl = wUnit.copy(classes = Nil)(context)
@@ -186,7 +188,7 @@ class SourceModulePipeline[+G <: Global](s: Scalanizer[G]) extends ScalanizerPip
       withUnitModule(unit) { (module, conf) =>
        val unitDef = context.getUnit
 
-        /** Generates a virtualized version of original Scala AST, wraps types by Rep[] and etc. */
+        /** Generates a virtualized version of original Scala AST, wraps types by Ref[] and etc. */
         val virtUnitDef = virtPipeline(unitDef)
         var optUnitDef = optimizeUnitImplicits(virtUnitDef)
         optUnitDef = optUnitDef.addInCakeImports

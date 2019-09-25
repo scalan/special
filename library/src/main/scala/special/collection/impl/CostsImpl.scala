@@ -3,13 +3,12 @@ package special.collection
 import scalan._
 import scala.reflect.runtime.universe._
 import scala.reflect._
+import scala.collection.mutable.WrappedArray
 
 package impl {
 // Abs -----------------------------------
 trait CostsDefs extends scalan.Scalan with Costs {
   self: Library =>
-import IsoUR._
-import Converter._
 import Coll._
 import Costed._
 import CostedBuilder._
@@ -29,47 +28,49 @@ import WOption._
 import WRType._
 
 object Costed extends EntityObject("Costed") {
+  private val CostedClass = classOf[Costed[_]]
+
   // entityAdapter for Costed trait
-  case class CostedAdapter[Val](source: Rep[Costed[Val]])
-      extends Costed[Val] with Def[Costed[Val]] {
-    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+  case class CostedAdapter[Val](source: Ref[Costed[Val]])
+      extends Node with Costed[Val]
+      with Def[Costed[Val]] {
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
-    val selfType: Elem[Costed[Val]] = element[Costed[Val]]
+    val resultType: Elem[Costed[Val]] = element[Costed[Val]]
     override def transform(t: Transformer) = CostedAdapter[Val](t(source))
-    private val thisClass = classOf[Costed[Val]]
 
-    def builder: Rep[CostedBuilder] = {
+    def builder: Ref[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
-        List(),
+        CostedClass.getMethod("builder"),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[Val] = {
+    def value: Ref[Val] = {
       asRep[Val](mkMethodCall(source,
-        thisClass.getMethod("value"),
-        List(),
+        CostedClass.getMethod("value"),
+        WrappedArray.empty,
         true, true, element[Val]))
     }
 
-    def cost: Rep[Int] = {
+    def cost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("cost"),
-        List(),
+        CostedClass.getMethod("cost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def size: Rep[Size[Val]] = {
+    def size: Ref[Size[Val]] = {
       asRep[Size[Val]](mkMethodCall(source,
-        thisClass.getMethod("size"),
-        List(),
+        CostedClass.getMethod("size"),
+        WrappedArray.empty,
         true, true, element[Size[Val]]))
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCosted[Val](p: Rep[Costed[Val]]): Costed[Val] = {
-    if (p.rhs.isInstanceOf[Costed[Val]@unchecked]) p.rhs.asInstanceOf[Costed[Val]]
+  // entityUnref: single unref method for each type family
+  implicit final def unrefCosted[Val](p: Ref[Costed[Val]]): Costed[Val] = {
+    if (p.node.isInstanceOf[Costed[Val]@unchecked]) p.node.asInstanceOf[Costed[Val]]
     else
       CostedAdapter(p)
   }
@@ -79,96 +80,64 @@ object Costed extends EntityObject("Costed") {
     extends EntityElem[To] {
     def eVal = _eVal
 
-    lazy val parent: Option[Elem[_]] = None
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[Costed[Val]].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[Costed[Val]] => convertCosted(x) }
-      tryConvert(element[Costed[Val]], this, x, conv)
-    }
-
-    def convertCosted(x: Rep[Costed[Val]]): Rep[To] = {
-      x.elem match {
-        case _: CostedElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedElem[_, _], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedElement[Val](implicit eVal: Elem[Val]): Elem[Costed[Val]] =
+  implicit final def costedElement[Val](implicit eVal: Elem[Val]): Elem[Costed[Val]] =
     cachedElemByClass(eVal)(classOf[CostedElem[Val, Costed[Val]]])
 
-  implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedCompanionCtor]
-    protected def getDefaultRep = RCosted
-  }
+  implicit case object CostedCompanionElem extends CompanionElem[CostedCompanionCtor]
 
   abstract class CostedCompanionCtor extends CompanionDef[CostedCompanionCtor] with CostedCompanion {
-    def selfType = CostedCompanionElem
+    def resultType = CostedCompanionElem
     override def toString = "Costed"
   }
-  implicit def proxyCostedCompanionCtor(p: Rep[CostedCompanionCtor]): CostedCompanionCtor =
-    proxyOps[CostedCompanionCtor](p)
+  implicit final def unrefCostedCompanionCtor(p: Ref[CostedCompanionCtor]): CostedCompanionCtor =
+    p.node.asInstanceOf[CostedCompanionCtor]
 
-  lazy val RCosted: Rep[CostedCompanionCtor] = new CostedCompanionCtor {
+  lazy val RCosted: MutableLazy[CostedCompanionCtor] = MutableLazy(new CostedCompanionCtor {
     private val thisClass = classOf[CostedCompanion]
-  }
+  })
 
   object CostedMethods {
     object builder {
-      def unapply(d: Def[_]): Nullable[Rep[Costed[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "builder" =>
+      def unapply(d: Def[_]): Nullable[Ref[Costed[Val]] forSome {type Val}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "builder" && receiver.elem.isInstanceOf[CostedElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Costed[Val]] forSome {type Val}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Costed[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
 
     object value {
-      def unapply(d: Def[_]): Nullable[Rep[Costed[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "value" =>
+      def unapply(d: Def[_]): Nullable[Ref[Costed[Val]] forSome {type Val}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "value" && receiver.elem.isInstanceOf[CostedElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Costed[Val]] forSome {type Val}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Costed[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
 
     object cost {
-      def unapply(d: Def[_]): Nullable[Rep[Costed[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "cost" =>
+      def unapply(d: Def[_]): Nullable[Ref[Costed[Val]] forSome {type Val}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "cost" && receiver.elem.isInstanceOf[CostedElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Costed[Val]] forSome {type Val}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Costed[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
 
     object size {
-      def unapply(d: Def[_]): Nullable[Rep[Costed[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedElem[_, _]] && method.getName == "size" =>
+      def unapply(d: Def[_]): Nullable[Ref[Costed[Val]] forSome {type Val}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "size" && receiver.elem.isInstanceOf[CostedElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[Costed[Val]] forSome {type Val}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[Costed[Val]] forSome {type Val}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[Costed[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[Costed[Val]] forSome {type Val}] = unapply(exp.node)
     }
   }
 
@@ -178,47 +147,49 @@ object Costed extends EntityObject("Costed") {
   registerEntityObject("Costed", Costed)
 
 object CostedPrim extends EntityObject("CostedPrim") {
+  private val CostedPrimClass = classOf[CostedPrim[_]]
+
   // entityAdapter for CostedPrim trait
-  case class CostedPrimAdapter[Val](source: Rep[CostedPrim[Val]])
-      extends CostedPrim[Val] with Def[CostedPrim[Val]] {
-    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asElem[Val]
+  case class CostedPrimAdapter[Val](source: Ref[CostedPrim[Val]])
+      extends Node with CostedPrim[Val]
+      with Def[CostedPrim[Val]] {
+    implicit lazy val eVal = source.elem.typeArgs("Val")._1.asInstanceOf[Elem[Val]]
 
-    val selfType: Elem[CostedPrim[Val]] = element[CostedPrim[Val]]
+    val resultType: Elem[CostedPrim[Val]] = element[CostedPrim[Val]]
     override def transform(t: Transformer) = CostedPrimAdapter[Val](t(source))
-    private val thisClass = classOf[CostedPrim[Val]]
 
-    def value: Rep[Val] = {
+    def value: Ref[Val] = {
       asRep[Val](mkMethodCall(source,
-        thisClass.getMethod("value"),
-        List(),
+        CostedPrimClass.getMethod("value"),
+        WrappedArray.empty,
         true, true, element[Val]))
     }
 
-    def cost: Rep[Int] = {
+    def cost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("cost"),
-        List(),
+        CostedPrimClass.getMethod("cost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def size: Rep[Size[Val]] = {
+    def size: Ref[Size[Val]] = {
       asRep[Size[Val]](mkMethodCall(source,
-        thisClass.getMethod("size"),
-        List(),
+        CostedPrimClass.getMethod("size"),
+        WrappedArray.empty,
         true, true, element[Size[Val]]))
     }
 
-    def builder: Rep[CostedBuilder] = {
+    def builder: Ref[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
-        List(),
+        CostedPrimClass.getMethod("builder"),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedPrim[Val](p: Rep[CostedPrim[Val]]): CostedPrim[Val] = {
-    if (p.rhs.isInstanceOf[CostedPrim[Val]@unchecked]) p.rhs.asInstanceOf[CostedPrim[Val]]
+  // entityUnref: single unref method for each type family
+  implicit final def unrefCostedPrim[Val](p: Ref[CostedPrim[Val]]): CostedPrim[Val] = {
+    if (p.node.isInstanceOf[CostedPrim[Val]@unchecked]) p.node.asInstanceOf[CostedPrim[Val]]
     else
       CostedPrimAdapter(p)
   }
@@ -230,153 +201,92 @@ object CostedPrim extends EntityObject("CostedPrim") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(element[Val]))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Val" -> (eVal -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagVal = eVal.tag
-      weakTypeTag[CostedPrim[Val]].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedPrim[Val]] => convertCostedPrim(x) }
-      tryConvert(element[CostedPrim[Val]], this, x, conv)
-    }
-
-    def convertCostedPrim(x: Rep[CostedPrim[Val]]): Rep[To] = {
-      x.elem match {
-        case _: CostedPrimElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedPrimElem[_, _], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedPrimElement[Val](implicit eVal: Elem[Val]): Elem[CostedPrim[Val]] =
+  implicit final def costedPrimElement[Val](implicit eVal: Elem[Val]): Elem[CostedPrim[Val]] =
     cachedElemByClass(eVal)(classOf[CostedPrimElem[Val, CostedPrim[Val]]])
 
-  implicit case object CostedPrimCompanionElem extends CompanionElem[CostedPrimCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedPrimCompanionCtor]
-    protected def getDefaultRep = RCostedPrim
-  }
+  implicit case object CostedPrimCompanionElem extends CompanionElem[CostedPrimCompanionCtor]
 
   abstract class CostedPrimCompanionCtor extends CompanionDef[CostedPrimCompanionCtor] with CostedPrimCompanion {
-    def selfType = CostedPrimCompanionElem
+    def resultType = CostedPrimCompanionElem
     override def toString = "CostedPrim"
   }
-  implicit def proxyCostedPrimCompanionCtor(p: Rep[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
-    proxyOps[CostedPrimCompanionCtor](p)
+  implicit final def unrefCostedPrimCompanionCtor(p: Ref[CostedPrimCompanionCtor]): CostedPrimCompanionCtor =
+    p.node.asInstanceOf[CostedPrimCompanionCtor]
 
-  lazy val RCostedPrim: Rep[CostedPrimCompanionCtor] = new CostedPrimCompanionCtor {
+  lazy val RCostedPrim: MutableLazy[CostedPrimCompanionCtor] = MutableLazy(new CostedPrimCompanionCtor {
     private val thisClass = classOf[CostedPrimCompanion]
-  }
-
-  object CostedPrimMethods {
-    object value {
-      def unapply(d: Def[_]): Nullable[Rep[CostedPrim[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPrimElem[_, _]] && method.getName == "value" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedPrim[Val]] forSome {type Val}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedPrim[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object cost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedPrim[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPrimElem[_, _]] && method.getName == "cost" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedPrim[Val]] forSome {type Val}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedPrim[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object size {
-      def unapply(d: Def[_]): Nullable[Rep[CostedPrim[Val]] forSome {type Val}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPrimElem[_, _]] && method.getName == "size" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedPrim[Val]] forSome {type Val}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedPrim[Val]] forSome {type Val}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object CostedPrimCompanionMethods {
-  }
+  })
 } // of object CostedPrim
   registerEntityObject("CostedPrim", CostedPrim)
 
 object CostedPair extends EntityObject("CostedPair") {
-  // entityAdapter for CostedPair trait
-  case class CostedPairAdapter[L, R](source: Rep[CostedPair[L, R]])
-      extends CostedPair[L, R] with Def[CostedPair[L, R]] {
-    implicit lazy val eL = source.elem.typeArgs("L")._1.asElem[L];
-implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
-    override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
-    val selfType: Elem[CostedPair[L, R]] = element[CostedPair[L, R]]
-    override def transform(t: Transformer) = CostedPairAdapter[L, R](t(source))
-    private val thisClass = classOf[CostedPair[L, R]]
+  private val CostedPairClass = classOf[CostedPair[_, _]]
 
-    def l: Rep[Costed[L]] = {
+  // entityAdapter for CostedPair trait
+  case class CostedPairAdapter[L, R](source: Ref[CostedPair[L, R]])
+      extends Node with CostedPair[L, R]
+      with Def[CostedPair[L, R]] {
+    implicit lazy val eL = source.elem.typeArgs("L")._1.asInstanceOf[Elem[L]];
+implicit lazy val eR = source.elem.typeArgs("R")._1.asInstanceOf[Elem[R]]
+    override lazy val eVal: Elem[(L, R)] = implicitly[Elem[(L, R)]]
+    val resultType: Elem[CostedPair[L, R]] = element[CostedPair[L, R]]
+    override def transform(t: Transformer) = CostedPairAdapter[L, R](t(source))
+
+    def l: Ref[Costed[L]] = {
       asRep[Costed[L]](mkMethodCall(source,
-        thisClass.getMethod("l"),
-        List(),
+        CostedPairClass.getMethod("l"),
+        WrappedArray.empty,
         true, true, element[Costed[L]]))
     }
 
-    def r: Rep[Costed[R]] = {
+    def r: Ref[Costed[R]] = {
       asRep[Costed[R]](mkMethodCall(source,
-        thisClass.getMethod("r"),
-        List(),
+        CostedPairClass.getMethod("r"),
+        WrappedArray.empty,
         true, true, element[Costed[R]]))
     }
 
-    def accCost: Rep[Int] = {
+    def accCost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("accCost"),
-        List(),
+        CostedPairClass.getMethod("accCost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def builder: Rep[CostedBuilder] = {
+    def builder: Ref[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
-        List(),
+        CostedPairClass.getMethod("builder"),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[(L, R)] = {
+    def value: Ref[(L, R)] = {
       asRep[(L, R)](mkMethodCall(source,
-        thisClass.getMethod("value"),
-        List(),
+        CostedPairClass.getMethod("value"),
+        WrappedArray.empty,
         true, true, element[(L, R)]))
     }
 
-    def cost: Rep[Int] = {
+    def cost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("cost"),
-        List(),
+        CostedPairClass.getMethod("cost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def size: Rep[Size[(L, R)]] = {
+    def size: Ref[Size[(L, R)]] = {
       asRep[Size[(L, R)]](mkMethodCall(source,
-        thisClass.getMethod("size"),
-        List(),
+        CostedPairClass.getMethod("size"),
+        WrappedArray.empty,
         true, true, element[Size[(L, R)]]))
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedPair[L, R](p: Rep[CostedPair[L, R]]): CostedPair[L, R] = {
-    if (p.rhs.isInstanceOf[CostedPair[L, R]@unchecked]) p.rhs.asInstanceOf[CostedPair[L, R]]
+  // entityUnref: single unref method for each type family
+  implicit final def unrefCostedPair[L, R](p: Ref[CostedPair[L, R]]): CostedPair[L, R] = {
+    if (p.node.isInstanceOf[CostedPair[L, R]@unchecked]) p.node.asInstanceOf[CostedPair[L, R]]
     else
       CostedPairAdapter(p)
   }
@@ -389,176 +299,114 @@ implicit lazy val eR = source.elem.typeArgs("R")._1.asElem[R]
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(pairElement(element[L],element[R])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("L" -> (eL -> scalan.util.Invariant), "R" -> (eR -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagL = eL.tag
-      implicit val tagR = eR.tag
-      weakTypeTag[CostedPair[L, R]].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedPair[L, R]] => convertCostedPair(x) }
-      tryConvert(element[CostedPair[L, R]], this, x, conv)
-    }
-
-    def convertCostedPair(x: Rep[CostedPair[L, R]]): Rep[To] = {
-      x.elem match {
-        case _: CostedPairElem[_, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedPairElem[_, _, _], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedPairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[CostedPair[L, R]] =
+  implicit final def costedPairElement[L, R](implicit eL: Elem[L], eR: Elem[R]): Elem[CostedPair[L, R]] =
     cachedElemByClass(eL, eR)(classOf[CostedPairElem[L, R, CostedPair[L, R]]])
 
-  implicit case object CostedPairCompanionElem extends CompanionElem[CostedPairCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedPairCompanionCtor]
-    protected def getDefaultRep = RCostedPair
-  }
+  implicit case object CostedPairCompanionElem extends CompanionElem[CostedPairCompanionCtor]
 
   abstract class CostedPairCompanionCtor extends CompanionDef[CostedPairCompanionCtor] with CostedPairCompanion {
-    def selfType = CostedPairCompanionElem
+    def resultType = CostedPairCompanionElem
     override def toString = "CostedPair"
   }
-  implicit def proxyCostedPairCompanionCtor(p: Rep[CostedPairCompanionCtor]): CostedPairCompanionCtor =
-    proxyOps[CostedPairCompanionCtor](p)
+  implicit final def unrefCostedPairCompanionCtor(p: Ref[CostedPairCompanionCtor]): CostedPairCompanionCtor =
+    p.node.asInstanceOf[CostedPairCompanionCtor]
 
-  lazy val RCostedPair: Rep[CostedPairCompanionCtor] = new CostedPairCompanionCtor {
+  lazy val RCostedPair: MutableLazy[CostedPairCompanionCtor] = MutableLazy(new CostedPairCompanionCtor {
     private val thisClass = classOf[CostedPairCompanion]
-  }
-
-  object CostedPairMethods {
-    object l {
-      def unapply(d: Def[_]): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPairElem[_, _, _]] && method.getName == "l" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object r {
-      def unapply(d: Def[_]): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPairElem[_, _, _]] && method.getName == "r" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object accCost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedPairElem[_, _, _]] && method.getName == "accCost" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedPair[L, R]] forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object CostedPairCompanionMethods {
-  }
+  })
 } // of object CostedPair
   registerEntityObject("CostedPair", CostedPair)
 
 object CostedFunc extends EntityObject("CostedFunc") {
-  // entityAdapter for CostedFunc trait
-  case class CostedFuncAdapter[Env, Arg, Res](source: Rep[CostedFunc[Env, Arg, Res]])
-      extends CostedFunc[Env, Arg, Res] with Def[CostedFunc[Env, Arg, Res]] {
-    implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asElem[Env];
-implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asElem[Arg];
-implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
-    override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
-    val selfType: Elem[CostedFunc[Env, Arg, Res]] = element[CostedFunc[Env, Arg, Res]]
-    override def transform(t: Transformer) = CostedFuncAdapter[Env, Arg, Res](t(source))
-    private val thisClass = classOf[CostedFunc[Env, Arg, Res]]
+  private val CostedFuncClass = classOf[CostedFunc[_, _, _]]
 
-    def envCosted: Rep[Costed[Env]] = {
+  // entityAdapter for CostedFunc trait
+  case class CostedFuncAdapter[Env, Arg, Res](source: Ref[CostedFunc[Env, Arg, Res]])
+      extends Node with CostedFunc[Env, Arg, Res]
+      with Def[CostedFunc[Env, Arg, Res]] {
+    implicit lazy val eEnv = source.elem.typeArgs("Env")._1.asInstanceOf[Elem[Env]];
+implicit lazy val eArg = source.elem.typeArgs("Arg")._1.asInstanceOf[Elem[Arg]];
+implicit lazy val eRes = source.elem.typeArgs("Res")._1.asInstanceOf[Elem[Res]]
+    override lazy val eVal: Elem[Arg => Res] = implicitly[Elem[Arg => Res]]
+    val resultType: Elem[CostedFunc[Env, Arg, Res]] = element[CostedFunc[Env, Arg, Res]]
+    override def transform(t: Transformer) = CostedFuncAdapter[Env, Arg, Res](t(source))
+
+    def envCosted: Ref[Costed[Env]] = {
       asRep[Costed[Env]](mkMethodCall(source,
-        thisClass.getMethod("envCosted"),
-        List(),
+        CostedFuncClass.getMethod("envCosted"),
+        WrappedArray.empty,
         true, true, element[Costed[Env]]))
     }
 
-    def func: Rep[Costed[Arg] => Costed[Res]] = {
+    def func: Ref[Costed[Arg] => Costed[Res]] = {
       asRep[Costed[Arg] => Costed[Res]](mkMethodCall(source,
-        thisClass.getMethod("func"),
-        List(),
+        CostedFuncClass.getMethod("func"),
+        WrappedArray.empty,
         true, true, element[Costed[Arg] => Costed[Res]]))
     }
 
-    def cost: Rep[Int] = {
+    def cost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("cost"),
-        List(),
+        CostedFuncClass.getMethod("cost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def sliceCalc: Rep[Arg => Res] = {
+    def sliceCalc: Ref[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(source,
-        thisClass.getMethod("sliceCalc"),
-        List(),
+        CostedFuncClass.getMethod("sliceCalc"),
+        WrappedArray.empty,
         true, true, element[Arg => Res]))
     }
 
-    def sliceCost: Rep[((Int, Size[Arg])) => Int] = {
+    def sliceCost: Ref[((Int, Size[Arg])) => Int] = {
       asRep[((Int, Size[Arg])) => Int](mkMethodCall(source,
-        thisClass.getMethod("sliceCost"),
-        List(),
+        CostedFuncClass.getMethod("sliceCost"),
+        WrappedArray.empty,
         true, true, element[((Int, Size[Arg])) => Int]))
     }
 
-    def sliceCostEx: Rep[((Arg, (Int, Size[Arg]))) => Int] = {
+    def sliceCostEx: Ref[((Arg, (Int, Size[Arg]))) => Int] = {
       asRep[((Arg, (Int, Size[Arg]))) => Int](mkMethodCall(source,
-        thisClass.getMethod("sliceCostEx"),
-        List(),
+        CostedFuncClass.getMethod("sliceCostEx"),
+        WrappedArray.empty,
         true, true, element[((Arg, (Int, Size[Arg]))) => Int]))
     }
 
-    def sliceSize: Rep[Size[Arg] => Size[Res]] = {
+    def sliceSize: Ref[Size[Arg] => Size[Res]] = {
       asRep[Size[Arg] => Size[Res]](mkMethodCall(source,
-        thisClass.getMethod("sliceSize"),
-        List(),
+        CostedFuncClass.getMethod("sliceSize"),
+        WrappedArray.empty,
         true, true, element[Size[Arg] => Size[Res]]))
     }
 
-    def builder: Rep[CostedBuilder] = {
+    def builder: Ref[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
-        List(),
+        CostedFuncClass.getMethod("builder"),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[Arg => Res] = {
+    def value: Ref[Arg => Res] = {
       asRep[Arg => Res](mkMethodCall(source,
-        thisClass.getMethod("value"),
-        List(),
+        CostedFuncClass.getMethod("value"),
+        WrappedArray.empty,
         true, true, element[Arg => Res]))
     }
 
-    def size: Rep[Size[Arg => Res]] = {
+    def size: Ref[Size[Arg => Res]] = {
       asRep[Size[Arg => Res]](mkMethodCall(source,
-        thisClass.getMethod("size"),
-        List(),
+        CostedFuncClass.getMethod("size"),
+        WrappedArray.empty,
         true, true, element[Size[Arg => Res]]))
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedFunc[Env, Arg, Res](p: Rep[CostedFunc[Env, Arg, Res]]): CostedFunc[Env, Arg, Res] = {
-    if (p.rhs.isInstanceOf[CostedFunc[Env, Arg, Res]@unchecked]) p.rhs.asInstanceOf[CostedFunc[Env, Arg, Res]]
+  // entityUnref: single unref method for each type family
+  implicit final def unrefCostedFunc[Env, Arg, Res](p: Ref[CostedFunc[Env, Arg, Res]]): CostedFunc[Env, Arg, Res] = {
+    if (p.node.isInstanceOf[CostedFunc[Env, Arg, Res]@unchecked]) p.node.asInstanceOf[CostedFunc[Env, Arg, Res]]
     else
       CostedFuncAdapter(p)
   }
@@ -572,236 +420,121 @@ implicit lazy val eRes = source.elem.typeArgs("Res")._1.asElem[Res]
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(funcElement(element[Arg],element[Res])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Env" -> (eEnv -> scalan.util.Invariant), "Arg" -> (eArg -> scalan.util.Invariant), "Res" -> (eRes -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagEnv = eEnv.tag
-      implicit val tagArg = eArg.tag
-      implicit val tagRes = eRes.tag
-      weakTypeTag[CostedFunc[Env, Arg, Res]].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedFunc[Env, Arg, Res]] => convertCostedFunc(x) }
-      tryConvert(element[CostedFunc[Env, Arg, Res]], this, x, conv)
-    }
-
-    def convertCostedFunc(x: Rep[CostedFunc[Env, Arg, Res]]): Rep[To] = {
-      x.elem match {
-        case _: CostedFuncElem[_, _, _, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedFuncElem[_, _, _, _], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[CostedFunc[Env, Arg, Res]] =
+  implicit final def costedFuncElement[Env, Arg, Res](implicit eEnv: Elem[Env], eArg: Elem[Arg], eRes: Elem[Res]): Elem[CostedFunc[Env, Arg, Res]] =
     cachedElemByClass(eEnv, eArg, eRes)(classOf[CostedFuncElem[Env, Arg, Res, CostedFunc[Env, Arg, Res]]])
 
-  implicit case object CostedFuncCompanionElem extends CompanionElem[CostedFuncCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedFuncCompanionCtor]
-    protected def getDefaultRep = RCostedFunc
-  }
+  implicit case object CostedFuncCompanionElem extends CompanionElem[CostedFuncCompanionCtor]
 
   abstract class CostedFuncCompanionCtor extends CompanionDef[CostedFuncCompanionCtor] with CostedFuncCompanion {
-    def selfType = CostedFuncCompanionElem
+    def resultType = CostedFuncCompanionElem
     override def toString = "CostedFunc"
   }
-  implicit def proxyCostedFuncCompanionCtor(p: Rep[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
-    proxyOps[CostedFuncCompanionCtor](p)
+  implicit final def unrefCostedFuncCompanionCtor(p: Ref[CostedFuncCompanionCtor]): CostedFuncCompanionCtor =
+    p.node.asInstanceOf[CostedFuncCompanionCtor]
 
-  lazy val RCostedFunc: Rep[CostedFuncCompanionCtor] = new CostedFuncCompanionCtor {
+  lazy val RCostedFunc: MutableLazy[CostedFuncCompanionCtor] = MutableLazy(new CostedFuncCompanionCtor {
     private val thisClass = classOf[CostedFuncCompanion]
-  }
-
-  object CostedFuncMethods {
-    object envCosted {
-      def unapply(d: Def[_]): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedFuncElem[_, _, _, _]] && method.getName == "envCosted" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object func {
-      def unapply(d: Def[_]): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedFuncElem[_, _, _, _]] && method.getName == "func" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object cost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedFuncElem[_, _, _, _]] && method.getName == "cost" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object sliceCalc {
-      def unapply(d: Def[_]): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedFuncElem[_, _, _, _]] && method.getName == "sliceCalc" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object sliceCost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedFuncElem[_, _, _, _]] && method.getName == "sliceCost" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object sliceCostEx {
-      def unapply(d: Def[_]): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedFuncElem[_, _, _, _]] && method.getName == "sliceCostEx" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object sliceSize {
-      def unapply(d: Def[_]): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedFuncElem[_, _, _, _]] && method.getName == "sliceSize" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedFunc[Env, Arg, Res]] forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object CostedFuncCompanionMethods {
-  }
+  })
 } // of object CostedFunc
   registerEntityObject("CostedFunc", CostedFunc)
 
 object CostedColl extends EntityObject("CostedColl") {
-  // entityAdapter for CostedColl trait
-  case class CostedCollAdapter[Item](source: Rep[CostedColl[Item]])
-      extends CostedColl[Item] with Def[CostedColl[Item]] {
-    implicit lazy val eItem = source.elem.typeArgs("Item")._1.asElem[Item]
-    override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
-    val selfType: Elem[CostedColl[Item]] = element[CostedColl[Item]]
-    override def transform(t: Transformer) = CostedCollAdapter[Item](t(source))
-    private val thisClass = classOf[CostedColl[Item]]
+  private val CostedCollClass = classOf[CostedColl[_]]
 
-    def values: Rep[Coll[Item]] = {
+  // entityAdapter for CostedColl trait
+  case class CostedCollAdapter[Item](source: Ref[CostedColl[Item]])
+      extends Node with CostedColl[Item]
+      with Def[CostedColl[Item]] {
+    implicit lazy val eItem = source.elem.typeArgs("Item")._1.asInstanceOf[Elem[Item]]
+    override lazy val eVal: Elem[Coll[Item]] = implicitly[Elem[Coll[Item]]]
+    val resultType: Elem[CostedColl[Item]] = element[CostedColl[Item]]
+    override def transform(t: Transformer) = CostedCollAdapter[Item](t(source))
+
+    def values: Ref[Coll[Item]] = {
       asRep[Coll[Item]](mkMethodCall(source,
-        thisClass.getMethod("values"),
-        List(),
+        CostedCollClass.getMethod("values"),
+        WrappedArray.empty,
         true, true, element[Coll[Item]]))
     }
 
-    def costs: Rep[Coll[Int]] = {
+    def costs: Ref[Coll[Int]] = {
       asRep[Coll[Int]](mkMethodCall(source,
-        thisClass.getMethod("costs"),
-        List(),
+        CostedCollClass.getMethod("costs"),
+        WrappedArray.empty,
         true, true, element[Coll[Int]]))
     }
 
-    def sizes: Rep[Coll[Size[Item]]] = {
+    def sizes: Ref[Coll[Size[Item]]] = {
       asRep[Coll[Size[Item]]](mkMethodCall(source,
-        thisClass.getMethod("sizes"),
-        List(),
+        CostedCollClass.getMethod("sizes"),
+        WrappedArray.empty,
         true, true, element[Coll[Size[Item]]]))
     }
 
-    def valuesCost: Rep[Int] = {
+    def valuesCost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("valuesCost"),
-        List(),
+        CostedCollClass.getMethod("valuesCost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def mapCosted[Res](f: Rep[Costed[Item] => Costed[Res]]): Rep[CostedColl[Res]] = {
-      implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asElem[Res]
+    def mapCosted[Res](f: Ref[Costed[Item] => Costed[Res]]): Ref[CostedColl[Res]] = {
+      implicit val eRes = f.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
       asRep[CostedColl[Res]](mkMethodCall(source,
-        thisClass.getMethod("mapCosted", classOf[Sym]),
-        List(f),
+        CostedCollClass.getMethod("mapCosted", classOf[Sym]),
+        Array[AnyRef](f),
         true, true, element[CostedColl[Res]]))
     }
 
-    def filterCosted(f: Rep[Costed[Item] => Costed[Boolean]]): Rep[CostedColl[Item]] = {
+    def filterCosted(f: Ref[Costed[Item] => Costed[Boolean]]): Ref[CostedColl[Item]] = {
       asRep[CostedColl[Item]](mkMethodCall(source,
-        thisClass.getMethod("filterCosted", classOf[Sym]),
-        List(f),
+        CostedCollClass.getMethod("filterCosted", classOf[Sym]),
+        Array[AnyRef](f),
         true, true, element[CostedColl[Item]]))
     }
 
-    def foldCosted[B](zero: Rep[Costed[B]], op: Rep[Costed[(B, Item)] => Costed[B]]): Rep[Costed[B]] = {
+    def foldCosted[B](zero: Ref[Costed[B]], op: Ref[Costed[(B, Item)] => Costed[B]]): Ref[Costed[B]] = {
       implicit val eB = zero.eVal
       asRep[Costed[B]](mkMethodCall(source,
-        thisClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
-        List(zero, op),
+        CostedCollClass.getMethod("foldCosted", classOf[Sym], classOf[Sym]),
+        Array[AnyRef](zero, op),
         true, true, element[Costed[B]]))
     }
 
-    def builder: Rep[CostedBuilder] = {
+    def builder: Ref[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
-        List(),
+        CostedCollClass.getMethod("builder"),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[Coll[Item]] = {
+    def value: Ref[Coll[Item]] = {
       asRep[Coll[Item]](mkMethodCall(source,
-        thisClass.getMethod("value"),
-        List(),
+        CostedCollClass.getMethod("value"),
+        WrappedArray.empty,
         true, true, element[Coll[Item]]))
     }
 
-    def cost: Rep[Int] = {
+    def cost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("cost"),
-        List(),
+        CostedCollClass.getMethod("cost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def size: Rep[Size[Coll[Item]]] = {
+    def size: Ref[Size[Coll[Item]]] = {
       asRep[Size[Coll[Item]]](mkMethodCall(source,
-        thisClass.getMethod("size"),
-        List(),
+        CostedCollClass.getMethod("size"),
+        WrappedArray.empty,
         true, true, element[Size[Coll[Item]]]))
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedColl[Item](p: Rep[CostedColl[Item]]): CostedColl[Item] = {
-    if (p.rhs.isInstanceOf[CostedColl[Item]@unchecked]) p.rhs.asInstanceOf[CostedColl[Item]]
+  // entityUnref: single unref method for each type family
+  implicit final def unrefCostedColl[Item](p: Ref[CostedColl[Item]]): CostedColl[Item] = {
+    if (p.node.isInstanceOf[CostedColl[Item]@unchecked]) p.node.asInstanceOf[CostedColl[Item]]
     else
       CostedCollAdapter(p)
   }
@@ -813,133 +546,93 @@ object CostedColl extends EntityObject("CostedColl") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(collElement(element[Item])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("Item" -> (eItem -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagItem = eItem.tag
-      weakTypeTag[CostedColl[Item]].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedColl[Item]] => convertCostedColl(x) }
-      tryConvert(element[CostedColl[Item]], this, x, conv)
-    }
-
-    def convertCostedColl(x: Rep[CostedColl[Item]]): Rep[To] = {
-      x.elem match {
-        case _: CostedCollElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedCollElem[_, _], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedCollElement[Item](implicit eItem: Elem[Item]): Elem[CostedColl[Item]] =
+  implicit final def costedCollElement[Item](implicit eItem: Elem[Item]): Elem[CostedColl[Item]] =
     cachedElemByClass(eItem)(classOf[CostedCollElem[Item, CostedColl[Item]]])
 
-  implicit case object CostedCollCompanionElem extends CompanionElem[CostedCollCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedCollCompanionCtor]
-    protected def getDefaultRep = RCostedColl
-  }
+  implicit case object CostedCollCompanionElem extends CompanionElem[CostedCollCompanionCtor]
 
   abstract class CostedCollCompanionCtor extends CompanionDef[CostedCollCompanionCtor] with CostedCollCompanion {
-    def selfType = CostedCollCompanionElem
+    def resultType = CostedCollCompanionElem
     override def toString = "CostedColl"
   }
-  implicit def proxyCostedCollCompanionCtor(p: Rep[CostedCollCompanionCtor]): CostedCollCompanionCtor =
-    proxyOps[CostedCollCompanionCtor](p)
+  implicit final def unrefCostedCollCompanionCtor(p: Ref[CostedCollCompanionCtor]): CostedCollCompanionCtor =
+    p.node.asInstanceOf[CostedCollCompanionCtor]
 
-  lazy val RCostedColl: Rep[CostedCollCompanionCtor] = new CostedCollCompanionCtor {
+  lazy val RCostedColl: MutableLazy[CostedCollCompanionCtor] = MutableLazy(new CostedCollCompanionCtor {
     private val thisClass = classOf[CostedCollCompanion]
-  }
+  })
 
   object CostedCollMethods {
     object values {
-      def unapply(d: Def[_]): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedCollElem[_, _]] && method.getName == "values" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "values" && receiver.elem.isInstanceOf[CostedCollElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedColl[Item]] forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object costs {
-      def unapply(d: Def[_]): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedCollElem[_, _]] && method.getName == "costs" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "costs" && receiver.elem.isInstanceOf[CostedCollElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedColl[Item]] forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object sizes {
-      def unapply(d: Def[_]): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedCollElem[_, _]] && method.getName == "sizes" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "sizes" && receiver.elem.isInstanceOf[CostedCollElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedColl[Item]] forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object valuesCost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedCollElem[_, _]] && method.getName == "valuesCost" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "valuesCost" && receiver.elem.isInstanceOf[CostedCollElem[_, _]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedColl[Item]] forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedColl[Item]] forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedColl[Item]] forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedColl[Item]] forSome {type Item}] = unapply(exp.node)
     }
 
     object mapCosted {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedColl[Item]], Rep[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedCollElem[_, _]] && method.getName == "mapCosted" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mapCosted" && receiver.elem.isInstanceOf[CostedCollElem[_, _]] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedColl[Item]], Rep[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedColl[Item]], Rep[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Res]]) forSome {type Item; type Res}] = unapply(exp.node)
     }
 
     object filterCosted {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedColl[Item]], Rep[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedCollElem[_, _]] && method.getName == "filterCosted" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "filterCosted" && receiver.elem.isInstanceOf[CostedCollElem[_, _]] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedColl[Item]], Rep[Costed[Item] => Costed[Boolean]]) forSome {type Item}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Boolean]]) forSome {type Item}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedColl[Item]], Rep[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[Item] => Costed[Boolean]]) forSome {type Item}] = unapply(exp.node)
     }
 
     object foldCosted {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedColl[Item]], Rep[Costed[B]], Rep[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedCollElem[_, _]] && method.getName == "foldCosted" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedColl[Item]], Ref[Costed[B]], Ref[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "foldCosted" && receiver.elem.isInstanceOf[CostedCollElem[_, _]] =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedColl[Item]], Rep[Costed[B]], Rep[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedColl[Item]], Ref[Costed[B]], Ref[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedColl[Item]], Rep[Costed[B]], Rep[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedColl[Item]], Ref[Costed[B]], Ref[Costed[(B, Item)] => Costed[B]]) forSome {type Item; type B}] = unapply(exp.node)
     }
   }
 
@@ -949,68 +642,70 @@ object CostedColl extends EntityObject("CostedColl") {
   registerEntityObject("CostedColl", CostedColl)
 
 object CostedOption extends EntityObject("CostedOption") {
-  // entityAdapter for CostedOption trait
-  case class CostedOptionAdapter[T](source: Rep[CostedOption[T]])
-      extends CostedOption[T] with Def[CostedOption[T]] {
-    implicit lazy val eT = source.elem.typeArgs("T")._1.asElem[T]
-    override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
-    val selfType: Elem[CostedOption[T]] = element[CostedOption[T]]
-    override def transform(t: Transformer) = CostedOptionAdapter[T](t(source))
-    private val thisClass = classOf[CostedOption[T]]
+  private val CostedOptionClass = classOf[CostedOption[_]]
 
-    def costOpt: Rep[WOption[Int]] = {
+  // entityAdapter for CostedOption trait
+  case class CostedOptionAdapter[T](source: Ref[CostedOption[T]])
+      extends Node with CostedOption[T]
+      with Def[CostedOption[T]] {
+    implicit lazy val eT = source.elem.typeArgs("T")._1.asInstanceOf[Elem[T]]
+    override lazy val eVal: Elem[WOption[T]] = implicitly[Elem[WOption[T]]]
+    val resultType: Elem[CostedOption[T]] = element[CostedOption[T]]
+    override def transform(t: Transformer) = CostedOptionAdapter[T](t(source))
+
+    def costOpt: Ref[WOption[Int]] = {
       asRep[WOption[Int]](mkMethodCall(source,
-        thisClass.getMethod("costOpt"),
-        List(),
+        CostedOptionClass.getMethod("costOpt"),
+        WrappedArray.empty,
         true, true, element[WOption[Int]]))
     }
 
-    def sizeOpt: Rep[WOption[Size[T]]] = {
+    def sizeOpt: Ref[WOption[Size[T]]] = {
       asRep[WOption[Size[T]]](mkMethodCall(source,
-        thisClass.getMethod("sizeOpt"),
-        List(),
+        CostedOptionClass.getMethod("sizeOpt"),
+        WrappedArray.empty,
         true, true, element[WOption[Size[T]]]))
     }
 
-    def accumulatedCost: Rep[Int] = {
+    def accumulatedCost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("accumulatedCost"),
-        List(),
+        CostedOptionClass.getMethod("accumulatedCost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def builder: Rep[CostedBuilder] = {
+    def builder: Ref[CostedBuilder] = {
       asRep[CostedBuilder](mkMethodCall(source,
-        thisClass.getMethod("builder"),
-        List(),
+        CostedOptionClass.getMethod("builder"),
+        WrappedArray.empty,
         true, true, element[CostedBuilder]))
     }
 
-    def value: Rep[WOption[T]] = {
+    def value: Ref[WOption[T]] = {
       asRep[WOption[T]](mkMethodCall(source,
-        thisClass.getMethod("value"),
-        List(),
+        CostedOptionClass.getMethod("value"),
+        WrappedArray.empty,
         true, true, element[WOption[T]]))
     }
 
-    def cost: Rep[Int] = {
+    def cost: Ref[Int] = {
       asRep[Int](mkMethodCall(source,
-        thisClass.getMethod("cost"),
-        List(),
+        CostedOptionClass.getMethod("cost"),
+        WrappedArray.empty,
         true, true, element[Int]))
     }
 
-    def size: Rep[Size[WOption[T]]] = {
+    def size: Ref[Size[WOption[T]]] = {
       asRep[Size[WOption[T]]](mkMethodCall(source,
-        thisClass.getMethod("size"),
-        List(),
+        CostedOptionClass.getMethod("size"),
+        WrappedArray.empty,
         true, true, element[Size[WOption[T]]]))
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedOption[T](p: Rep[CostedOption[T]]): CostedOption[T] = {
-    if (p.rhs.isInstanceOf[CostedOption[T]@unchecked]) p.rhs.asInstanceOf[CostedOption[T]]
+  // entityUnref: single unref method for each type family
+  implicit final def unrefCostedOption[T](p: Ref[CostedOption[T]]): CostedOption[T] = {
+    if (p.node.isInstanceOf[CostedOption[T]@unchecked]) p.node.asInstanceOf[CostedOption[T]]
     else
       CostedOptionAdapter(p)
   }
@@ -1022,210 +717,149 @@ object CostedOption extends EntityObject("CostedOption") {
 
     override lazy val parent: Option[Elem[_]] = Some(costedElement(wOptionElement(element[T])))
     override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs("T" -> (eT -> scalan.util.Invariant))
-    override lazy val tag = {
-      implicit val tagT = eT.tag
-      weakTypeTag[CostedOption[T]].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedOption[T]] => convertCostedOption(x) }
-      tryConvert(element[CostedOption[T]], this, x, conv)
-    }
-
-    def convertCostedOption(x: Rep[CostedOption[T]]): Rep[To] = {
-      x.elem match {
-        case _: CostedOptionElem[_, _] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedOptionElem[_, _], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
   }
 
-  implicit def costedOptionElement[T](implicit eT: Elem[T]): Elem[CostedOption[T]] =
+  implicit final def costedOptionElement[T](implicit eT: Elem[T]): Elem[CostedOption[T]] =
     cachedElemByClass(eT)(classOf[CostedOptionElem[T, CostedOption[T]]])
 
-  implicit case object CostedOptionCompanionElem extends CompanionElem[CostedOptionCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedOptionCompanionCtor]
-    protected def getDefaultRep = RCostedOption
-  }
+  implicit case object CostedOptionCompanionElem extends CompanionElem[CostedOptionCompanionCtor]
 
   abstract class CostedOptionCompanionCtor extends CompanionDef[CostedOptionCompanionCtor] with CostedOptionCompanion {
-    def selfType = CostedOptionCompanionElem
+    def resultType = CostedOptionCompanionElem
     override def toString = "CostedOption"
   }
-  implicit def proxyCostedOptionCompanionCtor(p: Rep[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
-    proxyOps[CostedOptionCompanionCtor](p)
+  implicit final def unrefCostedOptionCompanionCtor(p: Ref[CostedOptionCompanionCtor]): CostedOptionCompanionCtor =
+    p.node.asInstanceOf[CostedOptionCompanionCtor]
 
-  lazy val RCostedOption: Rep[CostedOptionCompanionCtor] = new CostedOptionCompanionCtor {
+  lazy val RCostedOption: MutableLazy[CostedOptionCompanionCtor] = MutableLazy(new CostedOptionCompanionCtor {
     private val thisClass = classOf[CostedOptionCompanion]
-  }
-
-  object CostedOptionMethods {
-    object costOpt {
-      def unapply(d: Def[_]): Nullable[Rep[CostedOption[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedOptionElem[_, _]] && method.getName == "costOpt" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedOption[T]] forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedOption[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object sizeOpt {
-      def unapply(d: Def[_]): Nullable[Rep[CostedOption[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedOptionElem[_, _]] && method.getName == "sizeOpt" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedOption[T]] forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedOption[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-
-    object accumulatedCost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedOption[T]] forSome {type T}] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedOptionElem[_, _]] && method.getName == "accumulatedCost" =>
-          val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedOption[T]] forSome {type T}]]
-        case _ => Nullable.None
-      }
-      def unapply(exp: Sym): Nullable[Rep[CostedOption[T]] forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
-    }
-  }
-
-  object CostedOptionCompanionMethods {
-  }
+  })
 } // of object CostedOption
   registerEntityObject("CostedOption", CostedOption)
 
 object CostedBuilder extends EntityObject("CostedBuilder") {
-  // entityAdapter for CostedBuilder trait
-  case class CostedBuilderAdapter(source: Rep[CostedBuilder])
-      extends CostedBuilder with Def[CostedBuilder] {
-    val selfType: Elem[CostedBuilder] = element[CostedBuilder]
-    override def transform(t: Transformer) = CostedBuilderAdapter(t(source))
-    private val thisClass = classOf[CostedBuilder]
+  private val CostedBuilderClass = classOf[CostedBuilder]
 
-    def costedValue[T](x: Rep[T], optCost: Rep[WOption[Int]]): Rep[Costed[T]] = {
+  // entityAdapter for CostedBuilder trait
+  case class CostedBuilderAdapter(source: Ref[CostedBuilder])
+      extends Node with CostedBuilder
+      with Def[CostedBuilder] {
+    val resultType: Elem[CostedBuilder] = element[CostedBuilder]
+    override def transform(t: Transformer) = CostedBuilderAdapter(t(source))
+
+    def costedValue[T](x: Ref[T], optCost: Ref[WOption[Int]]): Ref[Costed[T]] = {
       implicit val eT = x.elem
       asRep[Costed[T]](mkMethodCall(source,
-        thisClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
-        List(x, optCost),
+        CostedBuilderClass.getMethod("costedValue", classOf[Sym], classOf[Sym]),
+        Array[AnyRef](x, optCost),
         true, true, element[Costed[T]]))
     }
 
-    def defaultValue[T](valueType: Rep[WRType[T]]): Rep[T] = {
+    def defaultValue[T](valueType: Ref[WRType[T]]): Ref[T] = {
       implicit val eT = valueType.eA
       asRep[T](mkMethodCall(source,
-        thisClass.getMethod("defaultValue", classOf[Sym]),
-        List(valueType),
+        CostedBuilderClass.getMethod("defaultValue", classOf[Sym]),
+        Array[AnyRef](valueType),
         true, true, element[T]))
     }
 
-    def monoidBuilder: Rep[MonoidBuilder] = {
+    def monoidBuilder: Ref[MonoidBuilder] = {
       asRep[MonoidBuilder](mkMethodCall(source,
-        thisClass.getMethod("monoidBuilder"),
-        List(),
+        CostedBuilderClass.getMethod("monoidBuilder"),
+        WrappedArray.empty,
         true, true, element[MonoidBuilder]))
     }
 
-    def mkSizePrim[T](dataSize: Rep[Long], tT: Rep[WRType[T]]): Rep[SizePrim[T]] = {
+    def mkSizePrim[T](dataSize: Ref[Long], tT: Ref[WRType[T]]): Ref[SizePrim[T]] = {
       implicit val eT = tT.eA
       asRep[SizePrim[T]](mkMethodCall(source,
-        thisClass.getMethod("mkSizePrim", classOf[Sym], classOf[Sym]),
-        List(dataSize, tT),
+        CostedBuilderClass.getMethod("mkSizePrim", classOf[Sym], classOf[Sym]),
+        Array[AnyRef](dataSize, tT),
         true, true, element[SizePrim[T]]))
     }
 
-    def mkSizePair[L, R](l: Rep[Size[L]], r: Rep[Size[R]]): Rep[SizePair[L, R]] = {
+    def mkSizePair[L, R](l: Ref[Size[L]], r: Ref[Size[R]]): Ref[SizePair[L, R]] = {
       implicit val eL = l.eVal
 implicit val eR = r.eVal
       asRep[SizePair[L, R]](mkMethodCall(source,
-        thisClass.getMethod("mkSizePair", classOf[Sym], classOf[Sym]),
-        List(l, r),
+        CostedBuilderClass.getMethod("mkSizePair", classOf[Sym], classOf[Sym]),
+        Array[AnyRef](l, r),
         true, true, element[SizePair[L, R]]))
     }
 
-    def mkSizeColl[T](sizes: Rep[Coll[Size[T]]]): Rep[SizeColl[T]] = {
-      implicit val eT = sizes.eA.typeArgs("Val")._1.asElem[T]
+    def mkSizeColl[T](sizes: Ref[Coll[Size[T]]]): Ref[SizeColl[T]] = {
+      implicit val eT = sizes.eA.typeArgs("Val")._1.asInstanceOf[Elem[T]]
       asRep[SizeColl[T]](mkMethodCall(source,
-        thisClass.getMethod("mkSizeColl", classOf[Sym]),
-        List(sizes),
+        CostedBuilderClass.getMethod("mkSizeColl", classOf[Sym]),
+        Array[AnyRef](sizes),
         true, true, element[SizeColl[T]]))
     }
 
-    def mkSizeFunc[E, A, R](sizeEnv: Rep[Size[E]], sizeFunc: Rep[Long], tA: Rep[WRType[A]], tR: Rep[WRType[R]]): Rep[SizeFunc[E, A, R]] = {
+    def mkSizeFunc[E, A, R](sizeEnv: Ref[Size[E]], sizeFunc: Ref[Long], tA: Ref[WRType[A]], tR: Ref[WRType[R]]): Ref[SizeFunc[E, A, R]] = {
       implicit val eE = sizeEnv.eVal
 implicit val eA = tA.eA
 implicit val eR = tR.eA
       asRep[SizeFunc[E, A, R]](mkMethodCall(source,
-        thisClass.getMethod("mkSizeFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(sizeEnv, sizeFunc, tA, tR),
+        CostedBuilderClass.getMethod("mkSizeFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        Array[AnyRef](sizeEnv, sizeFunc, tA, tR),
         true, true, element[SizeFunc[E, A, R]]))
     }
 
-    def mkSizeOption[T](sizeOpt: Rep[WOption[Size[T]]]): Rep[SizeOption[T]] = {
-      implicit val eT = sizeOpt.eA.typeArgs("Val")._1.asElem[T]
+    def mkSizeOption[T](sizeOpt: Ref[WOption[Size[T]]]): Ref[SizeOption[T]] = {
+      implicit val eT = sizeOpt.eA.typeArgs("Val")._1.asInstanceOf[Elem[T]]
       asRep[SizeOption[T]](mkMethodCall(source,
-        thisClass.getMethod("mkSizeOption", classOf[Sym]),
-        List(sizeOpt),
+        CostedBuilderClass.getMethod("mkSizeOption", classOf[Sym]),
+        Array[AnyRef](sizeOpt),
         true, true, element[SizeOption[T]]))
     }
 
-    def mkCostedPrim[T](value: Rep[T], cost: Rep[Int], size: Rep[Size[T]]): Rep[CostedPrim[T]] = {
+    def mkCostedPrim[T](value: Ref[T], cost: Ref[Int], size: Ref[Size[T]]): Ref[CostedPrim[T]] = {
       implicit val eT = value.elem
       asRep[CostedPrim[T]](mkMethodCall(source,
-        thisClass.getMethod("mkCostedPrim", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(value, cost, size),
+        CostedBuilderClass.getMethod("mkCostedPrim", classOf[Sym], classOf[Sym], classOf[Sym]),
+        Array[AnyRef](value, cost, size),
         true, true, element[CostedPrim[T]]))
     }
 
-    def mkCostedPair[L, R](first: Rep[Costed[L]], second: Rep[Costed[R]], accCost: Rep[Int]): Rep[CostedPair[L, R]] = {
+    def mkCostedPair[L, R](first: Ref[Costed[L]], second: Ref[Costed[R]], accCost: Ref[Int]): Ref[CostedPair[L, R]] = {
       implicit val eL = first.eVal
 implicit val eR = second.eVal
       asRep[CostedPair[L, R]](mkMethodCall(source,
-        thisClass.getMethod("mkCostedPair", classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(first, second, accCost),
+        CostedBuilderClass.getMethod("mkCostedPair", classOf[Sym], classOf[Sym], classOf[Sym]),
+        Array[AnyRef](first, second, accCost),
         true, true, element[CostedPair[L, R]]))
     }
 
-    def mkCostedFunc[Env, Arg, Res](envCosted: Rep[Costed[Env]], func: Rep[Costed[Arg] => Costed[Res]], cost: Rep[Int], size: Rep[Size[Arg => Res]]): Rep[CostedFunc[Env, Arg, Res]] = {
+    def mkCostedFunc[Env, Arg, Res](envCosted: Ref[Costed[Env]], func: Ref[Costed[Arg] => Costed[Res]], cost: Ref[Int], size: Ref[Size[Arg => Res]]): Ref[CostedFunc[Env, Arg, Res]] = {
       implicit val eEnv = envCosted.eVal
-implicit val eArg = func.elem.eDom.typeArgs("Val")._1.asElem[Arg]
-implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
+implicit val eArg = func.elem.eDom.typeArgs("Val")._1.asInstanceOf[Elem[Arg]]
+implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asInstanceOf[Elem[Res]]
       asRep[CostedFunc[Env, Arg, Res]](mkMethodCall(source,
-        thisClass.getMethod("mkCostedFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(envCosted, func, cost, size),
+        CostedBuilderClass.getMethod("mkCostedFunc", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        Array[AnyRef](envCosted, func, cost, size),
         true, true, element[CostedFunc[Env, Arg, Res]]))
     }
 
-    def mkCostedColl[T](values: Rep[Coll[T]], costs: Rep[Coll[Int]], sizes: Rep[Coll[Size[T]]], valuesCost: Rep[Int]): Rep[CostedColl[T]] = {
+    def mkCostedColl[T](values: Ref[Coll[T]], costs: Ref[Coll[Int]], sizes: Ref[Coll[Size[T]]], valuesCost: Ref[Int]): Ref[CostedColl[T]] = {
       implicit val eT = values.eA
       asRep[CostedColl[T]](mkMethodCall(source,
-        thisClass.getMethod("mkCostedColl", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(values, costs, sizes, valuesCost),
+        CostedBuilderClass.getMethod("mkCostedColl", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        Array[AnyRef](values, costs, sizes, valuesCost),
         true, true, element[CostedColl[T]]))
     }
 
-    def mkCostedOption[T](value: Rep[WOption[T]], costOpt: Rep[WOption[Int]], sizeOpt: Rep[WOption[Size[T]]], accumulatedCost: Rep[Int]): Rep[CostedOption[T]] = {
+    def mkCostedOption[T](value: Ref[WOption[T]], costOpt: Ref[WOption[Int]], sizeOpt: Ref[WOption[Size[T]]], accumulatedCost: Ref[Int]): Ref[CostedOption[T]] = {
       implicit val eT = value.eA
       asRep[CostedOption[T]](mkMethodCall(source,
-        thisClass.getMethod("mkCostedOption", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
-        List(value, costOpt, sizeOpt, accumulatedCost),
+        CostedBuilderClass.getMethod("mkCostedOption", classOf[Sym], classOf[Sym], classOf[Sym], classOf[Sym]),
+        Array[AnyRef](value, costOpt, sizeOpt, accumulatedCost),
         true, true, element[CostedOption[T]]))
     }
   }
 
-  // entityProxy: single proxy for each type family
-  implicit def proxyCostedBuilder(p: Rep[CostedBuilder]): CostedBuilder = {
-    if (p.rhs.isInstanceOf[CostedBuilder@unchecked]) p.rhs.asInstanceOf[CostedBuilder]
+  // entityUnref: single unref method for each type family
+  implicit final def unrefCostedBuilder(p: Ref[CostedBuilder]): CostedBuilder = {
+    if (p.node.isInstanceOf[CostedBuilder]) p.node.asInstanceOf[CostedBuilder]
     else
       CostedBuilderAdapter(p)
   }
@@ -1233,264 +867,193 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   // familyElem
   class CostedBuilderElem[To <: CostedBuilder]
     extends EntityElem[To] {
-    lazy val parent: Option[Elem[_]] = None
-    override def buildTypeArgs = super.buildTypeArgs ++ TypeArgs()
-    override lazy val tag = {
-      weakTypeTag[CostedBuilder].asInstanceOf[WeakTypeTag[To]]
-    }
-    override def convert(x: Rep[Def[_]]) = {
-      val conv = fun {x: Rep[CostedBuilder] => convertCostedBuilder(x) }
-      tryConvert(element[CostedBuilder], this, x, conv)
-    }
-
-    def convertCostedBuilder(x: Rep[CostedBuilder]): Rep[To] = {
-      x.elem match {
-        case _: CostedBuilderElem[_] => asRep[To](x)
-        case e => !!!(s"Expected $x to have CostedBuilderElem[_], but got $e", x)
-      }
-    }
-    override def getDefaultRep: Rep[To] = ???
   }
 
   implicit lazy val costedBuilderElement: Elem[CostedBuilder] =
     new CostedBuilderElem[CostedBuilder]
 
-  implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor] {
-    lazy val tag = weakTypeTag[CostedBuilderCompanionCtor]
-    protected def getDefaultRep = RCostedBuilder
-  }
+  implicit case object CostedBuilderCompanionElem extends CompanionElem[CostedBuilderCompanionCtor]
 
   abstract class CostedBuilderCompanionCtor extends CompanionDef[CostedBuilderCompanionCtor] with CostedBuilderCompanion {
-    def selfType = CostedBuilderCompanionElem
+    def resultType = CostedBuilderCompanionElem
     override def toString = "CostedBuilder"
   }
-  implicit def proxyCostedBuilderCompanionCtor(p: Rep[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
-    proxyOps[CostedBuilderCompanionCtor](p)
+  implicit final def unrefCostedBuilderCompanionCtor(p: Ref[CostedBuilderCompanionCtor]): CostedBuilderCompanionCtor =
+    p.node.asInstanceOf[CostedBuilderCompanionCtor]
 
-  lazy val RCostedBuilder: Rep[CostedBuilderCompanionCtor] = new CostedBuilderCompanionCtor {
+  lazy val RCostedBuilder: MutableLazy[CostedBuilderCompanionCtor] = MutableLazy(new CostedBuilderCompanionCtor {
     private val thisClass = classOf[CostedBuilderCompanion]
-  }
+  })
 
   object CostedBuilderMethods {
     object ConstructTupleCost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedBuilder]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "ConstructTupleCost" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "ConstructTupleCost" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedBuilder]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object ConstructSumCost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedBuilder]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "ConstructSumCost" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "ConstructSumCost" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedBuilder]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object SelectFieldCost {
-      def unapply(d: Def[_]): Nullable[Rep[CostedBuilder]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "SelectFieldCost" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "SelectFieldCost" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedBuilder]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object SumTagSize {
-      def unapply(d: Def[_]): Nullable[Rep[CostedBuilder]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "SumTagSize" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "SumTagSize" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedBuilder]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object costedValue {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "costedValue" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[T], Ref[WOption[Int]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "costedValue" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[T], Ref[WOption[Int]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[T], Rep[WOption[Int]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[T], Ref[WOption[Int]]) forSome {type T}] = unapply(exp.node)
     }
 
     object defaultValue {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[WRType[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "defaultValue" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[WRType[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "defaultValue" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[WRType[T]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[WRType[T]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WRType[T]]) forSome {type T}] = unapply(exp.node)
     }
 
     object monoidBuilder {
-      def unapply(d: Def[_]): Nullable[Rep[CostedBuilder]] = d match {
-        case MethodCall(receiver, method, _, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "monoidBuilder" =>
+      def unapply(d: Def[_]): Nullable[Ref[CostedBuilder]] = d match {
+        case MethodCall(receiver, method, _, _) if method.getName == "monoidBuilder" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = receiver
-          Nullable(res).asInstanceOf[Nullable[Rep[CostedBuilder]]]
+          Nullable(res).asInstanceOf[Nullable[Ref[CostedBuilder]]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[Rep[CostedBuilder]] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[Ref[CostedBuilder]] = unapply(exp.node)
     }
 
     object mkSizePrim {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkSizePrim" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[Long], Ref[WRType[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkSizePrim" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Long], Ref[WRType[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Long], Rep[WRType[T]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Long], Ref[WRType[T]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkSizePair {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Size[L]], Rep[Size[R]]) forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkSizePair" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[Size[L]], Ref[Size[R]]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkSizePair" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Size[L]], Rep[Size[R]]) forSome {type L; type R}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Size[L]], Ref[Size[R]]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Size[L]], Rep[Size[R]]) forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Size[L]], Ref[Size[R]]) forSome {type L; type R}] = unapply(exp.node)
     }
 
     object mkSizeColl {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Coll[Size[T]]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkSizeColl" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[Coll[Size[T]]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkSizeColl" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Coll[Size[T]]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Coll[Size[T]]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Coll[Size[T]]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Coll[Size[T]]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkSizeFunc {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkSizeFunc" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[Size[E]], Ref[Long], Ref[WRType[A]], Ref[WRType[R]]) forSome {type E; type A; type R}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkSizeFunc" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1), args(2), args(3))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Size[E]], Ref[Long], Ref[WRType[A]], Ref[WRType[R]]) forSome {type E; type A; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Size[E]], Rep[Long], Rep[WRType[A]], Rep[WRType[R]]) forSome {type E; type A; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Size[E]], Ref[Long], Ref[WRType[A]], Ref[WRType[R]]) forSome {type E; type A; type R}] = unapply(exp.node)
     }
 
     object mkSizeOption {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[WOption[Size[T]]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkSizeOption" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[WOption[Size[T]]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkSizeOption" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[WOption[Size[T]]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[WOption[Size[T]]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[WOption[Size[T]]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WOption[Size[T]]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkCostedPrim {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[T], Rep[Int], Rep[Size[T]]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedPrim" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[T], Ref[Int], Ref[Size[T]]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkCostedPrim" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[T], Rep[Int], Rep[Size[T]]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[T], Ref[Int], Ref[Size[T]]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[T], Rep[Int], Rep[Size[T]]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[T], Ref[Int], Ref[Size[T]]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkCostedPair {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedPair" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[Costed[L]], Ref[Costed[R]], Ref[Int]) forSome {type L; type R}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkCostedPair" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1), args(2))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Costed[L]], Ref[Costed[R]], Ref[Int]) forSome {type L; type R}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Costed[L]], Rep[Costed[R]], Rep[Int]) forSome {type L; type R}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Costed[L]], Ref[Costed[R]], Ref[Int]) forSome {type L; type R}] = unapply(exp.node)
     }
 
     object mkCostedFunc {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Costed[Env]], Rep[Costed[Arg] => Costed[Res]], Rep[Int], Rep[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedFunc" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[Costed[Env]], Ref[Costed[Arg] => Costed[Res]], Ref[Int], Ref[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkCostedFunc" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1), args(2), args(3))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Costed[Env]], Rep[Costed[Arg] => Costed[Res]], Rep[Int], Rep[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Costed[Env]], Ref[Costed[Arg] => Costed[Res]], Ref[Int], Ref[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Costed[Env]], Rep[Costed[Arg] => Costed[Res]], Rep[Int], Rep[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Costed[Env]], Ref[Costed[Arg] => Costed[Res]], Ref[Int], Ref[Size[Arg => Res]]) forSome {type Env; type Arg; type Res}] = unapply(exp.node)
     }
 
     object mkCostedColl {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Size[T]]], Rep[Int]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedColl" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[Coll[T]], Ref[Coll[Int]], Ref[Coll[Size[T]]], Ref[Int]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkCostedColl" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1), args(2), args(3))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Size[T]]], Rep[Int]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[Coll[T]], Ref[Coll[Int]], Ref[Coll[Size[T]]], Ref[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[Coll[T]], Rep[Coll[Int]], Rep[Coll[Size[T]]], Rep[Int]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[Coll[T]], Ref[Coll[Int]], Ref[Coll[Size[T]]], Ref[Int]) forSome {type T}] = unapply(exp.node)
     }
 
     object mkCostedOption {
-      def unapply(d: Def[_]): Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Size[T]]], Rep[Int]) forSome {type T}] = d match {
-        case MethodCall(receiver, method, args, _) if receiver.elem.isInstanceOf[CostedBuilderElem[_]] && method.getName == "mkCostedOption" =>
+      def unapply(d: Def[_]): Nullable[(Ref[CostedBuilder], Ref[WOption[T]], Ref[WOption[Int]], Ref[WOption[Size[T]]], Ref[Int]) forSome {type T}] = d match {
+        case MethodCall(receiver, method, args, _) if method.getName == "mkCostedOption" && receiver.elem.isInstanceOf[CostedBuilderElem[_]] =>
           val res = (receiver, args(0), args(1), args(2), args(3))
-          Nullable(res).asInstanceOf[Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Size[T]]], Rep[Int]) forSome {type T}]]
+          Nullable(res).asInstanceOf[Nullable[(Ref[CostedBuilder], Ref[WOption[T]], Ref[WOption[Int]], Ref[WOption[Size[T]]], Ref[Int]) forSome {type T}]]
         case _ => Nullable.None
       }
-      def unapply(exp: Sym): Nullable[(Rep[CostedBuilder], Rep[WOption[T]], Rep[WOption[Int]], Rep[WOption[Size[T]]], Rep[Int]) forSome {type T}] = exp match {
-        case Def(d) => unapply(d)
-        case _ => Nullable.None
-      }
+      def unapply(exp: Sym): Nullable[(Ref[CostedBuilder], Ref[WOption[T]], Ref[WOption[Int]], Ref[WOption[Size[T]]], Ref[Int]) forSome {type T}] = unapply(exp.node)
     }
   }
 
@@ -1498,6 +1061,17 @@ implicit val eRes = func.elem.eRange.typeArgs("Val")._1.asElem[Res]
   }
 } // of object CostedBuilder
   registerEntityObject("CostedBuilder", CostedBuilder)
+
+  override def resetContext(): Unit = {
+    super.resetContext()
+    RCosted.reset()
+    RCostedPrim.reset()
+    RCostedPair.reset()
+    RCostedFunc.reset()
+    RCostedColl.reset()
+    RCostedOption.reset()
+    RCostedBuilder.reset()
+  }
 
   registerModule(CostsModule)
 }

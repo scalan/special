@@ -149,14 +149,14 @@ class SModuleBuilder(implicit val context: AstContextBase) {
   }
 
 //  /** Introduces a synonym for each entity. If name of the entity is Matr, the method adds:
-//    *   type RepMatr[T] = Rep[Matr[T]]
+//    *   type RepMatr[T] = Ref[Matr[T]]
 //    * */
 //  def addEntityRepSynonym(module: SModuleDef) = {
 //    val entity = module.entityOps
 //    def synDef(entity: STraitDef) = STpeDef(
-//      name = "Rep" + entityName,
+//      name = "Ref" + entityName,
 //      tpeArgs = entity.tpeArgs,
-//      rhs = STraitCall("Rep", List(STraitCall(entity.name, entity.tpeArgs.map(_.toTraitCall))))
+//      rhs = STraitCall("Ref", List(STraitCall(entity.name, entity.tpeArgs.map(_.toTraitCall))))
 //    )
 //    module.copy(entityRepSynonym = Some(synDef))
 //  }

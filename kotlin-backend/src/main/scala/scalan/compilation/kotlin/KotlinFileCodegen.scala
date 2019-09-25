@@ -2,16 +2,16 @@ package scalan.compilation.kotlin
 
 import java.io.PrintWriter
 
-import scalan.{Scalan, TypeDesc}
+import scalan.ScalanEx
 import scalan.compilation.{IndentLevel, FileCodegen, CodegenConfig}
 import scalan.meta.ScalanAst._
 import scalan.util.PrintExtensions._
 import scalan.meta.{SSymName, ScalanAstTransformers}
-import scalan.primitives.Blocks
 
 case class GenCtx(module: SUnitDef, writer: PrintWriter)
 
-class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenConfig) extends FileCodegen(_scalan, config) {
+
+class KotlinFileCodegen[+IR <: ScalanEx](_scalan: IR, config: CodegenConfig) extends FileCodegen(_scalan, config) {
   import scalan._
   implicit val context = astContext
   val PairType = SSymName("kotlin", "Pair")
@@ -185,7 +185,7 @@ class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenC
     }
   }
 
-  def emitLambdaHeader(f: Exp[_], lam: Lambda[_, _], functionName: String)
+  def emitLambdaHeader(f: Ref[_], lam: Lambda[_, _], functionName: String)
                       (implicit stream: PrintWriter, indentLevel: IndentLevel) = {
     emit(src"fun $f(${lam.x }: ${lam.x.elem }): ${lam.y.elem } {")
   }
@@ -208,9 +208,9 @@ class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenC
 
   override def tpe(elem: Elem[_]): String = elem.name
 
-  def simpleNode(sym: Exp[_], d: Def[_]) = src"local $sym = $d"
+  def simpleNode(sym: Ref[_], d: Def[_]) = src"local $sym = $d"
 
-  override def emitNode(sym: Exp[_], d: Def[_], graph: AstGraph)
+  override def emitNode(sym: Ref[_], d: Def[_], graph: AstGraph)
                        (implicit stream: PrintWriter, indentLevel: IndentLevel) = {
     def initSym(rhs: Any = "{}"): Unit =
       emit(src"local $sym = $rhs")
@@ -241,28 +241,14 @@ class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenC
       //      case ArrayRangeFrom0(n) =>
       //        initSym()
       //        emit(src"for i = 1, $n do $sym[i] = i - 1 end")
-      case IfThenElse(c, t, e) =>
-        emit(src"local $sym")
-        val optBranches = graph.branches.ifBranches.get(sym)
-        emit(src"if $c then")
-        indented { implicit indentLevel =>
-          optBranches.foreach { branches => emitSchedule(branches.thenBody) }
-          emit(src"$sym = $t")
-        }
-        emit("else")
-        indented { implicit indentLevel =>
-          optBranches.foreach { branches => emitSchedule(branches.elseBody) }
-          emit(src"$sym = $e")
-        }
-        emit("end")
       case _ => super.emitNode(sym, d, graph)
     }
   }
 
-  def functionHeader(sym: Exp[_], args: List[Exp[_]]): String =
+  def functionHeader(sym: Ref[_], args: List[Ref[_]]): String =
     src"local function $sym($args)"
 
-  def functionReturn(y: Exp[_]): String = src"return $y"
+  def functionReturn(y: Ref[_]): String = src"return $y"
 
   def functionFooter(): Option[String] = Some("end")
 
@@ -319,7 +305,7 @@ class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenC
     case NaN => "0/0"
   }
 
-  override def unOp(op: UnOp[_, _], x: Exp[_]): String = op match {
+  override def unOp(op: UnOp[_, _], x: Ref[_]): String = op match {
     case ToString() => src"tostring($x)"
     case StringToDouble =>
       src"tonumber($x)"
@@ -335,7 +321,7 @@ class KotlinFileCodegen[+IR <: Scalan with Blocks](_scalan: IR, config: CodegenC
     case _ => super.unOp(op, x)
   }
 
-  override def binOp(op: BinOp[_, _], x: Exp[_], y: Exp[_]): String = op match {
+  override def binOp(op: BinOp[_, _], x: Ref[_], y: Ref[_]): String = op match {
     case StringConcat =>
       src"$x .. $y"
     case StringContains =>

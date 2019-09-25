@@ -23,10 +23,11 @@ env:
 language: scala
 
 jdk:
-  - oraclejdk9
+  - oraclejdk8
 
 script:
-  - sbt -jvm-opts .travis.jvmopts $TEST_SUITE
+  - sbt -jvm-opts .travis.jvmopts coverage $TEST_SUITE
 
 after_success:
+  - sbt coverageReport coverageAggregate coveralls
   - sbt -jvm-opts .travis.jvmopts publish

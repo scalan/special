@@ -107,12 +107,14 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
 
   @NeverInline
   override def patch(from: Int, patch: Coll[A], replaced: Int): Coll[A] = {
+    // TODO optimize: avoid using `patch` as it do boxing
     val res = toArray.patch(from, patch.toArray, replaced).toArray
     builder.fromArray(res)
   }
 
   @NeverInline
   override def updated(index: Int, elem: A): Coll[A] = {
+    // TODO optimize: avoid using `updated` as it do boxing
     val res = toArray.updated(index, elem)
     builder.fromArray(res)
   }
@@ -523,7 +525,8 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   @NeverInline
   override def mapReduce[K: RType, V: RType](m: ((L, R)) => (K, V), r: ((V, V)) => V): Coll[(K, V)] = {
-    val (keys, values) = Helpers.mapReduce(toArray, m, r)  // TODO optimize: don't reify arr
+    // TODO optimize: don't reify arr
+    val (keys, values) = Helpers.mapReduce(toArray, m, r)
     builder.pairCollFromArrays(keys, values)
   }
 
@@ -630,7 +633,12 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   }
 
   @NeverInline
-  def append(other: Coll[A]): Coll[A] = builder.fromArray(toArray).append(builder.fromArray(other.toArray))
+  def append(other: Coll[A]): Coll[A] = other match {
+    case repl: ReplColl[A@unchecked] if this.value == repl.value =>
+      new CReplColl(value, this.length + repl.length)
+    case _ =>
+      builder.fromArray(toArray).append(builder.fromArray(other.toArray))
+  }
 
   override def reverse: Coll[A] = this
 
@@ -693,6 +701,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def updated(index: Int, elem: A): Coll[A] = {
     if (elem == value) this
     else {
+      // TODO optimize: avoid using `updated` as it do boxing
       val res = toArray.updated(index, elem)
       builder.fromArray(res)
     }

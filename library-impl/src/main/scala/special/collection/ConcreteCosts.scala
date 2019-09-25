@@ -52,7 +52,7 @@ class CCostedColl[Item](
 }
 
 class CCostedBuilder extends CostedBuilder {
-  def monoidBuilder = new MonoidBuilderInst
+  def monoidBuilder: MonoidBuilder = new MonoidBuilderInst
 
   @NeverInline
   def costedValue[T](x: T, optCost: Option[Int])(implicit cT: RType[T]): Costed[T] = rewritableMethod
