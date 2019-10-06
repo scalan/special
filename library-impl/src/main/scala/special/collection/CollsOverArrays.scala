@@ -132,12 +132,11 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
   override def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A] = {
     requireSameLength(indexes, values)
     val resArr = toArray.clone()
-    var i = 0
-    while (i < indexes.length) {
+    val limit = indexes.length
+    cfor(0)(_ < limit, _ + 1) { i =>
       val pos = indexes(i)
       if (pos < 0 || pos >= toArray.length) throw new IndexOutOfBoundsException(pos.toString)
       resArr(pos) = values(i)
-      i += 1
     }
     builder.fromArray(resArr)
   }
@@ -390,11 +389,9 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   @NeverInline
   override def exists(p: ((L, R)) => Boolean): Boolean = {
     val len = ls.length
-    var i = 0
-    while (i < len) {
+    cfor(0)(_ < len, _ + 1) { i =>
       val found = p((ls(i), rs(i)))
       if (found) return true
-      i += 1
     }
     false
   }
@@ -402,11 +399,9 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   @NeverInline
   override def forall(p: ((L, R)) => Boolean): Boolean = {
     val len = ls.length
-    var i = 0
-    while (i < len) {
+    cfor(0)(_ < len, _ + 1) { i =>
       val ok = p((ls(i), rs(i)))
       if (!ok) return false
-      i += 1
     }
     true
   }
@@ -415,8 +410,7 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
     val len = ls.length
     val resL: Buffer[L] = Buffer.empty[L](ls.tItem.classTag)
     val resR: Buffer[R] = Buffer.empty[R](rs.tItem.classTag)
-    var i = 0
-    while (i < len) {
+    cfor(0)(_ < len, _ + 1) { i =>
       val l = ls.apply(i)
       val r = rs.apply(i)
       val ok = p((l, r))
@@ -424,7 +418,6 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
         resL += l
         resR += r
       }
-      i += 1
     }
     builder.pairCollFromArrays(resL.toArray(), resR.toArray())
   }
@@ -520,13 +513,12 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
     requireSameLength(indexes, values)
     val resL = ls.toArray.clone()
     val resR = rs.toArray.clone()
-    var i = 0
-    while (i < indexes.length) {
+    val limit = indexes.length
+    cfor(0)(_ < limit, _ + 1) { i =>
       val pos = indexes(i)
       if (pos < 0 || pos >= length) throw new IndexOutOfBoundsException(pos.toString)
       resL(pos) = values(i)._1
       resR(pos) = values(i)._2
-      i += 1
     }
     builder.pairColl(builder.fromArray(resL), builder.fromArray(resR))
   }
@@ -551,17 +543,13 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
         resR += item._2
       }
     }
-    var i = 0
-    val thisLen = math.min(ls.length, rs.length)
-    while (i < thisLen) {
+    val thisLimit = math.min(ls.length, rs.length)
+    cfor(0)(_ < thisLimit, _ + 1) { i =>
       addToSet((ls(i), rs(i)))
-      i += 1
     }
-    i = 0
-    val thatLen = that.length
-    while (i < thatLen) {
+    val thatLimit = that.length
+    cfor(0)(_ < thatLimit, _ + 1) { i =>
       addToSet(that(i))
-      i += 1
     }
     builder.pairCollFromArrays(resL.toArray, resR.toArray)
   }
@@ -641,7 +629,7 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   def append(other: Coll[A]): Coll[A] = other match {
-    case repl: ReplColl[A@unchecked] if this.value == repl.value =>
+    case repl: ReplColl[A@unchecked] if this.value == repl.value && this.length > 0 && repl.length > 0 =>
       builder.replicate(this.length + repl.length, value)
     case _ =>
       builder.fromArray(toArray).append(builder.fromArray(other.toArray))
@@ -706,6 +694,8 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
 
   @NeverInline
   override def updated(index: Int, elem: A): Coll[A] = {
+    if (index < 0 || index >= length)
+      throw new IndexOutOfBoundsException
     if (elem == value) this
     else {
       val res = toArray.updated(index, elem)
@@ -717,12 +707,10 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def updateMany(indexes: Coll[Int], values: Coll[A]): Coll[A] = {
     requireSameLength(indexes, values)
     val resArr = toArray.clone()
-    var i = 0
-    while (i < indexes.length) {
+    cfor(0)(_ < indexes.length, _ + 1) { i =>
       val pos = indexes(i)
       if (pos < 0 || pos >= length) throw new IndexOutOfBoundsException(pos.toString)
       resArr(pos) = values(i)
-      i += 1
     }
     builder.fromArray(resArr)
   }
@@ -732,10 +720,8 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
     if (length <= 0) return builder.pairColl(builder.emptyColl[K], builder.emptyColl[V])
     val (k, v) = m(value)
     var reducedV = v
-    var i = 1
-    while (i < length) {
+    cfor(1)(_ < length, _ + 1) { i =>
       reducedV = r((reducedV, v))
-      i += 1
     }
     builder.pairColl(builder.fromItems(k), builder.fromItems(reducedV))
   }
