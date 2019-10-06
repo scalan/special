@@ -5,7 +5,7 @@ Please describe here all changes which may lead to hard fork (HF for short).
 **Pull requests based on the next HF branch should be rejected, 
 if they contain HF change, which is not described here**.
 
-### Hard-fork changes in v0.6.0 (since v0.5.0)
+### Hard-fork changes in v0.7.0 (since v0.6.0)
 
 1. Removed RW rule `case IsNumericToLong(Def(IsNumericToInt(x))) if x.elem == LongElement => x`
   This is a bug, but its fix may lead to hard-fork.
@@ -22,3 +22,6 @@ if they contain HF change, which is not described here**.
  Having such rule is another bug, which is safe by itself, but cannot
  be fixed without HF.
 
+ 3. CReplColl.updated (bug fixed) 
+ Added index boundary check throwing IndexOutOfBoundsException.
+ This check is necessary to preserve Coll.updated contract.
