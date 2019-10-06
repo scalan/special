@@ -17,7 +17,7 @@ object Base {
     } catch {
       case _: Throwable => {}
     }
-    prop.putAll(System.getProperties.asInstanceOf[util.Hashtable[Any, Any]])
+    prop.asInstanceOf[util.Hashtable[Object,Object]].putAll(System.getProperties.asInstanceOf[util.Map[Object, Object]])
     prop
   }
 

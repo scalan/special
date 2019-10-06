@@ -18,17 +18,6 @@ import scala.runtime.RichInt
 
 class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]) extends Coll[A] {
   @Internal
-  private def isPaired(): Boolean = {
-    tA match {
-      case pair: PairType[a, b] => true
-      case _ => false
-    }
-  }
-
-  // init
-  if (isPaired()) throw new RuntimeException(s"Got paired type: ${tA}. Use builders to create paired collections")
-
-  @Internal
   override def tItem: RType[A] = tA
   def builder: CollBuilder = new CollOverArrayBuilder
   @inline def length: Int = toArray.length
@@ -206,7 +195,6 @@ class CollOverArray[@specialized A](val toArray: Array[A])(implicit tA: RType[A]
   override def equals(obj: scala.Any): Boolean = obj match {
     case repl: CReplColl[A]@unchecked if repl.tItem == this.tItem =>
       isReplArray(repl.length, repl.value)
-    case pairColl: PairColl[a, b] => false
     case otherColl: Coll[A] if otherColl.tItem == this.tItem =>
       util.Objects.deepEquals(otherColl.toArray, toArray)
     case _ => false
@@ -337,7 +325,10 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
 
   @Internal
   override def equals(that: scala.Any) = (this eq that.asInstanceOf[AnyRef]) || (that match {
-    case that: PairColl[_,_] if that.tItem == this.tItem => ls == that.ls && rs == that.rs
+    case that: PairColl[_,_] if that.tItem == this.tItem =>
+      ls == that.ls && rs == that.rs
+    case that: Coll[_] if that.tItem == this.tItem =>
+      util.Objects.deepEquals(that.toArray, toArray)
     case _ => false
   })
 
@@ -763,7 +754,6 @@ class CReplColl[@specialized A](val value: A, val length: Int)(implicit tA: RTyp
   override def equals(obj: scala.Any): Boolean = obj != null && (obj match {
     case repl: CReplColl[A]@unchecked if repl.tItem == this.tItem =>
       this.length == repl.length && this.value == repl.value
-    case pairColl: PairColl[a, b] => false
     case obj: Coll[A] if obj.tItem == this.tItem =>
       obj.isReplArray(this.length, this.value)
     case _ => false
