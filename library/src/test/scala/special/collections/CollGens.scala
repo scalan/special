@@ -4,7 +4,7 @@ import scala.collection.mutable.ArrayBuffer
 import org.scalacheck.util.Buildable
 
 import scala.collection.mutable
-import org.scalacheck.Gen
+import org.scalacheck.{Gen, Arbitrary}
 import scalan._
 import special.collection.{Coll, ReplColl}
 
@@ -13,6 +13,9 @@ trait CollGens extends RTypeGens { testSuite =>
   import Gen._
 
   val indexGen = choose(0, 100)
+  val byteGen = Arbitrary.arbByte.arbitrary
+  val intGen = Arbitrary.arbInt.arbitrary
+  val doubleGen = Arbitrary.arbDouble.arbitrary
 
   val monoid = builder.Monoids.intPlusMonoid
 

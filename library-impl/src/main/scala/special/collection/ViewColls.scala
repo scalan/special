@@ -10,15 +10,29 @@ import java.util
 import scalan.RType.PrimitiveType
 
 
+/** Collection lazily computed from `source` using function `f`, such that
+  * `CViewColl(xs, f)` is equals to `xs.map(f)`, but computed lazily.
+  * This implementation is not thread-safe.
+  */
 class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A => B)(implicit val tItem: RType[B]) extends Coll[B] {
 
-  private var isCalculated: Array[Boolean] = Array.ofDim[Boolean](source.length)(RType.BooleanType.classTag)
+  private var isCalculated: Array[Boolean] = new Array[Boolean](source.length)
   private var items: Array[B] = Array.ofDim[B](source.length)(tItem.classTag)
-  private var calculatedCount = 0
+
+  /** How many items has been calculated. */
+  private var calculatedCount: Int = 0
+
+  @inline private def isAllItemsCalculated(): Boolean = calculatedCount == length
 
   def fromPartialCalculation(calculated: Array[Boolean], calculatedItems: Array[B]): CViewColl[A, B] = {
-    if (calculated.length != source.length || calculatedItems.length != source.length)
-      throw new RuntimeException("Can't make partial collection: calculated items dimension != source dimension")
+    val calcLen = calculated.length
+    if (calcLen != calculatedItems.length)
+      throw new RuntimeException(
+        s"Can't make partial collection: calculatedItems.length != calculatedItems.length (${calcLen}, ${calculatedItems.length})")
+    val len = source.length
+    if (calcLen != len)
+      throw new RuntimeException(
+        s"Can't make partial collection: calculated.length != source.length (${calcLen}, $len)")
     isCalculated = calculated
     items = calculatedItems
     calculatedCount = 0
@@ -27,23 +41,22 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
         calculatedCount += 1
       }
     }
-
     this
   }
 
-  private def isAllItemsCalculated(): Boolean = calculatedCount == length
-
-  private def calculateItem(index: Int): Unit = {
+  /** Calculate item without incrementing counter. */
+  @inline private def calculateItem(index: Int): Unit = {
     items(index) = f(source(index))
     isCalculated(index) = true
   }
 
-  private def ensureItemNoCalcCountChange(index: Int): Unit = {
+  @inline private def ensureItemNoCalcCountChange(index: Int): Unit = {
     if (!isCalculated(index)) {
       calculateItem(index)
     }
   }
 
+  /** Compute item if needed and increment counter. */
   private def ensureItem(index: Int): Unit = {
     if (!isCalculated(index)) {
       calculateItem(index)
@@ -51,6 +64,7 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
     }
   }
 
+  /** Compute if needed and return item at `index`. Doesn't check that the index is in range. */
   @inline private def ensureAndGetItem(index: Int): B = {
     ensureItem(index)
     items(index)
@@ -111,16 +125,16 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   override def forall(p: B => Boolean): Boolean = toArray.forall(p)
 
   @NeverInline
-  override def filter(p: B => Boolean): Coll[B] = builder.fromArray(toArray)(tItem).filter(p)
+  override def filter(p: B => Boolean): Coll[B] = builder.fromArray(toArray)(tItem).filter(p)  // TODO optimize
 
   @NeverInline
   override def foldLeft[C](zero: C, op: ((C, B)) => C): C = toArray.foldLeft(zero)((item1, item2) => op((item1, item2)))
 
   @NeverInline
-  override def indices: Coll[Int] = builder.fromArray((0 until source.length).toArray)
+  override def indices: Coll[Int] = builder.fromArray((0 until source.length).toArray)  // TODO optimize
 
   @NeverInline
-  override def flatMap[C: RType](g: B => Coll[C]): Coll[C] = builder.fromArray(toArray)(tItem).flatMap(g)
+  override def flatMap[C: RType](g: B => Coll[C]): Coll[C] = builder.fromArray(toArray)(tItem).flatMap(g) // TODO optimize
 
   @NeverInline
   override def segmentLength(p: B => Boolean, from: Int): Int = {
@@ -145,7 +159,7 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   }
 
   @NeverInline
-  override def lastIndexWhere(p: B => Boolean, end: Int): Int = toArray.lastIndexWhere(p, end)
+  override def lastIndexWhere(p: B => Boolean, end: Int): Int = toArray.lastIndexWhere(p, end)  // TODO optimize
 
   @NeverInline
   override def take(n: Int): Coll[B] = {
@@ -157,7 +171,9 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
   }
 
   @NeverInline
-  override def partition(pred: B => Boolean): (Coll[B], Coll[B]) = builder.fromArray(toArray)(tItem).partition(pred)
+  override def partition(pred: B => Boolean): (Coll[B], Coll[B]) = {
+    builder.fromArray(toArray)(tItem).partition(pred) // TODO optimize
+  }
 
   @NeverInline
   override def patch(from: Int,
@@ -288,18 +304,18 @@ class CViewColl[@specialized A, @specialized B](val source: Coll[A], val f: A =>
 
   /*
    * We could just verify that source is repl array and match f(source(0)) == value,
-   * assuming that key functional programming principle is true: a function gives
-   * same result on same data every time
+   * assuming that 'f' gives every time the same result on same data.
    */
   @Internal
-  override def isReplArray(len: Int, value: B): Boolean = {
+  override private[collection] def isReplArray(len: Int, value: B): Boolean = {
     if (length != len) return false
     if (length > 0) {
       /*
-       * Every calculation can take a long time. this(0) will return already calculated value.
-       * f(source(0)) will calculate value no matter if it was already done
+       * The calculation of `f` may take a long time.
+       * We use `this(0)` which returns value calculate on demand (Call-by-need).
+       * `f(source(0))` will calculate value no matter if it was already done (Call-by-name)
        */
-      source.isReplArray(len, source(0)) && this(0) == value
+      this(0) == value && source.isReplArray(len, source(0))
     } else {
       true
     }

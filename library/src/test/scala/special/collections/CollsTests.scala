@@ -519,7 +519,44 @@ class CollsTests extends PropSpec with PropertyChecks with Matchers with CollGen
         val view = builder.makeView(col, hashCodeInc)
         val usual = col.map(hashCodeInc)
         view.toArray shouldBe usual.toArray
+        view shouldBe usual
+        assert(view == usual)
       }
+    }
+  }
+
+  // TODO: improve ViewColl and CollOverArray equality with complex data
+  property("ViewColl vs CollOverArray complex equality") {
+    forAll(indexGen, indexGen) { (n, item) =>
+      def f(i: Int): (Int, Int) = (i + 10, i - 10)
+      val view = builder.makeView(builder.replicate(n, item), f)
+      val repl = builder.replicate(n, item).map(f)
+
+      checkEquality(view, repl)
+    }
+  }
+
+  property("CViewColl.equality") {
+    forAll(indexGen, intGen) { (n, item) =>
+      def f(i: Int): Int = i + 10
+      val view = builder.makeView(builder.replicate(n, item), f)
+      val repl = builder.replicate(n, item).map(f)
+      checkEquality(view, repl)
+
+      val newView = builder.makeView(builder.makeView(view, inc), dec)
+      checkEquality(newView, view)
+      checkEquality(newView, repl)
+    }
+    forAll(getCollOverArrayGen(intGen, 10), testMinSuccess) { coll =>
+      def f(i: Int): Int = i * 10
+      val view = builder.makeView(coll, f)
+      val mapped = coll.map(f)
+      checkEquality(view, mapped)
+    }
+    forAll (byteGen, doubleGen, intGen, indexGen) { (b, d, i, n) =>
+      val repl = builder.replicate(n, (b, i))
+      val view = builder.makeView(repl, (t: (Byte, Int)) => ((t._1 / 2).toByte, t._2 * 2))
+      view.equals(repl.map((t: (Byte, Int)) => ((t._1 / 2).toByte, t._2 * 2))) shouldBe true
     }
   }
 

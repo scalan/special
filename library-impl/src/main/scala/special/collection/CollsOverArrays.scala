@@ -333,7 +333,8 @@ class PairOfCols[@specialized L, @specialized R](val ls: Coll[L], val rs: Coll[R
   })
 
   @Internal
-  override def hashCode() = ls.hashCode() * 41 + rs.hashCode()
+  override def hashCode() = CollectionUtil.deepHashCode(toArray)
+
   @Internal @inline
   implicit def tL = ls.tItem
   @Internal @inline
