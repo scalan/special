@@ -17,7 +17,7 @@ if they contain HF change, which is not described here**.
   With this rule the expression becomes `MaxLong == MaxLong`
   
  2. Removed RW rule `case CM.map(CM.map(_xs, f: RFunc[a, b]), _g: RFunc[_,c]) =>`.
- Such kind of transformations in general don't preserve expression eqvivalence 
+ Such kind of transformations in general don't preserve expression equivalence 
  in a strict (Call-By-Value) language. 
  Having such rule is another bug, which is safe by itself, but cannot
  be fixed without HF.

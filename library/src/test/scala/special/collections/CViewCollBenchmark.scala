@@ -8,9 +8,10 @@ import special.collection.ExtensionMethods._
 import spire.syntax.all._
 
 trait CViewCollBenchmarkCases extends CollGens { suite: Bench[Double] =>
-  val sizes = Gen.exponential("size")(10, 100000, 10)
+  val maxSize = 100000
+  val sizes = Gen.exponential("size")(10, maxSize, 10)
 
-  val ranges = for { size <- sizes } yield (0 until size, 100000 / size)
+  val ranges = for { size <- sizes } yield (0 until size, maxSize / size)
 
   val arrays = ranges.map { case (r, i) => (r.toArray, i) }
 
@@ -36,30 +37,30 @@ trait CViewCollBenchmarkCases extends CollGens { suite: Bench[Double] =>
     }
   }
   performance of "map creation" in {
+    var res: Coll[Int] = null
     measure method "of CViewColl" in {
       using(colls) in { case (coll, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
-          builder.makeView(coll, inc)
+          res = builder.makeView(coll, inc)
         }
-
       }
     }
     measure method "of Coll" in {
       using(colls) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
-          c.map(inc)
+          res = c.map(inc)
         }
       }
     }
   }
+  var sum = 0
   performance of "map usage" in {
-
     measure method "of CViewColl" in {
-      using(colls) in { case (coll, n) =>
+      using(colls) in { case (c, n) =>  // n == maxSize / size
         cfor(0)(_ < n, _ + 1) { _ =>
-          val view = builder.makeView[Int, Int](coll, x => x * 10)
-          var sum = 0
-          cfor(0)(_ < view.length, _ + 2) { i =>
+          val view = builder.makeView[Int, Int](c, x => x * 10)
+          sum = 0
+          cfor(0)(_ < c.length, _ + 2) { i =>  // sum every second elements, not items are calculated
             sum += view(i)
           }
         }
@@ -69,10 +70,10 @@ trait CViewCollBenchmarkCases extends CollGens { suite: Bench[Double] =>
     measure method "of Coll" in {
       using(colls) in { case (c, n) =>
         cfor(0)(_ < n, _ + 1) { _ =>
-          val coll = c.map(x => x * 10)
-          var sum = 0
+          val coll = c.map(x => x * 10) // all items are calculated
+          sum = 0
           cfor(0)(_ < c.length, _ + 2) { i =>
-            sum += c(i)
+            sum += coll(i)
           }
         }
       }

@@ -168,12 +168,12 @@ trait RTypeGens {
 
   val builder: CollBuilder = new CollOverArrayBuilder
 
-  def getArrayGen[T](valGen: Gen[T], count: Int)(implicit t: RType[T]): Gen[Array[T]] = {
-    containerOfN[Array, T](count, valGen)
+  def getArrayGen[T](valGen: Gen[T], length: Int)(implicit t: RType[T]): Gen[Array[T]] = {
+    containerOfN[Array, T](length, valGen)
   }
 
-  def getCollOverArrayGen[T: RType](valGen: Gen[T], count: Int): Gen[Coll[T]] = {
-    getArrayGen(valGen, count).map(builder.fromArray(_))
+  def getCollOverArrayGen[T: RType](valGen: Gen[T], length: Int): Gen[Coll[T]] = {
+    getArrayGen(valGen, length).map(builder.fromArray(_))
   }
 
   def getCollReplGen[T: RType](valGen: Gen[T], count: Int): Gen[Coll[T]] = {
