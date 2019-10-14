@@ -1,5 +1,7 @@
 package special.collections
 
+import java.util
+
 import org.scalameter.api._
 import spire.syntax.all.cfor
 import spire.util.Opt
@@ -109,6 +111,24 @@ trait BasicBenchmarkCases extends BenchmarkGens { suite: Bench[Double] =>
             case _ => i
           }
         }
+      }
+    }
+  }
+
+  performance of "ArrayEquality" in {
+    var res: Boolean = false
+    measure method "Array.equals" in {
+      using(arrays) in { case (xs, _) =>
+        val clone = xs.clone()
+        clone(clone.length-1) = 0
+        res = util.Arrays.equals(xs, clone)
+      }
+    }
+    measure method "sameElements" in {
+      using(arrays) in { case (xs, _) =>
+        val clone = xs.clone()
+        clone(clone.length-1) = 0
+        res = xs.sameElements(clone)
       }
     }
   }
