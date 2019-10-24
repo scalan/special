@@ -1,33 +1,41 @@
 sudo: required
 dist: trusty
-
-# Tricks to avoid unnecessary cache updates
 before_cache:
-  - find $HOME/.sbt -name "*.lock" | xargs rm
-  - find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
-
-# These directories are cached to S3 at the end of the build
+- find $HOME/.sbt -name "*.lock" | xargs rm
+- find $HOME/.ivy2 -name "ivydata-*.properties" | xargs rm
 cache:
   directories:
-    - $HOME/.ivy2/cache
-    - $HOME/.ivy2/local
-    - $HOME/.sbt/boot
-
+  - "$HOME/.ivy2/cache"
+  - "$HOME/.ivy2/local"
+  - "$HOME/.sbt/boot"
+stages:
+  - test
+  - coverage
+  - name: release
+    if: tag =~ ^v
+  - name: snapshot
+    if: NOT tag IS present
+jobs:
+  include:
+    - stage: test
+      script: sbt -jvm-opts .travis.jvmopts coverage $TEST_SUITE
+    - stage: coverage
+      script: sbt coverageReport coverageAggregate coveralls
+    - stage: release
+      script: sbt -jvm-opts .travis.jvmopts publishSigned sonatypeBundleRelease
+    - stage: snapshot
+      script: sbt -jvm-opts .travis.jvmopts publish
 env:
   global:
-    - secure: ClhWL1IW+RhzPEF29WKneTmr4c6Tmg4YcF8Y4oJ8V0kX0bRbhAo+eTP7hIaLoVSqIUdqrEZNHSbC9QmG0Hou0J5Trdu+uxqjIln8ITQ6bKHXWOi+0w36U290xpx8fqcYGg8mvovOcrsXcn+f9n/kevTDXvaU2FeUfPCgyLJ1PlTigmbNy2iNnEBxai8Nd+K7WQFcYHqIrlBJPHxaLAtgZns/+Ee2UZJF4W9Ls18NtA9Xq7ruoiXzBWEaojcei82o+jcXN2cujiF0nakCsZfV15StnsaNdf94iGKwFth1y6xDAsrBxopDTm8Jf0YVk2Iozazbzwk2lB6spZ3i3ZkpqgcPo1gMnvrbgHfn/pHxNdfXoKVjUG0X7gywuGYh7izlN/gJLeHJ356iBKombNEagRkHWWSeSwyfWbLLqEAhGpw8xp8eQs2mokBjYRRLIJqaaIDJ4FHyvsi7woTeAf/FEcGo5czxzpWnQRjT98tlJyi/Lz/WgDPsWKMmpnKOgfSfHou7tJB4Jw59Y4H60ebA3MJZsYTH/ZQu3nxPDaBSaCWvyKCEpMKBPUeJ9RcJ+nItVCkh5YYq79IGkRcXH1f0xzlI0Bl3GxdLkTR9zXBQyZ+JdSS7lcd2Rhs3V9S/EgA++6RPVqeerl6UQvGxXeLj2v225pIAHVZEuBxxAgyAJpE=
-    - secure: xvrbxfa684veLUSR6k8jbp/4bCI+drfAZbYob17/D/iSFxy2PJSFtT3rEw+F3Ih3YeDnp1vC1nkjR5aX0vFeAP8jP4bAhfD2QJC+6BhRqeCfXLfD1wE/VAucPRlvmVlxv47Dl29hqTztrLnva9QPtz2b0C1fzVYbdq78pCedNLheB+JUEyVWyxOZOYw35w+FbSbUD8Tf+6ymYL4QiOkjmbvMgxO+yCiq5TPGraWtr5iMQXAm3vKqvZYSaQnMIQt/c560wPVFjjjPcuHq+WcPi+A+33fhForec0qb7QsyLywWBtKqcgkP3zBhAOf4PK8E0WdE961Xni5PxeaGFQJ//pGHb3yZ81uSKo54omUMXI7HLEIHo11DgM58XijU7v5jYuwiDECDzcBambydfDXnCQGYqQv1A2GRYzJ2B0/0J1IOCXX2uTV/cGaIWNihslmAnL9ZhgEmNnzuh2/Xmue3f3D2BXw1JkVNhMp+5J3chMvNjbnujDtqvFLewYAjsD3geByTloUUOelpoczOPu8k2iycObXuSNeA4Sp/DV6BJxwg7iQFqcj24TSNvloANKO918lq8iuonppTSE1f/LN1bwWfQP9OnGq6gmyA2hwbL/V57ThuuHyS+QHnlC4xha3YmkEE4pPtM9OAZPmdf6jtO09yyvIeAmueAJtHXkz1fqA=
+  - secure: ClhWL1IW+RhzPEF29WKneTmr4c6Tmg4YcF8Y4oJ8V0kX0bRbhAo+eTP7hIaLoVSqIUdqrEZNHSbC9QmG0Hou0J5Trdu+uxqjIln8ITQ6bKHXWOi+0w36U290xpx8fqcYGg8mvovOcrsXcn+f9n/kevTDXvaU2FeUfPCgyLJ1PlTigmbNy2iNnEBxai8Nd+K7WQFcYHqIrlBJPHxaLAtgZns/+Ee2UZJF4W9Ls18NtA9Xq7ruoiXzBWEaojcei82o+jcXN2cujiF0nakCsZfV15StnsaNdf94iGKwFth1y6xDAsrBxopDTm8Jf0YVk2Iozazbzwk2lB6spZ3i3ZkpqgcPo1gMnvrbgHfn/pHxNdfXoKVjUG0X7gywuGYh7izlN/gJLeHJ356iBKombNEagRkHWWSeSwyfWbLLqEAhGpw8xp8eQs2mokBjYRRLIJqaaIDJ4FHyvsi7woTeAf/FEcGo5czxzpWnQRjT98tlJyi/Lz/WgDPsWKMmpnKOgfSfHou7tJB4Jw59Y4H60ebA3MJZsYTH/ZQu3nxPDaBSaCWvyKCEpMKBPUeJ9RcJ+nItVCkh5YYq79IGkRcXH1f0xzlI0Bl3GxdLkTR9zXBQyZ+JdSS7lcd2Rhs3V9S/EgA++6RPVqeerl6UQvGxXeLj2v225pIAHVZEuBxxAgyAJpE=
+  - secure: xvrbxfa684veLUSR6k8jbp/4bCI+drfAZbYob17/D/iSFxy2PJSFtT3rEw+F3Ih3YeDnp1vC1nkjR5aX0vFeAP8jP4bAhfD2QJC+6BhRqeCfXLfD1wE/VAucPRlvmVlxv47Dl29hqTztrLnva9QPtz2b0C1fzVYbdq78pCedNLheB+JUEyVWyxOZOYw35w+FbSbUD8Tf+6ymYL4QiOkjmbvMgxO+yCiq5TPGraWtr5iMQXAm3vKqvZYSaQnMIQt/c560wPVFjjjPcuHq+WcPi+A+33fhForec0qb7QsyLywWBtKqcgkP3zBhAOf4PK8E0WdE961Xni5PxeaGFQJ//pGHb3yZ81uSKo54omUMXI7HLEIHo11DgM58XijU7v5jYuwiDECDzcBambydfDXnCQGYqQv1A2GRYzJ2B0/0J1IOCXX2uTV/cGaIWNihslmAnL9ZhgEmNnzuh2/Xmue3f3D2BXw1JkVNhMp+5J3chMvNjbnujDtqvFLewYAjsD3geByTloUUOelpoczOPu8k2iycObXuSNeA4Sp/DV6BJxwg7iQFqcj24TSNvloANKO918lq8iuonppTSE1f/LN1bwWfQP9OnGq6gmyA2hwbL/V57ThuuHyS+QHnlC4xha3YmkEE4pPtM9OAZPmdf6jtO09yyvIeAmueAJtHXkz1fqA=
+  - secure: w2t0rd9L6sWlB1T+alwq6i+ciyAhpcvRZGemSTFQkjuaDy+py4Imd34XUkLvfVu6pYRkHLeQJafg+O/bLew1mjO4nm+LEowjU89XCxOewzMlPKpyqeNx0aEHOyTPCBWAxQXO2hjpgCyVS/WAhnx5/DISTd7NFOkDOCq6MnSf91W4+VHjxjvXrdwZir3LZ7QutJZIAMLmqNVP0QGrSTdWRNaNOJPxFlXImc3NtIOLmrLkqD36sGPycdJhfOZcN2SOXVIUqS5eHMXZ4OukJ8Qjj/4Ha88yj80NaCRZuYeKa5onvotkgnIlVVdVYLAVx5hApCXS53MT+p4sb4xOfEtIbe0nGCN4Fw7j8HRlChhV4c+fdYB/V0qPlD16I5HyVYJ6X92/5Gm7bvW4aRFkN1LVVeBmJWq1eeCB2bxz5cFuOmUI9EH3T6I+tjDaiWG6WKq4F5MC+GxtZwTkTrPUqbS9QwssH8GkDmnwDy7rPP+XaB4Uadc15LqY/FwmTY6wFLr/awfrB2ezjawLOTDQDmagf9M3a6CdRfhN3ImtbktC69n4oOOMAQ0geOxRDy3Etsrb1Ogjw4nEZdeCgADeYv1HO2AO8+rF8qzqtArqvNGSAwvrb8B5I5OUlPdAV6HKsWHs4E7D9NI8E0/kJ6boWBppMYhfnYrLDIkzL3z0ocR51OM=
   matrix:
-    - TEST_SUITE=test
-
+  - TEST_SUITE=test
 language: scala
-
 jdk:
-  - oraclejdk8
-
-script:
-  - sbt -jvm-opts .travis.jvmopts coverage $TEST_SUITE
-
-after_success:
-  - sbt coverageReport coverageAggregate coveralls
-  - sbt -jvm-opts .travis.jvmopts publish
+- oraclejdk8
+before_install:
+- openssl aes-256-cbc -K $encrypted_688fabf398c9_key -iv $encrypted_688fabf398c9_iv
+  -in ci/secring.asc.enc -out ci/secring.asc -d
+before_script: gpg --import ci/secring.asc
