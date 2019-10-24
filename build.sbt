@@ -5,6 +5,8 @@ resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repos
 lazy val buildSettings = Seq(
   scalaVersion := "2.12.8",
   organization := "io.github.scalan",
+  licenses := Seq("APL2" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+  description := "Compiling Scala to Something special",
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",
@@ -20,13 +22,8 @@ lazy val buildSettings = Seq(
     "-language:existentials",
     "-language:experimental.macros",
     "-opt:l:inline"),
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (version.value.trim.endsWith("SNAPSHOT"))
-      Some("snapshots" at (nexus + "content/repositories/snapshots"))
-    else
-      Some("releases" at nexus + "service/local/staging/deploy/maven2")
-  },
+  publishTo := sonatypePublishToBundle.value,
+  publishMavenStyle := true,
   // do not publish docs for snapshot versions
   publishArtifact in(Compile, packageDoc) := !version.value.trim.endsWith("SNAPSHOT"))
 
@@ -214,10 +211,21 @@ version in ThisBuild := {
   }
 }
 
-credentials += Credentials(Path.userHome / ".sbt" / ".special-sonatype-credentials")
+val credentialFile = Path.userHome / ".sbt" / ".special-sonatype-credentials"
+credentials ++= (for {
+  file <- if (credentialFile.exists) Some(credentialFile) else None
+} yield Credentials(file)).toSeq
 
 credentials ++= (for {
   username <- Option(System.getenv().get("SONATYPE_USERNAME"))
   password <- Option(System.getenv().get("SONATYPE_PASSWORD"))
 } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)).toSeq
 
+// PGP key for signing a release build published to sonatype
+// signing is done by sbt-pgp plugin
+// how to generate a key - https://central.sonatype.org/pages/working-with-pgp-signatures.html
+// how to export a key and use it with Travis - https://docs.scala-lang.org/overviews/contributors/index.html#export-your-pgp-key-pair
+//pgpPublicRing := file("ci/pubring.asc")
+//pgpSecretRing := file("ci/secring.asc")
+//pgpPassphrase := sys.env.get("PGP_PASSPHRASE").map(_.toArray)
+usePgpKeyHex("1FC7A98C612C77E30E64E0BD497CC9D8DE74E36F")
