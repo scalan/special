@@ -32,7 +32,9 @@ env:
 language: scala
 jdk:
 - oraclejdk8
+# decrypt the private key (exported via https://docs.scala-lang.org/overviews/contributors/index.html#export-your-pgp-key-pair )
 before_install:
 - openssl aes-256-cbc -K $encrypted_688fabf398c9_key -iv $encrypted_688fabf398c9_iv
   -in ci/secring.asc.enc -out ci/secring.asc -d
+# import decrypted private key
 before_script: gpg --import ci/secring.asc
