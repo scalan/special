@@ -10,7 +10,6 @@ cache:
   - "$HOME/.sbt/boot"
 stages:
   - test
-  - coverage
   - name: release
     if: tag =~ ^v
   - name: snapshot
@@ -18,9 +17,7 @@ stages:
 jobs:
   include:
     - stage: test
-      script: sbt -jvm-opts .travis.jvmopts coverage $TEST_SUITE
-    - stage: coverage
-      script: sbt coverageReport coverageAggregate coveralls
+      script: sbt -jvm-opts .travis.jvmopts coverage $TEST_SUITE coverageReport coverageAggregate coveralls
     - stage: release
       script: sbt -jvm-opts .travis.jvmopts publishSigned sonatypeBundleRelease
     - stage: snapshot
