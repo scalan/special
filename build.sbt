@@ -7,6 +7,7 @@ lazy val buildSettings = Seq(
   organization := "io.github.scalan",
   licenses := Seq("APL2" -> url("https://www.apache.org/licenses/LICENSE-2.0.txt")),
   description := "Compiling Scala to Something special",
+  homepage := Some(url("https://github.com/scalan/special")),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalacOptions ++= Seq(
     "-encoding", "UTF-8",
@@ -25,7 +26,16 @@ lazy val buildSettings = Seq(
   publishTo := sonatypePublishToBundle.value,
   publishMavenStyle := true,
   // do not publish docs for snapshot versions
-  publishArtifact in(Compile, packageDoc) := !version.value.trim.endsWith("SNAPSHOT"))
+  publishArtifact in(Compile, packageDoc) := !version.value.trim.endsWith("SNAPSHOT"),
+  pomExtra :=
+    <developers>
+      <developer>
+        <id>aslesarenko</id>
+        <name>Alexander Slesarenko</name>
+        <url>https://github.com/aslesarenko/</url>
+      </developer>
+    </developers>,
+)
 
 lazy val testSettings = Seq(
   libraryDependencies ++= Seq(
